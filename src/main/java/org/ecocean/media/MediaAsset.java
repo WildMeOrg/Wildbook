@@ -271,11 +271,16 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public MediaAsset getParentRoot(Shepherd myShepherd) {
-        Integer pid = this.getParentId();
-        if (pid == null) return this;
-        MediaAsset par = MediaAssetFactory.load(pid, myShepherd);
-        if (par == null) return this;  //orphaned!  fail!!
+        MediaAsset par = this.getParent(myShepherd);
+        if (par == null) return this;  //reached the root!
         return par.getParentRoot(myShepherd);
+    }
+
+    //returns null if no parent
+    public MediaAsset getParent(Shepherd myShepherd) {
+        Integer pid = this.getParentId();
+        if (pid == null) return null;
+        return MediaAssetFactory.load(pid, myShepherd);
     }
 
     public JSONObject getParameters() {
@@ -452,9 +457,15 @@ public class MediaAsset implements java.io.Serializable {
      human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
      FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string),
               then (b) crawl metadata.exif for something date-y
+
+        TODO maybe someday this actually should be *only* punting to store.getDateTime() ????
     */
     public DateTime getDateTime() {
         if (this.userDateTime != null) return this.userDateTime;
+        if (this.store != null) {
+            DateTime dt = this.store.getDateTime(this);
+            if (dt != null) return dt;
+        }
         if (getMetadata() == null) return null;
         String adt = getMetadata().getAttributes().optString("dateTime", null);
         if (adt != null) return DateTime.parse(adt);  //lets hope it is in iso8601 format like it should be!
@@ -519,17 +530,19 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     //if unity feature is appropriate, generates that; otherwise does a boundingBox one
-    public Feature generateFeatureFromBbox(double w, double h, double x, double y) {
+    //   'params' is extra params to use, and can be null
+    public Feature generateFeatureFromBbox(double w, double h, double x, double y, JSONObject params) {
         Feature f = null;
         if ((x != 0) || (y != 0) || (w != this.getWidth()) || (h != this.getHeight())) {
-            JSONObject p = new JSONObject();
-            p.put("width", w);
-            p.put("height", h);
-            p.put("x", x);
-            p.put("y", y);
-            f = new Feature("org.ecocean.boundingBox", p);
+            if (params == null) params = new JSONObject();
+            params.put("width", w);
+            params.put("height", h);
+            params.put("x", x);
+            params.put("y", y);
+            f = new Feature("org.ecocean.boundingBox", params);
             this.addFeature(f);
         } else {
+            //oopsy this ignores extra params!   TODO FIXME should we change this?
             f = this.generateUnityFeature();
         }
         return f;
@@ -858,7 +871,8 @@ public class MediaAsset implements java.io.Serializable {
             URL u = safeURL(myShepherd, request);
             if (u != null) jobj.put("url", u.toString());
 
-            ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
+            ArrayList<MediaAsset> kids = null;
+            if (!jobj.optBoolean("_skipChildren", false)) kids = this.findChildren(myShepherd);
             myShepherd.rollbackDBTransaction();
             if ((kids != null) && (kids.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray k = new org.datanucleus.api.rest.orgjson.JSONArray();
