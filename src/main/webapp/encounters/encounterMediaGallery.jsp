@@ -180,19 +180,24 @@ try {
 
 		  		
 		  		if (ma != null) {
-		  			JSONObject j = ma.sanitizeJson(request, new JSONObject());
+		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
 						j.put("annotationId", ann.getId());
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
+							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
+							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
+							//   also: prob should check *what* is detected. :) somewhere....
+							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
+System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatures().get(0) + " => " + ann.getFeatures().get(0).getParametersAsString());
 							j.put("extractFPS", ma.getParameters().optDouble("extractFPS",0));
 							j.put("extractOffset", ma.getParameters().optDouble("extractOffset",0));
 							MediaAsset p = MediaAssetFactory.load(ma.getParentId(), imageShepherd);
 							if (p != null) {
-		  						j.put("videoParent", p.sanitizeJson(request, new JSONObject()));
+		  						////j.put("videoParent", p.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}")));
 								if (p.getParentId() != null) {
 									MediaAsset sourceMA = MediaAssetFactory.load(p.getParentId(), imageShepherd);
 									if (sourceMA != null) {
-										JSONObject sj = sourceMA.sanitizeJson(request, new JSONObject());
+										JSONObject sj = sourceMA.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 										if (sourceMA.getMetadata() != null) sj.put("metadata", Util.toggleJSONObject(sourceMA.getMetadata().getData()));
 										j.put("sourceAsset", sj);
 									}
@@ -238,6 +243,16 @@ for (int i=0; i<captionLinks.size(); i++) {
 .image-enhancer-wrapper {
 	cursor: -webkit-zoom-in;
 	cursor: -moz-zoom-in;
+}
+
+.caption-youtube {
+    padding: 1px 3px;
+    background-color: rgba(255,255,255,0.5);
+    display: inline-block;
+    border-radius: 3px;
+    margin: 5px;
+    font-size: 0.8em;
+    cursor: pointer !important;
 }
 
 .image-enhancer-wrapper div {
@@ -319,25 +334,6 @@ if(request.getParameter("encounterNumber")!=null){
       maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     } else {
       maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
-	if (elem.sourceAsset && elem.sourceAsset.store.type == 'YouTube') {
-		var title = elem.sourceAsset.filename || '';
-		if (elem.sourceAsset.metadata && elem.sourceAsset.metadata.basic) {
-			title = elem.sourceAsset.metadata.basic.title || 'Untitled';
-			title += ' [from ' + (elem.sourceAsset.metadata.basic.author_name || 'Unknown source') + ']';
-		}
-		var time;
-		if ((elem.extractFPS > 0) && (elem.extractOffset != undefined)) {
-			time = (1 / elem.extractFPS) * elem.extractOffset - 2;  //rewind a couple seconds
-			if (t < 4) {
-				time = false;
-			} else {
-				time = Math.floor(time / 60) + 'm' + (time % 60) + 's';
-			}
-		}
-		var tlink = (time ? '#t=' + time : '');
-		var timeDisp = (time ? 'At approx <b>' + time + '</b> in ' : '');
-		$('#enc-gallery').after('<div>' + timeDisp + '<a target="_new" href="https://www.youtube.com/watch?v=' + elem.sourceAsset.filename + tlink + '" title="' + title + '">YouTube video</a></div>');
-	}
     }
 
 /*   now added to image hamburger menu
@@ -455,10 +451,16 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
             function(el, enh) {
 console.info(' ===========>   %o %o', el, enh);
 		imageLayerKeywords(el, enh);
-            },
+            }
         ];
 
-    }
+    }  //end if-logged-in
+
+	if (!opt.init) opt.init = []; //maybe created if logged in?
+
+	opt.init.push(
+		function(el, enh) { enhancerCaption(el, enh); }
+	);
 
 	opt.callback = function() {
 		$('.image-enhancer-keyword-wrapper').on('click', function(ev) { ev.stopPropagation(); });
@@ -466,6 +468,37 @@ console.info(' ===========>   %o %o', el, enh);
     imageEnhancer.applyTo(sel, opt);
 }
 
+function enhancerCaption(el, opt) {
+	var mid = el.context.id.substring(11);
+	var ma = assetById(mid);
+console.warn("====== enhancerCaption %o ", ma);
+	if (!ma || !ma.sourceAsset || !ma.sourceAsset.store.type == 'YouTube') return;
+	var title = ma.sourceAsset.filename || '';
+	if (ma.sourceAsset.metadata && ma.sourceAsset.metadata.basic) {
+		title = ma.sourceAsset.metadata.basic.title || 'Untitled';
+		title += ' [from ' + (ma.sourceAsset.metadata.basic.author_name || 'Unknown source') + ']';
+	}
+	var time;
+	if ((ma.extractFPS > 0) && (ma.extractOffset != undefined)) {
+		time = (1 / ma.extractFPS) * ma.extractOffset - 2;  //rewind a couple seconds
+		if (t < 4) {
+			time = false;
+		} else {
+			time = Math.floor(time / 60) + 'm' + (time % 60) + 's';
+		}
+	}
+	var tlink = (time ? '#t=' + time : '');
+	var timeDisp = (time ? 'At approx <b>' + time + '</b> in ' : '');
+console.info(timeDisp);
+
+	var ycap = $('<div title="' + title + '" class="caption-youtube">' + timeDisp + ' YouTube video</div>');
+	ycap.on('click', function(ev) {
+		var link = 'https://www.youtube.com/watch?v=' + ma.sourceAsset.filename + tlink;
+		ev.stopPropagation();
+		wildbook.openInTab(link);
+	});
+	$(el).append(ycap);
+}
 
 function checkImageEnhancerResize() {
 	var needUpdate = false;
