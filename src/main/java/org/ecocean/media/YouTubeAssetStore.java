@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import org.joda.time.DateTime;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
@@ -119,6 +120,17 @@ public class YouTubeAssetStore extends AssetStore {
     @Override
     public String hashCode(JSONObject params) {
         return "YouTube" + idFromParameters(params);
+    }
+
+    @Override
+    public DateTime getDateTime(MediaAsset ma) {
+        if ((ma == null) || (ma.getMetadata() == null) || (ma.getMetadata().getData().optJSONObject("detailed") == null)) return null;
+        String upd = ma.getMetadata().getData().getJSONObject("detailed").optString("upload_date", null);
+        if ((upd == null) || (upd.length() != 8)) return null;  //is like YYYYMMDD
+        try {
+            return new DateTime(Integer.parseInt(upd.substring(0,4)), Integer.parseInt(upd.substring(4,6)), Integer.parseInt(upd.substring(6)), 0, 1);
+        } catch (Exception ex) { }
+        return null;
     }
 
 
