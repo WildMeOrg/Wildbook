@@ -669,6 +669,8 @@ public class GridManager {
     }
     
   }
+  
+  public void clearDoneItems(){done = new ArrayList<ScanWorkItemResult>();}
     
 
 }
