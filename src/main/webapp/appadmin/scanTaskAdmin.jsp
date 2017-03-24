@@ -256,14 +256,16 @@ else{
     while ((it2!=null)&&(it2.hasNext())) {
       ScanTask st = (ScanTask) it2.next();
       
-      //clean up after the task if needed
-      gm.removeCompletedWorkItemsForTask(st.getUniqueNumber());
+
       
       Encounter scanEnc=new Encounter();
       if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
       	scanEnc=myShepherd.getEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""));
       }
       if (st.hasFinished()) {
+    	  
+          //clean up after the task if needed
+          gm.removeCompletedWorkItemsForTask(st.getUniqueNumber());
 
         //determine if left or right-side scan
         //scanWorkItem[] swis9=st.getWorkItems();
