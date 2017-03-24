@@ -255,6 +255,10 @@ else{
     scanNum = 0;
     while ((it2!=null)&&(it2.hasNext())) {
       ScanTask st = (ScanTask) it2.next();
+      
+      //clean up after the task if needed
+      gm.removeCompletedWorkItemsForTask(st.getUniqueNumber());
+      
       Encounter scanEnc=new Encounter();
       if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
       	scanEnc=myShepherd.getEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""));
@@ -399,7 +403,7 @@ single scan are allowed to exceed the total.</span>
   </tbody>
 </table>
 <%}%>
-<p>% inefficent collisions (nodes checking in duplicate work) since
+<p>% inefficient collisions (nodes checking in duplicate work) since
   startup: <%=gm.getCollisionRatePercentage()%>
 </p>
 
@@ -410,7 +414,7 @@ single scan are allowed to exceed the total.</span>
   <%
   int toDo=gm.getToDoSize();
   int numDone=gm.getDoneSize();
-  if(toDo==numDone){gm.clearDoneItems();}
+ 
   %>
   
   (To-Do: <%=toDo%> Done: <%=numDone%>)</p>
