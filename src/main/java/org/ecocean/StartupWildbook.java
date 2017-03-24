@@ -13,7 +13,7 @@ import java.net.URL;
 
 import org.ecocean.*;
 import org.ecocean.grid.MatchGraphCreationThread;
-import org.ecocean.grid.ScanTaskCleanupThread;
+//import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
