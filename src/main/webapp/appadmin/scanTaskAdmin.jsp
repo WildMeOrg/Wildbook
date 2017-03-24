@@ -407,7 +407,13 @@ single scan are allowed to exceed the total.</span>
   (<%=gm.getNumCollisions()%> collisions)</p>
 
 <p>Total work items and results in queue: <%=gm.getNumWorkItemsAndResults()%>
-  (To-Do: <%=gm.getToDoSize()%> Done: <%=gm.getDoneSize()%>)</p>
+  <%
+  int toDo=gm.getToDoSize();
+  int numDone=gm.getDoneSize();
+  if(toDo==numDone){gm.clearDoneItems();}
+  %>
+  
+  (To-Do: <%=toDo%> Done: <%=numDone%>)</p>
 
 <%
   if (request.isUserInRole("admin")) {
