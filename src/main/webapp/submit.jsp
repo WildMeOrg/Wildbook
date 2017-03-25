@@ -493,10 +493,8 @@ function showUploadBox() {
         <p class="help-block">
           <%=props.getProperty("examples") %>
           <ul>
-            <li>2014-01-05 12:30</li>
-            <li>2014-03-23</li>
-            <li>2013-12</li>
-            <li>2010</li>
+      		<li>2014Jan05 12:30</li>
+            <li>2014MAR23</li>
           </ul>
         </p>
       </div>
@@ -614,45 +612,56 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <p id="map_overlay_buttons"></p>
 </div>
 
-    <div>
-      <div class=" form-group form-inline">
-        <div class="col-xs-12 col-sm-6">
-          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
-          <input class="form-control" name="lat" type="text" id="lat"> &deg;
-        </div>
+<div class="row">
+	<div class="col-xs-12 col-lg-6">
+		<h3>GPS Coordinates</h3>
+		<div class="form-group form-inline">
+			<div class="col-xs-6 col-md-4">
+				<label class="text-danger control-label">Latitude</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<input class="form-control" name="latitude" type="text" id="latitude" size="24">
+			</div>
+		</div>
+		<div class="form-group form-inline">
+			<div class="col-xs-6 col-md-4">
+				<label class="text-danger control-label">Longitude<br></label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<input class="form-control" name="longitude" type="text" id="longitude" size="24">
+			</div>
+		</div>
+		<p class="help-block">We ask that you upload GPS coordinates in the decimal degrees format. Do you have coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a></p>
+	</div>
 
-        <div class="col-xs-12 col-sm-6">
-          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
-          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
-        </div>
-      </div>
+	<div class="col-xs-12 col-lg-6">
+		<h3>Water Info</h3>
+		<p class="help-block">
+		</p>
+		<div class="form-group form-inline">
+			<div class="col-xs-6 col-md-4">
+				<label class="text-danger control-label pull-left" style="text-align:left;">Water Temperature</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<input class="form-control" name="temperature" type="text" id="temperature">
+					&nbsp;Celsius <br>
+			</div>
+		</div>
+		<!-- depth -->
+		
+		<div class="form-group form-inline">
+			<div class="col-xs-6 col-md-4">
+				<label class="text-danger control-label"  style="text-align:left;">Sea floor depth at site</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<input class="form-control" name="depth" type="text" id="depth">
+					&nbsp;meters
+			</div>
+		</div>
+		
+	</div>
+</div>
 
-      <p class="help-block">
-        <%=props.getProperty("gpsConverter") %></p>
-    </div>
-
-
-<%
-if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
-%>
- <div class="form-inline">
-      <label class="control-label"><%=props.getProperty("submit_depth")%></label>
-      <input class="form-control" name="depth" type="text" id="depth">
-      &nbsp;<%=props.getProperty("submit_meters")%> <br>
-    </div>
-<%
-}
-
-if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
-%>
- <div class="form-inline">
-      <label class="control-label"><%=props.getProperty("submit_elevation")%></label>
-      <input class="form-control" name="elevation" type="text" id="elevation">
-      &nbsp;<%=props.getProperty("submit_meters")%> <br>
-    </div>
-<%
-}
-%>
 
 </fieldset>
 <hr />
@@ -732,6 +741,66 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
     </div>
   </fielset>
+  
+  <hr/>
+		<!-- shark flank side section -->
+		<fieldset>
+			<div class="row">
+				<div class="form-group">
+				<div class="col-xs-12 col-lg-12">
+					<h3>Flank side</h3>
+					<p class="text-danger">What side of the shark is shown in your photo?</p>
+				</div>
+				<div class="col-xs-12 col-lg-6">
+					<figure>
+						<img src="images/spotashark/Good-Left-Flank-DonSilcock.jpg" alt="" width=80% style="display: block;margin: 0 auto;"/>
+						<figcaption>Example left flank, credit Don Silcock</figcaption>
+					</figure>
+				</div>
+				<div class="col-xs-12 col-lg-6">
+					<figure>
+						<img src="images/spotashark/Good-Right-Flank-JayneJenkins.jpg" alt="" width=80% style="display: block;margin: 0 auto;"/>
+						<figcaption>Example right flank, credit Jayne Jenkins</figcaption>
+					</figure>
+				</div>
+			</div>
+		</div>
+		<div class="col-xs-12 col-lg-12">
+			<div class='wrapper text-center'>
+				<div class="btn-group" data-toggle="buttons">
+					<label class="btn btn-secondary flank-btn active">
+						<input type="radio" name="flank side" value="left" id="leftFlank" checked="checked"> Left
+					</label>
+					<label class="btn btn-secondary flank-btn">
+						<input type="radio" name="flank side" value="right" id="rightFlank"> Right
+					</label>
+				</div>
+			</div>
+		</div>
+	</fieldset>
+
+	<div class="row">
+	</br><br>
+		<div class="form-group">
+			<div class="col-xs-12 col-lg-12">
+				<h3>Hookmark</h3>
+				<p class="text-danger">Is a hookmark or scar noticable in your photo?</p>
+			</div>
+			<div class="col-xs-6 col-md-4">
+				<label class="text-danger control-label">Scarring/hookmark:</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<select class="form-control" name="hookmark" id="hookmark">
+					<option value="N" selected="selected">None</option>
+					<option value="H">Hooked</option>
+					<option value="O">Marked</option>
+				</select>
+			</div>
+		</div>
+	</div>
+
+		
+  
 
   <hr/>
 
@@ -799,7 +868,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
           </div>
         </div>
         </fieldset>
-        <hr>
+ 
         <fieldset>
 <%
 
@@ -956,6 +1025,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
   </tr>
   <c:forEach items="${items}" var="item">
+  <!--the below line makes it so that temp is not listed here (temp is listed above)-->
+	<c:if test="${item.label!='Temp.'}">
     <tr>
     <td>${item.label}</td>
     <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
@@ -970,6 +1041,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </td>
     </c:if>
     </tr>
+    	</c:if>
   </c:forEach>
   </table>
    </div>
@@ -978,6 +1050,15 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:if>
 
 
+	<hr/>
+
+		<fieldset>
+			<div class="col-xs-12 col-lg-8">
+				<h3>Number of sharks at cave</h3>
+				<p class="help-block">If photographed near the cave, about how many sharks did you see there? Leave blank if not applicable.</p>
+				<input name="nsharks" type="text" id="nsharks" size="40" class="form-control">
+			</div>
+		</fieldset>
 
 
       <hr/>
