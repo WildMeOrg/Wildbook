@@ -498,7 +498,7 @@ function showUploadBox() {
             <li>2014Jan05 12:30</li>
             <li>2014MAR23</li>
             <li>2013AUG</li>
-            <li>2010</li>
+            <li>2010sep</li>
           </ul>
         </p>
       </div>
@@ -573,6 +573,83 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
       </select>
       </div>
     </div>
+    
+    <script type="text/javascript">
+		// This script updates the lat/lang fields when the dropdown is changed
+		// I love JS objects!
+		function setLatLong(locationKey) {
+			var latLongRaw = {BI:["32 37 30 S", 	"152 20 20 E"],
+				BS:		["32 28 00 S", 	"152 33 00 E"],
+				CH:		["30 14 50 S"	, "153 21 60 E"],
+				F0:   ["", ""],
+				FR:		["30 56 25 S", 	"153 05 45 E"],
+				GS:   ["", ""],
+				JR:		["28 36 50 S", 	"153 37 35 E"],
+				LR:		["32 12 32 S", 	"152 34 05 E"],
+				LS:		["32 28 35 S", 	"152 32 50 E"],
+				MI:		["36 14 30 S", 	"150 13 35 E"],
+				MP:		["33 57 45 S", 	"151 15 50 E"],
+				PF:		["32 14 25 S", 	"152 36 05 E"],
+				SR:		["32 28 00 S", 	"152 33 00 E"],
+				SS:		["30 12 30 S", 	"153 17 00 E"],
+				TB:		["32 09 10 S", 	"152 32 20 E"],
+				WR:		["25 54 40 S", 	"153 12 20 E"],
+				TG:		["35 45 20 S", 	"150 15 15 E"],
+				BT:		["32 10 75 S",	"152 31 31 E"],
+				FC:		["33 24 128 S", "151 32 18 E"],
+				FL:		["26 59 00 S", 	"153 29 05 E"],
+				GI:		["30 54 45 S", 	"153 05 10 E"],
+				SK:		["32 24 30 S", 	"152 32 20 E"],
+				SF:   ["", ""],
+				NB:		["33 54 05 S", 	"151 16 20 E"],
+				CG:		["31 40 55 S", 	"152 54 35 E"],
+				DP:		["36 10 00 S",	"150 08 00 E"],
+				FT:		["27 08 00 S", 	"153 33 30 E"],
+				ST:		["32 26 41 S", 	"152 32 20 E"],
+				CC:		["27 07 00 S", 	"153 28 30 E"],
+				HE:   ["", ""],
+				HU:   ["", ""],
+				NM:   ["", ""],
+				LF:		["33 44 10 S", 	"151 19 30 E"],
+				NS:		["29 55 05 S", 	"153 23 00 E"],
+				BH:   ["", ""],
+				DD:		["35 02 50 S",	"150 50 43 E"],
+				MR:		["31 46 05 S",  "152 48 25 E"],
+				FB:		["33 47 96 S",	"151 17 91 E"]
+			}
+			// a very brittle single-use function, only for parsing the S coords above
+			function dmsSToDec(dmsSString) {
+				var vals = dmsSS.split(" ");
+				var total = parseInt(dmsSString.substring(0,2)) + parseInt(dmsSString.substring(4,6))/60.0 + parseInt(dmsSString.substring(8,10))/3600.0;
+				return total
+			}
+			function dmsEToDec(dmsEString) {
+				var total = parseInt(dmsEString.substring(0,3)) + parseInt(dmsEString.substring(5,7))/60.0 + parseInt(dmsEString.subString(9,11))/3600.0;
+			}
+			function dmsToDec(dmsString) {
+				var subs = dmsString.split(" ");
+				var sign = 1.0;
+				if (subs[3]=="S" || subs[3]=="W") sign = -1.0;
+				var total = parseInt(subs[0]) + parseInt(subs[1])/60.0 + parseInt(subs[2])/3600.0;
+				return total*sign;
+			}
+			// if locationKey is in the latLongRaw data
+			if (latLongRaw.hasOwnProperty(locationKey)) {
+			 	if (latLongRaw[locationKey][0]!="") {
+					// set default value on 'latitude' text field in html
+					$("#latitude").val(dmsToDec(latLongRaw[locationKey][0]));
+					$("#longitude").val(dmsToDec(latLongRaw[locationKey][1]));
+			}
+
+		}
+	}
+		$("#locationID").change( function() {
+			var locationKey = this.value.substring(0,2);
+			setLatLong(locationKey);
+		});
+
+	</script>
+    
 <%
 }
 
@@ -770,20 +847,21 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				</div>
 			</div>
 		</div>
+		<div class="row">
 		<div class="col-xs-12 col-lg-12">
+			<label class="text-danger control-label">Flank</label>:
 			<div class='wrapper text-center'>
 				<div class="btn-group" data-toggle="buttons">
 					<label class="btn btn-secondary flank-btn active">
-						<input type="radio" name="flank side" value="left" id="leftFlank" checked="checked"> Left
+						<input type="radio" name="flank" value="L" id="L" checked="checked"> Left
 					</label>
 					<label class="btn btn-secondary flank-btn">
-						<input type="radio" name="flank side" value="right" id="rightFlank"> Right
+						<input type="radio" name="flank" value="R" id="R"> Right
 					</label>
 				</div>
 			</div>
 		</div>
-	</fieldset>
-
+		</div>
 	<div class="row">
 	</br><br>
 		<div class="form-group">
@@ -803,6 +881,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 			</div>
 		</div>
 	</div>
+	</fieldset>
+
+
 
 		
   
@@ -955,15 +1036,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         </div>
 
 
-           <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_scars") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="scars" type="text" id="scars" size="75">
-          </div>
-        </div>
 
 <%
 
