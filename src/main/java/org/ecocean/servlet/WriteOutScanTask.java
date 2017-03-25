@@ -84,8 +84,7 @@ public class WriteOutScanTask extends HttpServlet {
 
         //let's check the checked-in value
 
-        boolean successfulWrite = false;
-        boolean successfulI3SWrite = false;
+
 
         System.out.println("Now setting this scanTask as finished!");
         String taskID = st2.getUniqueNumber();
@@ -113,10 +112,11 @@ public class WriteOutScanTask extends HttpServlet {
         if (taskID.startsWith("scanR")) {
           righty = true;
         }
+        
 
-        successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context);
+        boolean successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context);
 
-        successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
+        boolean successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
 
         //write out the boosted results
         //if(request.getParameter("boost")!=null){

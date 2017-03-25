@@ -76,6 +76,7 @@ public final class ImageProcessor implements Runnable {
         this.imageSourcePath = imageSourcePath;
         this.imageTargetPath = imageTargetPath;
         this.arg = arg;
+        if (this.arg == null) this.arg = "";
         this.parentMA = pma;
         if ((action != null) && action.equals("watermark")) {
             this.command = CommonConfiguration.getProperty("imageWatermarkCommand", this.context);
@@ -175,8 +176,7 @@ public final class ImageProcessor implements Runnable {
                                   //.replaceAll("%imagesource", this.imageSourcePath)
                                   //.replaceAll("%imagetarget", this.imageTargetPath)
                                   .replaceAll("%maId", maId)
-                                  .replaceAll("%additional", rotation)
-                                  .replaceAll("%arg", this.arg);
+                                  .replaceAll("%additional", rotation);
 
         //walk thru transform array and replace "tN" with transform[N]
         if (this.transform.length > 0) {
@@ -193,6 +193,7 @@ public final class ImageProcessor implements Runnable {
             if (command[i].equals("%imagetarget")) command[i] = this.imageTargetPath;
             //note this assumes comment stands alone. :/
             if (command[i].equals("%comment")) command[i] = comment;
+            if (command[i].equals("%arg")) command[i] = this.arg;
 System.out.println("COMMAND[" + i + "] = (" + command[i] + ")");
         }
 //System.out.println("done run()");
