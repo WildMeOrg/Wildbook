@@ -702,7 +702,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				<label class="text-danger control-label">Latitude</label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="latitude" type="text" id="latitude" size="24">
+				<input class="form-control" name="lat" type="text" id="latitude" size="24">
 			</div>
 		</div>
 		<div class="form-group form-inline">
@@ -725,7 +725,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				<label class="text-danger control-label pull-left" style="text-align:left;">Water Temperature</label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="temperature" type="text" id="temperature">
+				<input class="form-control" name="measurement(temperature)" type="text" id="temperature">
+					
+					<input type="hidden" name="measurement(temperatureunits)" value="celsius">
 					&nbsp;Celsius <br>
 			</div>
 		</div>
