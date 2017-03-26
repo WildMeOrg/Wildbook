@@ -312,6 +312,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                           <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=mortality">Mortality</a></li>
                           <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=tagging">Tagging</a></li>
                           <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=trackcounts">Track Counts</a></li>
+                          <li><a  href="<%=urlLoc %>/dataSheet.jsp?newThreatSheet=true">Threat Sheet</a></li>
+                          <li><a  href="<%=urlLoc %>/dataSheet.jsp">Blank Sheet</a></li>
+
+                          <li><a  href="<%=urlLoc %>/dataSheetSearchResults.jsp">All Data Sheets</a></li>
+
 
                           <!--
                           <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
@@ -423,6 +428,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/dataSheetSearch.jsp"><%=props.getProperty("dataSheetSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
                            </ul>
                       </li>
