@@ -85,9 +85,6 @@
 
   <class name="DataSheet" identity-type="application">
     <inheritance strategy="new-table"/>
-    <field name="id" persistence-modifier="persistent">
-      <column name="ID"/>
-    </field>
     <field name="data" persistence-modifier="persistent" default-fetch-group="true">
       <collection element-type="org.ecocean.datacollection.DataPoint"/>
       <join/>
