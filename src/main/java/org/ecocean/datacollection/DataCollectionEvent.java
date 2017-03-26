@@ -47,7 +47,7 @@ public abstract class DataCollectionEvent implements java.io.Serializable {
  */
 private String correspondingEncounterNumber;
 private String type;
-private String DataCollectionEventID;
+protected String DataCollectionEventID;
 
 private DateTime datetime;
 
@@ -64,6 +64,11 @@ private String datasetID;
 private String institutionCode;
 private String collectionCode;
 private String datasetName;
+
+// added date fields for searchability
+private Long eventStartDateLong;
+private Long eventEndDateLong;
+
 
 
 /*
@@ -125,6 +130,47 @@ public void setEventStartDate(String date){this.eventStartDate=date;}
 public String getEventEndDate(){return eventEndDate;}
 public void setEventEndDate(String date){this.eventEndDate=date;}
 
+// for realiable date searchability
+public Long getEventStartDateLong(){return eventStartDateLong;}
+public void setEventStartDateLong(Long millis) {setEventStartDateLong(millis, true);}
+public void setEventStartDateLong(Long millis, boolean syncDates) {
+  this.eventStartDateLong = millis;
+  if (syncDates && millis!=null) {
+    this.eventStartDate = (new DateTime(millis)).toString();
+  }
+}
+// for reliable date displayability
+public DateTime getEventStartDateTime(){
+  if (eventStartDateLong!=null) return new DateTime(eventStartDateLong.longValue());
+  else return null;
+}
+public void setEventStartDateTime(DateTime dt) {
+  if (dt!=null) {
+    this.eventStartDate = dt.toString();
+    this.eventStartDateLong = dt.getMillis();
+  }
+}
+// for realiable date searchability
+public Long getEventEndDateLong(){return eventEndDateLong;}
+public void setEventEndDateLong(Long millis) {setEventEndDateLong(millis, true);}
+public void setEventEndDateLong(Long millis, boolean syncDates) {
+  this.eventEndDateLong = millis;
+  if (syncDates && millis!=null) {
+    this.eventEndDate = (new DateTime(millis)).toString();
+  }
+}
+// for reliable date displayability
+public DateTime getEventEndDateTime(){
+  if (eventEndDateLong!=null) return new DateTime(eventEndDateLong.longValue());
+  else return null;
+}
+public void setEventEndDateTime(DateTime dt) {
+  if (dt!=null) {
+    this.eventEndDate = dt.toString();
+    this.eventEndDateLong = dt.getMillis();
+  }
+}
+
 public String getFieldNumber(){return fieldNumber;}
 public void setFieldNumber(String num){this.fieldNumber=num;}
 
@@ -153,12 +199,18 @@ public String getDatasetName(){return datasetName;}
 public void setDatasetName(String id){this.datasetName=id;}
 
 public String getType(){return type;}
+public void setType(String type){this.type = type;}
+
 
 public void resetAbstractClassParameters(HttpServletRequest request){
   if(((request.getParameter("samplingProtocol"))!=null)&&(!request.getParameter("samplingProtocol").equals(""))){this.samplingProtocol=request.getParameter("samplingProtocol");}
   if(((request.getParameter("samplingEffort"))!=null)&&(!request.getParameter("samplingEffort").equals(""))){this.samplingEffort=request.getParameter("samplingEffort");}
   if(((request.getParameter("eventStartDate"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
+  if(((request.getParameter("eventStartDateTime"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
+  if(((request.getParameter("eventStartDateLong"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
   if(((request.getParameter("eventEndDate"))!=null)&&(!request.getParameter("eventEndDate").equals(""))){this.eventEndDate=request.getParameter("eventEndDate");}
+  if(((request.getParameter("eventEndDateTime"))!=null)&&(!request.getParameter("eventEndDate").equals(""))){this.eventEndDate=request.getParameter("eventEndDate");}
+  if(((request.getParameter("eventEndDateLong"))!=null)&&(!request.getParameter("eventEndDate").equals(""))){this.eventEndDate=request.getParameter("eventEndDate");}
   if(((request.getParameter("fieldNumber"))!=null)&&(!request.getParameter("fieldNumber").equals(""))){this.fieldNumber=request.getParameter("fieldNumber");}
   if(((request.getParameter("fieldNotes"))!=null)&&(!request.getParameter("fieldNotes").equals(""))){this.fieldNotes=request.getParameter("fieldNotes");}
   if(((request.getParameter("eventRemarks"))!=null)&&(!request.getParameter("eventRemarks").equals(""))){this.eventRemarks=request.getParameter("eventRemarks");}
