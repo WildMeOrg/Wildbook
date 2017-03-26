@@ -117,6 +117,11 @@ public class ClassEditTemplate {
     return splitCamelCase(withoutGet);
   }
 
+  public static String prettyFieldName(String fieldName) {
+    return splitCamelCase(fieldName);
+  }
+
+
   public static String getClassNamePrefix(Class classy) {
     String name = classy.getName();
     return ((name.length()>2) ? name.substring(0,3).toLowerCase() : name.toLowerCase() );
