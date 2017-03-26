@@ -518,14 +518,9 @@ public class Util {
       return "("+fieldName+".indexOf('"+containsThis+"') != -1)";
     }
 
-    public static String jdoStringContainsConstraint(String fieldName, String containsThis, boolean ignoreCase) {
-      if (!ignoreCase) {
-        return (jdoStringContainsConstraint(fieldName, containsThis));
-      }
-      else {
-        return ("("+fieldName+".toLowerCase().indexOf('"+
-        containsThis.toLowerCase()+"') != -1)");
-      }
+    public static String jdoStringContainsConstraint(String fieldName, String containsThis, boolean toLowerCase) {
+      if (!toLowerCase) return jdoStringContainsConstraint(fieldName, containsThis);
+      return "("+fieldName+".toLowerCase().indexOf('"+containsThis.toLowerCase()+"') != -1)";
     }
 
     public static String undoUrlEncoding(String str) {
@@ -552,7 +547,6 @@ public class Util {
       return obj.toString();
     }
 
-
     // http://stackoverflow.com/a/15190787
     public static String stripAccents(String s)
     {
@@ -567,4 +561,7 @@ public class Util {
     }
 
 
+    public static boolean stringExists(String str) {
+      return (str!=null && !str.equals(""));
+    }
 }
