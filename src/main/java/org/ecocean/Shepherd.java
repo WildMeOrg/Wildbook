@@ -200,12 +200,14 @@ public class Shepherd {
       System.out.println("I failed to create a new Nest in Shepherd.storeNewNest().");
       e.printStackTrace();
       return false;
+    } finally {
+      closeDBTransaction();
     }
     return true;
   }
 
   public boolean storeNewDataSheet(DataSheet indie) {
-
+    System.out.println("   storeNewDataSheet: shepherd is storing new datasheet "+indie);
     for (DataPoint dp: indie.getData()) {
       storeNewDataPoint(dp);
     }
@@ -213,7 +215,13 @@ public class Shepherd {
     beginDBTransaction();
     try {
       pm.makePersistent(indie);
+      System.out.println("   storeNewDataSheet: shepherd has successfully stored datasheet "+indie);
+      System.out.println("   storeNewDataSheet: shepherd.isDataSheet(indie.getID()) = "+isDataSheet(indie.getID()));
+
       commitDBTransaction();
+      System.out.println("   storeNewDataSheet: shepherd has committed transaction");
+      beginDBTransaction();
+      System.out.println("   storeNewDataSheet: shepherd.isDataSheet(indie.getID()) = "+isDataSheet(indie.getID()));
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new DataSheet in Shepherd.storeNewDataSheet().");
@@ -455,6 +463,16 @@ public class Shepherd {
     DataPoint tempEnc = null;
     try {
       tempEnc = ((DataPoint) (pm.getObjectById(pm.newObjectIdInstance(DataPoint.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
+
+  public DataSheet getDataSheet(String id) {
+    DataSheet tempEnc = null;
+    try {
+      tempEnc = ((DataSheet) (pm.getObjectById(pm.newObjectIdInstance(DataSheet.class, id.trim()), true)));
     } catch (Exception nsoe) {
       return null;
     }
@@ -973,6 +991,28 @@ public class Shepherd {
     return true;
   }
 
+  public boolean isDataSheet(String num) {
+    try {
+      DataSheet tempEnc = ((org.ecocean.datacollection.DataSheet) (pm.getObjectById(pm.newObjectIdInstance(org.ecocean.datacollection.DataSheet.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      //nsoe.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  public boolean isDataCollectionEvent(String num) {
+    try {
+      DataCollectionEvent tempEnc = ((org.ecocean.datacollection.DataCollectionEvent) (pm.getObjectById(pm.newObjectIdInstance(org.ecocean.datacollection.DataCollectionEvent.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      //nsoe.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+
+
   public boolean isWorkspace(String num) {
     try {
       Workspace tempSpace = ((org.ecocean.Workspace) (pm.getObjectById(pm.newObjectIdInstance(Workspace.class, num.trim()), true)));
@@ -1277,6 +1317,18 @@ public class Shepherd {
     }
   }
 
+  public Iterator<DataSheet> getAllDataSheetsNoQuery() {
+    try {
+      Extent dsClass = pm.getExtent(DataSheet.class, true);
+      Iterator it = dsClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllDataSheetsNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
   public Iterator getAllAnnotationsNoQuery() {
     try {
       Extent annClass = pm.getExtent(Annotation.class, true);
@@ -1445,6 +1497,22 @@ public class Shepherd {
       return null;
     }
   }
+
+  public Iterator<DataSheet> getAllDataSheets(Query accepted, Map<String, Object> paramMap) {
+    Collection c;
+    try {
+      c = (Collection) (accepted.executeWithMap(paramMap));
+      ArrayList list = new ArrayList(c);
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllDataSheets(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
 
   public List<PatterningPassport> getPatterningPassports() {
     int num = 0;
@@ -2416,6 +2484,23 @@ public class Shepherd {
       return 0;
     }
   }
+
+  public int getNumDataSheets() {
+    pm.getFetchPlan().setGroup("count");
+    Extent encClass = pm.getExtent(DataSheet.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass);
+    try {
+      Collection c = (Collection) (acceptedEncounters.execute());
+      int num = c.size();
+      acceptedEncounters.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedEncounters.closeAll();
+      return -1;
+    }
+  }
+
 
   public int getNumNests() {
     pm.getFetchPlan().setGroup("count");
