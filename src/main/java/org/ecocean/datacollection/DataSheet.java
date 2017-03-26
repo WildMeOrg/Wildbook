@@ -10,6 +10,7 @@ import org.ecocean.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import javax.servlet.http.HttpServletRequest;
 
 
 // a DataSheet is a DataCollectionEvent attached to a set of DataPoints
@@ -21,23 +22,51 @@ public class DataSheet extends DataCollectionEvent {
   private String id;
   private String name; // informal e.g. "emergence data collection sheet"
 
+  // top level fields get special treatment in e.g. UI. DataPoints are more generic
+  private Double latitude;
+  private Double longitude;
+  private DateTime dateTime;
+  private Long dateInMilliseconds; // redundant fields because dateInMilliseconds is easily queriable by JDO
+
   private List<DataPoint> data;
 
   public DataSheet() {
   }
 
   public DataSheet(String id) {
-    this.id = id;
+    this.setID(id);
     this.data = new ArrayList<DataPoint>();
   }
+
+  // uses DataCollectionEvent initializer to init those inherited fields
+  public DataSheet(HttpServletRequest request) {
+    super((String)null, "DataSheet", request);
+    System.out.println("DataSheet.java: initializing a DataSheet from request");
+    System.out.println("DataSheet.java: getDataCollectionEventID = "+this.getDataCollectionEventID());
+    //this.setID(this.getDataCollectionEventID());
+    ///this.setID(Util.generateUUID());
+    this.data = new ArrayList<DataPoint>();
+    System.out.println("DataSheet.java: done initializing DataSheet "+this.getID()+" with super.DataCollectionEventID = "+this.getDataCollectionEventID());
+
+  }
+
   public DataSheet(List<DataPoint> data) {
-    this.id = Util.generateUUID();
+    this.setID(Util.generateUUID());
     this.data = data;
   }
 
   public static DataSheet fromCommonConfig(String className, String context) throws IOException {
+    return new DataSheet(datapointsFromCommonConfig(className, context));
+  }
 
-    System.out.println("DataSheet.fromCommonConfig called on "+className+" and "+context);
+  public boolean addConfigDataPoints(String className, String context) throws IOException {
+    int initialSize = this.size();
+    this.data.addAll(datapointsFromCommonConfig(className, context));
+    return (this.size() > initialSize);
+  }
+
+  public static List<DataPoint> datapointsFromCommonConfig(String className, String context) throws IOException {
+    System.out.println("DataSheet.datapointsFromCommonConfig called on class "+className+" in context "+context);
     List<String> dpNames = CommonConfiguration.getIndexedPropertyValues("datapoint",context);
     List<String> dpUnits = CommonConfiguration.getIndexedPropertyValues("datapointUnits",context);
     List<String> dpClasses = CommonConfiguration.getIndexedPropertyValues("datapointClasses",context);
@@ -56,11 +85,14 @@ public class DataSheet extends DataCollectionEvent {
     List<DataPoint> data = new ArrayList<DataPoint>();
     DataPoint dp;
     for (int i=0; i<dpNames.size(); i++) {
-      if (!classIsInConfigClassList(className, dpClasses.get(i))) continue;
+      String dpClass = dpClasses.get(i);
+      System.out.println("    dp "+i+" classes = "+dpClass);
+      if (!classIsInConfigClassList(className, dpClass)) continue;
       dp = null;
       String dpType = dpTypes.get(i);
       String dpName = dpNames.get(i);
       String dpUnit = dpUnits.get(i);
+      System.out.println("          (type,name,unit) = ("+dpType+", "+dpName+", "+dpUnit+")");
       if (dpUnit==null || dpUnit.equals("") || dpUnit.equals("nounits")) dpUnit = null;
       if (dpType.equals("observation")) {
         dp = new Observation(dpName, (String) null);
@@ -88,7 +120,7 @@ public class DataSheet extends DataCollectionEvent {
         }
       }
     }
-    return new DataSheet(data);
+    return data;
   }
 
 
@@ -130,8 +162,11 @@ public class DataSheet extends DataCollectionEvent {
     return data.get(i);
   }
 
+  private void setID(String id) {
+    this.DataCollectionEventID = id;
+  }
   public String getID() {
-    return id;
+    return this.getDataCollectionEventID();
   }
 
   public String getName() {
@@ -141,6 +176,38 @@ public class DataSheet extends DataCollectionEvent {
   public void setName(String name) {
     this.name = name;
   }
+
+  public Double getLatitude() {
+    return latitude;
+  }
+
+  public void setLatitude(Double latitude) {
+    this.latitude = latitude;
+  }
+
+  public Double getLongitude() {
+    return longitude;
+  }
+
+  public void setLongitude(Double longitude) {
+    this.longitude = longitude;
+  }
+
+  public DateTime getDateTime() {
+    return dateTime;
+  }
+  public void setDateTime(DateTime dt) {
+    this.dateTime = dt;
+    if (dt!=null) this.dateInMilliseconds = dt.getMillis();
+  }
+  public Long getDateInMilliseconds() {
+    return dateInMilliseconds;
+  }
+  public void setDateInMilliseconds(Long millis) {
+    this.dateInMilliseconds = millis;
+    if (millis != null) this.dateTime = new DateTime(millis);
+  }
+
 
   public String toString() {
     if (data==null) return ("DataSheet "+id+": null data");
