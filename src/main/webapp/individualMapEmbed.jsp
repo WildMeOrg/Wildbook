@@ -69,6 +69,8 @@ context=ServletUtilities.getContext(request);
   myShepherd.setAction("individualMapEmbed.jsp");
   myShepherd.beginDBTransaction();
   Vector haveGPSData = new Vector();
+  
+  String mapKey = CommonConfiguration.getGoogleSearchKey(context);
   if(request.getParameter("name")!=null){
 	  String name = request.getParameter("name");
 	  MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);
@@ -82,7 +84,7 @@ context=ServletUtilities.getContext(request);
   try {
 %>
 
-<script src="//maps.google.com/maps/api/js?language=<%=langCode%>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>>language=<%=langCode%>"></script>
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="javascript/oms.min.js"></script>
