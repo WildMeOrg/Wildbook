@@ -43,7 +43,7 @@ public class ImportBass extends HttpServlet {
     out = response.getWriter();
     context = ServletUtilities.getContext(request);
     
-    out.println("Importer usage in browser: https://yourhost/HumpbackImporter?commit='trueorfalse' ");
+    out.println("Importer usage in browser: https://yourhost/ImportBass?commit='trueorfalse' ");
     out.println("The default directories are /opt/excel_imports/ and /opt/image_imports/. commit=false to test data parsing, true to actually save.");
     
     Shepherd initShepherd=null;
@@ -118,6 +118,14 @@ public class ImportBass extends HttpServlet {
       
       row = sheet.getRow(i);
       String imageFile = getString(row, 4);
+      try {
+        if (imageFile != null) {
+          imageFile = imageFile.trim();
+        }         
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      out.println("Original Image File name for finding whitespace: |"+imageFile+"|");
       
       enc = parseEncounter(row, myShepherd);  
       
