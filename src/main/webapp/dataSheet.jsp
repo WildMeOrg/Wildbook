@@ -91,19 +91,32 @@
   String newThreatSheet = request.getParameter("newThreatSheet");
   if (Util.stringExists(newThreatSheet)) {
     System.out.println("**** adding threat sheet to datasheet "+dataSheetID );
-    dsheet.addConfigDataPoints("threatSheet", context);
+    //dsheet.addConfigDataPoints("threatSheet", context);
+    dsheet.setType("Threat Sheet");
+    myShepherd.commitDBTransaction();
+    myShepherd.beginDBTransaction();
   }
 
   String newHabitatSheet = request.getParameter("newHabitatSheet");
   if (Util.stringExists(newHabitatSheet)) {
     System.out.println("**** adding habitat threat sheet to datasheet "+dataSheetID );
     dsheet.addConfigDataPoints("habitatThreats", context);
+    if (dsheet.getType()==null || dsheet.getType().equals("DataSheet")){
+      dsheet.setType("Habitat Sheet");
+      myShepherd.commitDBTransaction();
+      myShepherd.beginDBTransaction();
+    }
   }
 
   String newPopulationSheet = request.getParameter("newPopulationSheet");
   if (Util.stringExists(newPopulationSheet)) {
     System.out.println("**** adding population threat sheet to datasheet "+dataSheetID );
     dsheet.addConfigDataPoints("populationThreats", context);
+    if (dsheet.getType()==null || dsheet.getType().equals("DataSheet")){
+      dsheet.setType("Population Sheet");
+      myShepherd.commitDBTransaction();
+      myShepherd.beginDBTransaction();
+    }
   }
 
 
