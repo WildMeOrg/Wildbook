@@ -197,7 +197,7 @@ myShepherd=new Shepherd(context);
 
  		//let's add map points for our locationIDs
  		<%
- 		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
+ 		List<String> locs=CommonConfiguration.getSequentialPropertyValues("locationID", context);
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
  		myShepherd.beginDBTransaction();
