@@ -448,13 +448,16 @@ public class GridManager {
 
   public void removeCompletedWorkItemsForTask(String taskID) {
     //int iter=done.size();
-    for (int i = 0; i < done.size(); i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        done.remove(i);
-        i--;
-        //iter--;
+    try{
+      for (int i = 0; i < done.size(); i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          done.remove(i);
+          i--;
+          //iter--;
+        }
       }
     }
+    catch(Exception e){e.printStackTrace();}
   }
 
   public synchronized void checkinResult(ScanWorkItemResult swir) {
