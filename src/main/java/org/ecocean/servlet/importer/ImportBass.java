@@ -164,21 +164,31 @@ public class ImportBass extends HttpServlet {
     // Get dis keyword workin
     String sideString = getStringOrIntString(row, 9);
     if (sideString != null) {
-      sideString = sideString.toLowerCase() + " side picture";
+      sideString = sideString.trim();
+      out.println("sideString : "+sideString);
+      if (sideString.toLowerCase().contains("l")) {
+        sideString = "Left";        
+      }
+      if (sideString.toLowerCase().contains("r")) {
+        sideString = "Right";
+      }
+      sideString = "Side Image Available : "+sideString;
     }
+    
     String mediaType = getStringOrIntString(row, 10);
     if (mediaType != null) {
-      if (mediaType.contains("vid")) {
-        mediaType = "video";
+      if (mediaType.toLowerCase().contains("v")) {
+        mediaType = "Video";
       }
-      if (mediaType.contains("pho")) {
-        mediaType = "photograph";
+      if (mediaType.toLowerCase().contains("p")) {
+        mediaType = "Photograph";
       }
-      mediaType = "Media Type : "+mediaType.toLowerCase();
+      mediaType = "Media Type : "+mediaType;
     }
+    
     String downloaded = getStringOrIntString(row, 12);
     if (downloaded != null) {
-      downloaded = downloaded.toLowerCase();
+      downloaded = "Downloaded File : "+downloaded.toLowerCase();
     }
     
     myShepherd.beginDBTransaction();
@@ -217,7 +227,6 @@ public class ImportBass extends HttpServlet {
       myShepherd.getPM().makePersistent(side);
       myShepherd.commitDBTransaction();          
     }      
-    
     if (side != null) {
       keys.add(side);
     }  
@@ -478,7 +487,7 @@ public class ImportBass extends HttpServlet {
       String[] arr = inputString.split("\u00b0");
       arr[1] = arr[1].substring(0, arr[1].length());
       degrees = Double.parseDouble(arr[0]);
-      minutes = (Double.parseDouble(arr[0]) * 60.0) / 3600.0;
+      minutes = Double.parseDouble(arr[1]) / 60;
       result = degrees + minutes;      
     } catch (Exception e) {
       e.printStackTrace();
