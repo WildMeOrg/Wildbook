@@ -449,6 +449,53 @@ public class Shepherd {
     }
   }
 
+  public Iterator<StudySite> getAllStudySites(Query accepted, Map<String, Object> paramMap) {
+    Collection c;
+    try {
+      c = (Collection) (accepted.executeWithMap(paramMap));
+      ArrayList list = new ArrayList(c);
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllStudySites(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+  public Iterator<StudySite> getAllStudySitesNoQuery() {
+    try {
+      Extent dsClass = pm.getExtent(StudySite.class, true);
+      Iterator it = dsClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllStudySitesNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+  public int getNumStudySites() {
+    System.out.println("beginning to getNumStudySites()");
+    pm.getFetchPlan().setGroup("count");
+    Extent encClass = pm.getExtent(StudySite.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass);
+    try {
+      Collection c = (Collection) (acceptedEncounters.execute());
+      int num = c.size();
+      System.out.println("found n="+num+" StudySites");
+      acceptedEncounters.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      System.out.println("Exception on getNumStudySites()");
+      x.printStackTrace();
+      acceptedEncounters.closeAll();
+      return -1;
+    }
+  }
+
+
+
   public List<StudySite> getAllStudySites() {
     return getAllStudySites(-1);
   }
