@@ -164,15 +164,28 @@ public class ImportBass extends HttpServlet {
     // Get dis keyword workin
     String sideString = getStringOrIntString(row, 9);
     if (sideString != null) {
-      sideString = sideString.trim();
+      sideString = sideString.trim().toLowerCase();
       out.println("sideString : "+sideString);
-      if (sideString.toLowerCase().contains("l")) {
-        sideString = "Left";        
+      if (sideString.contains("l")) {
+        sideString = "Has Left Side Image(s)";        
       }
-      if (sideString.toLowerCase().contains("r")) {
-        sideString = "Right";
+      if (sideString.contains("r")) {
+        sideString = "Has Right Side Image(s)";
       }
-      sideString = "Side Image Available : "+sideString;
+      Keyword side = null;
+      try {
+        myShepherd.beginDBTransaction();
+        side = myShepherd.getKeyword(sideString);
+        myShepherd.commitDBTransaction();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      if (side == null) {
+        side = new Keyword(sideString);
+      }
+      if (side != null) {
+        keys.add(side);
+      }
     }
     
     String mediaType = getStringOrIntString(row, 10);
@@ -194,9 +207,10 @@ public class ImportBass extends HttpServlet {
     myShepherd.beginDBTransaction();
     Keyword dl = myShepherd.getKeyword(downloaded);
     myShepherd.commitDBTransaction();
-    myShepherd.beginDBTransaction();
-    Keyword side = myShepherd.getKeyword(sideString);
-    myShepherd.commitDBTransaction();
+    //myShepherd.beginDBTransaction();
+    //Keyword side = myShepherd.getKeyword(sideString);
+    //if (side!=null) {out.println("Found Side! 1");}
+    //myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
     Keyword med = myShepherd.getKeyword(mediaType);
     myShepherd.commitDBTransaction();
@@ -221,15 +235,16 @@ public class ImportBass extends HttpServlet {
       keys.add(dl);
     }
     
-    if (myShepherd.getKeyword(sideString) == null && side != null) {
-      side = new Keyword(sideString);
-      myShepherd.beginDBTransaction();
-      myShepherd.getPM().makePersistent(side);
-      myShepherd.commitDBTransaction();          
-    }      
-    if (side != null) {
-      keys.add(side);
-    }  
+    //if (myShepherd.getKeyword(sideString) == null && side != null) {
+    //  side = new Keyword(sideString);
+    //  myShepherd.beginDBTransaction();
+    //  myShepherd.getPM().makePersistent(side);
+    //  myShepherd.commitDBTransaction();     
+    //  if (side!=null) {out.println("Persisted Side! 2");}
+    //}      
+    //if (side != null) {
+    //  keys.add(side);
+    //}  
     return keys;
   }
   
@@ -331,9 +346,24 @@ public class ImportBass extends HttpServlet {
     Encounter enc = new Encounter();
     
     DateTime dt = processDate(row);
-    if (dt!=null) enc.setDateInMilliseconds(dt.getMillis());
-    String vDate = getStringOrIntString(row, 8);
-    enc.setVerbatimEventDate(vDate);
+    if (dt!=null) {
+      try {
+        out.println("CURRENT DATE LINE: "+getStringOrIntString(row, 8));
+        enc.setDateInMilliseconds(dt.getMillis());
+        enc.setVerbatimEventDate(dt.toString());        
+      } catch (Exception e) {
+        out.println("Barfed on date.");
+        e.printStackTrace();
+      }
+    } else {
+      try {
+        if (getStringOrIntString(row, 8)!= null) {
+          enc.setVerbatimEventDate(getStringOrIntString(row, 8));          
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
     
     enc.setCatalogNumber(Util.generateUUID());
     enc.setGenus("Stereolepis");
@@ -428,7 +458,8 @@ public class ImportBass extends HttpServlet {
     DateTime dateTime = null;
     String dateRow = getStringOrIntString(row, 8);
     Date date = getDate(row, 8);
-    if (date != null) {
+    // Hackety hackety. Handling all the little date format differences. 
+    if (date != null&&!dateRow.substring(0,2).equals("20")) {
       try {
         dateTime = new DateTime(date);
         if (dateTime != null) {
@@ -485,7 +516,7 @@ public class ImportBass extends HttpServlet {
     double result = 0;
     try {
       String[] arr = inputString.split("\u00b0");
-      arr[1] = arr[1].substring(0, arr[1].length());
+      arr[1] = arr[1].substring(0, arr[1].length()-1);
       degrees = Double.parseDouble(arr[0]);
       minutes = Double.parseDouble(arr[1]) / 60;
       result = degrees + minutes;      
@@ -544,7 +575,7 @@ public class ImportBass extends HttpServlet {
   }
   
   public Date getDate(XSSFRow row, int i) {
-    Date date = null;
+    Date date = null;        
     try {
       date = row.getCell(i).getDateCellValue();
       if (date != null) {
