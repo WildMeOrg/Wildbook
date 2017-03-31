@@ -557,8 +557,13 @@ public class GridManager {
     ArrayList<MatchObject> list = new ArrayList<MatchObject>();
     int iter = done.size();
     for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        list.add(done.get(i).getResult());
+      try{
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          list.add(done.get(i).getResult());
+        }
+      }
+      catch(Exception e) {
+        //do nothing for now
       }
     }
     return list;
