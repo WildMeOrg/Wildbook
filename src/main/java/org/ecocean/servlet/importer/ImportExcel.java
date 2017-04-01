@@ -1,37 +1,21 @@
 package org.ecocean.servlet.importer;
 
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONObject;
 
-import java.net.*;
-import java.sql.Time;
-import java.text.Normalizer;
-
-import org.ecocean.grid.*;
 import java.io.*;
 import java.util.*;
 import java.io.FileInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import org.ecocean.*;
 import org.ecocean.servlet.*;
 import org.ecocean.media.*;
-import javax.jdo.*;
-import java.lang.StringBuffer;
-import java.lang.NumberFormatException;
 //import org.apache.poi.hssf.usermodel.*;
 //import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -73,25 +57,10 @@ public class ImportExcel extends HttpServlet {
       StartupWildbook.initializeWildbook(request, myShepherd);
       myShepherd.commitDBTransaction();
     }
-    String assetStorePath="/data/wildbook_data_dir";
-     
-    String assetStoreURL= dataURL + "/wildbook_data_dir";
-    
-    //myShepherd.beginDBTransaction();
-    //AssetStore assetStore = AssetStore.getDefault(myShepherd);
-    //myShepherd.commitDBTransaction();
-    //try {
-    //  if (assetStore.toString() == null || assetStore.toString() == "") {
+
     myShepherd.beginDBTransaction();
-    AssetStore assetStore = new LocalAssetStore("Turtle-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
-    myShepherd.getPM().makePersistent(assetStore);
-    myShepherd.commitDBTransaction();        
-    //  }
-    //} catch (Exception e) {
-    //  out.println("!!!! Failed to find or create a local asset store at "+assetStoreURL+" !!!!");
-    //  e.printStackTrace();      
-    //}    
-    
+    AssetStore assetStore = AssetStore.getDefault(myShepherd);
+    myShepherd.commitDBTransaction();
     
     boolean committing = (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
     
@@ -136,9 +105,6 @@ public class ImportExcel extends HttpServlet {
     // NPOIFSFileSystem fs = new NPOIFSFileSystem(dataFile);  
     // HSSFWorkbook wb = new HSSFWorkbook(fs.getRoot(), true);
 
-    // persist images in asset store, then associate with encounter
-    // be careful of committing one and not the other, if you do it will contain a reference to 
-    // that object in RAM, but not the persisted one if at all. 
     myShepherd.closeDBTransaction();
     out.close();
   }
@@ -195,27 +161,8 @@ public class ImportExcel extends HttpServlet {
       }
       if (committing && isValid == true) {
         try {
-          out.println("++++ Creating Media Asset ++++");
-          myShepherd.beginDBTransaction();
-          photoId = (photoNumber+photoFileName.substring(photoFileName.length()-5).charAt(0)); 
-          ma = new MediaAsset(assetStore, params);
-          ma.addDerivationMethod("createEncounter", System.currentTimeMillis());
-          ma.addLabel("_original");
-          ma.copyIn(photo);
-          ma.setAccessControl(request);
-          ma.updateMetadata();
-          ma.updateStandardChildren(myShepherd);
-          ma.generateUUIDFromId();
-          myShepherd.commitDBTransaction();
-        } catch (Exception e) {
-          out.println("!!!! Error creating media asset for image ID "+photoId+" !!!!");
-          e.printStackTrace();
-        }
-      }
-      
-      if (committing && isValid == true) {
-        try {
           out.println("++++ Persisting Media Asset ++++");
+          ma = new MediaAsset(assetStore, params);
           myShepherd.beginDBTransaction();
           myShepherd.getPM().makePersistent(ma);
           myShepherd.commitDBTransaction();
@@ -226,19 +173,24 @@ public class ImportExcel extends HttpServlet {
           e.printStackTrace(); 
         }
       }
+      if (committing && isValid == true) {
+        try {
+          out.println("++++ Creating Media Asset ++++");
+          photoId = (photoNumber+photoFileName.substring(photoFileName.length()-5).charAt(0)); 
+          ma.addDerivationMethod("createEncounter", System.currentTimeMillis());
+          ma.addLabel("_original");
+          ma.copyIn(photo);
+          ma.updateMetadata();
+          myShepherd.beginDBTransaction();
+          ma.updateStandardChildren(myShepherd);
+          myShepherd.commitDBTransaction();
+          ma.generateUUIDFromId();
+        } catch (Exception e) {
+          out.println("!!!! Error creating media asset for image ID "+photoId+" !!!!");
+          e.printStackTrace();
+        }
+      }
       
-      //Annotation ann = new Annotation("Psammobates geometricus", ma);
-      //if (committing && isValid == true) {
-      //  try {
-      //    myShepherd.storeNewAnnotation(ann);
-      //    myShepherd.getPM().makePersistent(ann);
-      //    myShepherd.commitDBTransaction();
-      //  } catch (Exception e) {
-      //    out.println("!!!! Error storing new annotation for media asset !!!!");
-      //    e.printStackTrace(); 
-      //  }
-      //}
-      // enc.addAnnotations  
     }
     // You are trying to create media assets for each image file. Each image has a photo number
     // at the 4-6 character of it's file name.
@@ -294,8 +246,10 @@ public class ImportExcel extends HttpServlet {
       try {
         if (committing) myShepherd.beginDBTransaction();
         row = sheet.getRow(i);
-        if (getInteger(row, 7) != null) {
+        if (getStringOrIntString(row, 7) != null) {
           encId = String.valueOf(getInteger(row, 7));          
+        } else {
+          isValid = false;
         }
         out.println("---- CURRENT ID: "+encId+" ----");
         if (assetIds.get(encId + "l") == null && assetIds.get(encId + "r") == null && assetIds.get(encId + "c") == null && assetIds.get(encId + "p") == null) {
@@ -305,7 +259,13 @@ public class ImportExcel extends HttpServlet {
         Encounter enc = null;
         if (committing && isValid == true) {
           enc = parseEncounter(row, myShepherd);
-          String indID = enc.getIndividualID();
+          String indID = null;
+          try {
+            indID = getStringOrIntString(row, 7);
+          } catch (Exception e) {
+            out.println("Not a valid indy for this row!");
+          }
+          
           MarkedIndividual ind = null;
           boolean needToAddEncToInd = false;
           if (indID!=null) {
@@ -319,30 +279,31 @@ public class ImportExcel extends HttpServlet {
           try {
             out.println("Adding media asset : "+encId);
             enc.setState("approved");
-            if (committing && isValid == true) myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+            
+            myShepherd.beginDBTransaction();
+            if (committing && isValid == true) myShepherd.storeNewEncounter(enc, Util.generateUUID());
+            myShepherd.commitDBTransaction();
+            
             String encIdS = String.valueOf(encId);
             MediaAsset mal = assetIds.get(encIdS + "l");
             MediaAsset mar = assetIds.get(encIdS + "r");
             MediaAsset mac = assetIds.get(encIdS + "c");
             MediaAsset map = assetIds.get(encIdS + "p");
             try {
+              myShepherd.beginDBTransaction();
               if (mal != null) {
-                enc.addMediaAsset(mal);      
-                out.println("MAL : "+mal.toString());
+                enc.addMediaAsset(mal);                
               }
               if (mac != null) {
-                enc.addMediaAsset(mac); 
-                out.println("MAC : "+mac.toString());
+                enc.addMediaAsset(mac);                
               }
               if (map != null) {
-                enc.addMediaAsset(map);     
-                out.println("MAP : "+map.toString());
+                enc.addMediaAsset(map);                
               }
               if (mar != null) {
-                enc.addMediaAsset(mar);    
-                out.println("MAR : "+mar.toString());
+                enc.addMediaAsset(mar);                
               }
-              out.println("ENC TO STRING : "+enc.toString());
+              myShepherd.commitDBTransaction();
             } catch (Exception npe) {
               npe.printStackTrace();
               out.println("!!! Failed to Add Media asset to Encounter  !!!");
@@ -351,10 +312,16 @@ public class ImportExcel extends HttpServlet {
             e.printStackTrace();
             out.println("!!! Failed to Store New Encounter  !!!");
           }
-          
-          if (needToAddEncToInd) ind.addEncounter(enc, context);
-          if (committing && indID!=null && isValid == true && !myShepherd.isMarkedIndividual(indID)) myShepherd.storeNewMarkedIndividual(ind);
-          if (committing && isValid == true) myShepherd.commitDBTransaction();
+          if (committing && ind != null) {
+            myShepherd.beginDBTransaction();
+            myShepherd.storeNewMarkedIndividual(ind);
+            myShepherd.commitDBTransaction();
+            out.println("=== CREATED INDIVIDUAL "+ind.getName()+" ===");
+          }
+          myShepherd.beginDBTransaction();
+          if (ind != null) ind.addEncounter(enc, context);
+          myShepherd.commitDBTransaction();
+               
           // New Close it.
           if (i%printPeriod==0) {
             out.println("Parsed row ("+i+"), containing Enc "+enc.getEncounterNumber()
@@ -412,7 +379,6 @@ public class ImportExcel extends HttpServlet {
     String scheme = request.getScheme() + "://";
     String name = request.getServerName();
     String port = (request.getServerPort() == 80) ? "" : ":" + request.getServerPort();
-    String path = request.getContextPath();
     return scheme + name + port;
   }
   
@@ -423,9 +389,10 @@ public class ImportExcel extends HttpServlet {
     Integer encNum = getInteger(row, 7);
     String encNumString = String.valueOf(encNum);
     String indID = null;
-    if (getString(row, 12) != null) {
-      indID = getString(row, 12);
+    if (getStringOrIntString(row, 7) != null) {
+      indID = getStringOrIntString(row, 7);
       enc.setIndividualID(indID);
+      out.println("Set Individual ID :"+enc.getIndividualID());
     }
     
     out.println("Processing encounter : "+encNumString);
@@ -439,7 +406,9 @@ public class ImportExcel extends HttpServlet {
    
     enc.setDecimalLatitude(getDouble(row,4));
     enc.setDecimalLongitude(getDouble(row,5));
-    enc.setSex(parseSex(getString(row, 9)));
+    if (getString(row, 9) != null) {
+      enc.setSex(parseSex(getString(row, 9)));      
+    }
     enc.setCountry("South Africa");
     enc.setVerbatimLocality("South Africa");
     
@@ -448,11 +417,25 @@ public class ImportExcel extends HttpServlet {
     
     Double weightD = getDouble(row, 10);
     Double lengthD = getDouble(row, 11);
+    out.println("Weight : "+weightD.toString()+"Length : "+lengthD.toString() );
     
     Measurement weight = new Measurement(encNumString,"Weight", weightD, "Gram", "directly measured");
+    myShepherd.beginDBTransaction();
+    myShepherd.getPM().makePersistent(weight);
+    myShepherd.commitDBTransaction();
+    
     Measurement length = new Measurement(encNumString,"Length", lengthD, "Millimeter", "directly measured");
+    myShepherd.beginDBTransaction();
+    myShepherd.getPM().makePersistent(length);
+    myShepherd.commitDBTransaction();
+    
+    myShepherd.beginDBTransaction();
     enc.setMeasurement(weight, myShepherd);
+    myShepherd.commitDBTransaction();
+    
+    myShepherd.beginDBTransaction();
     enc.setMeasurement(length, myShepherd);
+    myShepherd.commitDBTransaction();
 
     Date encDate = resolveDate(rossDate, vickiDate);
     DateTime dt = new DateTime(encDate);
@@ -463,28 +446,19 @@ public class ImportExcel extends HttpServlet {
     enc.setLivingStatus(getLiving(notes));
     enc.setIdentificationRemarks(notes);
  
-    parseDynProp(enc, "encounterTime", row, 3);
+    parseDynProp(enc, "Encounter Time", row, 3);
+    parseDynProp(enc, "Mismarked As :", row, 12);
     // Constructor for encounter takes annotation list - maybe useful
     // setAnnotations takes array list
     enc.setDWCDateAdded();
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
-    enc.setGenus("Psammobates geometricus");
+    enc.setGenus("Psammobates");
     enc.setSpecificEpithet("geometricus");
 
     return enc;
   }
 
-  //private String stripAccents(String s) {
-  //      try {
-  //    s = Normalizer.normalize(s, Normalizer.Form.NFD);
-  //    s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
-  //    return s;
-  //  } catch (Exception e) {
-  //    e.printStackTrace();
-  //    return null;
-  //  }
-  //}
   
   private void parseDynProp(Encounter enc, String name, XSSFRow row, int i) {
     String val = getString(row, i);
