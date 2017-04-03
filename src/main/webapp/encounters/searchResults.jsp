@@ -352,11 +352,11 @@ var colDefn = [
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
   },
-  {
-    key: 'filename',
-    label: 'Filename(s)',
-    value: _colFileName,
-  },
+ // {
+ //   key: 'filename',
+ //   label: 'Filename(s)',
+ //   value: _colFileName,
+ // },
 	{
 		key: 'date',
 		label: '<%=encprops.getProperty("date")%>',
