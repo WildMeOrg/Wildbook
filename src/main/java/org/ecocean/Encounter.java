@@ -118,6 +118,11 @@ public class Encounter implements java.io.Serializable {
   public String country;
   public String zebraClass ="";  //via lewa: lactating female, territorial male, etc etc
 
+  // fields from Dan's sample csv
+  private String imageSet;
+  private String soil;
+
+
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
   /*
@@ -244,6 +249,9 @@ public class Encounter implements java.io.Serializable {
   private SatelliteTag satelliteTag;
 
   private Boolean mmaCompatible = false;
+
+//
+
 
   //start constructors
 

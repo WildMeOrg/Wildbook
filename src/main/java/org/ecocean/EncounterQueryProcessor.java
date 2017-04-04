@@ -29,7 +29,7 @@ import org.ecocean.security.Collaboration;
 
 import org.joda.time.DateTime;
 
-public class EncounterQueryProcessor {
+public class EncounterQueryProcessor extends QueryProcessor {
 
   private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
 
@@ -37,11 +37,11 @@ public class EncounterQueryProcessor {
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
     String jdoqlVariableDeclaration = "";
     String parameterDeclaration = "";
-    
-    
+
+
     String context="context0";
     context=ServletUtilities.getContext(request);
-    
+
     Shepherd myShepherd=new Shepherd(context);
 
   //filter for location------------------------------------------
@@ -207,7 +207,7 @@ public class EncounterQueryProcessor {
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
               String kwParamMaster=individualID[kwIter].replaceAll("%20", " ").trim();
-              
+
               StringTokenizer str=new StringTokenizer(kwParamMaster,",");
               int numTokens=str.countTokens();
               for(int k=0;k<numTokens;k++){
@@ -221,9 +221,9 @@ public class EncounterQueryProcessor {
                   }
                   prettyPrint.append(kwParam+" ");
                 }
-              
+
               }
-              
+
             }
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
@@ -231,10 +231,10 @@ public class EncounterQueryProcessor {
             prettyPrint.append("<br />");
     }
     //end individualID filters-----------------------------------------------
-    
-    
-    
-    
+
+
+
+
 
   //------------------------------------------------------------------
     //patterningCode filters-------------------------------------------------
@@ -625,10 +625,10 @@ public class EncounterQueryProcessor {
 
     }
     //end hasPhoto filters-----------------------------------------------
-    
+
     //------------------------------------------------------------------
-    
-    
+
+
     //hasSpots filters-------------------------------------------------
     if(request.getParameter("hasSpots")!=null){
           prettyPrint.append("Has patterning points.");
@@ -637,10 +637,10 @@ public class EncounterQueryProcessor {
             else if (filter.indexOf("spots != null")==-1){filter+=(" && spots !=null ");}
 
             prettyPrint.append("<br />");
-            
+
     }
     //end hasSpots filters-----------------------------------------------
-    
+
     //has no Spots filters-------------------------------------------------
     if(request.getParameter("hasNoSpots")!=null){
           prettyPrint.append("Has no patterning points.");
@@ -649,10 +649,10 @@ public class EncounterQueryProcessor {
             else if (filter.indexOf("spots == null")==-1){filter+=(" && spots == null ");}
 
             prettyPrint.append("<br />");
-            
+
     }
     //end has no Spots filters-----------------------------------------------
-    
+
     //filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
     if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
       int numResights=1;
@@ -668,9 +668,9 @@ public class EncounterQueryProcessor {
       if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.MarkedIndividual markedindy";}
       else {jdoqlVariableDeclaration+=";org.ecocean.MarkedIndividual markedindy";}
 
-      
-      
-      
+
+
+
     }
   //end if resightOnly--------------------------------------------------------------------------------------
 
@@ -717,14 +717,14 @@ public class EncounterQueryProcessor {
                   if(kwIter>0){filter+=" "+photoKeywordOperator+" ";}
                   filter+=" ( annotations.contains(photo"+kwIter+")";
                 }
-                
+
                 if(filter.indexOf("photo"+kwIter+".features.contains(feat"+kwIter+")")==-1){filter+=" && photo"+kwIter+".features.contains(feat"+kwIter+")";}
 
 
                 if(filter.indexOf("feat"+kwIter+".asset.keywords.contains(word"+kwIter+")")==-1){filter+=" && feat"+kwIter+".asset.keywords.contains(word"+kwIter+")";}
                 filter+=(" && "+locIDFilter+")");
-            
-                
+
+
 
 
 
@@ -913,8 +913,8 @@ public class EncounterQueryProcessor {
       }
 
     //end genetic sex filters-----------------------------------------------
-    
-    
+
+
   	//start photo filename filtering
 	    if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))) {
 
@@ -922,8 +922,8 @@ public class EncounterQueryProcessor {
 	      String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
 
 	      String locIDFilter="( photo.filename == \""+nameString+"\" )";
-	      
-	      
+
+
 	      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="images.contains(photo) && "+locIDFilter;}
           else{
             filter+=" && images.contains(photo) && "+locIDFilter;
@@ -934,7 +934,7 @@ public class EncounterQueryProcessor {
           if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.SinglePhotoVideo photo;";}
           else{
             jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo";
-            
+
           }
   }
 
@@ -1025,7 +1025,7 @@ public class EncounterQueryProcessor {
     }
     //end name and email filter--------------------------------------------------------------------------------------
 
-    
+
     //additional comments filter------------------------------------------
     if((request.getParameter("additionalCommentsField")!=null)&&(!request.getParameter("additionalCommentsField").equals(""))) {
       String nameString=request.getParameter("additionalCommentsField").replaceAll("%20"," ").toLowerCase().trim();
@@ -1124,24 +1124,24 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     //let's do some month and day checking to avoid exceptions
     org.joda.time.DateTime testMonth1=new org.joda.time.DateTime(minYear,minMonth,1,0,0);
-    if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();    
+    if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();
     org.joda.time.DateTime testMonth2=new org.joda.time.DateTime(maxYear,maxMonth,1,0,0);
     if(testMonth2.dayOfMonth().getMaximumValue()<maxDay) maxDay=testMonth2.dayOfMonth().getMaximumValue();
-    
-    
+
+
     org.joda.time.DateTime gcMin =new org.joda.time.DateTime(minYear, (minMonth), minDay, 0, 0);
     org.joda.time.DateTime gcMax =new org.joda.time.DateTime(maxYear, (maxMonth), maxDay, 23, 59);
-    
-    
+
+
     if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
       filter+="((dateInMilliseconds >= "+gcMin.getMillis()+") && (dateInMilliseconds <= "+gcMax.getMillis()+"))";
     }
     else{filter+=" && ((dateInMilliseconds >= "+gcMin.getMillis()+") && (dateInMilliseconds <= "+gcMax.getMillis()+"))";
     }
-      
+
     //end date filter------------------------------------------
-    
-    
+
+
     //start date added filter----------------------------
     if((request.getParameter("addedday1")!=null)&&(request.getParameter("addedmonth1")!=null)&&(request.getParameter("addedyear1")!=null)&&(request.getParameter("addedday2")!=null)&&(request.getParameter("addedmonth2")!=null)&&(request.getParameter("addedyear2")!=null)) {
       try{
@@ -1197,32 +1197,32 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
         //let's do some month and day checking to avoid exceptions
         org.joda.time.DateTime addedtestMonth1=new org.joda.time.DateTime(addedminYear,addedminMonth,1,0,0);
-        if(addedtestMonth1.dayOfMonth().getMaximumValue()<addedminDay) addedminDay=addedtestMonth1.dayOfMonth().getMaximumValue();    
+        if(addedtestMonth1.dayOfMonth().getMaximumValue()<addedminDay) addedminDay=addedtestMonth1.dayOfMonth().getMaximumValue();
         org.joda.time.DateTime addedtestMonth2=new org.joda.time.DateTime(addedmaxYear,addedmaxMonth,1,0,0);
         if(addedtestMonth2.dayOfMonth().getMaximumValue()<addedmaxDay) addedmaxDay=addedtestMonth2.dayOfMonth().getMaximumValue();
-    
-    
+
+
         org.joda.time.DateTime addedgcMin =new org.joda.time.DateTime(addedminYear, (addedminMonth), addedminDay, 0, 0);
         org.joda.time.DateTime addedgcMax =new org.joda.time.DateTime(addedmaxYear, (addedmaxMonth), addedmaxDay, 23, 59);
-    
-    
-        
+
+
+
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
           filter+="((dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
         }
         else{
           filter+=" && ((dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
-    
+
         }
-        
+
     //end date added filter------------------------------------------
       } catch(NumberFormatException nfe) {
         //do nothing, just skip on
         nfe.printStackTrace();
           }
         }
-    
-    
+
+
 
     //filter for sex------------------------------------------
 
@@ -1246,7 +1246,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
         nfe.printStackTrace();
           }
         }
- 
+
 
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
     String releaseDateToStr = request.getParameter("releaseDateTo");
@@ -1365,7 +1365,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
     //end GPS filters-----------------------------------------------
-    
+
     if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null";}
 
 
@@ -1373,7 +1373,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     filter += parameterDeclaration;
     System.out.println("EncounterQueryProcessor filter: "+filter);
-    
+
     return filter;
 
   }
@@ -1611,35 +1611,5 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     }
     return tagFilter.toString();
   }
-
-  private static String updateJdoqlVariableDeclaration(String jdoqlVariableDeclaration, String typeAndVariable) {
-    StringBuilder sb = new StringBuilder(jdoqlVariableDeclaration);
-    if (jdoqlVariableDeclaration.length() == 0) {
-      sb.append(" VARIABLES ");
-      sb.append(typeAndVariable);
-    }
-    else {
-      if (!jdoqlVariableDeclaration.contains(typeAndVariable)) {
-        sb.append("; ");
-        sb.append(typeAndVariable);
-      }
-    }
-    return sb.toString();
-  }
-
-  private static String updateParametersDeclaration(
-      String parameterDeclaration, String typeAndVariable) {
-    StringBuilder sb = new StringBuilder(parameterDeclaration);
-    if (parameterDeclaration.length() == 0) {
-      sb.append(" PARAMETERS ");
-    }
-    else {
-      sb.append(", ");
-    }
-    sb.append(typeAndVariable);
-    return sb.toString();
-  }
-
-
 
 }
