@@ -77,6 +77,15 @@ public class Occurrence implements java.io.Serializable{
 	private Integer numLactFemales;
 	private Double bearing;
 
+  // new fields added for Dan's lab
+  private String imageSet;
+  private String soil;
+  private String rain;
+  private String activity;
+  private String habitatOpenness;
+  private String vegetationGreenness;
+  private String vegetationHeight;
+  private String weather;
 
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
@@ -435,6 +444,35 @@ public class Occurrence implements java.io.Serializable{
 	public void setBearing(Double b) {
 		this.bearing = b;
 	}
+
+  public String getImageSet() { return this.imageSet; }
+	public void setImageSet(String h) { this.imageSet = h; }
+
+  public String getSoil() { return this.soil; }
+	public void setSoil(String h) { this.soil = h; }
+
+  public String getRain() { return this.rain; }
+	public void setRain(String h) { this.rain = h; }
+
+  public String getActivity() { return this.activity; }
+	public void setActivity(String h) { this.activity = h; }
+
+  public String getHabitatOpenness() { return this.habitatOpenness; }
+	public void setHabitatOpenness(String h) { this.habitatOpenness = h; }
+
+  public String getVegetationGreenness() { return this.vegetationGreenness; }
+	public void setVegetationGreenness(String h) { this.vegetationGreenness = h; }
+
+  public String getVegetationHeight() { return this.vegetationHeight; }
+	public void setVegetationHeight(String h) { this.vegetationHeight = h; }
+
+  public String getWeather() { return this.weather; }
+	public void setWeather(String h) { this.weather = h; }
+
+
+
+
+
 
 
   public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
