@@ -22,6 +22,7 @@ String context=ServletUtilities.getContext(request);
 Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
 
+String carouselHeight="320px";
 
 //check for and inject a default user 'tomcat' if none exists
 if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
@@ -373,7 +374,7 @@ finally{
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
             <h1 class="hidden">Wildbook</h1>
-            <h2>Wildbook helps you study identify, and protect wildlife populations!</h2>
+            <h2>Welcome to the Princeton Zebra Wildbook</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -394,13 +395,25 @@ finally{
 
 	<h2 class="section-header">How it works</h2>
 
+  <style>
+  div.carousel-inner {
+    height:<%=carouselHeight%>;
+  }
+
+  .democarousel {
+    height: <%=carouselHeight%>;
+    overflow: hidden;
+
+  }
+  </style>
+
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
 		<ol class="list-inline carousel-indicators slide-nav">
-	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph an animal<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="0" class="demoCarousel active">1. Photograph an animal<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="1" class="demoCarousel">2. Submit photo/video<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="demoCarousel">3. Researcher verification<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="3" class="demoCarousel">4. Matching process<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="4" class="demoCarousel">5. Match result<span class="caret"></span></li>
 	    </ol>
 		<div class="carousel-inner text-left">
 			<div class="item active">
@@ -426,8 +439,8 @@ finally{
 					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
 				</div>
 			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			<div class="item" style="height:100%;">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" style="height:100%;">
 					<h3>Researcher verification</h3>
 					<p class="lead">
 						When you submit an identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
@@ -438,14 +451,39 @@ finally{
 				</div>
 			</div>
 			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" >
 					<h3>Matching process</h3>
 					<p class="lead">
 						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, using multiple computer assisted algorithms. It's like facial recognition software for animals.
 						</p>
 				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2" style="height:100%">
+
+        <style>
+        .centered-img-frame {
+            height: <%=carouselHeight%>;      /* equals max image height */
+            width: 100%;
+            white-space: nowrap;
+            text-align: center; margin: 1em 0;
+        }
+
+        .centered-img-helper {
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+        }
+
+        .centered-img-frame .centered-img {
+            vertical-align: middle;
+            max-height: 100%;
+            max-width: 100%;
+        }
+        </style>
+          <div class="centered-img-frame">
+            <span class="centered-img-helper">
+					  <img class="centered-img" src="images/how_it_works_matching_process.jpg" alt=""  />
+
+          </div>
 				</div>
 			</div>
 			<div class="item">
