@@ -447,13 +447,16 @@ public class GridManager {
 
   public void removeCompletedWorkItemsForTask(String taskID) {
     //int iter=done.size();
-    for (int i = 0; i < done.size(); i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        done.remove(i);
-        i--;
-        //iter--;
+    try{
+      for (int i = 0; i < done.size(); i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          done.remove(i);
+          i--;
+          //iter--;
+        }
       }
     }
+    catch(Exception e){e.printStackTrace();}
   }
 
   public synchronized void checkinResult(ScanWorkItemResult swir) {
@@ -553,8 +556,13 @@ public class GridManager {
     ArrayList<MatchObject> list = new ArrayList<MatchObject>();
     int iter = done.size();
     for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        list.add(done.get(i).getResult());
+      try{
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          list.add(done.get(i).getResult());
+        }
+      }
+      catch(Exception e) {
+        //do nothing for now
       }
     }
     return list;
@@ -668,6 +676,8 @@ public class GridManager {
     }
     
   }
+  
+  public void clearDoneItems(){done = new ArrayList<ScanWorkItemResult>();}
     
 
 }
