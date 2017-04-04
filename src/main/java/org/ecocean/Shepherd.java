@@ -1188,6 +1188,21 @@ public class Shepherd {
     }
   }
 
+  public Iterator<Occurrence> getAllOccurrencesNoQuery() {
+    try {
+      Extent encClass = pm.getExtent(Occurrence.class, true);
+      Iterator it = encClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllOccurrencesNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+
+
+
   public Iterator getAllAnnotationsNoQuery() {
     try {
       Extent annClass = pm.getExtent(Annotation.class, true);
@@ -1356,6 +1371,22 @@ public class Shepherd {
       return null;
     }
   }
+
+  public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences, Map<String, Object> paramMap) {
+    Collection c;
+    try {
+      c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
+      ArrayList list = new ArrayList(c);
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
 
   public List<PatterningPassport> getPatterningPassports() {
     int num = 0;
@@ -2258,6 +2289,22 @@ public class Shepherd {
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       acceptedEncounters.closeAll();
+      return 0;
+    }
+  }
+  public int getNumOccurrences() {
+    pm.getFetchPlan().setGroup("count");
+    Extent encClass = pm.getExtent(Occurrence.class, true);
+    String filter = "this.state != \"unidentifiable\"";
+    Query acceptedOccurrences = pm.newQuery(encClass, filter);
+    try {
+      Collection c = (Collection) (acceptedOccurrences.execute());
+      int num = c.size();
+      acceptedOccurrences.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedOccurrences.closeAll();
       return 0;
     }
   }
@@ -3563,12 +3610,12 @@ public class Shepherd {
     q.closeAll();
     return null;
   }
-  
+
   public int getNumAnnotationsForEncounter(String encounterID){
     ArrayList<Annotation> al=getAnnotationsForEncounter(encounterID);
     return al.size();
   }
-  
+
   public ArrayList<Annotation> getAnnotationsForEncounter(String encounterID){
     String filter="SELECT FROM org.ecocean.Annotation WHERE enc.catalogNumber == \""+encounterID+"\" && enc.annotations.contains(this)  VARIABLES org.ecocean.Encounter enc";
     Query query=getPM().newQuery(filter);
