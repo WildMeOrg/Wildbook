@@ -291,41 +291,21 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
+                      <!-- temporarily commented out: experiment w streamlining header UI
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                        	<!--
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
 
                           	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
 
-                          	<!--
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                             -->
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         </ul>
                       </li>
+                      -->
 
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                        <%
-                        if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
-                        %>
-                          <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
-                        <%
-                        }
-                        %>
-                          <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
-
-                          <!--  examples of navigation dividers
-                          <li class="divider"></li>
-                          <li class="dropdown-header">Nav header</li>
-                           -->
-
-                        </ul>
-                      </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Individuals <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -361,12 +341,12 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       </li>
 
                       <!-- start locationID sites -->
+                      <!--
                        <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("sites") %> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
 
-                        <!-- list sites by locationID -->
                           <% boolean moreLocationIDs=true;
                              int siteNum=0;
                              while(moreLocationIDs) {
@@ -381,6 +361,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                         </ul>
                       </li>
+                      -->
                       <!-- end locationID sites -->
 
                       <li class="dropdown">
@@ -388,13 +369,16 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
                            </ul>
                       </li>
 
+                      <!-- commented out until there is more content here?
                       <li>
                         <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
                       </li>
+                      -->
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -439,6 +423,27 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                             } //end if admin
                             %>
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
+                              <ul class="dropdown-menu" role="menu">
+                              <%
+                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                              %>
+                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+                              <%
+                              }
+                              %>
+                                <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+
+                                <!--  examples of navigation dividers
+                                <li class="divider"></li>
+                                <li class="dropdown-header">Nav header</li>
+                                 -->
+
+                              </ul>
+                            </li>
+
+
                                 <li class="divider"></li>
                                   <li class="dropdown-header"><%=props.getProperty("grid")%></li>
 
