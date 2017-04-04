@@ -1,5 +1,5 @@
 <jsp:include page="header.jsp" flush="true"/>
-
+<link rel="stylesheet" href="css/bassStyles.css">
 <div class="container maincontent">
 
 
@@ -20,7 +20,18 @@ Young juveniles, which are typically less than 20 cm (8in) long, are bright red 
  Adults are gray or brown with black spots.  Individuals can temporarily change (flash) the color and brightness of their skin and spots. 
 </p>
 
-[Image of juvenile]
+<br>
+
+<div class="container">
+  <div class="row">
+    <div class="col-xs-4">
+    </div>	
+    <div class="col-xs-6">
+	  <img class="bass_image" src="cust/mantamatcher/img/bass/bass_juv.png" />
+	  <label class="image_label">Juvenile giant sea bass. Image credit: Randy Wilder © Monterey Bay Aquarium</label>
+    </div>
+  </div>
+</div>
 
 <h3>Natural History</h3>
 <h4>Feeding Habits</h4>
@@ -29,6 +40,20 @@ Young juveniles, which are typically less than 20 cm (8in) long, are bright red 
 Giant sea bass are apex predators in kelp forest ecosystems and feed on fishes, crustaceans, squid, small sharks, and rays.
  Generally slow-moving, they suck prey into their mouths by abruptly opening their jaws and creating a strong vacuum. 
 </p>
+<br>
+
+<div class="container">
+  <div class="row">
+    <div class="col-xs-4">
+    </div>	
+    <div class="col-xs-6">
+	  <img class="bass_image" src="cust/mantamatcher/img/bass/feeding_habits.gif" />
+	  <label class="image_label">Giant sea bass swallow large fish whole. Video credit: Kevin Lafferty</label>
+    </div>
+  </div>
+</div>
+
+
 
 <h4>Habitats</h4>
 <p>
@@ -45,59 +70,6 @@ Giant sea bass are apex predators in kelp forest ecosystems and feed on fishes, 
   In Mexico, they are mostly found on the Pacific coast of Baja California and the Sea of Cortez.
 </p>
 
-[range map]
-
-<h4>Population and Conservation</h4>
-<p>
-  Giant sea bass were once a common and valuable species in fish markets. Commercial fishing for them began in the 1800s. 
-  Catch peaked in 1932 for commercial fisheries in both California and Mexico. 
-  Recreational fishing of giant sea bass increased after the commercial peak, and recreational catches peaked in 1963 in California and 1973 in Mexico. 
-  The development of recreational fisheries that targeted giant sea bass spawning aggregations contributed to a quick collapse of the population. 
-  Giant sea bass numbers continued to steadily decline until 1981. That year California passed a law restricting targeted recreational and commercial fishing of giant sea bass, with the exception of one incidentally caught fish per fishing trip in the commercial gillnet and trammel net fisheries.
-  Today, approximately 97 giant sea bass are landed annually and sold in California in these commercial fisheries.
-</p>
-
-<p>
-  Funding for this project was generously provided by the Benioff Ocean Initiative and UC Santa Barbara.
-</p>
-
-<p>
-  Based on the severity of these declines, since 1996 giant sea bass have  been classified as a Critically Endangered species on the red list of the International Union for Conservation of Nature. 
-  Recent research suggests that giant sea bass populations might be increasing, but their numbers have not recovered to levels anywhere near those recorded during the early 1900s. 
-</p>
-
-<h4>References</h4>
-
-<p>
-	Allen LG, Andrews AH (2012) Bomb radiocarbon dating and estimated longevity of Giant Sea Bass (Stereolepis gigas).
-	&emsp Bulletin, Southern California Academy of Sciences 111:1-14. doi: 10.3160/0038-3872-111.1.1
-</p>
-
-<p>
-	Domeier, ML (2001) Giant sea bass. California's living marine resources: a status report. 
-	&emsp Calif Fish Game, Sacramento, 209-211.
-</p>
-
-<p>
-	Gaffney PM, Rupnow J, Domeier ML (2007) Genetic similarity of disjunct populations of the giant sea bass
-	&emsp Stereolepis gigas. Journal of Fish Biology 70:111-124. doi: 10.1111/j.1095-8649.2007.01393.x
-</p>
-
-<p>
-	House, Parker H., Brian LF Clark, and Larry G. Allen. "The return of the king of the kelp forest: distribution, 
-	abundance, and biomass of giant sea bass (Stereolepis gigas) off Santa Catalina Island, California, 2014-2015." 
-	&emsp Bulletin, Southern California Academy of Sciences 115.1 (2016): 1-14.
-</p>
-
-<p>
-	House, Parker H., Brian LF Clark, and Larry G. Allen. "The return of the king of the kelp forest: distribution, abundance, 
-	and biomass of giant sea bass (Stereolepis gigas) off Santa Catalina Island, California, 2014-2015." Bulletin, 
-	&emsp Southern California Academy of Sciences 115.1 (2016): 1-14.
-</p>
-
-
-
-
 <!--
 <h2>Founding Supporters</h2>
 
@@ -112,6 +84,86 @@ Giant sea bass are apex predators in kelp forest ecosystems and feed on fishes, 
 </table>
 
 -->
+<br>
+
+<div class="container">
+  <div class="row">
+    <div class="col-xs-6">
+		<img class="bass_image range_map" src="cust/mantamatcher/img/bass/range_map.png" />
+		<label></label>
+    </div>	
+    <div class="col-xs-6">
+	  	<img class="bass_image bass_caught" src="cust/mantamatcher/img/bass/bass_caught.png" />
+	  	<label class="image_label">These docile fish were easily targeted at aggregation sites. Source: Bud Gardner Photograph Collection, University of South Florida</label>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<h4>Population and Conservation</h4>
+<p>
+  Giant sea bass were once a common and valuable species in fish markets. Commercial fishing for them began in the 1800s. 
+  Catch peaked in 1932 for commercial fisheries in both California and Mexico. 
+  Recreational fishing of giant sea bass increased after the commercial peak, and recreational catches peaked in 1963 in California and 1973 in Mexico. 
+  The development of recreational fisheries that targeted giant sea bass spawning aggregations contributed to a quick collapse of the population. 
+  Giant sea bass numbers continued to steadily decline until 1981. That year California passed a law restricting targeted recreational and commercial fishing of giant sea bass, with the exception of one incidentally caught fish per fishing trip in the commercial gillnet and trammel net fisheries.
+  Today, approximately 97 giant sea bass are landed annually and sold in California in these commercial fisheries.
+</p>
+
+<br>
+
+<div class="container">
+  <div class="row">
+    <div class="col-xs-3">
+    </div>	
+    <div class="col-xs-6">
+	  	<img class="bass_image bass_caught" src="cust/mantamatcher/img/bass/commercial_landing.png" />
+	  	<label class="image_label">Commercial landings of giant sea bass peaked in the 1930s, and declined in the following decades as commercial and recreational overfishing led to a population collapse. Source: Domeier, ML (2001).</label>
+    </div>
+  </div>
+</div>
+
+<p>
+  Based on the severity of these declines, since 1996 giant sea bass have  been classified as a Critically Endangered species on the red list of the International Union for Conservation of Nature. 
+  Recent research suggests that giant sea bass populations might be increasing, but their numbers have not recovered to levels anywhere near those recorded during the early 1900s. 
+</p>
+
+<h4>References</h4>
+
+<p>
+	Allen LG, Andrews AH (2012) Bomb radiocarbon dating and estimated longevity of Giant Sea Bass (Stereolepis gigas).<br>
+	&nbsp;&nbsp; Bulletin, Southern California Academy of Sciences 111:1-14. doi: 10.3160/0038-3872-111.1.1
+</p>
+
+<p>
+	Domeier, ML (2001) Giant sea bass. California's living marine resources: a status report. <br>
+	&emsp;&nbsp; Calif Fish Game, Sacramento, 209-211.
+</p>
+
+<p>
+	Gaffney PM, Rupnow J, Domeier ML (2007) Genetic similarity of disjunct populations of the giant sea bass Stereolepis gigas.<br>
+	&emsp;&nbsp; Journal of Fish Biology 70:111-124. doi: 10.1111/j.1095-8649.2007.01393.x
+</p>
+
+<p>
+	House, Parker H., Brian LF Clark, and Larry G. Allen. "The return of the king of the kelp forest: distribution, 
+	abundance, and biomass of giant sea bass (Stereolepis gigas) off Santa Catalina Island, California, 2014-2015."<br> 
+	&emsp;&nbsp; Bulletin, Southern California Academy of Sciences 115.1 (2016): 1-14.
+</p>
+
+<p>
+	House, Parker H., Brian LF Clark, and Larry G. Allen. "The return of the king of the kelp forest: distribution, abundance, 
+	and biomass of giant sea bass (Stereolepis gigas) off Santa Catalina Island, California, 2014-2015." Bulletin,<br> 
+	&emsp;&nbsp; Southern California Academy of Sciences 115.1 (2016): 1-14.
+</p>
+
+
+
+
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
