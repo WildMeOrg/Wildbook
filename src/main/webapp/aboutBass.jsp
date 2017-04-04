@@ -70,29 +70,29 @@ Giant sea bass are apex predators in kelp forest ecosystems and feed on fishes, 
 
 <p>
 	Allen LG, Andrews AH (2012) Bomb radiocarbon dating and estimated longevity of Giant Sea Bass (Stereolepis gigas).
-		Bulletin, Southern California Academy of Sciences 111:1-14. doi: 10.3160/0038-3872-111.1.1
+	&emsp Bulletin, Southern California Academy of Sciences 111:1-14. doi: 10.3160/0038-3872-111.1.1
 </p>
 
 <p>
 	Domeier, ML (2001) Giant sea bass. California's living marine resources: a status report. 
-		Calif Fish Game, Sacramento, 209-211.
+	&emsp Calif Fish Game, Sacramento, 209-211.
 </p>
 
 <p>
 	Gaffney PM, Rupnow J, Domeier ML (2007) Genetic similarity of disjunct populations of the giant sea bass
-		Stereolepis gigas. Journal of Fish Biology 70:111-124. doi: 10.1111/j.1095-8649.2007.01393.x
+	&emsp Stereolepis gigas. Journal of Fish Biology 70:111-124. doi: 10.1111/j.1095-8649.2007.01393.x
 </p>
 
 <p>
 	House, Parker H., Brian LF Clark, and Larry G. Allen. "The return of the king of the kelp forest: distribution, 
 	abundance, and biomass of giant sea bass (Stereolepis gigas) off Santa Catalina Island, California, 2014-2015." 
-		Bulletin, Southern California Academy of Sciences 115.1 (2016): 1-14.
+	&emsp Bulletin, Southern California Academy of Sciences 115.1 (2016): 1-14.
 </p>
 
 <p>
 	House, Parker H., Brian LF Clark, and Larry G. Allen. "The return of the king of the kelp forest: distribution, abundance, 
 	and biomass of giant sea bass (Stereolepis gigas) off Santa Catalina Island, California, 2014-2015." Bulletin, 
-		Southern California Academy of Sciences 115.1 (2016): 1-14.
+	&emsp Southern California Academy of Sciences 115.1 (2016): 1-14.
 </p>
 
 
