@@ -14,7 +14,7 @@ fi
 
 youtube-dl -o $dir/$ytid.mp4 \
 	-q \
-	-f 22 \
+	-f mp4 \
 	--write-info-json \
 	--write-all-thumbnails \
 	$yturl

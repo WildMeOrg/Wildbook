@@ -518,6 +518,10 @@
  		<servlet-name>ResumableUpload</servlet-name>
 		<url-pattern>/ResumableUpload</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+ 		<servlet-name>ResumableUpload</servlet-name>
+		<url-pattern>/upload</url-pattern>
+	</servlet-mapping>
 
     <servlet>
     <servlet-name>BatchUpload</servlet-name>
