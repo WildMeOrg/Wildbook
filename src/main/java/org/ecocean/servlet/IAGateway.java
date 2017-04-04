@@ -522,6 +522,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
   }
 
 
+    //TODO wedge in IA.intake here i guess? (once it exists)
     public static JSONObject _doDetect(JSONObject jin, JSONObject res, Shepherd myShepherd, String context, String baseUrl) throws ServletException, IOException {
         if (res == null) throw new RuntimeException("IAGateway._doDetect() called without res passed in");
         String taskId = res.optString("taskId", null);
@@ -597,6 +598,7 @@ System.out.println(id);
     }
 
 
+    //TODO not sure why we pass 'res' in but also it is the return value... potentially should be fixed; likely when we create IA package
     public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd, String context, String baseUrl) throws ServletException, IOException {
         if (res == null) throw new RuntimeException("IAGateway._doIdentify() called without res passed in");
         String taskId = res.optString("taskId", null);

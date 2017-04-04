@@ -29,7 +29,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
 import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.identity.IBEISIA;
-//import org.ecocean.Encounter;
+import org.ecocean.Encounter;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -271,11 +271,16 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public MediaAsset getParentRoot(Shepherd myShepherd) {
-        Integer pid = this.getParentId();
-        if (pid == null) return this;
-        MediaAsset par = MediaAssetFactory.load(pid, myShepherd);
-        if (par == null) return this;  //orphaned!  fail!!
+        MediaAsset par = this.getParent(myShepherd);
+        if (par == null) return this;  //reached the root!
         return par.getParentRoot(myShepherd);
+    }
+
+    //returns null if no parent
+    public MediaAsset getParent(Shepherd myShepherd) {
+        Integer pid = this.getParentId();
+        if (pid == null) return null;
+        return MediaAssetFactory.load(pid, myShepherd);
     }
 
     public JSONObject getParameters() {
@@ -452,9 +457,15 @@ public class MediaAsset implements java.io.Serializable {
      human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
      FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string),
               then (b) crawl metadata.exif for something date-y
+
+        TODO maybe someday this actually should be *only* punting to store.getDateTime() ????
     */
     public DateTime getDateTime() {
         if (this.userDateTime != null) return this.userDateTime;
+        if (this.store != null) {
+            DateTime dt = this.store.getDateTime(this);
+            if (dt != null) return dt;
+        }
         if (getMetadata() == null) return null;
         String adt = getMetadata().getAttributes().optString("dateTime", null);
         if (adt != null) return DateTime.parse(adt);  //lets hope it is in iso8601 format like it should be!
@@ -519,17 +530,19 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     //if unity feature is appropriate, generates that; otherwise does a boundingBox one
-    public Feature generateFeatureFromBbox(double w, double h, double x, double y) {
+    //   'params' is extra params to use, and can be null
+    public Feature generateFeatureFromBbox(double w, double h, double x, double y, JSONObject params) {
         Feature f = null;
         if ((x != 0) || (y != 0) || (w != this.getWidth()) || (h != this.getHeight())) {
-            JSONObject p = new JSONObject();
-            p.put("width", w);
-            p.put("height", h);
-            p.put("x", x);
-            p.put("y", y);
-            f = new Feature("org.ecocean.boundingBox", p);
+            if (params == null) params = new JSONObject();
+            params.put("width", w);
+            params.put("height", h);
+            params.put("x", x);
+            params.put("y", y);
+            f = new Feature("org.ecocean.boundingBox", params);
             this.addFeature(f);
         } else {
+            //oopsy this ignores extra params!   TODO FIXME should we change this?
             f = this.generateUnityFeature();
         }
         return f;
@@ -670,6 +683,10 @@ public class MediaAsset implements java.io.Serializable {
         if (parentId != null) {
             top = MediaAssetFactory.load(parentId, myShepherd);
             if (top == null) throw new RuntimeException("bestSafeAsset() failed to find parent on " + this);
+            if (!top.hasLabel("_original")) {
+                System.out.println("INFO: " + this + " had a non-_original parent of " + top + "; so using this");
+                return this;  //we stick with this cuz we are kinda at a dead end
+            }
         }
 
         boolean gotBest = false;
@@ -794,15 +811,16 @@ public class MediaAsset implements java.io.Serializable {
     }
 
 
-	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
                 org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
             return sanitizeJson(request, jobj, true);
         }
 
         //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
-	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
               org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
               jobj.put("id", this.getId());
+                jobj.put("detectionStatus", this.getDetectionStatus());
               jobj.remove("parametersAsString");
             //jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
 
@@ -810,6 +828,12 @@ public class MediaAsset implements java.io.Serializable {
             HashMap<String,String> s = new HashMap<String,String>();
             s.put("type", store.getType().toString());
             jobj.put("store", s);
+
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MediaAsset.class_1");
+            myShepherd.beginDBTransaction();
+
             ArrayList<Feature> fts = getFeatures();
             if ((fts != null) && (fts.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray jarr = new org.datanucleus.api.rest.orgjson.JSONArray();
@@ -820,6 +844,18 @@ public class MediaAsset implements java.io.Serializable {
                     jf.put("type", ft.getType());
                     JSONObject p = ft.getParameters();
                     if (p != null) jf.put("parameters", Util.toggleJSONObject(p));
+
+                    //we add this stuff for gallery/image to link to co-occurring indiv/enc
+                    Annotation ann = ft.getAnnotation();
+                    if (ann != null) {
+                        jf.put("annotationId", ann.getId());
+                        Encounter enc = ann.findEncounter(myShepherd);
+                        if (enc != null) {
+                            jf.put("encounterId", enc.getCatalogNumber());
+                            if (enc.hasMarkedIndividual()) jf.put("individualId", enc.getIndividualID());
+                        }
+                    }
+
                     jarr.put(jf);
                 }
                 jobj.put("features", jarr);
@@ -832,15 +868,11 @@ public class MediaAsset implements java.io.Serializable {
             if (dt != null) jobj.put("dateTime", dt.toString());  //DateTime.toString() gives iso8601, noice!
 
             //note? warning? i guess this will traverse... gulp?
-            String context = ServletUtilities.getContext(request);
-            Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("MediaAsset.class_1");
-            myShepherd.beginDBTransaction();
-
             URL u = safeURL(myShepherd, request);
             if (u != null) jobj.put("url", u.toString());
 
-            ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
+            ArrayList<MediaAsset> kids = null;
+            if (!jobj.optBoolean("_skipChildren", false)) kids = this.findChildren(myShepherd);
             myShepherd.rollbackDBTransaction();
             if ((kids != null) && (kids.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray k = new org.datanucleus.api.rest.orgjson.JSONArray();

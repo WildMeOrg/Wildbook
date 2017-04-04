@@ -37,8 +37,12 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
 
     //https://dev.twitter.com/rest/public/search   e.g. "whaleshark filter:media"
     public static QueryResult findTweets(String search) throws TwitterException {
+        return findTweets(search, -1l);
+    }
+    public static QueryResult findTweets(String search, long sinceId) throws TwitterException {
         Twitter tw = tfactory.getInstance();
         Query query = new Query(search);
+        if (sinceId >= 0l) query.setSinceId(sinceId);
         return tw.search(query);
     }
 
