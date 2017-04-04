@@ -5,50 +5,47 @@
 
         
         
-<h1>Flukebook: Where people and animals connect</h1>
-
-<p>Flukebook is a free, online resource, established to strengthen the global conservation of whales and dolphins. A catalyst for collaboration, Flukebook enables researchers to manage, share, analyze and archive data via pioneering, user friendly software. Flukebook unites researchers, conservationists and citizen scientists, enables connections with individual animals, and provides robust data to inform conservation of marine mammals and their habitats. </p>
-        
-
-<h2>Why use Flukebook?</h2>
+<h1>Spotting Giants</h1>
 
 <p>
-No researcher or whalewatcher is equipped to traverse the vast distances required to study marine mammals consistently and without gaps. Flukebook's powerful data management, photo matching algorithms and analysis tools, consolidates existing research and connects data to provide oceanic and global scale information for researchers and conservation groups. 
+  Giant sea bass are the largest bony fish along the California coast. Weighing up to 256 kg (564 lb) they can swallow small sharks whole. 
+  Despite their intimidating size, they are celebrated by divers for their curiosity and beauty. They are a fragile species. Long-lived and slow to mature, 
+  their populations crashed as a result of overfishing. They have been classified by the IUCN as a "critically endangered" species - 
+  a risk rating more severe than that of the giant panda.
 </p>
+
 <p>
-For the first time, Flukebook provides a place for researchers, conservationists and citizen scientists to work together to fill the gaps in our knowledge of these incredible species. 
+  Recent research has suggested that giant sea bass populations may be slowly recovering. 
+  Despite their iconic presence in kelp forest and rocky reefs of the west coast, there have been very few studies on their biology. 
+  This project was conceived to collect new data that will improve our understanding of this charismatic fish and to continue to improve stewardship of this species.
 </p>
 
-
-<h2>What does Flukebook do?</h2>
 <p>
-Flukebook uses photographs of flukes , dorsal fins, and scars to distinguish between individual animals. Identify your fluke in as few as three clicks - rapid identification is achieved using pattern recognition and photo management technology. Anyone can contribute to Flukebook. All you need is to submit your photos and any other sighting information and Flukebook can do the rest. Soon, you will even be able to follow an individual whale, find out who she is friends with, where she goes, and who has seen her lately</p>
-
-
-<h3>Manage and backup your data</h3>
-<p>Import your photos and sightings data in many common picture formats and from common photo-management tools like Facebook and Flickr. Once imported, you can view your sightings online, follow individuals you have identified, add metadata, manage individual data, and use all the other Flukebook features. Having your data in Flukebook also serves as a free backup service. 
+  Spotting Giant Sea Bass is a collaborative citizen science effort coordinated by marine scientists in the McCauley Lab and the Love Lab at UC Santa Barbara. 
+  Love Lab researchers discovered it was possible to identify individual fish by their spot patterns, and that these patterns persisted over time. 
+  Harnessing the eyes and cameras of recreational divers in California and Mexico, we hope to gain a more complete picture of giant sea bass population dynamics and movement patterns.  
 </p>
 
-<h3>Researchers control their own data</h3>
-<p>Researchers keep full ownership and control access to their data in Flukebook. Permission settings allow you to choose who has access to your data and allows for easy collaboration between groups. Flukebook can be used within organizations to allow web-based access to data and matching without sharing any data beyond your organization. Multiple team members, in multiple locations, on multiple computers can all work on the same dataset at the same time.
-</p>
-<p>Flukebook enables collaboration when photoidentification matches are made. The potential match list will be redacted if your sharing is turned off. You will be able to see that your individuals potentially match other datasets, but you cannot access the data until both data owners agree to privately and reciprocally share access. By doing this, Flukebook allows for the simple compilation of datasets for multi-institutional collaborative projects. 
-</p>
+<br>
 
-<h3>Analysis tools</h3>
-<p>Flukebook provides tools for managing photoidentification, molecular sampling, and sightings databases and includes a growing number of features to help users work with additional software by linking to external programs, including ArcGIS, SOCPROG, Genepop, GenAIEx, WinBugs, and Google Earth. 
+<p>
+  By matching the unique spot patterns of individual giant sea bass in images submitted to this website we will be able to answer critically important research questions such as: 
+  How far do giant sea bass move, and what is the seasonality of these movements?; How is the population changing over time?; and how do giant sea bass use marine protected areas? 
 </p>
 
-<h3>Archive: saving information for the future</h3>
-<p>Collecting animal identification data takes enormous time, effort and funding, and can also impact the animals over time. We believe these data provide invaluable records about the oceans and should be preserved for future generations. A generation from now, how will these populations have changed? Will your data be available to help answer new questions about socio-ecology, haplotype evolution, and ocean scale change by the next generation of marine mammologists? To support this, Flukebook's data can be exported in a number of formats and its infrastructure for archiving identification datasets will be stored on servers in the cloud.
+<p>
+  Outputs from this project empower divers, fishermen, and other ocean enthusiasts to learn more about and better appreciate a flagship species in our coastal reef communities.
 </p>
 
-
-<h3>Build networks and strengthen research</h3>
-<p>All photographic, location, and supplementary data, once imported to Flukebook, are in the same format. This feature, together with the ability to share your data privately with specific collaborators, overcomes one of the major hurdles to combining disparate, international datasets. This makes Flukebook a powerful tool for researchers looking for collaborators, prospective graduate students, conservation groups looking for data to help advocacy goals, government developing management plans, and people hoping to change the world. 
+<p>
+  The project is one product from a collective of researchers from the University of California, Santa Barbara, California State University, Northridge, California State University, Long Beach and Scripps Institution of Oceanography who have combined efforts to learn more about giant sea bass.
 </p>
 
+<p>
+  Funding for this project was generously provided by the Benioff Ocean Initiative and UC Santa Barbara.
+</p>
 
+<!--
 <h2>Founding Supporters</h2>
 
 <table>
@@ -61,7 +58,8 @@ Flukebook uses photographs of flukes , dorsal fins, and scars to distinguish bet
 </tr>
 </table>
 
-        </div>
+-->
+</div>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
