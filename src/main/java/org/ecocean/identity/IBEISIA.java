@@ -2458,6 +2458,8 @@ System.out.println("using qid -> " + qid);
         return null;
         // this is trailing edge matching but takes foreeeevvvver
         //return new JSONObject("{\"pipeline_root\": \"BC_DTW\"}");
+        // and this is oriented curvature + weighted dynamic time-warping
+        //return new JSONObject("{\"pipeline_root\": \"OC_WDTW\"}");
     }
 
     private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
