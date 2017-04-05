@@ -209,14 +209,14 @@ margin-bottom: 8px !important;
 
 	 		          %>
 
-	 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
-			          bounds.extend(latLng);
+	 		         var latLng<%=i%> = new google.maps.LatLng(<%=thisLatLong%>);
+			          bounds.extend(latLng<%=i%>);
 
 	 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
 
 
 	 		         var marker<%=i%> = new RichMarker({
-	 		            position: latLng,
+	 		            position: latLng<%=i%>,
 	 		            map: map,
 	 		            draggable: false,
 	 		           content: divString<%=i%>,
