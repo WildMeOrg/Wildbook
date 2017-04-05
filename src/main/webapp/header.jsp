@@ -109,6 +109,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
               <div class="header-top-wrapper">
                 <div class="container">
                 <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>
+                <img id="love-badge" src="/cust/mantamatcher/img/bass/little_love_logo.png"></img>
                   <div class="search-and-secondary-wrapper">
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
