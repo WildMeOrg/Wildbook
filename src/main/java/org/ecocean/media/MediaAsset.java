@@ -1168,6 +1168,8 @@ System.out.println(">> updateStandardChildren(): type = " + type);
             throw new IOException("copyInBase64() could not parse: " + ex.toString());
         }
         File file = (this.localPath() != null) ? this.localPath().toFile() : File.createTempFile("b64-" + Util.generateUUID(), ".tmp");
+        File parentDir = file.getParentFile();
+        if (!parentDir.exists()) parentDir.mkdirs();
         FileOutputStream stream = new FileOutputStream(file);
         try {
             stream.write(imgBytes);
