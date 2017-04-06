@@ -269,7 +269,7 @@ td.measurement{
 
   var map;
   var marker;
-  var center = new google.maps.LatLng(0, 0);
+  var center = new google.maps.LatLng(32.6104351,-117.3712712);
 
 
           function placeMarker(location) {
@@ -300,10 +300,10 @@ td.measurement{
             function initialize() {
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
-	              var mapZoom = 1;
+	              var mapZoom = 5																																																																																																																																																																																																																																																																																																	;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
-	              var center = new google.maps.LatLng(0, 0);
+	              var center = new google.maps.LatLng(32.6104351,-117.3712712);
 
 
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {

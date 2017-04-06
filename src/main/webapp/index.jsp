@@ -137,8 +137,8 @@ margin-bottom: 8px !important;
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
 
 
-        var center = new google.maps.LatLng(0,0);
-        var mapZoom = 8;
+        var center = new google.maps.LatLng(32.6104351,-117.3712712);
+        var mapZoom = 5;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
