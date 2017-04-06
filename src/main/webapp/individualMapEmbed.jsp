@@ -84,7 +84,7 @@ context=ServletUtilities.getContext(request);
   try {
 %>
 
-<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>>language=<%=langCode%>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="javascript/oms.min.js"></script>
