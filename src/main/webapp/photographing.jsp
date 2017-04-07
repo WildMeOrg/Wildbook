@@ -1,12 +1,18 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*" %>
-<%
+<%@ page contentType="text/html; charset=utf-8" language="java"
+import="org.ecocean.*,
+         org.ecocean.servlet.ServletUtilities,
+         java.util.Properties
+         "
+%>
 
-//setup our Properties object to hold all properties
-	
-	
-	String context="context0";
-	context=ServletUtilities.getContext(request);
-	
+<%
+String context=ServletUtilities.getContext(request);
+
+Properties props = new Properties();
+//Find what language we are in.
+String langCode = ServletUtilities.getLanguageCode(request);
+//Grab the properties file with the correct language strings.
+props = ShepherdProperties.getProperties("photographing.properties", langCode, context);
 %>
 
 
