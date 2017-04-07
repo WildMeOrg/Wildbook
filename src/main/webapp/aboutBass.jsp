@@ -20,64 +20,64 @@ props = ShepherdProperties.getProperties("aboutBass.properties", langCode, conte
 
 
         
-<h1><%=props.getProperty("mainHeader") %></h1>
-<h2><%=props.getProperty("overviewHeader") %></h2>
+  <h1><%=props.getProperty("mainHeader") %></h1>
+  <h2><%=props.getProperty("overviewHeader") %></h2>
 
-<p>
-<%=props.getProperty("overviewP1") %>
-</p>
+  <p>
+  <%=props.getProperty("overviewP1") %>
+  </p>
 
 [Image of adult]
 
-<p>
-<%=props.getProperty("overviewP2") %>
-</p>
+  <p>
+  <%=props.getProperty("overviewP2") %>
+  </p>
 
-<br>
+  <br>
 
-<div class="container">
-  <div class="row">
-    <div class="col-xs-4">
-    </div>	
-    <div class="col-xs-6">
-	  <img class="bass_image" src="cust/mantamatcher/img/bass/bass_juv.png" />
-	  <label class="image_label"><%=props.getProperty("juvImageCaption") %></label>
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-4">
+      </div>	
+      <div class="col-xs-6">
+	    <img class="bass_image" src="cust/mantamatcher/img/bass/bass_juv.png" />
+	    <label class="image_label"><%=props.getProperty("juvImageCaption") %></label>
+      </div>
     </div>
   </div>
-</div>
 
-<h3><%=props.getProperty("historyHeader") %></h3>
-<h4><%=props.getProperty("habitsSubHeader") %></h4>
+  <h3><%=props.getProperty("historyHeader") %></h3>
+  <h4><%=props.getProperty("habitsSubHeader") %></h4>
 
-<p>
-<%=props.getProperty("historyP1") %>
-</p>
-<br>
+  <p>
+  <%=props.getProperty("historyP1") %>
+  </p>
+  <br>
 
-<div class="container">
-  <div class="row">
-    <div class="col-xs-4">
-    </div>	
-    <div class="col-xs-6">
-	  <img class="bass_image" src="cust/mantamatcher/img/bass/feeding_habits.gif" />
-	  <label class="image_label"><%=props.getProperty("feedingImage") %></label>
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-4">
+      </div>	
+      <div class="col-xs-6">
+    	  <img class="bass_image" src="cust/mantamatcher/img/bass/feeding_habits.gif" />
+	    <label class="image_label"><%=props.getProperty("feedingImage") %></label>
+      </div>
     </div>
   </div>
-</div>
 
 
 
-<h4><%=props.getProperty("habitatsHeader") %></h4>
-<p>
-<%=props.getProperty("habitatsP1") %>
-</p>
+  <h4><%=props.getProperty("habitatsHeader") %></h4>
+  <p>
+  <%=props.getProperty("habitatsP1") %>
+  </p>
 
 [photo of multiple gsb with kelp in background]
 
-<h4><%=props.getProperty("distributionHeader") %></h4>
-<p>
-<%=props.getProperty("distributionP1") %>
-</p>
+  <h4><%=props.getProperty("distributionHeader") %></h4>
+  <p>
+  <%=props.getProperty("distributionP1") %>
+  </p>
 
 <!--
 <h2>Founding Supporters</h2>
@@ -93,69 +93,69 @@ props = ShepherdProperties.getProperties("aboutBass.properties", langCode, conte
 </table>
 
 -->
-<br>
+  <br>
 
-<div class="container">
-  <div class="row">
-    <div class="col-xs-6">
-		<img class="bass_image range_map" src="cust/mantamatcher/img/bass/range_map.png" />
-		<label><%=props.getProperty("rangeMapImage") %></label>
-    </div>	
-    <div class="col-xs-6">
-	  	<img class="bass_image bass_caught" src="cust/mantamatcher/img/bass/bass_caught.png" />
-	  	<label class="image_label"><%=props.getProperty("caughtBassImage") %></label>
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-6">
+    		<img class="bass_image range_map" src="cust/mantamatcher/img/bass/range_map.png" />
+	    	<label><%=props.getProperty("rangeMapImage") %></label>
+      </div>	
+      <div class="col-xs-6">
+	    	<img class="bass_image bass_caught" src="cust/mantamatcher/img/bass/bass_caught.png" />
+	  	    <label class="image_label"><%=props.getProperty("caughtBassImage") %></label>
+      </div>
     </div>
   </div>
-</div>
 
 
 
 
 
 
-<h4><%=props.getProperty("popConserveHeader") %></h4>
-<p>
-<%=props.getProperty("popConserveP1") %>
-</p>
+  <h4><%=props.getProperty("popConserveHeader") %></h4>
+  <p>
+  <%=props.getProperty("popConserveP1") %>
+  </p>
 
-<br>
+  <br>
 
-<div class="container">
-  <div class="row">
-    <div class="col-xs-3">
-    </div>	
-    <div class="col-xs-6">
-	  	<img class="bass_image bass_caught" src="cust/mantamatcher/img/bass/commercial_landing.png" />
-	  	<label class="image_label"><%=props.getProperty("comLandingImage") %></label>
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-3">
+      </div>	
+      <div class="col-xs-6">
+	    	<img class="bass_image bass_caught" src="cust/mantamatcher/img/bass/commercial_landing.png" />
+	    	<label class="image_label"><%=props.getProperty("comLandingImage") %></label>
+      </div>
     </div>
   </div>
-</div>
 
-<p>
-<%=props.getProperty("popConserveP2") %>
-</p>
+  <p>
+  <%=props.getProperty("popConserveP2") %>
+  </p>
 
-<h4><%=props.getProperty("referencesHeader")%></h4>
+  <h4><%=props.getProperty("referencesHeader")%></h4>
 
-<p>
-<%=props.getProperty("ref1") %>
-</p>
+  <p>
+  <%=props.getProperty("ref1") %>
+  </p>
 
-<p>
-<%=props.getProperty("ref2") %>
-</p>
+  <p>
+  <%=props.getProperty("ref2") %>
+  </p>
 
-<p>
-<%=props.getProperty("ref3") %>
-</p>
+  <p>
+  <%=props.getProperty("ref3") %>
+  </p>
 
-<p>
-<%=props.getProperty("ref4") %>
-</p>
+  <p>
+  <%=props.getProperty("ref4") %>
+  </p>
 
-<p>
-<%=props.getProperty("ref5") %>
-</p>
+  <p>
+  <%=props.getProperty("ref5") %>
+  </p>
 
 
 

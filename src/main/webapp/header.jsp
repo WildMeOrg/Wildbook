@@ -108,7 +108,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>
+                <!--<a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>-->
                 <!--  <img id="love-badge" src="/cust/mantamatcher/img/bass/little_love_logo.png"></img> -->
                   <div class="search-and-secondary-wrapper">
                   <%
@@ -317,27 +317,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                           	
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                             
-                          	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
-                        </ul>
-                      </li>
-
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                        <%
-                        if(CommonConfiguration.allowAdoptions(context)){
-                        %>
-                          <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
-                        <%
-                        }
-                        %>
-                          <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
-
-                          <!--  examples of navigation dividers
-                          <li class="divider"></li>
-                          <li class="dropdown-header">Nav header</li>
-                           -->
-
                         </ul>
                       </li>
                       <li class="dropdown">
@@ -373,29 +352,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                           <% } %>
                         </ul>
                       </li>
-
-                      <!-- start locationID sites -->
-                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("sites") %> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-
-
-                        <!-- list sites by locationID -->
-                          <% boolean moreLocationIDs=true;
-                             int siteNum=0;
-                             while(moreLocationIDs) {
-                                 String currentLocationID = "locationID"+siteNum;
-                                 if (CommonConfiguration.getProperty(currentLocationID,context)!=null) { %>
-                                   <li><a href="<%=urlLoc %>/encounters/searchResultsAnalysis.jsp?locationCodeField=<%=CommonConfiguration.getProperty(currentLocationID,context) %>"><%=WordUtils.capitalize(CommonConfiguration.getProperty(currentLocationID,context)) %></a></li>
-                                 <% siteNum++;
-                                 } else {
-                                	 moreLocationIDs=false;
-                                 }
-                            } //end while %>
-
-                        </ul>
-                      </li>
-                      <!-- end locationID sites -->
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>

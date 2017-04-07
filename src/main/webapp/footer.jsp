@@ -21,20 +21,29 @@
             <div class="container-fluid">
               <div class="container main-section">
 
-                <div class="row">
-                  <p class="col-sm-8" style="margin-top:40px;">
-                    <small><%=props.getProperty("licenceInfo")%>
-                  <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
-                  </p>
-                  <a href="http://www.wildbook.org" class="col-sm-4" title="This site is Powered by Wildbook">
-                    <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" class="pull-right" style="
-											height: 150px;
-										"/>
-
-
-
-                  </a>
-                </div>
+                  <div class="row">
+                    <p class="col-sm-5" style="margin-top:40px;">
+                      <small><%=props.getProperty("licenceInfo")%>
+                    <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small> 
+                  
+                    </p>
+                  
+                  
+                              
+                    <a href="http://www.wildbook.org" class="col-sm-2" title="This site is Powered by Wildbook">
+                          <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo"  style="height:150px;margin-top:35px;"/>
+                    </a>
+                          	  
+                    <div class="col-sm-2" style="margin-top:40px;">
+                      <img src="cust/mantamatcher/img/bass/little_love_logo.png" />
+                    </div>
+                  	  
+                  	<div class="col-sm-3" style="margin-top:40px;">
+                      <img src="cust/mantamatcher/img/bass/msi_logo_small.png" />
+                    </div>
+                  	   
+                 </div>
+                  
               </div>
             </div>
 
