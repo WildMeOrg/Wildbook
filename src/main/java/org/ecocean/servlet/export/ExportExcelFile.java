@@ -20,29 +20,29 @@ import jxl.Workbook;
 
 
 public class ExportExcelFile extends HttpServlet{
-  
+
   private static final int BYTES_DOWNLOAD = 1024;
 
-  
+
   public void init(ServletConfig config) throws ServletException {
       super.init(config);
     }
 
-  
+
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
       doPost(request, response);
   }
-    
+
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-    
+
     //set the response
-    
+
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
-    
+
 
     String query = request.getParameter("query");
     String[] headers = request.getParameterValues("headers");
@@ -157,7 +157,7 @@ System.out.println("no such method for column " + mname + " (" + columns[i] + ")
     response.setContentType("application/octet-stream");
     response.setHeader("Content-Transfer-Encoding", "binary");
     response.setHeader("Content-Disposition", "filename=" + filename);
- 
+
     InputStream is = new FileInputStream(excelFile);
     OutputStream os = response.getOutputStream();
     byte[] buf = new byte[1000];
