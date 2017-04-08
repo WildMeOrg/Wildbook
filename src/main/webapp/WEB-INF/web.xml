@@ -128,6 +128,8 @@
 				  /InterconnectSubmitSpots = authc, roles[researcher]
 				  /interconnectSubmitSpots= authc, roles[researcher]
 				   /ImportSRGD = authc, roles[admin]
+           /ImportExcelMetadata = authc, roles[researcher]
+
 
 				   /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 				   /interconnect/mac/Interconnect.jar = authc, roles[researcher]
@@ -166,6 +168,7 @@
 				         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 				         /EncounterSearchExportKML = authc, roles[researcher]
 				         /EncounterSearchExportExcelFile = authc, roles[researcher]
+                 /EncounterSearchExportMetadataExcel = authc, roles[researcher]
 				         /EncounterSearchExportShapefile = authc, roles[researcher]
 				         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
 						/OccurrenceSetIndividualCount = authc, roles[researcher]
@@ -286,7 +289,7 @@
 		<servlet-name>ExportExcelFile</servlet-name>
 		<servlet-class>org.ecocean.servlet.export.ExportExcelFile</servlet-class>
 	</servlet>
-  
+
 	<servlet>
 		<servlet-name>ExportExcelIndividualReport</servlet-name>
 		<servlet-class>org.ecocean.servlet.export.ExportExcelIndividualReport</servlet-class>
@@ -391,6 +394,11 @@
     <servlet>
       <servlet-name>ImportSRGD</servlet-name>
       <servlet-class>org.ecocean.servlet.importer.ImportSRGD</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ImportExcelMetadata</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.ImportExcelMetadata</servlet-class>
   </servlet>
 
   <servlet>
@@ -675,6 +683,11 @@
       <servlet>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportExcelFile</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>EncounterSearchExportMetadataExcel</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.EncounterSearchExportMetadataExcel</servlet-class>
   </servlet>
 
 
@@ -1380,6 +1393,11 @@
   </servlet-mapping>
 
   <servlet-mapping>
+      <servlet-name>ImportExcelMetadata</servlet-name>
+      <url-pattern>/ImportExcelMetadata</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
       <servlet-name>ImportIA</servlet-name>
       <url-pattern>/ImportIA</url-pattern>
   </servlet-mapping>
@@ -1482,6 +1500,11 @@
       <servlet-mapping>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
         <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterSearchExportMetadataExcel</servlet-name>
+    <url-pattern>/EncounterSearchExportMetadataExcel</url-pattern>
   </servlet-mapping>
 
     <servlet-mapping>
