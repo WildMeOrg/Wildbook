@@ -271,7 +271,7 @@ console.log(imgEl);
 var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
 var spotTypeNames = {
 	ref1: 'eye',
-	ref2: 'front of second dorsal dorsal fin base',
+	ref2: 'front of second dorsal fin base',
 	ref3: 'pectoral fin base',
 	spot: 'spot',
 };

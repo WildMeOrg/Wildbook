@@ -59,7 +59,7 @@
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
     
-
+    String mapKey = CommonConfiguration.getGoogleSearchKey(context);
     		
     		
   %>
@@ -132,7 +132,7 @@
   
   <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="//maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>?"></script>
  <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
  
 
