@@ -12,7 +12,7 @@
 				// Find what language we are in.
 				String langCode = ServletUtilities.getLanguageCode(request);
 				// Grab the properties file with the correct language strings.
-				props = ShepherdProperties.getProperties("footer.properties", langCode,context);
+				props = ShepherdProperties.getProperties("footer.properties", langCode, context);
         %>
 
         <!-- footer -->
@@ -21,28 +21,32 @@
             <div class="container-fluid">
               <div class="container main-section">
 
-                  <div class="row">
-                    <p class="col-sm-5" style="margin-top:40px;">
-                      <small><%=props.getProperty("licenceInfo")%>
-                    <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small> 
-                  
-                    </p>
-                  
-                  
-                              
+                 <div class="row">
+                     
+                    <div class="col-sm-3" style="margin-top:10px;">
+                      <img alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg" />
+                    </div>
+                    
+                  	<div class="col-sm-3" style="margin-top:10px;">
+                      <img alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_small.png" />
+                    </div> 	   
+                    
+                    <div class="col-sm-2" style="margin-top:10px;">
+                      <img alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png" />
+                    </div>
+                    
                     <a href="http://www.wildbook.org" class="col-sm-2" title="This site is Powered by Wildbook">
-                          <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo"  style="height:150px;margin-top:35px;"/>
-                    </a>
-                          	  
-                    <div class="col-sm-2" style="margin-top:40px;">
-                      <img src="cust/mantamatcher/img/bass/little_love_logo.png" />
-                    </div>
-                  	  
-                  	<div class="col-sm-3" style="margin-top:40px;">
-                      <img src="cust/mantamatcher/img/bass/msi_logo_small.png" />
-                    </div>
-                  	   
+                      <img src="<%=urlLoc%>/images/WildBook_logo_72dpi-01.png" alt="wildbook logo"  style="height:150px;margin-top:10px;"/>
+                    </a> 
                  </div>
+                 
+                 <div class="row">
+                    <p class="col-sm-12" style="margin-top:10px;">
+                      <small><%=props.getProperty("licenceInfo")%>
+                      <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small> 
+                    </p>                                   	   
+                 </div>
+                 
                   
               </div>
             </div>

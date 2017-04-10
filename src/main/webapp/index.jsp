@@ -65,7 +65,8 @@ margin-bottom: 8px !important;
 
 
   <script type="text/javascript">
-
+  var map;
+  var mapZoom = 6;
 //Define the overlay, derived from google.maps.OverlayView
   function Label(opt_options) {
    // Initialization
@@ -110,6 +111,7 @@ margin-bottom: 8px !important;
      google.maps.event.removeListener(this.listeners_[i]);
    }
   };
+  
 
   // Implement draw
   Label.prototype.draw = function() {
@@ -127,7 +129,7 @@ margin-bottom: 8px !important;
 
 
   		//map
-  		var map;
+  		//var map;
   		var bounds = new google.maps.LatLngBounds();
 
       function initialize() {
@@ -138,7 +140,6 @@ margin-bottom: 8px !important;
 
 
         var center = new google.maps.LatLng(32.6104351,-117.3712712);
-        var mapZoom = 5;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
@@ -181,6 +182,7 @@ margin-bottom: 8px !important;
  			    }
 
  		});
+ 		
 
 
  		// let's add map points for our locationIDs
@@ -321,20 +323,20 @@ margin-bottom: 8px !important;
   	    fullScreen();
   	    }
   	  });
+      var zoom = null;
+ 	  google.maps.event.addListenerOnce(map, "zoom_changed", function() { zoom = map.getZoom(); });
+ 	  google.maps.event.addListenerOnce(map, "center_changed", function() { center = map.getCenter(); });
+
+
+ 	  google.maps.event.addDomListener(window, "resize", function() {
+ 	      google.maps.event.trigger(map, "resize");
+ 	      map.setCenter(center);
+ 	  });
+    
 
   	}
-
-
-
-
-
     google.maps.event.addDomListener(window, 'load', initialize);
-    google.maps.event.addDomListener(window, "resize", function() {
-    	 var center = map.getCenter();
-    	 google.maps.event.trigger(map, "resize");
-    	 map.setCenter(center);
-    	});
-
+  	
 
 
 
