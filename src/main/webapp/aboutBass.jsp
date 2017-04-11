@@ -79,26 +79,12 @@ props = ShepherdProperties.getProperties("aboutBass.properties", langCode, conte
   <%=props.getProperty("distributionP1") %>
   </p>
 
-<!--
-<h2>Founding Supporters</h2>
-
-<table>
-<tr><td><img src="images/logo_WHMSI.jpg" /></td><td><img src="images/OAS_Seal_ENG_Principal.gif" /></td></tr>
-
-<tr><td><img src="images/DSWPlogoLongText.png" /></td><td><img src="images/caribwhale-logo.jpg" /></td></tr>
-<tr>
-	<td><a href="http://www.cresli.org"><img width="350px" height="*" src="images/cresli.jpg" /></a></td>
-	<td>&nbsp;</td>
-</tr>
-</table>
-
--->
   <br>
 
   <div class="container">
     <div class="row">
       <div class="col-xs-6">
-    		<img class="bass_image range_map" src="cust/mantamatcher/img/bass/range_map.png" />
+    		<img class="bass_image range_map" src="cust/mantamatcher/img/bass/GSB_final_long-01_1900x2596.png" />
 	    	<label><%=props.getProperty("rangeMapImage") %></label>
       </div>	
       <div class="col-xs-6">
