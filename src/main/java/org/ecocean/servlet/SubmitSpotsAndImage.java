@@ -82,16 +82,36 @@ public class SubmitSpotsAndImage extends HttpServlet {
     myShepherd.beginDBTransaction();
     JSONObject json = ServletUtilities.jsonFromHttpServletRequest(request);
     int maId = json.optInt("mediaAssetId", -1);
-    if (maId < 0) throw new IOException("invalid mediaAssetId");
+    if (maId < 0) {
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      throw new IOException("invalid mediaAssetId");
+    }
     String encId = json.optString("encId", null);
-    if (encId == null) throw new IOException("invalid encId");
+    if (encId == null) {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        throw new IOException("invalid encId");
+    }
     Encounter enc = myShepherd.getEncounter(encId);
-    if (enc == null) throw new IOException("invalid encId");
+    if (enc == null) {
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      throw new IOException("invalid encId");
+    }
     boolean rightSide = json.optBoolean("rightSide", false);
     ArrayList<SuperSpot> spots = parseSpots(json.optJSONArray("spots"));
-    if (spots == null) throw new IOException("invalid spots");
+    if (spots == null) {
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      throw new IOException("invalid spots");
+    }
     ArrayList<SuperSpot> refSpots = parseSpots(json.optJSONArray("refSpots"));
-    if (refSpots == null) throw new IOException("invalid refSpots");
+    if (refSpots == null) {
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      throw new IOException("invalid refSpots");
+    }
 
     AssetStore store = AssetStore.getDefault(myShepherd);
     //no longer maintaining "encounters/..." dir pattern for our general (e.g. non-whaleshark) codebase! onward to the future!

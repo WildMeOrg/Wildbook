@@ -181,25 +181,14 @@ String langCode=ServletUtilities.getLanguageCode(request);
 <body onload="resetMap()" onunload="resetMap()">
 
 <%
-  GregorianCalendar cal = new GregorianCalendar();
-  int nowYear = cal.get(1);
-  int firstYear = 1980;
-  int firstSubmissionYear=1980;
+
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("encounterSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();
-  try {
-    firstYear = myShepherd.getEarliestSightingYear();
-    nowYear = myShepherd.getLastSightingYear();
-    firstSubmissionYear=myShepherd.getFirstSubmissionYear();
-  } catch (Exception e) {
-    e.printStackTrace();
-  }
-//let's load encounterSearch.properties
-  //String langCode = "en";
+
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
