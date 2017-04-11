@@ -23,12 +23,12 @@
    <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
         <h1><%=props.getProperty("title") %></h1>
         <p class="lead">
-            Here are our fantastic researchers and volunteers.
+            <%=props.getProperty("subTitle") %>
         </p>
    </div>
    
     <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
-    	<h3>We have many collaborating researchers and volunteers</h3>
+    	<h3>We have many collaborating researchers and volunteers<%=props.getProperty("collaborators") %></h3>
   
           
         <ul class="list-unstyled list-inline block-list volunteer-list">

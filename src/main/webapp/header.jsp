@@ -316,6 +316,8 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                           	
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                          	
+                          	<li><a href="<%=urlLoc %>/whoAreWe.jsp"><%=props.getProperty("whoAreWe")%></a></li>
                             
                         </ul>
                       </li>
