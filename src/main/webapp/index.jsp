@@ -535,7 +535,7 @@ finally{
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
 	                            <li>
-	                                <img src="cust/mantamatcher/img/bass/gsb_sil.png" alt="" width="85px" height="75px" class="pull-left" />
+	                                <img src="cust/mantamatcher/img/bass/gsb_sil.png" alt="" width="80px" height="38px" class="pull-left" />
 	                                <small>
 	                                    <time>
 	                                        <%=thisEnc.getDate() %>
