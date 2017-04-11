@@ -26,14 +26,15 @@
                     <div class="col-sm-3" style="margin-top:10px;">
                       <img alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg" />
                     </div>
+  
+                    <div class="col-sm-2" style="margin-top:10px;">
+                      <img alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png" />
+                    </div>
                     
                   	<div class="col-sm-3" style="margin-top:10px;">
                       <img alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_small.png" />
                     </div> 	   
                     
-                    <div class="col-sm-2" style="margin-top:10px;">
-                      <img alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png" />
-                    </div>
                     
                     <a href="http://www.wildbook.org" class="col-sm-2" title="This site is Powered by Wildbook">
                       <img src="<%=urlLoc%>/images/WildBook_logo_72dpi-01.png" alt="wildbook logo"  style="height:150px;margin-top:10px;"/>
