@@ -285,7 +285,7 @@ public class WriteOutScanTask extends HttpServlet {
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
       File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "Scan.xml");
-
+      System.out.println("Writing scanTask XML file to: "+file.getAbsolutePath());
       
       
       FileWriter mywriter = new FileWriter(file);
