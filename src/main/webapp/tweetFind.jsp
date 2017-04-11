@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
+<%@ page contentType="text/plain; charset=utf-8" language="java"
      import="org.ecocean.*,
 java.util.ArrayList,
 java.util.List,
@@ -10,6 +10,8 @@ java.io.File,
 org.json.JSONObject,
 org.json.JSONArray,
 org.ecocean.identity.IBEISIA,
+twitter4j.QueryResult,
+twitter4j.Status,
 
 org.ecocean.media.*
               "
@@ -25,14 +27,71 @@ try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
 } catch (java.net.URISyntaxException ex) {}
 
+JSONObject rtn = new JSONObject("{\"success\": false}");
+
 TwitterUtil.init(request);
 Shepherd myShepherd = new Shepherd("context0");
 TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
 if (tas == null) {
-	out.println("<h1>no TwitterAssetStore available</h1>");
+	rtn.put("error", "no TwitterAssetStore");
+	out.println(rtn);
 	return;
 }
 
+long sinceId = 832273339657785300L;
+rtn.put("sinceId", sinceId);
+QueryResult qr = TwitterUtil.findTweets("whaleshark filter:media", sinceId);
+JSONArray tarr = new JSONArray();
+for (Status tweet : qr.getTweets()) {
+	JSONObject p = new JSONObject();
+	p.put("id", tweet.getId());
+	MediaAsset ma = tas.find(p, myShepherd);
+	if (ma != null) {
+		System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
+		continue;
+	}
+	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
+	if (jtweet == null) continue;
+	JSONObject ents = jtweet.optJSONObject("entities");
+	if (ents == null) continue;
+	JSONObject tj = new JSONObject();  //just for output purposes
+	tj.put("tweet", TwitterUtil.toJSONObject(tweet));
+	JSONArray emedia = null;
+	if (ents != null) emedia = ents.optJSONArray("media");
+	if ((ents == null) || (emedia == null) || (emedia.length() < 1)) continue;
+
+	ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
+	ma.addLabel("_original");
+	MediaAssetMetadata md = ma.updateMetadata();
+	MediaAssetFactory.save(ma, myShepherd);
+	tj.put("maId", ma.getId());
+	tj.put("metadata", ma.getMetadata().getData());
+	System.out.println(tweet.getId() + ": created tweet asset " + ma);
+	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
+	if ((mas == null) || (mas.size() < 1)) {
+		System.out.println(tweet.getId() + ": no entity assets?");
+	} else {
+		JSONArray jent = new JSONArray();
+		for (MediaAsset ent : mas) {
+			JSONObject ej = new JSONObject();
+			MediaAssetFactory.save(ent, myShepherd);
+    			String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
+			System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
+			ej.put("maId", ent.getId());
+			ej.put("taskId", taskId);
+			jent.put(ej);
+		}
+		tj.put("entities", jent);
+	}
+	tarr.put(tj);
+}
+
+rtn.put("success", true);
+rtn.put("data", tarr);
+out.println(rtn);
+
+
+/*
 String ids[] = null;
 String forminput = request.getParameter("ids");
 if ((forminput != null) && !forminput.equals("")) {
@@ -50,8 +109,6 @@ ArrayList<MediaAsset> detectMAs = new ArrayList<MediaAsset>();
 
 for (int i = 0 ; i < ids.length ; i++) {
 	out.println("<hr /><h1>" + ids[i] + "</h1>");
-	JSONObject p = new JSONObject();
-	p.put("id", ids[i]);
 	MediaAsset ma = tas.find(p, myShepherd);
 	long idLong = -1;
         try {
@@ -105,13 +162,30 @@ if (detectMAs.size() < 1) {
 	return;
 }
 
-
-out.println("<ul>");
-for (MediaAsset ma : detectMAs) {
-	String taskId = IBEISIA.IAIntake(ma, myShepherd, request);
-	out.println("<li>" + ma + " -> " + taskId + "</li>");
+boolean success = true;
+String taskId = Util.generateUUID();
+JSONObject res = new JSONObject();
+res.put("taskId", taskId);
+try {
+    res.put("sendMediaAssets", IBEISIA.sendMediaAssets(detectMAs));
+    JSONObject sent = IBEISIA.sendDetect(detectMAs, baseUrl);
+    res.put("sendDetect", sent);
+    String jobId = null;
+    if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false)) jobId = sent.optString("response", null);
+    res.put("jobId", jobId);
+    //IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new JSONObject("{\"_action\": \"initDetect\"}"), context);
+} catch (Exception ex) {
+    success = false;
+    throw new IOException(ex.toString());
 }
-out.println("</ul>");
+
+if (!success) {
+    for (MediaAsset ma : mas) {
+        ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
+    }
+}
+*/
+
 
 %>
 

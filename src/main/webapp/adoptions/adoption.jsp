@@ -24,6 +24,7 @@ context=ServletUtilities.getContext(request);
 	  boolean edit = false;
 	
 	  session.setAttribute( "emailEdit", false );
+	  session.setMaxInactiveInterval(6000);
 	
 	  String id = "";
 	  String adopterName = "";

@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.ArrayList;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,6 +35,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import org.joda.time.DateTime;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
@@ -120,6 +122,17 @@ public class YouTubeAssetStore extends AssetStore {
         return "YouTube" + idFromParameters(params);
     }
 
+    @Override
+    public DateTime getDateTime(MediaAsset ma) {
+        if ((ma == null) || (ma.getMetadata() == null) || (ma.getMetadata().getData().optJSONObject("detailed") == null)) return null;
+        String upd = ma.getMetadata().getData().getJSONObject("detailed").optString("upload_date", null);
+        if ((upd == null) || (upd.length() != 8)) return null;  //is like YYYYMMDD
+        try {
+            return new DateTime(Integer.parseInt(upd.substring(0,4)), Integer.parseInt(upd.substring(4,6)), Integer.parseInt(upd.substring(6)), 0, 1);
+        } catch (Exception ex) { }
+        return null;
+    }
+
 
     @Override
     public JSONObject createParameters(File file, String grouping) {
@@ -138,9 +151,9 @@ public class YouTubeAssetStore extends AssetStore {
         return params.optString("id", null);
     }
 
-    //most likely you want grabAndParse() really.
+    //most likely you want grabAndParse() really.  this is just a wrapper to YouTube.grab() basically
     //  how should we thread in bkgd??? ... probably this should by synchrous, but stuff can bg when needed (e.g. extractMetadata)
-    public static List<File> grab(MediaAsset ma) throws java.io.IOException {
+    public static List<File> grab(MediaAsset ma) throws IOException {
         if (ma == null) return null;
         String id = idFromParameters(ma.getParameters());
         if (id == null) return null;
@@ -199,8 +212,68 @@ System.out.println("- [" + f.getName() + "] grabAndParse: " + f);
                 _createVideoChild(myShepherd, ma, f);
             }
         }
+        ma.addDerivationMethod("_processing", false);
         return true;
     }
+
+    //most likely you want extractFramesAndParse() really.  this is just a wrapper to YouTube.extractFrames() basically
+    // here, ma must be a video file!
+    public static List<File> extractFrames(MediaAsset ma) throws IOException {
+        if ((ma == null) || (ma.getStore() == null)) return null;
+        if (!ma.isMimeTypeMajor("video")) throw new IOException(ma + " does not appear to be a video file, extractFrames() aborted");
+        Path locP = ma.localPath();
+        if (locP == null) throw new IOException(ma + " failed to get .localPath(); extractFrames() aborted");
+
+        //we attempt to create the final resting place for these files (which only works for LocalAssetStore)
+        //  but this will work for any (writable, duh) AssetStore (since this will get us a temp dir basically)
+        File fakeFile = new File(Util.hashDirectories(Util.generateUUID(), File.separator));
+        JSONObject params = ma.getStore().createParameters(fakeFile);
+        MediaAsset tmpMA = ma.getStore().create(params);
+        Path dirP = tmpMA.localPath();
+        if (dirP == null) dirP = Files.createTempDirectory("youtube_extract_" + ma.getId());  //fallback to tmp
+
+System.out.println(ma + " --> " + locP + " extract to " + dirP);
+        return YouTube.extractFrames(locP.toFile(), dirP.toFile());
+    }
+
+
+    //returns success (frames extracted) -- passed in parent/_original MA ... maybe later we would want to also allow _video child option?  TODO
+    // 'wait' refers only for other process, if we need to do the grabbing, right now it will always wait for that
+    //    NOTE: wait is untested!  TODO
+    // note that uses same _processing derivation method as .grabAndParse() above.  this is cuz these should not be run simultaneous anyway
+    public static boolean extractFramesAndParse(Shepherd myShepherd, MediaAsset ma, boolean wait) throws IOException {
+        if (ma == null) throw new IOException("YouTubeAssetStore.extractFramesAndParse() given null MediaAsset");
+        ArrayList<MediaAsset> vidKids = ma.findChildrenByLabel(myShepherd, "_video");
+        if ((vidKids == null) || (vidKids.size() < 1)) throw new IOException("YouTubeAssetStore.extractFramesAndParse(" + ma + ") has no _video child");
+        boolean processing = ((ma.getDerivationMethod() != null) && ma.getDerivationMethod().optBoolean("_processing", false));
+        int count = 0;
+        int max = 100;
+        while (processing && (count < max)) {
+            System.out.println("INFO: YouTubeAssetStore(" + ma + ").extractFramesAndParse, waiting with count=" + count);
+            if (!wait) return false;
+            try {
+                Thread.sleep(2000);
+            } catch (java.lang.InterruptedException ex) {}
+            count++;
+            if (count >= max) return false;
+            processing = ((ma.getDerivationMethod() != null) && ma.getDerivationMethod().optBoolean("_processing", false));
+        }
+        //get here, we must not be processing, so lets do that!
+        ma.addDerivationMethod("_processing", true);
+        List<File> extracted = YouTubeAssetStore.extractFrames(vidKids.get(0));
+        if (extracted == null) {
+            System.out.println("WARNING: extractFrames(" + vidKids.get(0) + ") returned null; extractFramesAndParse() bailing");
+            return false;
+        }
+        for (File f : extracted) {
+            if (!f.getName().matches(".+.jpg$")) continue;  //skip log files or whatev
+System.out.println("- [" + f.getName() + "] extractFramesAndParse: " + f);
+            _createFrameChild(myShepherd, vidKids.get(0), f);
+        }
+        ma.addDerivationMethod("_processing", false);
+        return true;
+    }
+
 
     private static MediaAsset _createThumbChild(Shepherd myShepherd, MediaAsset parent, File f) throws java.io.IOException {
         if ((f == null) || !f.exists()) {
@@ -220,7 +293,7 @@ System.out.println("- [" + f.getName() + "] grabAndParse: " + f);
         kid.addLabel("_thumb");
         kid.updateMinimalMetadata();
         MediaAssetFactory.save(kid, myShepherd);
-System.out.println("thumb child created: " + kid);
+//System.out.println("thumb child created: " + kid);
         return kid;
     }
 
@@ -242,9 +315,42 @@ System.out.println("thumb child created: " + kid);
         kid.addLabel("_video");
         kid.updateMinimalMetadata();
         MediaAssetFactory.save(kid, myShepherd);
-System.out.println("video child created: " + kid);
+//System.out.println("video child created: " + kid);
         return kid;
     }
+
+    private static MediaAsset _createFrameChild(Shepherd myShepherd, MediaAsset parent, File f) throws java.io.IOException {
+        if ((f == null) || !f.exists()) {
+            System.out.println("WARNING: could not create frame child for " + parent + ", file failure on " + f + "; skipping");
+            return null;
+        }
+        //AssetStore astore = AssetStore.getDefault(myShepherd); //err, um think we should use parent's (as it is a video stored somewhere, not a YouTubeAssetStore
+        AssetStore astore = parent.getStore();
+        if (astore == null) {
+            System.out.println("WARNING: could not create frame child for " + parent + ", no valid asset store");
+            return null;
+        }
+        int offset = -1;
+        //this assumes filename is like "frame00001.jpg" so needs to be altered if config/youtube_extract.sh ever changes that
+        try {
+            offset = Integer.parseInt(f.getName().substring(5,10)) - 1;  //ffmpeg starts counting at 1, so we adjust to be 0-based
+        } catch (NumberFormatException | IndexOutOfBoundsException ex) {
+            System.out.println("WARNING: YouTubeAssetStore._createFrameChild(" + parent + ") could not parse offset int value from " + f + " filename; using -1: " + ex.toString());
+        }
+        JSONObject sp = astore.createParameters(f);
+        sp.put("key", parent.getUUID() + "/" + f.getName());
+        sp.put("extractFPS", YouTube.EXTRACT_FPS);
+        sp.put("extractOffset", offset);
+        MediaAsset kid = new MediaAsset(astore, sp);
+        kid.copyIn(f);
+        kid.setParentId(parent.getId());
+        kid.addLabel("_frame");
+        kid.updateMinimalMetadata();
+        MediaAssetFactory.save(kid, myShepherd);
+//System.out.println("frame child created: " + kid);
+        return kid;
+    }
+
 
     public MediaAssetMetadata extractMetadata(MediaAsset ma, boolean minimal) throws IOException {
         JSONObject data = new JSONObject();
@@ -303,6 +409,18 @@ System.out.println("about to grab!");
         };
         new Thread(rn).start();
 System.out.println("<<<<< out of fork");
+    }
+
+    //can start at either root (_original) or _video ma
+    public static ArrayList<MediaAsset> findFrames(final MediaAsset ma, Shepherd myShepherd) {
+        if (ma == null) return null;
+        MediaAsset vma = ma;
+        if (!ma.hasLabel("_video")) {
+            ArrayList<MediaAsset> vidKids = ma.findChildrenByLabel(myShepherd, "_video");
+            if ((vidKids == null) || (vidKids.size() < 1)) return null;  //nope
+            vma = vidKids.get(0);
+        }
+        return vma.findChildrenByLabel(myShepherd, "_frame");
     }
 }
 
