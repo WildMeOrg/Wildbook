@@ -22,7 +22,8 @@ package org.ecocean.grid;
 
 import java.io.*;
 import java.net.URL;
-import javax.net.ssl.HttpsURLConnection;
+//import javax.net.ssl.HttpsURLConnection;
+import java.net.URLConnection;
 import java.util.GregorianCalendar;
 import java.util.Random;
 import java.util.Vector;
@@ -43,7 +44,7 @@ public class WorkAppletHeadlessEpic {
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
 
-  public static String thisURLRoot = "https://www.whaleshark.org";
+  public static String thisURLRoot = "http://34.209.17.78";
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;
@@ -98,8 +99,8 @@ public class WorkAppletHeadlessEpic {
     long startTime=(new GregorianCalendar()).getTimeInMillis();
     
     //server connection
-    HttpsURLConnection con=null;
-
+    //HttpsURLConnection con=null;
+    URLConnection con=null;
 
     //whether this is a right-side pattern scan or a left-side
     boolean rightScan = false;
@@ -182,7 +183,8 @@ public class WorkAppletHeadlessEpic {
             java.net.URL u = new java.net.URL(thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
             System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
            
-            con = (HttpsURLConnection)u.openConnection();
+            //con = (HttpsURLConnection)u.openConnection();
+            con = (URLConnection)u.openConnection();
             
             con.setDoInput(true);
             con.setDoOutput(true);
@@ -326,7 +328,8 @@ public class WorkAppletHeadlessEpic {
 
                 URL finishScan = new URL(thisURLRoot+"/ScanWorkItemResultsHandler2?" + "group=true&nodeIdentifier=" + nodeID);
                 System.out.println("Trying to send results to: "+finishScan.toString());
-                HttpsURLConnection finishConnection = (HttpsURLConnection)finishScan.openConnection();
+                //HttpsURLConnection finishConnection = (HttpsURLConnection)finishScan.openConnection();
+                URLConnection finishConnection = (URLConnection)finishScan.openConnection();
 
                 // inform the connection that we will send output and accept input
                 finishConnection.setDoInput(true);
