@@ -282,9 +282,15 @@ public class WriteOutScanTask extends HttpServlet {
       //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       //if(!encountersDir.exists()){encountersDir.mkdirs();}
+      String thisEncDirString=Encounter.dir(shepherdDataDir,num);
+      File thisEncounterDir=new File(thisEncDirString);
+      if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
+      
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
       File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "Scan.xml");
+      
+      
       System.out.println("Writing scanTask XML file to: "+file.getAbsolutePath());
       
       
