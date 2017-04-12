@@ -174,5 +174,26 @@ public class StartupWildbook implements ServletContextListener {
         System.out.println("++ StartupWildbook.skipInit() test on " + extra + " [" + fname + "] --> " + skip);
         return skip;
     }
+
+/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem... 
+    //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
+    private static boolean properStartupResource(ServletContextEvent sce) {
+        if (sce == null) return false;
+        ServletContext context = sce.getServletContext(); 
+        if (context == null) return false;
+        URL res = null;
+        try {
+            res = context.getResource("/");
+        } catch (Exception ex) {
+            System.out.println("  ERROR: StartupWildbook.properStartupResource() .getResource() threw exception: " + ex);
+            return false;
+        }
+System.out.println("  StartupWildbook.properStartupResource() res = " + res);
+        if (res == null) return false;
+        return res.toString().equals("jndi:/localhost/uptest/");
+    }
+*/
+
+
 }
 

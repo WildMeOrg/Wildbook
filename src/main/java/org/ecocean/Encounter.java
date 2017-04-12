@@ -291,7 +291,7 @@ public class Encounter implements java.io.Serializable {
         this.catalogNumber = Util.generateUUID();
         this.annotations = anns;
         this.setDateFromAssets();
-        this.setSpeciesFromAssets();
+        this.setSpeciesFromAnnotations();
         this.setLatLonFromAssets();
         this.setDWCDateAdded();
         this.setDWCDateLastModified();
@@ -1644,14 +1644,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 /* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
 some strings and decimal (double, er Double?) values -- so i am doing my best to standardize on
 the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
-  public double getDecimalLatitudeAsDouble(){return decimalLatitude.doubleValue();}
+  public Double getDecimalLatitudeAsDouble(){return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();}
 
     public void setDecimalLatitude(Double lat){
         this.decimalLatitude = lat;
         gpsLatitude = Util.decimalLatLonToString(lat);
      }
 
-  public double getDecimalLongitudeAsDouble(){return decimalLongitude.doubleValue();}
+  public Double getDecimalLongitudeAsDouble(){return (decimalLongitude == null) ? null : decimalLongitude.doubleValue();}
 
     public void setDecimalLongitude(Double lon) {
         this.decimalLongitude = lon;
@@ -1822,6 +1822,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   }
 
   public static String getHashOfEmailString(String hashMe) {
+    if (hashMe == null) return null;
     String returnString = "";
     StringTokenizer tokenizer = new StringTokenizer(hashMe, ",");
     while (tokenizer.hasMoreTokens()) {
@@ -1887,9 +1888,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (dt != null) setDateInMilliseconds(dt.getMillis());
     }
 
-    public void setSpeciesFromAssets() {
+    public void setSpeciesFromAnnotations() {
         if ((annotations == null) || (annotations.size() < 1)) return;
         String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
+        this.setGenus(null);  //we reset these no matter what, so only parts get set as available
+        this.setSpecificEpithet(null);
+        if (sp == null) return;
         if (sp.length > 0) this.setGenus(sp[0]);
         if (sp.length > 1) this.setSpecificEpithet(sp[1]);
     }
@@ -2200,6 +2204,27 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (annotations == null) annotations = new ArrayList<Annotation>();
         annotations.add(ann);
     }
+
+    public void addAnnotationReplacingUnityFeature(Annotation ann) {
+        int unityAnnotIndex = -1;
+        if (annotations == null) annotations = new ArrayList<Annotation>();
+        System.out.println("n annotations = "+annotations.size());
+
+        for (int i=0; i<annotations.size(); i++) {
+          if (annotations.get(i).isTrivial()) {
+            System.out.println("annotation "+i+" is unity!");
+            unityAnnotIndex = i;
+            break;
+          }
+        }
+        System.out.println("unityAnnotIndex = "+unityAnnotIndex);
+        if (unityAnnotIndex > -1) { // there is a unity annot; replace it
+          annotations.set(unityAnnotIndex, ann);
+        } else {
+          annotations.add(ann);
+        }
+    }
+
 
     //convenience method
     public ArrayList<MediaAsset> getMedia() {
@@ -2769,9 +2794,14 @@ throw new Exception();
     }
 
 
+    //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
         enc.setCatalogNumber(Util.generateUUID());
+        enc.setGenus(this.getGenus());
+        enc.setSpecificEpithet(this.getSpecificEpithet());
+        enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
+        enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
         return enc;
     }
 
@@ -2781,6 +2811,10 @@ throw new Exception();
         this.setState(STATE_MATCHING_ONLY);
     }
 
+    //ann is the Annotation that was created after IA detection.  mostly this is just to notify... someone
+    public void detectedAnnotation(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
+System.out.println(">>>>> detectedAnnotation() on " + this);
+    }
 
     /*
        note: these are baby steps into proper ownership of Encounters.  a similar (but cleaner) attempt is done in MediaAssets... however, really
