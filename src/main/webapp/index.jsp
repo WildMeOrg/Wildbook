@@ -255,6 +255,7 @@ margin-bottom: 8px !important;
     		var idleListener = google.maps.event.addListener(map, 'idle', function() {
     			google.maps.event.removeListener(idleListener);
     			console.log("GetCenter : "+map.getCenter());
+    			mapZoom = map.getZoom();
     			newCenter = map.getCenter();
     			center = newCenter;
     			map.setCenter(map.getCenter());

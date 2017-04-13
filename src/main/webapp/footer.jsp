@@ -23,15 +23,15 @@
 
                  <div class="row">
                      
-                    <div class="col-sm-3" style="margin-top:10px;">
-                      <img alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg" />
+                    <div class="col-xs-3" style="margin-top:10px;">
+                      <img alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg" style="max-width:200px;max-height:auto;" />
                     </div>
   
-                    <div class="col-sm-2" style="margin-top:10px;">
+                    <div class="col-xs-2" style="margin-top:10px;">
                       <img alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png" />
                     </div>
                     
-                  	<div class="col-sm-3" style="margin-top:10px;">
+                  	<div class="col-xs-3" style="margin-top:10px;">
                       <img alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_small.png" />
                     </div> 	   
                     
