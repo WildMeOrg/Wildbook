@@ -10,7 +10,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 String langCode=ServletUtilities.getLanguageCode(request);
-String mapKey = 
+String mapKey = CommonConfiguration.getGoogleSearchKey(context);
 
 %>
 
