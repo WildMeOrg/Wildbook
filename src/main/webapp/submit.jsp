@@ -225,7 +225,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(10.8, 160.8);
+var center = new google.maps.LatLng(32.6104351,-117.3712712);
 
 var map;
 

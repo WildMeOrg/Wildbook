@@ -67,6 +67,8 @@ margin-bottom: 8px !important;
   <script type="text/javascript">
   var map;
   var mapZoom = 6;
+  var center;
+  var newCenter;	
 //Define the overlay, derived from google.maps.OverlayView
   function Label(opt_options) {
    // Initialization
@@ -130,18 +132,21 @@ margin-bottom: 8px !important;
 
   		//map
   		//var map;
-  		var bounds = new google.maps.LatLngBounds();
+  	  var bounds = new google.maps.LatLngBounds();
 
       function initialize() {
-
 
     	// Create an array of styles for our Google Map.
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
 
 
-        var center = new google.maps.LatLng(32.6104351,-117.3712712);
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-
+		
+    	if (center == null) {
+	    	center = new google.maps.LatLng(32.6104351,-117.3712712);
+    	} else {
+    		center = map.getCenter();
+    	}
 
         map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
@@ -246,8 +251,30 @@ margin-bottom: 8px !important;
  		}
  	 	%>
 
+    	 google.maps.event.addListener(map, 'dragend', function() {
+    		var idleListener = google.maps.event.addListener(map, 'idle', function() {
+    			google.maps.event.removeListener(idleListener);
+    			console.log("GetCenter : "+map.getCenter());
+    			newCenter = map.getCenter();
+    			center = newCenter;
+    			map.setCenter(map.getCenter());
+    		});
+    		 
+ 	     }); 	 
+    	 
+    	 google.maps.event.addDomListener(window, "resize", function() {	 
+ 	    	console.log("Resize Center : "+center);
+ 	    	google.maps.event.trigger(map, "resize");
+ 	  	    console.log("Resize : "+newCenter);
+ 	  	    map.setCenter(center);
+ 	     });    
 
  	 } // end initialize function
+ 	  	  
+ 	  	 
+
+ 	 
+ 	 
 
       function fullScreen(){
   		$("#map_canvas").addClass('full_screen_map');
@@ -309,36 +336,22 @@ margin-bottom: 8px !important;
 
   	  if($("#map_canvas").hasClass("full_screen_map")){
   	      controlText.innerHTML = 'Exit Fullscreen';
-  	    } else {
+  	  } else {
   	      controlText.innerHTML = 'Fullscreen';
-  	    }
-
-  	  // Setup the click event listeners: toggle the full screen
-
-  	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-  	   if($("#map_canvas").hasClass("full_screen_map")){
-  	    exitFullScreen();
-  	    } else {
-  	    fullScreen();
-  	    }
-  	  });
-      var zoom = null;
- 	  google.maps.event.addListenerOnce(map, "zoom_changed", function() { zoom = map.getZoom(); });
- 	  google.maps.event.addListenerOnce(map, "center_changed", function() { center = map.getCenter(); });
-
-
- 	  google.maps.event.addDomListener(window, "resize", function() {
- 	      google.maps.event.trigger(map, "resize");
- 	      map.setCenter(center);
+  	  }
+ 	  google.maps.event.addDomListener(controlUI, 'click', function() {
+ 	 	if($("#map_canvas").hasClass("full_screen_map")){
+ 	  	  exitFullScreen();
+ 	  	} else {
+ 	  	  fullScreen();
+ 	  	}
  	  });
-    
-
+  	  
+  	  // Setup the click event listeners: toggle the full screen
   	}
     google.maps.event.addDomListener(window, 'load', initialize);
+
   	
-
-
 
   </script>
 
