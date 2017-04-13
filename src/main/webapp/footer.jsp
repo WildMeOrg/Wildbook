@@ -23,21 +23,21 @@
 
                  <div class="row">
                      
-                    <div class="col-sm-3" style="margin-top:10px;">
-                      <img alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg" />
+                    <div class="col-xs-12 col-md-3 foot-logo img-responsive" style="margin-top:10px;">
+                      <img class="foot-logo img-responsive" alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg" style="max-width:200px;max-height:auto;" />
                     </div>
   
-                    <div class="col-sm-2" style="margin-top:10px;">
-                      <img alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png" />
+                    <div class="col-xs-12 col-md-3 foot-logo img-responsive" style="margin-top:10px;">
+                      <img class="foot-logo img-responsive" alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png" />
                     </div>
                     
-                  	<div class="col-sm-3" style="margin-top:10px;">
-                      <img alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_small.png" />
+                  	<div class="col-xs-12 col-md-3 foot-logo img-responsive" style="margin-top:10px;">
+                      <img class="foot-logo img-responsive" alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_small.png" />
                     </div> 	   
                     
                     
-                    <a href="http://www.wildbook.org" class="col-sm-2" title="This site is Powered by Wildbook">
-                      <img src="<%=urlLoc%>/images/WildBook_logo_72dpi-01.png" alt="wildbook logo"  style="height:150px;margin-top:10px;"/>
+                    <a href="http://www.wildbook.org" class="col-xs-12 col-md-3" title="This site is Powered by Wildbook">
+                      <img class="foot-logo img-responsive" src="<%=urlLoc%>/images/WildBook_logo_72dpi-01.png" alt="wildbook logo"  style="height:150px;margin-top:10px;"/>
                     </a> 
                  </div>
                  

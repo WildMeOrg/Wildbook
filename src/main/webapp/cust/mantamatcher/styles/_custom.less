@@ -280,6 +280,13 @@ form table td, form table th {
 				transition: top 1s ease;
 				}
 		}
+		
+		@media (max-width: @screen-sm) {
+			.navbar-fixed-top {
+				max-height: 150px; 
+				margin-bottom: 200px;
+			}
+		}
 
 		#wild-me-badge,ibeis-badge,love-badge { display: none; }
 
@@ -404,6 +411,15 @@ form table td, form table th {
 				}
 
 		.partner-list.large li { width: 300px; }
+		
+@media (max-width: @screen-sm) {
+	.foot-logo {
+		margin: 20px;
+		height: 60px;
+		width: auto;
+		display: block;
+	}
+}
 /*
 	Content
 */

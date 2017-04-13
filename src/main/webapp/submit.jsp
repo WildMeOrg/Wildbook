@@ -226,10 +226,10 @@ $(function() {
 });
 
 var center = new google.maps.LatLng(32.6104351,-117.3712712);
-
 var map;
-
 var marker;
+var newCenter;
+var mapzoom;
 
 function placeMarker(location) {
     if(marker!=null){marker.setMap(null);}
@@ -249,12 +249,12 @@ function placeMarker(location) {
     }
 
   function initialize() {
-    var mapZoom = 3;
+    mapZoom = 6;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(10.8, 160.8);
+        center = new google.maps.LatLng(32.6104351,-117.3712712);
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -275,7 +275,27 @@ function placeMarker(location) {
 
       google.maps.event.addListener(map, 'click', function(event) {
             placeMarker(event.latLng);
-          });
+      });
+      
+      
+ 	 google.maps.event.addListener(map, 'dragend', function() {
+ 		var idleListener = google.maps.event.addListener(map, 'idle', function() {
+ 			google.maps.event.removeListener(idleListener);
+ 			console.log("GetCenter : "+map.getCenter());
+ 			mapZoom = map.getZoom();
+ 			newCenter = map.getCenter();
+ 			center = newCenter;
+ 			map.setCenter(map.getCenter());
+ 		});
+ 		 
+	 }); 	 
+ 	 
+ 	 google.maps.event.addDomListener(window, "resize", function() {	 
+	    	console.log("Resize Center : "+center);
+	    	google.maps.event.trigger(map, "resize");
+	  	    console.log("Resize : "+newCenter);
+	  	    map.setCenter(center);
+	 });  
 }
 
 function fullScreen() {
