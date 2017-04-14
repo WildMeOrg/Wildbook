@@ -1001,7 +1001,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
       <hr/>
-
+      
+<!--  turns on and off tag section of advanced info for submission -->
+<%
+boolean tagSwitch = false;
+if (tagSwitch == true) {
+%>
        <fieldset>
         <h3><%=props.getProperty("tags") %></h3>
       <%
@@ -1090,7 +1095,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </fieldset>
 
 <hr/>
-
+<!-- end tagSwitch -->
+<%}%>
       <div class="form-group">
         <label class="control-label"><%=props.getProperty("otherEmails") %></label>
         <input class="form-control" name="informothers" type="text" id="informothers" size="75">
