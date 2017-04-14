@@ -536,8 +536,9 @@ finally{
             }
             %>
 
-
-            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+			<section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding focusbox">
+			</section>
+            <section class="col-xs-12 col-sm-6 col-md-6 col-lg-6 padding focusbox">
                 <div class="focusbox-inner opec">
                     <h2><%=props.getProperty("latestEncs") %></h2>
                     <ul class="encounter-list list-unstyled">
@@ -582,7 +583,14 @@ finally{
                     <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
                 </div>
             </section>
+            <!-- begin spotter switch -->
+            <%
+            boolean topSpotterSwitch = false;
+            if (topSpotterSwitch == true) {
+            %>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+            
+            
                 <div class="focusbox-inner opec">
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
@@ -638,7 +646,10 @@ finally{
                     </ul>
                     <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
                 </div>
+                
             </section>
+            <!-- end spotter switch -->
+            <%}%>
         </div>
     </aside>
 </div>
