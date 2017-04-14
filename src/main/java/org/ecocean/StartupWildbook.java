@@ -174,7 +174,8 @@ public class StartupWildbook implements ServletContextListener {
 
       Runtime rt = Runtime.getRuntime();
       try{
-        Process pr = rt.exec("");
+        //bass customization
+        Process pr = rt.exec("/home/ubuntu/StartGridClient.sh");
       }
       catch(Exception e){e.printStackTrace();}
       
