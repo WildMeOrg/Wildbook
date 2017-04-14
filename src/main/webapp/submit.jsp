@@ -893,6 +893,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
+            <p><small><%=props.getProperty("behaviorExplanation") %></small></p>
           </div>
 
           <div class="col-xs-6 col-lg-8">
@@ -904,6 +905,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
            <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_scars") %></label>
+            <p><small><%=props.getProperty("scarsExplanation") %></small></p>
           </div>
 
           <div class="col-xs-6 col-lg-8">
@@ -1002,7 +1004,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
       <hr/>
       
-<!--  turns on and off tag section of advanced info for submission -->
+<!--  turns on and off tag section of advanced info for submission -->	
 <%
 boolean tagSwitch = false;
 if (tagSwitch == true) {
