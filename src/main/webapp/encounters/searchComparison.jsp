@@ -9,6 +9,9 @@
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
+
+String langCode=ServletUtilities.getLanguageCode(request);
+String mapKey = CommonConfiguration.getGoogleSearchKey(context);
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -38,7 +41,7 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="//maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode %>"></script>
 <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="../javascript/geoxml3.js"></script>
 <script type="text/javascript" src="../javascript/ProjectedOverlay.js"></script>
@@ -98,8 +101,6 @@ margin-bottom: 8px !important;
   }
 
 //let's load encounterSearch.properties
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
   
 
   Properties encprops = new Properties();
@@ -165,13 +166,13 @@ if(request.getParameter("day1")==null){gotoPage="searchComparison.jsp";}
     
 <script type="text/javascript">
 //alert("Prepping map functions.");
-var center = new google.maps.LatLng(0, 0);
+var center;
 
 var map;
 
 var markers = [];
 var overlays = [];
-
+var newCenter;
 
 var selectedRectangle;
 
@@ -181,12 +182,19 @@ var geoXml = null;
 var geoXmlDoc = null;
 var kml = null;
 var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
+var mapZoom = 6;
  
 
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 1;
+	
+	if (center == null) {
+    	center = new google.maps.LatLng(32.6104351,-117.3712712);
+	} else {
+		center = map.getCenter();
+	}
+	
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -276,7 +284,23 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
         <%    
         }		
 		%>
-
+    	 google.maps.event.addListener(map, 'dragend', function() {
+    		var idleListener = google.maps.event.addListener(map, 'idle', function() {
+ 	    		google.maps.event.removeListener(idleListener);
+ 		    	console.log("GetCenter : "+map.getCenter());
+ 		    	mapZoom = map.getZoom();
+ 			    newCenter = map.getCenter();
+ 			    center = newCenter;
+ 			    map.setCenter(map.getCenter());
+ 		    }); 
+	     }); 	 
+ 	 
+ 	     google.maps.event.addDomListener(window, "resize", function() {	 
+	    	console.log("Resize Center : "+center);
+	    	google.maps.event.trigger(map, "resize");
+	  	    console.log("Resize : "+newCenter);
+	  	    map.setCenter(center);
+	     });  
           
  }
   
