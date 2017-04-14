@@ -118,7 +118,7 @@ public class StartupWildbook implements ServletContextListener {
 */
         if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
         createMatchGraph();
-        runGridClient();
+        //runGridClient();
 
         File qdir = ScheduledQueue.setQueueDir(context);
         if ((qdir == null) || skipInit(sce, "SCHEDULED_QUEUE")) {
@@ -175,7 +175,7 @@ public class StartupWildbook implements ServletContextListener {
       Runtime rt = Runtime.getRuntime();
       try{
         //bass customization
-        Process pr = rt.exec("/home/ubuntu/StartGridClient.sh");
+        //Process pr = rt.exec("/home/ubuntu/StartGridClient.sh");
       }
       catch(Exception e){e.printStackTrace();}
       
