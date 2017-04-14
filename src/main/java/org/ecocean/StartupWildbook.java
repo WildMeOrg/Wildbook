@@ -118,6 +118,7 @@ public class StartupWildbook implements ServletContextListener {
 */
         if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
         createMatchGraph();
+        runGridClient();
 
         File qdir = ScheduledQueue.setQueueDir(context);
         if ((qdir == null) || skipInit(sce, "SCHEDULED_QUEUE")) {
@@ -166,6 +167,17 @@ public class StartupWildbook implements ServletContextListener {
       System.out.println("Entering createMatchGraph StartupWildbook method.");
       ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
       es.execute(new MatchGraphCreationThread());
+    }
+    
+    public static void runGridClient(){
+      System.out.println("Entering runGridClient StartupWildbook method.");
+
+      Runtime rt = Runtime.getRuntime();
+      try{
+        Process pr = rt.exec("");
+      }
+      catch(Exception e){e.printStackTrace();}
+      
     }
 
     private static boolean skipInit(ServletContextEvent sce, String extra) {

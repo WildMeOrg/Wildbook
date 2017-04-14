@@ -48,6 +48,8 @@ public class WorkAppletHeadlessEpic {
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;
+  
+  private static int numProcessors=0;
 
   //constructor
   public WorkAppletHeadlessEpic() {
@@ -83,6 +85,10 @@ public class WorkAppletHeadlessEpic {
 
     WorkAppletHeadlessEpic a = new WorkAppletHeadlessEpic();
     if(args[0]!=null)thisURLRoot=args[0];
+    try{
+      if(args[1]!=null)numProcessors=(new Integer(args[1])).intValue();
+    }
+    catch(Exception e){e.printStackTrace();}
     a.getGoing();
   }
 
@@ -124,7 +130,7 @@ public class WorkAppletHeadlessEpic {
 
       //check the number of processors
       Runtime rt = Runtime.getRuntime();
-      int numProcessors = rt.availableProcessors();
+      if(numProcessors==0) numProcessors = rt.availableProcessors();
 
 
       System.out.println();
@@ -206,18 +212,19 @@ public class WorkAppletHeadlessEpic {
               System.out.println("...No work to do...sleeping...");
               
               successfulConnect=false;
-              if (timeDiff<allowedDiff) {
+              //if (timeDiff<allowedDiff) {
 
                 Thread.sleep(sleepTime);
                 //System.exit(0);
                 
-              }
-              else {
+              //}
+             /* else {
                 System.out.println("\n\nI hit the timeout and am shutting down after "+(timeDiff/1000/60)+" minutes.");
                 inputFromServlet.close();
                 System.exit(0);
                 
               }
+              */
               
             }
             inputFromServlet.close();
