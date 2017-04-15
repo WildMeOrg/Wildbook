@@ -1,7 +1,7 @@
 SUBJECT: Individual update: @INDIVIDUAL_ID@
 Hello!
 
-Just a quick e-mail to let you know that the animal that your reported has been resighted!
+Just a quick e-mail to let you know that the giant sea bass that you reported has been resighted!
 
 
 Resighted individual: @INDIVIDUAL_ID@
