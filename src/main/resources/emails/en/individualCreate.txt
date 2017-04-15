@@ -2,9 +2,9 @@ SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
 Just a quick e-mail to let you know that the encounter that you submitted
-has been added as a new, previously unidentified manta!
+has been added as a new, previously unidentified giant sea bass!
 
-You discovered a new manta for science!
+You discovered a new giant sea bass for science!
 
 Newly marked: @INDIVIDUAL_ID@
 @INDIVIDUAL_LINK@
