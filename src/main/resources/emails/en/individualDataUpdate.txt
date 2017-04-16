@@ -1,12 +1,25 @@
 SUBJECT: Individual update: @INDIVIDUAL_ID@
 Hello! 
 
-Just a quick email to let you know of a change in data for a manta that you
+Just a quick email to let you know of a change in data for a giant sea bass that you
 have marked for tracking. See the text below to learn more.
 
 Change:
 
 Individual: @INDIVIDUAL_ID@
+@INDIVIDUAL_LINK@
+
+@TEXT_CONTENT@
+
+
+~ ~ ~
+¡Hola!
+
+Nadamás un mensaje breve para avisarte de un cambio en los datos para un mero gigante que has marcado para rastrear. Vea los detalles debajo para aprender más:
+
+Cambio:
+
+Individuo: @INDIVIDUAL_ID@
 @INDIVIDUAL_LINK@
 
 @TEXT_CONTENT@

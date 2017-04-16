@@ -10,8 +10,23 @@ Resighted individual: @INDIVIDUAL_ID@
 Encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help! If you're interested in supporting our
-research to understand and protect animals like yours, please adopt and
-nickname your animal.
+Thanks again for your critical help!
+
+
+~ ~ ~
+¡Hola!
+
+Nadamás un mensaje breve para avisarte que el mero gigante que has reportado previamente ha sido avistado de nuevo!
+
+Individuo avistado de nuevo:  @INDIVIDUAL_ID@
+@INDIVIDUAL_LINK@
+
+Encuentro: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+¡Gracias de nuevo por tu ayuda importante!
+ 
+
+
 
         

@@ -7,15 +7,15 @@ Sincerely,
 The Spotting Giant Sea Bass Team
 
 
-LEGAL STATEMENT
-
-MantaMatcher is copyrighted 2009-2015 by Wild Me.
-Individual contributors to Spotting Giant Sea Bass retain copyrights for submitted images.
-No reproduction or usage of material in this library is permitted without the
-express permission of the copyright holders.
-
 @REMOVEME_START@
 Do you want to REMOVE your email address from this database? Click the link
 below to remove it. You will no longer receive updates on your encounters.
+@REMOVEME_LINK@
+@REMOVEME_END@
+
+
+~ ~ ~
+@REMOVEME_START@
+¿Quiéres ELIMINAR tu correo electrónico de esta base de datos? Haz clic en este enlace para eliminarla. Ya no recibirás más actualizaciones acerca de tus encuentros.
 @REMOVEME_LINK@
 @REMOVEME_END@

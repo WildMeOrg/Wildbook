@@ -1,7 +1,7 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello! 
 
-Just a quick email to let you know of a change in data for a manta encounter
+Just a quick email to let you know of a change in data for a giant sea bass encounter
 that you have marked for tracking. See the text below to learn more.
 
 Change:
@@ -10,3 +10,16 @@ Encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
 @TEXT_CONTENT@
+
+~ ~ ~
+¡Hola!
+
+Nadamas un mensaje breve para avisarte de un cambio en los datos para un encuentro de un mero gigante que has marcado para rastrear. Más detalles:
+
+Cambio:
+
+Cambio: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+@TEXT_CONTENT@
+

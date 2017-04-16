@@ -14,6 +14,22 @@ that encounter at any time using the link above or by going to:
         http://spottinggiantseabass.msi.ucsb.edu
 
 We will keep you informed of any changes to your submitted encounter,
-and email you if the manta is matched to another one within the Spotting Giant Sea Bass
+and email you if the giant sea bass is matched to another one within the Spotting Giant Sea Bass
 database. We will also let you know if/when and where your giant sea bass is
 resighted by other community members.
+
+~ ~ ~
+
+¡Gracias por ayudar con la investigación del mero gigante!
+
+Gracias por enviar tu observación. Utilizaremos tu información para apoyar la investigación científica y los esfuerzos de conservación para el mero gigante.
+
+Enlace para tu encuentro:
+@ENCOUNTER_LINK@
+
+La información que has enviado representa un “encuentro” que registramos. Cada encuentro se asigna un número único, y puedes ver ese encuentro en cualquier momento al utilizar el enlace o al visitar:
+
+ http://spottinggiantseabass.msi.ucsb.edu
+
+Te mantendremos informado de cualquier cambio a tu encuentro, y te enviaremos un correo electrónico si otra persona observa tu mero gigante es en el futuro. 
+

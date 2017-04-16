@@ -2,3 +2,6 @@ SUBJECT: Encounter data tracking started for encounter: @ENCOUNTER_ID@
 This is a confirmation that e-mail tracking of data changes to encounter
 @ENCOUNTER_ID@ has now started. You should receive e-mail updates any time
 changes to this encounter are made.
+
+~ ~ ~
+Esto es una confirmación que las notificaciones por correo electrónico de cambios a los datos del encuentro @ENCOUNTER_ID@ han iniciado. Debes de recibir notificaciones por correo cada vez que se realizan cambios a este encuentro.  

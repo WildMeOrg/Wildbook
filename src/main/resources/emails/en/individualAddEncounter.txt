@@ -1,8 +1,8 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
-Just a quick email to let you know that the manta encounter that you
-submitted has been matched to an identified manta in the MantaMatcher
+Just a quick email to let you know that the giant sea bass encounter that you
+submitted has been matched to an identified giant sea bass in the Spotting Giant Sea Bass
 photo-identification library.
 Follow these links to find out more:
 
@@ -16,4 +16,17 @@ Thanks again for your critical help! If you're interested in supporting our
 research to understand and protect animals like yours, please adopt and
 nickname your animal
 
-        
+~ ~ ~
+
+¡Hola!
+
+Nadamás un breve mensaje para avisarte que el encuentro con mero gigante que enviaste coincide con un individuo identificado en la base de datos para la foto-identificación. Haz clic en estos enlaces para aprender más detalles:
+
+Observación previamente no-idetificado: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@)
+@INDIVIDUAL_LINK@
+
+Encuentro nuevo: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+Gracias de nuevo por su ayuda importante.
+         

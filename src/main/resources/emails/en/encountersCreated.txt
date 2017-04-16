@@ -4,9 +4,12 @@ You have submitted some photos for identification.  Thank you!
 You can view their progress here:
 @TASKLINKS@
 
------
-(links to help etc)
-
-
 [@ACCESSKEY@]
+
+~ ~ ~
+Has enviado algunas fotos para identificación. ¡Gracias!
+
+Puedes ver el progreso del análisis aquí:
+
+@TASKLINKS@
 
