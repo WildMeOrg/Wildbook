@@ -435,6 +435,9 @@ finally{
 					<p class="lead">
 						<%=props.getProperty("innerPhotoP") %>
 					</p>
+					<p class="lead">
+						<a href="photographing.jsp" title=""><%=props.getProperty("howItWorks-step1-link")%></a>
+					</p>
 
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
