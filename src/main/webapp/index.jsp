@@ -681,7 +681,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead"><%=props.getProperty("inspiredQuote") %></p>
-                        <a href="#" title=""><%=props.getProperty("knowMore") %></a>
+                        <a href="overview.jsp" title=""><%=props.getProperty("knowMore") %></a>
                     </div>
                 </div>
             </article>
