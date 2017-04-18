@@ -32,67 +32,65 @@ Shepherd myShepherd=new Shepherd(context);
 myShepherd.beginDBTransaction();
 
 int numFixes=0;
+// String rootDir;
 
 try {
 
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
+	// rootDir = request.getSession().getServlet().getServletContext().getRealPath("/");
+	// String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "wildbook_data_dir");
 
-  Iterator allEncounters=myShepherd.getAllEncountersNoQuery();
+    Iterator allEncounters=myShepherd.getAllEncountersNoQuery();
 
-  boolean committing=false;
+    boolean committing=true;
 
-
-  // while(allEncounters.hasNext()){
-  //
-  //   Encounter enc=(Encounter)allEncounters.next();
-  //
-  //
-  // 	numFixes++;
-  //
-  //   if (committing) {
-  //     enc.setState("unapproved");
-  // 		myShepherd.commitDBTransaction();
-  // 		myShepherd.beginDBTransaction();
-  //   }
-  // }
-
-  Iterator allMAs=myShepherd.getAllMediaAssets();
-  while(allMAs.hasNext()){
-
-		MediaAsset ma = (MediaAsset) allMAs.next();
-    numFixes++;
-
-    %><p>ma <%=ma.getId()%></p><%
-
-
-    //LocalAssetStore as = (LocalAssetStore) ma.getStore();
-
-
-
-    if (committing) {
-      ma.updateStandardChildren(myShepherd);
-      %><li>updated standard children./li><%
-
-      ma.updateMinimalMetadata();
-      %><li>updated minimal metadata./li><%
-
-      myShepherd.commitDBTransaction();
-      myShepherd.beginDBTransaction();
-    }
-    %></ul><%
-
-
-	}
-
+   Encounter enc;
+   Properties props = new Properties();
+   
+   while(allEncounters.hasNext()){
+  
+     enc=(Encounter)allEncounters.next();
+     String locCode = "";
+     System.out.println(" **** here is what i think locationID is: " + enc.getLocationID());
+     System.out.println(" **** here is what i think location is: " + enc.getLocation());
+     
+     
+       String locTemp = "";
+       try {
+         props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+		 String location = enc.getLocation().toLowerCase();
+         Enumeration m_enum = props.propertyNames();
+         while (m_enum.hasMoreElements()) {
+           String aLocationSnippet = ((String) m_enum.nextElement()).trim();
+           if (location.indexOf(aLocationSnippet) != -1) {
+             locCode = props.getProperty(aLocationSnippet);
+           }
+           if (locCode != null && locCode != "" && locCode != "None") {
+        	   try {
+    	           myShepherd.beginDBTransaction();   		   
+        		   enc.setLocationID(locCode);
+            	   myShepherd.commitDBTransaction();    
+            	   System.out.println(" **** New Location ID? : " + enc.getLocationID()); 
+        	   } catch (Exception e) {
+        		   System.out.println(" Failed to change location ID! "); 
+        	   	   e.printStackTrace();
+        	   }
+           } else {
+        	   System.out.println(" **** Hmm, didn't like locCode : " + locCode); 
+           }
+         }
+       } catch (Exception props_e) {
+         props_e.printStackTrace();
+         System.out.println("!!!! Threw an Exception trying tyo get the props !!!!");
+       }
+	   numFixes++;     
+   }
+   myShepherd.closeDBTransaction();
 
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
-}
-finally{
+} finally{
 	myShepherd.closeDBTransaction();
-
 }
 
 %>

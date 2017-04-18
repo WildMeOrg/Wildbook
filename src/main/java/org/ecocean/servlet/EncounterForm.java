@@ -414,7 +414,7 @@ System.out.println("*** trying redirect?");
 
 
       String locCode = "";
-System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
+      System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
             if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
                 locCode = fv.get("locationID").toString();
 
