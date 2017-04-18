@@ -382,6 +382,14 @@ google.maps.event.addDomListener(window, 'load', initialize);
       <p class="bg-danger text-danger">
         <%=props.getProperty("submit_note_red") %>
       </p>
+      <div>
+    	<img class="bass_image" src="cust/mantamatcher/img/bass/katieDavisLeftFlank.jpg" />
+	    <label class="image_label"><%=props.getProperty("leftFlank") %></label>
+      </div>
+      <div>
+    	<img class="bass_image" src="cust/mantamatcher/img/bass/katieDavisLeftFlank.jpg" />
+	    <label class="image_label"><%=props.getProperty("rightFlank") %></label>
+      </div>
   </div>
 
 

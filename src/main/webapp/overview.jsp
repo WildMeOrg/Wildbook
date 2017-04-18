@@ -33,6 +33,17 @@ props = ShepherdProperties.getProperties("overview.properties", langCode, contex
     <%=props.getProperty("paragraph2") %>
   </p>
 
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-3">
+      </div>	
+      <div class="col-xs-6">
+	    <img class="bass_image" src="cust/mantamatcher/img/bass/diverJeffAboutProject.jpg" />
+	    <label class="image_label"></label>
+      </div>
+    </div>
+  </div>
+	
   <p>
     <%=props.getProperty("paragraph3") %>  
   </p>
@@ -56,6 +67,17 @@ props = ShepherdProperties.getProperties("overview.properties", langCode, contex
   <p>
     <%=props.getProperty("paragraph7") %>
   </p>
+  
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-3">
+      </div>	
+      <div class="col-xs-6">
+	    <img class="bass_image" src="cust/mantamatcher/img/bass/danHardingAboutProject.png" />
+	    <label class="image_label"></label>
+      </div>
+    </div>
+  </div>
 
 </div>
 

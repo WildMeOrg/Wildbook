@@ -27,7 +27,16 @@ props = ShepherdProperties.getProperties("aboutBass.properties", langCode, conte
   <%=props.getProperty("overviewP1") %>
   </p>
 
-[Image of adult]
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-3">
+      </div>	
+      <div class="col-xs-6">
+	    <img class="bass_image" src="cust/mantamatcher/img/bass/danHardingAboutProject.png" />
+	    <label class="image_label"><%=props.getProperty("adultImageCaption") %></label>
+      </div>
+    </div>
+  </div>
 
   <p>
   <%=props.getProperty("overviewP2") %>
@@ -37,7 +46,7 @@ props = ShepherdProperties.getProperties("aboutBass.properties", langCode, conte
 
   <div class="container">
     <div class="row">
-      <div class="col-xs-4">
+      <div class="col-xs-3">
       </div>	
       <div class="col-xs-6">
 	    <img class="bass_image" src="cust/mantamatcher/img/bass/bass_juv.png" />
@@ -56,7 +65,7 @@ props = ShepherdProperties.getProperties("aboutBass.properties", langCode, conte
 
   <div class="container">
     <div class="row">
-      <div class="col-xs-4">
+      <div class="col-xs-3">
       </div>	
       <div class="col-xs-6">
     	  <img class="bass_image" src="cust/mantamatcher/img/bass/feeding_habits.gif" />
@@ -72,7 +81,16 @@ props = ShepherdProperties.getProperties("aboutBass.properties", langCode, conte
   <%=props.getProperty("habitatsP1") %>
   </p>
 
-[photo of multiple gsb with kelp in background]
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-3">
+      </div>	
+      <div class="col-xs-6">
+    	  <img class="bass_image" src="cust/mantamatcher/img/bass/danHardingHabitat.png" />
+	    <label class="image_label"></label>
+      </div>
+    </div>
+  </div>
 
   <h4><%=props.getProperty("distributionHeader") %></h4>
   <p>

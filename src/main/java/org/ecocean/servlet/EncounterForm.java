@@ -417,7 +417,6 @@ System.out.println("*** trying redirect?");
       System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
             if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
                 locCode = fv.get("locationID").toString();
-
             }
         //see if the location code can be determined and set based on the location String reported
             else if (fv.get("location") != null) {
