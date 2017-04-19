@@ -22,9 +22,19 @@ public class Survey implements java.io.Serializable{
   private ArrayList<Occurrence> occurrences;
   
   private String surveyID;
-  
-  
+  private String project;
+  private String organization;
   private String comments = "None";
+  
+  //Scuba, tourism ect...
+  private String type;
+  
+  private long startTime;
+  private long endTime;
+  
+  // This is the actual amount of effort spent to gather date. 
+  // It must be given a defined Measurement object.
+  private Measurement effort;
   
   private String dateTimeCreated;
   private String dateTimeModified;
@@ -177,10 +187,95 @@ public class Survey implements java.io.Serializable{
       for (int i=0; i<trackArray.size(); i++) {
         surveyTracks.add(trackArray.get(i));
       }
-      setDWCDateLastModified();
+    setDWCDateLastModified();
     }
   }
     
+  public void setProjectName(String proj) {
+    if (proj != null && !proj.equals("")) {
+      project = proj;
+      setDWCDateLastModified();
+    }
+  }
+  
+  public String getProjectName() {
+    if (project != null && !project.equals("")) {
+      return project;
+    } else {
+      return null;
+    }
+  }
+  
+  public void setOrganization(String org) {
+    if (org != null && !org.equals("")) {
+      organization = org;
+      setDWCDateLastModified();
+    }
+  }
+  
+  public String getOrganization() {
+    if (organization != null && !organization.equals("")) {
+      return organization;
+    } else {
+      return null;
+    }
+  }
+  
+  public void setProjectType(String typ) {
+    if (typ != null && !type.equals("")) {
+      type = typ;
+      setDWCDateLastModified();
+    }
+  }
+  
+  public String getProjectType() {
+    if (type != null && !type.equals("")) {
+      return type;
+    } else {
+      return null;
+    }
+  }
+  
+  public Measurement getEffort() {
+    if (effort != null) {
+      return effort;
+    }
+    return null;
+  }
+  
+  public void setEffort(Measurement eff) {
+    if (eff.getUnits() != null) {
+      effort = eff;
+      setDWCDateLastModified();
+    }
+  }
+  
+  public void setStartTimeMilli(long st) {
+    if (st > 0) {
+      startTime = st;
+    }
+  }
+  
+  public long getStartTimeMilli() {
+    if (startTime > 0) {
+      return startTime;
+    }
+    return -1;
+  }
+  
+  public void setEndTimeMilli(long et) {
+    if (et > 0) {
+      startTime = et;
+    }
+  }
+  
+  public long getEndTimeMilli() {
+    if (endTime > 0) {
+      return endTime;
+    }
+    return -1;
+  }
+  
   
 }
 
