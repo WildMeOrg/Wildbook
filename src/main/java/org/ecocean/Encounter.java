@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.HashMap;
+import java.util.SortedMap;
 import java.util.GregorianCalendar;
 import java.lang.Math;
 import java.io.*;
@@ -120,6 +121,7 @@ public class Encounter implements java.io.Serializable {
   public String country;
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
+
 
   /*
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
@@ -2172,6 +2174,70 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         }
     }
 
+    //very specific usage for creating cloned Encounters based on distribution (by time) of detected frames in a video
+    public List<Encounter> splitByFrameDistribution() {
+        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
+        List<Encounter> newEncs = new ArrayList<Encounter>();
+        /*   in theory we should (!) have only one frame per extractOffset, so lets use this to order them
+             and the ordering should have "gaps" where we want to split things up  */
+        if ((getAnnotations() == null) || (getAnnotations().size() < 1)) return newEncs;
+        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+        for (Annotation ann : getAnnotations()) {
+System.out.println("===>>> ann = " + ann);
+            if (ann.getFeatures().get(0).isUnity()) continue; //makes big assumption there is one-and-only-one feature btw
+            MediaAsset ma = ann.getMediaAsset();
+System.out.println("   -->>> ma = " + ma);
+            if (!ma.hasLabel("_frame") || (ma.getParentId() == null)) continue;  //nope thx
+            //also of note there is that we should not have a MediaAsset more than once under this one Encounter, cuz that would
+            //  mean two annots from same asset were put into this encounter.  who knows if this *actually* will never happen tho!  FIXME?
+            int offset = ma.getParameters().optInt("extractOffset", -1);
+            if (offset < 0) continue;
+System.out.println("   -->>> offset = " + offset);
+            ordered.put(offset, ann);
+        }
+        ////// TODO if (ordered.size() < 1) .... ummmm......
+
+        int prevOffset = -1;
+        int groupsMade = 1;
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        for (Integer i : ordered.keySet()) {
+            if ((prevOffset > -1) && ((i - prevOffset) >= minGapSize)) {
+                if (groupsMade == 1) {
+                    this.annotations = new ArrayList(anns);  //reset this encounter to have first (smaller) set of annotations
+                    //TODO or should we leave *this* enc untouched and create new ones with set of matched frames?????
+                } else {
+                    Encounter newEnc = this.cloneWithoutAnnotations();
+                    newEnc.setAnnotations(anns);
+                    newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                    newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+                    newEncs.add(newEnc);
+System.out.println(this.getCatalogNumber() + " split to [" + (groupsMade + 1) + "] " + newEnc);
+                }
+                groupsMade++;
+                anns = new ArrayList<Annotation>();
+            }
+            prevOffset = i;
+            anns.add(ordered.get(i));
+            //System.out.println(i + " >>> " + ordered.get(i));
+        }
+        //deal with dangling anns content
+        if (anns.size() > 0) {
+            Encounter newEnc = this.cloneWithoutAnnotations();
+            newEnc.setAnnotations(anns);
+            newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+            newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+            newEncs.add(newEnc);
+System.out.println(this.getCatalogNumber() + " split to [" + (groupsMade + 1) + "] " + newEnc);
+        }
+/*
+							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
+System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatures().get(0) + " => " + ann.getFeatures().get(0).getParametersAsString());
+							j.put("extractFPS", ma.getParameters().optDouble("extractFPS",0));
+							j.put("extractOffset", ma.getParameters().optDouble("extractOffset",0));
+							MediaAsset p = MediaAssetFactory.load(ma.getParentId(), imageShepherd);
+*/
+        return newEncs;
+    }
 
     //convenience method
     public ArrayList<MediaAsset> getMedia() {
