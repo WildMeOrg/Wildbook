@@ -19,7 +19,6 @@ public class Survey implements java.io.Serializable{
    */
   private static final long serialVersionUID = -5028529439301775287L;
   private ArrayList<SurveyTrack> surveyTracks;
-  private ArrayList<Occurrence> occurrences;
   
   private String surveyID;
   private String project;
@@ -49,8 +48,6 @@ public class Survey implements java.io.Serializable{
     this.date=date;
     
     surveyTracks = new ArrayList<SurveyTrack>();
-    occurrences = new ArrayList<Occurrence>();
-    
     setDateTimeCreated();
     setDWCDateLastModified();
   }
@@ -121,40 +118,6 @@ public class Survey implements java.io.Serializable{
   public void setId(String newID) {
     surveyID = newID;
     setDWCDateLastModified();
-  }
-  
-  public ArrayList<Occurrence> getAllOccurrences() {
-    if (!occurrences.isEmpty()) {
-     return occurrences; 
-    } else {
-      return null;
-    }
-  }
-  
-  public Occurrence getOccurenceByID(String id) {
-    for (int i=0; i<occurrences.size(); i++) {
-      Occurrence thisOcc = occurrences.get(i);
-      if (thisOcc.getOccurrenceID().equals(id)) {
-        return thisOcc;
-      }
-    }
-    return null;
-  }
-  
-  public void addOccurence(Occurrence occ) {
-    if (occ != null) {
-      occurrences.add(occ);
-      setDWCDateLastModified();
-    }
-  }
-  
-  public void addMultipleOccurences(ArrayList<Occurrence> occArray) {
-    if (occArray.size() >= 1) {
-      for (int i=0; i<occArray.size(); i++) {
-        occurrences.add(occArray.get(i));
-      }
-      setDWCDateLastModified();
-    }
   }
   
   public ArrayList<SurveyTrack> getAllSurveyTracks() {
