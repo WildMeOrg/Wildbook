@@ -14,6 +14,10 @@ import java.util.*;
 
 public class Survey implements java.io.Serializable{
   
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -5028529439301775287L;
   private ArrayList<SurveyTrack> surveyTracks;
   private ArrayList<Occurrence> occurrences;
   
@@ -34,11 +38,22 @@ public class Survey implements java.io.Serializable{
   public Survey(String date){
     this.date=date;
     
-    surveyTracks = new ArrayList<SurveyTracks>();
+    surveyTracks = new ArrayList<SurveyTrack>();
     occurrences = new ArrayList<Occurrence>();
     
     setDateTimeCreated();
     setDWCDateLastModified();
+  }
+  
+  public void setDate(String newDate) {
+    date = newDate;
+  }
+  
+  public String getDate() {
+    if (date != null) {
+      return date;      
+    }
+    return null;
   }
   
   public String getDateTimeCreated() {
@@ -82,6 +97,7 @@ public class Survey implements java.io.Serializable{
     } else {
       comments = newComments;
     }
+    setDWCDateLastModified();
   }
   
   public String getId() {
@@ -94,6 +110,7 @@ public class Survey implements java.io.Serializable{
   
   public void setId(String newID) {
     surveyID = newID;
+    setDWCDateLastModified();
   }
   
   public ArrayList<Occurrence> getAllOccurrences() {
@@ -104,12 +121,64 @@ public class Survey implements java.io.Serializable{
     }
   }
   
-  public Occurrence getOccurence() {
-    
+  public Occurrence getOccurenceByID(String id) {
+    for (int i=0; i<occurrences.size(); i++) {
+      Occurrence thisOcc = occurrences.get(i);
+      if (thisOcc.getOccurrenceID().equals(id)) {
+        return thisOcc;
+      }
+    }
+    return null;
   }
   
-  public void setOccurence() {
-    
+  public void addOccurence(Occurrence occ) {
+    if (occ != null) {
+      occurrences.add(occ);
+      setDWCDateLastModified();
+    }
+  }
+  
+  public void addMultipleOccurences(ArrayList<Occurrence> occArray) {
+    if (occArray.size() >= 1) {
+      for (int i=0; i<occArray.size(); i++) {
+        occurrences.add(occArray.get(i));
+      }
+      setDWCDateLastModified();
+    }
+  }
+  
+  public ArrayList<SurveyTrack> getAllSurveyTracks() {
+    if (!surveyTracks.isEmpty()) {
+     return surveyTracks; 
+    } else {
+      return null;
+    }
+  }
+  
+  public SurveyTrack getSurveyTrackByID(String id) {
+    for (int i=0; i<surveyTracks.size(); i++) {
+      SurveyTrack thisTrack = surveyTracks.get(i);
+      if (thisTrack.getID().equals(id)) {
+        return thisTrack;
+      }
+    }
+    return null;
+  }
+  
+  public void addSurveyTrack(SurveyTrack thisTrack) {
+    if (thisTrack != null) {
+      surveyTracks.add(thisTrack);
+      setDWCDateLastModified();
+    }
+  }
+  
+  public void addMultipleSurveyTrack(ArrayList<SurveyTrack> trackArray) {
+    if (trackArray.size() >= 1) {
+      for (int i=0; i<trackArray.size(); i++) {
+        surveyTracks.add(trackArray.get(i));
+      }
+      setDWCDateLastModified();
+    }
   }
     
   
