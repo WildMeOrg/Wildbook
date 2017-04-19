@@ -18,6 +18,13 @@ public class SurveyTrack implements java.io.Serializable{
   private String surveyTrackID;
   private String parentSurveyID;
   
+  private String vesselID;
+  private String locationID;
+  
+  private long distance;
+  
+  private Path path;
+  
   public SurveyTrack(){};
   
   public SurveyTrack(String surveyID){
