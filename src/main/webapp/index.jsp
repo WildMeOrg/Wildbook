@@ -220,7 +220,7 @@ margin-bottom: 8px !important;
 	 		         var latLng<%=i%> = new google.maps.LatLng(<%=thisLatLong%>);
 			          bounds.extend(latLng<%=i%>);
 
-	 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:29px;padding: 2px; background-image: url('cust/mantamatcher/img/gsb_map_marker.png');background-size: cover\"><a href=\"encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+	 		          var divString<%=i%> = "<div style=\"font-weight:bold;margin-top: 5px; text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:60px;padding: 2px; background-image: url('cust/mantamatcher/img/gsb_map_marker.png');background-size: cover\"><a href=\"encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
 
 
 	 		         var marker<%=i%> = new RichMarker({
