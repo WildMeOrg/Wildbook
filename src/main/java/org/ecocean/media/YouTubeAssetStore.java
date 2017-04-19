@@ -389,7 +389,7 @@ System.out.println("- [" + f.getName() + "] extractFramesAndParse: " + f);
     public static void backgroundGrabAndParse(final MediaAsset otherMa, HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         final Shepherd myShepherd = new Shepherd(context);
-System.out.println("forking >>>>");
+        System.out.println("forking >>>>");
         Runnable rn = new Runnable() {
             public void run() {
                 myShepherd.setAction("YouTubeAssetStore.backgroundGrabAndParse");
@@ -405,6 +405,7 @@ System.out.println("about to grab!");
                 System.out.println("grabAndParse() -> " + ok + "; " + ((ma.getMetadata() == null) ? "(null metadata)" : ma.getMetadata().getDataAsString()));
                 MediaAssetFactory.save(ma, myShepherd);
                 myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
             }
         };
         new Thread(rn).start();
