@@ -2174,14 +2174,65 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         }
     }
 
+    public static List<Encounter> collateFrameAnnotations(List<Annotation> anns) {
+        if ((anns == null) || (anns.size() < 1)) return null;
+        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
+        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+        for (Annotation ann : anns) {
+System.out.println("========================== >>>>>> " + ann);
+            if (ann.getFeatures().get(0).isUnity()) continue; //makes big assumption there is one-and-only-one feature btw (detection should have bbox)
+            MediaAsset ma = ann.getMediaAsset();
+System.out.println("   -->>> ma = " + ma);
+            if (!ma.hasLabel("_frame") || (ma.getParentId() == null)) continue;  //nope thx
+            int offset = ma.getParameters().optInt("extractOffset", -1);
+System.out.println("   -->>> offset = " + offset);
+            if (offset < 0) continue;
+            ordered.put(offset, ann);
+        }
+
+        //now construct Encounters based upon spacing of frame-clusters
+        List<Encounter> newEncs = new ArrayList<Encounter>();
+        int prevOffset = -1;
+        int groupsMade = 1;
+        ArrayList<Annotation> tmpAnns = new ArrayList<Annotation>();
+        for (Integer i : ordered.keySet()) {
+            if ((prevOffset > -1) && ((i - prevOffset) >= minGapSize)) {
+                Encounter newEnc = new Encounter(tmpAnns);
+                newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                //newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+                newEncs.add(newEnc);
+System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
+                groupsMade++;
+                tmpAnns = new ArrayList<Annotation>();
+            }
+            prevOffset = i;
+            tmpAnns.add(ordered.get(i));
+        }
+        //deal with dangling tmpAnns content
+        if (tmpAnns.size() > 0) {
+            Encounter newEnc = new Encounter(tmpAnns);
+            newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+            //newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+            newEncs.add(newEnc);
+System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
+            groupsMade++;
+        }
+        return newEncs;
+    }
+
     //very specific usage for creating cloned Encounters based on distribution (by time) of detected frames in a video
-    public List<Encounter> splitByFrameDistribution() {
+    //   shepherd needed here cuz of wonky persisting problems related to swapping around annots.
+    //   thus, be warned: this WILL persist stuff!  (wrap in a transaction for best results)
+    public List<Encounter> splitByFrameDistribution(Shepherd myShepherd) {
+//myShepherd.getPM().setCopyOnAttach(false);
         int minGapSize = 4;  //must skip this or more frames to count as new Encounter
         List<Encounter> newEncs = new ArrayList<Encounter>();
         /*   in theory we should (!) have only one frame per extractOffset, so lets use this to order them
              and the ordering should have "gaps" where we want to split things up  */
         if ((getAnnotations() == null) || (getAnnotations().size() < 1)) return newEncs;
         SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+
+        //first we find annots with "worthy" frames... all others will be ignored/orphaned
         for (Annotation ann : getAnnotations()) {
 System.out.println("===>>> ann = " + ann);
             if (ann.getFeatures().get(0).isUnity()) continue; //makes big assumption there is one-and-only-one feature btw
@@ -2193,9 +2244,18 @@ System.out.println("   -->>> ma = " + ma);
             int offset = ma.getParameters().optInt("extractOffset", -1);
             if (offset < 0) continue;
 System.out.println("   -->>> offset = " + offset);
-            ordered.put(offset, ann);
+            Annotation workAnnot = (Annotation)myShepherd.getPM().detachCopy(ann); //detach this annotation for reuse soon!
+            //myShepherd.getPM().makePersistent(workAnnot);
+            //Annotation a2 = myShepherd.getPM().makePersistent(workAnnot);
+            ordered.put(offset, workAnnot);
         }
         ////// TODO if (ordered.size() < 1) .... ummmm......
+
+        this.annotations = null;  //detach annots from the original encounter for sake of weird datanucleus annot-shuffling constraint woes
+        //myShepherd.getPM().makePersistent(this);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+        //FeatureType.initAll(myShepherd);
 
         int prevOffset = -1;
         int groupsMade = 1;
@@ -2203,7 +2263,8 @@ System.out.println("   -->>> offset = " + offset);
         for (Integer i : ordered.keySet()) {
             if ((prevOffset > -1) && ((i - prevOffset) >= minGapSize)) {
                 if (groupsMade == 1) {
-                    this.annotations = new ArrayList(anns);  //reset this encounter to have first (smaller) set of annotations
+                    this.annotations = new ArrayList(anns);
+System.out.println(this.getCatalogNumber() + " split initial [1] group (re)set as " + anns.size() + " annots");
                     //TODO or should we leave *this* enc untouched and create new ones with set of matched frames?????
                 } else {
                     Encounter newEnc = this.cloneWithoutAnnotations();
@@ -2212,6 +2273,7 @@ System.out.println("   -->>> offset = " + offset);
                     newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
                     newEncs.add(newEnc);
 System.out.println(this.getCatalogNumber() + " split to [" + (groupsMade + 1) + "] " + newEnc);
+                    myShepherd.getPM().makePersistent(newEnc);  //since we commit the initial one, why not go for it here too right??  :/
                 }
                 groupsMade++;
                 anns = new ArrayList<Annotation>();
@@ -2222,12 +2284,18 @@ System.out.println(this.getCatalogNumber() + " split to [" + (groupsMade + 1) + 
         }
         //deal with dangling anns content
         if (anns.size() > 0) {
-            Encounter newEnc = this.cloneWithoutAnnotations();
-            newEnc.setAnnotations(anns);
-            newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
-            newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
-            newEncs.add(newEnc);
-System.out.println(this.getCatalogNumber() + " split to [" + (groupsMade + 1) + "] " + newEnc);
+            if (groupsMade == 1) {
+                this.annotations = new ArrayList(anns);
+System.out.println(this.getCatalogNumber() + " (final)split initial [1] group (re)set as " + anns.size() + " annots");
+            } else {
+                Encounter newEnc = this.cloneWithoutAnnotations();
+                newEnc.setAnnotations(anns);
+                newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+                newEncs.add(newEnc);
+System.out.println(this.getCatalogNumber() + " (final)split to [" + (groupsMade + 1) + "] " + newEnc);
+                myShepherd.getPM().makePersistent(newEnc);  //since we commit the initial one, why not go for it here too right??  :/
+            }
         }
 /*
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
