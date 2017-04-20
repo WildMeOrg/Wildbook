@@ -62,6 +62,7 @@ public class MediaAssetCreate extends HttpServlet {
         myShepherd.beginDBTransaction();
         myShepherd.getPM().makePersistent(maSet);
         myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
 
         response.setContentType("text/plain");
         JSONObject res = new JSONObject();
@@ -97,9 +98,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         String context="context0";
         //context=ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("MediaAssetCreate.class_2");
-        myShepherd.beginDBTransaction();
+
         //set up for response
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
@@ -112,9 +111,21 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
             out.close();
             return;
         }
-
-        JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
-        myShepherd.commitDBTransaction();
+        
+        JSONObject res=new JSONObject();
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MediaAssetCreate.class_nonum");
+        myShepherd.beginDBTransaction();
+        try{
+          res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
+          myShepherd.commitDBTransaction();
+        }
+        catch(IOException ioe){
+          ioe.printStackTrace();
+          myShepherd.rollbackDBTransaction();}
+        finally{
+          myShepherd.closeDBTransaction();
+        }
         out.println(res.toString());
         out.close();
     }

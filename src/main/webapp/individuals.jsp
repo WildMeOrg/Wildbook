@@ -6,6 +6,7 @@ org.datanucleus.ExecutionContext,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
+
 <%
 String blocker = "";
 String context="context0";
@@ -403,25 +404,8 @@ $(document).ready(function() {
         }
           %>
 
-      <%-- Social Media Buttons --%>
-      <div id="individualSocialButtons">
-        <!-- Google PLUS-ONE button -->
-        <g:plusone size="small" annotation="none"></g:plusone>
-        <!--  Twitter TWEET THIS button -->
-        <a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-        <!-- Facebook LIKE button -->
-        <div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div>
-        <%
-        if(CommonConfiguration.isIntegratedWithWildMe(context)){
-          %>
-          <a href="http://fb.wildme.org/wildme/public/profile/<%=CommonConfiguration.getProperty("wildMeDataSourcePrefix", context) %><%=sharky.getIndividualID()%>" target="_blank"><img src="images/wild-me-link.png" /></a>
-          <%
-        }
-        %>
-        <%-- End of Social Media   --%>
-      </div>
-      <br>
+
+
       <%-- Descriptions --%>
       <div class="row">
         <div class="col-sm-6">
@@ -823,13 +807,19 @@ $(document).ready(function() {
     <div class="slider col-sm-6 center-slider">
       <%-- Get images for slider --%>
       <%
+///note this is very hacky... as jon about it
+for (Encounter enJ : sharky.getDateSortedEncounters()) {
+	for (org.ecocean.media.MediaAsset maJ : enJ.getMedia()) {
+		if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+	}
+}
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
       String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
         JSONObject newMaJson = new JSONObject();
         newMaJson = photoObjectArray.get(extraImgNo);
-        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+	String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
 
         %>
         <div class="crop-outer">
