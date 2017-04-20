@@ -410,7 +410,7 @@ finally{
         </div>
 
 	</div>
-	<p id="image-credit"><i>image credit Ian Halt</i></p>
+	<p id="image-credit"><i>image credit Ian Uhalt</i></p>
 
 
 </section>
