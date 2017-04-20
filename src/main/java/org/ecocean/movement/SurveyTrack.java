@@ -1,11 +1,18 @@
-package org.ecocean;
+package org.ecocean.movement;
 
+import org.ecocean.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import org.ecocean.Occurrence;
 
 /** 
 *
 * @author Colin Kingen
+* 
+*  Refers to a collection of Paths, creating a log of the movements that
+*  took place during a survey track.
+* 
 */
 
 public class SurveyTrack implements java.io.Serializable{
@@ -22,7 +29,7 @@ public class SurveyTrack implements java.io.Serializable{
   
   private String vesselID;
   private String locationID;
-  
+  private String pathID;
   // Line transect, ect.
   private String type;
   
@@ -74,16 +81,44 @@ public class SurveyTrack implements java.io.Serializable{
     dateTimeModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
   }
   
-  public String getID(){
+  public String getID (){
     if (surveyTrackID != null && !surveyTrackID.equals("")) {
-      
+      return surveyTrackID;      
     }
-    return surveyTrackID;
+    return null;
   }
   
   public void setID(String id) {
     if (id != null && !id.equals("")) {
       surveyTrackID = id;
+    }
+  }
+  
+  public String getParentSurveyID() {
+    if (parentSurveyID != null) {
+      return parentSurveyID;
+    } else {
+      return null;
+    }
+  }
+  
+  public void setPathID(String pid) {
+    if (pid != null && !pid.equals("") ) {
+      pathID = pid;
+    }
+  }
+  
+  public String getPathID() {
+    if (pathID != null) {
+      return pathID;
+    } else {
+      return null;
+    }
+  }
+  
+  public void setParentSurveyID(String id) {
+    if (id != null && !id.equals("") ) {
+      parentSurveyID = id;
     }
   }
   
@@ -165,4 +200,23 @@ public class SurveyTrack implements java.io.Serializable{
     }
   }
   
+  public void setVesselID(String v) {
+    if (v != null && !v.equals("")) {
+      locationID = v;
+      setDWCDateLastModified();
+    }
+  }
+  
+  public String getVesselID() {
+    if (vesselID != null && !vesselID.equals("")) {
+      return vesselID;
+    } else {
+      return null;
+    }
+  }
+  
 }
+
+
+
+
