@@ -411,6 +411,7 @@
     <version>4.0.5</version>
 </dependency>
 
+
 	   <!-- START QR code generating dependencies-->
         <dependency>
           <groupId>com.google.zxing</groupId>
@@ -431,6 +432,13 @@
 	<artifactId>c3p0</artifactId>
 	<version>0.9.5.2</version>
 </dependency>
+
+
+    <dependency>
+      <groupId>com.google.apis</groupId>
+      <artifactId>google-api-services-youtube</artifactId>
+      <version>v3-rev182-1.22.0</version>
+    </dependency>
 
 
 <dependency>

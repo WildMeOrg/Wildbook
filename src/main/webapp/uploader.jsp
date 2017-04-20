@@ -20,6 +20,20 @@ String context=ServletUtilities.getContext(request);
 Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
 */
+
+// this is being intentionlly set randomly ... but if you want to use it, override it in your live/deployed uploader.jsp to some string you can share
+//   (this allows the session to be automatically consider non-bot, so the upload can happen)
+String password = Util.generateUUID();
+
+if (password.equals(request.getParameter("key"))) {
+	System.out.println("uploader.jsp key/password successful");
+        request.getSession().setAttribute("reCAPTCHA-passed", true);
+}
+
+if (!org.ecocean.servlet.ReCAPTCHA.sessionIsHuman(request)) {
+	out.println("<h1 style=\"margin-top: 100px;\">no access</h1>");
+	return;
+}
 %>
 
 
@@ -33,7 +47,8 @@ div#file-activity {
 	border: solid 2px black;
 	padding: 8px;
 	margin: 20px;
-	min-height: 200px;
+	height: 250px;
+	overflow-y: scroll;
 }
 div.file-item {
 	position: relative;
@@ -81,7 +96,7 @@ function uploadFinished() {
 <div id="updone"></div>
 
 <div id="upcontrols" style="padding: 20px;">
-	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
+	<input type="file" id="file-chooser" webkitdirectory directory multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
 	<button id="upload-button">begin upload</button>
 </div>
 

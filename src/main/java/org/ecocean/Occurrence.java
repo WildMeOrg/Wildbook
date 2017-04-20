@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
 
@@ -374,7 +375,7 @@ public class Occurrence implements java.io.Serializable{
 
   }
 
-/*  this was messing up the co-occur js, so lets kill for now?
+/*  this was messing up the co-occur js (d3?), so lets kill for now?
   public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
                 org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
             return sanitizeJson(request, jobj, true);
@@ -383,6 +384,25 @@ public class Occurrence implements java.io.Serializable{
   public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
     jobj.put("occurrenceID", this.occurrenceID);
     jobj.put("encounters", this.encounters);
+    if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
+        JSONArray jarr = new JSONArray();
+	///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+        //but for *now* (see note way above) this is all we need for gallery/image display js:
+        for (Encounter enc : this.getEncounters()) {
+            JSONObject je = new JSONObject();
+            je.put("id", enc.getCatalogNumber());
+            if (enc.hasMarkedIndividual()) je.put("individualID", enc.getIndividualID());
+            if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
+                JSONArray ja = new JSONArray();
+                for (Annotation ann : enc.getAnnotations()) {
+                    ja.put(ann.getId());
+                }
+                je.put("annotations", ja);
+            }
+            jarr.put(je);
+        }
+        jobj.put("encounters", jarr);
+    }
     int[] assetIds = new int[this.assets.size()];
     for (int i=0; i<this.assets.size(); i++) {
       if (this.assets.get(i)!=null) assetIds[i] = this.assets.get(i).getId();
@@ -391,7 +411,6 @@ public class Occurrence implements java.io.Serializable{
     return jobj;
 
   }
-
 */
 
     public String toString() {
