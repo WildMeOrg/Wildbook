@@ -404,7 +404,7 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                     for (int a = 0 ; a < alist.length() ; a++) {
                         JSONObject jann = alist.optJSONObject(a);
                         if (jann == null) continue;
-                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd);
+                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd, false);
                         if (ann == null) continue;
                         myShepherd.getPM().makePersistent(ann);
                         thisAnns.put(ann.getId());
