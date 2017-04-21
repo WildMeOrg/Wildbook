@@ -41,7 +41,7 @@ import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-//import java.net.HttpURLConnection;
+import java.net.HttpURLConnection;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.DataOutputStream;
 import java.nio.charset.Charset;
@@ -244,13 +244,13 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
     URL u=null;
     //InputStream inputStreamFromServlet=null;
     //BufferedReader in=null;
-    HttpsURLConnection finishConnection=null;
+    HttpURLConnection finishConnection=null;
     DataOutputStream wr=null;
     
     try {
       
       
-      u = new URL("https://"+CommonConfiguration.getURLLocation(request)+"/"+CommonConfiguration.getProperty("patternMatchingEndPointServletName", ServletUtilities.getContext(request)));
+      u = new URL(request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/"+CommonConfiguration.getProperty("patternMatchingEndPointServletName", ServletUtilities.getContext(request)));
       String urlParameters  = "number=" + scanTaskID;
       byte[] postData       = urlParameters.getBytes( Charset.forName( "UTF-8" ));
       int    postDataLength = postData.length;
@@ -260,8 +260,12 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
       
       System.out.println("...writing out scanTask result: "+scanTaskID+" to URL: "+u.toString());
       
-      
-      finishConnection = (HttpsURLConnection)u.openConnection();
+      if(request.getScheme().equals("https")){
+        finishConnection = (HttpsURLConnection)u.openConnection();
+      }
+      else{
+        finishConnection = (HttpURLConnection)u.openConnection();
+      }
       
       finishConnection.setDoOutput( true );
       finishConnection.setDoInput ( true );
