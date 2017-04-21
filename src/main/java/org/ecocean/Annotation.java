@@ -448,6 +448,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
     public Encounter toEncounter(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
         if (enc != null) return enc;
+/*   NOTE: for now i am snipping out this sibling stuff!  youtube-sourced frames used this but now doesnt... here for prosperity...
 System.out.println(".toEncounter() on " + this + " found no Encounter.... trying to find one on siblings or make one....");
         List<Annotation> sibs = this.getMediaAssetSiblings();
         Annotation sourceSib = null;
@@ -476,6 +477,8 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         enc.addAnnotation(this);
         enc.setSpeciesFromAnnotations();
         return enc;
+*/
+        return new Encounter(this);
     }
 
 /*  deprecated, maybe?
