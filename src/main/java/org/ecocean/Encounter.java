@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.HashMap;
+import java.util.SortedMap;
 import java.util.GregorianCalendar;
 import java.lang.Math;
 import java.io.*;
@@ -84,6 +85,7 @@ public class Encounter implements java.io.Serializable {
   static final long serialVersionUID = -146404246317385604L;
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
+    public static final String STATE_AUTO_SOURCED = "auto_sourced";
 
   /**
    * The following attributes are described in the Darwin Core quick reference at:
@@ -120,6 +122,7 @@ public class Encounter implements java.io.Serializable {
   public String country;
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
+
 
   /*
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
@@ -2170,6 +2173,70 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         } else {
           annotations.add(ann);
         }
+    }
+
+    //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
+    public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
+        if ((anns == null) || (anns.size() < 1)) return null;
+        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
+        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+        MediaAsset parentRoot = null;
+        for (Annotation ann : anns) {
+System.out.println("========================== >>>>>> " + ann);
+            if (ann.getFeatures().get(0).isUnity()) continue; //makes big assumption there is one-and-only-one feature btw (detection should have bbox)
+            MediaAsset ma = ann.getMediaAsset();
+            if (parentRoot == null) parentRoot = ma.getParentRoot(myShepherd);
+System.out.println("   -->>> ma = " + ma);
+            if (!ma.hasLabel("_frame") || (ma.getParentId() == null)) continue;  //nope thx
+            int offset = ma.getParameters().optInt("extractOffset", -1);
+System.out.println("   -->>> offset = " + offset);
+            if (offset < 0) continue;
+            ordered.put(offset, ann);
+        }
+        if (ordered.size() < 1) return null;  //none used!
+
+        //now construct Encounters based upon spacing of frame-clusters
+        List<Encounter> newEncs = new ArrayList<Encounter>();
+        int prevOffset = -1;
+        int groupsMade = 1;
+        ArrayList<Annotation> tmpAnns = new ArrayList<Annotation>();
+        for (Integer i : ordered.keySet()) {
+            if ((prevOffset > -1) && ((i - prevOffset) >= minGapSize)) {
+                Encounter newEnc = new Encounter(tmpAnns);
+                newEnc.setState(STATE_AUTO_SOURCED);
+                if (parentRoot == null) {
+                    newEnc.setSubmitterName("Unknown video source");
+                    newEnc.addComments("<i>unable to determine video source - possibly YouTube error?</i>");
+                } else {
+                    newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
+                    DateTime dt = parentRoot.getDateTime();
+                    if (dt != null) newEnc.setDateInMilliseconds(dt.getMillis());
+                    if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                        if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
+                            newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
+                            newEnc.addComments("<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>");
+                        }
+                    }
+                }
+                newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                newEncs.add(newEnc);
+System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
+                groupsMade++;
+                tmpAnns = new ArrayList<Annotation>();
+            }
+            prevOffset = i;
+            tmpAnns.add(ordered.get(i));
+        }
+        //deal with dangling tmpAnns content
+        if (tmpAnns.size() > 0) {
+            Encounter newEnc = new Encounter(tmpAnns);
+            newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+            //newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+            newEncs.add(newEnc);
+System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
+            groupsMade++;
+        }
+        return newEncs;
     }
 
 

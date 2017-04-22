@@ -141,7 +141,7 @@ System.out.println("]=== done with .extractFrames()");
 
             // To increase efficiency, only retrieve the fields that the application uses.
             search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
-            search.setMaxResults(100l);
+            search.setMaxResults(50l);
 
             // Call the API and print results.
             SearchListResponse searchResponse = search.execute();

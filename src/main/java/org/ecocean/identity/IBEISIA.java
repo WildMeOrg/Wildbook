@@ -155,7 +155,9 @@ System.out.println("sendMediaAssets(): sending " + ct);
         map.put("annot_uuid_list", new ArrayList<String>());
         map.put("annot_species_list", new ArrayList<String>());
         map.put("annot_bbox_list", new ArrayList<int[]>());
+        map.put("annot_name_list", new ArrayList<String>());
 
+        Shepherd myShepherd = new Shepherd("context0");
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
             int[] bbox = ann.getBbox();
@@ -164,6 +166,8 @@ System.out.println("sendMediaAssets(): sending " + ct);
             map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
             map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
             map.get("annot_species_list").add(ann.getSpecies());
+            String name = ann.findIndividualId(myShepherd);
+            map.get("annot_name_list").add((name == null) ? "____" : name);
             markSent(ann);
             ct++;
         }
@@ -1055,9 +1059,14 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
     
 
 //{"xtl":910,"height":413,"theta":0,"width":444,"class":"giraffe_reticulated","confidence":0.2208,"ytl":182}
-    public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd) {
+    public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, boolean skipEncounter) {
         Annotation ann = convertAnnotation(asset, jann);
         if (ann == null) return null;
+        if (skipEncounter) {
+            myShepherd.getPM().makePersistent(ann);
+System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with no Encounter!]");
+            return ann;
+        }
         Encounter enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
         Occurrence occ = asset.getOccurrence();
         if (occ != null) {
@@ -1067,7 +1076,7 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
         myShepherd.getPM().makePersistent(ann);
         myShepherd.getPM().makePersistent(enc);
         if (occ != null) myShepherd.getPM().makePersistent(occ);
-System.out.println("* CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
+System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
         return ann;
     }
 
@@ -1169,6 +1178,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 JSONArray needReview = new JSONArray();
                 JSONObject amap = new JSONObject();
                 JSONObject ident = new JSONObject();
+                List<Annotation> allAnns = new ArrayList<Annotation>();
                 for (int i = 0 ; i < rlist.length() ; i++) {
                     JSONArray janns = rlist.optJSONArray(i);
                     if (janns == null) continue;
@@ -1189,6 +1199,8 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     boolean needsReview = false;
                     JSONArray newAnns = new JSONArray();
 //System.out.println("============================================================== JANNS " + janns.toString(2));
+                    boolean skipEncounters = asset.hasLabel("_frame");
+System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
@@ -1198,12 +1210,13 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         }
                         //these are annotations we can make automatically from ia detection.  we also do the same upon review return
                         //  note this creates other stuff too, like encounter
-                        Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd);
+                        Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, skipEncounters);
                         if (ann == null) {
                             System.out.println("WARNING: could not create Annotation from " + asset + " and " + jann);
                             continue;
                         }
-                        _tellEncounter(myShepherd, request, ann);
+                        if (!skipEncounters) _tellEncounter(myShepherd, request, ann);
+                        allAnns.add(ann);  //this is cumulative over *all MAs*
                         newAnns.put(ann.getId());
                         try {
                             //TODO how to know *if* we should start identification
@@ -1223,7 +1236,29 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 }
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
+
                 JSONObject jlog = new JSONObject();
+
+                //this will do nothing in the non-video-frame case
+                List<Encounter> encs = Encounter.collateFrameAnnotations(allAnns, myShepherd);
+                if ((encs != null) && (encs.size() > 0)) {
+                    Occurrence occ = new Occurrence();
+                    occ.setOccurrenceID(Util.generateUUID());
+                    occ.setDWCDateLastModified();
+                    occ.setDateTimeCreated();
+                    occ.addComments("<i>created during frame collation by IA</i>");
+                    JSONArray je = new JSONArray();
+                    for (Encounter enc : encs) {
+                        enc.setOccurrenceID(occ.getOccurrenceID());
+                        occ.addEncounter(enc);
+                        myShepherd.getPM().makePersistent(enc);
+                        je.put(enc.getCatalogNumber());
+                    }
+                    myShepherd.getPM().makePersistent(occ);
+                    jlog.put("collatedEncounters", je);
+                    jlog.put("collatedOccurrence", occ.getOccurrenceID());
+                }
+
                 jlog.put("_action", "processedCallbackDetect");
                 if (amap.length() > 0) jlog.put("annotations", amap);
                 if (ident.length() > 0) jlog.put("identificationTasks", ident);
@@ -1335,7 +1370,7 @@ System.out.println("*****************\nhey i think we are happy with these annot
 
     //scores < these will require human review (otherwise they carry on automatically)
     public static double getDetectionCutoffValue() {
-        return 0.8;
+        return 0.7;
     }
     public static double getIdentificationCutoffValue() {
         return 0.8;
@@ -2458,6 +2493,8 @@ System.out.println("using qid -> " + qid);
         return null;
         // this is trailing edge matching but takes foreeeevvvver
         //return new JSONObject("{\"pipeline_root\": \"BC_DTW\"}");
+        // and this is oriented curvature + weighted dynamic time-warping
+        //return new JSONObject("{\"pipeline_root\": \"OC_WDTW\"}");
     }
 
     private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
