@@ -113,6 +113,20 @@ public class SubmitSpotsAndImage extends HttpServlet {
 
     AssetStore store = AssetStore.getDefault(myShepherd);
     //this should put it in the same old (pre-MediaAsset) location to maintain url pattern
+    
+    
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+    //File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdirs();}
+    String thisEncDirString=Encounter.dir(shepherdDataDir,encId);
+    File thisEncounterDir=new File(thisEncDirString);
+    if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
+    
+    //now persist
     JSONObject params = store.createParameters(new File("encounters/" + Encounter.subdir(encId) + "/extract" + (rightSide ? "Right" : "") + encId + ".jpg"));
 System.out.println("====> params = " + params);
     MediaAsset ma = store.create(params);

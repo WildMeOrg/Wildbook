@@ -247,10 +247,12 @@ for (int i=0; i<captionLinks.size(); i++) {
 
 .caption-youtube {
     padding: 1px 3px;
-    background-color: rgba(255,255,255,0.5);
+    background-color: rgba(255,200,200,0.5);
     display: inline-block;
     border-radius: 3px;
     margin: 5px;
+	position: absolute;
+	right: 5px;
     font-size: 0.8em;
     cursor: pointer !important;
 }

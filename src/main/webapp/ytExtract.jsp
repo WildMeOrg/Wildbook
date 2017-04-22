@@ -9,6 +9,7 @@ java.io.File,
 org.json.JSONObject,
 org.json.JSONArray,
 
+org.ecocean.identity.IBEISIA,
 org.ecocean.media.*
               "
 %>
@@ -17,6 +18,8 @@ org.ecocean.media.*
 
 
 <%
+
+IBEISIA.setIAPrimed(true);  ///we do this so we can send off for detection even if IA not primed.  HACK!
 
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
