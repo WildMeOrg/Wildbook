@@ -80,6 +80,11 @@ public class ImportBass extends HttpServlet {
     }
     unmatchedFilenames("", "get");
     out.close();
+    
+    File testingRootDir = new File("");
+    out.println("Here is the root file dir for Tomcat! : "+testingRootDir.getAbsolutePath());
+    
+    
   }
   
   
