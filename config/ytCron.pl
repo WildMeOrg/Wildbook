@@ -9,81 +9,6 @@ my $search_keyword = 'whale shark';
 my $max_videos = 1;
 my $tmp_prefix = '/tmp/yt';
 
-my $foo = {
-success => 1,
-frameAssets => [
-                             132728,
-                             132727,
-                             132726,
-                             132725,
-                             132724,
-                             132723,
-                             132722,
-                             132721,
-                             132720,
-                             132719,
-                             132718,
-                             132717,
-                             132716,
-                             132715,
-                             132714,
-                             132713,
-                             132712,
-                             132711,
-                             132710,
-                             132709,
-                             132708,
-                             132707,
-                             132706,
-                             132705,
-                             132704,
-                             132703,
-                             132702,
-                             132701,
-                             132700,
-                             132699,
-                             132698,
-                             132697,
-                             132696,
-                             132695,
-                             132694,
-                             132693,
-                             132692,
-                             132691,
-                             132690,
-                             132689,
-                             132688,
-                             132687,
-                             132686,
-                             132685,
-                             132684,
-                             132683,
-                             132682,
-                             132681,
-                             132680,
-                             132679,
-                             132678,
-                             132677,
-                             132676,
-                             132675,
-                             132674,
-                             132673,
-                             132672,
-                             132671,
-                             132670,
-                             132669,
-                             132668,
-                             132667,
-                             132666,
-                             132665,
-                             132664,
-                             132663,
-                             132662,
-                             132661,
-                             132660
-                           ]
-};
-
 print "searching on keyword '$search_keyword' at $BASE_URL\n";
 my $search_results = &search_for($search_keyword);
 #print Dumper($search_results);
@@ -110,7 +35,6 @@ foreach my $v (@{$search_results->{videos}}) {
 	}
 	print "     + successfully created MediaAsset $res->{assetId}\n";
 	my $ext = &extract($res->{assetId});
-#my $ext = $foo;
 	if (!$ext || !$ext->{success}) {
 		print "     * failed to extract MediaAsset id=$res->{assetId}; skipping\n";
 		next;
