@@ -71,7 +71,7 @@ public class Shepherd {
   public static Vector matches = new Vector();
   //private PersistenceManagerFactory pmf;
   private String localContext;
-  
+
   private String action="undefined";
   private String shepherdID="";
 
@@ -86,7 +86,7 @@ public class Shepherd {
       try {
         pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
         this.shepherdID=Util.generateUUID();
-        
+
         ShepherdPMF.setShepherdState(action+"_"+shepherdID, "new");
       }
       catch (JDOUserException e) {
@@ -103,6 +103,10 @@ public class Shepherd {
 
   public PersistenceManager getPM() {
     return pm;
+  }
+
+  public String getDataDirectoryName() {
+    return CommonConfiguration.getDataDirectoryName(getContext());
   }
 
   //public PersistenceManagerFactory getPMF() {
@@ -182,8 +186,6 @@ public class Shepherd {
       }
 
   }
-
-
 
 
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
@@ -1325,8 +1327,10 @@ public class Shepherd {
   public List getAllOccurrences(Query myQuery) {
     Collection c;
     try {
+      System.out.println("getAllOccurrences is called on query "+myQuery);
       c = (Collection) (myQuery.execute());
       ArrayList list = new ArrayList(c);
+      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
       //Collections.reverse(list);
       Iterator it = list.iterator();
       return list;
@@ -1336,6 +1340,19 @@ public class Shepherd {
       return null;
     }
   }
+
+  public Iterator<Occurrence> getAllOccurrencesNoQuery() {
+    try {
+      Extent encClass = pm.getExtent(Occurrence.class, true);
+      Iterator it = encClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
 
   public List<SinglePhotoVideo> getAllSinglePhotoVideo(Query acceptedEncounters) {
     Collection c;
@@ -1365,6 +1382,24 @@ public class Shepherd {
       return null;
     }
   }
+
+  public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences, Map<String, Object> paramMap) {
+    Collection c;
+    try {
+      System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
+      c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
+      ArrayList list = new ArrayList(c);
+      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
 
   public List<PatterningPassport> getPatterningPassports() {
     int num = 0;
@@ -1873,7 +1908,7 @@ public class Shepherd {
         SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
         spv.setWebURL(webURL);
         spv.setDataCollectionEventID(ma.getUUID());
-  
+
         //add Keywords
         if(ma.getKeywords()!=null){
           ArrayList<Keyword> alkw=ma.getKeywords();
@@ -1883,7 +1918,7 @@ public class Shepherd {
             spv.addKeyword(kw);
           }
         }
-  
+
         myArray.add(spv);
 
     }
@@ -2297,6 +2332,21 @@ public class Shepherd {
       return 0;
     }
   }
+  public int getNumOccurrences() {
+    pm.getFetchPlan().setGroup("count");
+    Extent encClass = pm.getExtent(Occurrence.class, true);
+    Query acceptedOccurrences = pm.newQuery(encClass);
+    try {
+      Collection c = (Collection) (acceptedOccurrences.execute());
+      int num = c.size();
+      acceptedOccurrences.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedOccurrences.closeAll();
+      return 0;
+    }
+  }
 
   public int getNumAdoptions() {
     pm.getFetchPlan().setGroup("count");
@@ -2512,7 +2562,7 @@ public class Shepherd {
         pm.currentTransaction().begin();
       }
       ShepherdPMF.setShepherdState(action+"_"+shepherdID, "begin");
-      
+
 
     }
     catch (JDOUserException jdoe) {
@@ -2535,8 +2585,8 @@ public class Shepherd {
 
         //System.out.println("     Now commiting a transaction with pm"+(String)pm.getUserObject());
         pm.currentTransaction().commit();
-        
-        
+
+
         //return true;
         //System.out.println("A transaction has been successfully committed.");
       } else {
@@ -2544,7 +2594,7 @@ public class Shepherd {
         //return false;
       }
       ShepherdPMF.setShepherdState(action+"_"+shepherdID, "commit");
-      
+
 
     } catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
@@ -2588,11 +2638,11 @@ public class Shepherd {
     try {
       if ((pm != null) && (!pm.isClosed())) {
         pm.close();
-        
+
       }
       //ShepherdPMF.setShepherdState(action+"_"+shepherdID, "close");
       ShepherdPMF.removeShepherdState(action+"_"+shepherdID);
-      
+
       //logger.info("A PersistenceManager has been successfully closed.");
     } catch (JDOUserException jdoe) {
       System.out.println("I hit an error trying to close a DBTransaction.");
@@ -2619,7 +2669,7 @@ public class Shepherd {
         //System.out.println("You are trying to rollback an inactive transaction.");
       }
       ShepherdPMF.setShepherdState(action+"_"+shepherdID, "rollback");
-      
+
 
     } catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
@@ -2652,6 +2702,7 @@ public class Shepherd {
   public List<User> getAllUsers() {
     Collection c;
     ArrayList<User> list = new ArrayList<User>();
+    System.out.println("Shepherd.getAllUsers() called in context "+getContext());
     Extent userClass = pm.getExtent(User.class, true);
     Query users = pm.newQuery(userClass);
     users.setOrdering("fullName ascending");
@@ -2661,6 +2712,7 @@ public class Shepherd {
         list = new ArrayList<User>(c);
       }
       users.closeAll();
+      System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
       return list;
     }
     catch (Exception npe) {
@@ -2694,8 +2746,8 @@ public class Shepherd {
       ArrayList al=new ArrayList(c);
       acceptedOccurs.closeAll();
       it = al.iterator();
-      
-      
+
+
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
@@ -2860,7 +2912,7 @@ public class Shepherd {
               boolean hasKeyword = false;
               if ((keywords == null) || (keywords.length == 0)) {
                 hasKeyword = true;
-              } 
+              }
               else {
                 int numKeywords = keywords.length;
                 for (int n = 0; n < numKeywords; n++) {
@@ -3521,7 +3573,7 @@ public class Shepherd {
     Extent encClass = pm.getExtent(ScanTask.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
-    
+
     if(c!=null){
     ArrayList<ScanTask> it=new ArrayList<ScanTask>(c);
     samples.closeAll();
@@ -3633,12 +3685,12 @@ public class Shepherd {
     q.closeAll();
     return null;
   }
-  
+
   public int getNumAnnotationsForEncounter(String encounterID){
     ArrayList<Annotation> al=getAnnotationsForEncounter(encounterID);
     return al.size();
   }
-  
+
   public ArrayList<Annotation> getAnnotationsForEncounter(String encounterID){
     String filter="SELECT FROM org.ecocean.Annotation WHERE enc.catalogNumber == \""+encounterID+"\" && enc.annotations.contains(this)  VARIABLES org.ecocean.Encounter enc";
     Query query=getPM().newQuery(filter);
@@ -3647,12 +3699,12 @@ public class Shepherd {
     query.closeAll();
     return al;
   }
-  
+
   //used to describe where this Shepherd is and what it is supposed to be doing
   public void setAction(String newAction){
-    
+
     String state="";
-    
+
     if(ShepherdPMF.getShepherdState(action+"_"+shepherdID)!=null){
       state=ShepherdPMF.getShepherdState(action+"_"+shepherdID);
       ShepherdPMF.removeShepherdState(action+"_"+shepherdID);
@@ -3662,8 +3714,8 @@ public class Shepherd {
   }
 
   public String getAction(){return action;}
-  
-  
+
+
 
 
 } //end Shepherd class
