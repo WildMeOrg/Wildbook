@@ -2171,6 +2171,50 @@ public class Shepherd {
     }
     return tempShark;
   }
+  
+  public Survey getSurvey(String id) {
+    Survey srv = null;
+    try {
+      srv = ((org.ecocean.Survey) (pm.getObjectById(pm.newObjectIdInstance(Survey.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return srv;
+  }
+  
+  public SurveyTrack getSurveyTrack(String id) {
+    SurveyTrack stk = null;
+    try {
+      stk = ((org.ecocean.movement.SurveyTrack) (pm.getObjectById(pm.newObjectIdInstance(SurveyTrack.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return stk;
+  }
+  
+  public Path getPath(String id) {
+    Path pth = null;
+    try {
+      pth = ((org.ecocean.movement.Path) (pm.getObjectById(pm.newObjectIdInstance(Path.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return pth;
+  }
+  
+  public PointLocation getPointLocation(String id) {
+    PointLocation pl = null;
+    try {
+      pl = ((org.ecocean.PointLocation) (pm.getObjectById(pm.newObjectIdInstance(PointLocation.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return pl;
+  }
 
 
   /**
