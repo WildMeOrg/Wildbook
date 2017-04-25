@@ -120,7 +120,8 @@ public class LocalAssetStore extends AssetStore {
         return root;
     }
 
-    private String webRoot() {
+    // (temp for debuggin) private String webRoot() {
+    public String webRoot() {
         if (webRoot == null) {
             webRoot = config.getString(KEY_WEB_ROOT);
             logger.info("Asset Store [" + name + "] using web root [" + webRoot + "]");
@@ -308,6 +309,7 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
         if(ma==null) System.out.println("MediaAsset is null in LocalAssetStore.webURL");
         if ((webRoot() == null) || (ma == null)) return null;
         Path path = pathFromParameters(ma.getParameters());
+        System.out.println("making webURL with pathFromParameters(mediaAsset) = "+path);
         if (path == null) return null;
 
         try {
@@ -369,5 +371,3 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
     }
 
 }
-
-
