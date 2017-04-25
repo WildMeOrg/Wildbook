@@ -65,17 +65,25 @@ public class StartupWildbook {
 
   public static void ensureAssetStoreExists(HttpServletRequest request, Shepherd myShepherd) {
 
+    String context = myShepherd.getContext();
+    String dataDirName = CommonConfiguration.getDataDirectoryName(context);
+    System.out.println("ensureAssetStoreExists found dataDirName = "+dataDirName);
+    // TODO: USE CONTEXT AND DATADIR ABOVE
+
+
     String rootDir = request.getSession().getServletContext().getRealPath("/");
-    String dataDir = ServletUtilities.dataDir("context0", rootDir);
-    String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
-    String dataUrl = urlLoc + "/wildbook_data_dir";
+    System.out.println("ensureAssetStoreExists found rootDir = "+rootDir);
+    String dataDir = ServletUtilities.dataDir(context, rootDir);
+    String urlLoc = ("http://" + CommonConfiguration.getURLLocation(request)).split("/wildbook")[0];
+    String dataUrl = urlLoc + "/" + dataDirName;
+    System.out.println("ensureAssetStoreExists: dataDir = "+dataDir+" and dataUrl = "+dataUrl);
     myShepherd.beginDBTransaction();
-    LocalAssetStore as = new LocalAssetStore("Default Local AssetStore", new File(dataDir).toPath(), dataUrl, true);
+    LocalAssetStore as = new LocalAssetStore("Default Local AssetStore mk II", new File(dataDir).toPath(), dataUrl, true);
     myShepherd.getPM().makePersistent(as);
     myShepherd.commitDBTransaction();
 
   }
-  
+
   public static void ensureProfilePhotoKeywordExists(Shepherd myShepherd) {
     int numKeywords=myShepherd.getNumKeywords();
     if(numKeywords==0){
