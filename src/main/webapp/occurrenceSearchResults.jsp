@@ -250,7 +250,7 @@ var colDefn = [
   {
     key: 'ID',
     label: 'ID',
-    value: _colID,
+    value: _notUndefined('occurrenceID'),
   },
   {
     key: 'soil',
@@ -417,7 +417,7 @@ function xxxshow() {
 	$('#results-table td').html('');
 	for (var i = 0 ; i < results.length ; i++) {
 		//$('#results-table tbody tr')[i].title = searchResults[results[i]].individualID;
-		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
+		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].occurrenceID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
 		}
@@ -442,7 +442,7 @@ function show() {
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
 		//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
-		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
+		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].occurrenceID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
 		}
