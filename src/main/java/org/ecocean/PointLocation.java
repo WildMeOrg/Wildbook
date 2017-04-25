@@ -1,7 +1,9 @@
 package org.ecocean;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 
 import org.ecocean.*;
 
@@ -30,7 +32,7 @@ public class PointLocation implements java.io.Serializable {
   private long longitude = -1;
   private long bearing = -1;
   
-  private Measurement elevation = null;
+  private List<Measurement> elevation;
   
   // It's in milliseconds!
   private long dateTime = -1;
@@ -63,7 +65,7 @@ public class PointLocation implements java.io.Serializable {
       longitude = lon;
       latitude = lat;
       dateTime = date;
-      elevation = el;     
+      elevation.add(el);     
     }
     generateUUID();
   }
