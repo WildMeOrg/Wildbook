@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
+              org.ecocean.media.*,
               java.util.ArrayList,
               java.util.List,
               java.util.Map,
@@ -358,6 +359,14 @@ try{
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
     numDataContributors=myShepherd.getNumUsers();
+
+    System.out.println("Index.jsp Shepherd Report:");
+    System.out.println("   myShepherd.getContext() = "+myShepherd.getContext());
+    AssetStore assey = AssetStore.getDefault(myShepherd);
+    System.out.println("   AssetStore.getDefault(myShepherd) = "+assey);
+    System.out.println("   Asseys's config = "+assey.getConfig());
+    System.out.println("   Asseys's usage = "+assey.getUsage());
+    //System.out.println("   Asseys's config = "+assey.getConfig());
 
 
 }
