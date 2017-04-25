@@ -66,14 +66,21 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     Map<String,Object> paramMap = new HashMap<String, Object>();
 
     filter=queryStringBuilder(request, prettyPrint, paramMap);
+    System.out.println("OccurrenceQueryResult: has filter "+filter);
     Query query=myShepherd.getPM().newQuery(filter);
+    System.out.println("                       got query "+query);
+    System.out.println("                       has paramMap "+paramMap);
     if(!order.equals("")){query.setOrdering(order);}
-
+    System.out.println("                 still has query "+query);
     if(!filter.trim().equals("")){
+      System.out.println(" about to call myShepherd.getAllOccurrences on query "+query);
       allOccurrences=myShepherd.getAllOccurrences(query, paramMap);
     } else {
+      System.out.println(" about to call myShepherd.getAllOccurrencesNoQuery() ");
       allOccurrences=myShepherd.getAllOccurrencesNoQuery();
     }
+    System.out.println("               *still* has query "+query);
+
 
     if(allOccurrences!=null){
       while (allOccurrences.hasNext()) {
@@ -83,6 +90,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     }
   	query.closeAll();
 
+    System.out.println("about to return OccurrenceQueryResult with filter "+filter+" and nOccs="+rOccurrences.size());
     return (new OccurrenceQueryResult(rOccurrences,filter,prettyPrint.toString()));
   }
 }
