@@ -98,6 +98,10 @@ public class Shepherd {
     return pm;
   }
 
+  public String getDataDirectoryName() {
+    return CommonConfiguration.getDataDirectoryName(getContext());
+  }
+
   //public PersistenceManagerFactory getPMF() {
   //  return pmf;
   //}
@@ -175,8 +179,6 @@ public class Shepherd {
       }
 
   }
-
-
 
 
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
@@ -1331,8 +1333,10 @@ public class Shepherd {
   public List getAllOccurrences(Query myQuery) {
     Collection c;
     try {
+      System.out.println("getAllOccurrences is called on query "+myQuery);
       c = (Collection) (myQuery.execute());
       ArrayList list = new ArrayList(c);
+      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
       //Collections.reverse(list);
       Iterator it = list.iterator();
       return list;
@@ -1375,8 +1379,10 @@ public class Shepherd {
   public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences, Map<String, Object> paramMap) {
     Collection c;
     try {
+      System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
       c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
       ArrayList list = new ArrayList(c);
+      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
       //Collections.reverse(list);
       Iterator it = list.iterator();
       return it;
@@ -2295,8 +2301,7 @@ public class Shepherd {
   public int getNumOccurrences() {
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Occurrence.class, true);
-    String filter = "this.state != \"unidentifiable\"";
-    Query acceptedOccurrences = pm.newQuery(encClass, filter);
+    Query acceptedOccurrences = pm.newQuery(encClass);
     try {
       Collection c = (Collection) (acceptedOccurrences.execute());
       int num = c.size();
@@ -2650,6 +2655,7 @@ public class Shepherd {
   public List<User> getAllUsers() {
     Collection c;
     ArrayList<User> list = new ArrayList<User>();
+    System.out.println("Shepherd.getAllUsers() called in context "+getContext());
     Extent userClass = pm.getExtent(User.class, true);
     Query users = pm.newQuery(userClass);
     users.setOrdering("fullName ascending");
@@ -2659,6 +2665,7 @@ public class Shepherd {
         list = new ArrayList<User>(c);
       }
       users.closeAll();
+      System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
       return list;
     }
     catch (Exception npe) {
