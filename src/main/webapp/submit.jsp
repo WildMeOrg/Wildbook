@@ -763,38 +763,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
   <hr/>
 
-  <fieldset>
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
-      </div>
-
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
-      </div>
-    </div>
-
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterProject") %></label>
-      </div>
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
-      </div>
-    </div>
-
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submit_comments") %></label>
-      </div>
-      <div class="col-xs-6 col-lg-8">
-        <textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
-      </div>
-    </div>
-  </fieldset>
-
-
-
 
   <h4 class="accordion">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
@@ -806,27 +774,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     <div id="advancedInformation" fade="1" style="display: none;">
 
       <h3><%=props.getProperty("aboutAnimal") %></h3>
-
-      <fieldset>
-
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_sex") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <label class="radio-inline">
-              <input type="radio" name="sex" value="male"> <%=props.getProperty("submit_male") %>
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="sex" value="female"> <%=props.getProperty("submit_female") %>
-            </label>
-            <label class="radio-inline">
-              <input name="sex" type="radio" value="unknown" checked="checked"> <%=props.getProperty("submit_unsure") %>
-            </label>
-          </div>
-        </div>
-        </fieldset>
         <hr>
         <fieldset>
 <%
@@ -835,7 +782,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
 
-      <div class="form-group">
+      <div class="form-group hidden">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("species") %></label>
           </div>

@@ -410,7 +410,7 @@ finally{
         </div>
 
 	</div>
-	<p id="image-credit"><i>image credit Ian Uhalt</i></p>
+	<p id="image-credit" class="pull-right"><i style="color:white;margin-right:15px;">image credit Ian Uhalt</i></p>
 
 
 </section>
