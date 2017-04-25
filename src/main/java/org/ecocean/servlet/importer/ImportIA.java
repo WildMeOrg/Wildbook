@@ -72,8 +72,11 @@ public class ImportIA extends HttpServlet {
 
     System.out.println("IA-IMPORT: started.....");
     String urlSuffix = "/api/imageset/json/?is_special=False";
+    System.out.println("    urlSuffix = "+urlSuffix);
+    System.out.println("    context = "+context);
     JSONObject imageSetRes = getFromIA(urlSuffix, context, out);
     JSONArray fancyImageSetUUIDS = imageSetRes.optJSONArray("response");
+    System.out.println("IA-IMPORT: got "+fancyImageSetUUIDS.length()+" UUIDs back from IA");
 
     if (imageSetRes==null && request.getParameter("doOnly") == null) {
       System.out.println("Error! getFromIA(\""+urlSuffix+"\", context, out) returned null!");
@@ -226,6 +229,7 @@ System.out.println(" - - - skipping existing " + exist);
         } else {
             Encounter enc = new Encounter(annotGroups.get(name));
             enc.setMatchedBy("IBEIS IA");
+            enc.setState("approved");
 
             // here we have to check if this encounter has been added already
 
@@ -272,7 +276,7 @@ System.out.println(" - - - skipping existing " + exist);
                 MarkedIndividual ind = new MarkedIndividual(name, enc);
                 if (sex != null) ind.setSex(sex);
                 myShepherd.storeNewMarkedIndividual(ind);
-                //System.out.println("IA-IMPORT: new indiv " + ind);
+                System.out.println("IA-IMPORT: new indiv " + ind);
             }
 
             for (Annotation ann: annotGroups.get(name)) {
@@ -312,31 +316,29 @@ out.println("complete");
     String rootDir = getServletContext().getRealPath("/");
     String context = myShepherd.getContext();
     String baseDir = ServletUtilities.dataDir(context, rootDir);
-    String assetStorePath="/data/wildbook_data_dir-2/encounters";
     String dataDirName = CommonConfiguration.getDataDirectoryName(context);
-    String rootURL="http://128.112.89.89:8080/wildbook";
-    String assetStoreURL=rootURL+"/wildbook_data_dir-2/encounters";
+    String assetStorePath = "/data/" +dataDirName+ "/encounters";
+
+    String rootURL = "http://128.112.89.89:8080/";
+    String assetStoreURL = rootURL +dataDirName +"/encounters";
     out.println("initFeatureTypeAndAssetStore variable log:");
     out.println("     rootDir = "+rootDir);
     out.println("     baseDir = "+baseDir);
-    out.println("     assetStorePath = "+baseDir);
-    //String rootURL="http://localhost:8080";
-
-    String shepherdDataDir = ServletUtilities.dataDir(context, rootDir);
-    out.println("     context = "+context);
-    out.println("     shepherdDataDir = "+shepherdDataDir);
-
-
+    out.println("     assetStorePath = "+assetStorePath);
+    out.println("     assetStoreURL = "+assetStoreURL);
 
     //////////////// begin local //////////////
-    LocalAssetStore as = new LocalAssetStore("Princeton-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
+    LocalAssetStore as = new LocalAssetStore("Princeton-Asset-Store vII", new File(assetStorePath).toPath(), assetStoreURL, true);
+    out.println("  made new asset store = "+as.toString());
     myShepherd.getPM().makePersistent(as);
+    out.println("and persisted it.");
   }
 
   // I always swallow errors in the interest of clean code!
   private JSONObject getFromIA(String urlSuffix, String context, PrintWriter outForErrors) throws IOException {
     JSONObject res = new JSONObject();
-    URL restGetString = IBEISIA.iaURL("context0", urlSuffix);
+    URL restGetString = IBEISIA.iaURL(context, urlSuffix);
+    System.out.println("getFromIA about to call "+restGetString);
     try {
       res = RestClient.get(restGetString);
     }
