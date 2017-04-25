@@ -2,6 +2,47 @@
 
 <jdo>
   <package name="org.ecocean">
+  
+    <class name="PointLocation" identity-type="application" table="POINTLOCATION">
+      <field name="pointLocationID" primary-key="true">
+        <column length="100"/>
+      </field>
+
+      <field name="elevation" persistence-modifier="persistent">
+        <collection element-type="org.ecocean.Measurement"/>
+        <join/>
+      </field>
+
+      <field name="correspondingPathID" persistence-modifier="persistent">
+        <column length="100" allows-null="true" />
+      </field>
+
+      <field name="correspondingEncounterID" persistence-modifier="persistent">
+        <column length="100" allows-null="true"/>
+      </field>
+      
+      <field name="correspondingOccurrenceID" persistence-modifier="persistent">
+        <column length="100" allows-null="true"/>
+      </field>
+
+      <field name="dateTime" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
+      <field name="latitude" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
+      <field name="longitude" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
+      <field name="bearing" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+
+      <fetch-group name="count"/>
+    </class>
 
     <class name="Adoption" identity-type="application">
       <field name="adopterName" persistence-modifier="persistent">
