@@ -6,8 +6,8 @@ use Data::Dumper;
 
 my $BASE_URL = 'http://localhost';
 my $search_keyword = 'whale shark';
-my $max_videos = 1;
-my $tmp_prefix = '/tmp/yt';
+my $max_videos = $ARGV[0] || 1;
+my $tmp_prefix = '/tmp/yt.' . time;
 
 print "searching on keyword '$search_keyword' at $BASE_URL\n";
 my $search_results = &search_for($search_keyword);
@@ -22,29 +22,31 @@ if ($search_results->{count} < 1) {
 my $ct = 1;
 foreach my $v (@{$search_results->{videos}}) {
 	last if ($ct > $max_videos);
-	printf("- %2d %s %s\n", $ct, $v->{id}->{videoId}, $v->{snippet}->{title});
+	printf("- %2d  %s  https://www.youtube.com/watch?v=%s  %s\n", $ct, $v->{id}->{videoId}, $v->{id}->{videoId}, $v->{snippet}->{title});
 	my $res = &create($v->{id}->{videoId});
 	$ct++;
 	if (!$res || !$res->{success}) {
 		print "     * failed to create MediaAsset; skipping\n";
 		next;
 	}
+	my $vurl = "$BASE_URL/obrowse.jsp?type=MediaAsset&id=" . ($res->{assetId} + 2);
 	if ($res->{info} =~ /already exists/) {
-		print "     . MediaAsset already exists at $res->{assetId}; skipping\n";
+		print "     . MediaAsset already exists at $res->{assetId}; (video $vurl) skipping\n";
 		next;
 	}
-	print "     + successfully created MediaAsset $res->{assetId}\n";
+	print "     + successfully created MediaAsset $res->{assetId} (video $vurl)\n";
 	my $ext = &extract($res->{assetId});
-	if (!$ext || !$ext->{success}) {
+	if (!$ext || !$ext->{success} || !$ext->{frameAssets}) {
 		print "     * failed to extract MediaAsset id=$res->{assetId}; skipping\n";
 		next;
 	}
+	print "     + successfully extracted " . scalar(@{$ext->{frameAssets}}) . " frames\n";
 	my $ia = &ia($ext->{frameAssets});
 	if (!$ia || !$ia->{success}) {
 		print "     * failed to sent to IA for detection; skipping\n";
 		next;
 	}
-	print "     + successfully send to IA for detection as taskId=$ia->{taskId}\n";
+	print "     + successfully sent to IA for detection as taskId $ia->{taskId}\n";
 }
 
 
@@ -83,7 +85,7 @@ sub create {
 sub extract {
 	my $id = shift;
 	return {} unless $id;
-	my $extract_out = "$tmp_prefix-extract-out.json";
+	my $extract_out = "$tmp_prefix-extract-$id-out.json";
 	system("curl -s $BASE_URL/ytExtract.jsp?id=$id > $extract_out");
 	open(O, $extract_out) || die "unable to open $extract_out";
 	my $raw = join('', <O>);
@@ -99,9 +101,7 @@ sub ia {
 	my $ids = shift;
 	return {} unless ($ids && scalar(@$ids));
 	my $ia_data = to_json({ detect => { mediaAssetIds => $ids } });
-	my $ia_out = "$tmp_prefix-ia-out.json";
-#curl -X POST -H "Content-Type: application/json" -d '{"username":"xyz","password":"xyz"}' http://localhost:3000/api/login 
-	#warn "curl -s -X POST -H 'Content-Type: application/json' -d '$ia_data' $BASE_URL/ia > $ia_out"; return;
+	my $ia_out = "$tmp_prefix-ia-" . $ids->[0] . "-out.json";
 	system("curl -s -X POST -H 'Content-Type: application/json' -d '$ia_data' $BASE_URL/ia > $ia_out");
 	open(O, $ia_out) || die "unable to open $ia_out";
 	my $raw = join('', <O>);
