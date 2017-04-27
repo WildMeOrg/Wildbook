@@ -46,7 +46,7 @@ foreach my $v (@{$search_results->{videos}}) {
 		print "     * failed to sent to IA for detection; skipping\n";
 		next;
 	}
-	print "     + successfully sent to IA for detection as taskId $ia->{taskId}\n";
+	print "     + successfully sent to IA for detection: $BASE_URL/yt.html?$ia->{taskId}\n";
 }
 
 
