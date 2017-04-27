@@ -6,11 +6,11 @@
  
     <class name="Survey" identity-type="application" table="SURVEY">
       <field name="surveyID" primary-key="true">
-        <column length="100"/>
+        <column length="100" allows-null="true"/>
       </field>
 
       <field name="surveyTracks" persistence-modifier="persistent">
-        <collection element-type="org.ecocean.movement.SurveyTrack"/>
+        <collection element-type="org.ecocean.movement.SurveyTrack" allow-null="true"/>
         <join/>
       </field>
 
@@ -38,7 +38,7 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
       
-      <field name="effort" persistence-modifier="persistent" element-type="org.ecocean.Measurement" />
+      <field name="effort" persistence-modifier="persistent" element-type="org.ecocean.Measurement" allows-null="true"/>
       
       <field name="dateTimeCreated" persistence-modifier="persistent">
         <column jdbc-type="String" allows-null="true"/>

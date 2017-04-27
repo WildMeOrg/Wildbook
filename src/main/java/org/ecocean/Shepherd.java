@@ -2129,7 +2129,6 @@ public class Shepherd {
     return it;
   }
 
-
   public MarkedIndividual getMarkedIndividual(String name) {
     MarkedIndividual tempShark = null;
     try {

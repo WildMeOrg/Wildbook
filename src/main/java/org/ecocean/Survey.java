@@ -107,7 +107,7 @@ public class Survey implements java.io.Serializable{
     setDWCDateLastModified();
   }
   
-  public String getId() {
+  public String getID() {
     if (surveyID != null) {
       return surveyID;
     } else {
@@ -115,7 +115,7 @@ public class Survey implements java.io.Serializable{
     }
   }
   
-  public void setId(String newID) {
+  public void setID(String newID) {
     surveyID = newID;
     setDWCDateLastModified();
   }
