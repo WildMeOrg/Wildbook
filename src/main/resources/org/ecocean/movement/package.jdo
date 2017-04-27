@@ -9,7 +9,7 @@
       </field>
 
       <field name="occurrences" persistence-modifier="persistent">
-        <collection element-type="org.ecocean.Occurrence"/>
+        <collection element-type="org.ecocean.Occurrence" dependent-element="false" allows-null="true"/>
         <join/>
       </field>
 
@@ -33,7 +33,9 @@
         <column jdbc-type="LONGVARCHAR" allows-null="true"/>
       </field>
       
-      <field name="distance" persistence-modifier="persistent" element-type="org.ecocean.Measurement" />
+      <field name="distance" persistence-modifier="persistent" element-type="org.ecocean.Measurement">
+      	<column allows-null="true"/>
+      </field>
       
       <field name="dateTimeCreated" persistence-modifier="persistent">
         <column length="100" allows-null="true"/>

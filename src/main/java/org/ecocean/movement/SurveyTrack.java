@@ -50,7 +50,7 @@ public class SurveyTrack implements java.io.Serializable{
   
   public SurveyTrack(Survey survey){
     if (survey != null) {
-      this.parentSurveyID = survey.getId();
+      this.parentSurveyID = survey.getID();
     }
   }
   
