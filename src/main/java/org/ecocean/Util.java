@@ -536,4 +536,20 @@ public class Util {
     public static boolean stringExists(String str) {
       return (str!=null && !str.equals(""));
     }
+
+
+    public static boolean hasProperty(Properties props, String key) {
+      return (props.getProperty(key) != null);
+    }
+
+    // given "animalType"
+    public static List<String> getIndexedPropertyValues(String key, Properties fromProps) {
+      List<String> values = new ArrayList<String>();
+      for (int i=0; hasProperty(fromProps, (key+i)); i++) {
+        values.add(fromProps.getProperty(key+i));
+      }
+      return values;
+    }
+
+
 }
