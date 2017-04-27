@@ -203,6 +203,9 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 									}
 								}
 							}
+						} else if (ma.isMimeTypeMajor("video")) {
+							//note: this violates safeUrl / etc... use with caution in your branch?
+							j.put("url", ma.webURL().toString());
 						}
 						all.put(j);
 					}
