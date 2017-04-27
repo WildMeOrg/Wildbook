@@ -1082,6 +1082,13 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult) {
         if (iaResult == null) return null;
+
+        //this is hard-coded for whaleshark.org branch .... need to generalize this!!  TODO
+        if (!iaResult.optString("class", "_FAIL_").equals("whale_shark")) {
+            System.out.println("WARNING: bailing on IA results due to invalid species detected -- " + iaResult.toString());
+            return null;
+        }
+
         JSONObject fparams = new JSONObject();
         fparams.put("detectionConfidence", iaResult.optDouble("confidence", -2.0));
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
@@ -1220,7 +1227,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         newAnns.put(ann.getId());
                         try {
                             //TODO how to know *if* we should start identification
-                            ident.put(ann.getId(), IAIntake(ann, myShepherd, request));
+                            //////ident.put(ann.getId(), IAIntake(ann, myShepherd, request));  //not doing ident for whaleshark.org
                         } catch (Exception ex) {
                             System.out.println("WARNING: IAIntake threw exception " + ex);
                         }
