@@ -1255,6 +1255,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         je.put(enc.getCatalogNumber());
                     }
                     myShepherd.getPM().makePersistent(occ);
+                    occ.fromDetection(myShepherd, request);
                     jlog.put("collatedEncounters", je);
                     jlog.put("collatedOccurrence", occ.getOccurrenceID());
                 }

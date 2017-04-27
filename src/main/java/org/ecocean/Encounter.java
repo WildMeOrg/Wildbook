@@ -1864,6 +1864,15 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (lon != null) this.setDecimalLongitude(lon);
     }
 
+    //sets date to the closes we have to "not set" :)
+    public void zeroOutDate() {
+        year = 0;
+        month = 0;
+        day = 0;
+        hour = -1;
+        minutes = "00";
+        resetDateInMilliseconds();  //should set that to null as well
+    }
 
   public void resetDateInMilliseconds(){
     if(year>0){
@@ -2202,22 +2211,7 @@ System.out.println("   -->>> offset = " + offset);
         ArrayList<Annotation> tmpAnns = new ArrayList<Annotation>();
         for (Integer i : ordered.keySet()) {
             if ((prevOffset > -1) && ((i - prevOffset) >= minGapSize)) {
-                Encounter newEnc = new Encounter(tmpAnns);
-                newEnc.setState(STATE_AUTO_SOURCED);
-                if (parentRoot == null) {
-                    newEnc.setSubmitterName("Unknown video source");
-                    newEnc.addComments("<i>unable to determine video source - possibly YouTube error?</i>");
-                } else {
-                    newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
-                    DateTime dt = parentRoot.getDateTime();
-                    if (dt != null) newEnc.setDateInMilliseconds(dt.getMillis());
-                    if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
-                        if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
-                            newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
-                            newEnc.addComments("<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>");
-                        }
-                    }
-                }
+                Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
                 newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
                 newEncs.add(newEnc);
 System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
@@ -2229,7 +2223,7 @@ System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
         }
         //deal with dangling tmpAnns content
         if (tmpAnns.size() > 0) {
-            Encounter newEnc = new Encounter(tmpAnns);
+            Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
             newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
             //newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
             newEncs.add(newEnc);
@@ -2237,6 +2231,36 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
             groupsMade++;
         }
         return newEncs;
+    }
+
+    //this is really only for above method
+    private static Encounter __encForCollate(ArrayList<Annotation> tmpAnns, MediaAsset parentRoot) {
+        if ((tmpAnns == null) || (tmpAnns.size() < 1)) return null;
+        Encounter newEnc = new Encounter(tmpAnns);
+        newEnc.setState(STATE_AUTO_SOURCED);
+        newEnc.zeroOutDate();  //do *not* want it using the video source date
+        if (parentRoot == null) {
+            newEnc.setSubmitterName("Unknown video source");
+            newEnc.addComments("<i>unable to determine video source - possibly YouTube error?</i>");
+        } else {
+            newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
+            DateTime dt = parentRoot.getDateTime();
+            if (dt != null) newEnc.setDateInMilliseconds(dt.getMillis());
+            if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
+                    newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
+                    newEnc.addComments("<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>");
+                }
+                if (parentRoot.getMetadata().getData().optJSONObject("detailed") != null) {
+                    String desc = "<p>" + parentRoot.getMetadata().getData().getJSONObject("detailed").optString("description", "[no description]") + "</p>";
+                    if (parentRoot.getMetadata().getData().getJSONObject("detailed").optJSONArray("tags") != null) {
+                        desc += "<p><b>tags:</b> " + parentRoot.getMetadata().getData().getJSONObject("detailed").getJSONArray("tags").toString() + "</p>";
+                    }
+                    newEnc.setOccurrenceRemarks(desc);
+                }
+            }
+        }
+        return newEnc;
     }
 
 
@@ -2811,6 +2835,7 @@ throw new Exception();
     }
 
     //ann is the Annotation that was created after IA detection.  mostly this is just to notify... someone
+    //  note: this is for singly-made encounters; see also Occurrence.fromDetection()
     public void detectedAnnotation(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
 System.out.println(">>>>> detectedAnnotation() on " + this);
     }
