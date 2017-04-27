@@ -148,7 +148,7 @@
         <!--
         <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
         -->
-        <Context path="" docBase="/opt/tomcat/webapps/wildbook">
+        <Context path="" docBase="/usr/local/tomcat/webapps/wildbook">
 	  <Resources allowLinking="true" />
           <WatchedResource>WEB-INF/web.xml</WatchedResource>
         </Context>
