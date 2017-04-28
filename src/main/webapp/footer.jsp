@@ -21,23 +21,24 @@
             <div class="container-fluid">
               <div class="container main-section">
 
-                 <div class="row">
-                     
+                 <div class="row">        
                     <div class="col-xs-12 col-md-3 foot-logo img-responsive" style="margin-top:10px;">
-                      <img class="foot-logo img-responsive" alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg" style="max-width:200px;max-height:auto;" />
+                      <a href="http://www.boi.ucsb.edu">                                             
+	                    <img class="img-responsive" alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg" style="max-width:200px;max-height:auto;" />
+                      </a>
                     </div>
-  
                     <div class="col-xs-12 col-md-3 foot-logo img-responsive" style="margin-top:10px;">
-                      <img class="foot-logo img-responsive" alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png" />
+                      <a href="http://www.lovelab.id.ucsb.edu">                      
+                        <img class="img-responsive" alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png" />
+                      </a>
                     </div>
-                    
                   	<div class="col-xs-12 col-md-3 foot-logo img-responsive" style="margin-top:10px;">
-                      <img class="foot-logo img-responsive" alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_small.png" />
+                  	  <a href="http://msi.ucsb.edu/">
+                        <img class="img-responsive" alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_small.png"/>
+                      </a>
                     </div> 	   
-                    
-                    
-                    <a href="http://www.wildbook.org" class="col-xs-12 col-md-3" title="This site is Powered by Wildbook">
-                      <img class="foot-logo img-responsive" src="<%=urlLoc%>/images/WildBook_logo_72dpi-01.png" alt="wildbook logo"  style="height:150px;margin-top:10px;"/>
+                    <a href="http://www.wildbook.org" class="foot-logo" title="This site is Powered by Wildbook">
+                      <img class="img-responsive" src="<%=urlLoc%>/images/WildBook_logo_72dpi-01.png" alt="wildbook logo"  style="height:150px;margin-top:10px;"/>
                     </a> 
                  </div>
                  

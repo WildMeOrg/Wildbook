@@ -4273,145 +4273,146 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 
 <!-- START DYNAMIC PROPERTIES -->
-
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-<h2>
-  <img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
-   <%=encprops.getProperty("dynamicProperties") %>
-   <button class="btn btn-md" type="button" name="button" id="editDynamic">Edit</button>
-   <button class="btn btn-md" type="button" name="button" id="closeEditDynamic" style="display:none;">Close Edit</button>
- </h2>
-
-
-
-<script type="text/javascript">
-$(document).ready(function() {
-  var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
-    buttons.toggle();
-  });
-  $("#editDynamic").click(function() {
-    $(".editFormDynamic").show();
-
-  });
-
-  $("#closeEditDynamic").click(function() {
-    $(".editFormDynamic, .editTextDynamic, .resultMessageDiv").hide();
-  });
-});
-</script>
-
-
-<% }
-else {
- %>
- <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
-
- <%}%>
-
-
-
-
 <%
-if(isOwner){
+if (loggedIn) {
 %>
+
+
+	<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+	<h2>
+	  <img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
+	   <%=encprops.getProperty("dynamicProperties") %>
+	   <button class="btn btn-md" type="button" name="button" id="editDynamic">Edit</button>
+	   <button class="btn btn-md" type="button" name="button" id="closeEditDynamic" style="display:none;">Close Edit</button>
+	 </h2>
+	
+	
+	
+	<script type="text/javascript">
+	$(document).ready(function() {
+	  var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
+	    buttons.toggle();
+	  });
+	  $("#editDynamic").click(function() {
+	    $(".editFormDynamic").show();
+	
+	  });
+	
+	  $("#closeEditDynamic").click(function() {
+	    $(".editFormDynamic, .editTextDynamic, .resultMessageDiv").hide();
+	  });
+	});
+	</script>
+	
+	
+	<% }
+	else {
+	 %>
+	 <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
+	
+	 <%}%>
+	
+	
+	
+	
+	<%
+	if(isOwner){
+	%>
+	
+	<%
+	}
+	
+	
+	  if (enc.getDynamicProperties() != null) {
+	    //let's create a TreeMap of the properties
+	    StringTokenizer st = new StringTokenizer(enc.getDynamicProperties(), ";");
+	    int numDynProps=0;
+	    while (st.hasMoreTokens()) {
+	      String token = st.nextToken();
+	      int equalPlace = token.indexOf("=");
+	      String nm = token.substring(0, (equalPlace)).replaceAll(" ", "_");
+	      String vl = token.substring(equalPlace + 1);
+	      numDynProps++;
+	%>
+	<p class="para"> <em><%=nm%></em>: <%=vl%>
+	  <%
+	  %>
+	
+	  <%
+	%>
+	<!-- start dynamic form -->
+	<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editFormDynamic">
+	  <p class="editTextDynamic"><strong><%=encprops.getProperty("set")%> <%=nm %></strong></p>
+	  <p class="editTextDynamic"><em><small><%=encprops.getProperty("setDPMessage") %></small></em></p>
+	
+	        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
+	          <input name="name" type="hidden" size="10" value="<%=nm %>" />
+	          <input name="number" type="hidden" value="<%=num%>" />
+	          <div class="form-group row">
+	            <div class="col-sm-3">
+	              <label><%=encprops.getProperty("propertyValue")%>:</label>
+	            </div>
+	            <div class="col-sm-5">
+	              <input name="value" type="text" class="form-control" id="dynInput" value="<%=vl %>"/>
+	            </div>
+	            <div class="col-sm-4">
+	              <input name="Set" type="submit" id="dynEdit" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
+	            </div>
+	          </div>
+	        </form>
+	
+	</div>
+	
+	<%
+	%>
+	
+	</p>
+	
+	
+	<%
+	  }
+	    if(numDynProps==0){
+	    	  %>
+	    	  <p><%=encprops.getProperty("none")%></p>
+	    	  <%
+	   	}
+	
+	  }
+	//display a message if none are defined
+	else{
+		  %>
+		  <p><%=encprops.getProperty("none")%></p>
+		  <%
+		    }
+	
+	%>
+	<div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" class="editFormDynamic">
+	  <p class="editTextDynamic"><strong><%=encprops.getProperty("addDynamicProperty")%></strong></p>
+	    <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
+	      <input name="number" type="hidden" value="<%=num%>" />
+	      <div class="form-group row">
+	        <div class="col-sm-3">
+	          <label><%=encprops.getProperty("propertyName")%>:</label>
+	        </div>
+	        <div class="col-sm-5">
+	          <input name="name" type="text" class="form-control" id="addDynPropInput"/>
+	        </div>
+	      </div>
+	      <div class="form-group row">
+	        <div class="col-sm-3">
+	          <label><%=encprops.getProperty("propertyValue")%>:</label>
+	        </div>
+	        <div class="col-sm-5">
+	          <input name="value" type="text" class="form-control" id="addDynPropInput2"/>
+	        </div>
+	      </div>
+	      <input name="Set" type="submit" id="addDynPropBtn" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
+	    </form>
+	</div>
+
 
 <%
 }
-
-
-  if (enc.getDynamicProperties() != null) {
-    //let's create a TreeMap of the properties
-    StringTokenizer st = new StringTokenizer(enc.getDynamicProperties(), ";");
-    int numDynProps=0;
-    while (st.hasMoreTokens()) {
-      String token = st.nextToken();
-      int equalPlace = token.indexOf("=");
-      String nm = token.substring(0, (equalPlace)).replaceAll(" ", "_");
-      String vl = token.substring(equalPlace + 1);
-      numDynProps++;
-%>
-<p class="para"> <em><%=nm%></em>: <%=vl%>
-  <%
-  %>
-
-  <%
-  %>
-
-  <%
-%>
-<!-- start dynamic form -->
-<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editFormDynamic">
-  <p class="editTextDynamic"><strong><%=encprops.getProperty("set")%> <%=nm %></strong></p>
-  <p class="editTextDynamic"><em><small><%=encprops.getProperty("setDPMessage") %></small></em></p>
-
-        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
-          <input name="name" type="hidden" size="10" value="<%=nm %>" />
-          <input name="number" type="hidden" value="<%=num%>" />
-          <div class="form-group row">
-            <div class="col-sm-3">
-              <label><%=encprops.getProperty("propertyValue")%>:</label>
-            </div>
-            <div class="col-sm-5">
-              <input name="value" type="text" class="form-control" id="dynInput" value="<%=vl %>"/>
-            </div>
-            <div class="col-sm-4">
-              <input name="Set" type="submit" id="dynEdit" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
-            </div>
-          </div>
-        </form>
-
-</div>
-
-<%
-%>
-
-</p>
-
-
-<%
-  }
-    if(numDynProps==0){
-    	  %>
-    	  <p><%=encprops.getProperty("none")%></p>
-    	  <%
-   	}
-
-  }
-//display a message if none are defined
-else{
-	  %>
-	  <p><%=encprops.getProperty("none")%></p>
-	  <%
-	    }
-
-%>
-<div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" class="editFormDynamic">
-  <p class="editTextDynamic"><strong><%=encprops.getProperty("addDynamicProperty")%></strong></p>
-    <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
-      <input name="number" type="hidden" value="<%=num%>" />
-      <div class="form-group row">
-        <div class="col-sm-3">
-          <label><%=encprops.getProperty("propertyName")%>:</label>
-        </div>
-        <div class="col-sm-5">
-          <input name="name" type="text" class="form-control" id="addDynPropInput"/>
-        </div>
-      </div>
-      <div class="form-group row">
-        <div class="col-sm-3">
-          <label><%=encprops.getProperty("propertyValue")%>:</label>
-        </div>
-        <div class="col-sm-5">
-          <input name="value" type="text" class="form-control" id="addDynPropInput2"/>
-        </div>
-      </div>
-      <input name="Set" type="submit" id="addDynPropBtn" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
-    </form>
-</div>
-
-
-<%
-
 %>
 
 
