@@ -574,9 +574,9 @@ public final class NotificationMailer implements Runnable {
    * @param ind MarkedIndividual for which to add tag data
    * @return map instance for tag replacement in email template
    */
-  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, String scheme) {
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind) {
     Map<String, String> map = new HashMap<>();
-    addTags(map, req, ind, scheme);
+    addTags(map, req, ind, req.getScheme());
     return map;
   }
 
@@ -644,6 +644,10 @@ public final class NotificationMailer implements Runnable {
     addTags(map, req, ind,scheme);
     addTags(map, req, adp,scheme);
     return map;
+  }
+  
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Adoption adp) {
+    return createBasicTagMap(req, ind, adp, req.getScheme());
   }
 
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc, Adoption adp, String scheme) {
