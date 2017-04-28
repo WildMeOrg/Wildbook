@@ -4,6 +4,7 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
+import org.ecocean.ShepherdProperties;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.MarkedIndividual;
@@ -12,8 +13,11 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.net.URL;
@@ -1262,7 +1266,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         je.put(enc.getCatalogNumber());
                     }
                     myShepherd.getPM().makePersistent(occ);
-                    occ.fromDetection(myShepherd, request);
+                    fromDetection(occ, myShepherd, request, ServletUtilities.getContext(request));
                     jlog.put("collatedEncounters", je);
                     jlog.put("collatedOccurrence", occ.getOccurrenceID());
                 }
@@ -2631,5 +2635,56 @@ System.out.println("* * * * * * * IAIntake(ident) NOT YET IMPLEMENTED ====> " + 
 return Util.generateUUID();
     }
 */
+    
+    //this is called when a batch of encounters (which should be on this occurrence) were made from detection
+    // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
+    public static void fromDetection(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context) {
+        System.out.println(">>>>>> detection created " + occ.toString());
+        
+        //set the locationID on all encounters by inspecting detected comments on the first encounter
+        if((occ.getEncounters()!=null)&&(occ.getEncounters().get(0)!=null)){
+          String locCode=null;
+          String location=null;
+          List<Encounter> encounters=occ.getEncounters();
+          Encounter enc=encounters.get(0);
+          if(enc.getOccurrenceRemarks()!=null){
+            String locTemp=enc.getOccurrenceRemarks().trim().toLowerCase();
+            Properties props = new Properties();
+    
+            try {
+              props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+    
+              Enumeration m_enum = props.propertyNames();
+              while (m_enum.hasMoreElements()) {
+                String aLocationSnippet = ((String) m_enum.nextElement()).trim();
+                if (locTemp.indexOf(aLocationSnippet) != -1) {
+                  locCode = props.getProperty(aLocationSnippet);
+                  location=aLocationSnippet;
+                }
+              }
+            }
+            catch (Exception props_e) {
+              props_e.printStackTrace();
+            }
+          }
+          
+          //if we found a locationID, iterate and set it on every Encounter
+          
+          if(locCode!=null){
+            int numEncounters=encounters.size();
+            for(int i=0;i<numEncounters;i++){
+              Encounter enctemp=encounters.get(i);
+              enctemp.setLocationID(locCode);
+              if(location!=null){enctemp.setLocation(locCode);}
+              
+            }
+            
+            
+          }
+        
+        }
+        //end set locationID on Encounters
+        
+    }
 
 }
