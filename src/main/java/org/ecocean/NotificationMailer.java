@@ -634,6 +634,10 @@ public final class NotificationMailer implements Runnable {
     addTags(map, req, enc, scheme);
     return map;
   }
+  
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Encounter enc) {
+    return createBasicTagMap(req, ind, enc,req.getScheme());
+  }
 
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Adoption adp, String scheme) {
     Map<String, String> map = new HashMap<>();
