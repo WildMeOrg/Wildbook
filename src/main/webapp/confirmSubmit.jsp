@@ -223,6 +223,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   String mailSubj = "New encounter submission: " + number;
   for (String emailTo : mailTo) {
     NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo, "newSubmission-summary", tagMap);
+    mailer.setUrlScheme(request.getScheme());
     es.execute(mailer);
   }
 
@@ -230,7 +231,9 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   if (informMe != null) {
     List<String> cOther = NotificationMailer.splitEmails(informMe);
     for (String emailTo : cOther) {
-      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap));
+    	NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
+    	mailer.setUrlScheme(request.getScheme());
+      	es.execute(mailer);
     }
   }
 
@@ -243,7 +246,9 @@ if(CommonConfiguration.sendEmailNotifications(context)){
     for (String emailTo : cOther) {
       String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
       tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission", tagMap));
+      NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+      mailer.setUrlScheme(request.getScheme());
+      es.execute(mailer);
     }
   }
   if (emailPhoto && photographer != null) {
@@ -251,7 +256,9 @@ if(CommonConfiguration.sendEmailNotifications(context)){
     for (String emailTo : cOther) {
       String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
       tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission", tagMap));
+      NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+      mailer.setUrlScheme(request.getScheme());
+      es.execute(mailer);
     }
   }
 
@@ -261,7 +268,9 @@ if(CommonConfiguration.sendEmailNotifications(context)){
     for (String emailTo : cOther) {
       String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
       tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission", tagMap));
+      NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+      mailer.setUrlScheme(request.getScheme());
+      es.execute(mailer);
     }
   }
   es.shutdown();
