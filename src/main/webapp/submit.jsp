@@ -934,9 +934,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   </tr>
   <c:forEach items="${items}" var="item">
     <tr>
-    <td>${item.label}</td>
+    <td>${item.type}</td>
     <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
-    <td><c:out value="${item.unitsLabel}"/></td>
+    <td><c:out value="${item.units}"/></td>
     <c:if test="${!empty samplingProtocols}">
       <td>
         <select name="measurement(${item.type}samplingProtocol)">
@@ -947,6 +947,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </td>
     </c:if>
     </tr>
+    <br>
   </c:forEach>
   </table>
    </div>
