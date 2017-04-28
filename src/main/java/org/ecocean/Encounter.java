@@ -2244,8 +2244,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
             newEnc.addComments("<i>unable to determine video source - possibly YouTube error?</i>");
         } else {
             newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
-            DateTime dt = parentRoot.getDateTime();
-            if (dt != null) newEnc.setDateInMilliseconds(dt.getMillis());
             if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
                 if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
                     newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
