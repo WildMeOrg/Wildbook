@@ -471,6 +471,13 @@
   <version>3.1.0</version>
 </dependency>
 
+<!-- natural date language processing-->
+<dependency> 
+  <groupId>com.joestelmach</groupId>
+  <artifactId>natty</artifactId>
+  <version>0.13</version>
+</dependency>
+
 
   </dependencies>
 

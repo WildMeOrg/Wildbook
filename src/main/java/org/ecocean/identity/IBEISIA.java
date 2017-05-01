@@ -9,6 +9,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.CommonConfiguration;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,6 +18,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -36,6 +38,17 @@ import org.apache.commons.lang3.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+
+//date time
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+
+import java.text.DateFormatSymbols;
+import java.util.Locale;
+//natural language processing for date/time
+import com.joestelmach.natty.*;
+import java.util.Date;
 
 
 public class IBEISIA {
@@ -2641,49 +2654,157 @@ return Util.generateUUID();
     public static void fromDetection(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context) {
         System.out.println(">>>>>> detection created " + occ.toString());
         
-        //set the locationID on all encounters by inspecting detected comments on the first encounter
+        //set the locationID/location/date on all encounters by inspecting detected comments on the first encounter
         if((occ.getEncounters()!=null)&&(occ.getEncounters().get(0)!=null)){
+          
+          
           String locCode=null;
-          String location=null;
+          String location="";
+          int year=-1;
+          int month=0;
+          int day=-1;
           List<Encounter> encounters=occ.getEncounters();
           Encounter enc=encounters.get(0);
           if(enc.getOccurrenceRemarks()!=null){
-            String locTemp=enc.getOccurrenceRemarks().trim().toLowerCase();
+            
+            String remarks=enc.getOccurrenceRemarks().trim().toLowerCase();
             Properties props = new Properties();
     
+            //OK, let's check the comments and tags for retrievable metadata
             try {
+              
+              //first parse for location and locationID
               props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
-    
               Enumeration m_enum = props.propertyNames();
               while (m_enum.hasMoreElements()) {
                 String aLocationSnippet = ((String) m_enum.nextElement()).trim();
-                if (locTemp.indexOf(aLocationSnippet) != -1) {
+                if (remarks.indexOf(aLocationSnippet) != -1) {
                   locCode = props.getProperty(aLocationSnippet);
-                  location=aLocationSnippet;
+                  location+=(aLocationSnippet+" ");
                 }
               }
-            }
+              
+              
+              //next use natural language processing for date
+              boolean NLPsuccess=false;
+              try{
+                System.out.println(">>>>>> looking for date with NLP");
+                
+                  Parser parser = new Parser();
+                  List groups = parser.parse(remarks);
+                  int numGroups=groups.size();
+                  //just grab the first group
+                  if(numGroups>0){
+                    List<Date> dates = ((DateGroup)groups.get(0)).getDates();
+                    int numDates=dates.size();
+                    if(numDates>0){
+                      Date myDate=dates.get(0);
+                      LocalDateTime dt = new LocalDateTime(myDate);
+                      NLPsuccess=true;
+                      
+                      //OK start date parsing ISO 8601
+                      DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+                      String detectedDate=dt.toString(parser1).replaceAll(" ", "T");
+                      System.out.println(">>>>>> NLP found date: "+detectedDate);
+                      StringTokenizer str=new StringTokenizer(detectedDate);
+                      int numTokens=str.countTokens();
+  
+              
+                      if(numTokens>=1){
+                        NLPsuccess=true;
+                        year=dt.getYear();
+                      }
+                      if(numTokens>=2){
+                        try { month=dt.getMonthOfYear(); } catch (Exception e) { month=0;}
+                      }
+                      else{month=0;}
+                      //see if we can get a day, because we do want to support only yyy-MM too
+                      if(str.countTokens()>=3){
+                        try { day=dt.getDayOfMonth(); } catch (Exception e) { day=-1; }
+                      }
+                      else{day=-1;}
+                    }
+                  }
+                }
+                catch(Exception e){
+                  System.out.println("Exception in natty NLP in IBEISIA.class");
+                  e.printStackTrace();
+                }
+                
+                //NLP failure? let's try brute force detection across all languages supported by this Wildbook
+                if(!NLPsuccess){
+                  System.out.println(">>>>>> looking for date with brute force");
+                  //next parse for year
+                  LocalDateTime dt = new LocalDateTime();
+                  int nowYear=dt.getYear();
+                  int oldestYear=nowYear-20;
+                  for(int i=nowYear;i>oldestYear;i--){
+                    String yearCheck=(new Integer(i)).toString();
+                    if (remarks.indexOf(yearCheck) != -1) {
+                      year=i;
+                      System.out.println("...detected a year in comments!");
+                      
+                      //check for month
+                      List<String> langs=CommonConfiguration.getIndexedPropertyValues("language", context);
+                      int numLangs=langs.size();
+                      for(int k=0;k<numLangs;k++){
+                          try{
+                            Locale locale=new Locale(langs.get(k));
+                            DateFormatSymbols sym=new DateFormatSymbols(locale);
+                            String[] months=sym.getMonths();
+                            int numMonths=months.length;
+                            for(int m=0;m<numMonths;m++){
+                              String thisMonth=months[m];
+                              if (remarks.indexOf(thisMonth) != -1) {
+                                month=m;
+                                System.out.println("...detected a month in comments!");
+                              }
+                            }
+                          }
+                          catch(Exception e){e.printStackTrace();}
+                        } //end for
+                      }
+                      
+                    }
+              }
+              //end brute force date detection if NLP failed  
+              
+              
+                
+              }
+
             catch (Exception props_e) {
               props_e.printStackTrace();
             }
           }
           
           //if we found a locationID, iterate and set it on every Encounter
-          
+          int numEncounters=encounters.size();
           if(locCode!=null){
-            int numEncounters=encounters.size();
+            
             for(int i=0;i<numEncounters;i++){
               Encounter enctemp=encounters.get(i);
               enctemp.setLocationID(locCode);
-              if(location!=null){enctemp.setLocation(locCode);}
-              
+              if(!location.equals("")){enctemp.setLocation(location.trim());}
+            }
+          }
+          
+          //if we found a date via NLP or brute force, let's use it here
+          if(year>-1){
+            for(int i=0;i<numEncounters;i++){
+              Encounter enctemp=encounters.get(i);
+              enctemp.setYear(year);
+              if(month>0){
+                enctemp.setMonth(month);
+                if(day>-1){enc.setDay(day);}
+              }
             }
             
-            
           }
+          
         
         }
-        //end set locationID on Encounters
+        //end set date/location/locationID on Encounters
         
     }
 
