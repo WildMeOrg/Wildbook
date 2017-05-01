@@ -49,6 +49,7 @@ import java.util.Locale;
 //natural language processing for date/time
 import com.joestelmach.natty.*;
 import java.util.Date;
+import org.joda.time.Instant;
 
 
 public class IBEISIA {
@@ -2688,48 +2689,44 @@ return Util.generateUUID();
               //next use natural language processing for date
               boolean NLPsuccess=false;
               try{
-                System.out.println(">>>>>> looking for date with NLP");
-                
-                  Parser parser = new Parser();
-                  List groups = parser.parse(remarks);
-                  int numGroups=groups.size();
-                  //just grab the first group
-                  if(numGroups>0){
-                    List<Date> dates = ((DateGroup)groups.get(0)).getDates();
-                    int numDates=dates.size();
-                    if(numDates>0){
-                      Date myDate=dates.get(0);
-                      LocalDateTime dt = new LocalDateTime(myDate);
-                      NLPsuccess=true;
-                      
-                      //OK start date parsing ISO 8601
-                      DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-                      String detectedDate=dt.toString(parser1).replaceAll(" ", "T");
-                      System.out.println(">>>>>> NLP found date: "+detectedDate);
-                      StringTokenizer str=new StringTokenizer(detectedDate);
-                      int numTokens=str.countTokens();
-  
-              
-                      if(numTokens>=1){
-                        NLPsuccess=true;
-                        year=dt.getYear();
+                  System.out.println(">>>>>> looking for date with NLP");
+                  
+                    Parser parser = new Parser();
+                    List groups = parser.parse(remarks);
+                    int numGroups=groups.size();
+                    //just grab the first group
+                    if(numGroups>0){
+                        List<Date> dates = ((DateGroup)groups.get(0)).getDates();
+                        int numDates=dates.size();
+                        if(numDates>0){
+                          Date myDate=dates.get(0);
+                          LocalDateTime dt = LocalDateTime.fromDateFields(myDate);
+                          String detectedDate=dt.toString().replaceAll("T", "-");
+                          System.out.println(">>>>>> NLP found date: "+detectedDate);
+                          StringTokenizer str=new StringTokenizer(detectedDate,"-");
+                          int numTokens=str.countTokens();
+                          if(numTokens>=1){
+    
+                            year=(new Integer(str.nextToken())).intValue();
+                          }
+                          if(numTokens>=2){
+                            try { month=(new Integer(str.nextToken())).intValue();
+                            } catch (Exception e) { month=0;}
+                          }
+                          else{month=0;}
+                          if(numTokens>=3){
+                            try {
+                              String myToken=str.nextToken();
+                              day=(new Integer(myToken.replaceFirst("^0+(?!$)", ""))).intValue(); } catch (Exception e) { day=-1; }
+                          }
+                          else{day=-1;}
                       }
-                      if(numTokens>=2){
-                        try { month=dt.getMonthOfYear(); } catch (Exception e) { month=0;}
-                      }
-                      else{month=0;}
-                      //see if we can get a day, because we do want to support only yyy-MM too
-                      if(str.countTokens()>=3){
-                        try { day=dt.getDayOfMonth(); } catch (Exception e) { day=-1; }
-                      }
-                      else{day=-1;}
-                    }
                   }
-                }
-                catch(Exception e){
+              }
+              catch(Exception e){
                   System.out.println("Exception in natty NLP in IBEISIA.class");
                   e.printStackTrace();
-                }
+              }
                 
                 //NLP failure? let's try brute force detection across all languages supported by this Wildbook
                 if(!NLPsuccess){
