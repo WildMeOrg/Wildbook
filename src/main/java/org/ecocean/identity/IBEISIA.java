@@ -2658,13 +2658,14 @@ return Util.generateUUID();
         //set the locationID/location/date on all encounters by inspecting detected comments on the first encounter
         if((occ.getEncounters()!=null)&&(occ.getEncounters().get(0)!=null)){
           
-          
+
           String locCode=null;
           String location="";
           int year=-1;
           int month=0;
           int day=-1;
           List<Encounter> encounters=occ.getEncounters();
+          int numEncounters=encounters.size();
           Encounter enc=encounters.get(0);
           if(enc.getOccurrenceRemarks()!=null){
             
@@ -2686,88 +2687,106 @@ return Util.generateUUID();
               }
               
               
+              //if no one has set the date already, use NLP to try to figure it out
+              boolean setDate=true;
+              if(enc.getDateInMilliseconds()!=null){setDate=false;}
               //next use natural language processing for date
-              boolean NLPsuccess=false;
-              try{
-                  System.out.println(">>>>>> looking for date with NLP");
+              if(setDate){
+                boolean NLPsuccess=false;
+                try{
+                    System.out.println(">>>>>> looking for date with NLP");
+                    
+                      Parser parser = new Parser();
+                      List groups = parser.parse(remarks);
+                      int numGroups=groups.size();
+                      //just grab the first group
+                      if(numGroups>0){
+                          List<Date> dates = ((DateGroup)groups.get(0)).getDates();
+                          int numDates=dates.size();
+                          if(numDates>0){
+                            Date myDate=dates.get(0);
+                            LocalDateTime dt = LocalDateTime.fromDateFields(myDate);
+                            String detectedDate=dt.toString().replaceAll("T", "-");
+                            System.out.println(">>>>>> NLP found date: "+detectedDate);
+                            StringTokenizer str=new StringTokenizer(detectedDate,"-");
+                            int numTokens=str.countTokens();
+                            if(numTokens>=1){
+                              NLPsuccess=true;
+                              year=(new Integer(str.nextToken())).intValue();
+                            }
+                            if(numTokens>=2){
+                              try { month=(new Integer(str.nextToken())).intValue();
+                              } catch (Exception e) { month=0;}
+                            }
+                            else{month=0;}
+                            if(numTokens>=3){
+                              try {
+                                String myToken=str.nextToken();
+                                day=(new Integer(myToken.replaceFirst("^0+(?!$)", ""))).intValue(); } catch (Exception e) { day=-1; }
+                            }
+                            else{day=-1;}
+                        }
+                    }
+                }
+                catch(Exception e){
+                    System.out.println("Exception in natty NLP in IBEISIA.class");
+                    e.printStackTrace();
+                }
                   
-                    Parser parser = new Parser();
-                    List groups = parser.parse(remarks);
-                    int numGroups=groups.size();
-                    //just grab the first group
-                    if(numGroups>0){
-                        List<Date> dates = ((DateGroup)groups.get(0)).getDates();
-                        int numDates=dates.size();
-                        if(numDates>0){
-                          Date myDate=dates.get(0);
-                          LocalDateTime dt = LocalDateTime.fromDateFields(myDate);
-                          String detectedDate=dt.toString().replaceAll("T", "-");
-                          System.out.println(">>>>>> NLP found date: "+detectedDate);
-                          StringTokenizer str=new StringTokenizer(detectedDate,"-");
-                          int numTokens=str.countTokens();
-                          if(numTokens>=1){
-                            NLPsuccess=true;
-                            year=(new Integer(str.nextToken())).intValue();
-                          }
-                          if(numTokens>=2){
-                            try { month=(new Integer(str.nextToken())).intValue();
-                            } catch (Exception e) { month=0;}
-                          }
-                          else{month=0;}
-                          if(numTokens>=3){
-                            try {
-                              String myToken=str.nextToken();
-                              day=(new Integer(myToken.replaceFirst("^0+(?!$)", ""))).intValue(); } catch (Exception e) { day=-1; }
-                          }
-                          else{day=-1;}
-                      }
-                  }
-              }
-              catch(Exception e){
-                  System.out.println("Exception in natty NLP in IBEISIA.class");
-                  e.printStackTrace();
-              }
-                
-                //NLP failure? let's try brute force detection across all languages supported by this Wildbook
-                if(!NLPsuccess){
-                  System.out.println(">>>>>> looking for date with brute force");
-                  //next parse for year
-                  LocalDateTime dt = new LocalDateTime();
-                  int nowYear=dt.getYear();
-                  int oldestYear=nowYear-20;
-                  for(int i=nowYear;i>oldestYear;i--){
-                    String yearCheck=(new Integer(i)).toString();
-                    if (remarks.indexOf(yearCheck) != -1) {
-                      year=i;
-                      System.out.println("...detected a year in comments!");
-                      
-                      /**
-                      //check for month
-                      List<String> langs=CommonConfiguration.getIndexedPropertyValues("language", context);
-                      int numLangs=langs.size();
-                      for(int k=0;k<numLangs;k++){
-                          try{
-                            Locale locale=new Locale(langs.get(k));
-                            DateFormatSymbols sym=new DateFormatSymbols(locale);
-                            String[] months=sym.getMonths();
-                            int numMonths=months.length;
-                            for(int m=0;m<numMonths;m++){
-                              String thisMonth=months[m];
-                              if (remarks.indexOf(thisMonth) != -1) {
-                                month=m;
-                                System.out.println("...detected a month in comments!");
+                  //NLP failure? let's try brute force detection across all languages supported by this Wildbook
+                  if(!NLPsuccess){
+                    System.out.println(">>>>>> looking for date with brute force");
+                    //next parse for year
+                    LocalDateTime dt = new LocalDateTime();
+                    int nowYear=dt.getYear();
+                    int oldestYear=nowYear-20;
+                    for(int i=nowYear;i>oldestYear;i--){
+                      String yearCheck=(new Integer(i)).toString();
+                      if (remarks.indexOf(yearCheck) != -1) {
+                        year=i;
+                        System.out.println("...detected a year in comments!");
+                        
+                        /**
+                        //check for month
+                        List<String> langs=CommonConfiguration.getIndexedPropertyValues("language", context);
+                        int numLangs=langs.size();
+                        for(int k=0;k<numLangs;k++){
+                            try{
+                              Locale locale=new Locale(langs.get(k));
+                              DateFormatSymbols sym=new DateFormatSymbols(locale);
+                              String[] months=sym.getMonths();
+                              int numMonths=months.length;
+                              for(int m=0;m<numMonths;m++){
+                                String thisMonth=months[m];
+                                if (remarks.indexOf(thisMonth) != -1) {
+                                  month=m;
+                                  System.out.println("...detected a month in comments!");
+                                }
                               }
                             }
-                          }
-                          catch(Exception e){e.printStackTrace();}
-                        } //end for
-                      */
+                            catch(Exception e){e.printStackTrace();}
+                          } //end for
+                        */
+                        }
+                        
                       }
-                      
+                }
+                //end brute force date detection if NLP failed  
+                  
+                  //if we found a date via NLP or brute force, let's use it here
+                  if(year>-1){
+                    for(int i=0;i<numEncounters;i++){
+                      Encounter enctemp=encounters.get(i);
+                      enctemp.setYear(year);
+                      if(month>0){
+                        enctemp.setMonth(month);
+                        if(day>-1){enc.setDay(day);}
+                      }
                     }
-              }
-              //end brute force date detection if NLP failed  
+                    
+                  }
               
+            }//end if set date
               
                 
               }
@@ -2778,7 +2797,6 @@ return Util.generateUUID();
           }
           
           //if we found a locationID, iterate and set it on every Encounter
-          int numEncounters=encounters.size();
           if(locCode!=null){
             
             for(int i=0;i<numEncounters;i++){
@@ -2788,18 +2806,7 @@ return Util.generateUUID();
             }
           }
           
-          //if we found a date via NLP or brute force, let's use it here
-          if(year>-1){
-            for(int i=0;i<numEncounters;i++){
-              Encounter enctemp=encounters.get(i);
-              enctemp.setYear(year);
-              if(month>0){
-                enctemp.setMonth(month);
-                if(day>-1){enc.setDay(day);}
-              }
-            }
-            
-          }
+
           
         
         }
