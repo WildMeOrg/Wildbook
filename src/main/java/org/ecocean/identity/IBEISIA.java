@@ -2706,7 +2706,7 @@ return Util.generateUUID();
                           StringTokenizer str=new StringTokenizer(detectedDate,"-");
                           int numTokens=str.countTokens();
                           if(numTokens>=1){
-    
+                            NLPsuccess=true;
                             year=(new Integer(str.nextToken())).intValue();
                           }
                           if(numTokens>=2){
@@ -2741,6 +2741,7 @@ return Util.generateUUID();
                       year=i;
                       System.out.println("...detected a year in comments!");
                       
+                      /**
                       //check for month
                       List<String> langs=CommonConfiguration.getIndexedPropertyValues("language", context);
                       int numLangs=langs.size();
@@ -2760,6 +2761,7 @@ return Util.generateUUID();
                           }
                           catch(Exception e){e.printStackTrace();}
                         } //end for
+                      */
                       }
                       
                     }
