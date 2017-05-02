@@ -685,7 +685,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
     <div>
       <p class="help-block">
-        <%=props.getProperty("gpsConverter") %></p>
+        <%=props.getProperty("ftConverter") %></p>
     </div>
 </fieldset>
 <hr />
