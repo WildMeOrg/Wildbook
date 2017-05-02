@@ -26,6 +26,9 @@ import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
+import org.ecocean.grid.EncounterLite;
+import org.ecocean.grid.GridManager;
+import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.SuperSpot;
@@ -38,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -76,19 +80,53 @@ public class SubmitSpotsAndImage extends HttpServlet {
     myShepherd.beginDBTransaction();
     JSONObject json = ServletUtilities.jsonFromHttpServletRequest(request);
     int maId = json.optInt("mediaAssetId", -1);
-    if (maId < 0) throw new IOException("invalid mediaAssetId");
+    if (maId < 0) {
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      throw new IOException("invalid mediaAssetId");
+    }
     String encId = json.optString("encId", null);
-    if (encId == null) throw new IOException("invalid encId");
+    if (encId == null) {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        throw new IOException("invalid encId");
+    }
     Encounter enc = myShepherd.getEncounter(encId);
-    if (enc == null) throw new IOException("invalid encId");
+    if (enc == null) {
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      throw new IOException("invalid encId");
+    }
     boolean rightSide = json.optBoolean("rightSide", false);
     ArrayList<SuperSpot> spots = parseSpots(json.optJSONArray("spots"));
-    if (spots == null) throw new IOException("invalid spots");
+    if (spots == null) {
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      throw new IOException("invalid spots");
+    }
     ArrayList<SuperSpot> refSpots = parseSpots(json.optJSONArray("refSpots"));
-    if (refSpots == null) throw new IOException("invalid refSpots");
+    if (refSpots == null) {
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      throw new IOException("invalid refSpots");
+    }
 
     AssetStore store = AssetStore.getDefault(myShepherd);
     //this should put it in the same old (pre-MediaAsset) location to maintain url pattern
+    
+    
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+    //File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdirs();}
+    String thisEncDirString=Encounter.dir(shepherdDataDir,encId);
+    File thisEncounterDir=new File(thisEncDirString);
+    if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
+    
+    //now persist
     JSONObject params = store.createParameters(new File("encounters/" + Encounter.subdir(encId) + "/extract" + (rightSide ? "Right" : "") + encId + ".jpg"));
 System.out.println("====> params = " + params);
     MediaAsset ma = store.create(params);
@@ -103,10 +141,16 @@ System.out.println("created???? " + ma);
     if (rightSide) {
         enc.setRightSpots(spots);
         enc.setRightReferenceSpots(refSpots);
-    } else {
+    } 
+    else {
         enc.setSpots(spots);
         enc.setLeftReferenceSpots(refSpots);
     }
+    
+    //reset the entry in the GridManager graph
+    GridManager gm = GridManagerFactory.getGridManager();
+    gm.addMatchGraphEntry(encId, new EncounterLite(enc));
+    
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
 

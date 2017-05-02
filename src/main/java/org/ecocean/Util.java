@@ -285,8 +285,13 @@ public class Util {
         coords=new ArrayList<Point2D>(encsSize);
         for(int i=0;i<encsSize;i++){
           Encounter e=encs.get(i);
-          int lat=(int)e.getDecimalLatitudeAsDouble();
-          int longie=(int)e.getDecimalLongitudeAsDouble();
+            // updating this to handle empty (null) values
+            //  note: forcing this to an int was legacy code.  seems "bad" (loss of accuracy); but doing anyway!  2017-03-16  -jon   FIXME?
+            if ((e.getDecimalLatitudeAsDouble() == null) || (e.getDecimalLongitudeAsDouble() == null)) continue;
+            int lat = (int)Math.round(e.getDecimalLatitudeAsDouble());
+            int longie = (int)Math.round(e.getDecimalLongitudeAsDouble());
+          //int lat=(int)e.getDecimalLatitudeAsDouble();
+          //int longie=(int)e.getDecimalLongitudeAsDouble();
           Point2D myPoint=new Point2D(lat,longie);
           if(!coords.contains(myPoint)){
             coords.add(myPoint);

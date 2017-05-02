@@ -84,8 +84,7 @@ public class WriteOutScanTask extends HttpServlet {
 
         //let's check the checked-in value
 
-        boolean successfulWrite = false;
-        boolean successfulI3SWrite = false;
+
 
         System.out.println("Now setting this scanTask as finished!");
         String taskID = st2.getUniqueNumber();
@@ -113,10 +112,11 @@ public class WriteOutScanTask extends HttpServlet {
         if (taskID.startsWith("scanR")) {
           righty = true;
         }
+        
 
-        successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context);
+        boolean successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context);
 
-        successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
+        boolean successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
 
         //write out the boosted results
         //if(request.getParameter("boost")!=null){
@@ -282,10 +282,16 @@ public class WriteOutScanTask extends HttpServlet {
       //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       //if(!encountersDir.exists()){encountersDir.mkdirs();}
+      String thisEncDirString=Encounter.dir(shepherdDataDir,num);
+      File thisEncounterDir=new File(thisEncDirString);
+      if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
+      
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
       File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "Scan.xml");
-
+      
+      
+      System.out.println("Writing scanTask XML file to: "+file.getAbsolutePath());
       
       
       FileWriter mywriter = new FileWriter(file);

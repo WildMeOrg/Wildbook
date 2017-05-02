@@ -123,16 +123,16 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       context=ServletUtilities.getContext(request);
       Shepherd myShepherd = new Shepherd(context);
       myShepherd.setAction("AdoptionAction.class");
-      System.out.println("in context " + context);
+      //System.out.println("in context " + context);
       //request.getSession()getServlet().getServletContext().getRealPath("/"));
       String rootDir = getServletContext().getRealPath("/");
-      System.out.println("rootDir=" + rootDir);
+      //System.out.println("rootDir=" + rootDir);
 
       // This value is only stored in the email specific edit form.
       Boolean emailEdit = false;
       if ((Boolean)session.getAttribute( "emailEdit") != false) {
         emailEdit = (Boolean)session.getAttribute( "emailEdit");
-	number = (String)session.getAttribute("sessionAdoptionID");     
+        number = (String)session.getAttribute("sessionAdoptionID");     
       }
         //setup data dir
         String rootWebappPath = getServletContext().getRealPath("/");
@@ -148,11 +148,11 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       //set up for response
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
-        boolean locked = false;
+        //boolean locked = false;
 
-        String fileName = "None";
-        String username = "None";
-        String fullPathFilename="";
+        //String fileName = "None";
+        //String username = "None";
+        //String fullPathFilename="";
 
         String id = "";
 
@@ -174,15 +174,15 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
 
 
-         //else {
+        
           id = "adpt" + (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
-        //}
+       
 
 
 
 
         System.out.println("Starting an adoption submission...");
-        Calendar todayDate = Calendar.getInstance();
+        //Calendar todayDate = Calendar.getInstance();
 
 
         if (ServletFileUpload.isMultipartContent(request)) {
@@ -235,7 +235,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
         boolean isEdit = false;
 
-        if (fileSuccess) {
+        //if (fileSuccess) {
 
           if ((fv.get("number") != null) && !fv.get("number").toString().equals("")) {
 
@@ -243,7 +243,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             number = fv.get("number").toString();
             if ((number != null) && (!number.equals(""))) {
               isEdit = true;
-	      System.out.println("Ping! Hit adoption number recieved by action servlet.");
+              System.out.println("Ping! Hit adoption number recieved by action servlet.");
               //myShepherd.beginDBTransaction();
             }
 
@@ -303,17 +303,18 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
               newNickName = fv.get("newNickName").toString().trim();
             }
 
-
+/*
       //return a forward to display.jsp
       System.out.println("Ending adoption data submission.");
       //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
       if (adoptionSuccess) {
         response.setStatus(HttpServletResponse.SC_OK);
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
+        response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
       } else {
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
+        response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
+      */
 
             if ((fv.get("g-recaptcha-response") != null) && !fv.get("g-recaptcha-response").toString().equals("")) {
               gresp = fv.get("g-recaptcha-response").toString().trim();
@@ -331,8 +332,8 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
 
 
-            String baseDir = ServletUtilities.dataDir(context, rootDir);
-            ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
+            //String baseDir = ServletUtilities.dataDir(context, rootDir);
+            //ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
             for (FileItem item : formFiles) {
               /* this will actually write file to filesystem (or [FUTURE] wherever)
                  TODO: either (a) undo this if any failure of writing encounter; or (b) dont write til success of enc. */
@@ -490,7 +491,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
         }
 
 
-        }
+        //}
         // Sets adoption paid to false to allow multiple adoptions
         session.setAttribute("paid", false);
 

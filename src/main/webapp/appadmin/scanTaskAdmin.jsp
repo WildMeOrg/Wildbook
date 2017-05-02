@@ -18,6 +18,7 @@ String context=ServletUtilities.getContext(request);
       int newThrottle = (new Integer(request.getParameter("numAllowedNodes"))).intValue();
       gm.setNumAllowedNodes(newThrottle);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("nodeTimeout") != null) {
@@ -25,6 +26,7 @@ String context=ServletUtilities.getContext(request);
       int newTimeout = (new Integer(request.getParameter("nodeTimeout"))).intValue();
       gm.setNodeTimeout(newTimeout);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("checkoutTimeout") != null) {
@@ -32,6 +34,7 @@ String context=ServletUtilities.getContext(request);
       int newTimeout = (new Integer(request.getParameter("checkoutTimeout"))).intValue();
       gm.setCheckoutTimeout(newTimeout);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("scanTaskLimit") != null) {
@@ -39,6 +42,7 @@ String context=ServletUtilities.getContext(request);
       int limit = (new Integer(request.getParameter("scanTaskLimit"))).intValue();
       gm.setScanTaskLimit(limit);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("maxGroupSize") != null) {
@@ -46,6 +50,7 @@ String context=ServletUtilities.getContext(request);
       int limit = (new Integer(request.getParameter("maxGroupSize"))).intValue();
       gm.setMaxGroupSize(limit);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
 
@@ -250,11 +255,17 @@ else{
     scanNum = 0;
     while ((it2!=null)&&(it2.hasNext())) {
       ScanTask st = (ScanTask) it2.next();
+      
+
+      
       Encounter scanEnc=new Encounter();
       if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
       	scanEnc=myShepherd.getEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""));
       }
       if (st.hasFinished()) {
+    	  
+          //clean up after the task if needed
+          gm.removeCompletedWorkItemsForTask(st.getUniqueNumber());
 
         //determine if left or right-side scan
         //scanWorkItem[] swis9=st.getWorkItems();
@@ -394,7 +405,7 @@ single scan are allowed to exceed the total.</span>
   </tbody>
 </table>
 <%}%>
-<p>% inefficent collisions (nodes checking in duplicate work) since
+<p>% inefficient collisions (nodes checking in duplicate work) since
   startup: <%=gm.getCollisionRatePercentage()%>
 </p>
 
@@ -402,7 +413,13 @@ single scan are allowed to exceed the total.</span>
   (<%=gm.getNumCollisions()%> collisions)</p>
 
 <p>Total work items and results in queue: <%=gm.getNumWorkItemsAndResults()%>
-  (To-Do: <%=gm.getToDoSize()%> Done: <%=gm.getDoneSize()%>)</p>
+  <%
+  int toDo=gm.getToDoSize();
+  int numDone=gm.getDoneSize();
+ 
+  %>
+  
+  (To-Do: <%=toDo%> Done: <%=numDone%>)</p>
 
 <%
   if (request.isUserInRole("admin")) {
@@ -468,6 +485,9 @@ single scan are allowed to exceed the total.</span>
   <%}%>
 
 </p>
+
+<p>Number left-side patterns in the potential match graph: <%=gm.getNumLeftPatterns() %></p>
+<p>Number right-side patterns in the potential match graph: <%=gm.getNumRightPatterns() %></p>
 <%
 
   } catch (Exception e) {
