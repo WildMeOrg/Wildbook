@@ -39,7 +39,6 @@ props = ShepherdProperties.getProperties("photographing.properties", langCode, c
 				<li><%=props.getProperty("list2Item2")%></li>
 				<li><%=props.getProperty("list2Item3")%></li>
 				<li><%=props.getProperty("list2Item4")%></li>
-				<li><%=props.getProperty("list2Item5")%></li>
 			</ol>
 			
 			<h3><%=props.getProperty("exampleHeader")%></h3>
