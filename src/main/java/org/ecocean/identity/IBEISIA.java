@@ -2806,6 +2806,15 @@ return Util.generateUUID();
             }
           }
           
+          
+          //set the Wildbook A.I. user if it exists
+          if(myShepherd.getUser("wildbookai")!=null){
+            for(int i=0;i<numEncounters;i++){
+              Encounter enctemp=encounters.get(i);
+              enctemp.setSubmitterID("wildbookai");
+            }
+          }
+          
 
           
         
