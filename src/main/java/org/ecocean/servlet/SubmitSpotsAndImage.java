@@ -136,7 +136,7 @@ System.out.println("====> params = " + params);
 System.out.println("edir ? " + edir);
     if (!edir.exists()) edir.mkdirs();
     ma.copyInBase64(json.optString("imageData", null));
-    ma.addLabel("_spot" + (rightSide ? "Right" : "Left"));
+    ma.addLabel("_spot" + (rightSide ? "Right" : ""));
     ma.setParentId(maId);
     ma.addDerivationMethod("spotTool", json.optJSONObject("imageToolValues"));
     ma.updateMinimalMetadata();
