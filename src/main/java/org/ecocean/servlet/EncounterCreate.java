@@ -80,6 +80,11 @@ public class EncounterCreate extends HttpServlet {
         out.close();
     }
 
+
+/*
+NOTE: right now this is not very general-purpose; only really used for match.jsp creation.  TODO make it more general!
+      toward this end, we should(?) consider anonymous use to be from match.jsp (thus force some things accordingly)... maybe?
+*/
     public JSONObject createEncounter(JSONObject jin, HttpServletRequest request) throws ServletException, IOException {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         if (jin == null) {
@@ -104,10 +109,8 @@ public class EncounterCreate extends HttpServlet {
             return rtn;
         }
 
-        //we save this for later usage
-        if (AccessControl.isAnonymous(request)) {
-            request.getSession().setAttribute("USER_EMAIL", email);
-        }
+        boolean anonymousUser = AccessControl.isAnonymous(request);
+        if (anonymousUser) request.getSession().setAttribute("USER_EMAIL", email);  //save this for subsequent usage (if needed, e.g. match.jsp)
 
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
@@ -177,11 +180,18 @@ public class EncounterCreate extends HttpServlet {
         if (jmas.length() > 0) rtn.put("assets", jmas);
         if (janns.length() > 0) rtn.put("annotations", janns);
 
-/////////// TODO handle when user is logged in!
         String accessKey = jin.optString("accessKey", "_NO_KEY_"); //should always be set!
         Encounter enc = new Encounter(anns);
-        enc.setState(Encounter.STATE_MATCHING_ONLY);
-        enc.setSubmitterEmail(email);
+        if (anonymousUser) {
+            //TODO do we do some kinda sanity check on accessKey?  i think we just trust/use whatever is here and subsequent access needs this value.
+            enc.setSubmitterEmail(email);
+            enc.setMatchingOnly();
+        } else {
+            //(for logged in user only) allow option to forcibly set matchingOnly=false to toggle (default is matching only)
+            if (jin.optBoolean("matchingOnly", true)) enc.setMatchingOnly();
+        }
+        enc.setAccessControl(request);
+
         if (dateMilliseconds > 0) {
             enc.setDateInMilliseconds(dateMilliseconds);
         } else {
@@ -227,7 +237,6 @@ public class EncounterCreate extends HttpServlet {
     private static JSONObject sendEmail(HttpServletRequest request, JSONArray encIds, JSONArray taskIds, String accessKey) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String context = ServletUtilities.getContext(request);
-        
 
         String linkPrefix = null;
         try {
@@ -237,7 +246,6 @@ public class EncounterCreate extends HttpServlet {
 
             return rtn;
         }
-
 
         String encLinks = "";
         String encLinksHtml = "";

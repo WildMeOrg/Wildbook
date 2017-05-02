@@ -21,6 +21,7 @@ package org.ecocean;
 
 import java.io.IOException;
 import java.util.*;
+import java.net.URL;
 
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
@@ -229,7 +230,7 @@ public class MarkedIndividual implements java.io.Serializable {
 	}
 	
 	 public String refreshDateLastestSighting() {
-	    Encounter[] sorted = this.getDateSortedEncounters(true);
+	    Encounter[] sorted = this.getDateSortedEncounters();
 	    if (sorted.length < 1) return null;
 	    Encounter last = sorted[0];
 	    if (last.getYear() < 1) return null;
@@ -1862,9 +1863,20 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           if (ma != null) {
             //JSONObject j = new JSONObject();
             JSONObject j = ma.sanitizeJson(req, new JSONObject());
-            
-            
-            
+
+            //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
+            // we have a throw-away shepherd here which is fine since we only care about the url ultimately
+            URL midURL = null;
+            String context = ServletUtilities.getContext(req);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MarkedIndividual.getExemplarImages");
+            myShepherd.beginDBTransaction();
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+            if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+            if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+
             if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
               
               

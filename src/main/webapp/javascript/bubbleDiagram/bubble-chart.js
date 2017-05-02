@@ -111,14 +111,10 @@
         var circles = [];
         var interval = 0;
         var options = self.options;
-        var val = self.values[circles.length];
-        var rad = 10 + Math.max((val * options.radiusMax) / self.valueMax, options.radiusMin);
-        var dist = 5 + self.innerRadius + rad + 0 * (self.outerRadius - self.innerRadius - rad * 2);
-
         while (circles.length < self.options.data.items.length && ++interval < self.intervalMax) {
-          // var val = self.values[circles.length];
-          // var rad = 10 + Math.max((val * options.radiusMax) / self.valueMax, options.radiusMin);
-          // var dist = 5 + self.innerRadius + rad + 0 * (self.outerRadius - self.innerRadius - rad * 2);
+          var val = self.values[circles.length];
+          var rad = 10 + Math.max((val * options.radiusMax) / self.valueMax, options.radiusMin);
+          var dist = 5 + self.innerRadius + rad + 0 * (self.outerRadius - self.innerRadius - rad * 2);
           var angle = Math.random() * pi2 ;
           var cx = self.centralPoint + dist * Math.cos(angle);
           var cy = self.centralPoint + dist * Math.sin(angle);
@@ -130,7 +126,7 @@
             var dy = circle.cy - cy;
             var r = circle.r + rad;
             if (dx * dx + dy * dy < (r - delta * r - delta)) {
-	      console.log(r - delta );
+              console.log( r - delta );
               hit = true;
               return false;
             }
@@ -422,4 +418,3 @@
       };
     })();
   });
-

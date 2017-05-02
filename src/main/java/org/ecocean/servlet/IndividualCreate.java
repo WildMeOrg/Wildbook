@@ -116,6 +116,7 @@ public class IndividualCreate extends HttpServlet {
             enc2make.setMatchedBy("Unmatched first encounter");
             newShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + newIndividualID + ".</p>");
             newShark.setDateTimeCreated(ServletUtilities.getDate());
+            newShark.refreshDependentProperties(context);
             
             ok2add=myShepherd.addMarkedIndividual(newShark);
             

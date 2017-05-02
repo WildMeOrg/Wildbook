@@ -404,7 +404,7 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                     for (int a = 0 ; a < alist.length() ; a++) {
                         JSONObject jann = alist.optJSONObject(a);
                         if (jann == null) continue;
-                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd);
+                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd, false);
                         if (ann == null) continue;
                         myShepherd.getPM().makePersistent(ann);
                         thisAnns.put(ann.getId());
@@ -522,6 +522,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
   }
 
 
+    //TODO wedge in IA.intake here i guess? (once it exists)
     public static JSONObject _doDetect(JSONObject jin, JSONObject res, Shepherd myShepherd, String context, String baseUrl) throws ServletException, IOException {
         if (res == null) throw new RuntimeException("IAGateway._doDetect() called without res passed in");
         String taskId = res.optString("taskId", null);
@@ -597,18 +598,13 @@ System.out.println(id);
     }
 
 
+    //TODO not sure why we pass 'res' in but also it is the return value... potentially should be fixed; likely when we create IA package
     public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd, String context, String baseUrl) throws ServletException, IOException {
-System.out.println(">>> _doIdentify.A");
         if (res == null) throw new RuntimeException("IAGateway._doIdentify() called without res passed in");
-System.out.println(">>> _doIdentify.B");
         String taskId = res.optString("taskId", null);
-System.out.println(">>> _doIdentify.C");
         if (taskId == null) throw new RuntimeException("IAGateway._doIdentify() has no taskId passed in");
-System.out.println(">>> _doIdentify.D");
         if (baseUrl == null) return res;
-System.out.println(">>> _doIdentify.E");
         if (jin == null) return res;
-System.out.println(">>> _doIdentify.F");
         JSONObject j = jin.optJSONObject("identify");
         if (j == null) return res;  // "should never happen"
         ArrayList<Annotation> anns = new ArrayList<Annotation>();  //what we ultimately run on.  occurrences are irrelevant now right?

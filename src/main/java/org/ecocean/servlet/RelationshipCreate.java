@@ -115,6 +115,13 @@ public class RelationshipCreate extends HttpServlet {
               rel.setMarkedIndividualRole2(null);
             }
             
+            if(request.getParameter("markedIndividualName1")!=null){
+              rel.setMarkedIndividualName1(request.getParameter("markedIndividualName1"));
+            }
+            
+            if(request.getParameter("markedIndividualName2")!=null){
+              rel.setMarkedIndividualName2(request.getParameter("markedIndividualName2"));
+            }
             
             if((request.getParameter("relatedCommunityName")!=null)&&(!request.getParameter("relatedCommunityName").trim().equals(""))){
               rel.setRelatedSocialUnitName(ServletUtilities.cleanFileName(request.getParameter("relatedCommunityName")));

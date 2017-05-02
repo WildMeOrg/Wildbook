@@ -23,12 +23,9 @@ org.ecocean.media.*
 
 <%
 
-//Shepherd myShepherd=null;
-
 String context = "context0";
-
-//myShepherd = new Shepherd(context);
-//myShepherd.setAction("IBEISIAGetJobStatus.jsp");
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("IBEISIAGetJobStatus.jsp");
 
 //String rootDir = getServletContext().getRealPath("/");
 //String baseDir = ServletUtilities.dataDir("context0", rootDir);
@@ -45,7 +42,7 @@ if ((jobID == null) || jobID.equals("")) {
 
 } else {
 
-	runIt(jobID, context);
+	runIt(jobID, context, request);
 	out.println("{\"success\": true}");
 System.out.println("((((all done with main thread))))");
 }
@@ -54,12 +51,12 @@ System.out.println("((((all done with main thread))))");
 
 <%!
 
-private void runIt(final String jobID, final String context) {
+private void runIt(final String jobID, final String context, final HttpServletRequest request) {
 System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. . .................................");
 
 	Runnable r = new Runnable() {
 		public void run() {
-			tryToGet(jobID, context);
+			tryToGet(jobID, context, request);
 //myShepherd.rollbackDBTransaction();
 //myShepherd.closeDBTransaction();
 		}
@@ -69,7 +66,7 @@ System.out.println("((( done runIt() )))");
 	return;
 }
  
-private void tryToGet(String jobID, String context) {
+private void tryToGet(String jobID, String context, HttpServletRequest request) {
 System.out.println("<<<<<<<<<< tryToGet(" + jobID + ")----");
 	JSONObject statusResponse = new JSONObject();
 //if (jobID != null) return;
@@ -122,7 +119,7 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		IBEISIA.log(taskID, jobID, rlog, context);
 		all.put("jobResult", rlog);
 
-		JSONObject proc = IBEISIA.processCallback(taskID, rlog, context);
+		JSONObject proc = IBEISIA.processCallback(taskID, rlog, request);
 System.out.println("processCallback returned --> " + proc);
 	}
 } catch (Exception ex) {
