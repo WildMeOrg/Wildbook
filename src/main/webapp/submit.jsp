@@ -521,8 +521,8 @@ function showUploadBox() {
         <p class="help-block">
           <%=props.getProperty("examples") %>
           <ul>
-            <li>2014-01-05 12:30</li>
-            <li>2014-03-23</li>
+            <li>2017-07-13 14:30</li>
+            <li>2016-03-23</li>
             <li>2013-12</li>
             <li>2010</li>
           </ul>
