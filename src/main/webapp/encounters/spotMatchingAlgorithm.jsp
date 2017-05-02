@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*,
 org.ecocean.media.MediaAsset,
 java.net.URL,
+java.util.Collections,
 org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
@@ -100,6 +101,7 @@ try {
 		////////if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotLeftMA = allSpotMAs.get(0);
 //// warning, hack to get around bug cause by gap in code changes post-migration
 if (allSpotMAs != null) {
+  Collections.reverse(allSpotMAs);
   for (MediaAsset maL : allSpotMAs) {
     if (maL.getFilename().indexOf("extractRight") < 0) {
       spotLeftMA = maL;
@@ -108,7 +110,7 @@ if (allSpotMAs != null) {
   }
 }
 		allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spotRight");
-		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotRightMA = allSpotMAs.get(0);
+		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotRightMA = allSpotMAs.get(allSpotMAs.size() - 1);
 		if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		%> 
 		

@@ -521,8 +521,8 @@ function showUploadBox() {
         <p class="help-block">
           <%=props.getProperty("examples") %>
           <ul>
-            <li>2014-01-05 12:30</li>
-            <li>2014-03-23</li>
+            <li>2017-07-13 14:30</li>
+            <li>2016-03-23</li>
             <li>2013-12</li>
             <li>2010</li>
           </ul>
@@ -678,10 +678,15 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       <input class="form-control" name="elevation" type="text" id="elevation">
       &nbsp;<%=props.getProperty("submit_meters")%> <br>
     </div>
+	
+	
 <%
 }
 %>
-
+    <div>
+      <p class="help-block">
+        <%=props.getProperty("ftConverter") %></p>
+    </div>
 </fieldset>
 <hr />
 
