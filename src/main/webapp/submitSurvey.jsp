@@ -10,17 +10,11 @@
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 	
-<link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
-
-
 <jsp:include page="header.jsp" flush="true"/>
 
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+String context = ServletUtilities.getContext(request);
 
-  GregorianCalendar cal = new GregorianCalendar();
-  int nowYear = cal.get(1);
 //setup our Properties object to hold all properties
   Properties props = new Properties();
   //String langCode = "en";
@@ -34,101 +28,91 @@ context=ServletUtilities.getContext(request);
     // Not there yet!
 %>
 
-
-<script src="//maps.google.com/maps/api/js?language=<%=langCode%>"></script>
-<script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
-<script src="javascript/pages/submit.js"></script>
-
-
-
-
-
-
 </script>
 
 <div class="container-fluid page-content" role="main">
 
 <div class="container maincontent">
+  
+  
+<hr />
 
-  <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
-
+<fieldset>
+<div class="row">
+  <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
   </div>
 
-
-  <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
-  
-  
-
-<hr />
-
-<fieldset>
-<h3><%=props.getProperty("dateAndLocation")%></h3>
-
-<div class="form-group required">
-
-    <div class="form-group required">
-
-      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
-        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+  <div class="col-xs-2 col-sm-2 col-md-8 col-lg-8">
+	  <div class="row">
+	    <div class="form-group">
+	    <h3><%=props.getProperty("projectName")%></h3>
+	          
+	      <div class="col-xs-10 col-sm-12 col-md-6 col-lg-6">
+	        <label class="control-label text-danger"><%=props.getProperty("projectLabel") %></label>
+	      </div>
+	      
+	      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+	        <input name="project" type="text" id="project" size="40" class="form-control">
+	      </div>
+	    </div>
+	    
+	    <br>
+	    
+	    <div class="form-group">
+	    <h3><%=props.getProperty("organizationName")%></h3>
+	    
+	      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+	        <label class="control-label text-danger"><%=props.getProperty("organizationLabel") %></label>
+	      </div>
+	        
+	      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+	        <input name="organization" type="text" id="organization" size="40" class="form-control">
+	      </div>
+	    </div>
+	    
+	    <br>
+	    
+	    <div class="form-group">
+	    <h3><%=props.getProperty("surveyDate")%></h3>
+	    
+	      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+	        <label class="control-label text-danger"><%=props.getProperty("dateLabel") %></label>
+	      </div>
+	        
+	      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+	        <input name="dateString" type="text" id="dateString" size="40" class="form-control">
+	      </div>
+	    </div>
+	    
+	    <br>
+	    
+	    <div class="form-group">
+	    <h3><%=props.getProperty("surveyType")%></h3>
+	    
+	      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+	        <label class="control-label text-danger"><%=props.getProperty("typeLabel") %></label>
+	      </div>
+	        
+	      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+	        <input name="type" type="text" id="type" size="40" class="form-control">
+	      </div>
+	    </div>	    
+	    
+	  </div>
+  	</div>
 </div>
-
-      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <p class="help-block">
-          <%=props.getProperty("examples") %>
-          <ul>
-            <li>2014-01-05 12:30</li>
-            <li>2014-03-23</li>
-            <li>2013-12</li>
-            <li>2010</li>
-          </ul>
-        </p>
-      </div>
-
-    </div>
-
-<%
-if(CommonConfiguration.showReleaseDate(context)){
-%>
-
-    <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
-        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
-      </div>
-
-<%
-}
-%>
-
-</fieldset>
-
-<hr />
-
-<fieldset>
-    <h3><%=props.getProperty("submit_location")%></h3>
-
-    <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label text-danger"><%=props.getProperty("where") %></label>
-      </div>
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <input name="location" type="text" id="location" size="40" class="form-control">
-      </div>
-    </div>
-
+<br>		
 
 <%
 //add locationID to fields selectable
-
-
 if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
     <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
         <label class="control-label"><%=props.getProperty("studySites") %></label>
       </div>
 
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
         <select name="locationID" id="locationID" class="form-control">
             <option value="" selected="selected"></option>
                   <%
@@ -280,26 +264,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   </fielset>
 
   <hr/>
-
-  <fieldset>
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
-      </div>
-
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="">
-      </div>
-    </div>
-
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterProject") %></label>
-      </div>
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="">
-      </div>
-    </div>
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
@@ -600,7 +564,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 <p>&nbsp;</p>
 </form>
 
-</div>
 </div>
 </div>
 
