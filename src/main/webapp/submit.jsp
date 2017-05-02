@@ -678,10 +678,15 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       <input class="form-control" name="elevation" type="text" id="elevation">
       &nbsp;<%=props.getProperty("submit_meters")%> <br>
     </div>
+	
+	
 <%
 }
 %>
-
+    <div>
+      <p class="help-block">
+        <%=props.getProperty("gpsConverter") %></p>
+    </div>
 </fieldset>
 <hr />
 
