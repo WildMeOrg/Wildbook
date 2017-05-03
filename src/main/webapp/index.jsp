@@ -442,7 +442,7 @@ finally{
 
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
+					<img class="pull-right" src="images/how_it_works_photograph_gsb.png.jpg" alt=""  />
 				</div>
 			</div>
 			<div class="item">
