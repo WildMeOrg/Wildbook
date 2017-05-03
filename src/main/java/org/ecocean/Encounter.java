@@ -2246,19 +2246,25 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
             newEnc.addComments("<i>unable to determine video source - possibly YouTube error?</i>");
         } else {
             newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
+            String consolidatedRemarks="<p>Auto-sourced from YouTube Parent Video: <a href=\"https://www.youtube.com/watch?v="+parentRoot.getParameters().optString("id")+"\">"+parentRoot.getParameters().optString("id")+"</a></p>";
             if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                
                 if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
                     newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
-                    newEnc.addComments("<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>");
+                    consolidatedRemarks+="<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>";
+                    newEnc.addComments(consolidatedRemarks);
+                    //add a dynamic property to make a quick link to the video
                 }
                 if (parentRoot.getMetadata().getData().optJSONObject("detailed") != null) {
                     String desc = "<p>" + parentRoot.getMetadata().getData().getJSONObject("detailed").optString("description", "[no description]") + "</p>";
                     if (parentRoot.getMetadata().getData().getJSONObject("detailed").optJSONArray("tags") != null) {
                         desc += "<p><b>tags:</b> " + parentRoot.getMetadata().getData().getJSONObject("detailed").getJSONArray("tags").toString() + "</p>";
                     }
-                    newEnc.setOccurrenceRemarks(desc);
+                    consolidatedRemarks+=desc;
+                    
                 }
             }
+            newEnc.setOccurrenceRemarks(consolidatedRemarks);
         }
         return newEnc;
     }
