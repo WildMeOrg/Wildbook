@@ -2669,7 +2669,7 @@ return Util.generateUUID();
           Encounter enc=encounters.get(0);
           if(enc.getOccurrenceRemarks()!=null){
             
-            String remarks=enc.getOccurrenceRemarks().trim().toLowerCase();
+            String remarks=enc.getOccurrenceRemarks().trim().toLowerCase()+" "+enc.getRComments().trim().toLowerCase();
             Properties props = new Properties();
     
             //OK, let's check the comments and tags for retrievable metadata
@@ -2687,6 +2687,8 @@ return Util.generateUUID();
               }
               
               
+              //reset remarks to avoid dates embedded in researcher comments
+              remarks=enc.getOccurrenceRemarks().trim().toLowerCase();
               //if no one has set the date already, use NLP to try to figure it out
               boolean setDate=true;
               if(enc.getDateInMilliseconds()!=null){setDate=false;}

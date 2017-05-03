@@ -2245,16 +2245,19 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
         } else {
             newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
             if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                String consolidatedRemarks="";
                 if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
                     newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
-                    newEnc.addComments("<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>");
+                    consolidatedRemarks+="<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>";
+                    newEnc.addComments(consolidatedRemarks);
                 }
                 if (parentRoot.getMetadata().getData().optJSONObject("detailed") != null) {
                     String desc = "<p>" + parentRoot.getMetadata().getData().getJSONObject("detailed").optString("description", "[no description]") + "</p>";
                     if (parentRoot.getMetadata().getData().getJSONObject("detailed").optJSONArray("tags") != null) {
                         desc += "<p><b>tags:</b> " + parentRoot.getMetadata().getData().getJSONObject("detailed").getJSONArray("tags").toString() + "</p>";
                     }
-                    newEnc.setOccurrenceRemarks(desc);
+                    consolidatedRemarks+=desc;
+                    newEnc.setOccurrenceRemarks(consolidatedRemarks);
                 }
             }
         }
