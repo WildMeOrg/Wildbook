@@ -122,6 +122,38 @@ public class Encounter implements java.io.Serializable {
   private String imageSet;
   private String soil;
 
+  private String reproductiveStage;
+  private Double bodyCondition;
+  private Double parasiteLoad;
+  private Double immunoglobin;
+  private Boolean sampleTakenForDiet;
+  private Boolean injured;
+
+  public String getSoil() {return soil;}
+  public void setSoil(String soil) {this.soil = soil;}
+
+  public String getReproductiveStage() {return reproductiveStage;}
+  public void setReproductiveStage(String reproductiveStage) {this.reproductiveStage = reproductiveStage;}
+
+  public Double getBodyCondition() {return bodyCondition;}
+  public void setBodyCondition(Double bodyCondition) {this.bodyCondition = bodyCondition;}
+
+  public Double getParasiteLoad() {return parasiteLoad;}
+  public void setParasiteLoad(Double parasiteLoad) {this.parasiteLoad = parasiteLoad;}
+
+  public Double getImmunoglobin() {return immunoglobin;}
+  public void setImmunoglobin(Double immunoglobin) {this.immunoglobin = immunoglobin;}
+
+  public Boolean getSampleTakenForDiet() {return sampleTakenForDiet;}
+  public void setSampleTakenForDiet(Boolean sampleTakenForDiet) {this.sampleTakenForDiet = sampleTakenForDiet;}
+
+  public Boolean getInjured() {return injured;}
+  public void setInjured(Boolean injured) {this.injured = injured;}
+
+
+
+
+
   // for searchability
   private String imageNames;
 
