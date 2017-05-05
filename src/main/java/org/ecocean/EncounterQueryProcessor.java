@@ -33,6 +33,8 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
   private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
 
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"imageSet", "soil", "reproductiveStage"};
+
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
     String jdoqlVariableDeclaration = "";
@@ -43,6 +45,28 @@ public class EncounterQueryProcessor extends QueryProcessor {
     context=ServletUtilities.getContext(request);
 
     Shepherd myShepherd=new Shepherd(context);
+
+    // filter for simple string fields
+    for (String fieldName : SIMPLE_STRING_FIELDS) {
+      System.out.println("   parsing encounter query for field "+fieldName);
+      System.out.println("           current filter = "+filter);
+      filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
+    }
+
+
+
+    //filter for location------------------------------------------
+      if((request.getParameter("imageNames")!=null)&&(!request.getParameter("imageNames").equals(""))) {
+        String locString=request.getParameter("imageNames").toLowerCase().replaceAll("%20", " ").trim();
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+          filter+="(imageNames.toLowerCase().indexOf('"+locString+"') != -1)";
+        }
+        else{filter+=" && (imageNames.toLowerCase().indexOf('"+locString+"') != -1)";}
+        prettyPrint.append("imageNames contains \""+locString+"\".<br />");
+      }
+      //end location filter--------------------------------------------------------------------------------------
+
+
 
   //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
