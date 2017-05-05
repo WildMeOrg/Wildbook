@@ -538,15 +538,15 @@ public class Util {
     }
 
 
-    public static boolean hasProperty(Properties props, String key) {
+    public static boolean hasProperty(String key, Properties props) {
       return (props.getProperty(key) != null);
     }
 
     // given "animalType"
-    public static List<String> getIndexedPropertyValues(String key, Properties fromProps) {
+    public static List<String> getIndexedPropertyValues(String key, Properties props) {
       List<String> values = new ArrayList<String>();
-      for (int i=0; hasProperty(fromProps, (key+i)); i++) {
-        values.add(fromProps.getProperty(key+i));
+      for (int i=0; hasProperty((key+i), props); i++) {
+        values.add(props.getProperty(key+i));
       }
       return values;
     }
