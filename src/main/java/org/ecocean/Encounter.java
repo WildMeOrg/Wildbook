@@ -122,6 +122,9 @@ public class Encounter implements java.io.Serializable {
   private String imageSet;
   private String soil;
 
+  // for searchability
+  private String imageNames;
+
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
@@ -311,6 +314,34 @@ public class Encounter implements java.io.Serializable {
     public void setZebraClass(String c) {
         zebraClass = c;
     }
+
+    public String getImageNames() {
+        return imageNames;
+    }
+    public void addImageName(String name) {
+      if  (imageNames==null) imageNames = name;
+      else if (name != null) imageNames += (", "+name);
+    }
+    public String addAllImageNamesFromAnnots(boolean overwrite) {
+      if (overwrite) imageNames = null;
+      return addAllImageNamesFromAnnots();
+    }
+    public String addAllImageNamesFromAnnots() {
+      for (Annotation ann : getAnnotations()) {
+        for (Feature feat : ann.getFeatures()) {
+          try {
+            MediaAsset ma = feat.getMediaAsset();
+            addImageName(ma.getFilename());
+          }
+          catch (Exception e) {
+            System.out.println("exception parsing image name from feature "+feat);
+          }
+        }
+      }
+      return imageNames;
+    }
+
+
 
   /**
    * Returns an array of all of the superSpots for this encounter.
