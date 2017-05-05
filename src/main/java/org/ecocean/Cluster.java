@@ -494,6 +494,10 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
   private static String newline = "<br/>";
 
   public static int[] parseJonsOutput(String output) {
+    if (output.indexOf('[')<0) {
+      System.out.println("parseJonsOutput failed on output="+output);
+      return (new int[0]);
+    }
     String inner = output.substring(output.indexOf('[')+1, output.indexOf(']'));
     String[] intStrings = inner.split(",");
 
