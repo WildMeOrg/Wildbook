@@ -495,6 +495,12 @@ public class Util {
       return (lower.substring(0,1).toUpperCase() + lower.substring(1));
     }
 
+    public static String capitolizeFirstLetter(String str) {
+      if (str.length()<=1) return (str.toUpperCase());
+      return (str.substring(0,1).toUpperCase() + str.substring(1));
+    }
+
+
     public static boolean requestHasVal(HttpServletRequest request, String paramName) {
       return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
     }
