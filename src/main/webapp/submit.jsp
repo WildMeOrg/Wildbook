@@ -743,7 +743,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
       <div class="col-xs-12 col-lg-6">
         <h3><%=props.getProperty("aboutPhotographer") %></h3>
-
+ 	<p class="help-block"><%=props.getProperty("submit_ifyou")%></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_name") %></label>
