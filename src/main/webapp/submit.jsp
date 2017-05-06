@@ -777,7 +777,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   </h4>
 
     <div id="advancedInformation" fade="1" style="display: none;">
-
+  <hr>
+	    
       <h3><%=props.getProperty("aboutAnimal") %></h3>
         <hr>
         <fieldset>
