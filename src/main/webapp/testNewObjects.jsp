@@ -66,8 +66,8 @@ try {
       out.println("\n Organization = "+sv.getOrganization());
       out.println("\n Type = "+sv.getProjectType());
       out.println("\n Date = "+sv.getDate());
-      out.println("\n StartTime? = "+sv.getStartTimeMilli());
       out.println("\n EndTime? = "+sv.getEndTimeMilli());
+      out.println("\n StartTime? = "+sv.getStartTimeMilli());
     } catch (Exception e) {
       e.printStackTrace();
       myShepherd.rollbackDBTransaction();
@@ -124,10 +124,84 @@ try {
 	e.printStackTrace();
 }
 
-
-finally{
-	myShepherd.closeDBTransaction();
+// Testing path and PointLocation
+PointLocation pl = new PointLocation(44.000000,-44.000000); 
+try {
+	Long milli = new Long(123456783291012L);
+	pl.setBearing(-99.000000);
+	pl.setDateTimeInMilli(milli);	
+} catch (Exception e) {
+	out.println("Failed to set PointLocation attributes.");
+	e.printStackTrace();
 }
+try {
+	myShepherd.beginDBTransaction();
+	myShepherd.storeNewPointLocation(pl);
+	myShepherd.commitDBTransaction();
+} catch (Exception e) {
+	myShepherd.rollbackDBTransaction();
+	e.printStackTrace();
+	out.println("Failed to persist PointLocation.");
+}
+Path pth = null;
+try {
+	pth = new Path(pl);
+	myShepherd.beginDBTransaction();																																																									
+	myShepherd.storeNewPath(pth);
+	myShepherd.commitDBTransaction();	
+} catch (Exception e) {
+	e.printStackTrace();
+	myShepherd.rollbackDBTransaction();
+}
+try {
+	out.println("Point Location Bearing :"+pl.getBearing().toString());
+	out.println("Point Location ID :"+pl.getID().toString());
+	out.println("Point Location :"+pl.getDateTimeInMilli().toString());
+	pth.addPointLocation(pl);	
+} catch (Exception e) {
+	out.println("General Exception while trying to create Path with PointLocation.");
+	e.printStackTrace();
+}
+
+try {
+	out.println("\n Path ID = "+pth.getID());
+	out.println("\n PointLocationID = "+pl.getID());
+	out.println("\n PointLocation ID FROM Path = "+pth.getPointLocation(pl.getID()));
+	out.println("\n Pointlocation Milli Time = "+pl.getDateTimeInMilli());
+} catch (Exception e) {
+	out.println("General Exception while trying to print Path/PointLocation attributes.");
+	e.printStackTrace();
+}
+
+try {
+	ArrayList<PointLocation> locArr = new ArrayList<PointLocation>();
+	int i = 5;
+	while (i>0) {
+		PointLocation pla = new PointLocation(10.0003507,-15.0005609);
+		try {
+			myShepherd.beginDBTransaction();																																																									
+			myShepherd.storeNewPointLocation(pla);
+			myShepherd.commitDBTransaction();	
+			out.println("This path now contains "+locArr.size()+" PointLocations");
+		} catch (Exception e) {
+			e.printStackTrace();
+			myShepherd.rollbackDBTransaction();
+		}
+		locArr.add(pla);
+		i = i - 1;
+	}
+	pth.addPointLocationsArray(locArr);
+	out.println("This path now contains "+locArr.size()+" PointLocations");
+	
+} catch (Exception e) {
+	e.printStackTrace();
+	out.println("Exception adding array of PointLocations to path.");
+}
+
+
+
+out.close();
+myShepherd.closeDBTransaction();
 %>
 
 </ul>

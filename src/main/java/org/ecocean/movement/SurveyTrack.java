@@ -8,7 +8,7 @@ import java.util.*;
 *
 * @author Colin Kingen
 * 
-*  Refers to a collection of Paths, creating a log of the movements that
+*  Refers to a Path, creating a log of the movements that
 *  took place during a survey track.
 * 
 */
@@ -20,7 +20,7 @@ public class SurveyTrack implements java.io.Serializable{
    */
   private static final long serialVersionUID = -8570163271211244522L;
   
-  private ArrayList<Occurrence> occurrences;
+  private ArrayList<Occurrence> occurrences = new ArrayList<Occurrence>();
 
   private String surveyTrackID;
   private String parentSurveyID;

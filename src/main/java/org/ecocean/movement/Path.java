@@ -13,7 +13,8 @@ import org.ecocean.*;
 * gives you the path or paths that a team or individual followed during 
 * a specific pointLocation in time. 
 *
-*
+*This is a very simple object that keeps track of those points, the SurveyTrack
+*being the data layer above it. 
 */
 
 public class Path implements java.io.Serializable {
@@ -23,23 +24,26 @@ public class Path implements java.io.Serializable {
    */
   private static final long serialVersionUID = -8130232817853279715L;
   
-  private String pathID = null;
+  private String pathID;
   
-  private ArrayList<PointLocation> pointLocations;
+  private ArrayList<PointLocation> pointLocations; 
   
-  public Path(){};
+  public Path(){};                                                                                                                                                                        
   
   public Path(PointLocation pnt) {
-    this.pointLocations.add(pnt);
+    this.pointLocations = new ArrayList<PointLocation>();
     generateUUID();
+    if (pnt != null) {
+      this.pointLocations.add(pnt);      
+    }
   }
   
   public Path(ArrayList<PointLocation> pts) {
+    generateUUID();
     if (pts.size() >= 1) {
       for (int i=0; i<pts.size(); i++ ) {
         this.pointLocations.add(pts.get(i));
       }
-      generateUUID();
     }
   }  
   
@@ -47,10 +51,19 @@ public class Path implements java.io.Serializable {
     return pathID;
   }
   
+  
   public PointLocation getPointLocation(String id) {
-    if (id !=null) {
-      for (int i=0; i <= pointLocations.size(); i++) {
-        if (pointLocations.get(i).getID() == id) {
+    System.out.println("ALERT ALERT ID :"+id);
+    String foundId = null;
+    if (id !=null && pointLocations.size() > 0) {
+      for (int i=0; i < pointLocations.size(); i++) {
+        try {
+          foundId = pointLocations.get(i).getID();
+        } catch (Exception e) {
+          e.printStackTrace();
+          System.out.println("This is the offending Index : "+i);
+        }
+        if (foundId == id) {
           return pointLocations.get(i);
         }
       }
@@ -60,15 +73,20 @@ public class Path implements java.io.Serializable {
   
   public void addPointLocation(PointLocation p) {
     if (this.getPointLocation(p.getID()) == null) {
-      pointLocations.add(p);
+      this.pointLocations.add(p);
     }
   }
   
   public void addPointLocationsArray(ArrayList<PointLocation> pts) {
     if (pts.size() >= 1) {
       for (int i=0; i<pts.size(); i++ ) {
-        if (this.getPointLocation(pts.get(i).getID()) == null) {
-          pointLocations.add(pts.get(i));
+        if (getPointLocation(pts.get(i).getID()) == null) {
+          try {
+            pointLocations.add(pts.get(i));            
+          } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Could not add PointLocation with index "+i);
+          }
         }
       }
     }

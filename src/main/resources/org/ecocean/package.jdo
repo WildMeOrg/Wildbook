@@ -82,15 +82,15 @@
       </field>
       
       <field name="latitude" persistence-modifier="persistent">
-        <column jdbc-type="BIGINT" allows-null="true"/>
+        <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
       
       <field name="longitude" persistence-modifier="persistent">
-        <column jdbc-type="BIGINT" allows-null="true"/>
+        <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
       
       <field name="bearing" persistence-modifier="persistent">
-        <column jdbc-type="BIGINT" allows-null="true"/>
+        <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
 
       <fetch-group name="count"/>
