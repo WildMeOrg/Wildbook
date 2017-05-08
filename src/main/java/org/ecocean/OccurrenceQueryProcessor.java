@@ -20,7 +20,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
   private static final String BASE_FILTER = "SELECT FROM org.ecocean.Occurrence WHERE \"OCCURRENCEID\" != null && ";
 
-  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"occurrenceID","imageSet","soil", "rain", "activity", "habitatOpenness", "vegetationGreennes", "vegetationHeight", "weather"};
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"soil","rain","activity","habitatOpenness","grassGreenness","grassHeight","weather","wind"};
 
 
 
