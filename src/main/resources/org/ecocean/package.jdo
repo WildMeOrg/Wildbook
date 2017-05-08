@@ -312,12 +312,11 @@
         <column length="36"/>
       </field>
 		<field name="isExemplar">
-			<column default-value="0" />
 <!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here: -->
-			<column default-value="0" />
-<!-- this is for postgresql
+<!--			<column default-value="0" /> -->
+<!-- this is for postgresql-->
 			<column default-value="false" />
--->
+
 		</field>
 
             	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >
