@@ -60,10 +60,7 @@
         <column length="100"/>
       </field>
 
-      <field name="elevation" persistence-modifier="persistent">
-        <collection element-type="org.ecocean.Measurement"/>
-        <join/>
-      </field>
+ 	  <field name="elevation" persistence-modifier="persistent" element-type="org.ecocean.Measurement" allows-null="true"/>
 
       <field name="correspondingPathID" persistence-modifier="persistent">
         <column length="100" allows-null="true" />
