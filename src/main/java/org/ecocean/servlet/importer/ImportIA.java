@@ -169,7 +169,7 @@ System.out.println(" - - - skipping existing " + exist);
                 annots.addAll(these);
 
                 try {
-                    JSONArray thisNames = IBEISIA.iaNamesFromAnnotUUIDs(thisFancy);
+                    JSONArray thisNames = IBEISIA.iaNamesFromAnnotUUIDs(thisFancy, context);
 //System.out.println(" >>> thisNames length = " + thisNames.length());
                     for (int ti = 0 ; ti < thisNames.length() ; ti++) {
                         iaNamesArray.put(thisNames.get(ti));
@@ -252,13 +252,13 @@ System.out.println(" - - - skipping existing " + exist);
         */
             String sex = null;
             try {
-            sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getId());
+            sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getId(), context);
 //System.out.println("--- sex=" + sex);
             } catch (Exception ex) {}
             Double age = null;
             try {
                 //guess this assumes we have at least one annot and it has age; could walk thru if not?
-                age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getId());
+                age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getId(), context);
             } catch (Exception ex) {}
             if (age != null) enc.setAge(age);
             myShepherd.beginDBTransaction();
