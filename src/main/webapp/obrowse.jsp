@@ -17,7 +17,7 @@
 
 </style>
 
-<%@ page contentType="text/html; charset=utf-8" 
+<%@ page contentType="text/html; charset=utf-8"
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
@@ -119,7 +119,9 @@ java.util.Properties" %>
 
 <%
 
-myShepherd = new Shepherd("context0");
+String context="context0";
+context=ServletUtilities.getContext(request);
+myShepherd = new Shepherd(context);
 
 /*
 String context="context0";
@@ -128,7 +130,7 @@ context=ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
 
 //set up the file input stream
@@ -205,5 +207,3 @@ if (type.equals("Encounter")) {
 if (needForm) out.println(showForm());
 
 %>
-
-
