@@ -53,7 +53,6 @@ public class Path implements java.io.Serializable {
   
   
   public PointLocation getPointLocation(String id) {
-    System.out.println("ALERT ALERT ID :"+id);
     String foundId = null;
     if (id !=null && pointLocations.size() > 0) {
       for (int i=0; i < pointLocations.size(); i++) {
@@ -61,7 +60,6 @@ public class Path implements java.io.Serializable {
           foundId = pointLocations.get(i).getID();
         } catch (Exception e) {
           e.printStackTrace();
-          System.out.println("This is the offending Index : "+i);
         }
         if (foundId == id) {
           return pointLocations.get(i);

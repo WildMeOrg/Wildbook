@@ -31,7 +31,7 @@ public class PointLocation implements java.io.Serializable {
   private Double longitude = null;
   private Double bearing = null;
 
-  private List<Measurement> elevation;
+  private Measurement elevation = null;
 
   // It's in milliseconds!
   private Long dateTime = null;
@@ -44,27 +44,27 @@ public class PointLocation implements java.io.Serializable {
 
   public PointLocation(Double lat, Double lon) {
     if (latLonCheck(lat, lon)) {
-      longitude = lon;
-      latitude = lat;
+      this.longitude = lon;
+      this.latitude = lat;
     }
     generateUUID();
   }
 
   public PointLocation(Double lat, Double lon, Long date) {
     if (latLonCheck(lat, lon) && date > 0) {
-      longitude = lon;
-      latitude = lat;
-      dateTime = date;
+      this.longitude = lon;
+      this.latitude = lat;
+      this.dateTime = date;
     }
     generateUUID();
   }
 
   public PointLocation(Double lat, Double lon, Long date, Measurement el) {
     if (latLonCheck(lat, lon) && date > 0 && elevation != null) {
-      longitude = lon;
-      latitude = lat;
-      dateTime = date;
-      elevation.add(el);
+      this.longitude = lon;
+      this.latitude = lat;
+      this.dateTime = date;
+      this.elevation = el;
     }
     generateUUID();
   }
@@ -79,7 +79,7 @@ public class PointLocation implements java.io.Serializable {
 
   public void setDateTimeInMilli(Long dt) {
     if (dt > 9132014) {
-      dateTime = dt;
+      this.dateTime = dt;
     }
   }
 
