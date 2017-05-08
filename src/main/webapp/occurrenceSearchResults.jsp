@@ -149,6 +149,16 @@
         <%=occProps.getProperty("OccurrenceSearchResults")%>
       </h1>
 
+      <ul id="tabmenu">
+
+        <li><a class="active"><%=occProps.getProperty("table")%>
+        </a></li>
+            <li><a
+           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
+         </a></li>
+
+      </ul>
+
 
 <table width="810" border="0" cellspacing="0" cellpadding="0">
   <tr>
@@ -241,36 +251,40 @@ var colDefn = [
 		label: '#',
 		value: _colRowNum,
 	},
-*/
+
   {
     key: 'imageSet',
     label: '<%=occProps.getProperty("imageSet")%>',
     value: _notUndefined('imageSet'),
-  },
+  },*/
   {
     key: 'ID',
     label: 'ID',
     value: _notUndefined('occurrenceID'),
   },
   {
-    key: 'soil',
-    label: '<%=occProps.getProperty("soil")%>',
-    value: _notUndefined('soil'),
-  },
-  {
     key: 'groupSize',
-    label: '<%=occProps.getProperty("groupSize")%>',
+    label: 'group size',
     value: _notUndefined('groupSize'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
   {
-		key: 'latitude',
+    key: 'individualCount',
+    label: 'num Id\'d individuals',
+    value: _notUndefined('individualCount'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
+  {
+		key: 'decimalLatitude',
 		label: 'latitude',
-    value: _notUndefined('latitude'),
+    value: _notUndefined('decimalLatitude'),
+    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   {
-		key: 'longitude',
+		key: 'decimalLongitude',
 		label: 'longitude',
-    value: _notUndefined('longitude'),
+    value: _notUndefined('decimalLongitude'),
+    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   /*
 	{

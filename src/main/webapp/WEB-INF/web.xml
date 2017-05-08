@@ -150,6 +150,7 @@
 				/EncounterSetScarring = authc, roles[researcher]
 				  /EncounterSetVerbatimEventDate = authc, roles[researcher]
 				  /EncounterSetLifeStage = authc, roles[researcher]
+          /EncounterSetField = authc, roles[researcher]
 				  /EncounterSetCountry = authc, roles[researcher]
 				  /EncounterSetTissueSample = authc, roles[researcher]
 				   /TissueSampleSetHaplotype = authc, roles[researcher]
@@ -169,6 +170,7 @@
 				         /EncounterSearchExportKML = authc, roles[researcher]
 				         /EncounterSearchExportExcelFile = authc, roles[researcher]
                  /EncounterSearchExportMetadataExcel = authc, roles[researcher]
+                 /OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
 				         /EncounterSearchExportShapefile = authc, roles[researcher]
 				         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
 						/OccurrenceSetIndividualCount = authc, roles[researcher]
@@ -689,6 +691,10 @@
     <servlet-name>EncounterSearchExportMetadataExcel</servlet-name>
     <servlet-class>org.ecocean.servlet.export.EncounterSearchExportMetadataExcel</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportMetadataExcel</servlet-class>
+  </servlet>
 
 
   <servlet>
@@ -911,6 +917,12 @@
         <servlet-name>EncounterSetLifeStage</servlet-name>
         <servlet-class>org.ecocean.servlet.EncounterSetLifeStage</servlet-class>
   </servlet>
+
+  <servlet>
+    <servlet-name>EncounterSetField</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetField</servlet-class>
+</servlet>
+
 
         <servlet>
           <servlet-name>EncounterSetCountry</servlet-name>
@@ -1413,6 +1425,11 @@
         <url-pattern>/EncounterSetLifeStage</url-pattern>
   </servlet-mapping>
 
+  <servlet-mapping>
+    <servlet-name>EncounterSetField</servlet-name>
+    <url-pattern>/EncounterSetField</url-pattern>
+</servlet-mapping>
+
         <servlet-mapping>
           <servlet-name>EncounterSetCountry</servlet-name>
           <url-pattern>/EncounterSetCountry</url-pattern>
@@ -1505,6 +1522,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSearchExportMetadataExcel</servlet-name>
     <url-pattern>/EncounterSearchExportMetadataExcel</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
+    <url-pattern>/OccurrenceSearchExportMetadataExcel</url-pattern>
   </servlet-mapping>
 
     <servlet-mapping>
