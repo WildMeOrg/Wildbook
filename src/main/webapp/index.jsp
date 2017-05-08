@@ -362,11 +362,11 @@ try{
 
     System.out.println("Index.jsp Shepherd Report:");
     System.out.println("   myShepherd.getContext() = "+myShepherd.getContext());
+    System.out.println("   myShepherd.getDataDirectoryName() = "+myShepherd.getDataDirectoryName());
+
     AssetStore assey = AssetStore.getDefault(myShepherd);
     System.out.println("   AssetStore.getDefault(myShepherd) = "+assey);
     System.out.println("   Asseys's config = "+assey.getConfig());
-    System.out.println("   Asseys's usage = "+assey.getUsage());
-    //System.out.println("   Asseys's config = "+assey.getConfig());
 
 
 }
