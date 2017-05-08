@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, org.ecocean.social.*, com.google.gson.Gson" %>
+         import="javax.jdo.Query,org.ecocean.*,org.ecocean.identity.IBEISIA,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, org.ecocean.social.*, com.google.gson.Gson" %>
 
 
 <%!
@@ -14,6 +14,19 @@
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
+System.out.println("occurrence.jsp: has context "+context);
+
+// when IA sends stuff to wildbook, it might include a "dbname" argument that
+// will tell this page which IA database it was sent from.
+context=IBEISIA.getContextFromRequestFromIA(request, context);
+System.out.println("occurrence.jsp: has context "+context);
+
+
+
+
+
+
+
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -35,6 +48,8 @@ context=ServletUtilities.getContext(request);
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
 
+  Properties princetonProps = ShepherdProperties.getProperties("princeton.properties","",context);
+
 
 
   //load our variables for the submit page
@@ -53,6 +68,10 @@ context=ServletUtilities.getContext(request);
   boolean isOwner = false;
   if (request.getUserPrincipal()!=null) {
     isOwner = true;
+  }
+
+  if (request.getUserPrincipal()==null && request.getParameter("dbname")==null) {
+    response.sendError(500, "User is not logged in or dbname not specified");
   }
 
 %>
@@ -113,7 +132,7 @@ context=ServletUtilities.getContext(request);
     	border: solid 2px #444;
     	border-radius: 4px;
     }
-    
+
     div.scroll {
       height: 200px;
       overflow: auto;
@@ -508,12 +527,15 @@ if(occ.getIndividualCount()!=null){
 <table  class="occurrence-field-edit">
 
   <%
-  ClassEditTemplate.printOutClassFieldModifierRow((Object) occ, "habitat", out);
+  ClassEditTemplate.printOutClassFieldModifierRow((Object) occ, "habitat", Util.getIndexedPropertyValues("habitat", princetonProps), out);
   %>
 
   <tr class="padding-below"><td></td></tr>
 
   <%
+  String[] danFields = OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS;
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, danFields, out, princetonProps);
+
   String[] groupFields = {"groupSize", "groupBehavior", "numTerMales", "numBachMales", "numLactFemales", "numNonLactFemales"};
   ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, groupFields, out);
   %>
@@ -526,10 +548,6 @@ if(occ.getIndividualCount()!=null){
   %>
 
   <tr class="padding-below"><td></td></tr>
-
-  <%
-  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, new String[]{"distance", "bearing"}, out);
-  %>
 
 </table>
 
