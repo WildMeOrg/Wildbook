@@ -3,6 +3,7 @@ package org.ecocean;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
@@ -70,11 +71,14 @@ public class Occurrence implements java.io.Serializable{
   private DateTime dateTime;
 
 	private String habitat;
-	private Integer groupSize;
+  private String groupType;
+  private String groupActivity;
+  private Integer groupSize;
 	private Integer numTerMales;
 	private Integer numBachMales;
 	private Integer numNonLactFemales;
 	private Integer numLactFemales;
+  private Integer numJuveniles;
 	private Double bearing;
 
   // new fields added for Dan's lab
@@ -83,9 +87,10 @@ public class Occurrence implements java.io.Serializable{
   private String rain;
   private String activity;
   private String habitatOpenness;
-  private String vegetationGreenness;
-  private String vegetationHeight;
+  private String grassGreenness;
+  private String grassHeight;
   private String weather;
+  private String wind;
 
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
@@ -182,6 +187,36 @@ public class Occurrence implements java.io.Serializable{
     else{return encounters.size();}
   }
 
+  public int getNumberIndividualIDs(){
+    if(encounters==null) return 0;
+    HashSet<String> indivIds = new HashSet<String>();
+    for (Encounter enc : encounters) {
+      if (enc.getIndividualID()!=null) indivIds.add(enc.getIndividualID());
+    }
+    return indivIds.size();
+  }
+
+  public void setLatLonFromEncs() {
+    for (Encounter enc: getEncounters()) {
+      String lat = enc.getDecimalLatitude();
+      String lon = enc.getDecimalLongitude();
+      if (lat!=null && lon!=null && !lat.equals("-1.0") && !lon.equals("-1.0")) {
+        try {
+          setDecimalLatitude(Double.valueOf(lat));
+          setDecimalLongitude(Double.valueOf(lon));
+          return;
+        } catch (Exception e) {}
+      }
+    }
+  }
+
+  public String getLatLonString() {
+    String latStr = (decimalLatitude!=null) ? decimalLatitude.toString() : "";
+    String lonStr = (decimalLongitude!=null) ? decimalLongitude.toString() : "";
+    return (latStr+", "+lonStr);
+  }
+
+
   public void setEncounters(ArrayList<Encounter> encounters){this.encounters=encounters;}
 
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){
@@ -209,6 +244,9 @@ public class Occurrence implements java.io.Serializable{
   public void setIndividualCount(Integer count){
       if(count!=null){individualCount = count;}
       else{individualCount = null;}
+   }
+   public void setIndividualCount() {
+     setIndividualCount(getNumberIndividualIDs());
    }
 
   public String getGroupBehavior(){return groupBehavior;}
@@ -410,6 +448,19 @@ public class Occurrence implements java.io.Serializable{
 		this.groupSize = s;
 	}
 
+  public String getGroupActivity() {
+		return this.groupActivity;
+	}
+	public void setGroupActivity(String s) {
+		this.groupActivity = s;
+	}
+  public String getGroupType() {
+		return this.groupType;
+	}
+	public void setGroupType(String s) {
+		this.groupType = s;
+	}
+
 	public Integer getNumTerMales() {
 		return this.numTerMales;
 	}
@@ -431,7 +482,14 @@ public class Occurrence implements java.io.Serializable{
 		this.numNonLactFemales = s;
 	}
 
-	public Integer getNumLactFemales() {
+	public Integer getNumJuveniles() {
+		return this.numJuveniles;
+	}
+	public void setNumJuveniles(Integer s) {
+		this.numJuveniles = s;
+	}
+
+  public Integer getNumLactFemales() {
 		return this.numLactFemales;
 	}
 	public void setNumLactFemales(Integer s) {
@@ -460,16 +518,17 @@ public class Occurrence implements java.io.Serializable{
   public String getHabitatOpenness() { return this.habitatOpenness; }
 	public void setHabitatOpenness(String h) { this.habitatOpenness = h; }
 
-  public String getVegetationGreenness() { return this.vegetationGreenness; }
-	public void setVegetationGreenness(String h) { this.vegetationGreenness = h; }
+  public String getGrassGreenness() { return this.grassGreenness; }
+	public void setGrassGreenness(String h) { this.grassGreenness = h; }
 
-  public String getVegetationHeight() { return this.vegetationHeight; }
-	public void setVegetationHeight(String h) { this.vegetationHeight = h; }
+  public String getGrassHeight() { return this.grassHeight; }
+	public void setGrassHeight(String h) { this.grassHeight = h; }
 
   public String getWeather() { return this.weather; }
 	public void setWeather(String h) { this.weather = h; }
 
-
+  public String getWind() { return this.wind; }
+	public void setWind(String h) { this.wind = h; }
 
 
 
