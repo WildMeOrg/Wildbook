@@ -75,11 +75,12 @@ public class IAGateway extends HttpServlet {
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
     String getOut = "";
+    String context = ServletUtilities.getContext(request);
 
     if (request.getParameter("getJobResult") != null) {
         JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         try {
-            res = IBEISIA.getJobResult(request.getParameter("getJobResult"));
+            res = IBEISIA.getJobResult(request.getParameter("getJobResult"), context);
         } catch (Exception ex) {
             throw new IOException(ex.toString());
         }
@@ -93,7 +94,6 @@ public class IAGateway extends HttpServlet {
 ///////////////
     } else if (request.getParameter("getJobResultFromTaskID") != null) {
         JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
-        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         String taskID = request.getParameter("getJobResultFromTaskID");
 
@@ -150,7 +150,6 @@ System.out.println("firstResult -> " + firstResult.toString());
 /////////////
 
     } else if (request.getParameter("getDetectionReviewHtml") != null) {
-        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         String jobID = request.getParameter("getDetectionReviewHtml");
         int offset = 0;
@@ -170,7 +169,6 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
         setErrorCode(response, getOut);
 
     } else if (request.getParameter("getDetectionReviewHtmlNext") != null) {
-        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         ArrayList<MediaAsset> mas = mineNeedingDetectionReview(request, myShepherd);
         if ((mas == null) || (mas.size() < 1)) {
@@ -193,7 +191,6 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
 
     //ugh, lets standardize on passing taskId, not jobid cuz jobid sucks
     } else if (request.getParameter("getIdentificationReviewHtml") != null) {
-        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         String taskId = request.getParameter("getIdentificationReviewHtml");
         int offset = 0;
@@ -214,7 +211,6 @@ System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
         setErrorCode(response, getOut);
 
     } else if (request.getParameter("getIdentificationReviewHtmlNext") != null) {
-        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         String taskId = IBEISIA.getActiveTaskId(request);
 System.out.println("getIdentificationReviewHtmlNext -> taskId = " + taskId);
@@ -420,7 +416,7 @@ System.out.println(id);
             }
         } else {
             res.put("success", false);
-            res.put("error", "unknown detect value");   
+            res.put("error", "unknown detect value");
         }
 
         if (mas.size() > 0) {
@@ -436,8 +432,8 @@ System.out.println(id);
             boolean success = true;
             try {
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-                res.put("sendMediaAssets", IBEISIA.sendMediaAssets(mas));
-                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl);
+                res.put("sendMediaAssets", IBEISIA.sendMediaAssets(mas, context));
+                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context);
                 res.put("sendDetect", sent);
                 String jobId = null;
                 if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
@@ -518,7 +514,7 @@ System.out.println("anns -> " + anns);
             JSONObject taskRes = new JSONObject();
             taskRes.put("taskId", annTaskId);
             JSONArray jids = new JSONArray();
-            jids.put(ann.getId());  //for now there is only one 
+            jids.put(ann.getId());  //for now there is only one
             taskRes.put("annotationIds", jids);
             try {
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -586,7 +582,7 @@ System.out.println("anns -> " + anns);
         JSONObject taskRes = new JSONObject();
         taskRes.put("taskId", annTaskId);
         JSONArray jids = new JSONArray();
-        jids.put(ann.getId());  //for now there is only one 
+        jids.put(ann.getId());  //for now there is only one
         taskRes.put("annotationIds", jids);
         try {
             String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -660,7 +656,7 @@ System.out.println("anns -> " + anns);
                     }
                 }
             }
-            
+
             String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
             if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
             url += "?image_uuid=" + ilist.getJSONObject(offset).toString() + "&";
@@ -780,7 +776,7 @@ getOut = "(( " + url + " ))";
         Iterator it = c.iterator();
         while (it.hasNext()) {
             mas.add((MediaAsset)it.next());
-        }    
+        }
         query.closeAll();
         return mas;
     }
@@ -799,7 +795,7 @@ getOut = "(( " + url + " ))";
         Iterator it = c.iterator();
         while (it.hasNext()) {
             anns.add((Annotation)it.next());
-        }    
+        }
         query.closeAll();
         return anns;
     }
@@ -826,7 +822,7 @@ getOut = "(( " + url + " ))";
         JSONObject res = IBEISIA.getTaskResultsBasic(taskId, logs);
 //System.out.println("JSON_RESULT -> " + res.getJSONObject("_response").getJSONObject("response").getJSONObject("json_result").toString());
 //System.out.println("JSON_RESULT -> " + res.optJSONObject("_json_result"));
-        if ((res == null) || (res.optJSONObject("_json_result") == null) || 
+        if ((res == null) || (res.optJSONObject("_json_result") == null) ||
             (res.getJSONObject("_json_result").optJSONObject("inference_dict") == null) ||
             (res.getJSONObject("_json_result").getJSONObject("inference_dict").optJSONObject("annot_pair_dict") == null)) return;
         JSONArray rlist = res.getJSONObject("_json_result").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").optJSONArray("review_pair_list");
