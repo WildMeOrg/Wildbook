@@ -56,10 +56,9 @@
       </field>
 
       <field name="pointLocations" persistence-modifier="persistent">
-        <collection element-type="org.ecocean.PointLocation"/>
+        <collection element-type="org.ecocean.PointLocation" dependent-element="false" allows-null="true"/>
         <join/>
       </field>
-
 
     </class>
     

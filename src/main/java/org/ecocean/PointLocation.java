@@ -8,121 +8,120 @@ import java.util.Vector;
 import org.ecocean.*;
 
 /**
-* Each pointLocation is a specific spot on Earth defined by latitude, longitude
-* elevation above (or below) sea level and a time. 
-* 
-* The Path object is made up of an array of these, and a group over time 
-* create a useful way of tracking a survey and survey track. 
-*
-* @author Colin Kingen
-*
-*/
+ * Each pointLocation is a specific spot on Earth defined by latitude, longitude
+ * elevation above (or below) sea level and a time.
+ * 
+ * The Path object is made up of an array of these, and a group over time create
+ * a useful way of tracking a survey and survey track.
+ *
+ * @author Colin Kingen
+ *
+ */
 
 public class PointLocation implements java.io.Serializable {
-  
+
   /**
    * 
    */
   private static final long serialVersionUID = -3758129925666366058L;
-  
+
   public String pointLocationID = null;
-  
-  
-  private long latitude = -1;
-  private long longitude = -1;
-  private long bearing = -1;
-  
+
+  private Double latitude = null;
+  private Double longitude = null;
+  private Double bearing = null;
+
   private List<Measurement> elevation;
-  
+
   // It's in milliseconds!
-  private long dateTime = -1;
-  
+  private Long dateTime = null;
+
   private String correspondingPathID = null;
-  private String correspondingEncounterID = null; 
-  private String correspondingOccurrenceID = null; 
-  
-  public PointLocation(){};
-  
-  public PointLocation(long lat, long lon) {
+  private String correspondingEncounterID = null;
+  private String correspondingOccurrenceID = null;
+
+  public PointLocation() {};
+
+  public PointLocation(Double lat, Double lon) {
     if (latLonCheck(lat, lon)) {
       longitude = lon;
       latitude = lat;
     }
     generateUUID();
   }
-  
-  public PointLocation(long lat, long lon, long date) {
-    if (latLonCheck(lat,lon) && date > 0) {
+
+  public PointLocation(Double lat, Double lon, Long date) {
+    if (latLonCheck(lat, lon) && date > 0) {
       longitude = lon;
       latitude = lat;
       dateTime = date;
-     }
-    generateUUID();
-  }
-  
-  public PointLocation(long lat, long lon, long date, Measurement el) {
-    if (latLonCheck(lat,lon) && date > 0 && elevation != null ) {
-      longitude = lon;
-      latitude = lat;
-      dateTime = date;
-      elevation.add(el);     
     }
     generateUUID();
   }
-  
+
+  public PointLocation(Double lat, Double lon, Long date, Measurement el) {
+    if (latLonCheck(lat, lon) && date > 0 && elevation != null) {
+      longitude = lon;
+      latitude = lat;
+      dateTime = date;
+      elevation.add(el);
+    }
+    generateUUID();
+  }
+
   public String getID() {
     return pointLocationID;
   }
-  
-  public long getDateTimeInMilli() {
-    return dateTime;
+
+  public String getDateTimeInMilli() {
+    return dateTime.toString();
   }
-  
-  public void setDateTimeInMilli(long dt) {  
+
+  public void setDateTimeInMilli(Long dt) {
     if (dt > 9132014) {
       dateTime = dt;
     }
-  } 
-  
-  public long getLatitude() {
+  }
+
+  public Double getLatitude() {
     if (latitude != -1) {
       return latitude;
     }
-    return -1;
+    return null;
   }
 
-  public void setLatitude(long lat) {
+  public void setLatitude(Double lat) {
     if (lat >= -90 && lat <= 90) {
       latitude = lat;
     }
   }
-  
-  public long getLongitude() {
+
+  public Double getLongitude() {
     if (longitude != -1) {
       return longitude;
     }
-    return -1;
+    return null;
   }
 
-  public void setBearing(long bear) {
+  public void setBearing(Double bear) {
     if (bear >= -180 && bear <= 180) {
       bearing = bear;
     }
   }
-  
-  public long getBearing() {
+
+  public Double getBearing() {
     if (bearing != -1) {
       return bearing;
     }
-    return -1;
+    return null;
   }
 
-  public void setLongitude(long lon) {
+  public void setLongitude(Double lon) {
     if (lon >= -180 && lon <= 180) {
       longitude = lon;
     }
   }
-  
+
   public String getEncounterID() {
     if (correspondingEncounterID != null) {
       return correspondingEncounterID;
@@ -135,7 +134,7 @@ public class PointLocation implements java.io.Serializable {
       correspondingEncounterID = id;
     }
   }
-  
+
   public String getOccurrenceID() {
     if (correspondingOccurrenceID != null) {
       return correspondingOccurrenceID;
@@ -148,36 +147,29 @@ public class PointLocation implements java.io.Serializable {
       correspondingOccurrenceID = id;
     }
   }
-  
+
   public String getPathID() {
     if (correspondingPathID != null) {
       return correspondingPathID;
     }
     return null;
   }
-  
+
   public void setPathID(String id) {
     if (id != null && !id.equals("")) {
       correspondingPathID = id;
     }
-  } 
-  
-  private void generateUUID() {
-    this.pointLocationID = Util.generateUUID();
   }
-  
-  private boolean latLonCheck(long lat, long lon) {
-    if (lat >= -90 && lat <= 90 && lon > -180 && lon < 180) { 
+
+  private void generateUUID() {
+    this.pointLocationID = Util.generateUUID().toString();
+  }
+
+  private boolean latLonCheck(Double lat, Double lon) {
+    if (lat >= -90 && lat <= 90 && lon > -180 && lon < 180) {
       return true;
     }
     return false;
   }
-  
+
 }
-
-
-
-
-
-
-

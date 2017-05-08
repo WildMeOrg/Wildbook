@@ -30,8 +30,8 @@ public class Survey implements java.io.Serializable{
   private String type;
   
   //Might need to turn these to big int so can be null.
-  private Integer startTime;
-  private Integer endTime;
+  private Long startTime;
+  private Long endTime;
   
   // This is the actual amount of effort spent to gather date. 
   // It must be given a defined Measurement object.
@@ -50,7 +50,7 @@ public class Survey implements java.io.Serializable{
   public Survey(String date){
     this.date=date;
     generateID();
-    surveyTracks = new ArrayList<SurveyTrack>();
+    this.surveyTracks = new ArrayList<SurveyTrack>();
     setDateTimeCreated();
     setDWCDateLastModified();
   }
@@ -222,20 +222,20 @@ public class Survey implements java.io.Serializable{
     }
   }
   
-  public void setStartTimeMilli(Integer i) {
+  public void setStartTimeMilli(Long i) {
     if (i > 0) {
       startTime = i;
     }
   }
   
-  public Integer getStartTimeMilli() {
+  public String getStartTimeMilli() {
     if (startTime > 0 && startTime != null) {
-      return startTime;
+      return startTime.toString();
     }
     return null;
   }
   
-  public void setEndTimeMilli(Integer et) {
+  public void setEndTimeMilli(Long et) {
     if (et > 0) {
       startTime = et;
     }
@@ -245,8 +245,8 @@ public class Survey implements java.io.Serializable{
     String milli =  monthDayYearToMilli(date);
     System.out.println("End Milli : "+milli);
     try {
-      Integer m = Integer.valueOf(milli); 
-      endTime = m*-1;      
+      Long m = Long.valueOf(milli); 
+      endTime = Math.abs(m);      
     } catch (Exception e) {
       e.printStackTrace();
       System.out.println("Failed to Set endTime from dateString.");
@@ -257,17 +257,17 @@ public class Survey implements java.io.Serializable{
     String milli =  monthDayYearToMilli(date);
     System.out.println("Start Milli : "+milli);
     try {
-      Integer m = Integer.valueOf(milli);  
-      startTime = m*-1;  
+      Long m = Long.valueOf(milli);  
+      startTime = Math.abs(m);  
     } catch (Exception e) {
       e.printStackTrace();
       System.out.println("Failed to Set startTime from dateString.");
     }
   } 
   
-  public Integer getEndTimeMilli() {
+  public String getEndTimeMilli() {
     if (endTime > 0 && endTime != null) {
-      return endTime;
+      return endTime.toString();
     }
     return null;
   }

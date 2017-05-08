@@ -224,7 +224,7 @@ public class Shepherd {
     }
   }
   
-  public void storeNewPath(PointLocation plc ) {
+  public void storeNewPointLocation(PointLocation plc ) {
     beginDBTransaction();
     try {
       pm.makePersistent(plc);
