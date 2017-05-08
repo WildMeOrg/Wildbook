@@ -24,7 +24,7 @@ boolean committing = false;
 <ul>
 <%
 
-Integer[] contextNums = new Integer[] {2,3,4,5,6,7,8,9};
+Integer[] contextNums = new Integer[] {0,1};
 
 for (Integer contextNum : contextNums) {
 
@@ -48,7 +48,7 @@ try {
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
 
-  Iterator allEncounters=myShepherd.getAllEncountersNoQuery();
+  Iterator allOccurrences=myShepherd.getAllOccurrencesNoQuery();
 
 
   %>
@@ -57,42 +57,29 @@ try {
 
 
 
-  while(allEncounters.hasNext()/* && numFixes < 20*/){
+  while(allOccurrences.hasNext()/* && numFixes < 20*/){
 
-    Encounter enc=(Encounter)allEncounters.next();
-    if (enc.getImageNames()==null) {
-      String imageNames = enc.addAllImageNamesFromAnnots();
+    Occurrence occ=(Occurrence)allOccurrences.next();
+    if (occ.getGroupSize()==null) {
+      occ.setGroupSize(occ.getEncounters().size());
+      occ.setIndividualCount();
+      occ.setLatLonFromEncs();
       numFixes++;
     }
 
-    enc.setState("approved");
-
     if (committing) {
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
     }
+
+    %><li>
+      <ul>occ <%=occ.getOccurrenceID()%>
+        <li>individualCount <%=occ.getIndividualCount()%></li>
+        <li>groupsize <%=occ.getEncounters().size()%></li>
+        <li>latlong <%=occ.getLatLonString()%></li>
+      </ul>
+    </li><%
   }
-
-  /*
-  Iterator allMAs=myShepherd.getAllEncounters();
-  while(allMAs.hasNext()){
-
-		Encounter ma = (Encounter) allMAs.next();
-    numFixes++;
-
-    %><p>enc <%=ma.getCatalogNumber()%><%
-    ma.setState("approved");
-    %> set state <%=ma.getState()%></p><%
-    if (committing) {
-
-      myShepherd.commitDBTransaction();
-      myShepherd.beginDBTransaction();
-    }
-    %></ul><%
-
-	}*/
-
-
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();

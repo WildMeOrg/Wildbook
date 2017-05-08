@@ -24,7 +24,7 @@ boolean committing = false;
 <ul>
 <%
 
-Integer[] contextNums = new Integer[] {2,3,4,5,6,7,8,9};
+Integer[] contextNums = new Integer[] {0,1};
 
 for (Integer contextNum : contextNums) {
 
@@ -43,12 +43,15 @@ myShepherd.beginDBTransaction();
 
 int numFixes=0;
 
+int nExemplars=0;
+int nNonexempars=0;
+
 try {
 
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
 
-  Iterator allEncounters=myShepherd.getAllEncountersNoQuery();
+  Iterator allAnnotations=myShepherd.getAllAnnotationsNoQuery();
 
 
   %>
@@ -57,42 +60,20 @@ try {
 
 
 
-  while(allEncounters.hasNext()/* && numFixes < 20*/){
+  while(allAnnotations.hasNext()/* && numFixes < 20*/){
 
-    Encounter enc=(Encounter)allEncounters.next();
-    if (enc.getImageNames()==null) {
-      String imageNames = enc.addAllImageNamesFromAnnots();
-      numFixes++;
-    }
+    Annotation ann=(Annotation)allAnnotations.next();
 
-    enc.setState("approved");
+    if (ann.getIsExemplar()) nExemplars++;
+    else nNonexempars++;
 
     if (committing) {
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
     }
+
+    %><%
   }
-
-  /*
-  Iterator allMAs=myShepherd.getAllEncounters();
-  while(allMAs.hasNext()){
-
-		Encounter ma = (Encounter) allMAs.next();
-    numFixes++;
-
-    %><p>enc <%=ma.getCatalogNumber()%><%
-    ma.setState("approved");
-    %> set state <%=ma.getState()%></p><%
-    if (committing) {
-
-      myShepherd.commitDBTransaction();
-      myShepherd.beginDBTransaction();
-    }
-    %></ul><%
-
-	}*/
-
-
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
@@ -102,6 +83,15 @@ finally{
 
 }
 %>
+
+<li>
+  <h3><strong><%=nExemplars%></strong> Exemplars!</h3>
+</li>
+<li>
+  <h3><strong><%=nNonexempars%></strong> <em>not</em> exemplars!</h3>
+</li>
+
+
 </ul>
 Done successfully: <%=numFixes %></p>
 
