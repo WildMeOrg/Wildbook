@@ -91,6 +91,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File encounterDir = new File(encountersDir, num);
 
 
+Properties princetonProps = ShepherdProperties.getProperties("princeton.properties","",context);
+
+
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
 
@@ -2588,35 +2591,22 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     %>
     <!-- start set life stage popup -->
 <div id="dialogLifeStage" title="<%=encprops.getProperty("resetLifeStage")%>" style="display:none">
+
 	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+	  <tr>
+	    <td align="left" valign="top">
 
-						  <tr>
-						    <td align="left" valign="top">
-						      <form name="lifeStageForm" action="../EncounterSetLifeStage" method="post">
-						            <select name="lifeStage" id="lifeStage">
-						            	<option value=""></option>
-
-						       <%
-						       boolean hasMoreStages=true;
-						       int taxNum=0;
-						       while(hasMoreStages){
-						       	  String currentLifeStage = "lifeStage"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-						       	  	%>
-
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreStages=false;
-						          }
-
-						       }
-						       %>
-
-
-						      </select>
+	      <form name="lifeStageForm" action="../EncounterSetLifeStage" method="post">
+					<select name="lifeStage" id="lifeStage">
+						<option value=""></option>
+            <%
+            List<String> princeLifeStages = Util.getIndexedPropertyValues("lifeStage", princetonProps);
+            System.out.println("   Got princetonProps and "+princeLifeStages.size()+" lifeStages "+princeLifeStages);
+            for (String lifeStage: princeLifeStages) {
+              %>
+              <option value="<%=lifeStage%>"><%=lifeStage%></option><%
+            } %>
+          </select>
 						      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
 						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
 						      </form>
@@ -2642,6 +2632,433 @@ $("a#LifeStage").click(function() {
 }
   %>
 <!--  END LIFESTAGE SECTION -->
+
+
+<!--  START PRINCETON SECTIONS! -->
+<!--  START SOIL SECTION -->
+<p class="para">Soil:&nbsp;
+  <%
+  if (enc.getSoil() != null) {
+    %> <%=enc.getSoil()%> <%
+  }
+
+  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+    %>
+    <a id="Soil" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+  }
+  %>
+</p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+    <!-- start set soil popup -->
+<div id="dialogSoil" title="Set Soil:" style="display:none">
+
+	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+	  <tr>
+	    <td align="left" valign="top">
+
+	      <form name="soilForm" action="../EncounterSetField" method="post">
+					<select name="value" id="soil">
+						<option value=""></option>
+            <%
+            List<String> princeSoils = Util.getIndexedPropertyValues("soil", princetonProps);
+            System.out.println("   Got princetonProps and "+princeSoils.size()+" soils "+princeSoils);
+            for (String soil: princeSoils) {
+              %>
+              <option value="<%=soil%>"><%=soil%></option><%
+            } %>
+          </select>
+						      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
+                  <input type="hidden" name="fieldName" value="soil">
+						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+						      </form>
+						    </td>
+						  </tr>
+						</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgSoil = $("#dialogSoil").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#Soil").click(function() {
+  dlgSoil.dialog("open");
+});
+</script>
+<%
+  }
+  %>
+<!--  END SOIL SECTION -->
+
+
+<!--  START reproductiveStage SECTION -->
+<p class="para">Reproductive Stage:&nbsp;
+  <%
+  if (enc.getReproductiveStage() != null) {
+    %> <%=enc.getReproductiveStage()%> <%
+  }
+
+  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+    %>
+    <a id="ReproductiveStage" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+  }
+  %>
+</p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+    <!-- start set reproductiveStage popup -->
+<div id="dialogReproductiveStage" title="Set Reproductive Stage:" style="display:none">
+
+	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+	  <tr>
+	    <td align="left" valign="top">
+
+	      <form name="reproductiveStageForm" action="../EncounterSetField" method="post">
+					<select name="value" id="reproductiveStage">
+						<option value=""></option>
+            <%
+            List<String> princeReproductiveStages = Util.getIndexedPropertyValues("reproductiveStage", princetonProps);
+            System.out.println("   Got princetonProps and "+princeReproductiveStages.size()+" reproductiveStages "+princeReproductiveStages);
+            for (String reproductiveStage: princeReproductiveStages) {
+              %>
+              <option value="<%=reproductiveStage%>"><%=reproductiveStage%></option><%
+            } %>
+          </select>
+	      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
+        <input type="hidden" name="fieldName" value="reproductiveStage">
+	        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+	      </form>
+	    </td>
+	  </tr>
+	</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgReproductiveStage = $("#dialogReproductiveStage").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#ReproductiveStage").click(function() {
+  dlgReproductiveStage.dialog("open");
+});
+</script>
+<%
+  }
+  %>
+<!--  END reproductiveStage SECTION -->
+
+<!--  START bodyCondition SECTION -->
+<p class="para">Body Condition:&nbsp;
+  <%
+  String bodyConditionStr="";
+  String bodyConditionInstructionStr="Number 1.00-5.00";
+  if (enc.getBodyCondition() != null) {
+    bodyConditionStr = enc.getBodyCondition().toString();
+  }
+  %> <%=bodyConditionStr%> <%
+
+  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+    %>
+    <a id="BodyCondition" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+  }
+  %>
+</p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+    <!-- start set bodyCondition popup -->
+<div id="dialogBodyCondition" title="Set Body Condition:" style="display:none">
+
+	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+	  <tr>
+	    <td align="left" valign="top">
+
+
+	      <form name="bodyConditionForm" action="../EncounterSetField" method="post">
+        <em> <%=bodyConditionInstructionStr%></em><input name="value" type="text" size="10" maxlength="500" value="<%=bodyConditionStr %>"/>
+	      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
+        <input type="hidden" name="fieldName" value="bodyCondition">
+        <input type="hidden" name="fieldType" value="Double">
+
+	        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+	      </form>
+	    </td>
+	  </tr>
+	</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgBodyCondition = $("#dialogBodyCondition").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#BodyCondition").click(function() {
+  dlgBodyCondition.dialog("open");
+});
+</script>
+<%
+  }
+  %>
+<!--  END bodyCondition SECTION -->
+
+<!--  START parasiteLoad SECTION -->
+<p class="para">Parasite Load:&nbsp;
+  <%
+  String parasiteLoadStr="";
+  String parasiteLoadInstructionStr="numeric up to 5 digits";
+  if (enc.getParasiteLoad() != null) {
+    parasiteLoadStr = enc.getParasiteLoad().toString();
+  }
+  %> <%=parasiteLoadStr%> <%
+
+  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+    %>
+    <a id="ParasiteLoad" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+  }
+  %>
+</p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+    <!-- start set parasiteLoad popup -->
+<div id="dialogParasiteLoad" title="Set Parasite Load:" style="display:none">
+
+	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+	  <tr>
+	    <td align="left" valign="top">
+
+
+	      <form name="parasiteLoadForm" action="../EncounterSetField" method="post">
+        <em> <%=parasiteLoadInstructionStr%></em><input name="value" type="text" size="10" maxlength="500" value="<%=parasiteLoadStr %>"/>
+	      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
+        <input type="hidden" name="fieldName" value="parasiteLoad">
+        <input type="hidden" name="fieldType" value="Double">
+
+	        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+	      </form>
+	    </td>
+	  </tr>
+	</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgParasiteLoad = $("#dialogParasiteLoad").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#ParasiteLoad").click(function() {
+  dlgParasiteLoad.dialog("open");
+});
+</script>
+<%
+  }
+  %>
+<!--  END parasiteLoad SECTION -->
+
+
+<!--  START immunoglobin SECTION -->
+<p class="para">Immunoglobin:&nbsp;
+  <%
+  String immunoglobinStr="";
+  String immunoglobinInstructionStr="numeric up to 4 digits";
+  if (enc.getImmunoglobin() != null) {
+    immunoglobinStr = enc.getImmunoglobin().toString();
+  }
+  %> <%=immunoglobinStr%> <%
+
+  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+    %>
+    <a id="Immunoglobin" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+  }
+  %>
+</p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+    <!-- start set immunoglobin popup -->
+<div id="dialogImmunoglobin" title="Set Immunoglobin:" style="display:none">
+
+	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+	  <tr>
+	    <td align="left" valign="top">
+
+
+	      <form name="immunoglobinForm" action="../EncounterSetField" method="post">
+        <em> <%=immunoglobinInstructionStr%></em><input name="value" type="text" size="10" maxlength="500" value="<%=immunoglobinStr %>"/>
+	      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
+        <input type="hidden" name="fieldName" value="immunoglobin">
+        <input type="hidden" name="fieldType" value="Double">
+
+	        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+	      </form>
+	    </td>
+	  </tr>
+	</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgImmunoglobin = $("#dialogImmunoglobin").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#Immunoglobin").click(function() {
+  dlgImmunoglobin.dialog("open");
+});
+</script>
+<%
+  }
+  %>
+<!--  END immunoglobin SECTION -->
+
+<!--  START sampleTakenForDiet SECTION -->
+<p class="para">Sample Taken For Diet:&nbsp;
+  <%
+  String sampleTakenForDietStr="";
+  String sampleTakenForDietInstructionStr="";
+  if (enc.getSampleTakenForDiet() != null) {
+    sampleTakenForDietStr = enc.getSampleTakenForDiet().toString();
+  }
+  %> <%=sampleTakenForDietStr%> <%
+
+  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+    %>
+    <a id="SampleTakenForDiet" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+  }
+  %>
+</p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+    <!-- start set sampleTakenForDiet popup -->
+<div id="dialogSampleTakenForDiet" title="Set Sample Taken For Diet:" style="display:none">
+
+	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+	  <tr>
+	    <td align="left" valign="top">
+
+
+	      <form name="sampleTakenForDietForm" action="../EncounterSetField" method="post">
+
+        <input type="radio" name="value" value="true"> yes<br>
+        <input type="radio" name="value" value="false"> no<br>
+        <input type="radio" name="value" value=""> no entry<br>
+
+
+	      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
+        <input type="hidden" name="fieldName" value="sampleTakenForDiet">
+        <input type="hidden" name="fieldType" value="Boolean">
+
+	        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+	      </form>
+	    </td>
+	  </tr>
+	</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgSampleTakenForDiet = $("#dialogSampleTakenForDiet").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#SampleTakenForDiet").click(function() {
+  dlgSampleTakenForDiet.dialog("open");
+});
+</script>
+<%
+  }
+  %>
+<!--  END sampleTakenForDiet SECTION -->
+
+<!--  START injured SECTION -->
+<p class="para">Injured:&nbsp;
+  <%
+  String injuredStr="";
+  String injuredInstructionStr="";
+  if (enc.getInjured() != null) {
+    injuredStr = enc.getInjured().toString();
+  }
+  %> <%=injuredStr%> <%
+
+  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+    %>
+    <a id="Injured" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+  }
+  %>
+</p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+    <!-- start set injured popup -->
+<div id="dialogInjured" title="Set Injured:" style="display:none">
+
+	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+	  <tr>
+	    <td align="left" valign="top">
+
+
+	      <form name="injuredForm" action="../EncounterSetField" method="post">
+
+        <input type="radio" name="value" value="true"> yes<br>
+        <input type="radio" name="value" value="false"> no<br>
+        <input type="radio" name="value" value=""> no entry<br>
+
+
+	      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
+        <input type="hidden" name="fieldName" value="injured">
+        <input type="hidden" name="fieldType" value="Boolean">
+
+	        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+	      </form>
+	    </td>
+	  </tr>
+	</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgInjured = $("#dialogInjured").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#Injured").click(function() {
+  dlgInjured.dialog("open");
+});
+</script>
+<%
+  }
+  %>
+<!--  END injured SECTION -->
+
 
 
 <!-- START ADDITIONAL COMMENTS -->
