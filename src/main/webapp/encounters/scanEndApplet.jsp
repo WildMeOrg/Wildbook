@@ -38,11 +38,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   session.setMaxInactiveInterval(6000);
   String num = request.getParameter("number");
 	String encSubdir = Encounter.subdir(num);
+
+	/*
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("scanEndApplet.jsp");
   if (request.getParameter("writeThis") == null) {
     myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
   }
+  */
   //Shepherd altShepherd = new Shepherd(context);
   String sessionId = session.getId();
   boolean xmlOK = false;
@@ -157,12 +160,15 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   Element root;
   String side = "left";
 
+  /*
   if (request.getParameter("writeThis") == null) {
     initresults = myShepherd.matches;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       side = "right";
     }
-  } else {
+  }
+  */
+  //else {
 
 //read from the written XML here if flagged
     try {
@@ -189,11 +195,11 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     } catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
-      initresults = myShepherd.matches;
+      //initresults = myShepherd.matches;
       xmlOK = false;
     }
 
-  }
+  //}
   MatchObject[] matches = new MatchObject[0];
   if (!xmlOK) {
     int resultsSize = initresults.size();
@@ -449,8 +455,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 
-myShepherd.closeDBTransaction();
-    myShepherd = null;
+	//myShepherd.closeDBTransaction();
+    //myShepherd = null;
     doc = null;
     root = null;
     initresults = null;
