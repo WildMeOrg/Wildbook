@@ -1442,7 +1442,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     dwcDateAdded = m_dateAdded;
   }
     public void setDWCDateAdded() {
-        dwcDateAdded = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        Date myDate=new Date();
+        dwcDateAddedLong=new Long(myDate.getTime());
+        dwcDateAdded = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(myDate);
     }
 
 
