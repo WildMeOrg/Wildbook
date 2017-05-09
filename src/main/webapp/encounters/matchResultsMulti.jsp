@@ -75,6 +75,99 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 <style type="text/css">
 
+.task-title {
+	background-color: #FAA;
+	margin: 10px 0;
+	padding: 8px;
+}
+.task-title-id {
+	font-size: 0.8em;
+}
+
+.task-content {
+	height: 520px;
+}
+.annot-wrapper {
+	width: 48%;
+}
+
+.summary-column {
+	display: inline-block;
+	width: 32%;
+	vertical-align: top;
+}
+
+.annot-summary {
+	padding: 1px 10px;
+	margin: 4px 0;
+}
+
+.annot-summary:hover {
+	background-color: #8E8;
+}
+
+.annot-wrapper {
+	position: relative;
+}
+.annot-wrapper img {
+	width: 100%;
+}
+
+.annot-wrapper .img-info {
+	position: absolute;
+	bottom: 2px;
+	left: 2px;
+	font-size: 0.8em;
+	background-color: rgba(255,255,255,0.7);
+	padding: 1px 3px;
+	border-radius: 2px;
+}
+
+.annot-wrapper-query .annot-info {
+	display: none;
+}
+.annot-info-num {
+	font-size: 0.8em;
+	color: #666;
+	display: inline-block;
+	margin-right: 10px;
+	text-align: right;
+	width: 1.3em;
+}
+
+.annot-wrapper-query {
+	float: left;
+}
+.annot-wrapper-dict {
+	float: right;
+	display: none;
+}
+
+.annot-info {
+	display: inline-block;
+}
+
+.enc-link, .indiv-link {
+	vertical-align: middle;
+	font-size: 0.8em;
+	padding: 0 3px;
+	border-radius: 4px;
+	margin: 0 3px 0 15px;
+	background-color: #DDD;
+	overflow: hidden;
+	display: inline-block;
+	white-space: nowrap;
+	max-width: 120px;
+}
+.enc-link:hover, .indiv-link:hover {
+	background-color: #DD4;
+	text-decoration: none;
+}
+
+.task-title .enc-link, .task-title .indiv-link {
+	max-width: none !important;
+}
+
 #approval-buttons {
 	height: 5em;
 }
@@ -270,7 +363,7 @@ function parseTaskIds() {
 }
 
 function grabTaskResult(tid) {
-	$('.maincontent').append('<div class="task-content" id="task-' + tid + '" />');
+	$('.maincontent').append('<div class="task-content" id="task-' + tid + '"><div class="task-title"><span class="task-title-id"><b>Task ' + tid + '</b></span></div><div class="task-summary"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div></div>');
 	$.ajax({
 		url: '../iaLogs.jsp?taskId=' + tid,
 		type: 'GET',
@@ -292,21 +385,29 @@ function grabTaskResult(tid) {
 	});
 }
 
+var RESMAX = 12;
 function showTaskResult(res) {
 	console.log(res);
 	if (res.status && res.status._response && res.status._response.response && res.status._response.response.json_result &&
 			res.status._response.response.json_result.cm_dict) {
+		var isEdgeMatching = (res.status._response.response.json_result.query_config_dict &&
+			(res.status._response.response.json_result.query_config_dict.pipeline_root == 'OC_WDTW'));
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
+
+		$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
+		displayAnnot(res.taskId, qannotId, -1, -1);
+
 		var sorted = score_sort(res.status._response.response.json_result['cm_dict'][qannotId]);
 		var max = sorted.length;
-		if (max > 10) max = 10;
-		displayAnnot(qannotId, -1, -1);
+		if (max > RESMAX) max = RESMAX;
 		for (var i = 0 ; i < max ; i++) {
 			var d = sorted[i].split(/\s/);
 			displayAnnot(res.taskId, d[1], i, d[0]);
 		}
+		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
+		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
 
 	} else {
 		$('#task-' + res.taskId).append('<p class="error">there was an error parsing results for task ' + res.taskId + '</p>');
@@ -315,7 +416,73 @@ function showTaskResult(res) {
 
 
 function displayAnnot(taskId, annId, num, score) {
-	$('#task-' + taskId).append('<div>(' + num + ')<b>' + annId + ':</b> ' + score + '</p>');
+console.info('%d ===> %s', num, annId);
+	var h = '<div data-annid="' + annId + '" class="annot-summary annot-summary-' + annId + '">';
+	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
+	var perCol = Math.ceil(RESMAX / 3);
+	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
+	//now the image guts
+	h = '<div class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + annId + '">';
+	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
+	$('#task-' + taskId).append(h);
+	$.ajax({
+		url: 'matchResultsMulti.jsp?annotId=' + annId,
+		type: 'GET',
+		dataType: 'json',
+		complete: function(d) { displayAnnotDetails(taskId, d, (num < 0)); }
+	});
+}
+
+function displayAnnotDetails(taskId, res, isQueryAnnot) {
+console.warn('+++++++ isQueryAnnot %o', isQueryAnnot);
+	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error) {
+		console.warn('error on (task %s) res = %o', taskId, res);
+		return;
+	}
+	var encId = false;
+	var indivId = false;
+	var imgInfo = '';
+	if (res.responseJSON.asset) {
+		if (res.responseJSON.asset.url) {
+			$('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<img src="' + res.responseJSON.asset.url + '" />');
+		} else {
+			$('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<img src="../images/no_images.jpg" style="padding: 10%" />');
+		}
+		if (res.responseJSON.asset.dateTime) {
+			imgInfo += ' <b>' + res.responseJSON.asset.dateTime.substring(0,16) + '</b> ';
+		}
+		if (res.responseJSON.asset.filename) {
+			var fn = res.responseJSON.asset.filename;
+			var i = fn.lastIndexOf('/');
+			if (i > -1) fn = fn.substring(i + 1);
+			imgInfo += ' ' + fn + ' ';
+		}
+		if (res.responseJSON.asset.features && (res.responseJSON.asset.features.length > 0)) {
+			encId = res.responseJSON.asset.features[0].encounterId;
+			indivId = res.responseJSON.asset.features[0].individualId;
+			var h = '';
+			if (encId) {
+				h += '<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
+				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+			}
+			if (indivId) {
+				h += '<a class="indiv-link" target="_new" href="../individual.jsp?number=' + indivId + '">' + indivId + '</a>';
+				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="indiv-link" target="_new" href="../individual.jsp?number=' + indivId + '">' + indivId + '</a>');
+			}
+			if (isQueryAnnot && h) $('#task-' + taskId + ' .task-title').append(h);
+		}
+	}
+	if (imgInfo) $('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<div class="img-info">' + imgInfo + '</div>');
+}
+
+
+function annotClick(ev) {
+	//console.log(ev);
+	var annId = ev.currentTarget.getAttribute('data-annid');
+	var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
+	//console.warn('%o | %o', taskId, annId);
+	$('#task-' + taskId + ' .annot-wrapper-dict').hide();
+	$('#task-' + taskId + ' .annot-' + annId).show();
 }
 
 function score_sort(cm_dict, topn) {
