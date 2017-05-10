@@ -645,7 +645,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
 
     //like below, but you can pass Encounters (which will be mined for Annotations and passed along)
-    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
+    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context, JSONObject opt) {
         if (!isIAPrimed()) System.out.println("WARNING: beginIdentify() called without IA primed");
         JSONObject results = new JSONObject();
         results.put("success", false);  //pessimism!
@@ -667,7 +667,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
         }
 
-        JSONObject queryConfigDict = queryConfigDict();
+        JSONObject queryConfigDict = queryConfigDict(myShepherd, species, opt);
 
         return beginIdentifyAnnotations(qanns, tanns, queryConfigDict, null, myShepherd, species, taskID, baseUrl, context);
     }
@@ -1026,7 +1026,7 @@ System.out.println("beginning IBEIS-IA training jobs on " + encs.size() + " enco
             }
             String taskID = taskPrefix + qenc.getEncounterNumber();
 System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ========================================================================================");
-            JSONObject res = IBEISIA.beginIdentify(qencs, tencs, myShepherd, taxonomyString, taskID, baseUrl, context);
+            JSONObject res = beginIdentify(qencs, tencs, myShepherd, taxonomyString, taskID, baseUrl, context, null);
             if (res.optBoolean("success")) {
                 ids.add(taskID);
             } else {
@@ -2489,13 +2489,19 @@ System.out.println("using qid -> " + qid);
         return res;
     }
 
-    //stub to pick algorithm to be used etc. 
-    public static JSONObject queryConfigDict() {
+    //not really sure what/how to do this...
+    public static JSONObject queryConfigDict(Shepherd myShepherd, String species, JSONObject opt) {
+System.out.println("queryConfigDict() got species=" + species + "; and opt = " + opt);
+        if (opt == null) return null;
+
+        // and this is oriented curvature + weighted dynamic time-warping
+        if (opt.optBoolean("OC_WDTW", false)) return new JSONObject("{\"pipeline_root\": \"OC_WDTW\"}");
+
+        //boring fallback...
         return null;
+
         // this is trailing edge matching but takes foreeeevvvver
         //return new JSONObject("{\"pipeline_root\": \"BC_DTW\"}");
-        // and this is oriented curvature + weighted dynamic time-warping
-        //return new JSONObject("{\"pipeline_root\": \"OC_WDTW\"}");
     }
 
     private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
