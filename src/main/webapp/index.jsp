@@ -220,7 +220,7 @@ margin-bottom: 8px !important;
 	 		         var latLng<%=i%> = new google.maps.LatLng(<%=thisLatLong%>);
 			          bounds.extend(latLng<%=i%>);
 
-	 		          var divString<%=i%> = "<div style=\"font-weight:bold;margin-top: 5px; text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:60px;padding: 2px; background-image: url('cust/mantamatcher/img/gsb_map_marker_square.png');background-size: cover\"><a href=\"encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+	 		          var divString<%=i%> = "<div style=\"font-weight:bold;margin-top: 5px; text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:60px;padding: 2px; background-image: url('cust/mantamatcher/img/bass/gsb_map_marker_square.png');background-size: cover\"><a href=\"encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
 
 
 	 		         var marker<%=i%> = new RichMarker({
@@ -442,7 +442,7 @@ finally{
 
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_photograph_gsb.png" alt=""  />
+					<img class="pull-right" src="cust/mantamatcher/img/bass/how_it_works_photograph_gsb.png" alt=""  />
 				</div>
 			</div>
 			<div class="item">
@@ -464,7 +464,7 @@ finally{
           </p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_researcher_verification.png" alt="researcher verfiying submission of giant sea bass encounter"  />
+					<img class="pull-right" src="cust/mantamatcher/img/bass/how_it_works_researcher_verification.png" alt="researcher verfiying submission of giant sea bass encounter"  />
 				</div>
 			</div>
 			<div class="item">
@@ -475,7 +475,7 @@ finally{
           </p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_matching_process.png" alt=""  />
+					<img class="pull-right" src="cust/mantamatcher/img/bass/how_it_works_matching_process.png" alt=""  />
 				</div>
 			</div>
 			<div class="item">
@@ -486,7 +486,7 @@ finally{
           </p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
+					<img class="pull-right" src="cust/mantamatcher/img/bass/how_it_works_match_result.png" alt=""  />
 				</div>
 			</div>
 		</div>
