@@ -364,6 +364,9 @@ function parseTaskIds() {
 
 function grabTaskResult(tid) {
 	$('.maincontent').append('<div class="task-content" id="task-' + tid + '"><div class="task-title"><span class="task-title-id"><b>Task ' + tid + '</b></span></div><div class="task-summary"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div></div>');
+	var mostRecent = false;
+	var gotResult = false;
+console.warn('------------------- %s', tid);
 	$.ajax({
 		url: '../iaLogs.jsp?taskId=' + tid,
 		type: 'GET',
@@ -374,11 +377,16 @@ function grabTaskResult(tid) {
 				if (d[i].status && d[i].status._action == 'getJobResult') {
 					showTaskResult(d[i]);
 					i = d.length;
+					gotResult = true;
+				} else {
+					if (!mostRecent && d[i].status && d[i].status._action) mostRecent = d[i].status._action;
 				}
 			}
-//console.info('>>>> got %o', d);
+			if (!gotResult) $('#task-' + tid).append('<p title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
+console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on tid=%s', d, tid);
 		},
 		error: function(a,b,c) {
+console.info('!!>> got %o', d);
 			console.error(a, b, c);
 			$('#task-' + tid).append('<p class="error">there was an error with task ' + tid + '</p>');
 		}
@@ -387,7 +395,7 @@ function grabTaskResult(tid) {
 
 var RESMAX = 12;
 function showTaskResult(res) {
-	console.log(res);
+	console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRESULT showTaskResult() %o on %s", res, res.taskId);
 	if (res.status && res.status._response && res.status._response.response && res.status._response.response.json_result &&
 			res.status._response.response.json_result.cm_dict) {
 		var isEdgeMatching = (res.status._response.response.json_result.query_config_dict &&
@@ -400,6 +408,11 @@ function showTaskResult(res) {
 		displayAnnot(res.taskId, qannotId, -1, -1);
 
 		var sorted = score_sort(res.status._response.response.json_result['cm_dict'][qannotId]);
+		if (!sorted || (sorted.length < 1)) {
+			//$('#task-' + res.taskId + ' .waiting').remove();  //shouldnt be here (cuz got result)
+			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
+			return;
+		}
 		var max = sorted.length;
 		if (max > RESMAX) max = RESMAX;
 		for (var i = 0 ; i < max ; i++) {
@@ -466,8 +479,8 @@ console.warn('+++++++ isQueryAnnot %o', isQueryAnnot);
 				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
 			}
 			if (indivId) {
-				h += '<a class="indiv-link" target="_new" href="../individual.jsp?number=' + indivId + '">' + indivId + '</a>';
-				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="indiv-link" target="_new" href="../individual.jsp?number=' + indivId + '">' + indivId + '</a>');
+				h += '<a class="indiv-link" target="_new" href="../individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
+				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="indiv-link" target="_new" href="../individuals.jsp?number=' + indivId + '">' + indivId + '</a>');
 			}
 			if (isQueryAnnot && h) $('#task-' + taskId + ' .task-title').append(h);
 		}
@@ -486,7 +499,7 @@ function annotClick(ev) {
 }
 
 function score_sort(cm_dict, topn) {
-console.warn(cm_dict);
+console.warn('score_sort() cm_dict %o', cm_dict);
 //.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
 	if (!cm_dict.score_list || !cm_dict.dname_uuid_list) return;
 	var sorta = [];
