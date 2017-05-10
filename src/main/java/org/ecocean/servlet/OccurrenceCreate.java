@@ -71,6 +71,7 @@ public class OccurrenceCreate extends HttpServlet {
       myOccurrenceID=ServletUtilities.cleanFileName(myOccurrenceID);
       
     }
+    System.out.println("New ID in doPost Outside : "+myOccurrenceID);
 
     //Create a new Occurrence from an encounter
 
@@ -78,6 +79,7 @@ public class OccurrenceCreate extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter enc2make = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2make);
+      System.out.println("New Occ Id In Create : "+myOccurrenceID);
 
 
       boolean ok2add=true;
@@ -100,6 +102,7 @@ public class OccurrenceCreate extends HttpServlet {
             le.printStackTrace();
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
+            System.out.println("Failed to create a new Occurrence.: ");
           }
 
           if (!locked&&ok2add) {
@@ -126,7 +129,7 @@ public class OccurrenceCreate extends HttpServlet {
 
 
         } else {
-
+          System.out.println("Failed to find a lack of Occ ID on the encounter, and to find a goo Occ Id for a new one.");
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
 
