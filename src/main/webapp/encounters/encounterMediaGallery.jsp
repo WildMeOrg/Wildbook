@@ -122,6 +122,11 @@ console.log("_identCallback got %o", res);
 	identTasks.push(res);
 	if (identTasks.length > 1) {
 console.info('completed _identAjax calls with %o', identTasks);
+		var ids = '';
+		for (var i = 0 ; i < identTasks.length ; i++) {
+			if (identTasks[i].success) ids += '&taskId=' + identTasks[i].taskId;
+		}
+		if (ids) window.location.href = 'matchResultsMulti.jsp?' + ids.substring(1);
 	}
 }
 
