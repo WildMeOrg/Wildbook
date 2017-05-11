@@ -375,7 +375,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
       target="_self" dir="ltr"
       lang="en"
       onsubmit="return false;"
-      class="form-horizontal"
+      class="form-horizontal" 
+      accept-charset="UTF-8"
 >
 
 <div class="dz-message"></div>
