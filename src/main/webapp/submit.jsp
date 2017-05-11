@@ -777,8 +777,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   </h4>
 
     <div id="advancedInformation" fade="1" style="display: none;">
-  <hr>
-	    
+  	    
       <h3><%=props.getProperty("aboutAnimal") %></h3>
         <hr>
         <fieldset>
@@ -1068,11 +1067,13 @@ if (tagSwitch == true) {
       </div>
       </div>
 
+  <hr>	
 
          <%
          if(request.getRemoteUser()==null){
          %>
-         <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
+     
+	<div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
 		         //we need to first check here if we need to do the background social image send... in which case,
 		        // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
