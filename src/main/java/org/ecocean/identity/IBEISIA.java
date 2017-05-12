@@ -176,6 +176,8 @@ System.out.println("sendMediaAssets(): sending " + ct);
         map.put("annot_name_list", new ArrayList<String>());
 
         Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("IBEISIA.class_sendAnnotations");
+        myShepherd.beginDBTransaction();
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
             int[] bbox = ann.getBbox();
@@ -189,6 +191,8 @@ System.out.println("sendMediaAssets(): sending " + ct);
             markSent(ann);
             ct++;
         }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
 
 System.out.println("sendAnnotations(): sending " + ct);
         if (ct < 1) return null;
