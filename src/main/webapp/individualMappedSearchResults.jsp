@@ -9,6 +9,8 @@
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
     
+    String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+    
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
     map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode,context);
@@ -59,8 +61,6 @@
    
     List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
     int numSpeciesColors=allSpeciesColors.size();
-    
-    String mapKey = CommonConfiguration.getGoogleSearchKey(context);
 %>
 
 
@@ -136,7 +136,7 @@
   <jsp:include page="header.jsp" flush="true"/>
   
 
-<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&v=3.9&language=<%=langCode %>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="javascript/GeoJSON.js"></script>
@@ -145,7 +145,7 @@
 
     <script type="text/javascript">
     
-    var center = new google.maps.LatLng(32.6104351,-117.3712712);
+    var center = new google.maps.LatLng(0,0);
     var mapZoom = 1;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
     var bounds = new google.maps.LatLngBounds();

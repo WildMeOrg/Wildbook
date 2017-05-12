@@ -9,6 +9,8 @@
 
     String langCode=ServletUtilities.getLanguageCode(request);
     
+    String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+    
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
     map_props=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode, context);
@@ -59,7 +61,7 @@
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
     
-    String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+
     		
     		
   %>
@@ -132,7 +134,7 @@
   
   <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>?"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
  <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
  
 

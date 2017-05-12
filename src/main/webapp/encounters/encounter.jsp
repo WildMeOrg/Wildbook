@@ -150,6 +150,8 @@ String mapKey = CommonConfiguration.getGoogleSearchKey(context);
   boolean haveRendered = false;
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
+  
+  String mapKey = CommonConfiguration.getGoogleSearchKey(context);
 %>
 
 
