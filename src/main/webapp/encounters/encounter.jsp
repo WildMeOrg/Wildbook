@@ -150,13 +150,15 @@ String langCode=ServletUtilities.getLanguageCode(request);
   boolean haveRendered = false;
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
+  
+  String mapKey = CommonConfiguration.getGoogleSearchKey(context);
 %>
 
 
 
 <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 
   <style type="text/css">
