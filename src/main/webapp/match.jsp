@@ -568,8 +568,7 @@ function createEncounters() {
 	});
 }
 
-var encIds = [];
-var taskIds = [];
+var encIds = {};
 function createEncounter(data, id) {
 	waitOn('Saving data...');
 	$.ajax({
@@ -597,7 +596,7 @@ function createEncounter(data, id) {
 
 // .annotations .assets .encounterId
 function processEncounter(data, id) {
-	encIds.push(data.encounterId);
+	encIds[id] = data.encounterId;
 	$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>created <b><a target="_new" title="' + data.encounterId +
 		'" href="encounters/encounter.jsp?number=' + data.encounterId + '&accessKey=' + accessKey + '">new encounter</a></b>.</div>');
 	waitOn('Starting identification...');
@@ -708,14 +707,24 @@ function wrapThingsUp() {
 
 function sendEmail() {
 	waitOn('Finishing...');
+	var data = {
+		accessKey: accessKey,
+		created: {}
+	};
+	for (var id in identTasks) {
+		if (!encIds[id]) continue;
+		data.created[encIds[id]] = [];
+		if (!identTasks[id].length) continue;
+		for (var i = 0 ; i < identTasks[id].length ; i++) {
+			if (!identTasks[id][i].success) continue;
+			data.created[encIds[id]].push(identTasks[id][i].taskId);
+		}
+	}
+console.warn('sendEmail() data = %o', data);
 	$.ajax({
 		url: 'EncounterCreate',
 		contentType: 'application/javascript',
-		data: JSON.stringify({
-			encounters: encIds,
-			tasks: taskIds,
-			accessKey: accessKey
-		}),
+		data: JSON.stringify(data),
 		dataType: 'json',
 		complete: function(x) {
 			console.info('sendEmail() -> %o', x);
