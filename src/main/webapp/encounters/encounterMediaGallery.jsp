@@ -77,31 +77,67 @@ JSONArray all = new JSONArray();
 List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
+	//i am a bit confused here... will this ever be more than one encounter???
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
+  	int numEncs=encs.size();
 
-  int numEncs=encs.size();
   %><script>
-  console.log("numEncs = <%=numEncs%>");
-  </script>
-  <%
-  for(int f=0;f<numEncs;f++){
-		  Encounter enc = encs.get(f);
-		  ArrayList<Annotation> anns = enc.getAnnotations();
-		  %>
-		  <script>
-		  function isGenusSpeciesSet() {
-		    var check = <%=((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null))%>;
-		    console.log("isGenusSpeciesSet() = "+check);
-		    return check;
-		  }
+function isGenusSpeciesSet() {
+	var check = <%=((encs.get(0).getGenus()!=null)&&(encs.get(0).getSpecificEpithet()!=null))%>;
+	console.log("isGenusSpeciesSet() = "+check);
+	return check;
+}
 
-		  function startIdentify(ma) {
-			if (!ma) return;
-			var aid = ma.annotationId;
-		    //var aid = el.getAttribute('data-id');
-		    //el.parentElement.innerHTML = '<i>starting identification</i>';
-		//console.warn('aid=%o, el=%o', aid, el); return;
+var identTasks = [];
+function startIdentify(ma) {
+	//TODO this is tailored for flukebook basically.  see: Great Future Where Multiple IA Plugins Are Seemlessly Supported
+	_identAjax(ma);  //default; pattern-match
+	_identAjax(ma, { OC_WDTW: true });  //will do trailing edge match
+}
+
+function _identAjax(ma, opt) {
+	if (!ma) return _identCallback({ success: false, error: '_identAjax called with no MediaAsset' });
+	var aid = ma.annotationId;
+	if (!aid) return _identCallback({ success: false, error: '_identAjax called with no annotationId on asset', asset: ma });
+	var jdata = { identify: { annotationIds: [ aid ] }, enqueue: true };
+	//var jdata = { identify: { annotationIds: [ aid ], limitTargetSize: 10 } };  //debugging (small set to compare against)
+	if (opt) jdata.identify.opt = opt;
+	jQuery.ajax({
+		url: '../ia',
+		type: 'POST',
+		dataType: 'json',
+		contentType: 'application/javascript',
+		success: function(d) { _identCallback(d); },
+		error: function(x,y,z) {
+			console.warn('_identAjax error on %o: %o %o %o', ma, x, y, z);
+			_identCallback({ success: false, error: 'error ' + x});
+		},
+		data: JSON.stringify(jdata)
+	});
+}
+
+function _identCallback(res) {
+console.log("_identCallback got %o", res);
+	identTasks.push(res);
+	if (identTasks.length > 1) {
+console.info('completed _identAjax calls with %o', identTasks);
+		var ids = '';
+		for (var i = 0 ; i < identTasks.length ; i++) {
+			if (identTasks[i].success) ids += '&taskId=' + identTasks[i].taskId;
+		}
+		if (ids) window.location.href = 'matchResultsMulti.jsp?' + ids.substring(1);
+	}
+}
+
+
+function forceLink(el) {
+	var address = el.href;
+	if (address) window.location.href = address;
+	el.stopPropagation();
+}
+
+/*
 		    jQuery.ajax({
 		      url: '../ia',
 		      type: 'POST',
@@ -125,28 +161,14 @@ try {
 		      })
 		    });
 		  }
+*/
 
-		  // because we have links within the photoswipe-opening clickable area
-		  function forceLink(el) {
-		    var address = el.href;
-		    if (address) {
-		      window.location.href = address;
-		    };
-		    el.stopPropagation();
-		  }
-		  /*
-		  $(".forceLink").click(function(e) {
-		    alert('callin!');
-		    e.stopPropagation();
-		  });
-		  */
-		  //
-		  </script>
-		<%
-
-
-
-
+  //console.log("numEncs = <%=numEncs%>");
+  </script>
+  <%
+  for(int f=0;f<numEncs;f++){
+		  Encounter enc = encs.get(f);
+		  ArrayList<Annotation> anns = enc.getAnnotations();
 		JSONObject iaTasks = new JSONObject();
 
 		  if ((anns == null) || (anns.size() < 1)) {
@@ -203,6 +225,9 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 									}
 								}
 							}
+						} else if (ma.isMimeTypeMajor("video")) {
+							//note: this violates safeUrl / etc... use with caution in your branch?
+							j.put("url", ma.webURL().toString());
 						}
 						all.put(j);
 					}
@@ -388,13 +413,12 @@ function doImageEnhancer(sel) {
 */
 	];
 
-/*   generic IA stuff, skipped for whaleshark
-	if (wildbook.iaEnabled()) {
+	if (wildbook.iaEnabled()) {  //TODO (the usual) needs to be genericized for IA plugin support (which doesnt yet exist)
 		opt.menu.push(['start new matching scan', function(enh) {
-      if (isGenusSpeciesSet()) {
-        imageEnhancer.popup("You need full taxonomic classification to start identification!");
-        return;
-      }
+      		if (!isGenusSpeciesSet()) {
+        		imageEnhancer.popup("You need full taxonomic classification to start identification!");
+        		return;
+      		}
 			//var mid = enh.imgEl.context.id.substring(11);
 			var mid = enh.imgEl.data('enh-mediaassetid');
       console.log('%o ?????', mid);
@@ -403,6 +427,7 @@ function doImageEnhancer(sel) {
 		}]);
 	}
 
+/*   we dont really like the old tasks showing up in menu. so there.
 	var ct = 1;
 	for (var annId in iaTasks) {
 		//we really only care about first tid now (most recent)

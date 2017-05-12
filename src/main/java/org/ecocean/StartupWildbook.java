@@ -35,6 +35,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class StartupWildbook implements ServletContextListener {
 
+  ScheduledExecutorService schedExec = null;
+  ScheduledFuture schedFuture = null;
   // this function is automatically run on webapp init
   // it is attached via web.xml's <listener></listener>
   public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
@@ -124,8 +126,8 @@ public class StartupWildbook implements ServletContextListener {
             System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
         } else {
             System.out.println("+ queue service starting; dir = " + qdir.toString());
-            final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
-            ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+            schedExec = Executors.newScheduledThreadPool(5);
+            schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
                 int count = 0;
                 public void run() {
                     ++count;
@@ -159,6 +161,8 @@ public class StartupWildbook implements ServletContextListener {
 
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("* StartupWildbook destroyed called");
+        schedExec.shutdown();
+        schedFuture.cancel(true);
     }
 
 
