@@ -934,6 +934,14 @@ public class Shepherd {
     return inCommon;
   }
 
+  public boolean isSurvey(String num) {
+    try {
+      Survey tempSvy = ((org.ecocean.Survey) (pm.getObjectById(pm.newObjectIdInstance(Survey.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
 
   public boolean isEncounter(String num) {
     try {
@@ -1823,6 +1831,7 @@ public class Shepherd {
     query.closeAll();
     return null;
   }
+  
 
   //
 

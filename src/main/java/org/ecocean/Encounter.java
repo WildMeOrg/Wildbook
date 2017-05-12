@@ -295,8 +295,8 @@ public class Encounter implements java.io.Serializable {
   
   // Variables used in the Survey, SurveyTrack, Path, Location model
   
-  private String correspondingSurveyTrackID;
-  private String correspondingSurveyID;
+  private String correspondingSurveyTrackID = null;
+  private String correspondingSurveyID = null;
   
   
   // This is the eventual replacement for the old decimal lat lon and other location data.
