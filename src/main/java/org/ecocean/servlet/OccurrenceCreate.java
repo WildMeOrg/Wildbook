@@ -71,7 +71,6 @@ public class OccurrenceCreate extends HttpServlet {
       myOccurrenceID=ServletUtilities.cleanFileName(myOccurrenceID);
       
     }
-    System.out.println("New ID in doPost Outside : "+myOccurrenceID);
 
     //Create a new Occurrence from an encounter
 

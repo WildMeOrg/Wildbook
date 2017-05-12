@@ -1886,6 +1886,8 @@ $(document).ready(function() {
 
                       $.post("/OccurrenceCreate", {"occurrence": occurrence, "number": number},
                       function() {
+                    	console.log(occurrence);
+                    	console.log(number);
                         $("#createOccurErrorDiv").hide();
                         $("#occurDiv").addClass("has-success");
                         $("#createOccurCheck").show();
@@ -4749,7 +4751,7 @@ $(document).ready(function() {
 
 
 
-				<script type="text/javascript">
+<script type="text/javascript">
 $(document).ready(function() {
   var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
     buttons.toggle();
@@ -4801,13 +4803,6 @@ $(document).ready(function() {
 				<p class="para">
 					<em><%=nm%></em>:
 					<%=vl%>
-					<%
-						
-					%>
-
-					<%
-						
-					%>
 
 					<%
 						
@@ -4902,128 +4897,174 @@ $(document).ready(function() {
 							class="btn btn-sm editFormBtn" />
 					</form>
 				</div>
-
-
-				<%
-					
-				%>
-				<!-- Start Survey Information -->
+				
 				<%
 					if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 				%>
-				<h2 style="margin-top: 70px;">
-					<img align="absmiddle" src="../images/survey_icon_boat.png" />
-					<%=encprops.getProperty("surveyInfo")%>
+				<h2>
+					<img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
+					<%=encprops.getProperty("surveyID")%>
 					<button class="btn btn-md" type="button" name="button"
 						id="editSurvey">Edit</button>
 					<button class="btn btn-md" type="button" name="button"
 						id="closeEditSurvey" style="display: none;">Close Edit</button>
 				</h2>
-
-				<script type="text/javascript">
+				<%
+					}
+				%>				
+				
+				
+<script type="text/javascript">
 $(document).ready(function() {
-  $(".editFormSurvey").hide();
   var buttons = $("#editSurvey, #closeEditSurvey").on("click", function(){
     buttons.toggle();
   });
   $("#editSurvey").click(function() {
     $(".editFormSurvey").show();
+
   });
+
   $("#closeEditSurvey").click(function() {
     $(".editFormSurvey, .editTextSurvey, .resultMessageDiv").hide();
   });
 });
-</script>
-
-
-				<%
-					} else {
-				%>
-				<h2><%=encprops.getProperty("surveyProperties")%></h2>
-
-				<%
-					}
-				%>
-
-
-
-
-				<%
+</script>				
+				
+				<% 
 					if (isOwner) {
 				%>
+					<script type="text/javascript">
+                  $(document).ready(function() {
+                    $("#createSurvey").click(function(event) {
+                      event.preventDefault();
 
-				<%
-					}
-							String surveyID = null;
-							String surveyTrackID = null;
+                      $("#createSurvey").hide();
+                      
+                      var surveyID = $("#createSurveyInput").val();
+                      var number = $("#encounterNumber").val();
 
-							if (enc.getSurveyTrackID() != null) {
-								surveyTrackID = enc.getSurveyTrackID();
-							}
+                      $.post("/EncounterCreateSurveyAndTrack", {"number": number, "surveyID": surveyID},
+                      function() {
+                        $("#createSurveyErrorDiv").hide();
+                        $("#surveyDiv").addClass("has-success");
+                        $("#createSurveyCheck").show();
+                        $("#displaySurveyID").html(surveyID);
+                      })
+                      .fail(function(response) {
+                        $("#surveyDiv").addClass("has-error");
+                        $("#createSurveyError, #createSurveyErrorDiv").show();
+                        $("#createSurveyErrorDiv").html(response.responseText);
+                      });
+                    });
 
-							if (enc.getSurveyID() != null) {
-								surveyID = enc.getSurveyID();
-							}
+                    $("#createSurveyInput").click(function() {
+                      $("#createSurveyError, #createSurveyCheck, #createSurveyErrorDiv").hide()
+                      $("#occurDiv").removeClass("has-success");
+                      $("#occurDiv").removeClass("has-error");
+                      $("#createOccur").show();
+                    });
+                  });
+                </script>
+					<div class="editText">
+						<h3><%=encprops.getProperty("assignSurvey")%></h3>
+						<p class="editText">
+							<em><small><%=encprops.getProperty("createSurveyMessage")%></small></em>
+						</p>
+					</div>
 
-				// Display None if there is no saved survey info.			
-				if (surveyID == null && surveyTrackID == null ) {
-				%>
-				<p><%=encprops.getProperty("none")%></p>
-				<%
-				}
-				if (surveyTrackID != null) {
-				%>
-				<p><%=encprops.getProperty("surveyTrackID").trim()%>:<%=surveyTrackID%></p>
-				<%
-				}					
-				if (surveyID != null) {
-				%>
-				<p><%=encprops.getProperty("surveyID").trim()%>:<%=surveyID%></p>
-				<%
-				}
-				
-				%>
-				
-				<div id="dialogDPAdd"
-					title="<%=encprops.getProperty("addSurveyID")%>"
-					class="editFormSurvey">
-					<p class="editTextDynamic">
-						<strong><%=encprops.getProperty("addSurveyID")%></strong>
-					</p>
-					<form name="addDynProp" action="../EncounterSetSurveyAndTrack"
-						method="post" class="editFormSurvey">
-						<input name="encID" type="hidden" value="<%=num%>" />
+					<div class="highlight resultMessageDiv" id="createSurveyErrorDiv"></div>
+
+					<form name="createSurvey" class="editForm">
+						<input name="number" type="hidden" value="<%=num%>"
+							id="encounterNumber" />
 						<div class="form-group row">
 							<div class="col-sm-3">
-								<label><%=encprops.getProperty("surveyID")%></label>
+								<label><%=encprops.getProperty("createSurvey")%>:</label>
 							</div>
-							<div class="col-sm-5">
-								<input name="surveyID" type="text" class="form-control"
-									id="addDynPropInput" />
+							<div class="col-sm-5 col-xs-10" id="surveyDiv">
+								<input name="survey" type="text" id="createSurveyInput"
+									class="form-control"
+									placeholder="<%=encprops.getProperty("newSurveyID")%>" />
+								<span class="form-control-feedback" id="createSurveyCheck">&check;</span>
+								<span class="form-control-feedback" id="createSurveyError">X</span>
+							</div>
+							<div class="col-sm-4">
+								<input name="Create" type="submit" id="createSurvey"
+									value="<%=encprops.getProperty("create")%>"
+									class="btn btn-sm editFormBtn" />
 							</div>
 						</div>
-						<div class="form-group row">
-							<div class="col-sm-3">
-								<label><%=encprops.getProperty("surveyTrackID")%></label>
-							</div>
-							<div class="col-sm-5">
-								<input name="surveyTrackID" type="text" class="form-control"
-									id="addDynPropInput2" />
-							</div>
-						</div>
-						<input name="Set" type="submit" id="addDynPropBtn"
-							value="<%=encprops.getProperty("initCapsSet")%>"
-							class="btn btn-sm editFormBtn" />
 					</form>
-				</div>
 
+					<p class="editText">
+						<strong>--<%=encprops.getProperty("or")%>--
+						</strong>
+					</p>
 
-				<%
-					
-				%>
+					<script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#addSurvey").click(function(event) {
+                        event.preventDefault();
 
+                        $("#addSurvey").hide();
 
-				<!-- End Survey Information -->
+                        var occurrence = $("#addSurveyInput").val();
+                        var number = $("#addSurveyNumber").val();
+                        var action = $("#addSurveyAction").val();
+
+                        $.post("../EncounterSetSurveyAndTrack", {"occurrence": occurrence, "number": number, "action": action},
+                        function() {
+                          $("#addOccurErrorDiv").hide();
+                          $("#addDiv").addClass("has-success");
+                          $("#createOccurCheck").show();
+                          $("#displayOccurrenceID").html(occurrence);
+                        })
+                        .fail(function(response) {
+                          $("#addDiv").addClass("has-error");
+                          $("#addOccurError, #addOccurErrorDiv").show();
+                          $("#addOccurErrorDiv").html(response.responseText);
+                          $("#addOccurrence").show();
+                        });
+                      });
+
+                      $("#add2OccurrenceInput").click(function() {
+                        $("#addOccurError, #addOccurCheck, #addOccurErrorDiv").hide()
+                        $("#addDiv").removeClass("has-success");
+                        $("#addDiv").removeClass("has-error");
+                        $("#addOccurrence").show();
+                        $("#addOccurErrorDiv").hide();
+                      });
+                    });
+                  </script>
+
+					<div class="highlight resultMessageDiv" id="addOccurErrorDiv"></div>
+
+					<form name="add2occurrence" class="editForm">
+						<input name="number" type="hidden" value="<%=num%>"
+							id="addOccurNumber" /> <input name="action" type="hidden"
+							value="add" id="addOccurAction" />
+						<div class="form-group row">
+							<div class="col-sm-3">
+								<label><%=encprops.getProperty("add2Occurrence")%>: </label>
+							</div>
+							<div class="col-sm-5 col-xs-10" id="addDiv">
+								<input name="occurrence" id="add2OccurrenceInput" type="text"
+									class="form-control"
+									placeholder="<%=encprops.getProperty("occurrenceID")%>" /> <span
+									class="form-control-feedback" id="addOccurCheck">&check;</span>
+								<span class="form-control-feedback" id="addOccurError">X</span>
+							</div>
+							<div class="col-sm-4">
+								<input name="Add" type="submit" id="addOccurrence"
+									value="<%=encprops.getProperty("add")%>"
+									class="btn btn-sm editFormBtn" />
+							</div>
+						</div>
+					</form>
+
+					<%
+						}
+					%>
 
 				<!-- Ending Right Column -->
 			</div>
