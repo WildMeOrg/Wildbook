@@ -20,6 +20,7 @@ org.ecocean.media.*
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
 Shepherd myShepherd = new Shepherd("context0");
+myShepherd.setAction("ytCreate.jsp");
 myShepherd.beginDBTransaction();
 
 YouTubeAssetStore yts = YouTubeAssetStore.find(myShepherd);
@@ -56,6 +57,7 @@ if (ma != null) {
 	myShepherd.commitDBTransaction();
 	rtn.put("grabAndParse", ok);
 }
+myShepherd.closeDBTransaction();
 
 rtn.put("success", true);
 rtn.put("assetId", ma.getId());
