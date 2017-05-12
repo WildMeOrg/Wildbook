@@ -31,6 +31,7 @@ import org.json.JSONArray;
 import org.ecocean.media.*;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.concurrent.ThreadPoolExecutor;
 //import java.util.HashMap;
 
@@ -93,8 +94,8 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
             return rtn;
         }
 
-        if ((jin.optJSONArray("encounters") != null) && (jin.optJSONArray("tasks") != null) && (jin.optString("accessKey", null) != null)) {
-            return sendEmail(request, jin.getJSONArray("encounters"), jin.getJSONArray("tasks"), jin.getString("accessKey"));
+        if ((jin.optJSONObject("created") != null) && (jin.optString("accessKey", null) != null)) {
+            return sendEmail(request, jin.getJSONObject("created"), jin.getString("accessKey"));
         }
 
         JSONArray jsrcs = jin.optJSONArray("sources");
@@ -249,7 +250,7 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         return accessKey.equals(p.optString("accessKey", null));
     }
 
-    private static JSONObject sendEmail(HttpServletRequest request, JSONArray encIds, JSONArray taskIds, String accessKey) {
+    private static JSONObject sendEmail(HttpServletRequest request, JSONObject created, String accessKey) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String context = ServletUtilities.getContext(request);
 
@@ -260,6 +261,14 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
             rtn.put("error", "bad URL configuration: " + ex.toString());
 
             return rtn;
+        }
+
+        //we create these now to replicate the old way when they were passed in
+        JSONArray encIds = new JSONArray();
+        JSONArray taskIds = new JSONArray();
+        Iterator<?> keys = created.keys();
+        while(keys.hasNext()) {
+            encIds.put((String)keys.next());
         }
 
         String encLinks = "";
@@ -281,7 +290,14 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         tShepherd.beginDBTransaction();
         try{
           for (int i = 0 ; i < encIds.length() ; i++) {
-              Encounter enc = tShepherd.getEncounter(encIds.optString(i, "_FAIL_"));
+              String encId = encIds.optString(i, "_FAIL_");
+                if (created.optJSONArray(encId) == null) {
+                    taskIds.put("unknown");
+                } else {
+                    JSONArray tids = created.getJSONArray(encId);
+                    taskIds.put(tids.optString(0, "unknown0") + "&taskId=" + tids.optString(1, "unknown1"));
+                }
+              Encounter enc = tShepherd.getEncounter(encId);
               if (enc == null) continue;
               if ((enc.getMedia() == null) || (enc.getMedia().size() < 1)) continue;
               boolean allowed = false;
@@ -313,6 +329,7 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
           tShepherd.rollbackDBTransaction();
           tShepherd.closeDBTransaction();
         }
+//System.out.println(">>>>>>>"); System.out.println(encIds);  System.out.println(taskIds);
         if (ecount < 1) {
             rtn.put("error", "no valid encounters");
             //myShepherd.rollbackDBTransaction();
@@ -327,8 +344,8 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
             if (id == null) continue;
             //TODO just trusting these are real.  we could verify... but do we need to?
             tcount++;
-            taskLinks += " - " + linkPrefix + "/encounters/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\n";
-            taskLinksHtml += "<li><a title=\"" + id + "\" href=\"" + linkPrefix + "/encounters/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\">(" + tcount + ") " + ((i >= fname.length) ? "Result " + (i+1) : fname[i]) + "</a></li>\n";
+            taskLinks += " - " + linkPrefix + "/encounters/matchResultsMulti.jsp?taskId=" + id + "&accessKey=" + accessKey + "\n";
+            taskLinksHtml += "<li><a title=\"" + id + "\" href=\"" + linkPrefix + "/encounters/matchResultsMulti.jsp?taskId=" + id + "&accessKey=" + accessKey + "\">(" + tcount + ") " + ((i >= fname.length) ? "Result " + (i+1) : fname[i]) + "</a></li>\n";
         }
 /*  we are going to allow this now -- so they at least get *something* ... i.e. if encounters get made
         if (tcount < 1) {
