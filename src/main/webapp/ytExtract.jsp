@@ -27,6 +27,7 @@ JSONObject rtn = new JSONObject("{\"success\": false}");
 boolean createEncounter = ((request.getParameter("createEncounter") != null) && !request.getParameter("createEncounter").toLowerCase().equals("false"));
 
 Shepherd myShepherd = new Shepherd("context0");
+myShepherd.setAction("ytExtract.jsp");
 myShepherd.beginDBTransaction();
 
 String id = request.getParameter("id");
@@ -72,6 +73,7 @@ if (createEncounter) {
 }
 
 myShepherd.commitDBTransaction();
+myShepherd.closeDBTransaction();
 
 rtn.put("success", true);
 
