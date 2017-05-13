@@ -2672,7 +2672,7 @@ return Util.generateUUID();
           String locCode=null;
           String location="";
           int year=-1;
-          int month=0;
+          int month=-1;
           int day=-1;
           List<Encounter> encounters=occ.getEncounters();
           int numEncounters=encounters.size();
@@ -2728,9 +2728,9 @@ return Util.generateUUID();
                             }
                             if(numTokens>=2){
                               try { month=(new Integer(str.nextToken())).intValue();
-                              } catch (Exception e) { month=0;}
+                              } catch (Exception e) { month=-1;}
                             }
-                            else{month=0;}
+                            else{month=-1;}
                             if(numTokens>=3){
                               try {
                                 String myToken=str.nextToken();
@@ -2790,7 +2790,7 @@ return Util.generateUUID();
                     for(int i=0;i<numEncounters;i++){
                       Encounter enctemp=encounters.get(i);
                       enctemp.setYear(year);
-                      if(month>0){
+                      if(month>-1){
                         enctemp.setMonth(month);
                         if(day>-1){enc.setDay(day);}
                       }
