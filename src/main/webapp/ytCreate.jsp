@@ -28,6 +28,7 @@ if (yts == null) {
 	rtn.put("error", "could not find YouTubeAssetStore");
 	out.println(rtn);
 	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 	return;
 }
 
@@ -36,6 +37,7 @@ if (id == null) {
 	rtn.put("error", "no YouTube id= passed");
 	out.println(rtn);
 	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 	return;
 }
 rtn.put("youtubeId", id);
@@ -47,14 +49,13 @@ MediaAsset ma = yts.find(p, myShepherd);
 
 if (ma != null) {
 	rtn.put("info", "MediaAsset already exists; not creating");
-	myShepherd.rollbackDBTransaction();
 
 } else {
 	ma = yts.create(id);
 	ma.updateMetadata();
 	MediaAssetFactory.save(ma, myShepherd);
 	boolean ok = yts.grabAndParse(myShepherd, ma, false);
-	myShepherd.commitDBTransaction();
+
 	rtn.put("grabAndParse", ok);
 }
 myShepherd.closeDBTransaction();
@@ -65,6 +66,8 @@ rtn.put("metadata", ma.getMetadata().getData());
 
 out.println(rtn);
 
+myShepherd.commitDBTransaction();
+myShepherd.closeDBTransaction();
 
 
 %>
