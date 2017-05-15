@@ -320,7 +320,10 @@
   </servlet>
 
 
-
+  <servlet>
+    <servlet-name>EncounterCreateSurveyAndTrack</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterCreateSurveyAndTrack</servlet-class>
+  </servlet>	
 
 
 
@@ -531,6 +534,14 @@
 		<servlet-name>ResumableUpload</servlet-name>
 		<servlet-class>ec.com.mapache.ngflow.servlet.UploadServlet</servlet-class>
 	</servlet>
+	
+	
+    <servlet-mapping>
+ 		<servlet-name>EncounterCreateSurveyAndTrack</servlet-name>
+		<url-pattern>/EncounterCreateSurveyAndTrack</url-pattern>
+	</servlet-mapping>
+	
+	
 	<servlet-mapping>
  		<servlet-name>ResumableUpload</servlet-name>
 		<url-pattern>/ResumableUpload</url-pattern>
