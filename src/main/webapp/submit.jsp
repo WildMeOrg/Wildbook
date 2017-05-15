@@ -770,10 +770,10 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   <hr/>
 
 
-  <h4 class="accordion">
+  <h4 class="accordion center-labels">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
-      <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
-      <%=props.getProperty("advancedInformation") %>
+      <%=props.getProperty("advancedInformation") %><br>
+      <span class="glyphicon glyphicon-menu-down glyphicon-white" aria-hidden="true" width="100%" height="10" border="0"></span>
     </a>
   </h4>
 
