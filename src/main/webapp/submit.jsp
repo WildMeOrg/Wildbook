@@ -839,17 +839,28 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
-
+        
+<!-- This is just here in case they want to bring back alt ID at some point.  -->
+<% 
+	boolean alt = false;
+	if (alt == true) {
+	
+%>
 				<div class="form-group">
 					<div class="col-xs-6 col-md-4">
-						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
+						<label class="control-label"><%= props.getProperty("alternate_id") %></label>
 					</div>
 
 					<div class="col-xs-6 col-lg-8">
 						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
 					</div>
 				</div>
+				
+<% 
+	}
+%>
 
+<!--  end bracket for hiding altID -->
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
