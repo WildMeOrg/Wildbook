@@ -754,7 +754,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
       <div class="col-xs-12 col-lg-6">
         <h3><%=props.getProperty("aboutPhotographer") %></h3>
- 	<p class="help-block"><%=props.getProperty("submit_ifyou")%></p>
+ 		<p class="help-block"><%=props.getProperty("submit_ifyou")%></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_name") %></label>
@@ -773,9 +773,23 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
           </div>
         </div>
       </div>
-
     </div>
-  </fielset>
+    
+    <hr>
+    <div class="form-group">
+      <div class="col-xs-12 col-md-12 col-lg-12">
+	    <h3><%=props.getProperty("commentsHeader") %></h3>
+        <label class="control-label"><%=props.getProperty("submit_comments") %></label>
+        <br>
+      </div>
+      <br>
+      <div class="col-xs-12 col-lg-12 col-lg-12">
+        <textarea class="form-control" name="comments" id="comments" rows="5" data-toggle="tooltip" title="<%=props.getProperty("commentsTooltip")%>"></textarea>
+      </div>
+    </div>
+    
+    
+  </fieldset>
 
   <hr/>
 
