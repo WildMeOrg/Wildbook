@@ -337,7 +337,11 @@ public class IndividualQueryProcessor {
               measurementFilter.append("&&");
             }
             String measurementVar = "measurement" + measurementsInQuery++;
-            measurementFilter.append("(encounters.contains(enc)) && (enc.measurements.contains(" + measurementVar + ") && ");
+            if(filter.indexOf("encounters.contains(enc)")==-1){
+              measurementFilter.append("(encounters.contains(enc)) && ");
+            
+            }
+            measurementFilter.append("(enc.measurements.contains(" + measurementVar + ") && ");
             measurementFilter.append( measurementVar + ".value " + operator + " " + value);
             measurementFilter.append(" && " + measurementVar + ".type == ");
             measurementFilter.append("\"" + measurementDesc.getType() + "\")");

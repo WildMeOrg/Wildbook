@@ -8,7 +8,7 @@
 
     String langCode=ServletUtilities.getLanguageCode(request);
     
-    String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+    String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
