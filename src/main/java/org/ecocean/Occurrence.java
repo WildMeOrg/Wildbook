@@ -460,6 +460,12 @@ public class Occurrence implements java.io.Serializable{
 
     }
     
+    //this is called when a batch of encounters (which should be on this occurrence) were made from detection
+    // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
+    public void fromDetection(Shepherd myShepherd, HttpServletRequest request) {
+        System.out.println(">>>>>> detection created " + this);
+    }
+
     public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
       
       ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);

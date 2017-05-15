@@ -102,13 +102,13 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						//confirm success
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Success:</strong> The scanTask <i>"+request.getParameter("taskID")+"</i> has been removed.");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Return to scanTask administration page.</a></p>\n");
+						out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Return to scanTask administration page.</a></p>\n");
 						out.println(ServletUtilities.getFooter(context));
 					}
 					else{
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Error:</strong> The scanTask <i>"+request.getParameter("taskID")+"</i> was not removed. The task may be locked by another user or in process. Check the logs for more information.");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Return to scanTask administration page.</a></p>\n");
+						out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Return to scanTask administration page.</a></p>\n");
 						out.println(ServletUtilities.getFooter(context));
 
 					}
@@ -117,7 +117,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					myShepherd.rollbackDBTransaction();
 					out.println(ServletUtilities.getHeader(request));
 					out.println("<strong>Error:</strong> The scanTask <i>"+request.getParameter("taskID")+"</i> was not identified in the database.");
-					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Return to scanTask administration page.</a></p>\n");
+					out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Return to scanTask administration page.</a></p>\n");
 					out.println(ServletUtilities.getFooter(context));
 				}
 			}
@@ -287,7 +287,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 					                //if it exists already, advance to the scanTask administration page to await its completion
 					                if(request.getParameter("restart")==null){
-					                  response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier);
+					                  response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier);
                 }
 					}
 					else{
@@ -346,15 +346,14 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						//confirm success
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Success:</strong> Your scan was successfully added to the sharkGrid!");
-						//out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/workAppletScan.jsp?number=scan"+rightFilter+request.getParameter("encounterNumber")+rightURL+"\">Start scanning for a match.</a></p>\n");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("encounterNumber")+"\">Return to encounter "+request.getParameter("encounterNumber")+".</a></p>\n");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier+ "#"+taskIdentifier+"\">Go to sharkGrid administration to monitor for completion.</a></p>\n");
+						out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("encounterNumber")+"\">Return to encounter "+request.getParameter("encounterNumber")+".</a></p>\n");
+						out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier+ "#"+taskIdentifier+"\">Go to sharkGrid administration to monitor for completion.</a></p>\n");
 						out.println(ServletUtilities.getFooter(context));
 					}
 					else{
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Failure:</strong> The scan could not be created or was not fully created!");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
+						out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 						out.println(ServletUtilities.getFooter(context));
 
 					}
@@ -365,7 +364,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 							if(currentNumScanTasks<taskLimit){
 								out.println("The unfinished task limit of "+taskLimit+" has been filled. Please try adding the task to the queue again after existing tasks have finished.");
 							}
-							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
+							out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 							out.println(ServletUtilities.getFooter(context));
 				}
 			}
@@ -773,7 +772,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					//confirm success
 					out.println(ServletUtilities.getHeader(request));
 					out.println("<strong>Success:</strong> I removed all outstanding scanWorkItems from the database.<br>/<strong>Warning!</strong> <em>This may cause any outstanding scanTasks to fail!</em>");
-					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
+					out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 					out.println(ServletUtilities.getFooter(context));
 				}
 				catch(Exception e){
@@ -781,7 +780,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					myShepherd.rollbackDBTransaction();
 					out.println(ServletUtilities.getHeader(request));
 					out.println("<strong>Failure:</strong> I failed to remove all outstanding scanWorkItems from the database. Check the log for more information.");
-					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
+					out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 					out.println(ServletUtilities.getFooter(context));
 
 				}
@@ -792,7 +791,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 					out.println(ServletUtilities.getHeader(request));
 					out.println("<p>I did not receive enough data to process your command, or you do not have the necessary permissions to perform this operation.</p>");
-					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
+					out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 					out.println(ServletUtilities.getFooter(context));
 			}
 

@@ -28,6 +28,8 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
 
+String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
 //setup our Properties object to hold all properties
@@ -403,7 +405,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
       target="_self" dir="ltr"
       lang="en"
       onsubmit="return false;"
-      class="form-horizontal"
+      class="form-horizontal" 
+      accept-charset="UTF-8"
 >
 
 <div class="dz-message"></div>
@@ -777,8 +780,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   </h4>
 
     <div id="advancedInformation" fade="1" style="display: none;">
-  <hr>
-	    
+  	    
       <h3><%=props.getProperty("aboutAnimal") %></h3>
         <hr>
         <fieldset>
@@ -1079,11 +1081,13 @@ if (tagSwitch == true) {
       </div>
       </div>
 
+  <hr>	
 
          <%
          if(request.getRemoteUser()==null){
          %>
-         <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
+     
+	<div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
 		         //we need to first check here if we need to do the background social image send... in which case,
 		        // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
