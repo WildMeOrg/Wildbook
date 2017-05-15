@@ -124,7 +124,7 @@ File encounterDir = new File(encountersDir, num);
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
 
-String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 
 //let's load encounters.properties
@@ -150,8 +150,6 @@ String mapKey = CommonConfiguration.getGoogleSearchKey(context);
   boolean haveRendered = false;
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
-  
-  String mapKey = CommonConfiguration.getGoogleSearchKey(context);
 %>
 
 
