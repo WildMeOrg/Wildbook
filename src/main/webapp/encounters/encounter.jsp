@@ -4902,7 +4902,7 @@ $(document).ready(function() {
 					if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 				%>
 				<h2>
-					<img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
+					<img align="absmiddle" src="../images/survey_icon_boat.png" />
 					<%=encprops.getProperty("surveyID")%>
 					<button class="btn btn-md" type="button" name="button"
 						id="editSurvey">Edit</button>
@@ -4943,7 +4943,7 @@ $(document).ready(function() {
                       var surveyID = $("#createSurveyInput").val();
                       var number = $("#encounterNumber").val();
 
-                      $.post("/EncounterCreateSurveyAndTrack", {"number": number, "surveyID": surveyID},
+                      $.post("../EncounterCreateSurveyAndTrack", {"number": number, "surveyID": surveyID},
                       function() {
                         $("#createSurveyErrorDiv").hide();
                         $("#surveyDiv").addClass("has-success");
@@ -4965,7 +4965,7 @@ $(document).ready(function() {
                     });
                   });
                 </script>
-					<div class="editText">
+					<div class="editFormSurvey">
 						<h3><%=encprops.getProperty("assignSurvey")%></h3>
 						<p class="editText">
 							<em><small><%=encprops.getProperty("createSurveyMessage")%></small></em>
@@ -4974,7 +4974,7 @@ $(document).ready(function() {
 
 					<div class="highlight resultMessageDiv" id="createSurveyErrorDiv"></div>
 
-					<form name="createSurvey" class="editForm">
+					<form name="createSurvey" class="editFormSurvey">
 						<input name="number" type="hidden" value="<%=num%>"
 							id="encounterNumber" />
 						<div class="form-group row">
@@ -4996,7 +4996,7 @@ $(document).ready(function() {
 						</div>
 					</form>
 
-					<p class="editText">
+					<p class="editFormSurvey">
 						<strong>--<%=encprops.getProperty("or")%>--
 						</strong>
 					</p>
@@ -5037,27 +5037,27 @@ $(document).ready(function() {
                     });
                   </script>
 
-					<div class="highlight resultMessageDiv" id="addOccurErrorDiv"></div>
+					<div class="highlight resultMessageDiv" id="addSurveyErrorDiv"></div>
 
-					<form name="add2occurrence" class="editForm">
+					<form name="add2occurrence" class="editFormSurvey">
 						<input name="number" type="hidden" value="<%=num%>"
-							id="addOccurNumber" /> <input name="action" type="hidden"
-							value="add" id="addOccurAction" />
+							id="addSurveyNumber" /> <input name="action" type="hidden"
+							value="add" id="addSurveyAction" />
 						<div class="form-group row">
 							<div class="col-sm-3">
-								<label><%=encprops.getProperty("add2Occurrence")%>: </label>
+								<label><%=encprops.getProperty("addsurvey")%>: </label>
 							</div>
 							<div class="col-sm-5 col-xs-10" id="addDiv">
-								<input name="occurrence" id="add2OccurrenceInput" type="text"
+								<input name="survey" id="addSurveyInput" type="text"
 									class="form-control"
-									placeholder="<%=encprops.getProperty("occurrenceID")%>" /> <span
-									class="form-control-feedback" id="addOccurCheck">&check;</span>
-								<span class="form-control-feedback" id="addOccurError">X</span>
+									placeholder="<%=encprops.getProperty("surveyID")%>" /> <span
+									class="form-control-feedback" id="addSurveyCheck">&check;</span>
+								<span class="form-control-feedback" id="addSurveyError">X</span>
 							</div>
 							<div class="col-sm-4">
 								<input name="Add" type="submit" id="addOccurrence"
 									value="<%=encprops.getProperty("add")%>"
-									class="btn btn-sm editFormBtn" />
+									class="btn btn-sm editSurveyFormBtn" />
 							</div>
 						</div>
 					</form>
