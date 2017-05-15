@@ -122,6 +122,16 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 <script type="text/javascript">
 
+/* As you may have surmised, this bit enables tooltips. 
+ * 
+ */
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip(); 
+});
+
+
+
+
 function validate() {
     var requiredfields = "";
 
