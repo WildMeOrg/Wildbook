@@ -757,7 +757,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
  		<p class="help-block"><%=props.getProperty("submit_ifyou")%></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_name") %></label>
+            <label class="control-label"><%=props.getProperty("photographer_name") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="photographerName" type="text" id="photographerName" size="24" data-toggle="tooltip" title="<%=props.getProperty("photographerNameTooltip")%>">
@@ -766,7 +766,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_email") %></label>
+            <label class="control-label"><%=props.getProperty("photographer_email") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24" data-toggle="tooltip" title="<%=props.getProperty("photographerEmailTooltip")%>">
