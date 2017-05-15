@@ -11,6 +11,7 @@
     //let's load encounterSearch.properties
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
+    String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchComparisonResults.properties"));
@@ -448,7 +449,7 @@
   
 
 
-<script src="//maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
     
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 

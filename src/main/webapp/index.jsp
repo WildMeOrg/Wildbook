@@ -41,7 +41,7 @@ String langCode = ServletUtilities.getLanguageCode(request);
 // Grab the properties file with the correct language strings.
 props = ShepherdProperties.getProperties("index.properties", langCode,context);
 
-String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
 <style type="text/css">

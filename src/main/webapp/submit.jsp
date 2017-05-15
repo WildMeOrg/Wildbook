@@ -28,14 +28,14 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
 
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
 //setup our Properties object to hold all properties
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-
-  String mapKey = CommonConfiguration.getGoogleSearchKey(context);
     //set up the file input stream
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
     props = ShepherdProperties.getProperties("submit.properties", langCode, context);
@@ -403,7 +403,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
       target="_self" dir="ltr"
       lang="en"
       onsubmit="return false;"
-      class="form-horizontal"
+      class="form-horizontal" 
+      accept-charset="UTF-8"
 >
 
 <div class="dz-message"></div>
@@ -769,16 +770,15 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   <hr/>
 
 
-  <h4 class="accordion">
+  <h4 class="accordion center-labels">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
-      <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
-      <%=props.getProperty("advancedInformation") %>
+      <%=props.getProperty("advancedInformation") %><br>
+      <span class="glyphicon glyphicon-menu-down glyphicon-white" aria-hidden="true" width="100%" height="10" border="0"></span>
     </a>
   </h4>
 
     <div id="advancedInformation" fade="1" style="display: none;">
-  <hr>
-	    
+  	    
       <h3><%=props.getProperty("aboutAnimal") %></h3>
         <hr>
         <fieldset>
@@ -839,17 +839,28 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
-
+        
+<!-- This is just here in case they want to bring back alt ID at some point.  -->
+<% 
+	boolean alt = false;
+	if (alt == true) {
+	
+%>
 				<div class="form-group">
 					<div class="col-xs-6 col-md-4">
-						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
+						<label class="control-label"><%= props.getProperty("alternate_id") %></label>
 					</div>
 
 					<div class="col-xs-6 col-lg-8">
 						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
 					</div>
 				</div>
+				
+<% 
+	}
+%>
 
+<!--  end bracket for hiding altID -->
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1068,11 +1079,13 @@ if (tagSwitch == true) {
       </div>
       </div>
 
+  <hr>	
 
          <%
          if(request.getRemoteUser()==null){
          %>
-         <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
+     
+	<div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
 		         //we need to first check here if we need to do the background social image send... in which case,
 		        // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task

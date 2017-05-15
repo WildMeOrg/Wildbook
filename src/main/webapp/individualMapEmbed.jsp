@@ -70,7 +70,7 @@ context=ServletUtilities.getContext(request);
   myShepherd.beginDBTransaction();
   Vector haveGPSData = new Vector();
   
-  String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
   if(request.getParameter("name")!=null){
 	  String name = request.getParameter("name");
 	  MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);

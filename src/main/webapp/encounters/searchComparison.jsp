@@ -11,7 +11,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 String langCode=ServletUtilities.getLanguageCode(request);
-String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>

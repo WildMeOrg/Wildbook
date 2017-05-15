@@ -42,7 +42,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.HttpURLConnection;
-//import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.HttpsURLConnection;
 import java.io.DataOutputStream;
 import java.nio.charset.Charset;
 import java.util.Vector;
@@ -244,7 +244,6 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
     URL u=null;
     //InputStream inputStreamFromServlet=null;
     //BufferedReader in=null;
-    //HttpsURLConnection finishConnection=null;
     HttpURLConnection finishConnection=null;
     DataOutputStream wr=null;
     
@@ -261,9 +260,12 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
       
       System.out.println("...writing out scanTask result: "+scanTaskID+" to URL: "+u.toString());
       
-      
-      //finishConnection = (HttpsURLConnection)u.openConnection();
-      finishConnection = (HttpURLConnection)u.openConnection();
+      if(request.getScheme().equals("https")){
+        finishConnection = (HttpsURLConnection)u.openConnection();
+      }
+      else{
+        finishConnection = (HttpURLConnection)u.openConnection();
+      }
       
       finishConnection.setDoOutput( true );
       finishConnection.setDoInput ( true );
