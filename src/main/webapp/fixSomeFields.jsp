@@ -26,6 +26,12 @@ Shepherd myShepherd=new Shepherd(context);
 
 <body>
 <h1>Fixing some fields</h1>
+<h2>
+<% 
+File testingRootDir = new File();
+out.println("Here is the root file dir for Tomcat! : "+testingRootDir.getAbsolutePath());
+%>
+</h2>
 <ul>
 <%
 
