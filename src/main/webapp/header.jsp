@@ -303,7 +303,8 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <!-- add target="blank" to restore page opening in another tab -->
+                  <a class="navbar-brand" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                 </div>
               </div>
 
@@ -321,10 +322,14 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                   <div id="navbar" class="navbar-collapse collapse">
                   <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
                     <ul class="nav navbar-nav">
-                                  <!--                -->
-                      <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
+                                  <!--  Add class text-hide and home to restore glyphicon style -->
+                      <li><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-
+                      
+                      <!--  added link directly to gallery for not logged in users, hide if logged in  -->
+                      <% if (request.getUserPrincipal() == null) { %>
+					  	<li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
+					  <%}%>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -334,13 +339,17 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                           	<li><a href="<%=urlLoc %>/aboutBass.jsp"><%=props.getProperty("aboutBass")%></a></li>
 
-                          	
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                           	
                           	<li><a href="<%=urlLoc %>/whoAreWe.jsp"><%=props.getProperty("whoAreWe")%></a></li>
                             
                         </ul>
                       </li>
+                      <li>
+                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
+                      </li>
+                  <!-- Hide Individuals and Encounters tabs if user is not logged in -->
+                  <% if (request.getUserPrincipal() != null) { %>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -374,7 +383,9 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                           <% } %>
                         </ul>
                       </li>
-
+				 <%}%>	
+					  <!-- Gonna hide the search nav tab if user is not logged in -->		
+					  <% if (request.getUserPrincipal() != null) { %>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -383,10 +394,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                               <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
                            </ul>
                       </li>
+                      <%}%>
 
-                      <li>
-                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
-                      </li>
+
+
+                      <% if (request.getUserPrincipal() != null) {%>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -439,6 +451,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                         </ul>
                       </li>
+                      <% } %>
                     </ul>
 
 
