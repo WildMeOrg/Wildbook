@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
 import org.joda.time.DateTime;
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
@@ -47,6 +49,10 @@ public class Occurrence implements java.io.Serializable{
   private String modified;
   //private String locationID;
   private String dateTimeCreated;
+
+  // this is helpful for sorting but isn't (for now) intended to be UI-facing
+  // rather it's set from Encounters
+  private Long millis;
 
 
 	/* Rosemary meta-data for IBEIS */
@@ -189,13 +195,19 @@ public class Occurrence implements java.io.Serializable{
   }
 
   public int getNumberIndividualIDs(){
-    if(encounters==null) return 0;
-    HashSet<String> indivIds = new HashSet<String>();
-    for (Encounter enc : encounters) {
-      if (enc.getIndividualID()!=null) indivIds.add(enc.getIndividualID());
-    }
-    return indivIds.size();
+    return getIndividualIDs().size();
   }
+
+  public Set<String> getIndividualIDs(){
+    Set<String> indivIds = new HashSet<String>();
+    if (encounters == null) return indivIds;
+    for (Encounter enc : encounters) {
+      String id = enc.getIndividualID();
+      if (id!=null && !indivIds.contains(id)) indivIds.add(id);
+    }
+    return indivIds;
+  }
+
 
   public void setLatLonFromEncs() {
     for (Encounter enc: getEncounters()) {
@@ -332,6 +344,49 @@ public class Occurrence implements java.io.Serializable{
 	public Double getDecimalLongitude() {
 		return this.decimalLongitude;
 	}
+
+
+  public void setMillis(Long millis) {this.millis = millis;}
+  public Long getMillis() {return this.millis;}
+
+  public void setMillisFromEncounters() {
+    this.millis = getMillisFromEncounters();
+  }
+
+  public Long getMillisFromEncounters() {
+    for (Encounter enc: encounters) {
+      if (enc.getDateInMilliseconds()!=null) {
+        return enc.getDateInMilliseconds();
+      }
+    }
+    return null;
+  }
+
+
+  public void setMillisFromEncounterAvg() {
+    this.millis = getMillisFromEncounterAvg();
+  }
+
+  public Long getMillisFromEncounterAvg() {
+    Long total = 0L;
+    int numAveraged = 0;
+    for (Encounter enc: encounters) {
+      if (enc.getDateInMilliseconds()!=null) {
+        total += enc.getDateInMilliseconds();
+        numAveraged++;
+      }
+    }
+    if (numAveraged == 0) return null;
+    return (total / numAveraged);
+  }
+  public Long getMillisRobust() {
+    if (this.millis!=null) return this.millis;
+    if (getMillisFromEncounterAvg()!=null) return getMillisFromEncounterAvg();
+    if (getMillisFromEncounters()!=null) return getMillisFromEncounters();
+    return null;
+  }
+
+
 
 /*
 	public void setWind(String w) {

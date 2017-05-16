@@ -131,6 +131,9 @@
      <p>Excel Metadata Summary <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/OccurrenceSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
  		 </p>
 
+     <p>GTM export for <a href="http://compbio.cs.uic.edu/"> Computational Population Biology </a>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/OccurrenceSearchExportGtm?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+ 		 </p>
+
 
 		<% } else { // dont have access to ALL records, so:  %>
 
