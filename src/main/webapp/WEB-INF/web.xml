@@ -622,6 +622,11 @@
         <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
         <servlet-class>org.ecocean.servlet.TissueSampleRemoveBiologicalMeasurement</servlet-class>
     </servlet>
+	
+	    <servlet>
+      <servlet-name>CRCExportReport</servlet-name>
+      <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
+  </servlet>
 
   <!--  Start Shiro filters -->
 
@@ -2004,6 +2009,11 @@
  <servlet-mapping>
     <servlet-name>LoginUserSocial</servlet-name>
     <url-pattern>/LoginUserSocial</url-pattern>
+  </servlet-mapping>
+  
+          <servlet-mapping>
+          <servlet-name>CRCExportReport</servlet-name>
+          <url-pattern>/CRCExportReport</url-pattern>
   </servlet-mapping>
 
 
