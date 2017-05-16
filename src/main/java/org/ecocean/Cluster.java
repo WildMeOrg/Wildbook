@@ -57,8 +57,9 @@ public class Cluster {
     return occurrences;
   }
 
-  public static List<Occurrence> defaultCluster(List<MediaAsset> assets, Shepherd myShepherd) {
-    return makeNOccurrences(10, assets, myShepherd);
+  public static List<Occurrence> defaultCluster(List<MediaAsset> assets, Shepherd myShepherd) throws IOException {
+    //return makeNOccurrences(10, assets, myShepherd);
+    return runJonsClusterer(assets, myShepherd);
   }
 
 
@@ -94,7 +95,22 @@ System.out.println("dateAttribute -> " + dateAttribute);
                 Node wnode = wlist.item(w);
                 if (wnode.getNodeType() != Node.ELEMENT_NODE) continue;
                 Element wel = (Element)wnode;   // <waypoints id="4" x="37.4676312262241" y="0.278523922074831" time="11:00:40">
-///////TODO pre-process vals for lat/lon/time
+///////TODO verify that this produces correct output
+
+                String x = wel.getAttribute("x");
+                Double decimalLongitude = strToDoubleNoExceptions(x);
+
+                String y = wel.getAttribute("y");
+                Double decimalLatitude = strToDoubleNoExceptions(y);
+
+                String timeStr = wel.getAttribute("time");
+                DateTime dateTime = null;
+                try {
+                  dateTime = DateTime.parse(timeStr);
+                } catch (Exception e) {
+                }
+
+
                 NodeList olist = wel.getElementsByTagName("observations");   //these will map to separate Occurrences, so kind of "inherit" the above from waypoint. :/
                 if (olist.getLength() < 1) continue;
                 for (int o = 0 ; o < olist.getLength() ; o++) {
@@ -150,6 +166,10 @@ System.out.println("dateAttribute -> " + dateAttribute);
 */
                     Occurrence occ = new Occurrence();
                     occ.setOccurrenceID(Util.generateUUID());
+                    occ.setDecimalLatitude(decimalLatitude);
+                    occ.setDecimalLongitude(decimalLongitude);
+                    occ.setDateTime(dateTime);
+
                     Integer photoOffset = null;
                     NodeList alist = oel.getElementsByTagName("attributes");
                     //TODO this is where we would build out the Occurrence
@@ -170,10 +190,31 @@ System.out.println("dateAttribute -> " + dateAttribute);
                                     }
                                     break;
                                 case "habitat":
-                                    //occ.setHabitat(getValueString(ael));
+                                    occ.setHabitat(getValueString(ael));
                                     break;
                                 case "bearing":
-                                    //getValueDouble(ael)
+                                    occ.setBearing(getValueDouble(ael));
+                                    break;
+                                case "groupsize":
+                                    occ.setGroupSize(getValueDoubleAsInt(ael));
+                                    break;
+                                case "noofbm":
+                                    occ.setNumBachMales(getValueDoubleAsInt(ael));
+                                    break;
+                                case "nooftm":
+                                    occ.setNumTerMales(getValueDoubleAsInt(ael));
+                                    break;
+                                case "distancem":
+                                    occ.setDistance(getValueDouble(ael));
+                                    break;
+                                case "noofnlf":
+                                    occ.setNumNonLactFemales(getValueDoubleAsInt(ael));
+                                    break;
+                                case "nooflf":
+                                    occ.setNumLactFemales(getValueDoubleAsInt(ael));
+                                    break;
+                                case "numberof612monthsfemales":
+                                    //
                                     break;
                             }
 
@@ -226,6 +267,16 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
         return occs;
     }
 
+    private static Double strToDoubleNoExceptions(String str) {
+      Double out = null;
+      try {
+        out = Double.parseDouble(str);
+      } catch (NullPointerException npe) {
+      } catch (NumberFormatException nfe) {
+      }
+      return out;
+    }
+
     private static Integer getValueInteger(Element el) {
         String val = getValue(el, "sValue");
         if (val == null) return null;
@@ -244,6 +295,13 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
             return null;
         }
     }
+
+    private static Integer getValueDoubleAsInt(Element el) {
+        Double doubleVal = getValueDouble(el);
+        if (doubleVal == null) return null;
+        return ((Integer) doubleVal.intValue());
+    }
+
     private static String getValueString(Element el) {
         return getValue(el, "itemKey");
     }
@@ -267,33 +325,18 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
         return assets;
     }
 
-  public static String buildCommand(List<MediaAsset> assets) {
+  public static String buildCommand(List<MediaAsset> validAssets) {
 
-    if (assets==null) {
+    if (validAssets==null) {
       return null;
     }
-
     List<TimePlace> inputData = new ArrayList<TimePlace>();
-    List<MediaAsset> validAssets = new ArrayList<MediaAsset>();
-    List<MediaAsset> invalidAssets = new ArrayList<MediaAsset>();
-
-    for (MediaAsset ma : assets) {
-      TimePlace datum = new TimePlace(ma);
-      if (datum.hasAllFields()) {
-        inputData.add(datum);
-        validAssets.add(ma);
-      } else {
-        invalidAssets.add(ma);
-      }
+    for (MediaAsset ma : validAssets) {
+      inputData.add(new TimePlace(ma));
     }
 
-    // TODO: deal with invalid assets
-    // TODO: handle case with NO valid assets
-
     String command =  buildConsoleCommand(inputData);
-
     return command;
-
 
   }
 
@@ -316,7 +359,7 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
     ArrayList<MediaAsset> invalid = new ArrayList<MediaAsset>();
 
     for (MediaAsset ma : assets) {
-      if (ma.getLatitude()==null || ma.getLongitude()==null || ma.getDateTime()==null) {
+      if (ma.getDateTime()==null) { // lat or lon can be set to -1 (for null values) with no issue
         invalid.add(ma);
       } else {
         valid.add(ma);
@@ -451,6 +494,10 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
   private static String newline = "<br/>";
 
   public static int[] parseJonsOutput(String output) {
+    if (output.indexOf('[')<0) {
+      System.out.println("parseJonsOutput failed on output="+output);
+      return (new int[0]);
+    }
     String inner = output.substring(output.indexOf('[')+1, output.indexOf(']'));
     String[] intStrings = inner.split(",");
 
@@ -493,7 +540,7 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
   }
 }
 
-
+// this class is private to this file
 class TimePlace {
   public final DateTime datetime;
   public final Double lat;
@@ -501,14 +548,22 @@ class TimePlace {
 
   public TimePlace(DateTime datetime, Double lat, Double lon) {
     this.datetime = datetime;
-    this.lat = lat;
-    this.lon = lon;
+    this.lat = makeNullDefault(lat);
+    this.lon = makeNullDefault(lon);
   }
 
   public TimePlace(MediaAsset ma) {
     datetime = ma.getDateTime();
-    lat = ma.getLatitude();
-    lon = ma.getLongitude();
+    lat = makeNullDefault(ma.getLatitude());
+    lon = makeNullDefault(ma.getLongitude());
+  }
+
+  private Double defaultLatLon = -1.0;
+  private Double makeNullDefault(Double d) {
+    if (d==null) {
+      return defaultLatLon;
+    }
+    return d;
   }
 
   public long getDateTimeInSeconds() {
