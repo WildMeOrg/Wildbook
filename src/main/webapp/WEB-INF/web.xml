@@ -243,7 +243,9 @@
 
 					/ResurrectDeletedEncounter = authc,roles[admin]
 					
-
+				/OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
+                 /OccurrenceSearchExportGtm = authc, roles[researcher]
+				
 
             </param-value>
         </init-param>
@@ -1218,6 +1220,26 @@
     <servlet-name>OccurrenceClusterMASet</servlet-name>
     <servlet-class>org.ecocean.servlet.OccurrenceClusterMASet</servlet-class>
   </servlet>
+  
+    <servlet>
+    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportMetadataExcel</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>OccurrenceSearchExportGtm</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
+  </servlet>
+  
+  
+    <servlet-mapping>
+    <servlet-name>OccurrenceSearchExportGtm</servlet-name>
+    <url-pattern>/OccurrenceSearchExportGtm</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
+    <url-pattern>/OccurrenceSearchExportMetadataExcel</url-pattern>
+  </servlet-mapping>
 
 
 <servlet-mapping>
