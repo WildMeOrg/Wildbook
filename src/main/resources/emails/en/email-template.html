@@ -7,7 +7,6 @@ html, body {
 	background-image: none;
 	background-color: white;
 }
-
 body {
   margin: 0px;
   padding: 0px;
@@ -17,10 +16,28 @@ body {
   height:100%;
   width:100%;
 }
+.masthead {
+	width:100%;
+	background-color: #0b718e;
+	color: white;
+	padding-bottom: 4px;
+	padding-top: 4px;	
+}
 img.masthead {
 	margin: none;
 	padding: none;
-	width: 100%;
+	width: 17.5%;
+	margin-right: 25%;
+	padding-left: 25px;
+}
+a.masthead {
+	font-size: 1.25em;
+	color: #C278E9;
+}
+.mast-foot {
+	padding-bottom: 15px;
+	padding-top: 10px;	
+	margin-top: 10px;	
 }
 div#mailContent {
 	margin: none;
@@ -66,16 +83,16 @@ li.batchWarning {
     <table style="width: 100%;background-color: white;">
       <tbody>
         <tr>
-          <td style="width:100%;"><a href="http://www.flukebook.org/"
+          <td style="width:100%;"><a href="http://34.209.17.78/"
 
               title="Spotting Giant Sea Bass">
-              <div id="masthead" style="width:100%;background-color: #333333;">
+              <div class="masthead">
                 <img class="masthead" src="http://34.209.17.78/cust/mantamatcher/img/bass/bass_header.png"
 
                   alt="Spotting Giant Sea Bass: you can help photograph, identify, and protect giant sea bass!">
               </div>
             </a>
-            <div id="mailContent" style="width:100%;background-color: white;">
+            <div id="mailContent" class="mast-foot" style="width:100%;background-color: white;">
               @EMAIL_CONTENT@
               <p>Sincerely,</p>
               <p>The Spotting Giant Sea Bass Team</p>
@@ -87,6 +104,9 @@ li.batchWarning {
         </tr>
       </tbody>
     </table>
+    
+    <!--
+     
     <div class="legal caption">
       <p class="title">LEGAL STATEMENT</p>
       <p>Flukebook is copyrighted 2015 by Wild Me. Individual contributors to
@@ -94,12 +114,17 @@ li.batchWarning {
         usage of material in this library is permitted without the express
         permission of the copyright holders.</p>
     </div>
+    
+    -->
+    
     <!--@REMOVEME_START@-->
-    <div id="removeMe" class="caption">
-      <p>Do you want to REMOVE your email address from this database? Click <a
-
-          href="@REMOVEME_LINK@">here</a> to remove it. You will no longer
-        receive updates on your encounters.</p>
+    <div class="masthead">
+	    <div id="removeMe" class="caption">
+	      <p>Do you want to REMOVE your email address from this database? Click <a class="masthead"
+	
+	          href="@REMOVEME_LINK@">here</a> to remove it. You will no longer
+	        receive updates on your encounters.</p>
+	    </div>
     </div>
     <!--@REMOVEME_END@-->
     
