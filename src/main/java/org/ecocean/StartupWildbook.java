@@ -124,8 +124,8 @@ public class StartupWildbook implements ServletContextListener {
         File qdir = ScheduledQueue.setQueueDir(context);
         if (qdir == null) {
             System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
-        } else if ((res == null) || !res.toString().equals("jndi:/localhost/")) {  //mimicking primeIA() here, and skipping for improper resource
-            System.out.println("+ INFO: queue service start skipped for res=" + res.toString());
+        //} else if ((res == null) || !res.toString().equals("jndi:/localhost/")) {  //mimicking primeIA() here, and skipping for improper resource
+        //    System.out.println("+ INFO: queue service start skipped for res=" + res.toString());
         } else {
             System.out.println("+ queue service starting; dir = " + qdir.toString());
             schedExec = Executors.newScheduledThreadPool(5);
