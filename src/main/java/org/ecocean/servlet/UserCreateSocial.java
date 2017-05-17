@@ -90,7 +90,7 @@ import org.scribe.oauth.*;
 			String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=facebook";
 			fbclient.setCallbackUrl(callbackUrl);
 
-			OAuthCredentials credentials = null;
+			OAuth20Credentials credentials = null;
 			try {
 				credentials = fbclient.getCredentials(ctx);
 			} catch (Exception ex) {

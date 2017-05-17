@@ -89,7 +89,7 @@ import org.scribe.oauth.*;
 			WebContext ctx = new J2EContext(request, response);
 			fbclient.setCallbackUrl(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/LoginUserSocial?type=facebook");
 
-			OAuthCredentials credentials = null;
+			OAuth20Credentials credentials = null;
 			try {
 				credentials = fbclient.getCredentials(ctx);
 			} catch (Exception ex) {

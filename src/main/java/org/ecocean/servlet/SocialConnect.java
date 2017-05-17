@@ -35,6 +35,7 @@ import org.ecocean.User;
 import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.oauth.client.FacebookClient;
+import org.pac4j.oauth.credentials.OAuth20Credentials;
 //import org.pac4j.oauth.client.YahooClient;
 import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
@@ -116,10 +117,11 @@ import org.scribe.oauth.*;
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             fbclient.setCallbackUrl(callbackUrl);
 
-            OAuthCredentials credentials = null;
+            OAuth20Credentials credentials = null;
             try {
                 credentials = fbclient.getCredentials(ctx);
             } catch (Exception ex) {
+                ex.printStackTrace();
                 System.out.println("caught exception on facebook credentials: " + ex.toString());
             }
             FacebookProfile facebookProfile = null;
