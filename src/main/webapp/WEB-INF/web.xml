@@ -321,8 +321,8 @@
 
 
   <servlet>
-    <servlet-name>EncounterCreateSurveyAndTrack</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterCreateSurveyAndTrack</servlet-class>
+    <servlet-name>EncounterCreateSurvey</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterCreateSurvey</servlet-class>
   </servlet>	
 
 
@@ -537,8 +537,8 @@
 	
 	
     <servlet-mapping>
- 		<servlet-name>EncounterCreateSurveyAndTrack</servlet-name>
-		<url-pattern>/EncounterCreateSurveyAndTrack</url-pattern>
+ 		<servlet-name>EncounterCreateSurvey</servlet-name>
+		<url-pattern>/EncounterCreateSurvey</url-pattern>
 	</servlet-mapping>
 	
 	

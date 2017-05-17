@@ -37,7 +37,13 @@ import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
 
-public class EncounterCreateSurveyAndTrack extends HttpServlet {
+public class EncounterCreateSurvey extends HttpServlet {
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -59,15 +65,12 @@ public class EncounterCreateSurveyAndTrack extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("EncounterCreateSurveyAndTrack.class");
+    myShepherd.setAction("EncounterCreateSurvey.class");
     
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    boolean locked = false;
-
     String surveyID = null;
-    String surveyTrackID = null;
-    String encID = null;
+
     
     Encounter enc = null;
     Survey svy = null;
@@ -82,24 +85,21 @@ public class EncounterCreateSurveyAndTrack extends HttpServlet {
       try {
         myShepherd.beginDBTransaction();
         enc = myShepherd.getEncounter(id);
-        myShepherd.commitDBTransaction();
-        encID = id;        
+        myShepherd.commitDBTransaction();      
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         e.printStackTrace();
-        System.out.println("Did not find encounter for ID : "+id+" when creating survey.");
+        out.println("Error retrieving encounter number "+id+" when creating survey.");
       }
     }
     
-    if (!myShepherd.isSurvey(surveyID) || surveyID == null) {
+    if (!myShepherd.isSurvey(surveyID) && surveyID != null && enc.getSurveyID() == null) {
       setDateLastModified(enc);
       try {
         svy = new Survey(enc.getDate());
         if (surveyID != null) {
           svy.setID(surveyID);       
-        } else {
-          surveyID = svy.getID();
         }
         myShepherd.beginDBTransaction();
         myShepherd.storeNewSurvey(svy);
@@ -107,9 +107,8 @@ public class EncounterCreateSurveyAndTrack extends HttpServlet {
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        locked = true;
         e.printStackTrace();
-        System.out.println("Failed to create new Survey from ID : "+surveyID);
+        out.println("Failed to create new Survey from ID : "+surveyID+". The survey could not be saved.");
       }
       
       try {
@@ -117,19 +116,19 @@ public class EncounterCreateSurveyAndTrack extends HttpServlet {
         myShepherd.beginDBTransaction();
         myShepherd.storeNewSurveyTrack(st);
         myShepherd.commitDBTransaction();
+        out.println("Success!");
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        locked = true;
         e.printStackTrace();
-        System.out.println("Failed to create new SurveyTrack from Survey ID : "+surveyID);
+        out.println("Failed to create new SurveyTrack from Survey ID : "+surveyID+". The SurveyTrack could not be saved." );
       }
       
     } else {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       //out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> You cannot make a new occurrence from this encounter because it is already assigned to another occurrence. Remove it from its previous occurrence if you want to re-assign it elsewhere.");
+      out.println("<strong>Error:</strong> You cannot make a new survey for this encounter because it is already assigned to one. Remove it from its previous survey if you want to re-assign it.");
       //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
       //out.println(ServletUtilities.getFooter(context));
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
