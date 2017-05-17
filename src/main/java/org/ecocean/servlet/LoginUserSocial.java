@@ -130,7 +130,7 @@ import org.scribe.oauth.*;
 
 System.out.println("*** trying redirect?");
 				try {
-					fbclient.redirect(ctx, false, false);
+					fbclient.redirect(ctx);
 				} catch (Exception ex) {
 					System.out.println("caught exception on facebook processing: " + ex.toString());
 				}

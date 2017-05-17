@@ -99,17 +99,17 @@ import org.scribe.oauth.*;
 
         String[] fileUrls = request.getParameterValues("fileUrl");
         if (fileUrls != null) {
-System.out.println("(A) fileUrls.length = " + fileUrls.length);
-for (int i = 0 ; i < fileUrls.length ; i++) {
-    System.out.println("- " + fileUrls[i]);
-}
+          System.out.println("(A) fileUrls.length = " + fileUrls.length);
+          for (int i = 0 ; i < fileUrls.length ; i++) {
+            System.out.println("- " + fileUrls[i]);
+          }
         } else {
             Object urls = session.getAttribute("fileUrls");
             if (urls != null) fileUrls = (String[])urls;
         }
 
         String socialType = "facebook";
-if (fileUrls != null) System.out.println("(B) fileUrls.length = " + fileUrls.length);
+        if (fileUrls != null) System.out.println("(B) fileUrls.length = " + fileUrls.length);
 
         response.setHeader("Content-type", "application/json");
         if ((fileUrls == null) || (fileUrls.length < 1)) {
@@ -191,7 +191,7 @@ System.out.println(fname + ") --- " + fileUrls[i]);
 
 System.out.println("*** trying redirect?");
                 try {
-                    fbclient.redirect(ctx, false, false);
+                    fbclient.redirect(ctx);
                 } catch (Exception ex) {
                     System.out.println("caught exception on facebook processing: " + ex.toString());
                 }

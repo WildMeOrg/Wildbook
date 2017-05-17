@@ -96,9 +96,14 @@ import org.scribe.oauth.*;
 			} catch (Exception ex) {
 				System.out.println("caught exception on facebook credentials: " + ex.toString());
 			}
-
+			FacebookProfile facebookProfile = null;
 			if (credentials != null) {
-				FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
+			  try {
+			    facebookProfile = fbclient.getUserProfile(credentials, ctx);			    
+			  } catch (Exception e) {
+			    e.printStackTrace();
+			  }
+			  
 				User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
 				System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
 
@@ -146,7 +151,7 @@ System.out.println("email: " + facebookProfile.getEmail());
 
 //System.out.println("*** trying redirect?");
 				try {
-					fbclient.redirect(ctx, false, false);
+					fbclient.redirect(ctx);
 				} catch (Exception ex) {
 					System.out.println("caught exception on facebook processing: " + ex.toString());
 				}
