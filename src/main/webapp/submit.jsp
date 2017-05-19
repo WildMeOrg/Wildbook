@@ -1137,7 +1137,7 @@ if (tagSwitch == true) {
 
 function sendButtonClicked() {
 	console.log('sendButtonClicked()');
-	if (sendSocialPhotosBackground()) return false;
+	
 	console.log('fell through -- must be no social!');
 
     <%
@@ -1161,6 +1161,7 @@ function sendButtonClicked() {
    						$("#encounterForm").attr("action", "EncounterForm");
    						submitForm();
    					}
+   					if (sendSocialPhotosBackground()) return false;
 		}
 	//alert(recaptachaResponse);
 	<%
