@@ -390,7 +390,7 @@ finally{
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
             <h1 class="hidden">Spotashark</h1>
-            <h2>Your photos will help identify and protect the critically endangered grey nurse shark.</h2>
+            <h2>Your photos will help identify and protect endangered sand tiger sharks.</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
