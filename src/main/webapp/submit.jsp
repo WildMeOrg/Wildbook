@@ -177,7 +177,7 @@ function sendSocialPhotosBackground() {
 		iframeUrl += '&fileUrl=' + escape($(el).val());
 	});
 
-console.log('iframeUrl %o', iframeUrl);
+	console.log('iframeUrl %o', iframeUrl);
 	document.getElementById('social_files_iframe').src = iframeUrl;
 	return true;
 }
