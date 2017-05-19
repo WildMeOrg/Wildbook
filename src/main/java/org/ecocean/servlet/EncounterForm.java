@@ -89,6 +89,8 @@ import org.pac4j.oauth.client.FacebookClient;
 import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
 
+import org.ecocean.mmutil.FileUtilities;
+
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
  *
@@ -574,30 +576,25 @@ System.out.println("enc ?= " + enc.toString());
             AssetStore astore = AssetStore.getDefault(myShepherd);
             ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
 
+            //for directly uploaded files
             for (FileItem item : formFiles) {
-                JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
-                sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
-                MediaAsset ma = new MediaAsset(astore, sp);
-                File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
-                File tmpDir = tmpFile.getParentFile();
-                if (!tmpDir.exists()) tmpDir.mkdirs();
-//System.out.println("attempting to write uploaded file to " + tmpFile);
-                try {
-		    item.write(tmpFile);
-                } catch (Exception ex) {
-                    System.out.println("Could not write " + tmpFile + ": " + ex.toString());
-                }
-                if (tmpFile.exists()) {
-                    ma.addLabel("_original");
-                    ma.copyIn(tmpFile);
-                    ma.updateMetadata();
-                    newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
-                } else {
-                    System.out.println("failed to write file " + tmpFile);
-                }
+              //convert each FileItem into a MediaAsset
+              makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
             }
 
             ///////////////////TODO social files also!!!
+            if(socialFiles.size()>0){
+              int numSocialFiles=socialFiles.size();
+              DiskFileItemFactory factory = new DiskFileItemFactory();
+              
+              for(int q=0;q<numSocialFiles;q++){
+                File item=socialFiles.get(q);
+                makeMediaAssetsFromJavaFileObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
+                
+              }
+              
+            }
+            
 
             if (fv.get("mediaAssetSetId") != null) {
                 MediaAssetSet maSet = ((MediaAssetSet) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAssetSet.class, fv.get("mediaAssetSetId")), true)));
@@ -979,6 +976,73 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
     myShepherd.closeDBTransaction();
     //return null;
+  }
+  
+  private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
+    sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+    MediaAsset ma = new MediaAsset(astore, sp);
+    File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
+    File tmpDir = tmpFile.getParentFile();
+    if (!tmpDir.exists()) tmpDir.mkdirs();
+//System.out.println("attempting to write uploaded file to " + tmpFile);
+    try {
+      item.write(tmpFile);
+    } catch (Exception ex) {
+        System.out.println("Could not write " + tmpFile + ": " + ex.toString());
+    }
+    if (tmpFile.exists()) {
+      
+      try{
+        ma.addLabel("_original");
+        ma.copyIn(tmpFile);
+        ma.updateMetadata();
+        newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
+      }
+      catch(IOException ioe){
+        System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
+        ioe.printStackTrace();
+      }
+        
+        
+    } 
+    else {
+        System.out.println("failed to write file " + tmpFile);
+    }
+  }
+  
+  private void makeMediaAssetsFromJavaFileObject(File item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
+    sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+    MediaAsset ma = new MediaAsset(astore, sp);
+    File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
+    File tmpDir = tmpFile.getParentFile();
+    if (!tmpDir.exists()) tmpDir.mkdirs();
+//System.out.println("attempting to write uploaded file to " + tmpFile);
+    try {
+      FileUtilities.copyFile(item, tmpFile);
+      //item.write(tmpFile);
+    } catch (Exception ex) {
+        System.out.println("Could not write " + tmpFile + ": " + ex.toString());
+    }
+    if (tmpFile.exists()) {
+      
+      try{
+        ma.addLabel("_original");
+        ma.copyIn(tmpFile);
+        ma.updateMetadata();
+        newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
+      }
+      catch(IOException ioe){
+        System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
+        ioe.printStackTrace();
+      }
+        
+        
+    } 
+    else {
+        System.out.println("failed to write file " + tmpFile);
+    }
   }
 
 
