@@ -117,7 +117,7 @@ import org.scribe.oauth.*;
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             fbclient.setCallbackUrl(callbackUrl);
 
-            OAuth20Credentials credentials = null;
+            OAuthCredentials credentials = null;
             try {
                 credentials = fbclient.getCredentials(ctx);
             } catch (Exception ex) {
@@ -133,13 +133,13 @@ import org.scribe.oauth.*;
                 }
                 User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
                 System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
-if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuser = " + fbuser.getUsername());
+                if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuser = " + fbuser.getUsername());
                 if ((fbuser != null) && (fbuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
                     fbuser.unsetSocial("facebook");
                     //myShepherd.getPM().makePersistent(user);
                     session.setAttribute("message", "disconnected from facebook");
                     response.sendRedirect("myAccount.jsp");
-                    myShepherd.rollbackDBTransaction();
+                    myShepherd.commitDBTransaction();
                     myShepherd.closeDBTransaction();
                     return;
 
@@ -155,13 +155,13 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                     //myShepherd.getPM().makePersistent(user);
                     session.setAttribute("message", "connected to facebook");
                     response.sendRedirect("myAccount.jsp");
-                    myShepherd.rollbackDBTransaction();
+                    myShepherd.commitDBTransaction();
                     myShepherd.closeDBTransaction();
                     return;
                 }
             } else {
 
-System.out.println("*** trying redirect?");
+              System.out.println("*** trying redirect?");
                 try {
                     fbclient.redirect(ctx);
                 } catch (Exception ex) {
@@ -196,9 +196,9 @@ System.out.println("*** trying redirect?");
             if (overif == null) {
                 Token requestToken = service.getRequestToken();
                 session.setAttribute("requestToken", requestToken);
-       System.out.println("==============================================requestToken = " + requestToken);
+                System.out.println("==============================================requestToken = " + requestToken);
                 String authorizationUrl = service.getAuthorizationUrl(requestToken) + "&perms=read";
-System.out.println(authorizationUrl);
+                System.out.println(authorizationUrl);
 
 //http://localhost.wildme.org/a/SocialConnect?type=xxflickr&oauth_token=72157652805581432-a5b8f3598c13e2a6&oauth_verifier=d3325223f923442e
                 response.sendRedirect(authorizationUrl);
@@ -207,21 +207,21 @@ System.out.println(authorizationUrl);
                 return;
 
             } else {
-System.out.println("verifier -> " + overif);
+                System.out.println("verifier -> " + overif);
                 Token requestToken = (Token)session.getAttribute("requestToken");
                 Verifier verifier = new Verifier(overif);
                 Token accessToken = service.getAccessToken(requestToken, verifier);
-       System.out.println("==============================================requestToken = " + requestToken);
-       System.out.println("=- - - - - - - - - - - - - -==================accessToken = " + accessToken);
-System.out.println("-----------------------------------------otoken= " + otoken);
-       System.out.println("verifier = " + verifier);
+                System.out.println("==============================================requestToken = " + requestToken);
+                System.out.println("=- - - - - - - - - - - - - -==================accessToken = " + accessToken);
+                System.out.println("-----------------------------------------otoken= " + otoken);
+                System.out.println("verifier = " + verifier);
 
                 OAuthRequest oRequest = new OAuthRequest(Verb.GET, SocialAuth.FLICKR_URL);
                 oRequest.addQuerystringParameter("method", "flickr.test.login");
                 service.signRequest(accessToken, oRequest);
                 Response oResponse = oRequest.send();
-System.out.println("GOT RESPONSE!!!!!!!!!!!!!!!!!!!!!!!!!!");
-System.out.println(oResponse.getBody());
+                System.out.println("GOT RESPONSE!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                System.out.println(oResponse.getBody());
 
                 String fusername = null;   //should we use <user id="XXXXXXXXX"> instead?  TODO
                 int i = oResponse.getBody().indexOf("<username>");
@@ -231,13 +231,13 @@ System.out.println(oResponse.getBody());
                     if (i > -1) fusername = fusername.substring(0, i);
                 }
                 User fuser = myShepherd.getUserBySocialId("flickr", fusername);
-   System.out.println("fusername = " + fusername + " -> user = " + fuser);
-if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser = " + fuser.getUsername());
+                System.out.println("fusername = " + fusername + " -> user = " + fuser);
+                if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser = " + fuser.getUsername());
                 if ((fuser != null) && (fuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
                     fuser.unsetSocial("flickr");
                     session.setAttribute("message", "disconnected from flickr");
                     response.sendRedirect("myAccount.jsp");
-                    myShepherd.rollbackDBTransaction();
+                    myShepherd.commitDBTransaction();
                     myShepherd.closeDBTransaction();
                     return;
 
@@ -253,7 +253,9 @@ if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser 
                     //myShepherd.getPM().makePersistent(user);
                     session.setAttribute("message", "connected to flickr");
                     response.sendRedirect("myAccount.jsp");
-                    myShepherd.rollbackDBTransaction();
+                    myShepherd.commitDBTransaction();
+                    // This was a rollback, but it sure seems like we want to save this change?
+                    // Update. Yup, we want commitDBTransaction all up in this servlet. Stuff isn't getting saved.
                     myShepherd.closeDBTransaction();
                     return;
                 }

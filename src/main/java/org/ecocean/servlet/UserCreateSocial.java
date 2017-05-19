@@ -85,12 +85,14 @@ import org.scribe.oauth.*;
         } catch (Exception ex) {
             System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
         }
+      
 			WebContext ctx = new J2EContext(request, response);
+			
 			//String callbackUrl = "http://localhost.wildme.org/a/UserCreateSocial?type=facebook";
 			String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=facebook";
 			fbclient.setCallbackUrl(callbackUrl);
 
-			OAuth20Credentials credentials = null;
+			OAuthCredentials credentials = null;
 			try {
 				credentials = fbclient.getCredentials(ctx);
 			} catch (Exception ex) {

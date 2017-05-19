@@ -8,7 +8,6 @@
 
 String context="context0";
 context=ServletUtilities.getContext(request);
-
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
