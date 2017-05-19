@@ -9,6 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -84,7 +87,7 @@ import org.scribe.oauth.*;
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     HttpSession session = request.getSession(true);
 
-    PrintWriter out = response.getWriter();
+        PrintWriter out = response.getWriter();
         String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("SocialConnect.class");
@@ -111,7 +114,8 @@ import org.scribe.oauth.*;
         } catch (Exception ex) {
             System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
         }
-            WebContext ctx = new J2EContext(request, response);
+            J2EContext ctx = new J2EContext(request, response);
+            session = renewSession(ctx);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
             String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
@@ -346,4 +350,29 @@ System.out.println("*** trying redirect?");
 
         //out.println("ok????");
     }
+    public HttpSession renewSession(final J2EContext context) {
+      final HttpServletRequest request = context.getRequest();
+      final HttpSession session = request.getSession();
+      
+      final Map<String, Object> attributes = new HashMap<>();
+      session.setMaxInactiveInterval(10000);
+      try {
+        
+      } catch (Exception e) {
+        e.printStackTrace();
+        System.out.println("BROKE AT RENEW SESSION");
+      }
+      Enumeration atts = session.getAttributeNames();
+      while (atts.hasMoreElements()) {
+        attributes.put(atts.nextElement().toString(), session.getAttribute(atts.nextElement().toString()));    
+      }
+      session.invalidate();
+      final HttpSession newSession = request.getSession(true);
+      
+      for (String k : attributes.keySet()) {
+        newSession.setAttribute(k, attributes.get(k)); 
+      }
+      return newSession;
+    } 
+    
 }
