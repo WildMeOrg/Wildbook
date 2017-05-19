@@ -370,10 +370,14 @@ System.out.println("*** trying redirect?");
         }
 
         if (fv.get("social_files_id") != null) {
+          System.out.println("BBB: Social_files_id: "+fv.get("social_files_id"));
+          
             //TODO better checking of files (size, type etc)
             File socDir = new File(ServletUtilities.dataDir(context, rootDir) + "/social_files/" + fv.get("social_files_id"));
             for (File sf : socDir.listFiles()) {
                 socialFiles.add(sf);
+                System.out.println("BBB: Adding social file : "+sf.getName());
+                
                 filesOK.add(sf.getName());
             }
             filesBad = new HashMap<String, String>();
@@ -583,8 +587,12 @@ System.out.println("enc ?= " + enc.toString());
             }
 
             ///////////////////TODO social files also!!!
+            System.out.println("BBB: Checking if we have social files...");
+            
             if(socialFiles.size()>0){
               int numSocialFiles=socialFiles.size();
+              System.out.println("BBB: Trying to persist social files: "+numSocialFiles);
+              
               DiskFileItemFactory factory = new DiskFileItemFactory();
               
               for(int q=0;q<numSocialFiles;q++){
@@ -1012,6 +1020,9 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
   }
   
   private void makeMediaAssetsFromJavaFileObject(File item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+    
+    System.out.println("Entering makeMediaAssetsFromJavaFileObject");
+    
     JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
     sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
     MediaAsset ma = new MediaAsset(astore, sp);
@@ -1032,6 +1043,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
         ma.copyIn(tmpFile);
         ma.updateMetadata();
         newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
+        System.out.println("Added new annotation for: "+item.getName());
       }
       catch(IOException ioe){
         System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
