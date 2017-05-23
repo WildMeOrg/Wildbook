@@ -203,7 +203,6 @@
  File[] imageList = folder.listFiles();
  ArrayList<String> thumbs = new ArrayList<String>();
  int l = imageList.length;
- System.out.println("Length : "+l);
   for (int i = 0; i < l; i++ ) {
   	System.out.println("LENGTH : "+ imageList.length);
    	if (imageList[i].isFile()) {
