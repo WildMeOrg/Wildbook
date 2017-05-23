@@ -1119,13 +1119,32 @@ public class Shepherd {
     return storeNewMarkedIndividual(newShark);
   }
 
-
+  /** 
+   * This is used to get the number of unique emails to estimate contributing citizen scientists. 
+   * Number can be displayed on the index page as a counter. 
+   */
+  
+  public int getNumberUniqueSubmissionEmails() {
+    Iterator<Encounter> encs = getAllEncountersNoQuery();
+    ArrayList<String> encArr = new ArrayList<String>();
+    Encounter thisEnc = null;
+    int emails = 0;
+    while (encs.hasNext()) {
+      thisEnc = encs.next();
+      if (thisEnc.getSubmitterEmail() != null && !encArr.contains(thisEnc.getSubmitterEmail())) {
+        encArr.add(thisEnc.getSubmitterEmail());
+        emails++;
+      }
+    }
+    return emails;
+  }
   /**
    * Retrieves any unassigned encounters that are stored in the database - but not yet analyzed - to see whether they represent new or already persistent sharks
    *
    * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
    * @see encounter, java.util.Iterator
    */
+  
   public Iterator getUnassignedEncounters() {
     String filter = "this.individualID == null";
     Extent encClass = pm.getExtent(Encounter.class, true);

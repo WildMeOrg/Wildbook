@@ -365,6 +365,8 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 
+int numCitScientists=0;
+
 myShepherd.beginDBTransaction();
 
 //String url = "login.jsp";
@@ -379,6 +381,16 @@ try{
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
     numDataContributors=myShepherd.getNumUsers();
+    
+    //This should get the number of unique emails from encounter submissions for a ROUGH estimate of contributing individuals. 
+    try {
+	    numCitScientists=myShepherd.getNumberUniqueSubmissionEmails(); 	
+    } catch (Exception e) {
+    	e.printStackTrace();
+    	System.out.println("Could not get number of unique emails for index counter.");
+    }
+    
+    
 
 
 }
@@ -671,7 +683,7 @@ finally{
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("contributors") %></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numCitScientists%></span> <%=props.getProperty("citScientists") %></i></p>
             </section>
         </div>
 
