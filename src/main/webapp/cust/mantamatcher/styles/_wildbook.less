@@ -484,3 +484,39 @@ div.state-approved span.state {
 .ui-autocomplete.ui-menu {
 	z-index: 2000 !important;
   }
+  
+  
+#image-credit {
+  position: relative;
+  min-height: 150px;
+  width: 100%;
+  margin-left:85%;
+}
+#credit-text {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+@media (min-width: @screen-lg) {
+	#image-credit { margin-left: 85%; }
+}
+@media (max-width: 1200px) {
+	#image-credit { margin-left: 80%; }
+}
+@media (max-width: @screen-md) {
+	#image-credit { margin-left: 75%; }
+}
+@media (max-width: @screen-sm) {
+	#image-credit { margin-left: 62%; }
+	#credit-text { font-size: 0.8em; }
+}
+@media (max-width: @screen-xs) {
+	#image-credit { margin-left: 50	%; }
+	#credit-text { font-size: 0.6em; }
+}
+  
+/* Shortens the main background image to allow image credit to sit on bottom. */
+.main-section {
+	padding-bottom: 0px;
+}  
+

@@ -45,7 +45,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
 <style type="text/css">
-.full_screen_map {
+.full_screen_map {	
 position: absolute !important;
 top: 0px !important;
 left: 0px !important;
@@ -410,7 +410,9 @@ finally{
         </div>
 
 	</div>
-	<p id="image-credit" class="pull-right"><i style="color:white;margin-right:15px;">image credit Ian Uhalt</i></p>
+	<div id="image-credit">
+		<p id="credit-text"><i style="color:white;">image credit Ian Uhalt</i></p>	
+	</div>
 
 
 </section>
