@@ -177,7 +177,7 @@ function sendSocialPhotosBackground() {
 		iframeUrl += '&fileUrl=' + escape($(el).val());
 	});
 
-console.log('iframeUrl %o', iframeUrl);
+	console.log('iframeUrl %o', iframeUrl);
 	document.getElementById('social_files_iframe').src = iframeUrl;
 	return true;
 }
@@ -427,13 +427,15 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
 
 $('#social_files_iframe').on('load', function(ev) {
+	console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
 	if (!ev || !ev.target) return;
-//console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
-//console.warn('doc is %o', doc);
+console.warn('doc is %o', doc);
 	if (!doc) return;
 //var x = $(doc).find('body').text();
-//console.warn('body %o', x);
+console.warn('body %o', x);
 	var j = JSON.parse($(doc).find('body').text());
 	console.info('iframe returned %o', j);
 
@@ -1159,9 +1161,15 @@ function sendButtonClicked() {
    					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
    					if(!isEmpty(recaptachaResponse)) {		
    						$("#encounterForm").attr("action", "EncounterForm");
+   						
+   						
+   						//ok all is well so far, but quick redirect if we're doing a social upload
+   						if (sendSocialPhotosBackground()) return false;
+   						
+   						//if no social, proceed
    						submitForm();
    					}
-   					if (sendSocialPhotosBackground()) return false;
+   					
 		}
 	//alert(recaptachaResponse);
 	<%

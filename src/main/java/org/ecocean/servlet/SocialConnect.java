@@ -123,7 +123,7 @@ import org.scribe.oauth.*;
 
             OAuthCredentials credentials = null;
             try {
-                credentials = fbclient.getCredentials(ctx);
+                credentials = (OAuthCredentials)fbclient.getCredentials(ctx);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 System.out.println("caught exception on facebook credentials: " + ex.toString());
