@@ -522,7 +522,7 @@ int numDataContributors=0;
       }
 
       %>
-      <div class="row" style="background:#e1e1e1;">
+      <div id="gallery-pages" class="row" style="padding-top:10px;">
 
         <p style="text-align:center">
 
@@ -530,18 +530,17 @@ int numDataContributors=0;
           if (startNum>0) {
             int newStart = Math.max(startNum-numIndividualsOnPage,0);
             %>
-            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
+            <a class="gallery-arrows btn btn-default" href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"><span class="arrow-span"> Previous </span></a> &nbsp;&nbsp;
             <%
           }
           %>
 
-          <%=props.getProperty("seeMore") %>
 
-&nbsp;&nbsp;&nbsp;&nbsp;<a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+&nbsp;&nbsp;<a class="gallery-arrows btn btn-default" href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"><span class="arrow-span">&nbsp;&nbsp; Next &nbsp;&nbsp;&nbsp;</span><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>
+        
 
-      </row>
-
+	 </div>
   </section>
 </div>
 </div>
