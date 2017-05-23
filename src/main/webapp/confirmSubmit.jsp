@@ -5,18 +5,17 @@
 <jsp:include page="header.jsp" flush="true"/>
 
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+  String context="context0";
+  context=ServletUtilities.getContext(request);
   String number = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("confirmSubmit.jsp");
 	//HttpSession session = request.getSession(false);
 
-
-	String filesOKMessage = "";
-	if (session.getAttribute("filesOKMessage") != null) { filesOKMessage = session.getAttribute("filesOKMessage").toString(); }
-	String filesBadMessage = "";
-	if (session.getAttribute("filesBadMessage") != null) { filesBadMessage = session.getAttribute("filesBadMessage").toString(); }
+  String filesOKMessage = "";
+  if (session.getAttribute("filesOKMessage") != null) { filesOKMessage = session.getAttribute("filesOKMessage").toString(); }
+  String filesBadMessage = "";
+  if (session.getAttribute("filesBadMessage") != null) { filesBadMessage = session.getAttribute("filesBadMessage").toString(); }
 
 //setup our Properties object to hold all properties
   Properties props = new Properties();
@@ -46,14 +45,13 @@ context=ServletUtilities.getContext(request);
   File thisEncounterDir = null;// = new File();  //gets set after we have encounter
 
 
+
 %>
-
-
 <div class="container maincontent">
 <%
-  StringBuffer new_message = new StringBuffer();
-new_message.append("<html><body>");
 
+  StringBuffer new_message = new StringBuffer();
+  new_message.append("<html><body>");
   new_message.append("The "+CommonConfiguration.getProperty("htmlTitle",context)+" library has received a new encounter submission. You can " +
     "view it at:<br>" + CommonConfiguration.getURLLocation(request) +
     "/encounters/encounter" +
@@ -67,14 +65,11 @@ new_message.append("<html><body>");
   String submitter = "";
   String informOthers = "";
   String informMe = "";
-
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir);
+  String rootDir = getServletContext().getRealPath("/");
+  String baseDir = ServletUtilities.dataDir(context, rootDir);
 
   Encounter enc = null;
-
   if (!number.equals("fail")) {
-
     myShepherd.beginDBTransaction();
     try {
       enc = myShepherd.getEncounter(number);
@@ -133,7 +128,7 @@ new_message.append("<html><body>");
     
   }
 
-  String thumbLocation = "file-"+thisEncounterDir.getAbsolutePath() + "/thumb.jpg";
+  String thumbLocation = thisEncounterDir.getAbsolutePath() + "/thumb.jpg";
   if (myShepherd.isAcceptableVideoFile(addText)) {
     addText = rootWebappPath+"/images/video_thumb.jpg";
   } 
@@ -144,11 +139,11 @@ new_message.append("<html><body>");
 	  addText = rootWebappPath+"/images/no_images.jpg";
   }
 
-
   //File file2process = new File(getServletContext().getRealPath(("/" + addText)));
 
   File file2process = new File(addText);
-	File thumbFile = new File(thumbLocation.substring(5));
+  File thumbFile = new File(thumbLocation.substring(5));
+  
 
 
   if(file2process.exists() && myShepherd.isAcceptableImageFile(file2process.getName())){
@@ -157,43 +152,82 @@ new_message.append("<html><body>");
   	int thumbnailHeight = 75;
   	int thumbnailWidth = 100;
 
-
+  
   	String height = "";
   	String width = "";
 
   	Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
 
-  width = Double.toString(imageDimensions.getWidth());
-  height = Double.toString(imageDimensions.getHeight());
+    width = Double.toString(imageDimensions.getWidth());
+    height = Double.toString(imageDimensions.getHeight());
 
-  intHeight = ((new Double(height)).intValue());
-  intWidth = ((new Double(width)).intValue());
+    intHeight = ((new Double(height)).intValue());
+    intWidth = ((new Double(width)).intValue());
 
-  if (intWidth > thumbnailWidth) {
-    double scalingFactor = intWidth / thumbnailWidth;
-    intWidth = (int) (intWidth / scalingFactor);
-    intHeight = (int) (intHeight / scalingFactor);
-    if (intHeight < thumbnailHeight) {
-      thumbnailHeight = intHeight;
-    }
-  } else {
-    thumbnailWidth = intWidth;
-    thumbnailHeight = intHeight;
+	  if (intWidth > thumbnailWidth) {
+	    double scalingFactor = intWidth / thumbnailWidth;
+	    intWidth = (int) (intWidth / scalingFactor);
+	    intHeight = (int) (intHeight / scalingFactor);
+	    if (intHeight < thumbnailHeight) {
+	      thumbnailHeight = intHeight;
+	    }
+	  } else {
+	    thumbnailWidth = intWidth;
+	    thumbnailHeight = intHeight;
+	  }
+   
+  }  
+  
+  // I'm Not sure what the heck is going on with the code above and below this block. 
+  // It looks like it does some things i need, but every time I touch it something explodes.
+  // This block is just grabbing thumbs to display. It just kinda plays quietly by itself.
+  Encounter enc2 = null;
+  try {
+	  myShepherd.beginDBTransaction();
+	  enc2 = myShepherd.getEncounter(number);
+	  myShepherd.commitDBTransaction();
+  } catch (Exception e) {
+	  e.printStackTrace();
   }
-
-
+ String rootDir2 = getServletContext().getRealPath("/");
+ System.out.println("RootDir : "+rootDir2);
+ String baseDir2 = ServletUtilities.dataDir(context, rootDir2);
+ System.out.println("BaseDir2 : "+baseDir2);
+ String assetURLs = "";
+ File folder = new File(thisEncounterDir.getAbsolutePath());
+ System.out.println("Folder : "+folder.toString());
+ String swap = folder.toString();
+ swap = swap.replaceAll("encounters/", "");
+ folder = new File(swap);
+ try {
+ File[] imageList = folder.listFiles();
+ ArrayList<String> thumbs = new ArrayList<String>();
+ int l = imageList.length;
+ System.out.println("Length : "+l);
+  for (int i = 0; i < l; i++ ) {
+  	System.out.println("LENGTH : "+ imageList.length);
+   	if (imageList[i].isFile()) {
+    System.out.println("IS FILE : "+ imageList[i].isFile());
+    File f = imageList[i];
+    System.out.println("Contents : "+ f);
+    int lngth = f.getName().length();
+    String suffix = f.getName().substring(lngth - 7).trim();
+    System.out.println("Suffix : "+suffix);
+    if (suffix.equals("mid.jpg")) {
+    	swap = f.toString();
+    	swap = swap.replaceAll("/opt/tomcat/webapps/", "");
+  	    assetURLs = assetURLs + "<div class=\"col-xs-2\"><img class=\"new-thumb\" src=\""+swap+"\"/></div>";
+  	    System.out.println("ASSET URLS : "+assetURLs);
+    }
+   }
+  }	  
+  // End thumb block. 
 %>
 
 
-<di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>" border="0" fillPaint="#ffffff"
-        output="<%=thumbLocation%>" expAfter="0" threading="limited" align="left" valign="left">
-  <di:image width="<%=Integer.toString(intWidth) %>" height="<%=Integer.toString(intHeight) %>"
-            srcurl="<%=addText%>"/>
-</di:img>
-
-<%
-}
-%>
+<div border="0" fillPaint="#ffffff"
+        output="<%=thumbLocation%>" expAfter="0" threading="limited" align="left" valign="left"> 
+</div>
 
 <h1 class="intro"><%=props.getProperty("success") %></h1>
 
@@ -207,10 +241,18 @@ new_message.append("<html><body>");
 <%=props.getProperty("questions") %> <a href="mailto:<%=CommonConfiguration.getAutoEmailAddress(context) %>"><%=CommonConfiguration.getAutoEmailAddress(context) %></a></p>
 
 <p>
-	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
+	
+	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>
 </p>
-<%
-
+<div class="row"id="thumbList"> 
+	<%=assetURLs%>
+</div>
+<br>
+<%if (assetURLs != "") { %>
+	<label>Your Submitted Media</label>
+<%}%>
+<% 
+} finally {
 
 if(CommonConfiguration.sendEmailNotifications(context)){
 
@@ -278,6 +320,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
 
 myShepherd=null;
 
+}
 %>
 </div>
 

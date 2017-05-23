@@ -107,7 +107,7 @@
     <dependency>
         <groupId>org.pac4j</groupId>
         <artifactId>pac4j-oauth</artifactId>
-        <version>1.9.4</version>
+        <version>1.9.7</version>
     </dependency>
     
     <dependency>

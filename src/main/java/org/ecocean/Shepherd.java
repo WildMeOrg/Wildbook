@@ -1892,6 +1892,7 @@ public class Shepherd {
     }
     return myArray;
   }
+  
 
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
 	  String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE keywords.contains(word0) && ( word0.indexname == \""+word.getIndexname()+"\" ) VARIABLES org.ecocean.Keyword word0";
@@ -3647,6 +3648,8 @@ public class Shepherd {
     query.closeAll();
     return al;
   }
+  
+  
   
   //used to describe where this Shepherd is and what it is supposed to be doing
   public void setAction(String newAction){
