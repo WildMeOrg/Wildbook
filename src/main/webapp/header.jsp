@@ -128,6 +128,8 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
+                	                  <!-- add target="blank" to restore page opening in another tab -->
+                  <a class="navbar-brand" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                 <!--<a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>-->
                 <!--  <img id="love-badge" src="/cust/mantamatcher/img/bass/little_love_logo.png"></img> -->
                   <div class="search-and-secondary-wrapper">
@@ -303,8 +305,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       </label>
                     </div>
                   </div>
-                  <!-- add target="blank" to restore page opening in another tab -->
-                  <a class="navbar-brand" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+
                 </div>
               </div>
 

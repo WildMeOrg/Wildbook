@@ -178,9 +178,10 @@
    
   }  
   
-  // I'm Not sure what the heck is going on with the code above and below this block. 
+  // I'm Not sure what the heck is going on with the code above this block. 
   // It looks like it does some things i need, but every time I touch it something explodes.
   // This block is just grabbing thumbs to display. It just kinda plays quietly by itself.
+  // It's hacky. I know.
   Encounter enc2 = null;
   try {
 	  myShepherd.beginDBTransaction();
@@ -193,33 +194,38 @@
  System.out.println("RootDir : "+rootDir2);
  String baseDir2 = ServletUtilities.dataDir(context, rootDir2);
  System.out.println("BaseDir2 : "+baseDir2);
- String assetURLs = "";
+ String assetURLs = "<br>";
  File folder = new File(thisEncounterDir.getAbsolutePath());
  System.out.println("Folder : "+folder.toString());
  String swap = folder.toString();
  swap = swap.replaceAll("encounters/", "");
  folder = new File(swap);
  try {
- File[] imageList = folder.listFiles();
- ArrayList<String> thumbs = new ArrayList<String>();
- int l = imageList.length;
-  for (int i = 0; i < l; i++ ) {
-  	System.out.println("LENGTH : "+ imageList.length);
-   	if (imageList[i].isFile()) {
-    System.out.println("IS FILE : "+ imageList[i].isFile());
-    File f = imageList[i];
-    System.out.println("Contents : "+ f);
-    int lngth = f.getName().length();
-    String suffix = f.getName().substring(lngth - 7).trim();
-    System.out.println("Suffix : "+suffix);
-    if (suffix.equals("mid.jpg")) {
-    	swap = f.toString();
-    	swap = swap.replaceAll("/opt/tomcat/webapps/", "");
-  	    assetURLs = assetURLs + "<div class=\"col-xs-2\"><img class=\"new-thumb\" src=\""+swap+"\"/></div>";
-  	    System.out.println("ASSET URLS : "+assetURLs);
-    }
-   }
-  }	  
+ 	File[] imageList = folder.listFiles();
+ 	ArrayList<String> thumbs = new ArrayList<String>();
+ 	int l = imageList.length;
+ 	if (l > 0) {
+	  	for (int i = 0; i < l; i++ ) {
+	  		System.out.println("LENGTH : "+ imageList.length);
+	   		if (imageList[i].isFile()) {
+	    		System.out.println("IS FILE : "+ imageList[i].isFile());
+	    		File f = imageList[i];
+	    		System.out.println("Contents : "+ f);
+	    		int lngth = f.getName().length();
+	    		String suffix = f.getName().substring(lngth - 7).trim();
+	    		System.out.println("Suffix : "+suffix);
+	    		if (suffix.equals("mid.jpg")) {
+	    			swap = f.toString();
+	    			swap = swap.replaceAll("/opt/tomcat/webapps/", "");
+	  	    		assetURLs = assetURLs + "<div class=\"col-xs-2\"><img class=\"new-thumb\" src=\""+swap+"\"/></div>";
+	  	    		System.out.println("ASSET URLS : "+assetURLs);
+	    		}
+	   		}
+	  }
+  }	
+} catch (Exception e) {
+	e.printStackTrace();
+}
   // End thumb block. 
 %>
 
@@ -243,15 +249,14 @@
 	
 	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>
 </p>
+<%if (!assetURLs.equals("<br>")) { %>
 <div class="row"id="thumbList"> 
 	<%=assetURLs%>
 </div>
 <br>
-<%if (assetURLs != "") { %>
 	<label>Your Submitted Media</label>
 <%}%>
 <% 
-} finally {
 
 if(CommonConfiguration.sendEmailNotifications(context)){
 
@@ -319,7 +324,6 @@ if(CommonConfiguration.sendEmailNotifications(context)){
 
 myShepherd=null;
 
-}
 %>
 </div>
 

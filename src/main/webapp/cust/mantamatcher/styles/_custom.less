@@ -364,12 +364,16 @@ form table td, form table th {
 				font-weight: 300;
 				text-indent: 5px;
 				letter-spacing: 1px;
-				width: 75px;
+				width: 200px;
 				padding: 3px 0;
 				}
-			@media (min-width: @screen-md) {
-				.search-field-header input { width: 150px; }
+			@media (min-width: @screen-sm) {
+				.search-field-header input { width: 175px; }
 			}
+						@media (min-width: @screen-xs) {
+				.search-field-header input { width: 175px; }
+			}
+			
 
 			.search-field-header input[type="submit"] {
 				text-indent: -999em;
@@ -377,7 +381,7 @@ form table td, form table th {
 				background: url(../img/icon_magnifier.svg) center no-repeat;
 				width: 31px;
 				height: 22px;
-				padding-left: 4px;
+				padding-left: 10px;
 				margin: 0;
 				}
 
@@ -417,7 +421,15 @@ form table td, form table th {
 		margin: 20px;
 		height: 60px;
 		width: auto;
-		display: block;
+		margin-bottom: 30px;
+	}
+}
+@media (max-width: @screen-xs) {
+	.foot-logo {
+		margin: 20px;
+		height: auto;
+		width: 100%;
+		margin-bottom: 30px;
 	}
 }
 /*
