@@ -28,7 +28,7 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
