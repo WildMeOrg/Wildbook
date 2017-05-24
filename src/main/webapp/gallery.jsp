@@ -9,6 +9,7 @@
               java.util.Iterator,
               java.util.Properties,
               java.util.StringTokenizer,
+              java.util.HashMap,
               org.datanucleus.api.rest.orgjson.JSONObject,
               org.datanucleus.api.rest.orgjson.JSONArray,
               org.joda.time.DateTime,
@@ -344,6 +345,9 @@ int numDataContributors=0;
     <% } %>
 
       <%
+      
+      
+      
       int maxRows=(int)numIndividualsOnPage/2;
       for (int i = 0; i < rIndividuals.size()/2 && i < maxRows; i++) {
         %>
@@ -511,6 +515,36 @@ int numDataContributors=0;
                     <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
                   </div>
                 </td>
+                <tr>
+	                <td>
+	                <%
+	                HashMap<String,String> dateAndLoc = new HashMap<String,String>();
+	                String thisIndyLoc = null;
+	                String thisIndyDate = null;
+	                try {
+	                	myShepherd.beginDBTransaction();
+	                	dateAndLoc = myShepherd.getLastEncounterDateAndLocation(pairName[j]);
+	                	myShepherd.commitDBTransaction(); 
+						if (dateAndLoc.containsKey("location")) {
+							thisIndyLoc = dateAndLoc.get("location");
+						}
+						if (dateAndLoc.containsKey("date")) {
+							thisIndyDate = dateAndLoc.get("date");
+						}
+	                } catch (Exception e) {
+	                	e.printStackTrace();
+	                }
+	                if (thisIndyLoc != null) {
+	                %>
+	                	<p>Last Sighted Location: <%=thisIndyLoc%></p>
+	                <%
+	                }
+	                if (thisIndyDate != null) {
+	                %>		
+	                	<p>Last Sighted Date: <%=thisIndyDate%></p>
+	                <%}%>
+	                </td>
+                <tr>
               </tr></table>
             </div>
           </div>

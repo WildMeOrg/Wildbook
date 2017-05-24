@@ -3196,6 +3196,27 @@ public class Shepherd {
     }
     catch(Exception e){return -1;}
   }
+  
+  public HashMap<String,String> getLastEncounterDateAndLocation(String name) {
+    MarkedIndividual mi = getMarkedIndividual(name);
+    HashMap<String,String> dateAndLoc = new HashMap<String,String>(2);
+    Encounter[] arr = mi.getDateSortedEncounters();
+    String date = null;
+    String loc = null;
+    try {
+      date = arr[0].getShortDate();
+      loc = arr[0].getLocation();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    if (date != null) {
+      dateAndLoc.put("date", date);
+    } 
+    if (loc != null) {
+      dateAndLoc.put("location", loc);
+    }
+    return dateAndLoc;
+  }
 
   public List<String> getAllLocationIDs() {
     Query q = pm.newQuery(Encounter.class);
