@@ -155,7 +155,7 @@ margin-bottom: 8px !important;
           zoomControl: true,
           scaleControl: false,
           scrollwheel: false,
-          disableDoubleClickZoom: true,
+          disableDoubleClickZoom: false,
         });
 
     	  //adding the fullscreen control to exit fullscreen
