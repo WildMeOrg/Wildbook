@@ -38,7 +38,7 @@
                       </a>
                     </div> 	   
                     <a href="http://www.wildbook.org" class="foot-logo" title="This site is Powered by Wildbook">
-                      <img class="img-responsive col-xs-12 col-sm-6 col-md-3" src="<%=urlLoc%>/images/WildBook_logo_72dpi-01.png" alt="wildbook logo"  style="height:150px;width:auto;margin-top:10px;"/>
+                      <img class="img-responsive col-xs-12 col-sm-6 col-md-3" src="<%=urlLoc%>/images/WildBook_logo_72dpi-01.png" alt="wildbook logo" style="height:150px;width:auto;margin-top:10px;"/>
                     </a> 
                  </div>
                  
