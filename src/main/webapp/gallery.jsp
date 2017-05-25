@@ -469,7 +469,7 @@ int numDataContributors=0;
 
 
 
-              <span class="galleryh2"><%=pairNickname[j]%></span>
+              <span class="galleryh2"><%=pairNickname[j]%> (<%=props.getProperty("encounters")%>: <%=pair[j].totalEncounters()%>)</span>
               <span style="font-size:1.5rem;color:#999;text-align:right;float:right;margin-top:4px;bottom:0;">
                 <%
                 String imageURL=pairUrl[j].replaceAll(":", "%3A").replaceAll("/", "%2F").replaceFirst("52.40.15.8", "norppagalleria.wwf.fi");
@@ -501,9 +501,6 @@ int numDataContributors=0;
                   </p>
                 </td>
                 <td>
-                  <p>
-                    <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
-                  </p>
                   <div class="gallery-btn-group">
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
