@@ -4,4 +4,7 @@ This is a confirmation that e-mail tracking of data changes to encounter
 changes to this encounter are made.
 
 ~ ~ ~
-Esto es una confirmación que las notificaciones por correo electrónico de cambios a los datos del encuentro @ENCOUNTER_ID@ han iniciado. Debes de recibir notificaciones por correo cada vez que se realizan cambios a este encuentro.  
+Esto es una confirmación que las notificaciones por correo electrónico 
+de cambios a los datos del encuentro @ENCOUNTER_ID@ han iniciado. 
+Debes de recibir notificaciones por correo cada vez que se realizan 
+cambios a este encuentro.  
