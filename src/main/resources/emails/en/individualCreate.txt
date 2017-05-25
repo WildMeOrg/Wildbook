@@ -6,20 +6,18 @@ has been added as a new, previously unidentified giant sea bass!
 
 You discovered a new giant sea bass for science!
 
-Newly marked: @INDIVIDUAL_ID@
+Newly marked individual: @INDIVIDUAL_ID@
 @INDIVIDUAL_LINK@
 
 Encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help! If you're interested in supporting our
-research to understand and protect animals like yours, please adopt and
-nickname your animal:
+Thanks again for your critical help!
 
 ~ ~ ~
 ¡Hola!
 
-Nadamás un breve mensaje para avisarte que el encuentro que has enviado ha sido agregado a la base de datos como un individuo nuevo que había sido identificado.
+Nadamás un breve mensaje para avisarte que el encuentro que has enviado ha sido agregado a la base de datos como un individuo nuevo que no había sido identificado.
 
 Has descubierto un mero gigante nuevo para la ciencia.
 
@@ -29,5 +27,5 @@ Individuo nuevo: @INDIVIDUAL_ID@
 Encuentro: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
   
-¡Gracias de nuevo por su ayuda!
+¡Gracias de nuevo por tu ayuda!
         

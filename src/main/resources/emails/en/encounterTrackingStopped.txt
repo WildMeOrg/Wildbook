@@ -2,4 +2,5 @@ SUBJECT: Encounter data tracking stopped for encounter: @ENCOUNTER_ID@
 This is a confirmation that e-mail tracking of data changes to encounter
 @ENCOUNTER_ID@ has now been stopped.
 
-Esto es una confirmación que la notificación por correo electrónico de cambios al encuentro @ENCOUNTER_ID@ ha sido cancelado. 
+Esto es una confirmación que se han cancelado las notificaciones por 
+correo electrónico de cambios al encuentro @ENCOUNTER_ID@. 
