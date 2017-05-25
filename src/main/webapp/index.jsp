@@ -138,7 +138,7 @@ margin-bottom: 8px !important;
     	  var fsControl = new FSControl(fsControlDiv, map);
     	  fsControlDiv.index = 1;
     	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
+		  
 
     	    // Create a new StyledMapType object, passing it the array of styles,
     	    // as well as the name to be displayed on the map type control.
