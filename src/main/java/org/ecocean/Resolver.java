@@ -258,8 +258,10 @@ needsReview = false;  // we are only full-auto now!
             } else if (type.equals("annotations")){
                 FeatureType.initAll(myShepherd);
                 rtn = IBEISIA.arbitraryAnnotationsFromIA(jin.optJSONArray(type), myShepherd);
+/*  this snuck over (we think!) from lewa-master ... so temporarily commenting out.... FIXME eventually!
             } else if (type.equals("renameIndividuals")) {
                 rtn = MarkedIndividual.renameMultipleJson(jin.optJSONObject(type), myShepherd);
+*/
             } else if (!validType(type)) {
                 rtn.put("success", false);
                 rtn.put(type, "error: invalid type " + type);
