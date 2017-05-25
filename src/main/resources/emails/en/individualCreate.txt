@@ -6,7 +6,7 @@ has been added as a new, previously unidentified giant sea bass!
 
 You discovered a new giant sea bass for science!
 
-Newly marked: @INDIVIDUAL_ID@
+Newly marked individual: @INDIVIDUAL_ID@
 @INDIVIDUAL_LINK@
 
 Encounter: @ENCOUNTER_ID@
