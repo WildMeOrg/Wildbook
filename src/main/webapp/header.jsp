@@ -326,11 +326,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                                   <!--  Add class text-hide and home to restore glyphicon style -->
                       <li><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-                      
-                      <!--  added link directly to gallery for not logged in users, hide if logged in  -->
-                      <% if (request.getUserPrincipal() == null) { %>
-					  	<li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
-					  <%}%>
+                      <!--  Learn Dropdown -->
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -346,6 +342,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             
                         </ul>
                       </li>
+                      
+                      <!--  added link directly to gallery for not logged in users, hide if logged in  -->
+                      <% if (request.getUserPrincipal() == null) { %>
+					  	<li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
+					  <%}%>
                       <li>
                         <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
                       </li>
