@@ -14,7 +14,7 @@ Encounter: @ENCOUNTER_ID@
 ~ ~ ~
 ¡Hola!
 
-Nadamas un mensaje breve para avisarte de un cambio en los datos para un encuentro 
+Nadamás un mensaje breve para avisarte de un cambio en los datos para un encuentro 
 de un mero gigante que has marcado para rastrear. Más detalles:
 
 Cambio:
