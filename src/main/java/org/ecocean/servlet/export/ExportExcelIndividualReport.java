@@ -105,11 +105,13 @@ public class ExportExcelIndividualReport extends HttpServlet{
             if (enc.getDay() > 0) encCal.set(Calendar.DAY_OF_MONTH, enc.getDay());
         }
 
+/*  oops... snuck in from lewa-master maybe?  FIXME later and clean this up!
         Double ageFirstSighted = indiv.getAgeAtFirstSighting();
         String ageFirstSightedString = "";
         if (ageFirstSighted!=null) {
           ageFirstSightedString = String.valueOf(ageFirstSighted);
         }
+*/
 
 
         Vector<Label> cols =  new Vector<Label>();
@@ -119,7 +121,7 @@ public class ExportExcelIndividualReport extends HttpServlet{
         cols.add(new Label(3, sheetRow, enc.getDecimalLatitude()));
         cols.add(new Label(4, sheetRow, enc.getDecimalLongitude()));
         cols.add(new Label(5, sheetRow, enc.getSex()));
-        cols.add(new Label(6, sheetRow, ageFirstSightedString));
+        //cols.add(new Label(6, sheetRow, ageFirstSightedString));
         cols.add(new Label(7, sheetRow, (indiv.isDeceased() ? "dead" : "alive") ));
         //cols.add(new Label(6, sheetRow, enc.getLifeStage()));
         cols.add(new Label(8, sheetRow, enc.getZebraClass()));
