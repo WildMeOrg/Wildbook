@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.HashMap;
 
 
 public class AdoptionAction extends HttpServlet {
@@ -63,11 +64,11 @@ public class AdoptionAction extends HttpServlet {
   private final String UPLOAD_DIRECTORY = "/tmp";
 
   //little helper function for pulling values as strings even if null (not set via form)
-  private String getVal(HashMap fv, String key) {
+  private String getVal(HashMap<String,String> fv, String key) {
     if (fv.get(key) == null) {
       return "";
     }
-    return fv.get(key).toString();
+    return fv.get(key);
   }
 
 
@@ -170,12 +171,12 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
 
         //set form value hashmap
-        HashMap fv = new HashMap();
+        HashMap<String,String> fv = new HashMap<String,String>();
 
 
 
         
-          id = "adpt" + (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
+          id = "adpt" + (new Integer(date.get(Calendar.DAY_OF_MONTH))) + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
        
 
 
@@ -237,10 +238,10 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
         //if (fileSuccess) {
 
-          if ((fv.get("number") != null) && !fv.get("number").toString().equals("")) {
+          if ((fv.get("number") != null) && !fv.get("number").equals("")) {
 
             //handle adoption number processing
-            number = fv.get("number").toString();
+            number = fv.get("number");
             if ((number != null) && (!number.equals(""))) {
               isEdit = true;
               System.out.println("Ping! Hit adoption number recieved by action servlet.");
@@ -251,56 +252,56 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             //end adoption number/id processing
           }
 
-            if ((fv.get("adopterName") != null) && !fv.get("adopterName").toString().equals("")) {
-              adopterName = fv.get("adopterName").toString().trim();
+            if ((fv.get("adopterName") != null) && !fv.get("adopterName").equals("")) {
+              adopterName = fv.get("adopterName").trim();
             }
-            if ((fv.get("adopterAddress") != null) && !fv.get("adopterAddress").toString().equals("")) {
-              adopterAddress = fv.get("adopterAddress").toString().trim();
+            if ((fv.get("adopterAddress") != null) && !fv.get("adopterAddress").equals("")) {
+              adopterAddress = fv.get("adopterAddress").trim();
             }
-            if ((fv.get("adopterEmail") != null) && !fv.get("adopterEmail").toString().equals("")) {
-              adopterEmail = fv.get("adopterEmail").toString().trim();
-            }
-
-            if ((fv.get("adoptionStartDate") != null) && !fv.get("adoptionStartDate").toString().equals("")) {
-              adoptionStartDate = fv.get("adoptionStartDate").toString().trim();
+            if ((fv.get("adopterEmail") != null) && !fv.get("adopterEmail").equals("")) {
+              adopterEmail = fv.get("adopterEmail").trim();
             }
 
-            if ((fv.get("adoptionEndDate") != null) && !fv.get("adoptionEndDate").toString().equals("")) {
-              adoptionEndDate = fv.get("adoptionEndDate").toString().trim();
+            if ((fv.get("adoptionStartDate") != null) && !fv.get("adoptionStartDate").equals("")) {
+              adoptionStartDate = fv.get("adoptionStartDate").trim();
             }
 
-            if ((fv.get("adopterQuote") != null) && !fv.get("adopterQuote").toString().equals("")) {
-              adopterQuote = fv.get("adopterQuote").toString().trim();
+            if ((fv.get("adoptionEndDate") != null) && !fv.get("adoptionEndDate").equals("")) {
+              adoptionEndDate = fv.get("adoptionEndDate").trim();
             }
 
-            if ((fv.get("adoptionManager") != null) && !fv.get("adoptionManager").toString().equals("")) {
-              adoptionManager = fv.get("adoptionManager").toString().trim();
+            if ((fv.get("adopterQuote") != null) && !fv.get("adopterQuote").equals("")) {
+              adopterQuote = fv.get("adopterQuote").trim();
             }
 
-            if ((fv.get("shark") != null) && !fv.get("shark").toString().equals("")) {
-              shark = fv.get("shark").toString().trim();
+            if ((fv.get("adoptionManager") != null) && !fv.get("adoptionManager").equals("")) {
+              adoptionManager = fv.get("adoptionManager").trim();
             }
 
-            if ((fv.get("encounter") != null) && !fv.get("encounter").toString().equals("")) {
-              encounter = fv.get("encounter").toString().trim();
+            if ((fv.get("shark") != null) && !fv.get("shark").equals("")) {
+              shark = fv.get("shark").trim();
             }
 
-            if ((fv.get("notes") != null) && !fv.get("notes").toString().equals("")) {
-              notes = fv.get("notes").toString().trim();
+            if ((fv.get("encounter") != null) && !fv.get("encounter").equals("")) {
+              encounter = fv.get("encounter").trim();
             }
 
-            if ((fv.get("adoptionType") != null) && !fv.get("adoptionType").toString().equals("")) {
-              adoptionType = fv.get("adoptionType").toString().trim();
+            if ((fv.get("notes") != null) && !fv.get("notes").equals("")) {
+              notes = fv.get("notes").trim();
             }
 
-            if ((fv.get("text") != null) && !fv.get("text").toString().equals("")) {
-              text = fv.get("text").toString().trim();
+            if ((fv.get("adoptionType") != null) && !fv.get("adoptionType").equals("")) {
+              adoptionType = fv.get("adoptionType").trim();
+            }
+
+            if ((fv.get("text") != null) && !fv.get("text").equals("")) {
+              text = fv.get("text").trim();
             }
 
             // New nickname to save to marked individual object.
 
-            if ((fv.get("newNickName") != null) && !fv.get("newNickName").toString().equals("")) {
-              newNickName = fv.get("newNickName").toString().trim();
+            if ((fv.get("newNickName") != null) && !fv.get("newNickName").equals("")) {
+              newNickName = fv.get("newNickName").trim();
             }
 
 /*
@@ -316,8 +317,8 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       }
       */
 
-            if ((fv.get("g-recaptcha-response") != null) && !fv.get("g-recaptcha-response").toString().equals("")) {
-              gresp = fv.get("g-recaptcha-response").toString().trim();
+            if ((fv.get("g-recaptcha-response") != null) && !fv.get("g-recaptcha-response").equals("")) {
+              gresp = fv.get("g-recaptcha-response").trim();
             }
 
             if (isEdit) {

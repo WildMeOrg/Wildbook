@@ -9,7 +9,7 @@
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
     
-    String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+    String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
