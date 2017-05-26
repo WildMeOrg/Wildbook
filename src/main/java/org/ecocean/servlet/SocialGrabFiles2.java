@@ -99,17 +99,17 @@ import org.scribe.oauth.*;
 
         String[] fileUrls = request.getParameterValues("fileUrl");
         if (fileUrls != null) {
-System.out.println("(A) fileUrls.length = " + fileUrls.length);
-for (int i = 0 ; i < fileUrls.length ; i++) {
-    System.out.println("- " + fileUrls[i]);
-}
+          System.out.println("(A) fileUrls.length = " + fileUrls.length);
+          for (int i = 0 ; i < fileUrls.length ; i++) {
+            System.out.println("- " + fileUrls[i]);
+          }
         } else {
             Object urls = session.getAttribute("fileUrls");
             if (urls != null) fileUrls = (String[])urls;
         }
 
         String socialType = "facebook";
-if (fileUrls != null) System.out.println("(B) fileUrls.length = " + fileUrls.length);
+        if (fileUrls != null) System.out.println("(B) fileUrls.length = " + fileUrls.length);
 
         response.setHeader("Content-type", "application/json");
         if ((fileUrls == null) || (fileUrls.length < 1)) {
@@ -131,6 +131,7 @@ User user = null;
         if (request.getUserPrincipal() != null) username = request.getUserPrincipal().getName();
         if (username == null) username = "";
         User user = myShepherd.getUser(username);
+
         if (user == null) {
             response.sendRedirect("login.jsp");
             return;
@@ -229,6 +230,7 @@ System.out.println(fname + ") --- " + fileUrls[i]);
 /*  the HARD way in case we need it:
             String overif = request.getParameter("oauth_verifier");
             String otoken = request.getParameter("oauth_token");
+
             OAuthService service = null;
             String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=flickr";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
@@ -237,14 +239,17 @@ System.out.println(fname + ") --- " + fileUrls[i]);
             } catch (Exception ex) {
                 System.out.println("SocialAuth.getFlickrOauth() threw exception " + ex.toString());
             }
+
             if (overif == null) {
                 Token requestToken = service.getRequestToken();
                 session.setAttribute("requestToken", requestToken);
        System.out.println("==============================================requestToken = " + requestToken);
                 String authorizationUrl = service.getAuthorizationUrl(requestToken) + "&perms=read";
 System.out.println(authorizationUrl);
+
                 response.sendRedirect(authorizationUrl);
                 return;
+
             } else {
 System.out.println("verifier -> " + overif);
                 Token requestToken = (Token)session.getAttribute("requestToken");
@@ -254,12 +259,14 @@ System.out.println("verifier -> " + overif);
        System.out.println("=- - - - - - - - - - - - - -==================accessToken = " + accessToken);
 System.out.println("-----------------------------------------otoken= " + otoken);
        System.out.println("verifier = " + verifier);
+
                 OAuthRequest oRequest = new OAuthRequest(Verb.GET, SocialAuth.FLICKR_URL);
                 oRequest.addQuerystringParameter("method", "flickr.test.login");
                 service.signRequest(accessToken, oRequest);
                 Response oResponse = oRequest.send();
 System.out.println("GOT RESPONSE!!!!!!!!!!!!!!!!!!!!!!!!!!");
 System.out.println(oResponse.getBody());
+
                 String fusername = null;   //should we use <user id="XXXXXXXXX"> instead?  TODO
                 int i = oResponse.getBody().indexOf("<username>");
                 if (i > -1) {
@@ -275,10 +282,12 @@ if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser 
                     session.setAttribute("message", "disconnected from flickr");
                     response.sendRedirect("myAccount.jsp");
                     return;
+
                 } else if (fuser != null) {
                     session.setAttribute("error", "looks like this account is already connected to an account");
                     response.sendRedirect("myAccount.jsp");
                     return;
+
                 } else {  //lets do this
                     user.setSocial("flickr", fusername);
                     //myShepherd.getPM().makePersistent(user);
@@ -286,7 +295,9 @@ if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser 
                     response.sendRedirect("myAccount.jsp");
                     return;
                 }
+
             }
+
 */
         } else {
             session.setAttribute("error", "invalid type");
