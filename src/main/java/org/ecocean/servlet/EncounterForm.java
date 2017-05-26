@@ -89,6 +89,8 @@ import org.pac4j.oauth.client.FacebookClient;
 import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
 
+import org.ecocean.mmutil.FileUtilities;
+
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
  *
@@ -175,7 +177,6 @@ private final String UPLOAD_DIRECTORY = "/tmp";
     return list;
   }
 /*
-
 got regular field (measurement(weight))=(111)
 got regular field (measurement(weightunits))=(kilograms)
 got regular field (measurement(weightsamplingProtocol))=(samplingProtocol1)
@@ -185,7 +186,6 @@ got regular field (measurement(lengthsamplingProtocol))=(samplingProtocol0)
 got regular field (measurement(height))=(333)
 got regular field (measurement(heightunits))=(meters)
 got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
-
       Map<String, Object> measurements = theForm.getMeasurements();
       for (String key : measurements.keySet()) {
         if (!key.endsWith("units") && !key.endsWith("samplingProtocol")) {
@@ -237,7 +237,6 @@ System.out.println("rootDir=" + rootDir);
         fbImages.add(request.getParameter("socialphoto_" + fbi));
         fbi++;
     }
-
 System.out.println(fbImages);
     if (fbImages.size() > 0) {
         FacebookClient fbclient = null;
@@ -251,14 +250,12 @@ System.out.println(fbImages);
             String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/XXXSocialConnect?type=facebook";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             fbclient.setCallbackUrl(callbackUrl);
-
             OAuthCredentials credentials = null;
             try {
                 credentials = fbclient.getCredentials(ctx);
             } catch (Exception ex) {
                 System.out.println("caught exception on facebook credentials: " + ex.toString());
             }
-
             if (credentials != null) {
                 FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
                 User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
@@ -270,12 +267,10 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                     session.setAttribute("message", "disconnected from facebook");
                     response.sendRedirect("myAccount.jsp");
                     return;
-
                 } else if (fbuser != null) {
                     session.setAttribute("error", "looks like this account is already connected to an account");
                     response.sendRedirect("myAccount.jsp");
                     return;
-
                 } else {  //lets do this
                     user.setSocial("facebook", facebookProfile.getId());
                     //myShepherd.getPM().makePersistent(user);
@@ -284,7 +279,6 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                     return;
                 }
             } else {
-
 System.out.println("*** trying redirect?");
                 try {
                     fbclient.redirect(ctx, false, false);
@@ -294,7 +288,6 @@ System.out.println("*** trying redirect?");
                 return;
             }
     }
-
 */
       //private Map<String, Object> measurements = new HashMap<String, Object>();
       //Map<String, Object> metalTags = new HashMap<String, Object>();
@@ -368,10 +361,14 @@ System.out.println("*** trying redirect?");
         }
 
         if (fv.get("social_files_id") != null) {
+          System.out.println("BBB: Social_files_id: "+fv.get("social_files_id"));
+          
             //TODO better checking of files (size, type etc)
             File socDir = new File(ServletUtilities.dataDir(context, rootDir) + "/social_files/" + fv.get("social_files_id"));
             for (File sf : socDir.listFiles()) {
                 socialFiles.add(sf);
+                System.out.println("BBB: Adding social file : "+sf.getName());
+                
                 filesOK.add(sf.getName());
             }
             filesBad = new HashMap<String, String>();
@@ -414,10 +411,9 @@ System.out.println("*** trying redirect?");
 
 
       String locCode = "";
-System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
+      System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
             if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
                 locCode = fv.get("locationID").toString();
-
             }
         //see if the location code can be determined and set based on the location String reported
             else if (fv.get("location") != null) {
@@ -575,30 +571,29 @@ System.out.println("enc ?= " + enc.toString());
             AssetStore astore = AssetStore.getDefault(myShepherd);
             ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
 
+            //for directly uploaded files
             for (FileItem item : formFiles) {
-                JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
-                sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
-                MediaAsset ma = new MediaAsset(astore, sp);
-                File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
-                File tmpDir = tmpFile.getParentFile();
-                if (!tmpDir.exists()) tmpDir.mkdirs();
-//System.out.println("attempting to write uploaded file to " + tmpFile);
-                try {
-		    item.write(tmpFile);
-                } catch (Exception ex) {
-                    System.out.println("Could not write " + tmpFile + ": " + ex.toString());
-                }
-                if (tmpFile.exists()) {
-                    ma.addLabel("_original");
-                    ma.copyIn(tmpFile);
-                    ma.updateMetadata();
-                    newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
-                } else {
-                    System.out.println("failed to write file " + tmpFile);
-                }
+              //convert each FileItem into a MediaAsset
+              makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
             }
 
             ///////////////////TODO social files also!!!
+            System.out.println("BBB: Checking if we have social files...");
+            
+            if(socialFiles.size()>0){
+              int numSocialFiles=socialFiles.size();
+              System.out.println("BBB: Trying to persist social files: "+numSocialFiles);
+              
+              DiskFileItemFactory factory = new DiskFileItemFactory();
+              
+              for(int q=0;q<numSocialFiles;q++){
+                File item=socialFiles.get(q);
+                makeMediaAssetsFromJavaFileObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
+                
+              }
+              
+            }
+            
 
             if (fv.get("mediaAssetSetId") != null) {
                 MediaAssetSet maSet = ((MediaAssetSet) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAssetSet.class, fv.get("mediaAssetSetId")), true)));
@@ -633,7 +628,6 @@ System.out.println("enc ?= " + enc.toString());
                     System.out.println("failed to save " + item.toString() + ": " + ex.toString());
                 }
             }
-
             for (File sf : socialFiles) {
 								File encDir = new File(enc.dir(baseDir));
 								if (!encDir.exists()) encDir.mkdirs();
@@ -980,6 +974,77 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
     myShepherd.closeDBTransaction();
     //return null;
+  }
+  
+  private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
+    sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+    MediaAsset ma = new MediaAsset(astore, sp);
+    File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
+    File tmpDir = tmpFile.getParentFile();
+    if (!tmpDir.exists()) tmpDir.mkdirs();
+//System.out.println("attempting to write uploaded file to " + tmpFile);
+    try {
+      item.write(tmpFile);
+    } catch (Exception ex) {
+        System.out.println("Could not write " + tmpFile + ": " + ex.toString());
+    }
+    if (tmpFile.exists()) {
+      
+      try{
+        ma.addLabel("_original");
+        ma.copyIn(tmpFile);
+        ma.updateMetadata();
+        newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
+      }
+      catch(IOException ioe){
+        System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
+        ioe.printStackTrace();
+      }
+        
+        
+    } 
+    else {
+        System.out.println("failed to write file " + tmpFile);
+    }
+  }
+  
+  private void makeMediaAssetsFromJavaFileObject(File item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+    
+    System.out.println("Entering makeMediaAssetsFromJavaFileObject");
+    
+    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
+    sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+    MediaAsset ma = new MediaAsset(astore, sp);
+    File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
+    File tmpDir = tmpFile.getParentFile();
+    if (!tmpDir.exists()) tmpDir.mkdirs();
+//System.out.println("attempting to write uploaded file to " + tmpFile);
+    try {
+      FileUtilities.copyFile(item, tmpFile);
+      //item.write(tmpFile);
+    } catch (Exception ex) {
+        System.out.println("Could not write " + tmpFile + ": " + ex.toString());
+    }
+    if (tmpFile.exists()) {
+      
+      try{
+        ma.addLabel("_original");
+        ma.copyIn(tmpFile);
+        ma.updateMetadata();
+        newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
+        System.out.println("Added new annotation for: "+item.getName());
+      }
+      catch(IOException ioe){
+        System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
+        ioe.printStackTrace();
+      }
+        
+        
+    } 
+    else {
+        System.out.println("failed to write file " + tmpFile);
+    }
   }
 
 

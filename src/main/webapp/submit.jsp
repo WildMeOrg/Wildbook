@@ -393,13 +393,15 @@ $('#social_files_iframe').on('load', function(ev) {
 	if (!ev || !ev.target) return;
 //console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
-//console.warn('doc is %o', doc);
-	if (!doc) return;
+	console.warn('doc is %o', doc);
+	if (doc === null) return;
 //var x = $(doc).find('body').text();
 //console.warn('body %o', x);
 	var j = JSON.parse($(doc).find('body').text());
 	console.info('iframe returned %o', j);
 
+	
+	console.log("social_files_id : "+j.id);
 	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
 	//now do actual submit
 	submitForm();
@@ -1134,6 +1136,9 @@ function sendButtonClicked() {
    					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
    					if(!isEmpty(recaptachaResponse)) {		
    						$("#encounterForm").attr("action", "EncounterForm");
+   						
+   						if (sendSocialPhotosBackground()) return false;
+   						
    						submitForm();
    					}
 		}
