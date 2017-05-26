@@ -427,18 +427,18 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
 
 $('#social_files_iframe').on('load', function(ev) {
-	console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+	console.log('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 
 	if (!ev || !ev.target) return;
-console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+	console.log('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
-console.warn('doc is %o', doc);
-	if (!doc) return;
-//var x = $(doc).find('body').text();
-console.warn('body %o', x);
+	console.warn('doc is %o', doc);
+	if (doc === null) return;
+	var x = $(doc).find('body').text();
+	console.log('body %o', x);
 	var j = JSON.parse($(doc).find('body').text());
-	console.info('iframe returned %o', j);
-
+	console.log('iframe returned %o', j);
+	console.log("social_files_id : "+j.id);
 	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
 	//now do actual submit
 	submitForm();
