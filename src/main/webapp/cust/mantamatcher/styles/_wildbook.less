@@ -545,4 +545,36 @@ div.state-approved span.state {
 }
 
 
+body:before {
+   content:"\25BF";
+   position:fixed;
+   bottom:0;
+   width:10%;
+   text-align:center;
+   z-index:1000;
+   display:block;
+   color:#333;
+   font-size:6vw;
+   background-color: rgba(54, 64, 36, 0.5);
+   margin-left:45%;
+   margin-right:45%;
+   padding:.3em .1em;
+   -webkit-transition: opacity 1s ease-in-out;
+   -moz-transition: opacity 1s ease-in-out;
+   -ms-transition: opacity 1s ease-in-out;
+   -o-transition: opacity 1s ease-in-out;
+
+ }
+
+ .scrolled:before {
+   -webkit-transition: opacity 2s ease-in-out;
+   -moz-transition: opacity 2s ease-in-out;
+   -ms-transition: opacity 2s ease-in-out;
+   -o-transition: opacity 2s ease-in-out;
+   opacity: 0;
+ }
+
+
+
+
 

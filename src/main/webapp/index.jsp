@@ -63,6 +63,23 @@ margin-bottom: 8px !important;
 <script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
 
 
+<!-- Adds fade-away scroll down prompt.  -->
+<!-- Credit to Colin Irwin http://www.silvabokis.com for 
+	the code this was based off of. -->
+<script>
+$(window).scroll(function(){
+    offset = $(this).scrollTop();
+    if (offset > 100) {
+        $("body:not(.scrolled)").addClass("scrolled");
+   }
+   else
+   {
+       $("body.scrolled").removeClass("scrolled");   
+   }
+});
+</script>
+
+
 
   <script type="text/javascript">
   var map;
