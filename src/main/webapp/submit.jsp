@@ -28,7 +28,7 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -377,7 +377,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
       target="_self" dir="ltr"
       lang="en"
       onsubmit="return false;"
-      class="form-horizontal"
+      class="form-horizontal" 
+      accept-charset="UTF-8"
 >
 
 <div class="dz-message"></div>

@@ -120,7 +120,8 @@ public class LocalAssetStore extends AssetStore {
         return root;
     }
 
-    private String webRoot() {
+    // (temp for debuggin) private String webRoot() {
+    public String webRoot() {
         if (webRoot == null) {
             webRoot = config.getString(KEY_WEB_ROOT);
             logger.info("Asset Store [" + name + "] using web root [" + webRoot + "]");
@@ -308,6 +309,7 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
         if(ma==null) System.out.println("MediaAsset is null in LocalAssetStore.webURL");
         if ((webRoot() == null) || (ma == null)) return null;
         Path path = pathFromParameters(ma.getParameters());
+        System.out.println("making webURL with pathFromParameters(mediaAsset) = "+path);
         if (path == null) return null;
 
         try {
@@ -327,7 +329,16 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
     }
 
     @Override
+/*
+    NOTE: the iaSourcePath is a bit of a mungy hack specific for Lewa -- going forward the filename should be *created* based upon the IA
+    original filename (thus .getFilename would just work as expected) ... but for now we rely on favoring this extra logic.  thus, this *probably*
+    should not go outside of the lewa branch.  :(
+*/
     public String getFilename(MediaAsset ma) {
+        if ((ma.getParameters() != null) && (ma.getParameters().optString("iaSourcePath", null) != null)) {
+            File tmp = new File(ma.getParameters().getString("iaSourcePath"));
+            return tmp.getName();
+        }
         Path path = pathFromParameters(ma.getParameters());
         if (path == null) return null;
         Path fn = path.getFileName();
@@ -360,5 +371,3 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
     }
 
 }
-
-
