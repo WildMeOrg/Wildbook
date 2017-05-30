@@ -67,6 +67,9 @@ margin-bottom: 8px !important;
 <!-- Credit to Colin Irwin http://www.silvabokis.com for 
 	the code this was based off of. -->
 <script>
+$(window).load(function() {
+	$("body.scrolled").removeClass("scrolled");	
+})
 $(window).scroll(function(){
     offset = $(this).scrollTop();
     if (offset > 100) {

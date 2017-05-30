@@ -122,6 +122,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
     </head>
 
     <body role="document">
+    
+    <!-- Gets rid of scrolling prompt if not on index page -->
+    <script type="text/javascript">
+    	$("body:not(.scrolled)").addClass("scrolled");
+    </script>
 
         <!-- ****header**** -->
         <header class="page-header clearfix">
