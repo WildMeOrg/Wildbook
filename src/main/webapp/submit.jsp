@@ -487,7 +487,9 @@ function showUploadBox() {
 <p><%=props.getProperty("submit_pleaseadd")%></p>
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
-          <li class="active">
+        
+          <!--  This is the default active computer button for uploading images. If you want other uploads, this will need to have the hidden class removed. -->
+          <li class="active hidden">
               <button class="zocial icon" data-toggle="tooltip" title="<%=props.getProperty("computerUploadTooltip")%>" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
               </button>
           </li>
