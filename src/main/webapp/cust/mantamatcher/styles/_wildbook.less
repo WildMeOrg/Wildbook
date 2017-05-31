@@ -549,12 +549,12 @@ div.state-approved span.state {
    content:"\25BC";
    position:fixed;
    bottom:0;
-   width:8%;
+   width:4%;
    text-align:center;
    z-index:800;
    display:block;
    color:#333;
-   font-size:7vw;
+   font-size:3.5vw;
    background-color: rgba(54, 64, 36, 0.5);
    margin-left:46%;
    margin-right:46%;
@@ -564,7 +564,23 @@ div.state-approved span.state {
    -ms-transition: opacity 1s ease-in-out;
    -o-transition: opacity 1s ease-in-out;
 
- }
+}
+ 
+@media (max-width: @screen-lg) {
+	.not-scrolled:before { 
+		font-size:4.5vw;
+	 }
+}
+@media (max-width: @screen-md) {
+	.not-scrolled:before {
+		font-size:6vw;
+	}
+}
+@media (max-width: @screen-sm) {
+	.not-scrolled:before {
+		font-size:7.5vw; 
+	}
+}
 
  .scrolled:before {
    -webkit-transition: opacity 2s ease-in-out;
