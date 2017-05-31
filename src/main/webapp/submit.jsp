@@ -216,7 +216,7 @@ $(function() {
       changeMonth: true,
       changeYear: true,
       dateFormat: 'yy-mm-dd',
-      maxDate: '+1d',
+      maxDate: '+0d',
       controlType: 'select',
       alwaysSetTime: false,
       showSecond:false,
