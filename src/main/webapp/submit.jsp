@@ -234,8 +234,9 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
-
-var center = new google.maps.LatLng(32.6104351,-117.3712712);
+var gmapLat = 32.6104351;
+var gmapLon = -117.3712712;
+var center = new google.maps.LatLng(gmapLat,gmapLon);
 var map;
 var marker;
 var newCenter;
@@ -264,7 +265,7 @@ function placeMarker(location) {
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(32.6104351,-117.3712712);
+        center = new google.maps.LatLng(gmapLat,gmapLon);
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -377,6 +378,36 @@ function addFullscreenButton(controlDiv, map) {
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
+
+
+// Here's a wee function to update the gps coordinates when input is detected
+
+var liveLat;
+var liveLon;
+function gpsLiveUpdate() {
+
+	if ($("#lat").val().length > 3 && $("#lat").val().slice(-1) != ".") {
+		if	(!isNaN($("#lat").val())) {
+			liveLat = $("#lat").val();			
+			gmapLat = liveLat;
+		}
+	}
+	if ($("#longitude").val().length > 3 && $("#longitude").val().slice(-1) != ".") {
+		if	(!isNaN($("#longitude").val())) {
+			liveLon = $("#longitude").val();			
+			gmapLon = liveLon;
+		}
+	}
+	if (liveLat.length > 3 && liveLon.length > 3 && !isNaN(liveLat) && !isNaN(liveLon)) {
+		newCoords = new google.maps.LatLng(gmapLat,gmapLon);
+		initialize();
+	    if(marker!=null){marker.setMap(null);}
+	    marker = new google.maps.Marker({
+	          position: location,
+	          map: map
+	    });		
+	}
+}
 
 </script>
 
@@ -661,12 +692,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
           <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
-          <input class="form-control" name="lat" type="text" id="lat" data-toggle="tooltip" title="<%=props.getProperty("latitudeTooltip")%>"> &deg;
+          <input class="form-control" name="lat" type="number" step="0.000000001" id="lat" oninput="gpsLiveUpdate()" max="89.9999999" min="-89.9999999" data-toggle="tooltip" title="<%=props.getProperty("latitudeTooltip")%>">
         </div>
 
         <div class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
-          <input class="form-control" name="longitude" type="text" id="longitude" data-toggle="tooltip" title="<%=props.getProperty("longitudeTooltip")%>"> &deg;
+          <input class="form-control" name="longitude" type="number" step="0.000000001" id="longitude" oninput="gpsLiveUpdate()" max="179.9999999" min="-179.9999999" data-toggle="tooltip" title="<%=props.getProperty("longitudeTooltip")%>">
         </div>
       </div>
 
