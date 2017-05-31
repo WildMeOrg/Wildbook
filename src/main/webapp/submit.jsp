@@ -402,7 +402,7 @@ function gpsLiveUpdate() {
 		newCoords = new google.maps.LatLng(gmapLat,gmapLon);
 	    if(marker!=null){marker.setMap(null);}
 	    marker = new google.maps.Marker({
-	          position: location,
+	          position: newCoords,
 	          map: map
 	    });		
 		initialize();
