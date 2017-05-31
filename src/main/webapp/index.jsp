@@ -68,16 +68,18 @@ margin-bottom: 8px !important;
 	the code this was based off of. -->
 <script>
 $(window).load(function() {
-	$("body.scrolled").removeClass("scrolled");	
-})
+	$("body.scrolled").removeClass("scrolled");
+	$("body:not(.scrolled)").addClass("not-scrolled");
+	
+});
 $(window).scroll(function(){
     offset = $(this).scrollTop();
     if (offset > 100) {
         $("body:not(.scrolled)").addClass("scrolled");
-   }
-   else
-   {
-       $("body.scrolled").removeClass("scrolled");   
+        $("body.scrolled)").removeClass("not-scrolled");
+   } else {
+       $("body.scrolled").removeClass("scrolled");   	
+       $("body:not(.scrolled)").addClass("not-scrolled");
    }
 });
 </script>
