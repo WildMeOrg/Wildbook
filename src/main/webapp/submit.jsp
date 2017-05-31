@@ -400,12 +400,12 @@ function gpsLiveUpdate() {
 	}
 	if (liveLat.length > 3 && liveLon.length > 3 && !isNaN(liveLat) && !isNaN(liveLon)) {
 		newCoords = new google.maps.LatLng(gmapLat,gmapLon);
-		initialize();
 	    if(marker!=null){marker.setMap(null);}
 	    marker = new google.maps.Marker({
 	          position: location,
 	          map: map
 	    });		
+		initialize();
 	}
 }
 
