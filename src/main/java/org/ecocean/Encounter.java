@@ -1759,6 +1759,10 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       }
     }
   }
+  
+  public void resetDynamicProperties() {
+    dynamicProperties = null;
+  }
 
 
   public String getIdentificationRemarks() {

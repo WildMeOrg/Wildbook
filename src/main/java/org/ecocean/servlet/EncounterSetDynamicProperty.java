@@ -69,19 +69,20 @@ public class EncounterSetDynamicProperty extends HttpServlet {
 
     if ((request.getParameter("number") != null) && (request.getParameter("name") != null)) {
       myShepherd.beginDBTransaction();
-      Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
+      Encounter changeMe = myShepherd.getEncounter(request.getParameter("number").trim()
+          );
 
       String name = request.getParameter("name");
       String newValue = "null";
       String oldValue = "null";
 
       if (changeMe.getDynamicPropertyValue(name) != null) {
-        oldValue = changeMe.getDynamicPropertyValue(name);
+        oldValue = changeMe.getDynamicPropertyValue(name).trim();
       }
 
 
       if ((request.getParameter("value") != null) && (!request.getParameter("value").equals(""))) {
-        newValue = request.getParameter("value");
+        newValue = request.getParameter("value").trim();
       }
 
 
@@ -99,6 +100,7 @@ public class EncounterSetDynamicProperty extends HttpServlet {
 
       } catch (Exception le) {
         System.out.println("Hit locked exception.");
+        System.out.println("Here's the D Props : "+changeMe.getDynamicProperties());
         locked = true;
         le.printStackTrace();
         myShepherd.rollbackDBTransaction();

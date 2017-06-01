@@ -4310,7 +4310,7 @@ if (loggedIn) {
 	 %>
 	 <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
 	 <%}%>
-		<label class="propRemoveLabel" style="display:none;"><small>Setting as empty will remove an exixting property. </small></label>
+		<label class="propRemoveLabel" style="display:none;"><small>Setting as empty will remove an existing property. </small></label>
 	
 	
 	
@@ -4330,15 +4330,33 @@ if (loggedIn) {
 	    while (st.hasMoreTokens()) {
 	      String token = st.nextToken();
 	      int equalPlace = token.indexOf("=");
-	      String nm = token.substring(0, (equalPlace)).replaceAll(" ", "_");
-	      String vl = token.substring(equalPlace + 1);
-	      numDynProps++;
+	      String nm = null;
+	      String vl = null;
+	      if (equalPlace != -1) {
+		      nm = token.substring(0, (equalPlace)).replaceAll(" ", "_");
+		      vl = token.substring(equalPlace + 1);
+		      if (nm.equals(null) || vl.equals(null) || nm.equals("null") || vl.equals("null")) {
+		    	  try {
+			    	  enc.removeDynamicProperty(nm);		    		  
+		    	  } catch (Exception e) {
+		    		  System.out.println("Barfed auto-handling a malformed D Property");
+		    		  e.printStackTrace();
+		    	  }
+		    	  continue;
+		      } else {
+			      numDynProps++;	    	  		    	  
+		      }
+	      } else {
+	    	  System.out.println("!!!! Found a badly formed Dynamic Property (No = sign, indexOf returned -1) !!!!");
+	    	  continue;
+	      }
 	%>
 	<p class="para"> <em><%=nm%></em>: <%=vl%>
 	  <%
 	  %>
 	
 	  <%
+	if (!nm.equals(null) && !vl.equals(null) && !nm.equals("null") && !vl.equals("null")) {
 	%>
 	<!-- start dynamic form -->
 	<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editFormDynamic">
@@ -4364,6 +4382,7 @@ if (loggedIn) {
 	</div>
 	
 	<%
+	}
 	%>
 	
 	</p>
