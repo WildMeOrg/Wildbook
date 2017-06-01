@@ -108,7 +108,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>
+                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a></a>
                   <div class="search-and-secondary-wrapper">
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
