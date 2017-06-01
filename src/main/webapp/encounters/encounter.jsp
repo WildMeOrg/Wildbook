@@ -4294,12 +4294,12 @@ if (loggedIn) {
 	    buttons.toggle();
 	  });
 	  $("#editDynamic").click(function() {
-	    $(".editFormDynamic").show();
+	    $(".editFormDynamic, .propRemoveLabel").show();
 	
 	  });
 	
 	  $("#closeEditDynamic").click(function() {
-	    $(".editFormDynamic, .editTextDynamic, .resultMessageDiv").hide();
+	    $(".editFormDynamic, .editTextDynamic, .resultMessageDiv, propRemoveLabel").hide();
 	  });
 	});
 	</script>
@@ -4309,8 +4309,8 @@ if (loggedIn) {
 	else {
 	 %>
 	 <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
-	
 	 <%}%>
+		<label class="propRemoveLabel" style="display:none;"><small>Setting as empty will remove an exixting property. </small></label>
 	
 	
 	
@@ -4344,7 +4344,7 @@ if (loggedIn) {
 	<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editFormDynamic">
 	  <p class="editTextDynamic"><strong><%=encprops.getProperty("set")%> <%=nm %></strong></p>
 	  <p class="editTextDynamic"><em><small><%=encprops.getProperty("setDPMessage") %></small></em></p>
-	
+			
 	        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
 	          <input name="name" type="hidden" size="10" value="<%=nm %>" />
 	          <input name="number" type="hidden" value="<%=num%>" />

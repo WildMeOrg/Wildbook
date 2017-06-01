@@ -87,7 +87,7 @@ public class EncounterSetDynamicProperty extends HttpServlet {
 
       try {
 
-        if (newValue.equals("null")) {
+        if (newValue.equals(null) || newValue.equals("null") || newValue.equals("")) {
           changeMe.removeDynamicProperty(name);
           changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed dynamic property <em>" + name + "</em>. The old Value was <em>" + oldValue + ".</em></p>");
         } else {
