@@ -1724,7 +1724,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       while (st.hasMoreTokens()) {
         String token = st.nextToken();
         int equalPlace = token.indexOf("=");
-        tm.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));
+        try {
+          tm.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));          
+        } catch (java.lang.StringIndexOutOfBoundsException soe) {
+          // Swallow the exception.
+        }
       }
       if (tm.containsKey(name)) {
         return tm.get(name);
