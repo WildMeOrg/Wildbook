@@ -24,9 +24,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-//import java.net.URLConnection;
+import java.net.URLConnection;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
@@ -88,7 +89,8 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
     URL u=null;
     InputStream inputStreamFromServlet=null;
     BufferedReader in=null;
-    HttpsURLConnection finishConnection=null;
+    //HttpsURLConnection finishConnection=null;
+    URLConnection finishConnection=null;
     
     try {
       
@@ -96,7 +98,11 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
       
       System.out.println("...sending heartbeat...thump...thump...to: "+u.toString());
       
-      finishConnection = (HttpsURLConnection)u.openConnection();
+      if (rootURL.substring(0, 5).equals("https")) {
+        finishConnection = (HttpsURLConnection)u.openConnection();     
+      } else {
+        finishConnection = (HttpURLConnection)u.openConnection();
+       }
 
       inputStreamFromServlet = finishConnection.getInputStream();
       in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
@@ -112,18 +118,18 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
     catch (MalformedURLException mue) {
       System.out.println("!!!!!I hit a MalformedURLException in the heartbeat thread!!!!!");
       mue.printStackTrace();
-      System.exit(0);
+      //System.exit(0);
 
     } 
     catch (IOException ioe) {
       System.out.println("!!!!!I hit an IO exception in the heartbeat thread!!!!!");
       ioe.printStackTrace();
-      System.exit(0);
+      //System.exit(0);
     } 
     catch (Exception e) {
       System.out.println("!!!!!I hit an Exception in the heartbeat thread!!!!!");
       e.printStackTrace();
-      System.exit(0);
+      //System.exit(0);
     }
     finally{
       try{
