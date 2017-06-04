@@ -684,6 +684,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         a point to set the sighting location. You can also use the text boxes below the map to specify exact
         latitude and longitude.</p>
     -->
+    <p class="help-block">
+        <%=props.getProperty("mapExplanation") %></p>
+	
     <p id="map_canvas" style="width: 578px; height: 383px; "></p>
     <p id="map_overlay_buttons"></p>
 </div>
