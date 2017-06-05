@@ -273,82 +273,6 @@
 String mapLon = Double.toString(enc2.getLongitudeAsDouble());
 String mapLat = Double.toString(enc2.getLatitudeAsDouble());
 %>
-<script type="text/javascript">
-
-
-  var map;
-  var marker;
-  var center = new google.maps.LatLng(32.6104351,-117.3712712);
-
-
-          function placeMarker(location) {
-
-          //alert("entering placeMarker!");
-
-          	if(marker!=null){marker.setMap(null);}
-          	marker = new google.maps.Marker({
-          	      position: location,
-          	      map: map,
-          	      visible: true
-          	  });
-
-          	  //map.setCenter(location);
-
-          	    var ne_lat_element = document.getElementById('lat');
-          	    var ne_long_element = document.getElementById('longitude');
-
-
-          	    ne_lat_element.value = location.lat();
-          	    ne_long_element.value = location.lng();
-	}
-	</script>
-
-
-
-  <script>
-            function initialize() {
-	            //alert("Initializing map!");
-	              //var mapZoom = 1;
-	              var mapZoom = 5																																																																																																																																																																																																																																																																																																	;
-
-	              //var center = new google.maps.LatLng(10.8, 160.8);
-	              var center = new google.maps.LatLng(32.6104351,-117.3712712);
-
-
-	              map = new google.maps.Map(document.getElementById('map_canvas'), {
-	                zoom: mapZoom,
-	                center: center,
-	                mapTypeId: google.maps.MapTypeId.HYBRID,
-	                zoomControl: true,
-	                scaleControl: false,
-	                scrollwheel: false,
-	                disableDoubleClickZoom: true,
-	        	});
-
-	        	if(marker!=null){
-					marker.setMap(map);
-					//map.setCenter(marker.position);
-
-	 			//alert("Setting center!");
-				}
-
-	        	google.maps.event.addListener(map, 'click', function(event) {
-						//alert("Clicked map!");
-					    placeMarker(event.latLng);
-				  });
-
-
-		//adding the fullscreen control to exit fullscreen
-	    	//  var fsControlDiv = document.createElement('DIV');
-	    	//  var fsControl = new FSControl(fsControlDiv, map);
-	    	//  fsControlDiv.index = 1;
-	    	//  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
-
-
-        }
-
-</script>
 
 <br>
 <%
@@ -359,6 +283,175 @@ if(!mapLon.equals(null) && !mapLat.equals(null) && !mapLon.equals("-1") && !mapL
 <%
 }
 %>
+
+<script>
+
+
+$(function() {
+  function resetMap() {
+      var ne_lat_element = document.getElementById('mapLon');
+      var ne_long_element = document.getElementById('mapLat');
+
+
+      ne_lat_element.value = "";
+      ne_long_element.value = "";
+
+    }
+
+    $(window).unload(resetMap);
+
+    //
+    // Call it now on page load.
+    //
+    resetMap();
+});
+var gmapLat = 32.6104351;
+var gmapLon = -117.3712712;
+var center = new google.maps.LatLng(mapLat,mapLon);
+var map;
+var marker;
+var newCenter;
+var mapzoom;
+
+function placeMarker(location) {
+    if(marker!=null){marker.setMap(null);}
+    marker = new google.maps.Marker({
+          position: location,
+          map: map
+      });
+
+      //map.setCenter(location);
+
+        var ne_lat_element = document.getElementById('mapLat');
+        var ne_long_element = document.getElementById('mapLon');
+
+
+        ne_lat_element.value = location.lat();
+        ne_long_element.value = location.lng();
+    }
+
+  function initialize() {
+    mapZoom = 6;
+    if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+
+
+    if(marker!=null){
+        center = new google.maps.LatLng(gmapLat,gmapLon);
+    }
+
+    map = new google.maps.Map(document.getElementById('map_canvas'), {
+          zoom: mapZoom,
+          center: center,
+          mapTypeId: google.maps.MapTypeId.HYBRID
+        });
+
+    if(marker!=null){
+        marker.setMap(map);
+    }
+
+      //adding the fullscreen control to exit fullscreen
+      var fsControlDiv = document.createElement('DIV');
+      addFullscreenButton(fsControlDiv, map);
+      fsControlDiv.index = 1;
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+
+      google.maps.event.addListener(map, 'click', function(event) {
+            placeMarker(event.latLng);
+      });
+      
+      
+ 	 google.maps.event.addListener(map, 'dragend', function() {
+ 		var idleListener = google.maps.event.addListener(map, 'idle', function() {
+ 			google.maps.event.removeListener(idleListener);
+ 			console.log("GetCenter : "+map.getCenter());
+ 			mapZoom = map.getZoom();
+ 			newCenter = map.getCenter();
+ 			center = newCenter;
+ 			map.setCenter(map.getCenter());
+ 		});
+ 		 
+	 }); 	 
+ 	 
+ 	 google.maps.event.addDomListener(window, "resize", function() {	 
+	    	console.log("Resize Center : "+center);
+	    	google.maps.event.trigger(map, "resize");
+	  	    console.log("Resize : "+newCenter);
+	  	    map.setCenter(center);
+	 });  
+}
+
+function fullScreen() {
+    $("#map_canvas").addClass('full_screen_map');
+    $('html, body').animate({scrollTop:0}, 'slow');
+    initialize();
+
+    //hide header
+    $("#header_menu").hide();
+
+    //if(overlaysSet){overlaysSet=false;setOverlays();}
+}
+
+
+function exitFullScreen() {
+    $("#header_menu").show();
+    $("#map_canvas").removeClass('full_screen_map');
+
+    initialize();
+    //if(overlaysSet){overlaysSet=false;setOverlays();}
+}
+
+
+//making the exit fullscreen button
+function addFullscreenButton(controlDiv, map) {
+    // Set CSS styles for the DIV containing the control
+    // Setting padding to 5 px will offset the control
+    // from the edge of the map
+    controlDiv.style.padding = '5px';
+
+    // Set CSS for the control border
+    var controlUI = document.createElement('DIV');
+    controlUI.style.backgroundColor = '#f8f8f8';
+    controlUI.style.borderStyle = 'solid';
+    controlUI.style.borderWidth = '1px';
+    controlUI.style.borderColor = '#a9bbdf';;
+    controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.textAlign = 'center';
+    controlUI.title = 'Toggle the fullscreen mode';
+    controlDiv.appendChild(controlUI);
+
+    // Set CSS for the control interior
+    var controlText = document.createElement('DIV');
+    controlText.style.fontSize = '12px';
+    controlText.style.fontWeight = 'bold';
+    controlText.style.color = '#000000';
+    controlText.style.paddingLeft = '4px';
+    controlText.style.paddingRight = '4px';
+    controlText.style.paddingTop = '3px';
+    controlText.style.paddingBottom = '2px';
+    controlUI.appendChild(controlText);
+
+    //toggle the text of the button
+    if($("#map_canvas").hasClass("full_screen_map")){
+        controlText.innerHTML = '<%=props.getProperty("exitFullscreen") %>';
+    } else {
+        controlText.innerHTML = '<%=props.getProperty("fullscreen") %>';
+    }
+
+    // Setup the click event listeners: toggle the full screen
+    google.maps.event.addDomListener(controlUI, 'click', function() {
+        if($("#map_canvas").hasClass("full_screen_map")) {
+            exitFullScreen();
+        } else {
+            fullScreen();
+        }
+    });
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+
+
 
 <% 
 
