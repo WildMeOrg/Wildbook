@@ -691,16 +691,16 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <p id="map_overlay_buttons"></p>
 </div>
 
-    <div>
+    <div id="gpsInputs">
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
           <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
-          <input class="form-control" name="lat" type="number" step="0.000000001" id="lat" oninput="gpsLiveUpdate()" max="89.9999999" min="-89.9999999" data-toggle="tooltip" title="<%=props.getProperty("latitudeTooltip")%>">
+          <input class="form-control" name="lat" type="number" id="lat" oninput="gpsLiveUpdate()" max="89.99999" min="-89.99999" data-toggle="tooltip" title="<%=props.getProperty("latitudeTooltip")%>">
         </div>
 
         <div class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
-          <input class="form-control" name="longitude" type="number" step="0.000000001" id="longitude" oninput="gpsLiveUpdate()" max="179.9999999" min="-179.9999999" data-toggle="tooltip" title="<%=props.getProperty("longitudeTooltip")%>">
+          <input class="form-control" name="longitude" type="number" id="longitude" oninput="gpsLiveUpdate()" max="179.99999" min="-179.99999" data-toggle="tooltip" title="<%=props.getProperty("longitudeTooltip")%>">
         </div>
       </div>
 
