@@ -194,7 +194,7 @@ int numDataContributors=0;
     <ul class="nav navbar-nav" >
 
       <li>
-    <a class="btn-link" href="gallery.jsp?sort=dateTimeLatestSighting">Uudet norpat</a>
+    <a class="btn-link" href="gallery.jsp?sort=dateTimeLatestSighting">Uudet havainnot</a>
       </li>
     <li class="dropdown">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Havainnot alueittain <span class="caret"></span></a>
