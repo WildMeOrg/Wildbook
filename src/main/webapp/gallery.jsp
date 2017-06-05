@@ -496,8 +496,11 @@ int numDataContributors=0;
                     <%
                       String sexValue = pair[j].getSex();
                       if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
+                      if (sexValue.equals("unknown")) {
                     %>
                     <%=props.getProperty("sex")%> <%=sexValue%>
+                    
+                    <%}%>
                   </p>
                 </td>
                 <td>
