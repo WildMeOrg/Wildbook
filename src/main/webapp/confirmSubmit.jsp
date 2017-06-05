@@ -4,6 +4,7 @@
 
 <jsp:include page="header.jsp" flush="true"/>
 
+
 <%
   String context="context0";
   context=ServletUtilities.getContext(request);
@@ -21,8 +22,9 @@
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
 
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+  
   //set up the file input stream
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
   props = ShepherdProperties.getProperties("submit.properties", langCode,context);
@@ -47,6 +49,8 @@
 
 
 %>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
+
 <div class="container maincontent">
 <%
 
@@ -259,6 +263,103 @@
 <br>
 	<label><%=props.getProperty("yourMedia") %></label>
 <%}%>
+
+
+
+
+
+<%
+// Let's display a google map for the encounter if it was submitted with coordinates.
+String mapLon = Double.toString(enc2.getLongitudeAsDouble());
+String mapLat = Double.toString(enc2.getLatitudeAsDouble());
+%>
+<script type="text/javascript">
+
+
+  var map;
+  var marker;
+  var center = new google.maps.LatLng(32.6104351,-117.3712712);
+
+
+          function placeMarker(location) {
+
+          //alert("entering placeMarker!");
+
+          	if(marker!=null){marker.setMap(null);}
+          	marker = new google.maps.Marker({
+          	      position: location,
+          	      map: map,
+          	      visible: true
+          	  });
+
+          	  //map.setCenter(location);
+
+          	    var ne_lat_element = document.getElementById('lat');
+          	    var ne_long_element = document.getElementById('longitude');
+
+
+          	    ne_lat_element.value = location.lat();
+          	    ne_long_element.value = location.lng();
+	}
+	</script>
+
+
+
+  <script>
+            function initialize() {
+	            //alert("Initializing map!");
+	              //var mapZoom = 1;
+	              var mapZoom = 5																																																																																																																																																																																																																																																																																																	;
+
+	              //var center = new google.maps.LatLng(10.8, 160.8);
+	              var center = new google.maps.LatLng(32.6104351,-117.3712712);
+
+
+	              map = new google.maps.Map(document.getElementById('map_canvas'), {
+	                zoom: mapZoom,
+	                center: center,
+	                mapTypeId: google.maps.MapTypeId.HYBRID,
+	                zoomControl: true,
+	                scaleControl: false,
+	                scrollwheel: false,
+	                disableDoubleClickZoom: true,
+	        	});
+
+	        	if(marker!=null){
+					marker.setMap(map);
+					//map.setCenter(marker.position);
+
+	 			//alert("Setting center!");
+				}
+
+	        	google.maps.event.addListener(map, 'click', function(event) {
+						//alert("Clicked map!");
+					    placeMarker(event.latLng);
+				  });
+
+
+		//adding the fullscreen control to exit fullscreen
+	    	//  var fsControlDiv = document.createElement('DIV');
+	    	//  var fsControl = new FSControl(fsControlDiv, map);
+	    	//  fsControlDiv.index = 1;
+	    	//  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+
+
+
+        }
+
+</script>
+
+<br>
+<%
+if(!mapLon.equals(null) && !mapLat.equals(null) && !mapLon.equals("-1") && !mapLat.equals("-1")) {
+%>
+	<p><%=props.getProperty("confirmSubmitMapNote") %></p>
+	<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
+<%
+}
+%>
+
 <% 
 
 if(CommonConfiguration.sendEmailNotifications(context)){
