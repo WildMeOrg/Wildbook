@@ -72,7 +72,7 @@ public class EncounterSetDynamicProperty extends HttpServlet {
       Encounter changeMe = myShepherd.getEncounter(request.getParameter("number").trim()
           );
 
-      String name = request.getParameter("name");
+      String name = request.getParameter("name").trim();
       String newValue = "null";
       String oldValue = "null";
 

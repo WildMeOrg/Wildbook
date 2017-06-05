@@ -471,11 +471,9 @@ finally{
 					<h3><%=props.getProperty("innerPhotoH3") %></h3>
 					<p class="lead">
 						<%=props.getProperty("innerPhotoP") %>
-					</p>
-					<p class="lead">
+						<br>
 						<a href="photographing.jsp" title=""><%=props.getProperty("howItWorks-step1-link")%></a>
 					</p>
-
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
 					<img class="pull-right" src="cust/mantamatcher/img/bass/how_it_works_photograph_gsb.png" alt=""  />

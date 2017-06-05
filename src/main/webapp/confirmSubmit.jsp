@@ -249,12 +249,15 @@
 	
 	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>
 </p>
+<p>
+	<%=props.getProperty("emailExplanation") %>
+</p>
 <%if (!assetURLs.equals("<br>")) { %>
 <div class="row"id="thumbList"> 
 	<%=assetURLs%>
 </div>
 <br>
-	<label>Your Submitted Media</label>
+	<label><%=props.getProperty("yourMedia") %></label>
 <%}%>
 <% 
 
