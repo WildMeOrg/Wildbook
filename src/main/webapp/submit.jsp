@@ -234,8 +234,8 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
-var gmapLat = 32.6104351;
-var gmapLon = -117.3712712;
+var gmapLat = 32.6104;
+var gmapLon = -117.3712;
 var center = new google.maps.LatLng(gmapLat,gmapLon);
 var map;
 var marker;
@@ -695,12 +695,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
           <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
-          <input class="form-control" name="lat" type="number" id="lat" oninput="gpsLiveUpdate()" max="89.99999" min="-89.99999" data-toggle="tooltip" title="<%=props.getProperty("latitudeTooltip")%>">
+          <input class="form-control" name="lat" type="number" value="90.00000" step="any" id="lat" oninput="gpsLiveUpdate()" max="90.00000" min="-90.00000" data-toggle="tooltip" title="<%=props.getProperty("latitudeTooltip")%>">
         </div>
 
         <div class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
-          <input class="form-control" name="longitude" type="number" id="longitude" oninput="gpsLiveUpdate()" max="179.99999" min="-179.99999" data-toggle="tooltip" title="<%=props.getProperty("longitudeTooltip")%>">
+          <input class="form-control" name="longitude" type="number" value="180.00000" step="any" id="longitude" oninput="gpsLiveUpdate()" max="180.00000" min="-180.00000" data-toggle="tooltip" title="<%=props.getProperty("longitudeTooltip")%>">
         </div>
       </div>
 

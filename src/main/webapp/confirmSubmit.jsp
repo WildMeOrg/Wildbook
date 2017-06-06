@@ -270,31 +270,45 @@
 
 <%
 // Let's display a google map for the encounter if it was submitted with coordinates.
-String mapLon = Double.toString(enc2.getLongitudeAsDouble());
-String mapLat = Double.toString(enc2.getLatitudeAsDouble());
+
+Double mapLon = -1.0000;
+Double mapLat = -1.0000;
+if (enc2.getLatitudeAsDouble() != null && enc2.getLongitudeAsDouble() !=null) {
+	System.out.println("LAT FROM SUBMIT : "+Double.toString(enc2.getLatitudeAsDouble()));
+	System.out.println("LON FROM SUBMIT : "+Double.toString(enc2.getLatitudeAsDouble()));	
+	mapLat = enc2.getLatitudeAsDouble();
+	mapLon = enc2.getLongitudeAsDouble();
+} else {
+	System.out.println("NO LAT OR LON FOUND!");
+}
 %>
 
 <br>
 <%
-if(!mapLon.equals(null) && !mapLat.equals(null) && !mapLon.equals("-1") && !mapLat.equals("-1")) {
+if(!mapLon.equals(null) && !mapLat.equals(null) && !mapLon.equals(-1.0000) && !mapLat.equals(-1.0000)) {
 %>
 	<p><%=props.getProperty("confirmSubmitMapNote") %></p>
-	<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
 <%
 }
 %>
 
-<script>
+<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
 
+<script>
 
 $(function() {
   function resetMap() {
-      var ne_lat_element = document.getElementById('mapLon');
-      var ne_long_element = document.getElementById('mapLat');
+      var ne_lat_element;
+      var ne_long_element;
+	  
+	  
+	  ne_lat_element = <%=mapLat%>;
+	  ne_long_element = <%=mapLon%>;
+  
+      ne_lat_element.value = -1.00000;
+   	  ne_long_element.value = -1.00000;
+	  
 
-
-      ne_lat_element.value = "";
-      ne_long_element.value = "";
 
     }
 
@@ -305,9 +319,7 @@ $(function() {
     //
     resetMap();
 });
-var gmapLat = 32.6104351;
-var gmapLon = -117.3712712;
-var center = new google.maps.LatLng(mapLat,mapLon);
+var center = new google.maps.LatLng(<%=mapLat%>,<%=mapLon%>);
 var map;
 var marker;
 var newCenter;
@@ -316,18 +328,18 @@ var mapzoom;
 function placeMarker(location) {
     if(marker!=null){marker.setMap(null);}
     marker = new google.maps.Marker({
-          position: location,
+          position: center,
           map: map
       });
 
       //map.setCenter(location);
 
-        var ne_lat_element = document.getElementById('mapLat');
-        var ne_long_element = document.getElementById('mapLon');
+        var ne_lat_element = <%=mapLat%>;
+        var ne_long_element = <%=mapLon%>;
 
 
-        ne_lat_element.value = location.lat();
-        ne_long_element.value = location.lng();
+        ne_lat_element.value = center.lat();
+        ne_long_element.value = center.lng();
     }
 
   function initialize() {
@@ -336,7 +348,7 @@ function placeMarker(location) {
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(gmapLat,gmapLon);
+        center = new google.maps.LatLng(<%=mapLat%>,<%=mapLon%>);
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -448,13 +460,18 @@ function addFullscreenButton(controlDiv, map) {
     });
 }
 
-google.maps.event.addDomListener(window, 'load', initialize);
 </script>
 
+<%
+// If there are no valid coordinates then we won't render the message or gmao canvas at all by disabling the listener.
+if(!mapLon.equals(null) && !mapLat.equals(null) && !mapLon.equals(-1.0000) && !mapLat.equals(-1.0000)) {
+%>
+ 	<script>google.maps.event.addDomListener(window, 'load', initialize);</script>	
+<%
+}
+%>
 
-
-<% 
-
+<%
 if(CommonConfiguration.sendEmailNotifications(context)){
 
   // Retrieve background service for processing emails
