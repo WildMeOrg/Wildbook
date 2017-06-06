@@ -325,7 +325,7 @@ var marker;
 var newCenter;
 var mapzoom;
 
-function placeMarker(location) {
+function placeMarker() {
     if(marker!=null){marker.setMap(null);}
     marker = new google.maps.Marker({
           position: center,
@@ -463,10 +463,14 @@ function addFullscreenButton(controlDiv, map) {
 </script>
 
 <%
-// If there are no valid coordinates then we won't render the message or gmao canvas at all by disabling the listener.
+// If there are no valid coordinates then we won't render the message or gmap canvas at all by disabling the listener.
+// This marker ain't gonna move. Just drop it onload.
 if(!mapLon.equals(null) && !mapLat.equals(null) && !mapLon.equals(-1.0000) && !mapLat.equals(-1.0000)) {
 %>
- 	<script>google.maps.event.addDomListener(window, 'load', initialize);</script>	
+ 	<script>
+ 	google.maps.event.addDomListener(window, 'load', initialize);
+ 	placeMarker();
+ 	</script>	
 <%
 }
 %>
