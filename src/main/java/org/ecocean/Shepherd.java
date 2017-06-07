@@ -1136,8 +1136,32 @@ public class Shepherd {
         emails++;
       }
     }
-    return emails;
+    return emails;  
   }
+  
+  /**
+   * 
+   * Gets all encounters with coordinates and returns them as an array. Used by marker clusterer on index.jsp.
+   * 
+   * 
+   */
+  public ArrayList<Encounter> getAllApprovedEncsWithGPSCoordinates() {
+    Iterator<Encounter> encs = getAllEncountersNoQuery();
+    ArrayList<Encounter> encArr = new ArrayList<Encounter>();
+    Encounter thisEnc = null;
+    while (encs.hasNext()) {
+      thisEnc = encs.next();
+      if (thisEnc.getDecimalLongitude() != null && thisEnc.getDecimalLatitude() != null) {
+        if (thisEnc.getState().equals("approved")) {
+          encArr.add(thisEnc);          
+        }
+      }
+    }
+    return encArr;
+  }
+  
+  
+  
   /**
    * Retrieves any unassigned encounters that are stored in the database - but not yet analyzed - to see whether they represent new or already persistent sharks
    *
