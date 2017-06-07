@@ -367,11 +367,16 @@ form table td, form table th {
 				width: 200px;
 				padding: 3px 0;
 				}
-			@media (min-width: @screen-sm) {
-				.search-field-header input { width: 175px; }
+			@media (max-width: @screen-sm) {
+				.search-field-header input { 
+					width: 100px; 
+					margin-right: 10px;
+					display: inline;
+				}
+
 			}
-						@media (min-width: @screen-xs) {
-				.search-field-header input { width: 175px; }
+						@media (max-width: @screen-xs) {
+				.search-field-header input { width: 70px; }
 			}
 			
 
@@ -384,6 +389,22 @@ form table td, form table th {
 				padding-left: 10px;
 				margin: 0;
 				}
+			@media (max-width: @screen-sm) {
+				.search-field-header input[type="submit"] { 
+					padding-left: 5px; 
+					margin-right: 50px;
+					display: none;
+				}
+
+			}
+			@media (max-width: @screen-xs) {
+				.search-field-header input[type="submit"] { 
+					padding-left: 5px; 
+					margin-right: 50px;
+					display: inline;
+				}
+
+			}
 
 		.nav-bar-wrapper { background: rgba(255, 255, 255, 1	); }
 

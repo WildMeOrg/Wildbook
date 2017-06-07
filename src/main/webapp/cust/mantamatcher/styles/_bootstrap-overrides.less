@@ -51,32 +51,53 @@ label { font-weight: normal; }
   	text-indent: -999em;
   	clear: both;
   	float: none;
-  	display: block;
+  	display: inline;
   	background: url(../img/bass/bass_header.png) no-repeat;
   	max-height: 200px;
   	max-width: auto;
 	}
 
 @media (min-width: @screen-xs) {
+
 	.navbar-brand {
 		height: 80px;
-		width: 100%;
+		width: 40%;
 		max-width: 350px;
 		clear: none;
-		float: left;
 		}
+}
+@media (min-width: @screen-sm) {
+
+	.navbar-brand {
+		float: left;
+	}
 }
 @media (max-width: @screen-sm) {
 	.navbar-brand {
-		height: 90px;
+		display: block;
+		margin-top: -5px;
+		width: 40%;
+		height: 80px;
 		max-height: 100px;
-		margin-bottom: 5px;
+		background: url(../img/bass/bass_header_small.png) no-repeat;
+		margin: auto;
+		float: none;
+		margin-bottom: 0;
+		
+	}
+}
+
+@media (max-width: @screen-xs) {
+	.navbar-brand {
+		width: 65%;	
+		padding-bottom: -5px;	
 	}
 }
 
 @media (max-width: @screen-sm) {
 	.navbar-brand-container {
-		width: 100%;
+		width: 95%;
+		margin: auto;
 	}
 }
 
