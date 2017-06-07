@@ -160,7 +160,9 @@ $(window).scroll(function(){
 
     	// Create an array of styles for our Google Map.
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
-
+		
+    	//dummy array to feed into styled map input. Just here so I don't have to alter the styling code ic case they need all/some of it back later.
+    	var blankStyles = [];
 
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 		
@@ -189,7 +191,7 @@ $(window).scroll(function(){
 
     	    // Create a new StyledMapType object, passing it the array of styles,
     	    // as well as the name to be displayed on the map type control.
-    	    var styledMap = new google.maps.StyledMapType(gmap_styles, {name: "Styled Map"});
+    	    var styledMap = new google.maps.StyledMapType(blankStyles, {name: "Styled Map"});
 
     	    //Associate the styled map with the MapTypeId and set it to display.
     	    map.mapTypes.set('map_style', styledMap);
