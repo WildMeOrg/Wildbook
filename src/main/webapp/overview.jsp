@@ -39,7 +39,7 @@ props = ShepherdProperties.getProperties("overview.properties", langCode, contex
       </div>	
       <div class="col-xs-6">
 	    <img class="bass_image" src="cust/mantamatcher/img/bass/diverJeffAboutProject.jpg" />
-	    <label class="image_label"></label>
+	    <label class="image_label"><%=props.getProperty("diverJeffImage") %></label>
       </div>
     </div>
   </div>
@@ -74,7 +74,7 @@ props = ShepherdProperties.getProperties("overview.properties", langCode, contex
       </div>	
       <div class="col-xs-6">
 	    <img class="bass_image" src="cust/mantamatcher/img/bass/danHardingAboutProject.png" />
-	    <label class="image_label"></label>
+	    <label class="image_label"><%=props.getProperty("danHardingImage") %></label>
       </div>
     </div>
   </div>
