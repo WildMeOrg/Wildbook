@@ -87,7 +87,7 @@ props = ShepherdProperties.getProperties("aboutBass.properties", langCode, conte
       </div>	
       <div class="col-xs-6">
     	  <img class="bass_image" src="cust/mantamatcher/img/bass/danHardingHabitat.png" />
-	    <label class="image_label"></label>
+	    <label class="image_label"><%=props.getProperty("multipleGSBImage") %></label>
       </div>
     </div>
   </div>
