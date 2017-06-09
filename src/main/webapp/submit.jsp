@@ -725,7 +725,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
  <div class="form-inline">
       <label class="control-label"><%=props.getProperty("submit_elevation")%></label>
       <input class="form-control" name="elevation" type="text" id="elevation">
-      &nbsp;<%=props.getProperty("submit_meters")%> <br>
+      &nbsp;<%=props.getProperty("submit_feet")%> <br>
     </div>
 	
 	
