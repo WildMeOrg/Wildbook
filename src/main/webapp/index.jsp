@@ -187,15 +187,11 @@ $(window).scroll(function(){
     	  var fsControl = new FSControl(fsControlDiv, map);
     	  fsControlDiv.index = 1;
     	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
-
-    	    // Create a new StyledMapType object, passing it the array of styles,
-    	    // as well as the name to be displayed on the map type control.
-    	    var styledMap = new google.maps.StyledMapType(blankStyles, {name: "Styled Map"});
-
-    	    //Associate the styled map with the MapTypeId and set it to display.
-    	    map.mapTypes.set('map_style', styledMap);
-    	    map.setMapTypeId('map_style');
+    	    
+    	    
+    	    // !!! Whack All the styling and hardcode satellite type map.  !!! 
+    	    
+    	    //map.setMapTypeId('satellite');
 
         var markers = [];
  	    var movePathCoordinates = [];
