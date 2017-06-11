@@ -30,6 +30,8 @@ props = ShepherdProperties.getProperties("photographing.properties", langCode, c
 				<li><%=props.getProperty("list1Item3")%></li>
 				<li><%=props.getProperty("list1Item4")%></li>
 				<li><%=props.getProperty("list1Item5")%></li>
+				<li><%=props.getProperty("list1Item6")%></li>
+				
 			</ol>
 			
 			<br>
