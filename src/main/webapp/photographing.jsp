@@ -33,7 +33,18 @@ props = ShepherdProperties.getProperties("photographing.properties", langCode, c
 				<li><%=props.getProperty("list1Item6")%></li>
 				
 			</ol>
-			
+		  	
+			<div class="container">
+			  <div class="row">
+			    <div class="col-xs-3">
+			    </div>	
+			    <div class="col-xs-6">
+				  <img class="bass_image" src="cust/mantamatcher/img/bass/MerryPassagePhilGarner_how_to.jpg" />
+				  <label class="image_label"><%=props.getProperty("exampleImageCaption") %></label>
+			    </div>
+			  </div>
+			</div>
+
 			<br>
 			<h5><%=props.getProperty("list2Header")%></h5>
 			<ol>
