@@ -24,7 +24,9 @@ props = ShepherdProperties.getProperties("overview.properties", langCode, contex
         
         
   <h1><%=props.getProperty("mainHeader") %></h1>
+  <h2><%=props.getProperty("overviewHeader")%></h2>
 
+	
   <p>
     <%=props.getProperty("paragraph1") %>
   </p>
