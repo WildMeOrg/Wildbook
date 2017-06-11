@@ -428,7 +428,7 @@ function gpsLiveUpdate() {
 	    <label class="image_label"><%=props.getProperty("leftFlank") %></label>
       </div>
       <div>
-    	<img class="bass_image" src="cust/mantamatcher/img/bass/katieDavisLeftFlank.jpg" />
+    	<img class="bass_image" src="cust/mantamatcher/img/bass/MerryPassagePhilGarner_rightside.jpg" />
 	    <label class="image_label"><%=props.getProperty("rightFlank") %></label>
       </div>
   </div>
