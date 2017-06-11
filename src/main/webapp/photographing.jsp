@@ -56,7 +56,16 @@ props = ShepherdProperties.getProperties("photographing.properties", langCode, c
 			
 			<h3><%=props.getProperty("exampleHeader")%></h3>
 			
-			<p>[Some images]</p>
+			<div class="container">
+			  <div class="row">
+			    <div class="col-xs-3">
+			    </div>	
+			    <div class="col-xs-6">
+				  <img class="bass_image" src="cust/mantamatcher/img/bass/MerryPassagePhilGarner_how_to.jpg" />
+				  <label class="image_label"><%=props.getProperty("exampleImageCaption") %></label>
+			    </div>
+			  </div>
+			</div>
 			
 			<br>
 			<h3><%=props.getProperty("ownershipHeader")%></h3>
