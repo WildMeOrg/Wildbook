@@ -28,7 +28,7 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -832,43 +832,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   <hr/>
 		<!-- shark flank side section -->
 		<fieldset>
-			<div class="row">
-				<div class="form-group">
-				<div class="col-xs-12 col-lg-12">
-					<h3>Flank side</h3>
-					<p class="text-danger">What side of the shark is shown in your photo?</p>
-				</div>
-				<div class="col-xs-12 col-lg-6">
-					<figure>
-						<img src="images/spotashark/Good-Left-Flank-DonSilcock.jpg" alt="" width=80% style="display: block;margin: 0 auto;"/>
-						<figcaption>Example left flank, credit Don Silcock</figcaption>
-					</figure>
-				</div>
-				<div class="col-xs-12 col-lg-6">
-					<figure>
-						<img src="images/spotashark/Good-Right-Flank-JayneJenkins.jpg" alt="" width=80% style="display: block;margin: 0 auto;"/>
-						<figcaption>Example right flank, credit Jayne Jenkins</figcaption>
-					</figure>
-				</div>
-			</div>
-		</div>
-		<div class="row">
-		<div class="col-xs-12 col-lg-12">
-			<label class="text-danger control-label">Flank</label>:
-			<div class='wrapper text-center'>
-				<div class="btn-group" data-toggle="buttons">
-					<label class="btn btn-secondary flank-btn active">
-						<input type="radio" name="flank" value="L" id="L" checked="checked"> Left
-					</label>
-					<label class="btn btn-secondary flank-btn">
-						<input type="radio" name="flank" value="R" id="R"> Right
-					</label>
-				</div>
-			</div>
-		</div>
-		</div>
+			
 	<div class="row">
-	</br><br>
 		<div class="form-group">
 			<div class="col-xs-12 col-lg-12">
 				<h3>Hookmark</h3>
@@ -1131,16 +1096,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
          </fieldset>
 </c:if>
 
-
-	<hr/>
-
-		<fieldset>
-			<div class="col-xs-12 col-lg-8">
-				<h3>Number of sharks at cave</h3>
-				<p class="help-block">If photographed near the cave, about how many sharks did you see there? Leave blank if not applicable.</p>
-				<input name="nsharks" type="text" id="nsharks" size="40" class="form-control">
-			</div>
-		</fieldset>
 
 
       <hr/>

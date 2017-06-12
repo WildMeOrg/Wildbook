@@ -631,24 +631,15 @@ finally{
 
 <div class="container-fluid">
     <section class="container text-center  main-section">
-        <div class="row">
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i>
-                  <span class="half-massive"><%=numMarkedIndividualsLeftFlank %> Left </span></br>
-                  <span class="half-massive"><%= numMarkedIndividuals - numMarkedIndividualsLeftFlank %> Right </span> </br>
-                  unique individuals
-                </i></p>
+            <div class="row">
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified sharks</i></p>
             </section>
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i>
-                  <span class="half-massive"><%=numEncountersLeftFlank %> Left </span></br>
-                  <span class="half-massive"><%= numEncounters - numEncountersLeftFlank %> Right </span></br>
-                  reported encounters
-                </i></p>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
             </section>
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
-            </section>
+            
+
         </div>
 
         <hr/>
