@@ -503,7 +503,7 @@ function save() {
 
 console.warn('sending data: %o', data); //return;
     $.ajax({
-        url: '../SubmitSpotsAndTransformImage',
+        url: 'http://www.spotashark.com/SubmitSpotsAndTransformImage',
         type: 'POST',
         data: JSON.stringify(data),
         complete: function(d) {

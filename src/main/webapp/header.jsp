@@ -396,7 +396,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
                                  <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                                 <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp">Shark Grid</a></li>
+                                 <li><a href="http://www.spotashark.com/appadmin/scanTaskAdmin.jsp">Shark Grid</a></li>
                                 <% } %>
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
                                 <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>
