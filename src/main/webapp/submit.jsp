@@ -715,7 +715,7 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
  <div class="form-inline">
       <label class="control-label"><%=props.getProperty("submit_depth")%></label>
       <input class="form-control" name="depth" type="text" id="depth" data-toggle="tooltip" title="<%=props.getProperty("seaDepthTooltip")%>">
-      &nbsp;<%=props.getProperty("submit_meters")%> <br>
+      &nbsp;<%=props.getProperty("submit_feet")%> <br>
     </div>
 <%
 }
