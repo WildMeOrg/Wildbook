@@ -140,7 +140,10 @@ System.out.println("]=== done with .extractFrames()");
             search.setType("video");
 
             // To increase efficiency, only retrieve the fields that the application uses.
-            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
+            
+            //TBD - add comments
+            
+            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url,snippet/description)");
             search.setMaxResults(50l);
 
             // Call the API and print results.
