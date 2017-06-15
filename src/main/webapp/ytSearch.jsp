@@ -41,12 +41,13 @@ ArrayList<String> phrasesToIgnoreVideo=new ArrayList<String>();
 phrasesToIgnoreVideo.add("documentary");
 phrasesToIgnoreVideo.add("documental");
 phrasesToIgnoreVideo.add("hungry shark world");
+phrasesToIgnoreVideo.add("hungry shark game");
 phrasesToIgnoreVideo.add("dory");
 phrasesToIgnoreVideo.add("nemo");
 phrasesToIgnoreVideo.add("abyssrium");
 phrasesToIgnoreVideo.add("whale shark card");
 phrasesToIgnoreVideo.add("octonauts");
-phrasesToIgnoreVideo.add("GTA");
+phrasesToIgnoreVideo.add("gta");
 phrasesToIgnoreVideo.add("megalodon");
 phrasesToIgnoreVideo.add("abzu");
 phrasesToIgnoreVideo.add("bbc");
@@ -55,6 +56,10 @@ phrasesToIgnoreVideo.add("white shark");
 phrasesToIgnoreVideo.add("top 10");
 phrasesToIgnoreVideo.add("tap tap");
 phrasesToIgnoreVideo.add("georgia");
+phrasesToIgnoreVideo.add("nickelodeon");
+phrasesToIgnoreVideo.add("attack");
+phrasesToIgnoreVideo.add("paw patrol");
+phrasesToIgnoreVideo.add("aliexpress");
 
 
 int numPhrases=phrasesToIgnoreVideo.size();
