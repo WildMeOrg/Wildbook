@@ -50,6 +50,12 @@ phrasesToIgnoreVideo.add("GTA");
 phrasesToIgnoreVideo.add("megalodon");
 phrasesToIgnoreVideo.add("abzu");
 phrasesToIgnoreVideo.add("bbc");
+phrasesToIgnoreVideo.add("disney");
+phrasesToIgnoreVideo.add("white shark");
+phrasesToIgnoreVideo.add("top 10");
+phrasesToIgnoreVideo.add("tap tap");
+phrasesToIgnoreVideo.add("georgia");
+
 
 int numPhrases=phrasesToIgnoreVideo.size();
 
