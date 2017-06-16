@@ -60,6 +60,11 @@ phrasesToIgnoreVideo.add("nickelodeon");
 phrasesToIgnoreVideo.add("attack");
 phrasesToIgnoreVideo.add("paw patrol");
 phrasesToIgnoreVideo.add("aliexpress");
+phrasesToIgnoreVideo.add("shark tank");
+phrasesToIgnoreVideo.add("rockstar");
+phrasesToIgnoreVideo.add("tubmates");
+phrasesToIgnoreVideo.add("photoshop");
+phrasesToIgnoreVideo.add("animal facts");
 
 
 int numPhrases=phrasesToIgnoreVideo.size();
