@@ -65,6 +65,8 @@ phrasesToIgnoreVideo.add("rockstar");
 phrasesToIgnoreVideo.add("tubmates");
 phrasesToIgnoreVideo.add("photoshop");
 phrasesToIgnoreVideo.add("animal facts");
+phrasesToIgnoreVideo.add("tiggu");
+phrasesToIgnoreVideo.add("banjo");
 
 
 int numPhrases=phrasesToIgnoreVideo.size();
