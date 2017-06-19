@@ -261,6 +261,7 @@ var colDefn = [
   {
     key: 'name',
     label: 'Name',
+    value: _notUndefined('name'),
   },
   {
     key: 'ID',
