@@ -1,15 +1,21 @@
 package org.ecocean.identity;
 
 import org.ecocean.ImageAttributes;
+
 import org.ecocean.Annotation;
 import org.ecocean.Util;
+import org.ecocean.YouTube;
+import org.ecocean.postQuestion;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
+import org.ecocean.PostQuestion;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.DetectTranslate;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +56,13 @@ import java.util.Locale;
 import com.joestelmach.natty.*;
 import java.util.Date;
 import org.joda.time.Instant;
+//google translate
+import com.google.cloud.translate.Detection;
+import com.google.cloud.translate.Translate;
+import com.google.cloud.translate.TranslateOptions;
+import com.google.cloud.translate.Translation;
+import com.google.cloud.translate.Translate.TranslateOption;
+
 
 
 public class IBEISIA {
@@ -1173,7 +1186,7 @@ System.out.println("**** type ---------------> [" + type + "]");
 {"_action":"getJobResult","_response":{"response":{"json_result":{"score_list":[0],"results_list":[[{"xtl":679,"theta":0,"height":366,"width":421,"class":"elephant_savanna","confidence":0.215,"ytl":279},{"xtl":71,"theta":0,"height":206,"width":166,"class":"elephant_savanna","confidence":0.2685,"ytl":425},{"xtl":1190,"theta":0,"height":222,"width":67,"class":"elephant_savanna","confidence":0.2947,"ytl":433}]],"image_uuid_list":[{"__UUID__":"f0f9cc19-a56d-3a81-be40-bc51e65714e6"}]},"status":"ok","jobid":"jobid-0025"},"status":{"message":"","cache":-1,"code":200,"success":true}},"jobID":"jobid-0025"}
 */
 
-    private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, HttpServletRequest request) {
+    private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, HttpServletRequest request) throws IOException {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
 System.out.println("***** ids = " + ids);
@@ -2662,13 +2675,13 @@ return Util.generateUUID();
     
     //this is called when a batch of encounters (which should be on this occurrence) were made from detection
     // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
-    public static void fromDetection(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context) {
+    public static void fromDetection(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context) throws IOException {
         System.out.println(">>>>>> detection created " + occ.toString());
         
         //set the locationID/location/date on all encounters by inspecting detected comments on the first encounter
         if((occ.getEncounters()!=null)&&(occ.getEncounters().get(0)!=null)){
           
-
+          
           String locCode=null;
           String location="";
           int year=-1;
@@ -2677,9 +2690,33 @@ return Util.generateUUID();
           List<Encounter> encounters=occ.getEncounters();
           int numEncounters=encounters.size();
           Encounter enc=encounters.get(0);
+          String ytRemarks=enc.getOccurrenceRemarks().trim().toLowerCase();
+          
+          String detectedLanguage= DetectTranslate.detect(ytRemarks);
+          
+          if(detectedLanguage.equals("es")){
+            ytRemarks= DetectTranslate.translate(ytRemarks);
+          }
+          
+//          TranslateOptions.newBuilder().setApiKey("AIzaSyAm5Rmvrvq58dcnF9JioQfzBFAjf1tKCLQ");
+//          Translate translate = TranslateOptions.getDefaultInstance().getService();  
+//          Detection detection = translate.detect(ytRemarks);
+//          String detectedLanguage = detection.getLanguage();
+//          System.out.printf(detectedLanguage);  
+//          
+//          if (detectedLanguage.equals("es")){             
+//            Translation translation = translate.translate(ytRemarks,
+//            TranslateOption.targetLanguage("en"));
+//            System.out.println(translation.getTranslatedText());  
+//            ytRemarks=translation.getTranslatedText();  
+//            
+//          }else{  
+//            System.out.println("No translation needed for this text");  
+//          }
+          
           if(enc.getOccurrenceRemarks()!=null){
             
-            String remarks=enc.getOccurrenceRemarks().trim().toLowerCase()+" "+enc.getRComments().trim().toLowerCase();
+            String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase();
             Properties props = new Properties();
     
             //OK, let's check the comments and tags for retrievable metadata
@@ -2698,7 +2735,7 @@ return Util.generateUUID();
               
               
               //reset remarks to avoid dates embedded in researcher comments
-              remarks=enc.getOccurrenceRemarks().trim().toLowerCase();
+//              remarks=enc.getOccurrenceRemarks().trim().toLowerCase();
               //if no one has set the date already, use NLP to try to figure it out
               boolean setDate=true;
               if(enc.getDateInMilliseconds()!=null){setDate=false;}
@@ -2709,7 +2746,7 @@ return Util.generateUUID();
                     System.out.println(">>>>>> looking for date with NLP");
                     
                       Parser parser = new Parser();
-                      List groups = parser.parse(remarks);
+                      List groups = parser.parse(ytRemarks);
                       int numGroups=groups.size();
                       //just grab the first group
                       if(numGroups>0){
@@ -2754,7 +2791,7 @@ return Util.generateUUID();
                     int oldestYear=nowYear-20;
                     for(int i=nowYear;i>oldestYear;i--){
                       String yearCheck=(new Integer(i)).toString();
-                      if (remarks.indexOf(yearCheck) != -1) {
+                      if (ytRemarks.indexOf(yearCheck) != -1) {
                         year=i;
                         System.out.println("...detected a year in comments!");
                         
@@ -2783,7 +2820,9 @@ return Util.generateUUID();
                         
                       }
                 }
+                  
                 //end brute force date detection if NLP failed  
+                  
                   
                   //if we found a date via NLP or brute force, let's use it here
                   if(year>-1){
@@ -2825,6 +2864,45 @@ return Util.generateUUID();
               Encounter enctemp=encounters.get(i);
               enctemp.setSubmitterID("wildbookai");
             }
+          }
+          
+          //if date and/or location not found, ask youtube poster through comment section.
+//          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
+//          YouTube.init(request);
+          Properties questEn = new Properties();
+          Properties questEs = new Properties();
+          questEn= ShepherdProperties.getProperties("questEn.properties");
+          questEs= ShepherdProperties.getProperties("questEs.properties");
+          
+          String questionToPost=null;
+          
+          if((enc.getDateInMilliseconds()==null)&&(locCode==null)){
+            if (detectedLanguage.equals("es")){
+                  questionToPost=  questEs.getProperty("cuandoDonde");
+            } else if (detectedLanguage.equals("en")){
+              questionToPost= questEn.getProperty("whenWhere");
+            }
+            
+          }
+          else if(enc.getDateInMilliseconds()==null){
+            if (detectedLanguage.equals("es")){
+                      questionToPost=  questEs.getProperty("cuando");
+              } else if (detectedLanguage.equals("en")){
+                  questionToPost= questEn.getProperty("when");
+              }
+            
+          }
+          else if(locCode==null){
+            if (detectedLanguage.equals("es")){
+                      questionToPost=  questEs.getProperty("donde");
+              } else if (detectedLanguage.equals("en")){
+                  questionToPost= questEn.getProperty("where");
+              }
+          }
+          
+          if(questionToPost!=null){
+            String videoId = enc.getEventID();
+            PostQuestion.searchQuestId(questionToPost,videoId);
           }
           
 
