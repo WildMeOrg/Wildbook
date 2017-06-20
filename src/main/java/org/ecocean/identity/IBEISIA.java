@@ -5,16 +5,15 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
-import org.ecocean.postQuestion;
+//import org.ecocean.youtube.PostQuestion;
+import org.ecocean.translate.DetectTranslate;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
-import org.ecocean.PostQuestion;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.CommonConfiguration;
-import org.ecocean.DetectTranslate;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -56,13 +55,6 @@ import java.util.Locale;
 import com.joestelmach.natty.*;
 import java.util.Date;
 import org.joda.time.Instant;
-//google translate
-import com.google.cloud.translate.Detection;
-import com.google.cloud.translate.Translate;
-import com.google.cloud.translate.TranslateOptions;
-import com.google.cloud.translate.Translation;
-import com.google.cloud.translate.Translate.TranslateOption;
-
 
 
 public class IBEISIA {
@@ -2902,9 +2894,12 @@ return Util.generateUUID();
           
           if(questionToPost!=null){
             String videoId = enc.getEventID();
-            PostQuestion.searchQuestId(questionToPost,videoId);
+            YouTube.postQuestion(questionToPost,videoId);
           }
-          
+          //turn off the script for a part video when we get answer.
+          //from a partic. ocurrence create a fromvideo, need a flag on it, ytvideoidreply, if it is set, then
+          //wake up, we go to all occurrences where that is not null. grab the id go out check for replies, if 
+          //reply do some logic and if not reply make it null again
 
           
         
