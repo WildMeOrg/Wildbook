@@ -2895,12 +2895,8 @@ return Util.generateUUID();
           if(questionToPost!=null){
 //            String videoId = enc.getEventID(); 
             String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
-            YouTube.postQuestion(questionToPost,videoId);
+            YouTube.postQuestion(questionToPost,videoId, occ);
           }
-          //turn off the script for a part video when we get answer.
-          //from a partic. ocurrence create a fromvideo, need a flag on it, ytvideoidreply, if it is set, then
-          //wake up, we go to all occurrences where that is not null. grab the id go out check for replies, if 
-          //reply do some logic and if not reply make it null again
 
           
         
