@@ -2687,7 +2687,7 @@ return Util.generateUUID();
           String detectedLanguage= DetectTranslate.detect(ytRemarks);
           
           if(detectedLanguage.equals("es")){
-            ytRemarks= DetectTranslate.translate(ytRemarks);
+            ytRemarks= DetectTranslate.translate(ytRemarks, context);
           }
           
 //          TranslateOptions.newBuilder().setApiKey("AIzaSyAm5Rmvrvq58dcnF9JioQfzBFAjf1tKCLQ");
