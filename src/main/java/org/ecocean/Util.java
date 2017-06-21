@@ -3,7 +3,7 @@ package org.ecocean;
 //import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-//import java.util.Enumeration;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -12,6 +12,10 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 import org.json.JSONObject;
 import org.json.JSONException;
+
+import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
+
 
 //EXIF-related imports
 import java.io.File;
@@ -474,6 +478,7 @@ public class Util {
         return ll.toString();
     }
 
+
     //   h/t  https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
     public static String validEmailRegexPattern() {
         //return "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";  //THIS FAILED on sito.org+foo@gmail.com !!
@@ -486,5 +491,99 @@ public class Util {
         java.util.regex.Matcher matcher = patt.matcher(email);
         return matcher.matches();
     }
+
+    // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
+    public static int getNumSections(int collectionSize, int itemsPerSection) {
+      return (collectionSize - 1)/itemsPerSection + 1;
+    }
+
+    public static String prettyPrintDateTime(DateTime dt) {
+      System.out.println("prettyPrintDateTime:");
+      System.out.println("  dt.hourOfDay = "+dt.hourOfDay().get());
+      boolean isOnlyDate = dateTimeIsOnlyDate(dt);
+      String currentToString = dt.toString();
+      if (isOnlyDate) {
+        currentToString = currentToString.split("T")[0];
+      }
+      return (currentToString);
+    }
+
+    public static boolean dateTimeIsOnlyDate(DateTime dt) {
+      try {
+        return (dt.millisOfDay().get()==0);
+      } catch (Exception e) {
+        return false;
+      }
+    }
+
+    public static String capitolizeFirstLetterOnly(String str) {
+      String lower = str.toLowerCase();
+      if (lower.length()<=1) return (lower.toUpperCase());
+      return (lower.substring(0,1).toUpperCase() + lower.substring(1));
+    }
+
+    public static String capitolizeFirstLetter(String str) {
+      if (str.length()<=1) return (str.toUpperCase());
+      return (str.substring(0,1).toUpperCase() + str.substring(1));
+    }
+
+
+    public static boolean requestHasVal(HttpServletRequest request, String paramName) {
+      return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
+    }
+
+    public static String addToJDOFilter(String constraint, String filter, String origFilter) {
+      if (filter.equals(origFilter)) return (filter + constraint);
+      else return (filter + " && " + constraint);
+    }
+
+    public static String jdoStringContainsConstraint(String fieldName, String containsThis) {
+      return "("+fieldName+".indexOf('"+containsThis+"') != -1)";
+    }
+
+    public static String jdoStringContainsConstraint(String fieldName, String containsThis, boolean toLowerCase) {
+      if (!toLowerCase) return jdoStringContainsConstraint(fieldName, containsThis);
+      return "("+fieldName+".toLowerCase().indexOf('"+containsThis.toLowerCase()+"') != -1)";
+    }
+
+    public static String undoUrlEncoding(String str) {
+      return str.replaceAll("%20", " ").trim();
+    }
+
+    public static <T> String toString(Enumeration<T> things) {
+      StringBuilder result = new StringBuilder("[");
+      while (things.hasMoreElements()) {
+        T thing = things.nextElement();
+        result.append(thing.toString());
+        if (things.hasMoreElements()) result.append(", ");
+      }
+      result.append("]");
+      return result.toString();
+    }
+
+    public static String toString(Object obj) {
+      if (obj == null) return null;
+      return obj.toString();
+    }
+
+    public static boolean stringExists(String str) {
+      return (str!=null && !str.equals(""));
+    }
+
+
+    public static boolean hasProperty(String key, Properties props) {
+      return (props.getProperty(key) != null);
+    }
+
+    // given "animalType"
+    public static List<String> getIndexedPropertyValues(String key, Properties props) {
+      List<String> values = new ArrayList<String>();
+      for (int i=0; hasProperty((key+i), props); i++) {
+        values.add(props.getProperty(key+i));
+      }
+      return values;
+    }
+
+
 
 }

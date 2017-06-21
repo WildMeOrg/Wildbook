@@ -12,6 +12,7 @@ import org.ecocean.ShepherdProperties;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.ContextConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.CommonConfiguration;
 
@@ -101,14 +102,14 @@ public class IBEISIA {
     */
 
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
-    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        return sendMediaAssets(mas, null);
+    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return sendMediaAssets(mas, null, context);
     }
 
     //other is a HashMap of additional properties to build lists out of (e.g. Encounter ids and so on), that do not live in/on MediaAsset
-    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, HashMap<MediaAsset,HashMap<String,Object>> other) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, HashMap<MediaAsset,HashMap<String,Object>> other, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendMediaAssets() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", "context0");
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", context);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
         int ct = 0;
@@ -166,9 +167,9 @@ System.out.println("sendMediaAssets(): sending " + ct);
 
             //Annotation ann = new Annotation(ma, species);
 
-    public static JSONObject sendAnnotations(ArrayList<Annotation> anns) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject sendAnnotations(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendAnnotations() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", "context0");
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddAnnotations is not set");
         URL url = new URL(u);
 
@@ -207,21 +208,21 @@ System.out.println("sendAnnotations(): sending " + ct);
         JSONObject res = null;
         while (tryAgain) {
             res = RestClient.post(url, new JSONObject(map));
-            tryAgain = iaCheckMissing(res);
+            tryAgain = iaCheckMissing(res, context);
         }
         return res;
     }
 
     //note: if tanns here is null, then it is exemplar for this species
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                          JSONObject userConfidence, String baseUrl)
+                                          JSONObject userConfidence, String baseUrl, String context)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", context);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
 
-        Shepherd myShepherd = new Shepherd("context0");
+        Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.sendIdentify");
         myShepherd.beginDBTransaction();
 
@@ -303,9 +304,9 @@ myShepherd.closeDBTransaction();
     }
 
 
-    public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartDetectImages", "context0");
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartDetectImages", context);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
         URL url = new URL(u);
 
@@ -323,8 +324,8 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     }
 
 
-    public static JSONObject getJobStatus(String jobID) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobStatus", "context0");
+    public static JSONObject getJobStatus(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobStatus", context);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobStatus is not set");
         URL url = new URL(u + "?jobid=" + jobID);
         return RestClient.get(url);
@@ -332,8 +333,8 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
 
     //note: this passes directly to IA so can be problematic! (ia down? and more importantly: ia restarted so job # is diff and old job is gone!)
     //  better(?) to use getJobResultLogged() below!
-    public static JSONObject getJobResult(String jobID) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobResult", "context0");
+    public static JSONObject getJobResult(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobResult", context);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobResult is not set");
         URL url = new URL(u + "?jobid=" + jobID);
         return RestClient.get(url);
@@ -450,7 +451,7 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
         myShepherd.setAction("IBEISIA.getTaskResultsBasic");
         myShepherd.beginDBTransaction();
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
-        
+
         JSONObject returnMe= getTaskResultsBasic(taskID, logs);
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
@@ -596,7 +597,7 @@ WARN: IBEISIA.beginIdentity() failed due to an exception: org.json.JSONException
 org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
 */
     //should return true if we attempted to add missing and caller should try again
-    public static boolean iaCheckMissing(JSONObject res) {
+    public static boolean iaCheckMissing(JSONObject res, String context) {
 /////System.out.println("########## iaCheckMissing res -> " + res);
 //if (res != null) throw new RuntimeException("fubar!");
         if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
@@ -619,7 +620,7 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
             JSONArray list = res.getJSONObject("response").getJSONArray("missing_annot_uuid_list");
             if (list.length() > 0) {
                 ArrayList<Annotation> anns = new ArrayList<Annotation>();
-                Shepherd myShepherd = new Shepherd("context0");
+                Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("IBEISIA.iaCheckMissing");
                 myShepherd.beginDBTransaction();
                 try{
@@ -638,7 +639,7 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
 System.out.println("**** attempting to make up for missing Annotation(s): " + anns.toString());
                 JSONObject srtn = null;
                 try {
-                    sendAnnotations(anns);
+                    sendAnnotations(anns, context);
                 } catch (Exception ex) { }
 System.out.println(" returned --> " + srtn);
                 if ((srtn != null) && (srtn.getJSONObject("status") != null) && srtn.getJSONObject("status").getBoolean("success")) tryAgain = true;  //it "worked"?
@@ -696,13 +697,13 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
         JSONObject queryConfigDict = queryConfigDict(myShepherd, species, opt);
 
-        return beginIdentifyAnnotations(qanns, tanns, queryConfigDict, null, myShepherd, species, taskID, baseUrl, context);
+        return beginIdentifyAnnotations(qanns, tanns, queryConfigDict, null, myShepherd, species, taskID, baseUrl);
     }
 
     //actually ties the whole thing together and starts a job with all the pieces needed
     // note: if tanns is null, that means we get all exemplar for species
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                                      JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
+                                                      JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl) {
         if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
@@ -711,7 +712,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
 
-        log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), context);
+        log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
 
         try {
             for (Annotation ann : qanns) {
@@ -747,8 +748,8 @@ System.out.println(qanns);
 System.out.println(tanns);
 System.out.println(allAnns);
 */
-            results.put("sendMediaAssets", sendMediaAssets(mas));
-            results.put("sendAnnotations", sendAnnotations(allAnns));
+            results.put("sendMediaAssets", sendMediaAssets(mas, myShepherd.getContext()));
+            results.put("sendAnnotations", sendAnnotations(allAnns, myShepherd.getContext()));
 
             if (isExemplar) tanns = null;  //reset it for sendIdentify() below
 
@@ -756,8 +757,8 @@ System.out.println(allAnns);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl);
-                tryAgain = iaCheckMissing(identRtn);
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
+                tryAgain = iaCheckMissing(identRtn, myShepherd.getContext());
             }
             results.put("sendIdentify", identRtn);
 
@@ -783,7 +784,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         JSONObject jlog = new JSONObject();
         jlog.put("_action", "sendIdentify");
         jlog.put("_response", results);
-        log(taskID, jobID, jlog, context);
+        log(taskID, jobID, jlog, myShepherd.getContext());
 
         return results;
     }
@@ -926,7 +927,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     public static String[] findTaskIDsFromObjectID(String objectID, Shepherd myShepherd) {
 	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByObjectID(SERVICE_NAME, objectID, myShepherd);
         if ((logs == null) || (logs.size() < 1)) return null;
-        
+
         String[] ids = new String[logs.size()];
         int ct = 0;
         for (IdentityServiceLog l : logs) {
@@ -1083,7 +1084,7 @@ System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(
         }
 System.out.println("!!!! waitForTrainingJobs() has finished.");
     }
-    
+
 
 //{"xtl":910,"height":413,"theta":0,"width":444,"class":"giraffe_reticulated","confidence":0.2208,"ytl":182}
     public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, boolean skipEncounter) {
@@ -1162,7 +1163,7 @@ System.out.println("**** type ---------------> [" + type + "]");
         if ("detect".equals(type)) {
             rtn.put("success", true);
             rtn.put("processResult", processCallbackDetect(taskID, logs, resp, myShepherd, request));
-            
+
         } else if ("identify".equals(type)) {
             rtn.put("success", true);
             rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, request));
@@ -1298,7 +1299,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                 if (amap.length() > 0) jlog.put("annotations", amap);
                 if (ident.length() > 0) jlog.put("identificationTasks", ident);
                 if (needReview.length() > 0) jlog.put("needReview", needReview);
-                log(taskID, null, jlog, "context0");
+                log(taskID, null, jlog, myShepherd.getContext());
 
             } else {
                 rtn.put("error", "results_list is empty");
@@ -1393,7 +1394,7 @@ System.out.println("**** " + ann);
             exitIdentificationLoop(infDict, myShepherd);
         }
 
-        log(taskID, null, jlog, "context0");
+        log(taskID, null, jlog, myShepherd.getContext());
         return rtn;
     }
 
@@ -1489,7 +1490,7 @@ System.out.println("identification most recent action found is " + action);
         IBEISIAIdentificationMatchingState.set(ann1Id, ann2Id, state, myShepherd);
     }
     public static String getIdentificationMatchingState(String ann1Id, String ann2Id, String context) {
-      Shepherd myShepherd=new Shepherd(context);  
+      Shepherd myShepherd=new Shepherd(context);
       myShepherd.setAction("IBEISIA.getIdentificationMatchingState");
       myShepherd.beginDBTransaction();
       IBEISIAIdentificationMatchingState m = IBEISIAIdentificationMatchingState.load(ann1Id, ann2Id, myShepherd);
@@ -1598,7 +1599,7 @@ System.out.println("need " + annId + " from IA, i guess?");
 
 
     public static Annotation getAnnotationFromIA(String annId, Shepherd myShepherd) {
-        String context = "context0";
+        String context = myShepherd.getContext();
 
         try {
             String idSuffix = "?annot_uuid_list=[" + toFancyUUID(annId) + "]";
@@ -1641,7 +1642,7 @@ System.out.println("need " + annId + " from IA, i guess?");
     }
 
     public static Annotation getAnnotationFromIADEBUG(String annId, Shepherd myShepherd, PrintWriter out) {
-        String context = "context0";
+        String context = myShepherd.getContext();
 
         try {
             out.println(1);
@@ -1712,7 +1713,7 @@ System.out.println("need " + annId + " from IA, i guess?");
             File dir = file.getParentFile();
             if (!dir.exists()) dir.mkdirs();
             //TODO we actually need to handle bad maUUID better.  :( (returns
-            RestClient.writeToFile(iaURL("context0", "/api/image/src/json/" + maUUID + "/"), file);
+            RestClient.writeToFile(iaURL(myShepherd.getContext(), "/api/image/src/json/" + maUUID + "/"), file);
             ma.copyIn(file);
             ma.addDerivationMethod("pulledFromIA", System.currentTimeMillis());
             ma.updateMetadata();
@@ -1723,12 +1724,12 @@ System.out.println("need " + annId + " from IA, i guess?");
         ma.addLabel("_original");
         DateTime dt = null;
         try {
-            dt = iaDateTimeFromImageUUID(maUUID);
+            dt = iaDateTimeFromImageUUID(maUUID, myShepherd.getContext());
         } catch (Exception ex) {}
         if (dt != null) ma.setUserDateTime(dt);
 
         try {
-            Double[] ll = iaLatLonFromImageUUID(maUUID);
+            Double[] ll = iaLatLonFromImageUUID(maUUID, myShepherd.getContext());
             if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
                 ma.setUserLatitude(ll[0]);
                 ma.setUserLongitude(ll[1]);
@@ -1764,8 +1765,8 @@ I think that is the general walk that needs to happen
 
         //http://52.37.240.178:5000/api/imageset/annot/aids/json/?imageset_uuid_list=[%7B%22__UUID__%22:%228655a73d-749b-4f23-af92-0b07157c0455%22%7D]
         //http://52.37.240.178:5000/api/imageset/annot/uuid/json/?imageset_uuid_list=[{%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22}]
-        //JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/annot/rowid/?imgsetid_list=[" + setId + "]"));
-        JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/annot/uuid/json/?imageset_uuid_list=[" + toFancyUUID(setId) + "]"));
+        //JSONObject res = RestClient.get(iaURL(myShepherd.getContext(), "/api/imageset/annot/rowid/?imgsetid_list=[" + setId + "]"));
+        JSONObject res = RestClient.get(iaURL(myShepherd.getContext(), "/api/imageset/annot/uuid/json/?imageset_uuid_list=[" + toFancyUUID(setId) + "]"));
         if ((res == null) || (res.optJSONArray("response") == null) || (res.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get list of annot ids from setId=" + setId);
         JSONObject rtn = new JSONObject("{\"success\": false}");
 
@@ -1783,7 +1784,7 @@ I think that is the general walk that needs to happen
         }
         System.out.println("origAnnUUIDs = " + origAnnUUIDs);
 
-        JSONArray nameUUIDs = iaAnnotationNameUUIDsFromUUIDs(auuids);  //note: these are fancy uuids
+        JSONArray nameUUIDs = iaAnnotationNameUUIDsFromUUIDs(auuids, myShepherd.getContext());  //note: these are fancy uuids
         System.out.println("nameUUIDs = " + nameUUIDs);
         List<JSONObject> funuuids = new ArrayList<JSONObject>();  //these are fancy!
         List<String> unuuids = new ArrayList<String>();  //but these are unfancy!
@@ -1796,11 +1797,11 @@ I think that is the general walk that needs to happen
 System.out.println("unuuids = " + unuuids);
 System.out.println("funuuids = " + funuuids);
         //JSONArray jall = iaAnnotationUUIDsFromNameUUIDs(new JSONArray(nameUUIDs));
-        JSONArray jall = iaAnnotationUUIDsFromNameUUIDs(new JSONArray(funuuids));
+        JSONArray jall = iaAnnotationUUIDsFromNameUUIDs(new JSONArray(funuuids), myShepherd.getContext());
         if (jall.length() != unuuids.size()) throw new RuntimeException("mergeIAImageSet() annots from name size discrepancy");
         System.out.println("jall = " + jall);
 
-        HashMap<String,String> nameMap = iaNameMapUUIDToString(new JSONArray(funuuids));
+        HashMap<String,String> nameMap = iaNameMapUUIDToString(new JSONArray(funuuids), myShepherd.getContext());
         System.out.println("nameMap = " + nameMap);
 
         //now we walk through and resolve groups of annotations which must be (re)named....
@@ -1975,7 +1976,7 @@ System.out.println(" ============ dt millis = " + dt);
                 System.out.println("INFO: " + encs.get(i) + " already was assigned to indiv; skipping");
                 continue;
             }
-            indiv.addEncounter(encs.get(i), "context0");
+            indiv.addEncounter(encs.get(i), myShepherd.getContext());
             encs.get(i).setIndividualID(individualId);
         }
         indiv.refreshNumberEncounters();
@@ -2015,7 +2016,7 @@ System.out.println(anns);
                     //lets see what IA says about this annot. with luck, it should get renamed too!
                     String iaName = "__FAIL1__";
                     try {
-                        JSONArray jn = iaNamesFromAnnotUUIDs(new JSONArray("[" + toFancyUUID(eann.getId()) + "]"));
+                        JSONArray jn = iaNamesFromAnnotUUIDs(new JSONArray("[" + toFancyUUID(eann.getId()) + "]"), myShepherd.getContext());
                         iaName = jn.optString(0, "__FAIL2__");
                     } catch (Exception ex) {
                         System.out.println("WARNING: assignFromIANoCreation() faild name lookup - " + ex.toString());
@@ -2063,7 +2064,7 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
                 System.out.println("INFO: " + encs.get(i) + " already was assigned to indiv; skipping");
                 continue;
             }
-            indiv.addEncounter(encs.get(i), "context0");
+            indiv.addEncounter(encs.get(i), myShepherd.getContext());
             encs.get(i).setIndividualID(individualId);
         }
 
@@ -2141,7 +2142,7 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
             auuids.put(toFancyUUID(aid));
             JSONArray namesRes = null;
             try {
-                namesRes = iaAnnotationNamesFromUUIDs(auuids);
+                namesRes = iaAnnotationNamesFromUUIDs(auuids, myShepherd.getContext());
             } catch (Exception ex) {}
             if ((namesRes == null) || (namesRes.length() < 1)) {
                 System.out.println("WARNING: arbitraryAnnotationsFromIA() could not get a name for annot " + aid + "; skipping");
@@ -2175,87 +2176,87 @@ System.out.println(map);
     these are mostly utility functions to fetch stuff from IA ... some of these may be unused currently but got made during chaostime
 */
 
-    public static JSONArray __iaAnnotationUUIDsFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/uuid/?aid_list=" + aids.toString()));
+    public static JSONArray __iaAnnotationUUIDsFromIds(JSONArray aids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/uuid/?aid_list=" + aids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
         return rtn.getJSONArray("response");
     }
 //http://52.37.240.178:5000/api/annot/name/uuid/json/?annot_uuid_list=[{%22__UUID__%22:%22c368747b-a4a8-4f59-900d-a9a529c92bca%22}]&__format__=True
-    public static JSONArray iaAnnotationNameUUIDsFromUUIDs(JSONArray uuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/uuid/json/?annot_uuid_list=" + uuids.toString()));
+    public static JSONArray iaAnnotationNameUUIDsFromUUIDs(JSONArray uuids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/name/uuid/json/?annot_uuid_list=" + uuids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot name uuid from uuids=" + uuids);
         return rtn.getJSONArray("response");
     }
 //http://52.37.240.178:5000/api/annot/name/text/json/?annot_uuid_list=[{%22__UUID__%22:%22c368747b-a4a8-4f59-900d-a9a529c92bca%22}]&__format__=True
-    public static JSONArray iaAnnotationNamesFromUUIDs(JSONArray uuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/text/json/?annot_uuid_list=" + uuids.toString()));
+    public static JSONArray iaAnnotationNamesFromUUIDs(JSONArray uuids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/name/text/json/?annot_uuid_list=" + uuids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot name uuid from uuids=" + uuids);
         return rtn.getJSONArray("response");
     }
-    public static JSONArray __iaAnnotationNameIdsFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/rowid/?aid_list=" + aids.toString()));
+    public static JSONArray __iaAnnotationNameIdsFromIds(JSONArray aids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/name/rowid/?aid_list=" + aids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
         return rtn.getJSONArray("response");
     }
-    public static JSONArray __iaAnnotationNamesFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/?aid_list=" + aids.toString()));
+    public static JSONArray __iaAnnotationNamesFromIds(JSONArray aids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/name/?aid_list=" + aids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
         return rtn.getJSONArray("response");
     }
 //http://52.37.240.178:5000/api/name/annot/rowid/?nid_list=[5]
-    public static JSONArray ___iaAnnotationIdsFromNameIds(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/annot/rowid/?nid_list=" + nids.toString()));
+    public static JSONArray ___iaAnnotationIdsFromNameIds(JSONArray nids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/name/annot/rowid/?nid_list=" + nids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot ids from nids=" + nids);
         return rtn.getJSONArray("response");
     }
 //http://52.37.240.178:5000/api/name/annot/uuid/json/?name_uuid_list=[{%22__UUID__%22:%22302cc5dc-4028-490b-99ee-5dc1680d057e%22}]&__format__=True
-    public static JSONArray iaAnnotationUUIDsFromNameUUIDs(JSONArray uuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/annot/uuid/json/?name_uuid_list=" + uuids.toString()));
+    public static JSONArray iaAnnotationUUIDsFromNameUUIDs(JSONArray uuids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/name/annot/uuid/json/?name_uuid_list=" + uuids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuids from name uuids=" + uuids);
         return rtn.getJSONArray("response");
     }
 //http://52.37.240.178:5000/api/name/text/?name_rowid_list=[5,21]&__format__=True
-    public static JSONArray __iaNamesFromNameIds(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/text/?name_rowid_list=" + nids.toString()));
+    public static JSONArray __iaNamesFromNameIds(JSONArray nids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/name/text/?name_rowid_list=" + nids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get names from nids=" + nids);
         return rtn.getJSONArray("response");
     }
 //http://52.37.240.178:5000/api/name/text/json/?name_uuid_list=[{%22__UUID__%22:%22302cc5dc-4028-490b-99ee-5dc1680d057e%22}]&__format__=True
-    public static JSONArray iaNamesFromNameUUIDs(JSONArray uuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/text/json/?name_uuid_list=" + uuids.toString()));
+    public static JSONArray iaNamesFromNameUUIDs(JSONArray uuids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/name/text/json/?name_uuid_list=" + uuids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get names from name uuids=" + uuids);
         return rtn.getJSONArray("response");
     }
 //http://52.37.240.178:5000/api/annot/name/text/json/?annot_uuid_list=[{%22__UUID__%22:%20%22deee5d41-c264-4179-aa6c-5b735975cbc9%22}]&__format__=True
-    public static JSONArray iaNamesFromAnnotUUIDs(JSONArray auuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/text/json/?annot_uuid_list=" + auuids.toString()));
+    public static JSONArray iaNamesFromAnnotUUIDs(JSONArray auuids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/name/text/json/?annot_uuid_list=" + auuids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get names from auuids=" + auuids);
         return rtn.getJSONArray("response");
     }
 //http://52.37.240.178:5000/api/imageset/smart/xml/file/content/?imageset_rowid_list=[65]
-    public static String iaSmartXmlFromSetId(int setId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/smart/xml/file/content/?imageset_rowid_list=[" + setId + "]"));
+    public static String iaSmartXmlFromSetId(int setId, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/imageset/smart/xml/file/content/?imageset_rowid_list=[" + setId + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set smartXml from set id=" + setId);
         return rtn.getJSONArray("response").optString(0, null);
     }
 //http://52.37.240.178:5000/api/imageset/smart/waypoint/?imageset_rowid_list=[55]
-    public static int iaSmartXmlWaypointIdFromSetId(int setId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/smart/waypoint/?imageset_rowid_list=[" + setId + "]"));
+    public static int iaSmartXmlWaypointIdFromSetId(int setId, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/imageset/smart/waypoint/?imageset_rowid_list=[" + setId + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set smartXml waypoint id from set id=" + setId);
         return rtn.getJSONArray("response").optInt(0, -1);
     }
-    public static HashMap<Integer,String> __iaNameMapIdToString(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static HashMap<Integer,String> __iaNameMapIdToString(JSONArray nids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         HashMap<Integer,String> map = new HashMap<Integer,String>();
-        JSONArray names = __iaNamesFromNameIds(nids);
+        JSONArray names = __iaNamesFromNameIds(nids, context);
         if (nids.length() != names.length()) throw new RuntimeException("iaNameMapIdToString() arrays have different lengths");
         for (int i = 0 ; i < names.length() ; i++) {
             map.put(nids.optInt(i, -1), names.optString(i, null));
         }
         return map;
     }
-    public static HashMap<String,String> iaNameMapUUIDToString(JSONArray uuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static HashMap<String,String> iaNameMapUUIDToString(JSONArray uuids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         HashMap<String,String> map = new HashMap<String,String>();
-        JSONArray names = iaNamesFromNameUUIDs(uuids);
+        JSONArray names = iaNamesFromNameUUIDs(uuids, context);
         if (uuids.length() != names.length()) throw new RuntimeException("iaNameMapUUIDToString() arrays have different lengths");
         for (int i = 0 ; i < names.length() ; i++) {
             map.put(fromFancyUUID(uuids.optJSONObject(i)), names.optString(i, null));
@@ -2263,43 +2264,43 @@ System.out.println(map);
         return map;
     }
 //http://52.37.240.178:5000/api/imageset/uuid/?imgsetid_list=[3]
-    public static String iaImageSetUUIDFromId(int setId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/uuid/?imgsetid_list=[" + setId + "]"));
+    public static String iaImageSetUUIDFromId(int setId, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/imageset/uuid/?imgsetid_list=[" + setId + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set uuid from id=" + setId);
         return fromFancyUUID(rtn.getJSONArray("response").optJSONObject(0));
     }
 //http://52.37.240.178:5000/api/imageset/rowid/uuid/?uuid_list=[%7B%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22%7D]
-    public static int iaImageSetIdFromUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/rowid/uuid/?uuid_list=[" + toFancyUUID(uuid) + "]"));
+    public static int iaImageSetIdFromUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/imageset/rowid/uuid/?uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set id from uuid=" + uuid);
         return rtn.getJSONArray("response").optInt(0, -1);
     }
 //  this --> is from annot uuid  (note returns in seconds, not milli)
 //http://52.37.240.178:5000/api/annot/image/unixtime/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
-    public static DateTime iaDateTimeFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/unixtime/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+    public static DateTime iaDateTimeFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/image/unixtime/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from annot uuid=" + uuid);
         long t = rtn.getJSONArray("response").optLong(0, -1);
         if (t == -1) return null;
         return new DateTime(t * 1000);  //IA returns secs not millisecs
     }
 //http://52.37.240.178:5000/api/annot/image/gps/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
-    public static Double[] iaLatLonFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+    public static Double[] iaLatLonFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from annot uuid=" + uuid);
         JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
         return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
     }
 //http://52.37.240.178:5000/api/image/lat/json/?image_uuid_list=[{%22__UUID__%22:%22e985b3d4-bb2a-8291-07af-1ec4028d4649%22}]
-    public static Double[] iaLatLonFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/image/gps/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
+    public static Double[] iaLatLonFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/image/gps/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from image uuid=" + uuid);
         JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
         return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
     }
 //http://52.37.240.178:5000/api/image/unixtime/json/?image_uuid_list=[{%22__UUID__%22:%22cb2e67a4-7094-d971-c5c6-3b5bed251fec%22}]
-    public static DateTime iaDateTimeFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/image/unixtime/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
+    public static DateTime iaDateTimeFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/image/unixtime/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from image uuid=" + uuid);
         long t = rtn.getJSONArray("response").optLong(0, -1);
         if (t == -1) return null;
@@ -2316,8 +2317,8 @@ System.out.println(map);
     }
 */
 //http://52.37.240.178:5000/api/annot/sex/json/?annot_uuid_list=[{%22__UUID__%22:%224517636f-65ad-a236-950c-107f2c962c19%22}]
-    public static String iaSexFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/sex/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+    public static String iaSexFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/sex/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
 System.out.println(">>>>>>>> sex -> " + rtn);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
         int sexi = rtn.getJSONArray("response").optInt(0, -1);
@@ -2327,8 +2328,8 @@ System.out.println(">>>>>>>> sex -> " + rtn);
     }
 //http://52.37.240.178:5000/api/annot/age/months/json/?annot_uuid_list=[{%22__UUID__%22:%224517636f-65ad-a236-950c-107f2c962c19%22}]
 // note - returns array with min/max.... doubles?
-    public static Double iaAgeFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/age/months/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+    public static Double iaAgeFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/age/months/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
 System.out.println(">>>>>>>> age -> " + rtn);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
         //return rtn.getJSONArray("response").optDouble(0, (Double)null);
@@ -2340,7 +2341,7 @@ System.out.println(">>>>>>>> age -> " + rtn);
         return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context) != null);
     }
     public static boolean iaEnabled() {
-        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", "context0") != null);
+        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", ContextConfiguration.getDefaultContext()) != null);
     }
 
     public static JSONObject iaStatus(HttpServletRequest request) {
@@ -2384,7 +2385,7 @@ System.out.println(">>>>>>>> age -> " + rtn);
      * This static method sends all annotations and media assets for a species in Wildbook to Image Analysis in preparation for future matching.
      * It basically primes the system.
      */
-    public static JSONObject primeImageAnalysisForSpecies(ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String baseUrl, String context) {
+    public static JSONObject primeImageAnalysisForSpecies(ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String baseUrl) {
         String jobID = "-1";
         JSONObject results = new JSONObject();
         results.put("success", false);  //pessimism!
@@ -2392,16 +2393,16 @@ System.out.println(">>>>>>>> age -> " + rtn);
         ArrayList<Annotation> tanns = new ArrayList<Annotation>();
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
 
-        
+
         if (targetEncs.size() < 1) {
             results.put("error", "targetEncs is empty");
             return results;
         }
 
-        log("Prime image analysis for "+species, jobID, new JSONObject("{\"_action\": \"init\"}"), context);
+        log("Prime image analysis for "+species, jobID, new JSONObject("{\"_action\": \"init\"}"), myShepherd.getContext());
 
         try {
-            
+
             for (Encounter enc : targetEncs) {
                 ArrayList<Annotation> annotations = enc.getAnnotations();
                 for (Annotation ann : annotations) {
@@ -2419,11 +2420,11 @@ System.out.println(qanns);
 System.out.println(tanns);
 System.out.println(allAnns);
 */
-            results.put("sendMediaAssets", sendMediaAssets(mas));
-            results.put("sendAnnotations", sendAnnotations(allAnns));
+            results.put("sendMediaAssets", sendMediaAssets(mas, myShepherd.getContext()));
+            results.put("sendAnnotations", sendAnnotations(allAnns, myShepherd.getContext()));
 
             //this should attempt to repair missing Annotations
-            
+
             /*
             boolean tryAgain = true;
             JSONObject identRtn = null;
@@ -2432,7 +2433,7 @@ System.out.println(allAnns);
                 tryAgain = iaCheckMissing(identRtn);
             }
             results.put("sendIdentify", identRtn);
-            
+
 
             //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/
 //########## iaCheckMissing res -> {"response":[],"status":{"message":"","cache":-1,"code":200,"success":true}}
@@ -2446,9 +2447,9 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
             }
             */
 
-        results.put("success", true);    
-            
-        } 
+        results.put("success", true);
+
+        }
         catch (Exception ex) {  //most likely from sendFoo()
             System.out.println("WARN: IBEISIA.primeImageAnalysisForSpecies() failed due to an exception: " + ex.toString());
             ex.printStackTrace();
@@ -2459,11 +2460,11 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         JSONObject jlog = new JSONObject();
         jlog.put("_action", "primeImageAnalysisForSpecies: "+species);
         jlog.put("_response", results);
-        log("Prime image analysis for "+species, jobID, jlog, context);
+        log("Prime image analysis for "+species, jobID, jlog, myShepherd.getContext());
 
         return results;
     }
-    
+
 
 /*
 status: {
@@ -2547,13 +2548,17 @@ System.out.println("queryConfigDict() got species=" + species + "; and opt = " +
     }
 
     public static void primeIA() {
+      primeIA(ContextConfiguration.getDefaultContext());
+    }
+
+    public static void primeIA(final String context) {
         setIAPrimed(false);
         if (!iaEnabled()) return;
 System.out.println("<<<<< BEFORE : " + isIAPrimed());
 System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet().size());
         Runnable r = new Runnable() {
             public void run() {
-                Shepherd myShepherd = new Shepherd("context0");
+                Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("IBEISIA.class.run");
                 myShepherd.beginDBTransaction();
                 ArrayList<Annotation> anns = Annotation.getExemplars(myShepherd);
@@ -2565,8 +2570,8 @@ System.out.println("-- priming IBEISIA (anns size: " + anns.size() + ")");
                     if (ma != null) mas.add(ma);
                 }
                 try {
-                    sendMediaAssets(mas);
-                    sendAnnotations(anns);
+                    sendMediaAssets(mas,  context);
+                    sendAnnotations(anns, context);
                 } catch (Exception ex) {
                     System.out.println("!! IBEISIA.primeIA() failed: " + ex.toString());
 ex.printStackTrace();
@@ -2628,7 +2633,7 @@ System.out.println("waitForIAPriming() patiently waiting");
         JSONObject res = new JSONObject();
         String taskId = Util.generateUUID();
         res.put("taskId", taskId);
-        org.ecocean.servlet.IAGateway._doDetect(jin, res, myShepherd, context, baseUrl);
+        org.ecocean.servlet.IAGateway._doDetect(jin, res, myShepherd, baseUrl);
 System.out.println("IAIntake(detect:" + mas + ") [taskId=" + taskId + "] -> " + res);
         return taskId;
     }
