@@ -38,7 +38,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   session.setMaxInactiveInterval(6000);
   String num="";
   if(request.getParameter("number")!=null){
-  	num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+	Shepherd myShepherd=new Shepherd(context);
+	myShepherd.setAction("i3sScanEndApplet.class");
+	myShepherd.beginDBTransaction();
+	if(myShepherd.isEncounter(num)){
+  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+	}
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
   }	
   String encSubdir = Encounter.subdir(num);
 
