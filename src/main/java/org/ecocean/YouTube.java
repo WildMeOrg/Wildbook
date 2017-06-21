@@ -178,7 +178,7 @@ System.out.println("]=== done with .extractFrames()");
         }
         return null;
     }
-    public static CommentThreadSnippet postQuestion(String QuestionToPost,String videoId) {  //pubAfter is ms since epoch
+    public static String postQuestion(String questionToPost,String videoId) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
@@ -193,8 +193,8 @@ System.out.println("]=== done with .extractFrames()");
         Comment topLevelComment = new Comment();
         CommentSnippet commentSnippet = new CommentSnippet();
         //set values for these snippet properties: snippet.videoId and snippet.topLevelComment.snippet.textOriginal
-        commentSnippet.set("textOriginal", "Testing changes.");
-        commentSnippet.set("videoId", "8ARqat7DtfM");
+        commentSnippet.set("textOriginal", questionToPost); 
+        commentSnippet.set("videoId", videoId);
 //        commentSnippet.setVideoId(videoId);
 
         topLevelComment.setSnippet(commentSnippet);
@@ -202,10 +202,12 @@ System.out.println("]=== done with .extractFrames()");
         commentThread.setSnippet(snippet);
 
         com.google.api.services.youtube.YouTube.CommentThreads.Insert commentThreadsInsertRequest = youtube2.commentThreads().insert(parameters.get("part").toString(), commentThread);
-
         CommentThread response = commentThreadsInsertRequest.execute();
-        System.out.println(response);
-//        return response.getSnippet();
+          
+//        System.out.println(response);
+        String commentId = response.getSnippet().getTopLevelComment().getId();
+//        Occurrence.setSocialMediaQueryCommentID(commentId);
+        return commentId;
 
     } catch (GoogleJsonResponseException e) {
         e.printStackTrace();
@@ -216,28 +218,34 @@ System.out.println("]=== done with .extractFrames()");
     return null;
   }
     
-    public static CommentThreadSnippet getReplies(String commentId) {  //pubAfter is ms since epoch
+    public static String getReplies(String commentId) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
-        
+//        String commentId=Occurrence.getSocialMediaQueryCommentID();
         CommentListResponse commentsListResponse = youtube.comments().list("snippet")
             .setParentId(commentId).setTextFormat("plainText").execute();
         List<Comment> comments = commentsListResponse.getItems();
-  
+        String replies = "";
         if (comments.isEmpty()) {
             System.out.println("Can't get comment replies.");
+            replies += "none";
+            
         }else {
             // Print information from the API response.
             System.out
                     .println("\n================== Returned Comment Replies ==================\n");
-            for (Comment commentReply : comments) {
+            for (Comment commentReply : comments) {       
                 CommentSnippet snippet = commentReply.getSnippet();
+                replies += snippet.getTextDisplay();
+//                Occurrence.setSocialMediaQueryCommentID();
                 System.out.println("  - Author: " + snippet.getAuthorDisplayName());
-                System.out.println("  - Comment: " + snippet.getTextDisplay());
+                System.out.println("  - Reply: " + snippet.getTextDisplay());
                 System.out
                         .println("\n-------------------------------------------------------------\n");
-         } 
+            } 
+            
+            return replies;
     
       }
       }catch (GoogleJsonResponseException e) {
@@ -249,7 +257,7 @@ System.out.println("]=== done with .extractFrames()");
         return null;
     }
     
-    public static CommentThreadSnippet sendReply(String commentId, String videoId) {  //pubAfter is ms since epoch
+    public static String sendReply(String commentId, String videoId) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
@@ -268,7 +276,6 @@ System.out.println("]=== done with .extractFrames()");
         CommentSnippet snippet = new CommentSnippet();
         snippet.set("parentId", parentId);
         snippet.set("textOriginal", "Wow.Thanks");
-        snippet.set("viewerRating", "like");
 
         comment.setSnippet(snippet);
 
@@ -276,6 +283,8 @@ System.out.println("]=== done with .extractFrames()");
 
         Comment response = commentsInsertRequest.execute();
         System.out.println(response);
+        String receipt = response.getSnippet().getTextDisplay();
+        return receipt;
       }catch (GoogleJsonResponseException e) {
           e.printStackTrace();
           System.err.println("There was a service error: " + e.getDetails().getCode() + " : " + e.getDetails().getMessage());
