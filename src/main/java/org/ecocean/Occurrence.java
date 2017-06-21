@@ -46,6 +46,11 @@ public class Occurrence implements java.io.Serializable{
   private String modified;
   //private String locationID;
   private String dateTimeCreated;
+  
+  //social media registration fields for AI-created occurrences
+  private String socialMediaSourceID;
+  private String socialMediaQueryCommentID;
+  private String socialMediaQueryCommentReplies;
 
 
   //empty constructor used by the JDO enhancer
@@ -471,6 +476,19 @@ public class Occurrence implements java.io.Serializable{
       
 
     }
+    
+    //social media registration fields for AI-created occurrences
+    public String getSocialMediaSourceID(){return socialMediaSourceID;};
+    public void setSocialMediaSourceID(String id){socialMediaSourceID=id;};
+    
+    
+    public String getSocialMediaQueryCommentID(){return socialMediaQueryCommentID;};
+    public void setSocialMediaQueryCommentID(String id){socialMediaQueryCommentID=id;};
+    //each night we look for one occurrence that has commentid but not commentresponseid.
+    
+    public String getSocialMediaQueryCommentRelies(){return socialMediaQueryCommentReplies;};
+    public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
+
 
 
 }
