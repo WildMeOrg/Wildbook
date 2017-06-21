@@ -30,7 +30,14 @@ context=ServletUtilities.getContext(request);
   session.setMaxInactiveInterval(6000);
   String num="";
   if(request.getParameter("number")!=null){
-  	num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+	Shepherd myShepherd=new Shepherd(context);
+	myShepherd.setAction("i3sScanEndApplet.class");
+	myShepherd.beginDBTransaction();
+	if(myShepherd.isEncounter(num)){
+  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+	}
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
   }	
   String encSubdir = Encounter.subdir(num);
   //Shepherd myShepherd = new Shepherd(context);
@@ -122,7 +129,7 @@ td, th {
 
 <ul id="tabmenu">
   <li><a
-    href="encounter.jsp?number=<%=num%>">Encounter
+    href="encounter.jsp?number=<%=num%>">xxEncounter
     <%=num%>
   </a></li>
   <%
