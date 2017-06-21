@@ -65,6 +65,8 @@ import java.util.Properties;
 
 import javax.servlet.http.Cookie;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 //ATOM feed
 
 public class ServletUtilities {
@@ -495,6 +497,8 @@ public class ServletUtilities {
     description = description.replaceAll("eval\\((.*)\\)", "");
     description = description.replaceAll("[\\\"\\\'][\\s]*((?i)javascript):(.*)[\\\"\\\']", "\"\"");
     description = description.replaceAll("((?i)script)", "");
+    description = description.replaceAll("onerror", "");
+    description = StringEscapeUtils.escapeHtml(description);
     return description;
   }
 
