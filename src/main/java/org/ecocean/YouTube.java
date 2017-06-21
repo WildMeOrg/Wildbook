@@ -178,7 +178,7 @@ System.out.println("]=== done with .extractFrames()");
         }
         return null;
     }
-    public static String postQuestion(String questionToPost,String videoId) {  //pubAfter is ms since epoch
+    public static String postQuestion(String questionToPost,String videoId, Occurrence occur) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
@@ -206,7 +206,7 @@ System.out.println("]=== done with .extractFrames()");
           
 //        System.out.println(response);
         String commentId = response.getSnippet().getTopLevelComment().getId();
-//        Occurrence.setSocialMediaQueryCommentID(commentId);
+        occur.setSocialMediaQueryCommentID(commentId);
         return commentId;
 
     } catch (GoogleJsonResponseException e) {
@@ -218,7 +218,7 @@ System.out.println("]=== done with .extractFrames()");
     return null;
   }
     
-    public static String getReplies(String commentId) {  //pubAfter is ms since epoch
+    public static String getReplies(String commentId, Occurrence occur) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
@@ -238,7 +238,7 @@ System.out.println("]=== done with .extractFrames()");
             for (Comment commentReply : comments) {       
                 CommentSnippet snippet = commentReply.getSnippet();
                 replies += snippet.getTextDisplay();
-//                Occurrence.setSocialMediaQueryCommentID();
+                occur.setSocialMediaQueryCommentReplies(replies);
                 System.out.println("  - Author: " + snippet.getAuthorDisplayName());
                 System.out.println("  - Reply: " + snippet.getTextDisplay());
                 System.out

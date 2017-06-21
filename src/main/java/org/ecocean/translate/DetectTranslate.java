@@ -10,8 +10,8 @@ import com.google.cloud.translate.Translate.TranslateOption;
 
 public class DetectTranslate {
   
-  public static String translate(String ytRemarks){
-    String apiKey= CommonConfiguration.getProperty("translate_key", "");
+  public static String translate(String ytRemarks, String context){
+    String apiKey= CommonConfiguration.getProperty("translate_key", context);
     
     TranslateOptions.newBuilder().setApiKey(apiKey);
     
