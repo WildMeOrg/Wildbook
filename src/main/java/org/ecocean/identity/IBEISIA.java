@@ -2893,7 +2893,8 @@ return Util.generateUUID();
           }
           
           if(questionToPost!=null){
-            String videoId = enc.getEventID();
+//            String videoId = enc.getEventID(); 
+            String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
             YouTube.postQuestion(questionToPost,videoId);
           }
           //turn off the script for a part video when we get answer.
