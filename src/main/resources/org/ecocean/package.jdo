@@ -120,7 +120,7 @@
 	       <field name="socialMediaQueryCommentID" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
-	       <field name="socialMediaQueryCommentResponseID" persistence-modifier="persistent">
+	       <field name="socialMediaQueryCommentReplies" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
 
