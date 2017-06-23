@@ -503,7 +503,7 @@ public class ServletUtilities {
     description = description.replaceAll("[\\\"\\\'][\\s]*((?i)javascript):(.*)[\\\"\\\']", "\"\"");
     description = description.replaceAll("((?i)script)", "");
     description = description.replaceAll("onerror", "");
-    description = description.replaceAll("alert(", "");
+    //description = description.replaceAll("alert", "");
     description = StringEscapeUtils.escapeHtml(description);
     return description;
   }
