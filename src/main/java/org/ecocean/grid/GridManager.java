@@ -58,7 +58,7 @@ public class GridManager {
   public int maxGroupSize = 100;
   public int numCompletedWorkItems = 0;
   
-  public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
+  //public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
   //Modified Groth algorithm parameters
   private String epsilon = "0.01";
@@ -638,11 +638,11 @@ public class GridManager {
   }
   */
   
-  public void addScanTaskSize(String scanTaskID, int size){
-    scanTaskSizes.put(scanTaskID, new Integer(size));
-  }
+  //public void addScanTaskSize(String scanTaskID, int size){
+  //  scanTaskSizes.put(scanTaskID, new Integer(size));
+  //}
   
-  public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
+  //public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
   
   public static ConcurrentHashMap<String,EncounterLite> getMatchGraph(){return matchGraph;}
   public static void addMatchGraphEntry(String elID,EncounterLite el){
