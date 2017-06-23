@@ -154,13 +154,13 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
         
         //auto-generate XML file of results if appropriate
         numComplete = gm.getNumWorkItemsCompleteForTask(scanTaskID);
-        numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
-        numTaskTot = numComplete + numGenerated;
+        //numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
+        //numTaskTot = numComplete + numGenerated;
         
         //ScanTask st=myShepherd.getScanTask(scanTaskID);
         
         //if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
-        if ((numComplete > 0) && (gm.getScanTaskSize(scanTaskID)!=null) && (numComplete >= gm.getScanTaskSize(scanTaskID).intValue())) {
+        if ((numComplete > 0)  && (gm.getNumWorkItemsIncompleteForTask(scanTaskID)==0)) {
           
           
           
