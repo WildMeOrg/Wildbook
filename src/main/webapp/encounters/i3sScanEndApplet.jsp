@@ -27,13 +27,13 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-  session.setMaxInactiveInterval(6000);
+  //session.setMaxInactiveInterval(6000);
   String num="";
   if(request.getParameter("number")!=null){
 	Shepherd myShepherd=new Shepherd(context);
-	myShepherd.setAction("i3sScanEndApplet.class");
+	myShepherd.setAction("scanEndApplet.jsp");
 	myShepherd.beginDBTransaction();
-	if(myShepherd.isEncounter(num)){
+	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
 	}
 	myShepherd.rollbackDBTransaction();
