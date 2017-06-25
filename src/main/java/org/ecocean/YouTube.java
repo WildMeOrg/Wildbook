@@ -178,7 +178,7 @@ System.out.println("]=== done with .extractFrames()");
         }
         return null;
     }
-    public static String postQuestion(String questionToPost,String videoId, Occurrence occur) {  //pubAfter is ms since epoch
+    public static String postQuestion(String questionToPost,String videoId, Occurrence occur) { 
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
