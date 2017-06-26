@@ -903,6 +903,11 @@ function _colFileName(o) {
   var outStrings = [];
   for (id in o.get('annotations')) {
     var ann = o.get('annotations')[id];
+    //note: assuming 0th feature "may be bad" ?   TODO
+    if (ann.features && ann.features.length && ann.features[0].mediaAsset && ann.features[0].mediaAsset.filename) {
+      outStrings.push(ann.features[0].mediaAsset.filename);
+    }
+/*
     if (ann.mediaAsset != undefined) {
       var urlString = ann.mediaAsset.url;
       var pieces = urlString.split('/');
@@ -911,6 +916,7 @@ function _colFileName(o) {
       //console.log('\t added url string: '+ann.mediaAsset.url);
     }
     console.log('\t no mediaAsset found in annotation '+JSON.stringify(ann));
+*/
   }
   return outStrings.join(',\n');
 }

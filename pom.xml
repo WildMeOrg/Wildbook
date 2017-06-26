@@ -8,6 +8,7 @@
   <version>6.0.0-EXPERIMENTAL</version>
   <packaging>war</packaging>
 
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -16,6 +17,12 @@
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
     <geotools.version>8.3</geotools.version>
+	
+	<!--
+	 <project.http.version></project.http.version>
+	 <project.oauth.version></project.oauth.version>
+	 -->
+	 
   </properties>
 
   <repositories>
@@ -493,17 +500,20 @@
             <version>1.9.4</version>
         </dependency>
 
+		<!--
         <dependency>
             <groupId>com.google.http-client</groupId>
             <artifactId>google-http-client-jackson2</artifactId>
             <version>${project.http.version}</version>
         </dependency>
+		
 
         <dependency>
             <groupId>com.google.oauth-client</groupId>
             <artifactId>google-oauth-client-jetty</artifactId>
             <version>${project.oauth.version}</version>
         </dependency>
+		-->
 
         <dependency>
             <groupId>com.google.collections</groupId>
