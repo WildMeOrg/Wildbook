@@ -537,7 +537,19 @@
 		    <artifactId>google-api-translate-java</artifactId>
 		    <version>0.92</version>
 		</dependency>
-
+<!-- dependencies for Stanford NLP -->
+		<dependency>
+	    <groupId>edu.stanford.nlp</groupId>
+	    <artifactId>stanford-corenlp</artifactId>
+	    <version>3.8.0</version>
+		</dependency>
+		<dependency>
+		  <groupId>edu.stanford.nlp</groupId>
+		  <artifactId>stanford-corenlp</artifactId>
+		  <version>3.6.0</version>
+		  <classifier>models</classifier> <!--  will get the dependent model jars -->
+		</dependency>
+		
 
 
   </dependencies>
