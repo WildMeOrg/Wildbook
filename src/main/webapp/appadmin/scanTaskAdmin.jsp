@@ -146,15 +146,15 @@ else{
       ScanTask st = it.next();
       if (!st.hasFinished()) {
         scanNum++;
-        int numTotal = st.getNumComparisons();
+        //int numTotal = st.getNumComparisons();
 
         int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
 
         int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
 
         //int numTaskTot = st.getNumComparisons();
-		String numTaskTot=numComplete+"/"+st.getNumComparisons();
-		if(st.getNumComparisons()==Integer.MAX_VALUE){numTaskTot="Building...";}
+		//String numTaskTot=numComplete+"/"+st.getNumComparisons();
+		//if(st.getNumComparisons()==Integer.MAX_VALUE){numTaskTot="Building...";}
         
         
    String styleString="";
@@ -166,11 +166,11 @@ else{
     </td>
     <td><%=st.getSubmitter()%>
     </td>
-    <td><%=numTaskTot%>
+    <td>
     </td>
     <td>
       <%
-      if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
+      if ((numComplete > 0) && (gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber())==0)) {
       %>
       <form name="scanNum<%=scanNum%>_writeOut" method="post"
             action="../<%=CommonConfiguration.getProperty("patternMatchingEndPointServletName", context) %>"><input name="number" type="hidden"

@@ -120,7 +120,7 @@
 	       <field name="socialMediaQueryCommentID" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
-	       <field name="socialMediaQueryCommentResponseID" persistence-modifier="persistent">
+	       <field name="socialMediaQueryCommentReplies" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
 
@@ -322,10 +322,11 @@
         <column length="36"/>
       </field>
 		<field name="isExemplar">
-<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here:
-			<column default-value="0" />
--->
+<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here: -->
+<!--			<column default-value="0" /> -->
+<!-- this is for postgresql-->
 			<column default-value="false" />
+
 		</field>
 
             	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >
@@ -423,9 +424,6 @@
       </field>
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
-	  
-	  <field name="webURL" persistence-modifier="none"></field>
-
     </class>
 
     <class name="Measurement" identity-type="application">

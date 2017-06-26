@@ -7,6 +7,9 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
+import org.joda.time.DateTime;
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
@@ -52,6 +55,54 @@ public class Occurrence implements java.io.Serializable{
   private String socialMediaQueryCommentID;
   private String socialMediaQueryCommentReplies;
 
+  // this is helpful for sorting but isn't (for now) intended to be UI-facing
+  // rather it's set from Encounters
+  private Long millis;
+
+
+	/* Rosemary meta-data for IBEIS */
+/*
+	private String sun = "";
+	private String wind = "";
+	private String rain = "";
+	private String cloudCover = "";
+	private String direction;
+	private String localName;
+	private String grassLength;
+	private String grassColor;
+	private String grassSpecies;
+	private String bushType;
+	private String bit;
+	private String otherSpecies;
+*/
+	private Double distance;
+	private Double decimalLatitude;
+	private Double decimalLongitude;
+
+/////Lewa-specifics
+  private DateTime dateTime;
+
+	private String habitat;
+  private String groupType;
+  private String groupActivity;
+  private Integer groupSize;
+	private Integer numTerMales;
+	private Integer numBachMales;
+	private Integer numNonLactFemales;
+	private Integer numLactFemales;
+  private Integer numJuveniles;
+	private Double bearing;
+
+  // new fields added for Dan's lab
+  private String imageSet;
+  private String soil;
+  private String rain;
+  private String activity;
+  private String habitatOpenness;
+  private String grassGreenness;
+  private String grassHeight;
+  private String weather;
+  private String wind;
 
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
@@ -148,6 +199,42 @@ public class Occurrence implements java.io.Serializable{
     else{return encounters.size();}
   }
 
+  public int getNumberIndividualIDs(){
+    return getIndividualIDs().size();
+  }
+
+  public Set<String> getIndividualIDs(){
+    Set<String> indivIds = new HashSet<String>();
+    if (encounters == null) return indivIds;
+    for (Encounter enc : encounters) {
+      String id = enc.getIndividualID();
+      if (id!=null && !indivIds.contains(id)) indivIds.add(id);
+    }
+    return indivIds;
+  }
+
+
+  public void setLatLonFromEncs() {
+    for (Encounter enc: getEncounters()) {
+      String lat = enc.getDecimalLatitude();
+      String lon = enc.getDecimalLongitude();
+      if (lat!=null && lon!=null && !lat.equals("-1.0") && !lon.equals("-1.0")) {
+        try {
+          setDecimalLatitude(Double.valueOf(lat));
+          setDecimalLongitude(Double.valueOf(lon));
+          return;
+        } catch (Exception e) {}
+      }
+    }
+  }
+
+  public String getLatLonString() {
+    String latStr = (decimalLatitude!=null) ? decimalLatitude.toString() : "";
+    String lonStr = (decimalLongitude!=null) ? decimalLongitude.toString() : "";
+    return (latStr+", "+lonStr);
+  }
+
+
   public void setEncounters(ArrayList<Encounter> encounters){this.encounters=encounters;}
 
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){
@@ -157,7 +244,7 @@ public class Occurrence implements java.io.Serializable{
 
       for(int i=0;i<size;i++){
         Encounter enc=encounters.get(i);
-        if((enc.getIndividualID()!=null)&&(!names.contains(enc.getIndividualID()))){names.add(enc.getIndividualID());}
+        if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!names.contains(enc.getIndividualID()))){names.add(enc.getIndividualID());}
       }
     }
     catch(Exception e){e.printStackTrace();}
@@ -175,6 +262,9 @@ public class Occurrence implements java.io.Serializable{
   public void setIndividualCount(Integer count){
       if(count!=null){individualCount = count;}
       else{individualCount = null;}
+   }
+   public void setIndividualCount() {
+     setIndividualCount(getNumberIndividualIDs());
    }
 
   public String getGroupBehavior(){return groupBehavior;}
@@ -243,6 +333,267 @@ public class Occurrence implements java.io.Serializable{
       comments = newComments;
     }
   }
+
+	public void setDecimalLatitude(Double d) {
+		this.decimalLatitude = d;
+	}
+
+	public Double getDecimalLatitude() {
+		return this.decimalLatitude;
+	}
+
+	public void setDecimalLongitude(Double d) {
+		this.decimalLongitude = d;
+	}
+
+	public Double getDecimalLongitude() {
+		return this.decimalLongitude;
+	}
+
+
+  public void setMillis(Long millis) {this.millis = millis;}
+  public Long getMillis() {return this.millis;}
+
+  public void setMillisFromEncounters() {
+    this.millis = getMillisFromEncounters();
+  }
+
+  public Long getMillisFromEncounters() {
+    for (Encounter enc: encounters) {
+      if (enc.getDateInMilliseconds()!=null) {
+        return enc.getDateInMilliseconds();
+      }
+    }
+    return null;
+  }
+
+
+  public void setMillisFromEncounterAvg() {
+    this.millis = getMillisFromEncounterAvg();
+  }
+
+  public Long getMillisFromEncounterAvg() {
+    Long total = 0L;
+    int numAveraged = 0;
+    for (Encounter enc: encounters) {
+      if (enc.getDateInMilliseconds()!=null) {
+        total += enc.getDateInMilliseconds();
+        numAveraged++;
+      }
+    }
+    if (numAveraged == 0) return null;
+    return (total / numAveraged);
+  }
+  public Long getMillisRobust() {
+    if (this.millis!=null) return this.millis;
+    if (getMillisFromEncounterAvg()!=null) return getMillisFromEncounterAvg();
+    if (getMillisFromEncounters()!=null) return getMillisFromEncounters();
+    return null;
+  }
+
+
+
+/*
+	public void setWind(String w) {
+		this.wind = w;
+	}
+
+	public String getWind() {
+		return this.wind;
+	}
+
+	public void setSun(String s) {
+		this.sun = s;
+	}
+
+	public String getSun() {
+		return this.sun;
+	}
+	public String getRain() {
+		return this.rain;
+	}
+	public void setRain(String r) {
+		this.rain = r;
+	}
+
+	public String getCloudCover() {
+		return this.cloudCover;
+	}
+	public void setCloudCover(String c) {
+		this.cloudCover = c;
+	}
+
+	public String getDirection() {
+		return this.direction;
+	}
+	public void setDirection(String d) {
+		this.direction = d;
+	}
+
+	public String getLocalName() {
+		return this.localName;
+	}
+	public void setLocalName(String n) {
+		this.localName = n;
+	}
+
+	public String getGrassLength() {
+		return this.grassLength;
+	}
+	public void setGrassLength(String l) {
+		this.grassLength = l;
+	}
+
+	public String getGrassColor() {
+		return this.grassColor;
+	}
+	public void setGrassColor(String c) {
+		this.grassColor = c;
+	}
+
+	public String getGrassSpecies() {
+		return this.grassSpecies;
+	}
+	public void setGrassSpecies(String g) {
+		this.grassSpecies = g;
+	}
+
+	public String getBushType() {
+		return this.bushType;
+	}
+	public void setBushType(String t) {
+		this.bushType = t;
+	}
+
+	public String getBit() {
+		return this.bit;
+	}
+	public void setBit(String b) {
+		this.bit = b;
+	}
+
+	public String getOtherSpecies() {
+		return this.otherSpecies;
+	}
+	public void setOtherSpecies(String s) {
+		this.otherSpecies = s;
+	}
+*/
+
+  public DateTime getDateTime() {
+    return this.dateTime;
+  }
+
+  public void setDateTime(DateTime dt) {
+    this.dateTime = dt;
+  }
+
+	public Double getDistance() {
+		return this.distance;
+	}
+	public void setDistance(Double d) {
+		this.distance = d;
+	}
+
+	public String getHabitat() {
+		return this.habitat;
+	}
+	public void setHabitat(String h) {
+		this.habitat = h;
+	}
+
+	public Integer getGroupSize() {
+		return this.groupSize;
+	}
+	public void setGroupSize(Integer s) {
+		this.groupSize = s;
+	}
+
+  public String getGroupActivity() {
+		return this.groupActivity;
+	}
+	public void setGroupActivity(String s) {
+		this.groupActivity = s;
+	}
+  public String getGroupType() {
+		return this.groupType;
+	}
+	public void setGroupType(String s) {
+		this.groupType = s;
+	}
+
+	public Integer getNumTerMales() {
+		return this.numTerMales;
+	}
+	public void setNumTerMales(Integer s) {
+		this.numTerMales = s;
+	}
+
+	public Integer getNumBachMales() {
+		return this.numBachMales;
+	}
+	public void setNumBachMales(Integer s) {
+		this.numBachMales = s;
+	}
+
+	public Integer getNumNonLactFemales() {
+		return this.numNonLactFemales;
+	}
+	public void setNumNonLactFemales(Integer s) {
+		this.numNonLactFemales = s;
+	}
+
+	public Integer getNumJuveniles() {
+		return this.numJuveniles;
+	}
+	public void setNumJuveniles(Integer s) {
+		this.numJuveniles = s;
+	}
+
+  public Integer getNumLactFemales() {
+		return this.numLactFemales;
+	}
+	public void setNumLactFemales(Integer s) {
+		this.numLactFemales = s;
+	}
+
+	public Double getBearing() {
+		return this.bearing;
+	}
+	public void setBearing(Double b) {
+		this.bearing = b;
+	}
+
+  public String getImageSet() { return this.imageSet; }
+	public void setImageSet(String h) { this.imageSet = h; }
+
+  public String getSoil() { return this.soil; }
+	public void setSoil(String h) { this.soil = h; }
+
+  public String getRain() { return this.rain; }
+	public void setRain(String h) { this.rain = h; }
+
+  public String getActivity() { return this.activity; }
+	public void setActivity(String h) { this.activity = h; }
+
+  public String getHabitatOpenness() { return this.habitatOpenness; }
+	public void setHabitatOpenness(String h) { this.habitatOpenness = h; }
+
+  public String getGrassGreenness() { return this.grassGreenness; }
+	public void setGrassGreenness(String h) { this.grassGreenness = h; }
+
+  public String getGrassHeight() { return this.grassHeight; }
+	public void setGrassHeight(String h) { this.grassHeight = h; }
+
+  public String getWeather() { return this.weather; }
+	public void setWeather(String h) { this.weather = h; }
+
+  public String getWind() { return this.wind; }
+	public void setWind(String h) { this.wind = h; }
+
+
+
+
 
   public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
