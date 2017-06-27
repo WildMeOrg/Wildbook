@@ -208,7 +208,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
               st = new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
-              st.setNumComparisons(numComparisons - 1);
+              //st.setNumComparisons(numComparisons - 1);
               if (request.getRemoteUser() != null) {
                 st.setSubmitter(request.getRemoteUser());
               }
@@ -411,9 +411,9 @@ public class ScanTaskHandler extends HttpServlet {
             st = new ScanTask(myShepherd, taskIdentifier, props2, "TuningTask", writeThis);
 
             if (numComparisons < (2 * maxNumWorkItems)) {
-              st.setNumComparisons(numComparisons);
+              //st.setNumComparisons(numComparisons);
             } else {
-              st.setNumComparisons((2 * maxNumWorkItems));
+              //st.setNumComparisons((2 * maxNumWorkItems));
             }
 
 
@@ -582,7 +582,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             st = new ScanTask(myShepherd, taskIdentifier, props2, "FalseMatchTask", writeThis);
-            st.setNumComparisons(numComparisons);
+            //st.setNumComparisons(numComparisons);
             if (request.getRemoteUser() != null) {
               st.setSubmitter(request.getRemoteUser());
             }
