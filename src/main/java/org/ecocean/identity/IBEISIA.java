@@ -2737,6 +2737,11 @@ return Util.generateUUID();
                 }
               }
               
+              if((enc.getDateInMilliseconds()==null)||(locCode==null)) {
+                //call OCR and pass/grab occurrence or encounter id,climb up the first annotation
+                //(reference to MediaAsset frame) to get to parent youtube video and find sibling frames?
+              }
+              
               
               //reset remarks to avoid dates embedded in researcher comments
 //              remarks=enc.getOccurrenceRemarks().trim().toLowerCase();
@@ -2748,38 +2753,60 @@ return Util.generateUUID();
                 boolean NLPsuccess=false;
                 try{
                     System.out.println(">>>>>> looking for date with NLP");
-                    
-                      Parser parser = new Parser();
-                      List groups = parser.parse(ytRemarks);
-                      int numGroups=groups.size();
-                      //just grab the first group
-                      if(numGroups>0){
-                          List<Date> dates = ((DateGroup)groups.get(0)).getDates();
-                          int numDates=dates.size();
-                          if(numDates>0){
-                            Date myDate=dates.get(0);
-                            LocalDateTime dt = LocalDateTime.fromDateFields(myDate);
-                            String detectedDate=dt.toString().replaceAll("T", "-");
-                            System.out.println(">>>>>> NLP found date: "+detectedDate);
-                            StringTokenizer str=new StringTokenizer(detectedDate,"-");
-                            int numTokens=str.countTokens();
-                            if(numTokens>=1){
-                              NLPsuccess=true;
-                              year=(new Integer(str.nextToken())).intValue();
-                            }
-                            if(numTokens>=2){
-                              try { month=(new Integer(str.nextToken())).intValue();
-                              } catch (Exception e) { month=-1;}
-                            }
-                            else{month=-1;}
-                            if(numTokens>=3){
-                              try {
-                                String myToken=str.nextToken();
-                                day=(new Integer(myToken.replaceFirst("^0+(?!$)", ""))).intValue(); } catch (Exception e) { day=-1; }
-                            }
-                            else{day=-1;}
+                    //call Stanford NLP function to find and select a date from ytRemarks
+                    String myDate= ServletUtilities.nlpDateParse(ytRemarks);
+                    //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
+                    if (myDate!=null) {
+                        System.out.println(">>>>>> NLP found date: "+myDate);
+                        int numCharact= myDate.length();
+                     
+                        if(numCharact>=4){
+                          NLPsuccess=true;
+                          year=(new Integer(myDate.substring(0, 4))).intValue();
                         }
+                        if(numCharact>=7){
+                          try { month=(new Integer(myDate.substring(5, 7))).intValue();
+                          } catch (Exception e) { month=-1;}
+                        }
+                        else{month=-1;}
+                        if(numCharact>=10){
+                          try {
+                            day=(new Integer(myDate.substring(8, 10))).intValue(); } catch (Exception e) { day=-1; }
+                        }
+                        else{day=-1;}
                     }
+                    
+//                      Parser parser = new Parser();
+//                      List groups = parser.parse(ytRemarks);
+//                      int numGroups=groups.size();
+//                      //just grab the first group
+//                      if(numGroups>0){
+//                          List<Date> dates = ((DateGroup)groups.get(0)).getDates();
+//                          int numDates=dates.size();
+//                          if(numDates>0){
+//                            Date myDate=dates.get(0);
+//                            LocalDateTime dt = LocalDateTime.fromDateFields(myDate);
+//                            String detectedDate=dt.toString().replaceAll("T", "-");
+//                            System.out.println(">>>>>> NLP found date: "+detectedDate);
+//                            StringTokenizer str=new StringTokenizer(detectedDate,"-");
+//                            int numTokens=str.countTokens();
+//                            if(numTokens>=1){
+//                              NLPsuccess=true;
+//                              year=(new Integer(str.nextToken())).intValue();
+//                            }
+//                            if(numTokens>=2){
+//                              try { month=(new Integer(str.nextToken())).intValue();
+//                              } catch (Exception e) { month=-1;}
+//                            }
+//                            else{month=-1;}
+//                            if(numTokens>=3){
+//                              try {
+//                                String myToken=str.nextToken();
+//                                day=(new Integer(myToken.replaceFirst("^0+(?!$)", ""))).intValue(); } catch (Exception e) { day=-1; }
+//                            }
+//                            else{day=-1;}
+//                        }
+//                    }
                 }
                 catch(Exception e){
                     System.out.println("Exception in natty NLP in IBEISIA.class");
