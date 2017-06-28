@@ -17,6 +17,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
+import org.joda.time.DateTime;
 
 /**
  * Whereas an Encounter is meant to represent one MarkedIndividual at one point in time and space, an Occurrence
@@ -39,12 +40,49 @@ public class Occurrence implements java.io.Serializable{
   private List<MediaAsset> assets;
   private String occurrenceID;
   private Integer individualCount;
-  private String groupBehavior;
+  private String groupBehavior;  // categorical
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
   //private String locationID;
   private String dateTimeCreated;
+
+  // ASWN fields
+  private String fieldStudySite;
+  private String fieldSurveyCode;  // i.e. project-specific sighting no. (redundant w/ id, or is that UUID?o)
+  private String sightingPlatform; // e.g. vessel name
+  private String groupComposition; // categorical
+  private String humanActivityNearby; // drop-down, e.g. artisanal fishing, commercial shipping, tourism
+  private String initialCue; // blow, splash, birds, dorsal fin etc
+  private String seaState; //beaufort categories
+  private Double seaSurfaceTemp;
+  private Double swellHeight;
+  private Double visibilityIndex; // 1-5 with 5 indicating horizon visible
+
+  private Double effortCode; // 1-5;
+
+  private Double decimalLatitude;
+  private Double decimalLongitude;
+  private String transectName;
+  private Double transectBearing;
+  private Double distance;
+  private Double bearing;
+
+  private Integer minGroupSizeEstimate;
+  private Integer maxGroupSizeEstimate;
+  private Double bestGroupSizeEstimate;
+  private Integer numAdults;
+  private Integer numJuveniles;
+  private Integer numCalves;
+  private String observer;
+
+
+
+  // do we have these?
+
+
+
+  private Long dateTimeLong; // this is for searching
 
 
   //empty constructor used by the JDO enhancer
@@ -418,7 +456,7 @@ public class Occurrence implements java.io.Serializable{
                 .append("id", occurrenceID)
                 .toString();
     }
-    
+
     public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
       ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
       //boolean haveProfilePhoto=false;
@@ -434,24 +472,24 @@ public class Occurrence implements java.io.Serializable{
             if (ma != null) {
               //JSONObject j = new JSONObject();
               JSONObject j = ma.sanitizeJson(req, new JSONObject());
-              
-              
-              
+
+
+
               if (j!=null) {
-                
-                
+
+
                 //ok, we have a viable candidate
-                
+
                 //put ProfilePhotos at the beginning
                 if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
                 //otherwise, just add it to the bottom of the stack
                 else{
                   al.add(j);
                 }
-                
+
               }
-              
-              
+
+
             }
           }
       //}
@@ -459,7 +497,7 @@ public class Occurrence implements java.io.Serializable{
       return al;
 
     }
-    
+
     //this is called when a batch of encounters (which should be on this occurrence) were made from detection
     // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
     public void fromDetection(Shepherd myShepherd, HttpServletRequest request) {
@@ -467,13 +505,182 @@ public class Occurrence implements java.io.Serializable{
     }
 
     public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
-      
+
       ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
       if(al.size()>0){return al.get(0);}
       return new JSONObject();
-      
+
 
     }
+
+    // ASWN field getters/setters
+    public String getFieldStudySite() {
+      return fieldStudySite;
+    }
+    public void setFieldStudySite(String fieldStudySite) {
+      this.fieldStudySite = fieldStudySite;
+    }
+    public String getFieldSurveyCode() {
+      return fieldSurveyCode;
+    }
+    public void setFieldSurveyCode(String fieldSurveyCode) {
+      this.fieldSurveyCode = fieldSurveyCode;
+    }
+    public String getSightingPlatform() {
+      return sightingPlatform;
+    }
+    public void setSightingPlatform(String sightingPlatform) {
+      this.sightingPlatform = sightingPlatform;
+    }
+    public String getGroupComposition() {
+      return groupComposition;
+    }
+    public void setGroupComposition(String groupComposition) {
+      this.groupComposition = groupComposition;
+    }
+    public String getHumanActivityNearby() {
+      return humanActivityNearby;
+    }
+    public void setHumanActivityNearby(String humanActivityNearby) {
+      this.humanActivityNearby = humanActivityNearby;
+    }
+    public String getInitialCue() {
+      return initialCue;
+    }
+    public void setInitialCue(String initialCue) {
+      this.initialCue = initialCue;
+    }
+    public String getSeaState() {
+      return seaState;
+    }
+    public void setSeaState(String seaState) {
+      this.seaState = seaState;
+    }
+
+    public Double getSeaSurfaceTemp() {
+      return seaSurfaceTemp;
+    }
+    public void setSeaSurfaceTemp(Double seaSurfaceTemp) {
+      this.seaSurfaceTemp = seaSurfaceTemp;
+    }
+    public Double getSwellHeight() {
+      return swellHeight;
+    }
+    public void setSwellHeight(Double swellHeight) {
+      this.swellHeight = swellHeight;
+    }
+    public Double getVisibilityIndex() {
+      return visibilityIndex;
+    }
+    public void setVisibilityIndex(Double visibilityIndex) {
+      this.visibilityIndex = visibilityIndex;
+    }
+    public Double getEffortCode() {
+      return effortCode;
+    }
+    public void setEffortCode(Double effortCode) {
+      this.effortCode = effortCode;
+    }
+    public Double getDecimalLatitude() {
+      return decimalLatitude;
+    }
+    public void setDecimalLatitude(Double decimalLatitude) {
+      this.decimalLatitude = decimalLatitude;
+    }
+    public Double getDecimalLongitude() {
+      return decimalLongitude;
+    }
+    public void setDecimalLongitude(Double decimalLongitude) {
+      this.decimalLongitude = decimalLongitude;
+    }
+
+    public String getTransectName() {
+      return transectName;
+    }
+    public void setTransectName(String transectName) {
+      this.transectName = transectName;
+    }
+
+    public Double getTransectBearing() {
+      return transectBearing;
+    }
+    public void setTransectBearing(Double transectBearing) {
+      this.transectBearing = transectBearing;
+    }
+    public Double getDistance() {
+      return distance;
+    }
+    public void setDistance(Double distance) {
+      this.distance = distance;
+    }
+    public Double getBearing() {
+      return bearing;
+    }
+    public void setBearing(Double bearing) {
+      this.bearing = bearing;
+    }
+
+    public Integer getMinGroupSizeEstimate() {
+      return minGroupSizeEstimate;
+    }
+    public void setMinGroupSizeEstimate(Integer minGroupSizeEstimate) {
+      this.minGroupSizeEstimate = minGroupSizeEstimate;
+    }
+    public Integer getMaxGroupSizeEstimate() {
+      return maxGroupSizeEstimate;
+    }
+    public void setMaxGroupSizeEstimate(Integer maxGroupSizeEstimate) {
+      this.maxGroupSizeEstimate = maxGroupSizeEstimate;
+    }
+    public Double getBestGroupSizeEstimate() {
+      return bestGroupSizeEstimate;
+    }
+    public void setBestGroupSizeEstimate(Double bestGroupSizeEstimate) {
+      this.bestGroupSizeEstimate = bestGroupSizeEstimate;
+    }
+    public Integer getNumAdults() {
+      return numAdults;
+    }
+    public void setNumAdults(Integer numAdults) {
+      this.numAdults = numAdults;
+    }
+    public Integer getNumJuveniles() {
+      return numJuveniles;
+    }
+    public void setNumJuveniles(Integer numJuveniles) {
+      this.numJuveniles = numJuveniles;
+    }
+    public Integer getNumCalves() {
+      return numCalves;
+    }
+    public void setNumCalves(Integer numCalves) {
+      this.numCalves = numCalves;
+    }
+    public String getObserver() {
+      return observer;
+    }
+    public void setObserver(String observer) {
+      this.observer = observer;
+    }
+
+
+
+    public Long getDateTimeLong() {
+      return dateTimeLong;
+    }
+    public void setDateTimeLong(Long dateTimeLong) {
+      this.dateTimeLong = dateTimeLong;
+    }
+    public DateTime getDateTime() {
+      if (dateTimeLong == null) return null;
+      return new DateTime(dateTimeLong);
+    }
+    public void setDateTime(DateTime dt) {
+      if (dt == null) dateTimeLong = null;
+      else dateTimeLong = dt.getMillis();
+    }
+
+
 
 
 }
