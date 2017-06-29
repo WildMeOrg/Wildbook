@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
@@ -182,6 +184,43 @@ public class Occurrence implements java.io.Serializable{
 
   public void setEncounters(ArrayList<Encounter> encounters){this.encounters=encounters;}
 
+  public int getNumberIndividualIDs(){
+    return getIndividualIDs().size();
+  }
+
+  public Set<String> getIndividualIDs(){
+    Set<String> indivIds = new HashSet<String>();
+    if (encounters == null) return indivIds;
+    for (Encounter enc : encounters) {
+      String id = enc.getIndividualID();
+      if (id!=null && !indivIds.contains(id)) indivIds.add(id);
+    }
+    return indivIds;
+  }
+
+
+  public void setLatLonFromEncs() {
+    for (Encounter enc: getEncounters()) {
+      String lat = enc.getDecimalLatitude();
+      String lon = enc.getDecimalLongitude();
+      if (lat!=null && lon!=null && !lat.equals("-1.0") && !lon.equals("-1.0")) {
+        try {
+          setDecimalLatitude(Double.valueOf(lat));
+          setDecimalLongitude(Double.valueOf(lon));
+          return;
+        } catch (Exception e) {
+          System.out.println("Occurrence.setLatLonFromEncs could not parse values ("+lat+", "+lon+")");
+        }
+      }
+    }
+  }
+
+  public String getLatLonString() {
+    String latStr = (decimalLatitude!=null) ? decimalLatitude.toString() : "";
+    String lonStr = (decimalLongitude!=null) ? decimalLongitude.toString() : "";
+    return (latStr+", "+lonStr);
+  }
+
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){
     ArrayList<String> names=new ArrayList<String>();
     try{
@@ -208,6 +247,10 @@ public class Occurrence implements java.io.Serializable{
       if(count!=null){individualCount = count;}
       else{individualCount = null;}
    }
+  public void setIndividualCount() {
+    setIndividualCount(getNumberIndividualIDs());
+  }
+
 
   public String getGroupBehavior(){return groupBehavior;}
   public void setGroupBehavior(String behavior){
