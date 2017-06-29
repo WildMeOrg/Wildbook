@@ -41,7 +41,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 
-String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -57,16 +57,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-      <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
+      <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
-
-      <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
-
-    <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
 
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
@@ -108,23 +103,14 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a></a>
-                  <div class="search-and-secondary-wrapper">
-                  <%
-                  if(CommonConfiguration.allowAdoptions(context)){
-                  %>
-                    <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
-                  <%
-                  }
-                  %>
-                    <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
+                <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
+
 
                       <%
 
 	                      if(request.getUserPrincipal()!=null){
 	                    	  Shepherd myShepherd = new Shepherd(context);
-	                    	  myShepherd.setAction("header.jsp");
 
 	                          try{
 	                        	  myShepherd.beginDBTransaction();
@@ -237,7 +223,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
             						String myLang=supportedLanguages.get(h);
             					%>
-            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="//<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
             						<script type="text/javascript">
 
             							$( "#flag_<%=myLang%>" ).click(function() {
@@ -277,6 +263,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <label class="search-field-header">
                             <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
 	                            <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+	                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
 	                            <input type="submit" value="search" />
                           </form>
                       </label>
@@ -304,47 +291,35 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
+                      <!-- temporarily commented out: experiment w streamlining header UI
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                        	<!--
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
 
                           	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
 
-                          	<!--
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                             -->
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         </ul>
                       </li>
+                      -->
 
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                        <%
-                        if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
-                        %>
-                          <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
-                        <%
-                        }
-                        %>
-                          <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
-
-                          <!--  examples of navigation dividers
-                          <li class="divider"></li>
-                          <li class="dropdown-header">Nav header</li>
-                           -->
-
-                        </ul>
-                      </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
 
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
+                        </ul>
+                      </li>
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("occurrences")%> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("search")%></a></li>
+
+                          <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
                       </li>
                       <li class="dropdown">
@@ -366,27 +341,52 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             } //end while %>
                           <li class="divider"></li>
                           <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
-                          <li><a href="<%=urlLoc %>/xcalendar/calendar2.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
+                          <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
                           <% if(request.getUserPrincipal()!=null) { %>
                             <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySubmissions")%></a></li>
                           <% } %>
                         </ul>
                       </li>
 
+                      <!-- start locationID sites -->
+                      <!--
+                       <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("sites") %> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
 
+
+                          <% boolean moreLocationIDs=true;
+                             int siteNum=0;
+                             while(moreLocationIDs) {
+                                 String currentLocationID = "locationID"+siteNum;
+                                 if (CommonConfiguration.getProperty(currentLocationID,context)!=null) { %>
+                                   <li><a href="<%=urlLoc %>/encounters/searchResultsAnalysis.jsp?locationCodeField=<%=CommonConfiguration.getProperty(currentLocationID,context) %>"><%=WordUtils.capitalize(CommonConfiguration.getProperty(currentLocationID,context)) %></a></li>
+                                 <% siteNum++;
+                                 } else {
+                                	 moreLocationIDs=false;
+                                 }
+                            } //end while %>
+
+                        </ul>
+                      </li>
+                      -->
+                      <!-- end locationID sites -->
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
                            </ul>
                       </li>
 
+                      <!-- commented out until there is more content here?
                       <li>
                         <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
                       </li>
+                      -->
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -402,9 +402,9 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             <% }
                             if(request.isUserInRole("admin")) { %>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
+                              <li><a href="<%=urlLoc %>/reports.jsp"><%=props.getProperty("adminReports")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 
                                 <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>
@@ -431,6 +431,27 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                             } //end if admin
                             %>
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
+                              <ul class="dropdown-menu" role="menu">
+                              <%
+                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                              %>
+                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+                              <%
+                              }
+                              %>
+                                <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+
+                                <!--  examples of navigation dividers
+                                <li class="divider"></li>
+                                <li class="dropdown-header">Nav header</li>
+                                 -->
+
+                              </ul>
+                            </li>
+
+
                                 <li class="divider"></li>
                                   <li class="dropdown-header"><%=props.getProperty("grid")%></li>
 
