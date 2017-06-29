@@ -2691,7 +2691,7 @@ return Util.generateUUID();
           
           String detectedLanguage="en";
           try{
-            detectedLanguage= DetectTranslate.detect(ytRemarks);
+            detectedLanguage= DetectTranslate.detect(ytRemarks, context);
             
             if(!detectedLanguage.toLowerCase().startsWith("en")){
               ytRemarks= DetectTranslate.translate(ytRemarks, context);
