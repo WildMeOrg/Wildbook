@@ -160,7 +160,7 @@ public class IBEISIA {
 
 System.out.println("sendMediaAssets(): sending " + ct);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?
-        return RestClient.post(url, new JSONObject(map));
+        return RestClient.post(url, hashMapToJSONObject(map));
     }
 
 
@@ -207,7 +207,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         boolean tryAgain = true;
         JSONObject res = null;
         while (tryAgain) {
-            res = RestClient.post(url, new JSONObject(map));
+            res = RestClient.post(url, hashMapToJSONObject(map));
             tryAgain = iaCheckMissing(res, context);
         }
         return res;
@@ -300,7 +300,7 @@ System.out.println("tlist.size()=" + tlist.size());
 System.out.println(map);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-        return RestClient.post(url, new JSONObject(map));
+        return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
 
@@ -2936,5 +2936,27 @@ return Util.generateUUID();
         //end set date/location/locationID on Encounters
         
     }
+
+
+    //// TOTAL HACK... buy jon a drink and he will tell you about these.....
+    public static JSONObject hashMapToJSONObject(HashMap<String,ArrayList> map) {
+        if (map == null) return null;
+        //return new JSONObject(map);  // this *used to work*, i swear!!!
+        JSONObject rtn = new JSONObject();
+        for (String k : map.keySet()) {
+            rtn.put(k, map.get(k));
+        }
+        return rtn;
+    }
+    public static JSONObject hashMapToJSONObject2(HashMap<String,Object> map) {   //note: Object-flavoured
+        if (map == null) return null;
+        //return new JSONObject(map);  // this *used to work*, i swear!!!
+        JSONObject rtn = new JSONObject();
+        for (String k : map.keySet()) {
+            rtn.put(k, map.get(k));
+        }
+        return rtn;
+    }
+
 
 }
