@@ -262,9 +262,9 @@ var colDefn = [
     value: _notUndefined('occurrenceID'),
   },
   {
-    key: 'groupSize',
-    label: 'group size',
-    value: _notUndefined('groupSize'),
+    key: 'bestGroupSizeEstimate',
+    label: 'group size estimate',
+    value: _notUndefined('bestGroupSizeEstimate'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
   {
@@ -285,6 +285,13 @@ var colDefn = [
     value: _notUndefined('decimalLongitude'),
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
+  {
+    key: 'effortCode',
+    label: 'effort',
+    value: _notUndefined('effortCode'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
+
   /*
 	{
 		key: 'individual',
