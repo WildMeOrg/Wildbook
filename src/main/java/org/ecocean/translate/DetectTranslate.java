@@ -12,10 +12,12 @@ public class DetectTranslate {
   
   public static String translate(String ytRemarks, String context){
     String apiKey= CommonConfiguration.getProperty("translate_key", context);
+    Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
+
     
-    TranslateOptions.newBuilder().setApiKey(apiKey);
+//    TranslateOptions.newBuilder().setApiKey(apiKey);
     
-    Translate translate = TranslateOptions.getDefaultInstance().getService();             
+//    Translate translate = TranslateOptions.getDefaultInstance().getService();             
     Translation translation = translate.translate(ytRemarks,
     TranslateOption.targetLanguage("en"));
     System.out.println(translation.getTranslatedText());  
@@ -24,10 +26,10 @@ public class DetectTranslate {
     return ytRemarks;
     
   }
-  public static String detect(String ytRemarks){
-    TranslateOptions.newBuilder().setApiKey("AIzaSyAm5Rmvrvq58dcnF9JioQfzBFAjf1tKCLQ");
+  public static String detect(String ytRemarks, String context){
+    String apiKey= CommonConfiguration.getProperty("translate_key", context);
+    Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
     
-    Translate translate = TranslateOptions.getDefaultInstance().getService();  
     Detection detection = translate.detect(ytRemarks);
     String detectedLanguage = detection.getLanguage();
     return detectedLanguage; 
