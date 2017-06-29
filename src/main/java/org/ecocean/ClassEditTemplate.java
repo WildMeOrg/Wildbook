@@ -199,6 +199,15 @@ public class ClassEditTemplate {
     if (className.length()>2) return(className.substring(0,3).toLowerCase());
     else return(className.toLowerCase());
   }
+  public static void printOutClassFieldModifierRows(Object obj, String[] fieldNames, javax.servlet.jsp.JspWriter out) {
+    for (String fieldName : fieldNames) {
+      try {
+        printOutClassFieldModifierRow(obj, fieldName, out);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
 
   // like the above but checks posValueProps to see if there are property-defined values for the class
   public static void printOutClassFieldModifierRows(Object obj, String[] fieldNames, javax.servlet.jsp.JspWriter out, Properties posValueProps) {
