@@ -53,7 +53,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import java.text.DateFormatSymbols;
 import java.util.Locale;
 //natural language processing for date/time
-import com.joestelmach.natty.*;
+//import com.joestelmach.natty.*;
 import java.util.Date;
 import org.joda.time.Instant;
 
@@ -1282,10 +1282,12 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     occ.setDWCDateLastModified();
                     occ.setDateTimeCreated();
                     occ.addComments("<i>created during frame collation by IA</i>");
+                    
                     JSONArray je = new JSONArray();
                     for (Encounter enc : encs) {
                         enc.setOccurrenceID(occ.getOccurrenceID());
                         occ.addEncounter(enc);
+                        occ.setSocialMediaSourceID(enc.getEventID());
                         myShepherd.getPM().makePersistent(enc);
                         je.put(enc.getCatalogNumber());
                     }
@@ -2761,19 +2763,32 @@ return Util.generateUUID();
                         int numCharact= myDate.length();
                      
                         if(numCharact>=4){
-                          NLPsuccess=true;
-                          year=(new Integer(myDate.substring(0, 4))).intValue();
-                        }
-                        if(numCharact>=7){
-                          try { month=(new Integer(myDate.substring(5, 7))).intValue();
-                          } catch (Exception e) { month=-1;}
-                        }
-                        else{month=-1;}
-                        if(numCharact>=10){
-                          try {
-                            day=(new Integer(myDate.substring(8, 10))).intValue(); } catch (Exception e) { day=-1; }
-                        }
-                        else{day=-1;}
+                          
+                          try{
+                            year=(new Integer(myDate.substring(0, 4))).intValue();
+                            NLPsuccess=true;
+                            
+                            if(numCharact>=7){
+                              try { 
+                                month=(new Integer(myDate.substring(5, 7))).intValue();
+                                if(numCharact>=10){
+                                  try {
+                                    day=(new Integer(myDate.substring(8, 10))).intValue(); 
+                                    } 
+                                  catch (Exception e) { day=-1; }
+                                }
+                              else{day=-1;}
+                              } 
+                              catch (Exception e) { month=-1;}
+                            }
+                            else{month=-1;}
+
+                          }
+                          catch(Exception e){
+                            e.printStackTrace();
+                          }
+                      }
+                        
                     }
                     
 //                      Parser parser = new Parser();
@@ -2809,7 +2824,7 @@ return Util.generateUUID();
 //                    }
                 }
                 catch(Exception e){
-                    System.out.println("Exception in natty NLP in IBEISIA.class");
+                    System.out.println("Exception in NLP in IBEISIA.class");
                     e.printStackTrace();
                 }
                   
@@ -2922,7 +2937,7 @@ return Util.generateUUID();
           }
           
           if(questionToPost!=null){
-//            String videoId = enc.getEventID(); 
+            //String videoId = occ.getSocialMediaSourceID().replaceAll("youtube:",""); 
             String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
             try{
               YouTube.postQuestion(questionToPost,videoId, occ);
