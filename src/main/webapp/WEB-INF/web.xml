@@ -129,6 +129,7 @@
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
+				/appadmin/listImages.jsp = authcBasicWildbook
 
 
                 /appadmin/** = authc, roles[admin]
