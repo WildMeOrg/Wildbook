@@ -5,6 +5,8 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
+import org.ecocean.media.YouTubeAssetStore;
+import org.ecocean.ocr.ocr;
 //import org.ecocean.youtube.PostQuestion;
 import org.ecocean.translate.DetectTranslate;
 import org.ecocean.Shepherd;
@@ -2701,26 +2703,16 @@ return Util.generateUUID();
             System.out.println("I hit an exception trying to detect language.");
             e.printStackTrace();
           }
-          
-//          TranslateOptions.newBuilder().setApiKey("AIzaSyAm5Rmvrvq58dcnF9JioQfzBFAjf1tKCLQ");
-//          Translate translate = TranslateOptions.getDefaultInstance().getService();  
-//          Detection detection = translate.detect(ytRemarks);
-//          String detectedLanguage = detection.getLanguage();
-//          System.out.printf(detectedLanguage);  
-//          
-//          if (detectedLanguage.equals("es")){             
-//            Translation translation = translate.translate(ytRemarks,
-//            TranslateOption.targetLanguage("en"));
-//            System.out.println(translation.getTranslatedText());  
-//            ytRemarks=translation.getTranslatedText();  
-//            
-//          }else{  
-//            System.out.println("No translation needed for this text");  
-//          }
+          //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
+          List<MediaAsset> assets= occ.getAssets();
+          MediaAsset myAsset = assets.get(0);
+          ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
+          ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+          String ocrRemarks = ocr.getTextFrames(filesFrames);
           
           if(enc.getOccurrenceRemarks()!=null){
             
-            String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase();
+            String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase()+" "+ ocrRemarks;
             Properties props = new Properties();
     
             //OK, let's check the comments and tags for retrievable metadata
@@ -2737,10 +2729,6 @@ return Util.generateUUID();
                 }
               }
               
-              if((enc.getDateInMilliseconds()==null)||(locCode==null)) {
-                //call OCR and pass/grab occurrence or encounter id,climb up the first annotation
-                //(reference to MediaAsset frame) to get to parent youtube video and find sibling frames?
-              }
               
               
               //reset remarks to avoid dates embedded in researcher comments
@@ -2922,7 +2910,7 @@ return Util.generateUUID();
           }
           
           if(questionToPost!=null){
-//            String videoId = enc.getEventID(); 
+//            String videoId = enc.getEventID().replaceAll("youtube:",""); 
             String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
             try{
               YouTube.postQuestion(questionToPost,videoId, occ);
