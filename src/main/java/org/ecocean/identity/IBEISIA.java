@@ -2704,11 +2704,21 @@ return Util.generateUUID();
             e.printStackTrace();
           }
           //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
-          List<MediaAsset> assets= occ.getAssets();
-          MediaAsset myAsset = assets.get(0);
-          ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
-          ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
-          String ocrRemarks = ocr.getTextFrames(filesFrames);
+          String ocrRemarks="";
+          try {
+            List<MediaAsset> assets= occ.getAssets();
+            MediaAsset myAsset = assets.get(0);
+            ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
+            ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+            if (ocr.getTextFrames(filesFrames)!=null) {
+              ocrRemarks = ocr.getTextFrames(filesFrames);              
+            }else {
+              ocrRemarks= "";
+            }            
+          } catch (Exception e) {
+            System.out.println("I hit an exception trying to find ocrRemarks.");
+          }
+          
           
           if(enc.getOccurrenceRemarks()!=null){
             
