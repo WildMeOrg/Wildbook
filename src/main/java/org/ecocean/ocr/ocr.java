@@ -15,55 +15,49 @@ import org.ecocean.YouTube;
 public class ocr {
   
   public static ArrayList<File> makeFilesFrames(ArrayList<MediaAsset> frames){
-    
-    
-    ArrayList<File> filesFrames = new ArrayList<File>();
-    
-    for (MediaAsset frame : frames) {
-        // this gives the file:   frame.localPath().toFile()
-      filesFrames.add(frame.localPath().toFile());
+    if (frames == null) throw new RuntimeException("Not media assets for this video?");
+    try {
+      ArrayList<File> filesFrames = new ArrayList<File>();
+      //return null if nothing comes with try catch block
+      for (MediaAsset frame : frames) {
+          // this gives the file:   frame.localPath().toFile()
+        filesFrames.add(frame.localPath().toFile());
+      }
+      return filesFrames;
+      
+    } catch (Exception e) {
+      System.out.println("caught exception while trying to convert frames into jpg files.");
     }
-    return filesFrames;
+    return null;
     
   }
   public static String getTextFrames(ArrayList<File> filesFrames) {
     
-    
-    ArrayList<String> framesTexts = new ArrayList<String>();
+//    ArrayList<String> framesTexts = new ArrayList<String>();
+    try {
 
-    for (File fileFrame : filesFrames) {
-//      File imageFile = new File("image"); //pass a file name or path to file
-          ITesseract instance = new Tesseract();  // JNA Interface Mapping
-          try {
-              String frameText = instance.doOCR(fileFrame); //or do I skip creating file and pass image here?
-              System.out.println(frameText);
-              framesTexts.add(frameText);
-          } catch (TesseractException e) {
-              System.err.println(e.getMessage());
-          }
-  }
-     System.out.println(framesTexts.size());
-     System.out.println(framesTexts);
-     
-//     String[] arrayTexts = new String[framesTexts.size()];
-//     arrayTexts = framesTexts.toArray(arrayTexts);
-//     for (int i = 0; i < arrayTexts.length; i++) {
-//       for (int j = i+1; j < arrayTexts.length; j++) {
-//         if (arrayTexts[i].equals(arrayTexts[j])) {
-//           arrayTexts = ArrayUtils.removeElement(arrayTexts,//key );
-//     }
-     List<String> al = new ArrayList<>();
-  // add elements to al, including duplicates
-     Set<String> hs = new HashSet<>();
-     hs.addAll(framesTexts);
-     framesTexts.clear();
-     framesTexts.addAll(hs);
-
-     
-     String ocrRemarks = String.join(",", framesTexts);
-     
-
-     return ocrRemarks; 
+      StringBuffer framesTexts= new StringBuffer("");
+      for (File fileFrame : filesFrames) {
+//        File imageFile = new File("image"); //pass a file name or path to file
+            ITesseract instance = new Tesseract();  // JNA Interface Mapping
+            try {
+                String frameText = instance.doOCR(fileFrame);
+                System.out.println(frameText);
+//                framesTexts.add(frameText);          
+                if (!(framesTexts.toString()).contains(frameText)) {         
+                  framesTexts.append(frameText+ " ");
+                }
+            } catch (TesseractException e) {
+                System.err.println(e.getMessage());
+            }
+    }
+      String ocrRemarks= framesTexts.toString();
+      return ocrRemarks;
+      
+    } catch (Exception e) {
+      System.out.println("Exception while trying to convert fileFrames into text.");
+    }
+     return null; 
 
   }
 
