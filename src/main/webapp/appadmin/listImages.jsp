@@ -28,7 +28,7 @@ while(allSharks.hasNext()){
 
 	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
 	
-	if(sharky.wasSightedInLocationCode("1a2")){
+	//if(sharky.wasSightedInLocationCode("1a2")){
 
 		%>
 		
@@ -142,7 +142,7 @@ while(allSharks.hasNext()){
 		</shark>
 		<%
 	
-	}
+	//}
 	
 }
 
