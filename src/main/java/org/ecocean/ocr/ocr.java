@@ -11,7 +11,8 @@ import net.sourceforge.tess4j.*;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.YouTube;
-
+//Place tessdata folder in project's root directory.
+//Installation issue for mac users and how to solve it:http://www.microshell.com/programming/java/performing-optical-character-recognition-in-java/
 public class ocr {
   
   public static ArrayList<File> makeFilesFrames(ArrayList<MediaAsset> frames){
