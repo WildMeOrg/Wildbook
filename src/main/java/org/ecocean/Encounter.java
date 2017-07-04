@@ -2333,7 +2333,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
             newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
             String consolidatedRemarks="<p>Auto-sourced from YouTube Parent Video: <a href=\"https://www.youtube.com/watch?v="+parentRoot.getParameters().optString("id")+"\">"+parentRoot.getParameters().optString("id")+"</a></p>";
             //set the video ID as the EventID for distinct access later
-            newEnc.setEventID(parentRoot.getParameters().optString("id"));
+            newEnc.setEventID("youtube:"+parentRoot.getParameters().optString("id"));
             if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
                 
                 if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {

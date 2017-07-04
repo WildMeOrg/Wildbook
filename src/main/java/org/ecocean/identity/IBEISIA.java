@@ -55,7 +55,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import java.text.DateFormatSymbols;
 import java.util.Locale;
 //natural language processing for date/time
-import com.joestelmach.natty.*;
+//import com.joestelmach.natty.*;
 import java.util.Date;
 import org.joda.time.Instant;
 
@@ -162,7 +162,7 @@ public class IBEISIA {
 
 System.out.println("sendMediaAssets(): sending " + ct);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?
-        return RestClient.post(url, new JSONObject(map));
+        return RestClient.post(url, hashMapToJSONObject(map));
     }
 
 
@@ -209,7 +209,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         boolean tryAgain = true;
         JSONObject res = null;
         while (tryAgain) {
-            res = RestClient.post(url, new JSONObject(map));
+            res = RestClient.post(url, hashMapToJSONObject(map));
             tryAgain = iaCheckMissing(res, context);
         }
         return res;
@@ -302,7 +302,7 @@ System.out.println("tlist.size()=" + tlist.size());
 System.out.println(map);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-        return RestClient.post(url, new JSONObject(map));
+        return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
 
@@ -1284,10 +1284,12 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     occ.setDWCDateLastModified();
                     occ.setDateTimeCreated();
                     occ.addComments("<i>created during frame collation by IA</i>");
+                    
                     JSONArray je = new JSONArray();
                     for (Encounter enc : encs) {
                         enc.setOccurrenceID(occ.getOccurrenceID());
                         occ.addEncounter(enc);
+                        occ.setSocialMediaSourceID(enc.getEventID());
                         myShepherd.getPM().makePersistent(enc);
                         je.put(enc.getCatalogNumber());
                     }
@@ -2759,19 +2761,32 @@ return Util.generateUUID();
                         int numCharact= myDate.length();
                      
                         if(numCharact>=4){
-                          NLPsuccess=true;
-                          year=(new Integer(myDate.substring(0, 4))).intValue();
-                        }
-                        if(numCharact>=7){
-                          try { month=(new Integer(myDate.substring(5, 7))).intValue();
-                          } catch (Exception e) { month=-1;}
-                        }
-                        else{month=-1;}
-                        if(numCharact>=10){
-                          try {
-                            day=(new Integer(myDate.substring(8, 10))).intValue(); } catch (Exception e) { day=-1; }
-                        }
-                        else{day=-1;}
+                          
+                          try{
+                            year=(new Integer(myDate.substring(0, 4))).intValue();
+                            NLPsuccess=true;
+                            
+                            if(numCharact>=7){
+                              try { 
+                                month=(new Integer(myDate.substring(5, 7))).intValue();
+                                if(numCharact>=10){
+                                  try {
+                                    day=(new Integer(myDate.substring(8, 10))).intValue(); 
+                                    } 
+                                  catch (Exception e) { day=-1; }
+                                }
+                              else{day=-1;}
+                              } 
+                              catch (Exception e) { month=-1;}
+                            }
+                            else{month=-1;}
+
+                          }
+                          catch(Exception e){
+                            e.printStackTrace();
+                          }
+                      }
+                        
                     }
                     
 //                      Parser parser = new Parser();
@@ -2807,7 +2822,7 @@ return Util.generateUUID();
 //                    }
                 }
                 catch(Exception e){
-                    System.out.println("Exception in natty NLP in IBEISIA.class");
+                    System.out.println("Exception in NLP in IBEISIA.class");
                     e.printStackTrace();
                 }
                   
@@ -2934,5 +2949,27 @@ return Util.generateUUID();
         //end set date/location/locationID on Encounters
         
     }
+
+
+    //// TOTAL HACK... buy jon a drink and he will tell you about these.....
+    public static JSONObject hashMapToJSONObject(HashMap<String,ArrayList> map) {
+        if (map == null) return null;
+        //return new JSONObject(map);  // this *used to work*, i swear!!!
+        JSONObject rtn = new JSONObject();
+        for (String k : map.keySet()) {
+            rtn.put(k, map.get(k));
+        }
+        return rtn;
+    }
+    public static JSONObject hashMapToJSONObject2(HashMap<String,Object> map) {   //note: Object-flavoured
+        if (map == null) return null;
+        //return new JSONObject(map);  // this *used to work*, i swear!!!
+        JSONObject rtn = new JSONObject();
+        for (String k : map.keySet()) {
+            rtn.put(k, map.get(k));
+        }
+        return rtn;
+    }
+
 
 }

@@ -70,6 +70,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import java.util.*;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.pipeline.*;
+import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.time.*;
 import edu.stanford.nlp.time.SUTime.Temporal;
 import edu.stanford.nlp.util.CoreMap;
