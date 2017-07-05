@@ -2708,6 +2708,7 @@ return Util.generateUUID();
           //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
           String ocrRemarks="";
           try {
+<<<<<<< HEAD
             List<MediaAsset> assets= occ.getAssets();
             MediaAsset myAsset = assets.get(0);
             System.out.println(myAsset);
@@ -2725,6 +2726,34 @@ return Util.generateUUID();
               ocrRemarks= "";
             }            
           } catch (Exception e) {
+=======
+            if((occ.getEncounters()!=null)&&(occ.getEncounters().size()>0)){
+              Encounter myEnc=occ.getEncounters().get(0);
+              List<MediaAsset> assets= myEnc.getMedia();
+              if((assets!=null)&&(assets.size()>0)){
+                MediaAsset myAsset = assets.get(0);
+                MediaAsset parent = myAsset.getParent(myShepherd);
+                if(parent!=null){
+                  ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
+                  if((frames!=null)&&(frames.size()>0)){
+                      ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+                      if (ocr.getTextFrames(filesFrames)!=null) {
+                        ocrRemarks = ocr.getTextFrames(filesFrames);              
+                      }
+                      else {
+                        ocrRemarks= "";
+                      }   
+                    }
+                  }
+                  else{
+                    System.out.println("I could not find any frames from YouTubeAssetStore.findFrames for asset:"+myAsset.getId()+" from Encounter "+myEnc.getCatalogNumber());
+                  }
+              }
+              }
+            }
+           catch (Exception e) {
+            e.printStackTrace();
+>>>>>>> 76d2bc3e96ab9fcc5782e4007d5e2a9d75367079
             System.out.println("I hit an exception trying to find ocrRemarks.");
           }
           
@@ -2919,7 +2948,7 @@ return Util.generateUUID();
           
           //if date and/or location not found, ask youtube poster through comment section.
 //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
-//          YouTube.init(request);
+          YouTube.init(request);
           Properties quest = new Properties();
           //Properties questEs = new Properties();
           
