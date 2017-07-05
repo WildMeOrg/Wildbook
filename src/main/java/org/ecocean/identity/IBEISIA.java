@@ -2751,15 +2751,24 @@ return Util.generateUUID();
             //OK, let's check the comments and tags for retrievable metadata
             try {
               
-              //first parse for location and locationID
-              props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
-              Enumeration m_enum = props.propertyNames();
-              while (m_enum.hasMoreElements()) {
-                String aLocationSnippet = ((String) m_enum.nextElement()).trim();
-                if (remarks.indexOf(aLocationSnippet) != -1) {
-                  locCode = props.getProperty(aLocationSnippet);
-                  location+=(aLocationSnippet+" ");
+              
+            //first parse for location and locationID
+              try{
+                props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+                Enumeration m_enum = props.propertyNames();
+                while (m_enum.hasMoreElements()) {
+                  String aLocationSnippet = ((String) m_enum.nextElement()).trim();
+                  System.out.println("     Looking for: "+aLocationSnippet);
+                  if (remarks.indexOf(aLocationSnippet) != -1) {
+                    locCode = props.getProperty(aLocationSnippet);
+                    location+=(aLocationSnippet+" ");
+                    System.out.println(".....Building an idea of location: "+location);
+                  }
                 }
+              
+              }
+              catch(Exception e){
+                e.printStackTrace();
               }
               
               
@@ -2932,37 +2941,44 @@ return Util.generateUUID();
           }
           
           //if date and/or location not found, ask youtube poster through comment section.
-//          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
-          YouTube.init(request);
-          Properties quest = new Properties();
-          //Properties questEs = new Properties();
-          
-          //TBD-simplify to one set of files
-          quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
-          //questEs= ShepherdProperties.getProperties("questEs.properties");
-          
-          String questionToPost=null;
-          
-          if((enc.getDateInMilliseconds()==null)&&(locCode==null)){
-            questionToPost= quest.getProperty("whenWhere");
+          //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
+          try{
+            YouTube.init(request);
+            Properties quest = new Properties();
+            //Properties questEs = new Properties();
             
-          }
-          else if(enc.getDateInMilliseconds()==null){
-            questionToPost= quest.getProperty("when");
-     
-          }
-          else if(locCode==null){
-            questionToPost= quest.getProperty("where");
-          }
-          
-          if(questionToPost!=null){
-//            String videoId = enc.getEventID().replaceAll("youtube:",""); 
-            String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
-            try{
-              YouTube.postQuestion(questionToPost,videoId, occ);
+            //TBD-simplify to one set of files
+            quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+            //questEs= ShepherdProperties.getProperties("questEs.properties");
+            
+            String questionToPost=null;
+            
+            if((enc.getDateInMilliseconds()==null)&&(locCode==null)){
+              questionToPost= quest.getProperty("whenWhere");
+              
             }
-            catch(Exception e){e.printStackTrace();}
-          }
+            else if(enc.getDateInMilliseconds()==null){
+              questionToPost= quest.getProperty("when");
+       
+            }
+            else if(locCode==null){
+              questionToPost= quest.getProperty("where");
+            }
+            
+            if(questionToPost!=null){
+  //            String videoId = enc.getEventID().replaceAll("youtube:",""); 
+              String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
+              try{
+                YouTube.postQuestion(questionToPost,videoId, occ);
+              }
+              catch(Exception e){e.printStackTrace();}
+            }
+          
+        }
+         catch(Exception yet){
+           System.out.println("Caught exception trying to post a YouTube question.");
+           yet.printStackTrace();
+         }
 
           
         
