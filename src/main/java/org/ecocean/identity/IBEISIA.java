@@ -2708,27 +2708,34 @@ return Util.generateUUID();
           //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
           String ocrRemarks="";
           try {
-            List<MediaAsset> assets= occ.getAssets();
-            MediaAsset myAsset = assets.get(0);
-            System.out.println(myAsset);
-            
-            ArrayList<File>filesFrames= new ArrayList<File>();
-            try {
-              ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
-              filesFrames= ocr.makeFilesFrames(frames);
-            } catch (Exception e) {
-              System.out.println("I am catching an exception when grabbing MediaAsset frames to convert them into files");
+            if((occ.getEncounters()!=null)&&(occ.getEncounters().size()>0)){
+              Encounter myEnc=occ.getEncounters().get(0);
+              List<MediaAsset> assets= myEnc.getMedia();
+              if((assets!=null)&&(assets.size()>0)){
+                MediaAsset myAsset = assets.get(0);
+                MediaAsset parent = myAsset.getParent(myShepherd);
+                if(parent!=null){
+                  ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
+                  if((frames!=null)&&(frames.size()>0)){
+                      ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+                      if (ocr.getTextFrames(filesFrames)!=null) {
+                        ocrRemarks = ocr.getTextFrames(filesFrames);              
+                      }
+                      else {
+                        ocrRemarks= "";
+                      }   
+                    }
+                  }
+                  else{
+                    System.out.println("I could not find any frames from YouTubeAssetStore.findFrames for asset:"+myAsset.getId()+" from Encounter "+myEnc.getCatalogNumber());
+                  }
+              }
+              }
             }
-            if (ocr.getTextFrames(filesFrames)!=null) {
-              ocrRemarks = ocr.getTextFrames(filesFrames);
-              System.out.println(ocrRemarks);
-            }else {
-              ocrRemarks= "";
-            }            
-          } catch (Exception e) {
-            System.out.println("I made this far, but hit an exception trying to find ocrRemarks.");
-          }
-          
+            catch (Exception e) {
+              e.printStackTrace();
+              System.out.println("I hit an exception trying to find ocrRemarks.");
+            }        
           
           if(enc.getOccurrenceRemarks()!=null){
             
@@ -2920,7 +2927,7 @@ return Util.generateUUID();
           
           //if date and/or location not found, ask youtube poster through comment section.
 //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
-//          YouTube.init(request);
+          YouTube.init(request);
           Properties quest = new Properties();
           //Properties questEs = new Properties();
           
