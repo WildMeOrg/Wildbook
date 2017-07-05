@@ -41,6 +41,8 @@ public class ocr {
       for (File fileFrame : filesFrames) {
 //        File imageFile = new File("image"); //pass a file name or path to file
             ITesseract instance = new Tesseract();  // JNA Interface Mapping
+			instance.setDatapath("/var/lib/tomcat7/webapps/wildbook/WEB-INF/classes/");// JNA Interface Mapping
+            
             try {
                 String frameText = instance.doOCR(fileFrame);
                 System.out.println(frameText);
