@@ -2718,6 +2718,7 @@ return Util.generateUUID();
               ocrRemarks= "";
             }            
           } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("I hit an exception trying to find ocrRemarks.");
           }
           
