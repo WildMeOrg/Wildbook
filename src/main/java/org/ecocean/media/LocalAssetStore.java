@@ -309,7 +309,7 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
         if(ma==null) System.out.println("MediaAsset is null in LocalAssetStore.webURL");
         if ((webRoot() == null) || (ma == null)) return null;
         Path path = pathFromParameters(ma.getParameters());
-        System.out.println("making webURL with pathFromParameters(mediaAsset) = "+path);
+        //System.out.println("making webURL with pathFromParameters(mediaAsset) = "+path);
         if (path == null) return null;
 
         try {
