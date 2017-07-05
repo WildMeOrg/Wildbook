@@ -10,6 +10,7 @@ import net.sourceforge.tess4j.*;
 
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.YouTubeAssetStore;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.YouTube;
 //Place tessdata folder in project's root directory.
 //Installation issue for mac users and how to solve it:http://www.microshell.com/programming/java/performing-optical-character-recognition-in-java/
@@ -32,7 +33,7 @@ public class ocr {
     return null;
     
   }
-  public static String getTextFrames(ArrayList<File> filesFrames) {
+  public static String getTextFrames(ArrayList<File> filesFrames, String context) {
     
 //    ArrayList<String> framesTexts = new ArrayList<String>();
     try {
@@ -41,11 +42,11 @@ public class ocr {
       for (File fileFrame : filesFrames) {
 //        File imageFile = new File("image"); //pass a file name or path to file
             ITesseract instance = new Tesseract();  // JNA Interface Mapping
-			instance.setDatapath("/var/lib/tomcat7/webapps/wildbook/WEB-INF/classes/");// JNA Interface Mapping
+			instance.setDatapath(CommonConfiguration.getProperty("tesseractDataPath", context));// JNA Interface Mapping
             
             try {
                 String frameText = instance.doOCR(fileFrame);
-                System.out.println(frameText);
+                //System.out.println(frameText);
 //                framesTexts.add(frameText);          
                 if (!(framesTexts.toString()).contains(frameText)) {         
                   framesTexts.append(frameText+ " ");
