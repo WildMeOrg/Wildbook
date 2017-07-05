@@ -2709,19 +2709,27 @@ return Util.generateUUID();
           String ocrRemarks="";
           try {
             if((occ.getEncounters()!=null)&&(occ.getEncounters().size()>0)){
-              List<MediaAsset> assets= occ.getEncounters().get(0).getMedia();
+              Encounter myEnc=occ.getEncounters().get(0);
+              List<MediaAsset> assets= myEnc.getMedia();
               if((assets!=null)&&(assets.size()>0)){
                 MediaAsset myAsset = assets.get(0);
                 ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
-                ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
-                if (ocr.getTextFrames(filesFrames)!=null) {
-                  ocrRemarks = ocr.getTextFrames(filesFrames);              
-                }else {
-                  ocrRemarks= "";
-                }   
+                  if((frames!=null)&&(frames.size()>0)){
+                    ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+                    if (ocr.getTextFrames(filesFrames)!=null) {
+                      ocrRemarks = ocr.getTextFrames(filesFrames);              
+                    }
+                    else {
+                      ocrRemarks= "";
+                    }   
+                  }
+                  else{
+                    System.out.println("I could not find any frames from YouTubeAssetStore.findFrames for asset:"+myAsset.getId()+" from Encounter "+myEnc.getCatalogNumber());
+                  }
+              }
               }
             }
-          } catch (Exception e) {
+           catch (Exception e) {
             e.printStackTrace();
             System.out.println("I hit an exception trying to find ocrRemarks.");
           }
