@@ -2718,12 +2718,14 @@ return Util.generateUUID();
                   ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
                   if((frames!=null)&&(frames.size()>0)){
                       ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
-                      if (ocr.getTextFrames(filesFrames)!=null) {
-                        ocrRemarks = ocr.getTextFrames(filesFrames);              
-                      }
-                      else {
-                        ocrRemarks= "";
-                      }   
+                      //if (ocr.getTextFrames(filesFrames)!=null) {
+                        ocrRemarks = ocr.getTextFrames(filesFrames, context);
+                        if(ocrRemarks==null)ocrRemarks="";
+                        System.out.println("I found OCR remarks: "+ocrRemarks);
+                      //}
+                      //else {
+                      //  ocrRemarks= "";
+                      //}   
                     }
                   }
                   else{
@@ -2741,6 +2743,9 @@ return Util.generateUUID();
           if(enc.getOccurrenceRemarks()!=null){
             
             String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase()+" "+ ocrRemarks;
+            
+            System.out.println("Let's parse these remarks for date and location: "+remarks);
+            
             Properties props = new Properties();
     
             //OK, let's check the comments and tags for retrievable metadata
