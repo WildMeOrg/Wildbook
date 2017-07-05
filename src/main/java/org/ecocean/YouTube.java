@@ -48,7 +48,6 @@ public class YouTube {
           }
         }).setApplicationName("wildbook-youtube").build();
         
-        
         String CLIENT_ID= CommonConfiguration.getProperty("youtube_client_id", context);
         String CLIENT_SECRET= CommonConfiguration.getProperty("youtube_client_secret", context);;
         refreshToken = CommonConfiguration.getProperty("refresh_token", context);

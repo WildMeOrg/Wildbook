@@ -2710,8 +2710,15 @@ return Util.generateUUID();
           try {
             List<MediaAsset> assets= occ.getAssets();
             MediaAsset myAsset = assets.get(0);
-            ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
-            ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+            System.out.println(myAsset);
+            
+            ArrayList<File>filesFrames= new ArrayList<File>();
+            try {
+              ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
+              filesFrames= ocr.makeFilesFrames(frames);
+            } catch (Exception e) {
+              System.out.println("I am catching an exception when grabbing MediaAsset frames to convert them into files");
+            }
             if (ocr.getTextFrames(filesFrames)!=null) {
               ocrRemarks = ocr.getTextFrames(filesFrames);              
             }else {
