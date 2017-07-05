@@ -2708,15 +2708,19 @@ return Util.generateUUID();
           //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
           String ocrRemarks="";
           try {
-            List<MediaAsset> assets= occ.getAssets();
-            MediaAsset myAsset = assets.get(0);
-            ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
-            ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
-            if (ocr.getTextFrames(filesFrames)!=null) {
-              ocrRemarks = ocr.getTextFrames(filesFrames);              
-            }else {
-              ocrRemarks= "";
-            }            
+            if((occ.getEncounters()!=null)&&(occ.getEncounters().size()>0)){
+              List<MediaAsset> assets= occ.getEncounters().get(0).getMedia();
+              if((assets!=null)&&(assets.size()>0)){
+                MediaAsset myAsset = assets.get(0);
+                ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
+                ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+                if (ocr.getTextFrames(filesFrames)!=null) {
+                  ocrRemarks = ocr.getTextFrames(filesFrames);              
+                }else {
+                  ocrRemarks= "";
+                }   
+              }
+            }
           } catch (Exception e) {
             e.printStackTrace();
             System.out.println("I hit an exception trying to find ocrRemarks.");
@@ -2913,7 +2917,7 @@ return Util.generateUUID();
           
           //if date and/or location not found, ask youtube poster through comment section.
 //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
-//          YouTube.init(request);
+          YouTube.init(request);
           Properties quest = new Properties();
           //Properties questEs = new Properties();
           
