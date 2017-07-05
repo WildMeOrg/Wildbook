@@ -103,6 +103,17 @@ console.log('is %o', ajax);
         classInit('Base', function() { wildbook.loadAllClasses(callback); });  //define base class first - rest can happen any order
     },
 
+    encounterToMediaAssets: function(enc) {
+        var anns = enc.annotations || enc.get('annotations');  //handles either style
+        if (!anns || (anns.length == 0)) return false;
+        var mas = [];
+        for (var i = 0 ; i < anns.length ; i++) {
+            //assuming just one feature!   FIXME ?
+            if (anns[i].features && anns[i].features[0] && anns[i].features[0].mediaAsset) mas.push(anns[i].features[0].mediaAsset);
+        }
+        return mas;
+    },
+
     errorDialog: false,
 
     showError: function(ex) {

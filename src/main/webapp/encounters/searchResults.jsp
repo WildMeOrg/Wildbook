@@ -60,6 +60,9 @@ context=ServletUtilities.getContext(request);
 	font-weight: bold;
 }
 
+.ptcol-date {
+	width: 8em !important;
+}
 .ptcol-ia .ia-success-match {
 	background-color: #1A0;
 }
@@ -899,20 +902,13 @@ function _colTaxonomy(o) {
 }
 
 function _colFileName(o) {
-  if (!o.get('annotations')) return 'none';
-  var outStrings = [];
-  for (id in o.get('annotations')) {
-    var ann = o.get('annotations')[id];
-    if (ann.mediaAsset != undefined) {
-      var urlString = ann.mediaAsset.url;
-      var pieces = urlString.split('/');
-      var betweenLastSlashAndJpg = pieces[pieces.length-1].split('.')[0];
-      outStrings[outStrings.length] = betweenLastSlashAndJpg;
-      //console.log('\t added url string: '+ann.mediaAsset.url);
-    }
-    console.log('\t no mediaAsset found in annotation '+JSON.stringify(ann));
-  }
-  return outStrings.join(',\n');
+	var mas = wildbook.encounterToMediaAssets(o);
+	if (!mas || (mas.length < 1)) return '';
+	var n = [];
+	for (var i = 0 ; i < mas.length ; i++) {
+		n.push(mas[i].filename);
+	}
+	return n.join('; ');
 }
 function _colAlternateID(o) {
   if (!o.get('otherCatalogNumbers')) return '';
@@ -1074,7 +1070,9 @@ function _colIASort(o) {
 }
 
 function _colThumb(o) {
-	var url = wildbook.cleanUrl(o.thumbUrl());
+	var mas = wildbook.encounterToMediaAssets(o);
+	if (!mas || (mas.length < 1)) return '';
+	var url = wildbook.cleanUrl(mas[0].url);
 	if (!url) return '';
 	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /><span class="collab-icon"></span></div>';
 	return '<img src="' + url + '" />';

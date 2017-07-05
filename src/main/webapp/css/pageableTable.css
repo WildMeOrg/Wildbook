@@ -42,6 +42,7 @@
 	left: 250px;
 	display: none;
 	border: solid 5px #000;
+        max-width: 300px;
 	border-radius: 7px;
 }
 
