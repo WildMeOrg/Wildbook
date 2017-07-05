@@ -2713,15 +2713,18 @@ return Util.generateUUID();
               List<MediaAsset> assets= myEnc.getMedia();
               if((assets!=null)&&(assets.size()>0)){
                 MediaAsset myAsset = assets.get(0);
-                ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
+                MediaAsset parent = myAsset.getParent(myShepherd);
+                if(parent!=null){
+                  ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
                   if((frames!=null)&&(frames.size()>0)){
-                    ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
-                    if (ocr.getTextFrames(filesFrames)!=null) {
-                      ocrRemarks = ocr.getTextFrames(filesFrames);              
+                      ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+                      if (ocr.getTextFrames(filesFrames)!=null) {
+                        ocrRemarks = ocr.getTextFrames(filesFrames);              
+                      }
+                      else {
+                        ocrRemarks= "";
+                      }   
                     }
-                    else {
-                      ocrRemarks= "";
-                    }   
                   }
                   else{
                     System.out.println("I could not find any frames from YouTubeAssetStore.findFrames for asset:"+myAsset.getId()+" from Encounter "+myEnc.getCatalogNumber());
