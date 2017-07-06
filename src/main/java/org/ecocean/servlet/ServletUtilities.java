@@ -843,7 +843,7 @@ String rootWebappPath = "xxxxxx";
 //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
         String dateStr= myDate.toString();
         System.out.println(".....found date: "+dateStr);
-        arrayListDates.add(dateStr);
+        arrayListDates.add(dateStr.replaceAll("-XX", ""));
       }
       System.out.println("NLP dates found+:"+ arrayListDates);
       
