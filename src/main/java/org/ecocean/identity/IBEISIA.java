@@ -2827,7 +2827,7 @@ return Util.generateUUID();
                         LocalDateTime dt = new LocalDateTime();
                         
                         DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-                        LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(myDate));
+                        LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseLocalDateTime(myDate));
                         System.out.println("     reportedDateTime is: "+reportedDateTime.toString(parser1));
                         StringTokenizer str=new StringTokenizer(myDate,"-");
                         int numTokens=str.countTokens();
