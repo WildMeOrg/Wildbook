@@ -2793,9 +2793,9 @@ return Util.generateUUID();
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
                         System.out.println(">>>>>> NLP found date: "+myDate);
-                        int numCharact= myDate.length();
+                        //int numCharact= myDate.length();
                      
-                        if(numCharact>=4){
+                        /*if(numCharact>=4){
                           
                           try{
                             year=(new Integer(myDate.substring(0, 4))).intValue();
@@ -2821,6 +2821,39 @@ return Util.generateUUID();
                             e.printStackTrace();
                           }
                       }
+                        */
+                        
+                        //current datetime just for quality comparison
+                        LocalDateTime dt = new LocalDateTime();
+                        
+                        DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+                        LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(myDate));
+                        
+                        StringTokenizer str=new StringTokenizer(myDate,"-");
+                        int numTokens=str.countTokens();
+
+
+                        if(numTokens>=1){
+                          //try {
+                          year=reportedDateTime.getYear();
+                            if(year>(dt.getYear()+1)){
+                              //badDate=true;
+                              year=-1;
+                              //throw new Exception("    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format: "+year+" > "+dt.getYear());
+                            }
+
+                         //} catch (Exception e) { year=-1;}
+                        }
+                        if(numTokens>=2){
+                          try { month=reportedDateTime.getMonthOfYear(); } catch (Exception e) { month=-1;}
+                        }
+                        else{month=-1;}
+                        //see if we can get a day, because we do want to support only yyy-MM too
+                        if(str.countTokens()>=3){
+                          try { day=reportedDateTime.getDayOfMonth(); } catch (Exception e) { day=0; }
+                        }
+                        else{day=-1;}
+                        
                         
                     }
                     
