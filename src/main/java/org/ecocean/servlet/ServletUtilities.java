@@ -841,26 +841,32 @@ String rootWebappPath = "xxxxxx";
       System.out.println("NLP dates found+:"+ arrayListDates);
       
     if (!arrayListDates.isEmpty()) {
-      //turn arrayList into an array to be able to use the old For loop and compare dates.
-      String[] arrayDates = new String[arrayListDates.size()];
-      arrayDates = arrayListDates.toArray(arrayDates);
-      //select best date among the options based on their length.
-      String selectedDate= "";
-      for (int i = 0; i < arrayDates.length; i++) {
-        for (int j = i+1; j < arrayDates.length; j++) {
-          if (arrayDates[i].length()>arrayDates[j].length()) {
-            selectedDate= arrayDates[i];
-      }else if (arrayDates[i].length()<arrayDates[j].length()) {
-        selectedDate = arrayDates[j];
-      }else {
-        selectedDate = arrayDates[0];
+        //turn arrayList into an array to be able to use the old For loop and compare dates.
+        String[] arrayDates = new String[arrayListDates.size()];
+        arrayDates = arrayListDates.toArray(arrayDates);
+        //select best date among the options based on their length.
+        String selectedDate= "";
+        
+        //multiple entries found, now sort on length
+        if(arrayListDates.size()>1){
+          for (int i = 0; i < arrayDates.length; i++) {
+            for (int j = i+1; j < arrayDates.length; j++) {
+              if (arrayDates[i].length()>arrayDates[j].length()) {
+                selectedDate= arrayDates[i];
+              }else if (arrayDates[i].length()<arrayDates[j].length()) {
+                selectedDate = arrayDates[j];
+              }else {
+                selectedDate = arrayDates[0];
+              }
+             
+            }
+        
+          }
       }
-         
-    }
-    
-      }
-      System.out.println("selectedDate is: "+selectedDate); // format is yyyy-mm-dd
-      return selectedDate;
+      //only 1 entry, return it
+      else{selectedDate=arrayListDates.get(0);}
+        System.out.println("selectedDate is: "+selectedDate); // format is yyyy-mm-dd
+        return selectedDate;
     }else {
       return null;
     }
