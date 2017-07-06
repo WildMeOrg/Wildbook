@@ -6,7 +6,7 @@ import org.json.JSONObject;
 import org.ecocean.servlet.ServletUtilities;
 import java.io.File;
 import java.util.List;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.security.InvalidKeyException;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.client.http.HttpRequest;
+//import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -47,7 +47,6 @@ public class YouTube {
           public void initialize(com.google.api.client.http.HttpRequest request) throws IOException {
           }
         }).setApplicationName("wildbook-youtube").build();
-        
         
         String CLIENT_ID= CommonConfiguration.getProperty("youtube_client_id", context);
         String CLIENT_SECRET= CommonConfiguration.getProperty("youtube_client_secret", context);;
@@ -223,11 +222,11 @@ System.out.println("]=== done with .extractFrames()");
     return null;
   }
     
-    public static String getReplies(String commentId, Occurrence occur) {  //pubAfter is ms since epoch
+    public static String getReplies(Occurrence occur) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
-//        String commentId=Occurrence.getSocialMediaQueryCommentID();
+        String commentId=occur.getSocialMediaQueryCommentID();
         CommentListResponse commentsListResponse = youtube.comments().list("snippet")
             .setParentId(commentId).setTextFormat("plainText").execute();
         List<Comment> comments = commentsListResponse.getItems();
@@ -244,6 +243,7 @@ System.out.println("]=== done with .extractFrames()");
                 CommentSnippet snippet = commentReply.getSnippet();
                 replies += snippet.getTextDisplay();
                 occur.setSocialMediaQueryCommentReplies(replies);
+                
                 System.out.println("  - Author: " + snippet.getAuthorDisplayName());
                 System.out.println("  - Reply: " + snippet.getTextDisplay());
                 System.out
@@ -262,7 +262,7 @@ System.out.println("]=== done with .extractFrames()");
         return null;
     }
     
-    public static String sendReply(String commentId, String videoId) {  //pubAfter is ms since epoch
+    public static String sendReply(String commentId, String commentToPost) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
@@ -280,7 +280,7 @@ System.out.println("]=== done with .extractFrames()");
         Comment comment = new Comment();
         CommentSnippet snippet = new CommentSnippet();
         snippet.set("parentId", parentId);
-        snippet.set("textOriginal", "Wow.Thanks");
+        snippet.set("textOriginal", commentToPost);
 
         comment.setSnippet(snippet);
 
