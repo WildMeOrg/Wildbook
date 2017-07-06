@@ -2742,7 +2742,7 @@ return Util.generateUUID();
           
           if(enc.getOccurrenceRemarks()!=null){
             
-            String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase()+" "+ ocrRemarks;
+            String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase()+" "+ ocrRemarks.toLowerCase();
             
             System.out.println("Let's parse these remarks for date and location: "+remarks);
             
