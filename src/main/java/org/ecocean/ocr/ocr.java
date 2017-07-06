@@ -12,8 +12,14 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.YouTube;
-//Place tessdata folder in project's root directory.
-//Installation issue for mac users and how to solve it:http://www.microshell.com/programming/java/performing-optical-character-recognition-in-java/
+
+import javax.imageio.ImageIO;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.awt.image.BufferedImage;
+
 public class ocr {
   
   public static ArrayList<File> makeFilesFrames(ArrayList<MediaAsset> frames){
@@ -46,7 +52,12 @@ public class ocr {
             //use cube and tesseract - high quality
             instance.setOcrEngineMode(2);
             try {
-                String frameText = instance.doOCR(fileFrame);
+                //String frameText = instance.doOCR(fileFrame);
+                BufferedImage bimg = ImageIO.read(fileFrame);
+                int width          = bimg.getWidth();
+                int height         = bimg.getHeight();
+                String frameText = instance.doOCR(width, height, getByteBufferFromFile(fileFrame), null, 8);
+                
                 //System.out.println(frameText);
 //                framesTexts.add(frameText);          
                 if (!(framesTexts.toString()).contains(frameText)) {         
@@ -64,6 +75,36 @@ public class ocr {
     }
      return null; 
 
+  }
+  
+  public static ByteBuffer getByteBufferFromFile(File file){
+    
+    FileInputStream fIn=null;
+    FileChannel fChan=null;
+    long fSize;
+    ByteBuffer mBuf=null;
+
+    try {
+      fIn = new FileInputStream("test.txt");
+      fChan = fIn.getChannel();
+      fSize = fChan.size();
+      mBuf = ByteBuffer.allocate((int) fSize);
+      fChan.read(mBuf);
+      mBuf.rewind();
+      for (int i = 0; i < fSize; i++)
+        System.out.print((char) mBuf.get());
+
+    } catch (IOException exc) {
+      System.out.println(exc);
+    }    
+    finally{
+      try{
+        if(fChan!=null)fChan.close(); 
+        if(fIn!=null)fIn.close(); 
+      }
+      catch(Exception e){}
+    }
+    return mBuf;
   }
 
 }
