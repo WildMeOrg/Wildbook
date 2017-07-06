@@ -2734,11 +2734,10 @@ return Util.generateUUID();
               }
               }
             }
-           catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("I hit an exception trying to find ocrRemarks.");
-          }
-          
+            catch (Exception e) {
+              e.printStackTrace();
+              System.out.println("I hit an exception trying to find ocrRemarks.");
+            }        
           
           if(enc.getOccurrenceRemarks()!=null){
             
@@ -2985,7 +2984,7 @@ return Util.generateUUID();
           //if date and/or location not found, ask youtube poster through comment section.
           //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
           try{
-            YouTube.init(request);
+//            YouTube.init(request);
             Properties quest = new Properties();
             //Properties questEs = new Properties();
             
