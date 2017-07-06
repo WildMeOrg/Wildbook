@@ -809,6 +809,7 @@ String rootWebappPath = "xxxxxx";
         return gresp.optBoolean("success", false);
     }
     public static String nlpDateParse(String text) {
+      System.out.println("Entering nlpParseDate");
       //create my pipeline with the help of the annotators I added.
       Properties props = new Properties();
       AnnotationPipeline pipeline = new AnnotationPipeline();
@@ -834,9 +835,10 @@ String rootWebappPath = "xxxxxx";
         Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
 //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
         String dateStr= myDate.toString();
+        System.out.println(".....found date: "+dateStr);
         arrayListDates.add(dateStr);
       }
-      System.out.println(arrayListDates);
+      System.out.println("NLP dates found+:"+ arrayListDates);
       
     if (!arrayListDates.isEmpty()) {
       //turn arrayList into an array to be able to use the old For loop and compare dates.
@@ -857,7 +859,7 @@ String rootWebappPath = "xxxxxx";
     }
     
       }
-      System.out.println(selectedDate); // format is yyyy-mm-dd
+      System.out.println("selectedDate is: "+selectedDate); // format is yyyy-mm-dd
       return selectedDate;
     }else {
       return null;
