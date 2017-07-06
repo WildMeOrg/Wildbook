@@ -818,7 +818,14 @@ String rootWebappPath = "xxxxxx";
       pipeline.addAnnotator(new POSTaggerAnnotator(false));
       pipeline.addAnnotator(new TimeAnnotator("sutime", props));
       
-      Annotation annotation = new Annotation(text);
+      text = text.replaceAll("[,.!?;:]", "$0 ");
+      System.out.println(text);
+      String [] text1= text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
+      String text2 = String.join(" ", text1);
+     
+      System.out.println(text2);
+      Annotation annotation = new Annotation(text2);
+      
       
       //get current date (no time) and formatted with Joda time.
       LocalDate date = LocalDate.now();
