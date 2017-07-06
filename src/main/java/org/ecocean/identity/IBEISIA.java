@@ -2984,7 +2984,7 @@ return Util.generateUUID();
           //if date and/or location not found, ask youtube poster through comment section.
           //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
           try{
-            YouTube.init(request);
+            //YouTube.init(request);
             Properties quest = new Properties();
             //Properties questEs = new Properties();
             
@@ -3007,8 +3007,8 @@ return Util.generateUUID();
             }
             
             if(questionToPost!=null){
-  //            String videoId = enc.getEventID().replaceAll("youtube:",""); 
-              String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
+            String videoId = enc.getEventID().replaceAll("youtube:",""); 
+              //String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
               try{
                 YouTube.postQuestion(questionToPost,videoId, occ);
               }
