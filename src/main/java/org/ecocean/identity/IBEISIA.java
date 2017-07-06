@@ -2785,6 +2785,7 @@ return Util.generateUUID();
                     System.out.println(">>>>>> looking for date with NLP");
                     //call Stanford NLP function to find and select a date from ytRemarks
                     String myDate= ServletUtilities.nlpDateParse(ytRemarks);
+                    System.out.println("Finished nlpPrseDate");;
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
                         System.out.println(">>>>>> NLP found date: "+myDate);
@@ -2927,7 +2928,11 @@ return Util.generateUUID();
             for(int i=0;i<numEncounters;i++){
               Encounter enctemp=encounters.get(i);
               enctemp.setLocationID(locCode);
-              if(!location.equals("")){enctemp.setLocation(location.trim());}
+              System.out.println("Setting locationID for detected Encounter to: "+locCode);
+              if(!location.equals("")){
+                enctemp.setLocation(location.trim());
+                System.out.println("Setting location for detected Encounter to: "+location);
+                }
             }
           }
           
