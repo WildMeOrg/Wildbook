@@ -2773,7 +2773,7 @@ return Util.generateUUID();
               
               
               //reset date to exclude OCR, which can currently confuse NLP
-              remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase();
+              //remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase();
               
               
               
