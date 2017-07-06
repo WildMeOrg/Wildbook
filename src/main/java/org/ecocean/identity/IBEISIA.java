@@ -2787,7 +2787,7 @@ return Util.generateUUID();
                 try{
                     System.out.println(">>>>>> looking for date with NLP");
                     //call Stanford NLP function to find and select a date from ytRemarks
-                    String myDate= ServletUtilities.nlpDateParse(ytRemarks);
+                    String myDate= ServletUtilities.nlpDateParse(remarks);
                     System.out.println("Finished nlpPrseDate");;
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
