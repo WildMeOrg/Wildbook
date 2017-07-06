@@ -2984,7 +2984,7 @@ return Util.generateUUID();
           //if date and/or location not found, ask youtube poster through comment section.
           //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
           try{
-//            YouTube.init(request);
+            YouTube.init(request);
             Properties quest = new Properties();
             //Properties questEs = new Properties();
             
