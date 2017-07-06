@@ -14,12 +14,6 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.YouTube;
 
 import javax.imageio.ImageIO;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 
 public class ocr {
   
@@ -53,12 +47,7 @@ public class ocr {
             //use cube and tesseract - high quality
             instance.setOcrEngineMode(2);
             try {
-                //String frameText = instance.doOCR(fileFrame);
-                BufferedImage bimg = ImageIO.read(fileFrame);
-                int width          = bimg.getWidth();
-                int height         = bimg.getHeight();
-                String frameText = instance.doOCR(width, height, getByteBufferFromFile(fileFrame), null, 8);
-                
+                String frameText = instance.doOCR(fileFrame);
                 //System.out.println(frameText);
 //                framesTexts.add(frameText);          
                 if (!(framesTexts.toString()).contains(frameText)) {         
@@ -77,30 +66,5 @@ public class ocr {
      return null; 
 
   }
-  
-  public static ByteBuffer getByteBufferFromFile(File file){
-    ByteArrayOutputStream baos=null;
-    ByteBuffer buf=null;
-      try{
-      BufferedImage originalImage = ImageIO.read(file);
-      baos = new ByteArrayOutputStream();
-      ImageIO.write( originalImage, "jpg", baos );
-      baos.flush();
-      byte[] imageInByte = baos.toByteArray();
-      
-      buf = ByteBuffer.wrap(imageInByte);
-    }
-    catch(Exception e){e.printStackTrace();}
-    finally{
-      if(baos!=null){
-        try{
-          baos.close();
-        }
-        catch(Exception f){f.printStackTrace();}
-        }
-    }
-    return buf;
 
-}
-  
 }
