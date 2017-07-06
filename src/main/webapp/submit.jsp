@@ -58,7 +58,11 @@ context=ServletUtilities.getContext(request);
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
+	}
 
+.ul-small li {
+	font-size: 0.7em;
+}
 
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
@@ -225,7 +229,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(10.8, 160.8);
+var center = new google.maps.LatLng(0.6811362994451233, 36.551513671875);
 
 var map;
 
@@ -249,7 +253,7 @@ function placeMarker(location) {
     }
 
   function initialize() {
-    var mapZoom = 3;
+    var mapZoom = 6;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
@@ -492,7 +496,7 @@ function showUploadBox() {
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <p class="help-block">
           <%=props.getProperty("examples") %>
-          <ul>
+          <ul class="ul-small">
             <li>2014-01-05 12:30</li>
             <li>2014-03-23</li>
             <li>2013-12</li>
@@ -518,10 +522,10 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 </fieldset>
 
-<hr />
-
 <fieldset>
+<!--
     <h3><%=props.getProperty("submit_location")%></h3>
+-->
 
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
@@ -606,7 +610,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <div>
     <p id="map">
     <!--
-      <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
+      <p style="font-size: 0.9em;">Use the arrow and +/- keys to navigate to a portion of the globe,, then click
         a point to set the sighting location. You can also use the text boxes below the map to specify exact
         latitude and longitude.</p>
     -->
@@ -616,18 +620,18 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
     <div>
       <div class=" form-group form-inline">
-        <div class="col-xs-12 col-sm-6">
+        <div style="white-space: nowrap;" class="col-xs-12 col-sm-6">
           <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
           <input class="form-control" name="lat" type="text" id="lat"> &deg;
         </div>
 
-        <div class="col-xs-12 col-sm-6">
+        <div style="white-space: nowrap;" class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
           <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
         </div>
       </div>
 
-      <p class="help-block">
+      <p class="help-block" style="font-size: 0.9em;">
         <%=props.getProperty("gpsConverter") %></p>
     </div>
 
@@ -733,7 +737,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     </div>
   </fielset>
 
-  <hr/>
 
   <fieldset>
     <div class="form-group">
@@ -768,18 +771,29 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 
 
-  <h4 class="accordion">
+  <h4 xclass="accordion">
+<!--
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
       <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
       <%=props.getProperty("advancedInformation") %>
     </a>
+-->
   </h4>
+<hr />
 
-    <div id="advancedInformation" fade="1" style="display: none;">
+    <div id="advancedInformation" xfade="1" xstyle="display: none;">
 
       <h3><%=props.getProperty("aboutAnimal") %></h3>
 
       <fieldset>
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_indiv") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+	        <input type="text" id="indiv-id" placeholder="type name to search existing" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="indiv-id" />
+		</div>
+	</div>
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -799,7 +813,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
           </div>
         </div>
         </fieldset>
-        <hr>
+
         <fieldset>
 <%
 
@@ -814,7 +828,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
           <div class="col-xs-6 col-lg-8">
             <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
+             	<!-- <option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option> -->
   <%
 
   					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
@@ -859,6 +873,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
         </div>
 
+<!--
 				<div class="form-group">
 					<div class="col-xs-6 col-md-4">
 						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
@@ -868,6 +883,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
 					</div>
 				</div>
+-->
 
 
         <div class="form-group">
@@ -881,6 +897,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         </div>
 
 
+<!--
            <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_scars") %></label>
@@ -890,6 +907,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="scars" type="text" id="scars" size="75">
           </div>
         </div>
+-->
 
 <%
 
@@ -980,10 +998,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 
-      <hr/>
 
        <fieldset>
-        <h3><%=props.getProperty("tags") %></h3>
+        <!-- <h3><%=props.getProperty("tags") %></h3>-->
       <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
@@ -1069,14 +1086,15 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
       </fieldset>
 
-<hr/>
 
+<!--
       <div class="form-group">
         <label class="control-label"><%=props.getProperty("otherEmails") %></label>
         <input class="form-control" name="informothers" type="text" id="informothers" size="75">
         <p class="help-block"><%=props.getProperty("multipleEmailNote") %></p>
       </div>
       </div>
+-->
 
 
          <%
@@ -1107,6 +1125,61 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
          }
         %>
 <script>
+
+$(document).ready(function() {
+console.info('+++++++++++++++++++++++++++');
+        $('#indiv-id').autocomplete({
+            //appendTo: $('#navbar-top'),
+/*
+            response: function(ev, ui) {
+                if (ui.content.length < 1) {
+                    $('#search-help').show();
+                } else {
+                    $('#search-help').hide();
+                }
+            },
+*/
+/*
+            select: function(ev, ui) {
+                if (ui.item.type == "individual") {
+                    window.location.replace("<(urlLoc+"/individuals.jsp?number=")>" + ui.item.value);
+                }
+                else if (ui.item.type == "locationID") {
+                	window.location.replace("<(urlLoc+"/encounters/searchResultsAnalysis.jsp?locationCodeField=")>" + ui.item.value);
+                }
+                return false;
+            },
+*/
+            //source: app.config.wildbook.proxyUrl + "/search"
+            source: function( request, response ) {
+                $.ajax({
+                    url: './SiteSearch',
+                    dataType: "json",
+                    data: {
+                        term: request.term
+                    },
+                    success: function( data ) {
+                        var res = $.map(data, function(item) {
+                            var label="";
+                            if ((item.type == "individual")&&(item.species!=null)) {
+//                                label = item.species + ": ";
+                            }
+                            else if (item.type == "user") {
+                                label = "User: ";
+                            } else {
+                                label = "";
+                            }
+                            return {label: label + item.label,
+                                    value: item.value,
+                                    type: item.type};
+                            });
+
+                        response(res);
+                    }
+                });
+            }
+        });
+});
 
 function sendButtonClicked() {
 	console.log('sendButtonClicked()');
