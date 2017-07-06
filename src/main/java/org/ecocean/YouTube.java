@@ -222,11 +222,11 @@ System.out.println("]=== done with .extractFrames()");
     return null;
   }
     
-    public static String getReplies(String commentId, Occurrence occur) {  //pubAfter is ms since epoch
+    public static String getReplies(Occurrence occur) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
-//        String commentId=Occurrence.getSocialMediaQueryCommentID();
+        String commentId=occur.getSocialMediaQueryCommentID();
         CommentListResponse commentsListResponse = youtube.comments().list("snippet")
             .setParentId(commentId).setTextFormat("plainText").execute();
         List<Comment> comments = commentsListResponse.getItems();
@@ -243,6 +243,7 @@ System.out.println("]=== done with .extractFrames()");
                 CommentSnippet snippet = commentReply.getSnippet();
                 replies += snippet.getTextDisplay();
                 occur.setSocialMediaQueryCommentReplies(replies);
+                
                 System.out.println("  - Author: " + snippet.getAuthorDisplayName());
                 System.out.println("  - Reply: " + snippet.getTextDisplay());
                 System.out
@@ -261,7 +262,7 @@ System.out.println("]=== done with .extractFrames()");
         return null;
     }
     
-    public static String sendReply(String commentId, String videoId) {  //pubAfter is ms since epoch
+    public static String sendReply(String commentId, String commentToPost) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
@@ -279,7 +280,7 @@ System.out.println("]=== done with .extractFrames()");
         Comment comment = new Comment();
         CommentSnippet snippet = new CommentSnippet();
         snippet.set("parentId", parentId);
-        snippet.set("textOriginal", "Wow.Thanks");
+        snippet.set("textOriginal", commentToPost);
 
         comment.setSnippet(snippet);
 
