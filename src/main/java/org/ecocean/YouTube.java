@@ -152,7 +152,7 @@ System.out.println("]=== done with .extractFrames()");
         return searchByKeyword(keyword, -1);
     }
     public static List<SearchResult> searchByKeyword(String keyword, long pubAfter) {  //pubAfter is ms since epoch
-        if (!isActive()) throw new RuntimeException("YouTube API not active (invalid api key?)");
+        //if (!isActive()) throw new RuntimeException("YouTube API not active (invalid api key?)");
         if (youtube == null) throw new RuntimeException("YouTube API 'youtube' is null");
         try {
             // Define the API request for retrieving search results.
