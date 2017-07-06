@@ -85,7 +85,7 @@ public class ocr {
     ByteBuffer mBuf=null;
 
     try {
-      fIn = new FileInputStream("test.txt");
+      fIn = new FileInputStream(file);
       fChan = fIn.getChannel();
       fSize = fChan.size();
       mBuf = ByteBuffer.allocate((int) fSize);
