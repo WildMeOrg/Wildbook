@@ -2772,6 +2772,10 @@ return Util.generateUUID();
               }
               
               
+              //reset date to exclude OCR, which can currently confuse NLP
+              remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase();
+              
+              
               
               //reset remarks to avoid dates embedded in researcher comments
 //              remarks=enc.getOccurrenceRemarks().trim().toLowerCase();
