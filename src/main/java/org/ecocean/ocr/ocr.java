@@ -42,8 +42,9 @@ public class ocr {
       for (File fileFrame : filesFrames) {
 //        File imageFile = new File("image"); //pass a file name or path to file
             ITesseract instance = new Tesseract();  // JNA Interface Mapping
-			instance.setDatapath(CommonConfiguration.getProperty("tesseractDataPath", context));// JNA Interface Mapping
-            
+            instance.setDatapath(CommonConfiguration.getProperty("tesseractDataPath", context));// JNA Interface Mapping
+            //use cube and tesseract - high quality
+            instance.setOcrEngineMode(2);
             try {
                 String frameText = instance.doOCR(fileFrame);
                 //System.out.println(frameText);
