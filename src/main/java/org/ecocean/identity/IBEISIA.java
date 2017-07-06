@@ -2708,38 +2708,72 @@ return Util.generateUUID();
           //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
           String ocrRemarks="";
           try {
-            List<MediaAsset> assets= occ.getAssets();
-            MediaAsset myAsset = assets.get(0);
-            ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(myAsset, myShepherd);
-            ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
-            if (ocr.getTextFrames(filesFrames)!=null) {
-              ocrRemarks = ocr.getTextFrames(filesFrames);              
-            }else {
-              ocrRemarks= "";
-            }            
-          } catch (Exception e) {
+            if((occ.getEncounters()!=null)&&(occ.getEncounters().size()>0)){
+              Encounter myEnc=occ.getEncounters().get(0);
+              List<MediaAsset> assets= myEnc.getMedia();
+              if((assets!=null)&&(assets.size()>0)){
+                MediaAsset myAsset = assets.get(0);
+                MediaAsset parent = myAsset.getParent(myShepherd);
+                if(parent!=null){
+                  ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
+                  if((frames!=null)&&(frames.size()>0)){
+                      ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+                      //if (ocr.getTextFrames(filesFrames)!=null) {
+                        ocrRemarks = ocr.getTextFrames(filesFrames, context);
+                        if(ocrRemarks==null)ocrRemarks="";
+                        System.out.println("I found OCR remarks: "+ocrRemarks);
+                      //}
+                      //else {
+                      //  ocrRemarks= "";
+                      //}   
+                    }
+                  }
+                  else{
+                    System.out.println("I could not find any frames from YouTubeAssetStore.findFrames for asset:"+myAsset.getId()+" from Encounter "+myEnc.getCatalogNumber());
+                  }
+              }
+              }
+            }
+           catch (Exception e) {
+            e.printStackTrace();
             System.out.println("I hit an exception trying to find ocrRemarks.");
           }
           
           
           if(enc.getOccurrenceRemarks()!=null){
             
-            String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase()+" "+ ocrRemarks;
+            String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase()+" "+ ocrRemarks.toLowerCase();
+            
+            System.out.println("Let's parse these remarks for date and location: "+remarks);
+            
             Properties props = new Properties();
     
             //OK, let's check the comments and tags for retrievable metadata
             try {
               
-              //first parse for location and locationID
-              props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
-              Enumeration m_enum = props.propertyNames();
-              while (m_enum.hasMoreElements()) {
-                String aLocationSnippet = ((String) m_enum.nextElement()).trim();
-                if (remarks.indexOf(aLocationSnippet) != -1) {
-                  locCode = props.getProperty(aLocationSnippet);
-                  location+=(aLocationSnippet+" ");
+              
+            //first parse for location and locationID
+              try{
+                props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+                Enumeration m_enum = props.propertyNames();
+                while (m_enum.hasMoreElements()) {
+                  String aLocationSnippet = ((String) m_enum.nextElement()).trim();
+                  System.out.println("     Looking for: "+aLocationSnippet);
+                  if (remarks.indexOf(aLocationSnippet) != -1) {
+                    locCode = props.getProperty(aLocationSnippet);
+                    location+=(aLocationSnippet+" ");
+                    System.out.println(".....Building an idea of location: "+location);
+                  }
                 }
+              
               }
+              catch(Exception e){
+                e.printStackTrace();
+              }
+              
+              
+              //reset date to exclude OCR, which can currently confuse NLP
+              remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase();
               
               
               
@@ -2755,12 +2789,13 @@ return Util.generateUUID();
                     System.out.println(">>>>>> looking for date with NLP");
                     //call Stanford NLP function to find and select a date from ytRemarks
                     String myDate= ServletUtilities.nlpDateParse(ytRemarks);
+                    System.out.println("Finished nlpPrseDate");;
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
                         System.out.println(">>>>>> NLP found date: "+myDate);
-                        int numCharact= myDate.length();
+                        //int numCharact= myDate.length();
                      
-                        if(numCharact>=4){
+                        /*if(numCharact>=4){
                           
                           try{
                             year=(new Integer(myDate.substring(0, 4))).intValue();
@@ -2786,6 +2821,39 @@ return Util.generateUUID();
                             e.printStackTrace();
                           }
                       }
+                        */
+                        
+                        //current datetime just for quality comparison
+                        LocalDateTime dt = new LocalDateTime();
+                        
+                        DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+                        LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseLocalDateTime(myDate));
+                        //System.out.println("     reportedDateTime is: "+reportedDateTime.toString(parser1));
+                        StringTokenizer str=new StringTokenizer(myDate,"-");
+                        int numTokens=str.countTokens();
+                        System.out.println("     StringTokenizer for date has "+numTokens+" tokens for String input "+str.toString());
+
+                        if(numTokens>=1){
+                          //try {
+                          year=reportedDateTime.getYear();
+                            if(year>(dt.getYear()+1)){
+                              //badDate=true;
+                              year=-1;
+                              //throw new Exception("    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format: "+year+" > "+dt.getYear());
+                            }
+
+                         //} catch (Exception e) { year=-1;}
+                        }
+                        if(numTokens>=2){
+                          try { month=reportedDateTime.getMonthOfYear(); } catch (Exception e) { month=-1;}
+                        }
+                        else{month=-1;}
+                        //see if we can get a day, because we do want to support only yyy-MM too
+                        if(str.countTokens()>=3){
+                          try { day=reportedDateTime.getDayOfMonth(); } catch (Exception e) { day=0; }
+                        }
+                        else{day=-1;}
+                        
                         
                     }
                     
@@ -2897,7 +2965,11 @@ return Util.generateUUID();
             for(int i=0;i<numEncounters;i++){
               Encounter enctemp=encounters.get(i);
               enctemp.setLocationID(locCode);
-              if(!location.equals("")){enctemp.setLocation(location.trim());}
+              System.out.println("Setting locationID for detected Encounter to: "+locCode);
+              if(!location.equals("")){
+                enctemp.setLocation(location.trim());
+                System.out.println("Setting location for detected Encounter to: "+location);
+                }
             }
           }
           
@@ -2911,37 +2983,44 @@ return Util.generateUUID();
           }
           
           //if date and/or location not found, ask youtube poster through comment section.
-//          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
-//          YouTube.init(request);
-          Properties quest = new Properties();
-          //Properties questEs = new Properties();
-          
-          //TBD-simplify to one set of files
-          quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
-          //questEs= ShepherdProperties.getProperties("questEs.properties");
-          
-          String questionToPost=null;
-          
-          if((enc.getDateInMilliseconds()==null)&&(locCode==null)){
-            questionToPost= quest.getProperty("whenWhere");
+          //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
+          try{
+            YouTube.init(request);
+            Properties quest = new Properties();
+            //Properties questEs = new Properties();
             
-          }
-          else if(enc.getDateInMilliseconds()==null){
-            questionToPost= quest.getProperty("when");
-     
-          }
-          else if(locCode==null){
-            questionToPost= quest.getProperty("where");
-          }
-          
-          if(questionToPost!=null){
-//            String videoId = enc.getEventID().replaceAll("youtube:",""); 
-            String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
-            try{
-              YouTube.postQuestion(questionToPost,videoId, occ);
+            //TBD-simplify to one set of files
+            quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+            //questEs= ShepherdProperties.getProperties("questEs.properties");
+            
+            String questionToPost=null;
+            
+            if((enc.getDateInMilliseconds()==null)&&(locCode==null)){
+              questionToPost= quest.getProperty("whenWhere");
+              
             }
-            catch(Exception e){e.printStackTrace();}
-          }
+            else if(enc.getDateInMilliseconds()==null){
+              questionToPost= quest.getProperty("when");
+       
+            }
+            else if(locCode==null){
+              questionToPost= quest.getProperty("where");
+            }
+            
+            if(questionToPost!=null){
+  //            String videoId = enc.getEventID().replaceAll("youtube:",""); 
+              String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
+              try{
+                YouTube.postQuestion(questionToPost,videoId, occ);
+              }
+              catch(Exception e){e.printStackTrace();}
+            }
+          
+        }
+         catch(Exception yet){
+           System.out.println("Caught exception trying to post a YouTube question.");
+           yet.printStackTrace();
+         }
 
           
         
