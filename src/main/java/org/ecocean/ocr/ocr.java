@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 
 public class ocr {
   
@@ -78,33 +79,28 @@ public class ocr {
   }
   
   public static ByteBuffer getByteBufferFromFile(File file){
-    
-    FileInputStream fIn=null;
-    FileChannel fChan=null;
-    long fSize;
-    ByteBuffer mBuf=null;
-
-    try {
-      fIn = new FileInputStream(file);
-      fChan = fIn.getChannel();
-      fSize = fChan.size();
-      mBuf = ByteBuffer.allocate((int) fSize);
-      fChan.read(mBuf);
-      mBuf.rewind();
-      for (int i = 0; i < fSize; i++)
-        System.out.print((char) mBuf.get());
-
-    } catch (IOException exc) {
-      System.out.println(exc);
-    }    
-    finally{
+    ByteArrayOutputStream baos=null;
+    ByteBuffer buf=null;
       try{
-        if(fChan!=null)fChan.close(); 
-        if(fIn!=null)fIn.close(); 
-      }
-      catch(Exception e){}
+      BufferedImage originalImage = ImageIO.read(file);
+      baos = new ByteArrayOutputStream();
+      ImageIO.write( originalImage, "jpg", baos );
+      baos.flush();
+      byte[] imageInByte = baos.toByteArray();
+      
+      buf = ByteBuffer.wrap(imageInByte);
     }
-    return mBuf;
-  }
+    catch(Exception e){e.printStackTrace();}
+    finally{
+      if(baos!=null){
+        try{
+          baos.close();
+        }
+        catch(Exception f){f.printStackTrace();}
+        }
+    }
+    return buf;
 
+}
+  
 }
