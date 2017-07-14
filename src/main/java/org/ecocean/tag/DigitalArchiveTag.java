@@ -3,6 +3,7 @@ package org.ecocean.tag;
 public class DigitalArchiveTag extends AbstractTag {
 
   private static final long serialVersionUID = 1L;
+  
   private String dTagID;
   private String serialNumber;
   
