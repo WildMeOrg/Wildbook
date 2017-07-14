@@ -29,6 +29,12 @@
             <field name="serialNumber"/>
             <field name="argosPttNumber"/>
         </class>
+        
+        <class name="DigitalArchiveTag" table="DTAG">
+            <inheritance strategy="new-table"/>
+            <field name="dTagID"/>
+            <field name="serialNumber"/>
+        </class>
 
     </package>
 </jdo>
