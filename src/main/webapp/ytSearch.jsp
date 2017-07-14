@@ -55,7 +55,6 @@ phrasesToIgnoreVideo.add("disney");
 phrasesToIgnoreVideo.add("white shark");
 phrasesToIgnoreVideo.add("top 10");
 phrasesToIgnoreVideo.add("tap tap");
-phrasesToIgnoreVideo.add("georgia");
 phrasesToIgnoreVideo.add("nickelodeon");
 phrasesToIgnoreVideo.add("attack");
 phrasesToIgnoreVideo.add("paw patrol");
@@ -67,7 +66,11 @@ phrasesToIgnoreVideo.add("photoshop");
 phrasesToIgnoreVideo.add("animal facts");
 phrasesToIgnoreVideo.add("tiggu");
 phrasesToIgnoreVideo.add("banjo");
-
+phrasesToIgnoreVideo.add("aquarium");
+phrasesToIgnoreVideo.add("shark simulator");
+phrasesToIgnoreVideo.add("ultimate shark simulator");
+phrasesToIgnoreVideo.add("ultimatesharksimulator");
+phrasesToIgnoreVideo.add("animal planet");
 
 int numPhrases=phrasesToIgnoreVideo.size();
 
