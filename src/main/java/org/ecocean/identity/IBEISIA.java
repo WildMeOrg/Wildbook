@@ -2718,14 +2718,11 @@ return Util.generateUUID();
                   ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
                   if((frames!=null)&&(frames.size()>0)){
                       ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
-                      //if (ocr.getTextFrames(filesFrames)!=null) {
+                      //List<byte[]>bytesFrames= GoogleOcr.makeBytesFrames(frames);
+                      //ocrRemarks = ocr.getTextFrames(bytesFrames, context);
                         ocrRemarks = ocr.getTextFrames(filesFrames, context);
                         if(ocrRemarks==null)ocrRemarks="";
                         System.out.println("I found OCR remarks: "+ocrRemarks);
-                      //}
-                      //else {
-                      //  ocrRemarks= "";
-                      //}   
                     }
                   }
                   else{
