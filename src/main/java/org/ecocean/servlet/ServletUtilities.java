@@ -819,11 +819,11 @@ String rootWebappPath = "xxxxxx";
       pipeline.addAnnotator(new TimeAnnotator("sutime", props));
       
       text = text.replaceAll("[,.!?;:]", "$0 ");
-      System.out.println(text);
+      System.out.println("text: "+text);
       String [] text1= text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
       String text2 = String.join(" ", text1);
      
-      System.out.println(text2);
+      System.out.println("text2: "+text2);
       Annotation annotation = new Annotation(text2);
       
       
