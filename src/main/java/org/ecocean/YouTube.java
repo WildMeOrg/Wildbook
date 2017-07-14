@@ -54,8 +54,10 @@ public class YouTube {
         
         String CLIENT_ID= CommonConfiguration.getProperty("youtube_client_id", context);
         String CLIENT_SECRET= CommonConfiguration.getProperty("youtube_client_secret", context);;
+        System.out.println("CLIENT_ID: "+CLIENT_ID);
+        System.out.println("CLIENT_SECRET: "+CLIENT_SECRET);
         refreshToken = CommonConfiguration.getProperty("refresh_token", context);
-        
+        System.out.println("refreshToke: "+refreshToken);
         HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
         JsonFactory JSON_FACTORY = new JacksonFactory();
        
