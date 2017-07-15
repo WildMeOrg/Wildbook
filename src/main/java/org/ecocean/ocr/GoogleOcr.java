@@ -55,72 +55,77 @@ public class GoogleOcr {
     String CLIENT_ID= CommonConfiguration.getProperty("clientIDVision", context);
     String CLIENT_SECRET= CommonConfiguration.getProperty("cientSecretVision", context);
     String refreshToken = CommonConfiguration.getProperty("refreshTokenVision", context);
-       HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
-       JsonFactory JSON_FACTORY = new JacksonFactory();
-     Credential credential = new GoogleCredential.Builder()
-                .setTransport(HTTP_TRANSPORT)
-                .setJsonFactory(JSON_FACTORY)
-                .setClientSecrets(CLIENT_ID, CLIENT_SECRET)
-                .build();
-            credential.setRefreshToken(refreshToken);
-    Vision vision = new Vision.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                    .setApplicationName("wildbook-ocr3")
-                    .build();
+    Vision vision = null;
 
-    
-
-  try {
-
-    StringBuffer framesTexts= new StringBuffer("");
-    for (byte[] byteFrame : bytesFrames) {
-          try {
-              String frameText = "";
-           // Builds the image annotation request
-              ImmutableList.Builder<AnnotateImageRequest> requests = ImmutableList.builder();
+    try {
+      HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+      JsonFactory JSON_FACTORY = new JacksonFactory();
+      Credential credential = new GoogleCredential.Builder()
+               .setTransport(HTTP_TRANSPORT)
+               .setJsonFactory(JSON_FACTORY)
+               .setClientSecrets(CLIENT_ID, CLIENT_SECRET)
+               .build();
+           credential.setRefreshToken(refreshToken);
+      vision = new Vision.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                   .setApplicationName("wildbook-ocr3")
+                   .build();
+      
+    } catch (Exception e) {
+      System.out.println("oh no, why can't we access credentials!");
+    }
+    if (vision !=null) {
+      try {
+        StringBuffer framesTexts= new StringBuffer("");
+        
+        for (byte[] byteFrame : bytesFrames) {
+         // Builds the image annotation request
+          ImmutableList.Builder<AnnotateImageRequest> requests = ImmutableList.builder();                 
+          requests.add(
+                  new AnnotateImageRequest()
+                      .setImage(new Image().encodeContent(byteFrame))
+                      .setFeatures(ImmutableList.of(
+                          new Feature()
+                              .setType("TEXT_DETECTION"))));
+                           
+              Vision.Images.Annotate annotate =
+                vision.images()
+                    .annotate(new BatchAnnotateImagesRequest().setRequests(requests.build()));
+              BatchAnnotateImagesResponse batchResponse = annotate.execute();
               
-              requests.add(
-                      new AnnotateImageRequest()
-                          .setImage(new Image().encodeContent(byteFrame))
-                          .setFeatures(ImmutableList.of(
-                              new Feature()
-                                  .setType("TEXT_DETECTION"))));
-                               
-                  Vision.Images.Annotate annotate =
-                    vision.images()
-                        .annotate(new BatchAnnotateImagesRequest().setRequests(requests.build()));
-                  BatchAnnotateImagesResponse batchResponse = annotate.execute();
-              
-                  List<AnnotateImageResponse> responses = batchResponse.getResponses();
-
-                  for (AnnotateImageResponse res : responses) {
-                    if (res.getError() != null) {
-                      System.out.printf("Error: %s\n", res.getError().getMessage());
-                      return;
-                    }
-                    for (EntityAnnotation text : res.getTextAnnotations()) {
-                      frameText += text.getDescription();
-                    }
-                    if (frameText.equals("")) {
-                      System.out.printf("%s had no discernible text.\n");
-                    }
-                  }
-                  System.out.println(frameText);              
-              
-              if (!(framesTexts.toString()).contains(frameText)) {         
-                framesTexts.append(frameText+ " ");
+              if(batchResponse.getResponses().get(0).getTextAnnotations().get(0).getDescription() == null){
+                System.out.println("wait what, no text found in image?");
+              }else {
+                System.out.println(batchResponse.getResponses().get(0).getTextAnnotations().get(0).getDescription());
+                String frameText= batchResponse.getResponses().get(0).getTextAnnotations().get(0).getDescription();
+                if (!(framesTexts.toString()).contains(frameText)) {         
+                  framesTexts.append(frameText+ " ");
+                }
               }
-          } catch (TesseractException e) {
-              System.err.println(e.getMessage());
-          }
-  }
-    String ocrRemarks= framesTexts.toString();
-    return ocrRemarks;
-    
-  } catch (Exception e) {
-    System.out.println("Exception while trying to convert fileFrames into text.");
-  }
+            //alternative logic to iterate through images texts:                  
+//            List<AnnotateImageResponse> responses = batchResponse.getResponses();
+//            String frameText = "";
+//            for (AnnotateImageResponse res : responses) {
+//              if (res.getError() != null) {
+//                System.out.printf("Error: %s\n", res.getError().getMessage());
+//                return;
+//              }
+//              for (EntityAnnotation text : res.getTextAnnotations()) {
+//                frameText += text.getDescription();
+//              }
+//              if (frameText.equals("")) {
+//                System.out.printf("%s had no discernible text.\n");
+//              }
+//            }
+                
+        }              
+        String ocrRemarks= framesTexts.toString();
+        return ocrRemarks;
+        
+      } catch (Exception e) {
+        System.out.println("Exception while trying to convert fileFrames into text.");
+      }
+    }    
    return null; 
-
 }
 
   
