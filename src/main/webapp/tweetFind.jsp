@@ -29,9 +29,12 @@ try {
 
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
+
 TwitterUtil.init(request);
 Shepherd myShepherd = new Shepherd("context0");
-TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
+TwitterAssetStore tas = new TwitterAssetStore("twitterAssetStore");
+myShepherd.getPM().makePersistent(tas);
+//TwitterAssetStore tas = TwitterAssetStore.find(myShepherd); // used once the TwitterAssetStore is created
 if (tas == null) {
 	rtn.put("error", "no TwitterAssetStore");
 	out.println(rtn);
@@ -75,10 +78,10 @@ for (Status tweet : qr.getTweets()) {
 		for (MediaAsset ent : mas) {
 			JSONObject ej = new JSONObject();
 			MediaAssetFactory.save(ent, myShepherd);
-    			String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
-			System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
+    			//String taskId = IBEISIA.IAIntake(ent, myShepherd, request); // NOTE: This is for image detection
+			//System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
 			ej.put("maId", ent.getId());
-			ej.put("taskId", taskId);
+			//ej.put("taskId", taskId);
 			jent.put(ej);
 		}
 		tj.put("entities", jent);
