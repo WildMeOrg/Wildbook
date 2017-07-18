@@ -183,88 +183,92 @@ public class WriteOutScanTask extends HttpServlet {
       root.addAttribute("Sizelim", Sizelim);
       root.addAttribute("maxTriangleRotation", maxTriangleRotation);
       root.addAttribute("C", C);
-      for (int i = 0; i < matches.length; i++) {
-        MatchObject mo = matches[i];
-        if ((mo.getMatchValue() > 0) && ((mo.getMatchValue() * mo.getAdjustedMatchValue()) > 2)) {
-
-          Element match = root.addElement("match");
-          match.addAttribute("points", (new Double(mo.getMatchValue())).toString());
-          match.addAttribute("adjustedpoints", (new Double(mo.getAdjustedMatchValue())).toString());
-          match.addAttribute("pointBreakdown", mo.getPointBreakdown());
-          String finalscore = (new Double(mo.getMatchValue() * mo.getAdjustedMatchValue())).toString();
-          if (finalscore.length() > 7) {
-            finalscore = finalscore.substring(0, 6);
-          }
-          match.addAttribute("finalscore", finalscore);
-
-          //check if logM is very small...
-          try {
-            match.addAttribute("logMStdDev", (new Double(mo.getLogMStdDev())).toString());
-          } catch (java.lang.NumberFormatException nfe) {
-            match.addAttribute("logMStdDev", "<0.01");
-          }
-          match.addAttribute("evaluation", mo.getEvaluation());
-
-          Encounter firstEnc = myShepherd.getEncounter(mo.getEncounterNumber());
-          Element enc = match.addElement("encounter");
-          enc.addAttribute("number", firstEnc.getEncounterNumber());
-          enc.addAttribute("date", firstEnc.getDate());
-          
-          if(firstEnc.getSex()!=null){ enc.addAttribute("sex", firstEnc.getSex());}
-          else{ enc.addAttribute("sex", "unknown");}
-         
-          
-          enc.addAttribute("assignedToShark", ServletUtilities.handleNullString(firstEnc.getIndividualID()));
-          if(firstEnc.getSizeAsDouble()!=null){enc.addAttribute("size", (firstEnc.getSize() + " meters"));}
-          enc.addAttribute("location", firstEnc.getLocation());
-          enc.addAttribute("locationID", firstEnc.getLocationID());
-          VertexPointMatch[] firstScores = mo.getScores();
-          try {
-            for (int k = 0; k < firstScores.length; k++) {
-              Element spot = enc.addElement("spot");
-              spot.addAttribute("x", (new Double(firstScores[k].getOldX())).toString());
-              spot.addAttribute("y", (new Double(firstScores[k].getOldY())).toString());
+      int numMatches=matches.length;
+      for (int i = 0; i < numMatches; i++) {
+        try{
+          MatchObject mo = matches[i];
+          if ((mo.getMatchValue() > 0) && ((mo.getMatchValue() * mo.getAdjustedMatchValue()) > 2)) {
+  
+            Element match = root.addElement("match");
+            match.addAttribute("points", (new Double(mo.getMatchValue())).toString());
+            match.addAttribute("adjustedpoints", (new Double(mo.getAdjustedMatchValue())).toString());
+            match.addAttribute("pointBreakdown", mo.getPointBreakdown());
+            String finalscore = (new Double(mo.getMatchValue() * mo.getAdjustedMatchValue())).toString();
+            if (finalscore.length() > 7) {
+              finalscore = finalscore.substring(0, 6);
             }
-          } catch (NullPointerException npe) {
-          }
-          Element enc2 = match.addElement("encounter");
-          Encounter secondEnc = myShepherd.getEncounter(num);
-          enc2.addAttribute("number", num);
-          enc2.addAttribute("date", secondEnc.getDate());
-          
-          
-          //enc2.addAttribute("sex", secondEnc.getSex());
-          if(secondEnc.getSex()!=null){ enc2.addAttribute("sex", secondEnc.getSex());}
-          else{ enc2.addAttribute("sex", "unknown");}
-         
-          
-          enc2.addAttribute("assignedToShark", ServletUtilities.handleNullString(secondEnc.getIndividualID()));
-          if(secondEnc.getSizeAsDouble()!=null){enc2.addAttribute("size", (secondEnc.getSize() + " meters"));}
-          else{enc2.addAttribute("size", "unknown");}
-          enc2.addAttribute("location", secondEnc.getLocation());
-          enc2.addAttribute("locationID", secondEnc.getLocationID());
-          try {
-            for (int j = 0; j < firstScores.length; j++) {
-              Element spot = enc2.addElement("spot");
-              spot.addAttribute("x", (new Double(firstScores[j].getNewX())).toString());
-              spot.addAttribute("y", (new Double(firstScores[j].getNewY())).toString());
+            match.addAttribute("finalscore", finalscore);
+  
+            //check if logM is very small...
+            try {
+              match.addAttribute("logMStdDev", (new Double(mo.getLogMStdDev())).toString());
+            } catch (java.lang.NumberFormatException nfe) {
+              match.addAttribute("logMStdDev", "<0.01");
             }
-          } catch (NullPointerException npe) {
-          }
-
-          //let's find the keywords in common
-          List<String> keywords = myShepherd.getKeywordsInCommon(mo.getEncounterNumber(), num);
-          int keywordsSize = keywords.size();
-          if (keywordsSize > 0) {
-            Element kws = match.addElement("keywords");
-            for (int y = 0; y < keywordsSize; y++) {
-              Element keyword = kws.addElement("keyword");
-              keyword.addAttribute("name", ((String) keywords.get(y)));
+            match.addAttribute("evaluation", mo.getEvaluation());
+  
+            Encounter firstEnc = myShepherd.getEncounter(mo.getEncounterNumber());
+            Element enc = match.addElement("encounter");
+            enc.addAttribute("number", firstEnc.getEncounterNumber());
+            enc.addAttribute("date", firstEnc.getDate());
+            
+            if(firstEnc.getSex()!=null){ enc.addAttribute("sex", firstEnc.getSex());}
+            else{ enc.addAttribute("sex", "unknown");}
+           
+            
+            enc.addAttribute("assignedToShark", ServletUtilities.handleNullString(firstEnc.getIndividualID()));
+            if(firstEnc.getSizeAsDouble()!=null){enc.addAttribute("size", (firstEnc.getSize() + " meters"));}
+            enc.addAttribute("location", firstEnc.getLocation());
+            enc.addAttribute("locationID", firstEnc.getLocationID());
+            VertexPointMatch[] firstScores = mo.getScores();
+            try {
+              for (int k = 0; k < firstScores.length; k++) {
+                Element spot = enc.addElement("spot");
+                spot.addAttribute("x", (new Double(firstScores[k].getOldX())).toString());
+                spot.addAttribute("y", (new Double(firstScores[k].getOldY())).toString());
+              }
+            } catch (NullPointerException npe) {
             }
-          }
-
-
-        } //end if
+            Element enc2 = match.addElement("encounter");
+            Encounter secondEnc = myShepherd.getEncounter(num);
+            enc2.addAttribute("number", num);
+            enc2.addAttribute("date", secondEnc.getDate());
+            
+            
+            //enc2.addAttribute("sex", secondEnc.getSex());
+            if(secondEnc.getSex()!=null){ enc2.addAttribute("sex", secondEnc.getSex());}
+            else{ enc2.addAttribute("sex", "unknown");}
+           
+            
+            enc2.addAttribute("assignedToShark", ServletUtilities.handleNullString(secondEnc.getIndividualID()));
+            if(secondEnc.getSizeAsDouble()!=null){enc2.addAttribute("size", (secondEnc.getSize() + " meters"));}
+            else{enc2.addAttribute("size", "unknown");}
+            enc2.addAttribute("location", secondEnc.getLocation());
+            enc2.addAttribute("locationID", secondEnc.getLocationID());
+            try {
+              for (int j = 0; j < firstScores.length; j++) {
+                Element spot = enc2.addElement("spot");
+                spot.addAttribute("x", (new Double(firstScores[j].getNewX())).toString());
+                spot.addAttribute("y", (new Double(firstScores[j].getNewY())).toString());
+              }
+            } catch (NullPointerException npe) {
+            }
+  
+            //let's find the keywords in common
+            List<String> keywords = myShepherd.getKeywordsInCommon(mo.getEncounterNumber(), num);
+            int keywordsSize = keywords.size();
+            if (keywordsSize > 0) {
+              Element kws = match.addElement("keywords");
+              for (int y = 0; y < keywordsSize; y++) {
+                Element keyword = kws.addElement("keyword");
+                keyword.addAttribute("name", ((String) keywords.get(y)));
+              }
+            }
+  
+  
+          } //end if
+        }
+        catch(Exception finale){finale.printStackTrace();}
       } //end for
 
       //prep for writing out the XML
