@@ -12,6 +12,7 @@ org.json.JSONArray,
 org.ecocean.identity.IBEISIA,
 twitter4j.QueryResult,
 twitter4j.Status,
+twitter4j.*,
 
 org.ecocean.media.*
               "
@@ -29,7 +30,7 @@ try {
 
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
-TwitterUtil.init(request);
+Twitter twitterInst = TwitterUtil.init(request);
 Shepherd myShepherd = new Shepherd("context0");
 
 TwitterAssetStore tas = new TwitterAssetStore("twitterAssetStore");
@@ -65,8 +66,6 @@ for (Status tweet : qr.getTweets()) {
     String tweeterScreenName = jtweet.optJSONObject("user").getString("screen_name");
     if(tweeterScreenName == null){
       continue;
-    } else{
-      // out.println("Screen name is " + tweeterScreenName);
     }
   } catch(Exception e){
     e.printStackTrace();
@@ -79,6 +78,19 @@ for (Status tweet : qr.getTweets()) {
 	JSONArray emedia = null;
 	if (ents != null) emedia = ents.optJSONArray("media");
 	if ((ents == null) || (emedia == null) || (emedia.length() < 1)) continue;
+
+  for(int i=0; i<emedia.length(); i++){
+    Boolean hasBeenTweeted = false;
+    JSONObject jent = emedia.getJSONObject(i);
+    String mediaType = jent.getString("type");
+    if(mediaType == null){
+      continue;
+    } else if (mediaType == "photo"){
+      // Twitter twitterInst = TwitterFactory.getInstance();
+      TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst);
+    }
+    out.println(mediaType);
+  }
 
 	ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
 	ma.addLabel("_original");

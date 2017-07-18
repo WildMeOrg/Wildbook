@@ -24,10 +24,12 @@ import twitter4j.json.DataObjectFactory;
 public class TwitterUtil {
     private static TwitterFactory tfactory = null;
 
-    public static void init(HttpServletRequest request) {
+    public static Twitter init(HttpServletRequest request) {
+      System.out.println("Got here init");
         String context = ServletUtilities.getContext(request);
         tfactory = getTwitterFactory(context);
 System.out.println("INFO: initialized TwitterUtil.tfactory");
+        return tfactory.getInstance();
     }
 
     public static boolean isActive() {
@@ -98,5 +100,34 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
             .setOAuthAccessTokenSecret(accessTokenSecret);
         return new TwitterFactory(cb.build());
     }
+    
+    public static void sendCourtesyTweet(String screenName, String mediaType,  Twitter twitterInst) {
+      System.out.println("Got here");
+      String reply = null;
+      if(mediaType.equals("photo")) {
+        reply = "Thank you for the photo, @" + screenName + "! I'll let you know as soon as I get a result.";
+        System.out.println(reply);
+      } else {
+        reply = "Thanks for your interest, @" + screenName + "! Could you send me a picture, please? Much appreciated!";
+        System.out.println(reply);
+      }
+      try {
+        createTweet(reply, twitterInst);
+      } catch(TwitterException e) {
+        e.printStackTrace();
+      }
+    }
+    
+    public static String createTweet(String tweet, Twitter twitterInst) throws TwitterException {
+      String returnVal = null;
+      try {
+        Status status = twitterInst.updateStatus("creating baeldung API");
+        returnVal = status.getText();
+      } catch(TwitterException e) {
+        e.printStackTrace();
+      }
+      return returnVal;
+      
+  }
 
 }
