@@ -24,6 +24,7 @@ org.ecocean.media.*
 <%
 /* note this is kinda experimental... not really production.  you probably want instead to look at other tweet*jsp for now */
 String baseUrl = null;
+String tweeterScreenName = null;
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
 } catch (java.net.URISyntaxException ex) {}
@@ -32,6 +33,7 @@ JSONObject rtn = new JSONObject("{\"success\": false}");
 
 Twitter twitterInst = TwitterUtil.init(request);
 Shepherd myShepherd = new Shepherd("context0");
+
 
 TwitterAssetStore tas = new TwitterAssetStore("twitterAssetStore");
 myShepherd.getPM().makePersistent(tas);
@@ -63,7 +65,7 @@ for (Status tweet : qr.getTweets()) {
 	if (ents == null) continue;
 
   try{
-    String tweeterScreenName = jtweet.optJSONObject("user").getString("screen_name");
+    tweeterScreenName = jtweet.optJSONObject("user").getString("screen_name");
     if(tweeterScreenName == null){
       continue;
     }
@@ -85,7 +87,7 @@ for (Status tweet : qr.getTweets()) {
     String mediaType = jent.getString("type");
     if(mediaType == null){
       continue;
-    } else if (mediaType == "photo"){
+    } else if (mediaType.equals("photo")){
       // Twitter twitterInst = TwitterFactory.getInstance();
       TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst);
     }
