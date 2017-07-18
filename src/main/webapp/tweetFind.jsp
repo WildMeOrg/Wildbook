@@ -32,9 +32,12 @@ JSONObject rtn = new JSONObject("{\"success\": false}");
 
 TwitterUtil.init(request);
 Shepherd myShepherd = new Shepherd("context0");
+
+
 TwitterAssetStore tas = new TwitterAssetStore("twitterAssetStore");
 myShepherd.getPM().makePersistent(tas);
-//TwitterAssetStore tas = TwitterAssetStore.find(myShepherd); // used once the TwitterAssetStore is created
+
+// TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
 if (tas == null) {
 	rtn.put("error", "no TwitterAssetStore");
 	out.println(rtn);
@@ -43,9 +46,11 @@ if (tas == null) {
 
 long sinceId = 832273339657785300L;
 rtn.put("sinceId", sinceId);
-QueryResult qr = TwitterUtil.findTweets("whaleshark filter:media", sinceId);
+QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
+// out.println(qr.getTweets().size());
 for (Status tweet : qr.getTweets()) {
+
 	JSONObject p = new JSONObject();
 	p.put("id", tweet.getId());
 	MediaAsset ma = tas.find(p, myShepherd);
@@ -57,8 +62,22 @@ for (Status tweet : qr.getTweets()) {
 	if (jtweet == null) continue;
 	JSONObject ents = jtweet.optJSONObject("entities");
 	if (ents == null) continue;
+
+  try{
+    String tweeterScreenName = jtweet.optJSONObject("user").getString("screen_name");
+    if(tweeterScreenName == null){
+      continue;
+    } else{
+      // out.println("Screen name is " + tweeterScreenName);
+    }
+  } catch(Exception e){
+    e.printStackTrace();
+  }
+
+
 	JSONObject tj = new JSONObject();  //just for output purposes
 	tj.put("tweet", TwitterUtil.toJSONObject(tweet));
+
 	JSONArray emedia = null;
 	if (ents != null) emedia = ents.optJSONArray("media");
 	if ((ents == null) || (emedia == null) || (emedia.length() < 1)) continue;
@@ -70,6 +89,7 @@ for (Status tweet : qr.getTweets()) {
 	tj.put("maId", ma.getId());
 	tj.put("metadata", ma.getMetadata().getData());
 	System.out.println(tweet.getId() + ": created tweet asset " + ma);
+
 	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
 	if ((mas == null) || (mas.size() < 1)) {
 		System.out.println(tweet.getId() + ": no entity assets?");
@@ -78,10 +98,10 @@ for (Status tweet : qr.getTweets()) {
 		for (MediaAsset ent : mas) {
 			JSONObject ej = new JSONObject();
 			MediaAssetFactory.save(ent, myShepherd);
-    			//String taskId = IBEISIA.IAIntake(ent, myShepherd, request); // NOTE: This is for image detection
-			//System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
+    	// String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
+			// System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
 			ej.put("maId", ent.getId());
-			//ej.put("taskId", taskId);
+			// ej.put("taskId", taskId);
 			jent.put(ej);
 		}
 		tj.put("entities", jent);
@@ -191,6 +211,3 @@ if (!success) {
 
 
 %>
-
-
-
