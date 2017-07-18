@@ -216,7 +216,7 @@ public class TwitterAssetStore extends AssetStore {
             MediaAsset kid = store.create(p);
             kid.addLabel("_entity");
             setEntityMetadata(kid);
-            kid.getMetadata().getDataAsString();
+            kid.getMetadata().getDataAsString(); //TODO no idea what this does -MF
             kid.setParentId(ma.getId());
             //derivationMethods?  metadata? (of image) etc.... ??
             mas.add(kid);
