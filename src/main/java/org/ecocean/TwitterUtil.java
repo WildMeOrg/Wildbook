@@ -25,7 +25,6 @@ public class TwitterUtil {
     private static TwitterFactory tfactory = null;
 
     public static Twitter init(HttpServletRequest request) {
-      System.out.println("Got here init");
         String context = ServletUtilities.getContext(request);
         tfactory = getTwitterFactory(context);
 System.out.println("INFO: initialized TwitterUtil.tfactory");
@@ -100,16 +99,13 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
             .setOAuthAccessTokenSecret(accessTokenSecret);
         return new TwitterFactory(cb.build());
     }
-    
-    public static void sendCourtesyTweet(String screenName, String mediaType,  Twitter twitterInst) {
-      System.out.println("Got here");
+
+    public static void sendCourtesyTweet(String screenName, String mediaType,  Twitter twitterInst, String twitterId) {
       String reply = null;
       if(mediaType.equals("photo")) {
-        reply = "Thank you for the photo, @" + screenName + "! I'll let you know as soon as I get a result.";
-        System.out.println(reply);
+        reply = "Thank you for the photo from tweet " + twitterId + ", @" + screenName + "! Result pending!";
       } else {
-        reply = "Thanks for your interest, @" + screenName + "! Could you send me a picture, please? Much appreciated!";
-        System.out.println(reply);
+        reply = "Thanks for tweet " + twitterId + ", @" + screenName + "! Could you send me a pic in a new tweet?";
       }
       try {
         createTweet(reply, twitterInst);
@@ -117,17 +113,17 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
         e.printStackTrace();
       }
     }
-    
+
     public static String createTweet(String tweet, Twitter twitterInst) throws TwitterException {
       String returnVal = null;
       try {
-        Status status = twitterInst.updateStatus("creating baeldung API");
+        Status status = twitterInst.updateStatus(tweet);
         returnVal = status.getText();
       } catch(TwitterException e) {
         e.printStackTrace();
       }
       return returnVal;
-      
+
   }
 
 }
