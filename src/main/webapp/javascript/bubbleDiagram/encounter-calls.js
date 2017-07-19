@@ -79,10 +79,11 @@ var makeCooccurrenceChart = function(items) {
 
 var getIndividualIDFromEncounterToString = function(encToString) {
   // return everything between "individualID=" and the next comma after that
-console.log('encToString = %o', encToString);
-  //var id = encToString.split("individualID=")[1].split(",")[0];
-    var id = encToString.individualID;
-    if (!id) return false;
+//console.log('encToString = %o', encToString);
+    var id = encToString.split("individualID=")[1].split(",")[0];
+    //var id = encToString.individualID;
+//console.log(id);
+    if (!id || (id == '<null>')) return false;
   return id;
 }
 
