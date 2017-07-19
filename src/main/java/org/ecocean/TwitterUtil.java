@@ -78,37 +78,6 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
         }
     }
 
-    public static StatusListener initStatusListener(){
-        StatusListener listener = new StatusListener(){
-            @Override
-            public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-            }
-
-            @Override
-            public void onException(Exception ex) {
-                ex.printStackTrace();
-            }
-
-            @Override
-            public void onScrubGeo(long userId, long upToStatusId) {
-            }
-
-            @Override
-            public void onStallWarning(StallWarning warning) {
-            }
-
-            @Override
-            public void onStatus(Status status) {
-            }
-
-            @Override
-            public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-            }
-        };
-
-        return listener;
-    }
-
     //http://twitter4j.org/en/configuration.html
     public static TwitterFactory getTwitterFactory(String context) {
         Properties props = ShepherdProperties.getProperties("twitter.properties", "", context);
