@@ -1,6 +1,8 @@
 <%@ page contentType="text/plain; charset=utf-8" language="java"
      import="org.ecocean.*,
 java.util.ArrayList,
+java.io.FileNotFoundException,
+java.io.IOException,
 java.util.List,
 java.io.BufferedReader,
 java.io.IOException,
@@ -29,6 +31,7 @@ String tweeterScreenName = null;
 String tweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
+long sinceId = 832273339657785300L;
 
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -50,10 +53,25 @@ if (tas == null) {
 	return;
 }
 
-String sinceIdString = Long.toString(System.currentTimeMillis());
-Util.writeToFile(sinceIdString,dataDir + "/twitterTimeStamp.txt");
+String newSinceIdString = Long.toString(System.currentTimeMillis());
+try{
+  Util.writeToFile(newSinceIdString, dataDir + "/twitterTimeStamp.txt");
+} catch(FileNotFoundException e){
+  e.printStackTrace();
+}
 
-long sinceId = 832273339657785300L;
+try{
+  String timeStampAsText = Util.readFromFile(dataDir + "/twitterTimeStamp.txt");
+  out.println("timeStampAsText is " + timeStampAsText);
+} catch(FileNotFoundException e){
+  e.printStackTrace();
+  // sinceId = 832273339657785300L;
+} catch(IOException e){
+  e.printStackTrace();
+  // sinceId = 832273339657785300L;
+}
+
+sinceId = 832273339657785300L;
 rtn.put("sinceId", sinceId);
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();

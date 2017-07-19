@@ -283,8 +283,8 @@ public class Util {
       if ((coords == null)||(refresh)) {
 
         //execute the JDOQL
-        
-        
+
+
         Query query=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null");
         Collection<Encounter> c = (Collection<Encounter>) (query.execute());
         ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
@@ -308,7 +308,7 @@ public class Util {
         }
 
         query.closeAll();
-        
+
       }
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
@@ -595,7 +595,7 @@ public class Util {
       out.close();
     }
 
-    public String readFromFile(String path) throws FileNotFoundException, IOException {
+    public static String readFromFile(String path) throws FileNotFoundException, IOException {
       FileInputStream inputStream = new FileInputStream(path);
       String readData = IOUtils.toString(inputStream);
       return readData;
