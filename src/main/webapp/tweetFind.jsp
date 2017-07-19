@@ -13,6 +13,7 @@ org.ecocean.identity.IBEISIA,
 twitter4j.QueryResult,
 twitter4j.Status,
 twitter4j.*,
+org.ecocean.servlet.ServletUtilities,
 
 org.ecocean.media.*
               "
@@ -26,6 +27,9 @@ org.ecocean.media.*
 String baseUrl = null;
 String tweeterScreenName = null;
 String tweetID = null;
+String rootDir = request.getSession().getServletContext().getRealPath("/");
+String dataDir = ServletUtilities.dataDir("context0", rootDir);
+
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
 } catch (java.net.URISyntaxException ex) {}
@@ -46,17 +50,9 @@ if (tas == null) {
 	return;
 }
 
-// Pull file info for timestamp
+String sinceIdString = Long.toString(System.currentTimeMillis());
+Util.writeToFile(sinceIdString,dataDir + "/twitterTimeStamp.txt");
 
-// If file is empty, create new timestamp
-/*
-long sinceId;
-if(file is NOT empty){
-	sinceId = "last timestamp";
-} else {
-	sinceId = 832273339657785300L;
-}
-*/
 long sinceId = 832273339657785300L;
 rtn.put("sinceId", sinceId);
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
@@ -98,14 +94,13 @@ for (Status tweet : qr.getTweets()) {
     Boolean hasBeenTweeted = false;
     JSONObject jent = emedia.getJSONObject(i);
     String mediaType = jent.getString("type");
-    // tweetID = jent.getString("id");
+    tweetID = Long.toString(tweet.getId());
     if(mediaType == null || tweetID == null){
       continue;
     } else if (mediaType.equals("photo") && tweetID != null){
       // Twitter twitterInst = TwitterFactory.getInstance();
-      // TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
+      TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
     }
-    out.println(mediaType);
   }
 
 	ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
