@@ -125,6 +125,42 @@ rtn.put("success", true);
 rtn.put("data", tarr);
 out.println(rtn);
 
+//Twitter4j stream test
+
+StatusListener listener = new StatusListener(){
+	@Override
+	public void onException(Exception ex) {
+			ex.printStackTrace();
+	}
+
+	@Override
+	public void onStatus(Status status) {
+		System.out.println("@" + status.getUser().getScreenName() + "-" + status.getText());
+	}
+
+	@Override
+	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+	}
+
+	@Override
+	public void onScrubGeo(long userId, long upToStatusId) {
+	}
+
+	@Override
+	public void onStallWarning(StallWarning warning) {
+	}
+
+	@Override
+	public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
+	}
+};
+
+TwitterStream twitterStream = new TwitterStreamFactory().getInstance();
+twitterStream.addListener(listener);
+twitterStream.filter("whale");
+
+
+// End test
 
 /*
 String ids[] = null;
