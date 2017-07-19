@@ -20,7 +20,12 @@ import org.joda.time.LocalDateTime;
 //EXIF-related imports
 import java.io.File;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
@@ -584,6 +589,15 @@ public class Util {
       return values;
     }
 
+    public static void writeToFile(String data, String path) throws FileNotFoundException {
+      PrintWriter out = new PrintWriter(path);
+      out.println(data);
+      out.close();
+    }
 
-
+    public String readFromFile(String path) throws FileNotFoundException, IOException {
+      FileInputStream inputStream = new FileInputStream(path);
+      String readData = IOUtils.toString(inputStream);
+      return readData;
+    }
 }
