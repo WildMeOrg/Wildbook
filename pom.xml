@@ -405,17 +405,11 @@
       <version>1.7.12</version>
     </dependency>
 	
-<dependency>
-    <groupId>org.twitter4j</groupId>
-    <artifactId>twitter4j-core</artifactId>
-    <version>4.0.5</version>
-</dependency>
-
-<dependency>
-    <groupId>org.twitter4j</groupId>
-    <artifactId>twitter4j-stream</artifactId>
-    <version>4.0.5</version>
-</dependency>
+  <dependency>
+      <groupId>org.twitter4j</groupId>
+      <artifactId>twitter4j-core</artifactId>
+      <version>4.0.5</version>
+  </dependency>
 
     <dependency>
       <groupId>com.google.apis</groupId>
