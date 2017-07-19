@@ -46,6 +46,17 @@ if (tas == null) {
 	return;
 }
 
+// Pull file info for timestamp
+
+// If file is empty, create new timestamp
+/*
+long sinceId;
+if(file is NOT empty){
+	sinceId = "last timestamp";
+} else {
+	sinceId = 832273339657785300L;
+}
+*/
 long sinceId = 832273339657785300L;
 rtn.put("sinceId", sinceId);
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
