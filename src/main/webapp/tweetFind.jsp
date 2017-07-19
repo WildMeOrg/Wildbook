@@ -25,6 +25,7 @@ org.ecocean.media.*
 /* note this is kinda experimental... not really production.  you probably want instead to look at other tweet*jsp for now */
 String baseUrl = null;
 String tweeterScreenName = null;
+String tweetID = null;
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
 } catch (java.net.URISyntaxException ex) {}
@@ -69,6 +70,7 @@ for (Status tweet : qr.getTweets()) {
     if(tweeterScreenName == null){
       continue;
     }
+
   } catch(Exception e){
     e.printStackTrace();
   }
@@ -85,11 +87,12 @@ for (Status tweet : qr.getTweets()) {
     Boolean hasBeenTweeted = false;
     JSONObject jent = emedia.getJSONObject(i);
     String mediaType = jent.getString("type");
-    if(mediaType == null){
+    // tweetID = jent.getString("id");
+    if(mediaType == null || tweetID == null){
       continue;
-    } else if (mediaType.equals("photo")){
+    } else if (mediaType.equals("photo") && tweetID != null){
       // Twitter twitterInst = TwitterFactory.getInstance();
-      TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst);
+      // TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
     }
     out.println(mediaType);
   }
