@@ -52,12 +52,17 @@ if(tas == null){
 }
 
 try{
+	// the timestamp is written with a new line at the end, so we need to strip that out before converting
   String timeStampAsText = Util.readFromFile(dataDir + "/twitterTimeStamp.txt");
+  timeStampAsText = timeStampAsText.replace("\n", "");
   out.println("timeStampAsText is " + timeStampAsText);
+  sinceId = Long.parseLong(timeStampAsText, 10);
 } catch(FileNotFoundException e){
-  e.printStackTrace();
+	System.out.println(e.toString());
 } catch(IOException e){
-  e.printStackTrace();
+  System.out.println(e.toString());
+} catch(NumberFormatException e){
+	System.out.println(e.toString());
 }
 
 rtn.put("sinceId", sinceId);
@@ -137,7 +142,14 @@ for (Status tweet : qr.getTweets()) {
 }
 
 // Write new timestamp to track last twitter pull
-String newSinceIdString = Long.toString(System.currentTimeMillis());
+String newSinceIdString;
+if(tarr.length() == 0){
+	newSinceIdString = Long.toString(sinceId);
+} else {
+	newSinceIdString = Long.toString(System.currentTimeMillis());
+}
+
+ 
 try{
   Util.writeToFile(newSinceIdString, dataDir + "/twitterTimeStamp.txt");
 } catch(FileNotFoundException e){
