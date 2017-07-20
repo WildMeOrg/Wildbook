@@ -42,6 +42,7 @@ JSONObject rtn = new JSONObject("{\"success\": false}");
 Twitter twitterInst = TwitterUtil.init(request);
 Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
 myShepherd.setAction("tweetFind.jsp");
+myShepherd.beginDBTransaction();
 
 // Find or create TwitterAssetStore and make it persistent with myShepherd
 TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
@@ -58,11 +59,11 @@ try{
   out.println("timeStampAsText is " + timeStampAsText);
   sinceId = Long.parseLong(timeStampAsText, 10);
 } catch(FileNotFoundException e){
-	System.out.println(e.toString());
+	e.printStackTrace();
 } catch(IOException e){
-  System.out.println(e.toString());
+	e.printStackTrace();
 } catch(NumberFormatException e){
-	System.out.println(e.toString());
+	e.printStackTrace();
 }
 
 rtn.put("sinceId", sinceId);
@@ -73,10 +74,22 @@ for (Status tweet : qr.getTweets()) {
 
 	JSONObject p = new JSONObject();
 	p.put("id", tweet.getId());
-	MediaAsset ma = tas.find(p, myShepherd);
-	if (ma != null) {
-		System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
-		continue;
+	try {
+		MediaAsset ma = tas.find(p, myShepherd);
+		if (ma != null) {
+			System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
+			continue;
+		} else {
+			// Create a media asset for the tweet
+			ma = tas.create(tweet.getId());
+			ma.updateMetadata();
+			MediaAssetFactory.save(ma, myShepherd);
+		}
+		
+		myShepherd.commitDBTransaction();
+	} catch(Exception e){
+		myShepherd.rollbackDBTransaction();
+		e.printStackTrace();
 	}
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
 	if (jtweet == null) continue;
@@ -109,7 +122,6 @@ for (Status tweet : qr.getTweets()) {
     if(mediaType == null || tweetID == null){
       continue;
     } else if (mediaType.equals("photo") && tweetID != null){
-      // Twitter twitterInst = TwitterFactory.getInstance();
       TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
     }
   }
