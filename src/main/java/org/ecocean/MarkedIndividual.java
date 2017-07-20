@@ -1852,8 +1852,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
-      //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
         ArrayList<Annotation> anns = enc.getAnnotations();
+        String photographerName = enc.getPhotographerName();
+
         if ((anns == null) || (anns.size() < 1)) {
           continue;
         }
@@ -1864,24 +1866,37 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             //JSONObject j = new JSONObject();
             JSONObject j = ma.sanitizeJson(req, new JSONObject());
 
-            //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
-            // we have a throw-away shepherd here which is fine since we only care about the url ultimately
-            URL midURL = null;
             String context = ServletUtilities.getContext(req);
             Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("MarkedIndividual.getExemplarImages");
-            myShepherd.beginDBTransaction();
+            myShepherd.setAction("Encounter.getExemplarImages");
+            URL u = ma.safeURL(myShepherd, req, "halfpage");
+
+            ////////// hacky temporary until all converted to have halfpage /////////////
+            if ((u == null) || (u.toString().indexOf("halfpage") < 0)) u = ma.webURL();
+
+            j.put("urlDisplay", ((u == null) ? "" : u.toString()));
+
+            //now we need a mid (if we have it)
             ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
-            if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
-            if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+            if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) {
+                j.put("urlMid", kids.get(0).webURL().toString());
+            } else {
+                j.put("urlMid", ((u == null) ? "" : u.toString()));  //we reuse urlDisplay value :/
+            }
+
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
 
+            if ((j!=null) && (photographerName!=null) && (!photographerName.equals(""))) {
+              j.put("photographer",photographerName);
+            }
+
+
             if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
-              
-              
+
+
               //ok, we have a viable candidate
-              
+
               //put ProfilePhotos at the beginning
               if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
               //do nothing and don't include it if it has NoProfilePhoto keyword
@@ -1890,14 +1905,14 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
               else{
                 al.add(j);
               }
-              
+
             }
-            
-            
+
+
           }
           if(al.size()>numResults){return al;}
         }
-    //}
+    }
     }
     return al;
 
