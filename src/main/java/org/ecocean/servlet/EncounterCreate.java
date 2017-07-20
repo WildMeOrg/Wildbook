@@ -31,6 +31,7 @@ import org.json.JSONArray;
 import org.ecocean.media.*;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.concurrent.ThreadPoolExecutor;
 //import java.util.HashMap;
 
@@ -81,6 +82,11 @@ public class EncounterCreate extends HttpServlet {
         out.close();
     }
 
+
+/*
+NOTE: right now this is not very general-purpose; only really used for match.jsp creation.  TODO make it more general!
+      toward this end, we should(?) consider anonymous use to be from match.jsp (thus force some things accordingly)... maybe?
+*/
     public JSONObject createEncounter(JSONObject jin, HttpServletRequest request) throws ServletException, IOException {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         if (jin == null) {
@@ -88,8 +94,8 @@ public class EncounterCreate extends HttpServlet {
             return rtn;
         }
 
-        if ((jin.optJSONArray("encounters") != null) && (jin.optJSONArray("tasks") != null) && (jin.optString("accessKey", null) != null)) {
-            return sendEmail(request, jin.getJSONArray("encounters"), jin.getJSONArray("tasks"), jin.getString("accessKey"));
+        if ((jin.optJSONObject("created") != null) && (jin.optString("accessKey", null) != null)) {
+            return sendEmail(request, jin.getJSONObject("created"), jin.getString("accessKey"));
         }
 
         JSONArray jsrcs = jin.optJSONArray("sources");
@@ -105,10 +111,8 @@ public class EncounterCreate extends HttpServlet {
             return rtn;
         }
 
-        //we save this for later usage
-        if (AccessControl.isAnonymous(request)) {
-            request.getSession().setAttribute("USER_EMAIL", email);
-        }
+        boolean anonymousUser = AccessControl.isAnonymous(request);
+        if (anonymousUser) request.getSession().setAttribute("USER_EMAIL", email);  //save this for subsequent usage (if needed, e.g. match.jsp)
 
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
@@ -192,11 +196,18 @@ public class EncounterCreate extends HttpServlet {
         if (jmas.length() > 0) rtn.put("assets", jmas);
         if (janns.length() > 0) rtn.put("annotations", janns);
 
-/////////// TODO handle when user is logged in!
         String accessKey = jin.optString("accessKey", "_NO_KEY_"); //should always be set!
         Encounter enc = new Encounter(anns);
-        enc.setState(Encounter.STATE_MATCHING_ONLY);
-        enc.setSubmitterEmail(email);
+        if (anonymousUser) {
+            //TODO do we do some kinda sanity check on accessKey?  i think we just trust/use whatever is here and subsequent access needs this value.
+            enc.setSubmitterEmail(email);
+            enc.setMatchingOnly();
+        } else {
+            //(for logged in user only) allow option to forcibly set matchingOnly=false to toggle (default is matching only)
+            if (jin.optBoolean("matchingOnly", true)) enc.setMatchingOnly();
+        }
+        enc.setAccessControl(request);
+
         if (dateMilliseconds > 0) {
             enc.setDateInMilliseconds(dateMilliseconds);
         } else {
@@ -239,7 +250,7 @@ public class EncounterCreate extends HttpServlet {
         return accessKey.equals(p.optString("accessKey", null));
     }
 
-    private static JSONObject sendEmail(HttpServletRequest request, JSONArray encIds, JSONArray taskIds, String accessKey) {
+    private static JSONObject sendEmail(HttpServletRequest request, JSONObject created, String accessKey) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String context = ServletUtilities.getContext(request);
 
@@ -250,6 +261,14 @@ public class EncounterCreate extends HttpServlet {
             rtn.put("error", "bad URL configuration: " + ex.toString());
 
             return rtn;
+        }
+
+        //we create these now to replicate the old way when they were passed in
+        JSONArray encIds = new JSONArray();
+        JSONArray taskIds = new JSONArray();
+        Iterator<?> keys = created.keys();
+        while(keys.hasNext()) {
+            encIds.put((String)keys.next());
         }
 
         String encLinks = "";
@@ -271,7 +290,14 @@ public class EncounterCreate extends HttpServlet {
         tShepherd.beginDBTransaction();
         try{
           for (int i = 0 ; i < encIds.length() ; i++) {
-              Encounter enc = tShepherd.getEncounter(encIds.optString(i, "_FAIL_"));
+              String encId = encIds.optString(i, "_FAIL_");
+                if (created.optJSONArray(encId) == null) {
+                    taskIds.put("unknown");
+                } else {
+                    JSONArray tids = created.getJSONArray(encId);
+                    taskIds.put(tids.optString(0, "unknown0") + "&taskId=" + tids.optString(1, "unknown1"));
+                }
+              Encounter enc = tShepherd.getEncounter(encId);
               if (enc == null) continue;
               if ((enc.getMedia() == null) || (enc.getMedia().size() < 1)) continue;
               boolean allowed = false;
@@ -303,6 +329,7 @@ public class EncounterCreate extends HttpServlet {
           tShepherd.rollbackDBTransaction();
           tShepherd.closeDBTransaction();
         }
+//System.out.println(">>>>>>>"); System.out.println(encIds);  System.out.println(taskIds);
         if (ecount < 1) {
             rtn.put("error", "no valid encounters");
             //myShepherd.rollbackDBTransaction();
@@ -317,8 +344,8 @@ public class EncounterCreate extends HttpServlet {
             if (id == null) continue;
             //TODO just trusting these are real.  we could verify... but do we need to?
             tcount++;
-            taskLinks += " - " + linkPrefix + "/encounters/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\n";
-            taskLinksHtml += "<li><a title=\"" + id + "\" href=\"" + linkPrefix + "/encounters/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\">(" + tcount + ") " + ((i >= fname.length) ? "Result " + (i+1) : fname[i]) + "</a></li>\n";
+            taskLinks += " - " + linkPrefix + "/encounters/matchResultsMulti.jsp?taskId=" + id + "&accessKey=" + accessKey + "\n";
+            taskLinksHtml += "<li><a title=\"" + id + "\" href=\"" + linkPrefix + "/encounters/matchResultsMulti.jsp?taskId=" + id + "&accessKey=" + accessKey + "\">(" + tcount + ") " + ((i >= fname.length) ? "Result " + (i+1) : fname[i]) + "</a></li>\n";
         }
 /*  we are going to allow this now -- so they at least get *something* ... i.e. if encounters get made
         if (tcount < 1) {

@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.HashMap;
+import java.util.SortedMap;
 import java.util.GregorianCalendar;
 import java.lang.Math;
 import java.io.*;
@@ -84,6 +85,7 @@ public class Encounter implements java.io.Serializable {
   static final long serialVersionUID = -146404246317385604L;
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
+    public static final String STATE_AUTO_SOURCED = "auto_sourced";
 
   /**
    * The following attributes are described in the Darwin Core quick reference at:
@@ -118,8 +120,50 @@ public class Encounter implements java.io.Serializable {
   public String specificEpithet;
   public String lifeStage;
   public String country;
+  public String zebraClass ="";  //via lewa: lactating female, territorial male, etc etc
+
+  // fields from Dan's sample csv
+  private String imageSet;
+  private String soil;
+
+  private String reproductiveStage;
+  private Double bodyCondition;
+  private Double parasiteLoad;
+  private Double immunoglobin;
+  private Boolean sampleTakenForDiet;
+  private Boolean injured;
+
+  public String getSoil() {return soil;}
+  public void setSoil(String soil) {this.soil = soil;}
+
+  public String getReproductiveStage() {return reproductiveStage;}
+  public void setReproductiveStage(String reproductiveStage) {this.reproductiveStage = reproductiveStage;}
+
+  public Double getBodyCondition() {return bodyCondition;}
+  public void setBodyCondition(Double bodyCondition) {this.bodyCondition = bodyCondition;}
+
+  public Double getParasiteLoad() {return parasiteLoad;}
+  public void setParasiteLoad(Double parasiteLoad) {this.parasiteLoad = parasiteLoad;}
+
+  public Double getImmunoglobin() {return immunoglobin;}
+  public void setImmunoglobin(Double immunoglobin) {this.immunoglobin = immunoglobin;}
+
+  public Boolean getSampleTakenForDiet() {return sampleTakenForDiet;}
+  public void setSampleTakenForDiet(Boolean sampleTakenForDiet) {this.sampleTakenForDiet = sampleTakenForDiet;}
+
+  public Boolean getInjured() {return injured;}
+  public void setInjured(Boolean injured) {this.injured = injured;}
+
+
+
+
+
+  // for searchability
+  private String imageNames;
+
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
+
 
   /*
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
@@ -247,6 +291,9 @@ public class Encounter implements java.io.Serializable {
 
   private Boolean mmaCompatible = false;
 
+//
+
+
   //start constructors
 
   /**
@@ -291,12 +338,47 @@ public class Encounter implements java.io.Serializable {
         this.catalogNumber = Util.generateUUID();
         this.annotations = anns;
         this.setDateFromAssets();
-        this.setSpeciesFromAssets();
+        this.setSpeciesFromAnnotations();
         this.setLatLonFromAssets();
         this.setDWCDateAdded();
         this.setDWCDateLastModified();
         this.resetDateInMilliseconds();
     }
+
+
+    public String getZebraClass() {
+        return zebraClass;
+    }
+    public void setZebraClass(String c) {
+        zebraClass = c;
+    }
+
+    public String getImageNames() {
+        return imageNames;
+    }
+    public void addImageName(String name) {
+      if  (imageNames==null) imageNames = name;
+      else if (name != null) imageNames += (", "+name);
+    }
+    public String addAllImageNamesFromAnnots(boolean overwrite) {
+      if (overwrite) imageNames = null;
+      return addAllImageNamesFromAnnots();
+    }
+    public String addAllImageNamesFromAnnots() {
+      for (Annotation ann : getAnnotations()) {
+        for (Feature feat : ann.getFeatures()) {
+          try {
+            MediaAsset ma = feat.getMediaAsset();
+            addImageName(ma.getFilename());
+          }
+          catch (Exception e) {
+            System.out.println("exception parsing image name from feature "+feat);
+          }
+        }
+      }
+      return imageNames;
+    }
+
 
 
   /**
@@ -684,6 +766,12 @@ public class Encounter implements java.io.Serializable {
       }
     }
     return imageNamesOnly;
+  }
+
+  public String getImageOriginalName() {
+    MediaAsset ma = getPrimaryMediaAsset();
+    if (ma == null) return null;
+    return ma.getFilename();
   }
 
   /**
@@ -1439,7 +1527,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     dwcDateAdded = m_dateAdded;
   }
     public void setDWCDateAdded() {
-        dwcDateAdded = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        Date myDate=new Date();
+        dwcDateAddedLong=new Long(myDate.getTime());
+        dwcDateAdded = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(myDate);
     }
 
 
@@ -1591,14 +1681,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 /* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
 some strings and decimal (double, er Double?) values -- so i am doing my best to standardize on
 the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
-  public double getDecimalLatitudeAsDouble(){return decimalLatitude.doubleValue();}
+  public Double getDecimalLatitudeAsDouble(){return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();}
 
     public void setDecimalLatitude(Double lat){
         this.decimalLatitude = lat;
         gpsLatitude = Util.decimalLatLonToString(lat);
      }
 
-  public double getDecimalLongitudeAsDouble(){return decimalLongitude.doubleValue();}
+  public Double getDecimalLongitudeAsDouble(){return (decimalLongitude == null) ? null : decimalLongitude.doubleValue();}
 
     public void setDecimalLongitude(Double lon) {
         this.decimalLongitude = lon;
@@ -1769,6 +1859,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   }
 
   public static String getHashOfEmailString(String hashMe) {
+    if (hashMe == null) return null;
     String returnString = "";
     StringTokenizer tokenizer = new StringTokenizer(hashMe, ",");
     while (tokenizer.hasMoreTokens()) {
@@ -1806,7 +1897,10 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   }
 
     private void updateAnnotationTaxonomy() {
-        //TODO make this, duh
+        if ((getAnnotations() == null) || (getAnnotations().size() < 1)) return;
+        for (Annotation ann : getAnnotations()) {
+            ann.setSpecies(getTaxonomyString());  //TODO in some perfect world this would use IA-specific mapping calls and/or yet-to-be-made Taxonomy class etc
+        }
     }
 
     public String getTaxonomyString() {
@@ -1831,9 +1925,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (dt != null) setDateInMilliseconds(dt.getMillis());
     }
 
-    public void setSpeciesFromAssets() {
+    public void setSpeciesFromAnnotations() {
         if ((annotations == null) || (annotations.size() < 1)) return;
         String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
+        this.setGenus(null);  //we reset these no matter what, so only parts get set as available
+        this.setSpecificEpithet(null);
+        if (sp == null) return;
         if (sp.length > 0) this.setGenus(sp[0]);
         if (sp.length > 1) this.setSpecificEpithet(sp[1]);
     }
@@ -1854,6 +1951,15 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (lon != null) this.setDecimalLongitude(lon);
     }
 
+    //sets date to the closes we have to "not set" :)
+    public void zeroOutDate() {
+        year = 0;
+        month = 0;
+        day = 0;
+        hour = -1;
+        minutes = "00";
+        resetDateInMilliseconds();  //should set that to null as well
+    }
 
   public void resetDateInMilliseconds(){
     if(year>0){
@@ -2144,6 +2250,110 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (annotations == null) annotations = new ArrayList<Annotation>();
         annotations.add(ann);
     }
+
+    public void addAnnotationReplacingUnityFeature(Annotation ann) {
+        int unityAnnotIndex = -1;
+        if (annotations == null) annotations = new ArrayList<Annotation>();
+        System.out.println("n annotations = "+annotations.size());
+
+        for (int i=0; i<annotations.size(); i++) {
+          if (annotations.get(i).isTrivial()) {
+            System.out.println("annotation "+i+" is unity!");
+            unityAnnotIndex = i;
+            break;
+          }
+        }
+        System.out.println("unityAnnotIndex = "+unityAnnotIndex);
+        if (unityAnnotIndex > -1) { // there is a unity annot; replace it
+          annotations.set(unityAnnotIndex, ann);
+        } else {
+          annotations.add(ann);
+        }
+    }
+
+    //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
+    public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
+        if ((anns == null) || (anns.size() < 1)) return null;
+        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
+        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+        MediaAsset parentRoot = null;
+        for (Annotation ann : anns) {
+System.out.println("========================== >>>>>> " + ann);
+            if (ann.getFeatures().get(0).isUnity()) continue; //makes big assumption there is one-and-only-one feature btw (detection should have bbox)
+            MediaAsset ma = ann.getMediaAsset();
+            if (parentRoot == null) parentRoot = ma.getParentRoot(myShepherd);
+System.out.println("   -->>> ma = " + ma);
+            if (!ma.hasLabel("_frame") || (ma.getParentId() == null)) continue;  //nope thx
+            int offset = ma.getParameters().optInt("extractOffset", -1);
+System.out.println("   -->>> offset = " + offset);
+            if (offset < 0) continue;
+            ordered.put(offset, ann);
+        }
+        if (ordered.size() < 1) return null;  //none used!
+
+        //now construct Encounters based upon spacing of frame-clusters
+        List<Encounter> newEncs = new ArrayList<Encounter>();
+        int prevOffset = -1;
+        int groupsMade = 1;
+        ArrayList<Annotation> tmpAnns = new ArrayList<Annotation>();
+        for (Integer i : ordered.keySet()) {
+            if ((prevOffset > -1) && ((i - prevOffset) >= minGapSize)) {
+                Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
+                newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                newEncs.add(newEnc);
+System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
+                groupsMade++;
+                tmpAnns = new ArrayList<Annotation>();
+            }
+            prevOffset = i;
+            tmpAnns.add(ordered.get(i));
+        }
+        //deal with dangling tmpAnns content
+        if (tmpAnns.size() > 0) {
+            Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
+            newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+            //newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+            newEncs.add(newEnc);
+System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
+            groupsMade++;
+        }
+        return newEncs;
+    }
+
+    //this is really only for above method
+    private static Encounter __encForCollate(ArrayList<Annotation> tmpAnns, MediaAsset parentRoot) {
+        if ((tmpAnns == null) || (tmpAnns.size() < 1)) return null;
+        Encounter newEnc = new Encounter(tmpAnns);
+        newEnc.setState(STATE_AUTO_SOURCED);
+        newEnc.zeroOutDate();  //do *not* want it using the video source date
+        if (parentRoot == null) {
+            newEnc.setSubmitterName("Unknown video source");
+            newEnc.addComments("<i>unable to determine video source - possibly YouTube error?</i>");
+        } else {
+            newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
+            String consolidatedRemarks="<p>Auto-sourced from YouTube Parent Video: <a href=\"https://www.youtube.com/watch?v="+parentRoot.getParameters().optString("id")+"\">"+parentRoot.getParameters().optString("id")+"</a></p>";
+            if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                
+                if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
+                    newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
+                    consolidatedRemarks+="<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>";
+                    newEnc.addComments(consolidatedRemarks);
+                    //add a dynamic property to make a quick link to the video
+                }
+                if (parentRoot.getMetadata().getData().optJSONObject("detailed") != null) {
+                    String desc = "<p>" + parentRoot.getMetadata().getData().getJSONObject("detailed").optString("description", "[no description]") + "</p>";
+                    if (parentRoot.getMetadata().getData().getJSONObject("detailed").optJSONArray("tags") != null) {
+                        desc += "<p><b>tags:</b> " + parentRoot.getMetadata().getData().getJSONObject("detailed").getJSONArray("tags").toString() + "</p>";
+                    }
+                    consolidatedRemarks+=desc;
+                    
+                }
+            }
+            newEnc.setOccurrenceRemarks(consolidatedRemarks);
+        }
+        return newEnc;
+    }
+
 
     //convenience method
     public ArrayList<MediaAsset> getMedia() {
@@ -2705,11 +2915,44 @@ throw new Exception();
     }
 
 
+    //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
         enc.setCatalogNumber(Util.generateUUID());
+        enc.setGenus(this.getGenus());
+        enc.setSpecificEpithet(this.getSpecificEpithet());
+        enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
+        enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
         return enc;
     }
+
+    //this is a special state only used now for match.jsp but basically means the data should be mostly hidden and soon deleted, roughly speaking???
+    //  TODO figure out what this really means
+    public void setMatchingOnly() {
+        this.setState(STATE_MATCHING_ONLY);
+    }
+
+    //ann is the Annotation that was created after IA detection.  mostly this is just to notify... someone
+    //  note: this is for singly-made encounters; see also Occurrence.fromDetection()
+    public void detectedAnnotation(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
+System.out.println(">>>>> detectedAnnotation() on " + this);
+    }
+
+    /*
+       note: these are baby steps into proper ownership of Encounters.  a similar (but cleaner) attempt is done in MediaAssets... however, really
+       this probably should be upon some (mythical) BASE CLASS!!!! ... for now, this Encounter variation kinda fudges with existing "ownership" stuff,
+       namely, the submitterID - which maps (in theory!) to a User username.
+       TODO much much much  ... incl call via constructor maybe ??  etc.
+    */
+    // NOTE: not going to currently persist the AccessControl object yet, but create on the fly...  clever? stupid?
+    public AccessControl getAccessControl() {
+        if ((submitterID == null) || submitterID.equals("")) return new AccessControl();  //not sure if we really have some "" but lets be safe
+        return new AccessControl(submitterID);
+    }
+    public void setAccessControl(HttpServletRequest request) {   //really just setting submitterID duh
+        this.submitterID = AccessControl.simpleUserString(request);  //null if anon
+    }
+
 
     public String toString() {
         return new ToStringBuilder(this)

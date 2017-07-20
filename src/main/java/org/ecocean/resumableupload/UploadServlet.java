@@ -145,7 +145,7 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
 	}
 
 
-/*  UGH TODO i think doGet is broken, so best skip testChunk with testChunk: false
+/*  UGH TODO i think doGet is broken, so best skip testChunk with testChunks: false
     essentially, i doubt GET will be multipart -- so we need to also support that, esp getflowChunkNumber() and getFlowInfo() ... :(
 */
 	protected void doGet(HttpServletRequest request,

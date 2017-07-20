@@ -150,13 +150,15 @@ String langCode=ServletUtilities.getLanguageCode(request);
   boolean haveRendered = false;
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
+  
+  String mapKey = CommonConfiguration.getGoogleSearchKey(context);
 %>
 
 
 
 <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 
   <style type="text/css">
@@ -3257,7 +3259,7 @@ else {
     <p>
     <%if(enc.getDateInMilliseconds()!=null){ %>
       <a
-        href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar2.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
       </a>
         <%
@@ -6186,10 +6188,10 @@ finally{
   		myShepherd.rollbackDBTransaction();
   		myShepherd.closeDBTransaction();
 		%>
-		<p class="para">There is no encounter #<%=num%> in the database. Please double-check the encounter number and try again.</p>
+		<p class="para">There is no corresponding encounter number in the database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
-  to encounter: </strong> <input name="number" type="text" value="<%=num%>" size="20"> <input name="Go" type="submit" value="Submit" /></form>
+  to encounter: </strong> <input name="number" type="text" value="" size="20"> <input name="Go" type="submit" value="Submit" /></form>
 
 
 <p><font color="#990000"><a href="../individualSearchResults.jsp">View all individuals</a></font></p>

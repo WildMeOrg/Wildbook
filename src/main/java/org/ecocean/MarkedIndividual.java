@@ -21,6 +21,7 @@ package org.ecocean;
 
 import java.io.IOException;
 import java.util.*;
+import java.net.URL;
 
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
@@ -30,7 +31,6 @@ import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import java.net.URL;
 import java.text.DecimalFormat;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
@@ -99,7 +99,7 @@ public class MarkedIndividual implements java.io.Serializable {
   private Vector interestedResearchers = new Vector();
 
   private String dateTimeCreated;
-
+  
   private String dateTimeLatestSighting;
 
   //FOR FAST QUERY PURPOSES ONLY - DO NOT MANUALLY SET
@@ -228,7 +228,7 @@ public class MarkedIndividual implements java.io.Serializable {
 		this.dateFirstIdentified = d;
 		return d;
 	}
-
+	
 	 public String refreshDateLastestSighting() {
 	    Encounter[] sorted = this.getDateSortedEncounters();
 	    if (sorted.length < 1) return null;
@@ -1152,7 +1152,7 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     return "";
   }
-
+  
   public String getDateLatestSighting() {
     if (dateTimeLatestSighting != null) {
       return dateTimeLatestSighting;
@@ -1163,7 +1163,7 @@ public class MarkedIndividual implements java.io.Serializable {
   public void setDateTimeCreated(String time) {
     dateTimeCreated = time;
   }
-
+  
   public void setDateTimeLatestSighting(String time) {
     dateTimeLatestSighting = time;
   }
@@ -1375,7 +1375,7 @@ public class MarkedIndividual implements java.io.Serializable {
       }
     maxYearsBetweenResightings=maxYears;
     }
-
+  
 
 
   public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay, String locCode) {
@@ -1852,10 +1852,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
-      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+      //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
         ArrayList<Annotation> anns = enc.getAnnotations();
-        String photographerName = enc.getPhotographerName();
-
         if ((anns == null) || (anns.size() < 1)) {
           continue;
         }
@@ -1866,37 +1864,24 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             //JSONObject j = new JSONObject();
             JSONObject j = ma.sanitizeJson(req, new JSONObject());
 
+            //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
+            // we have a throw-away shepherd here which is fine since we only care about the url ultimately
+            URL midURL = null;
             String context = ServletUtilities.getContext(req);
             Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("Encounter.getExemplarImages");
-            URL u = ma.safeURL(myShepherd, req, "halfpage");
-
-            ////////// hacky temporary until all converted to have halfpage /////////////
-            if ((u == null) || (u.toString().indexOf("halfpage") < 0)) u = ma.webURL();
-
-            j.put("urlDisplay", ((u == null) ? "" : u.toString()));
-
-            //now we need a mid (if we have it)
+            myShepherd.setAction("MarkedIndividual.getExemplarImages");
+            myShepherd.beginDBTransaction();
             ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
-            if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) {
-                j.put("urlMid", kids.get(0).webURL().toString());
-            } else {
-                j.put("urlMid", ((u == null) ? "" : u.toString()));  //we reuse urlDisplay value :/
-            }
-
+            if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+            if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
 
-            if ((j!=null) && (photographerName!=null) && (!photographerName.equals(""))) {
-              j.put("photographer",photographerName);
-            }
-
-
             if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
-
-
+              
+              
               //ok, we have a viable candidate
-
+              
               //put ProfilePhotos at the beginning
               if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
               //do nothing and don't include it if it has NoProfilePhoto keyword
@@ -1905,28 +1890,28 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
               else{
                 al.add(j);
               }
-
+              
             }
-
-
+            
+            
           }
           if(al.size()>numResults){return al;}
         }
-    }
+    //}
     }
     return al;
 
   }
-
+  
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
-
+    
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
     if(al.size()>0){return al.get(0);}
     return new JSONObject();
-
+    
 
   }
-
+  
 
   // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
   public String getExemplarPhotographer() {

@@ -24,6 +24,7 @@ context=ServletUtilities.getContext(request);
 	  boolean edit = false;
 	
 	  session.setAttribute( "emailEdit", false );
+	  session.setMaxInactiveInterval(6000);
 	
 	  String id = "";
 	  String adopterName = "";
@@ -184,7 +185,7 @@ context=ServletUtilities.getContext(request);
 	%>
 	<form action="<%=servletURL%>" method="post"
 	      enctype="multipart/form-data" name="adoption_submission"
-	      target="_self" dir="ltr" lang="en">
+	      target="_self" dir="ltr" accept-charset="UTF-8">
 	  <%
 	    }
 	  %>

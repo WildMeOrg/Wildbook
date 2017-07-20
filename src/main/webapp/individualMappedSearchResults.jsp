@@ -9,6 +9,8 @@
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
     
+    String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+    
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
     map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode,context);
@@ -134,7 +136,7 @@
   <jsp:include page="header.jsp" flush="true"/>
   
 
-<script src="//maps.google.com/maps/api/js?sensor=false&v=3.9&language=<%=langCode %>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="javascript/GeoJSON.js"></script>

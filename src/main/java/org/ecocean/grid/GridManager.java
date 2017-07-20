@@ -58,7 +58,7 @@ public class GridManager {
   public int maxGroupSize = 100;
   public int numCompletedWorkItems = 0;
   
-  public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
+  //public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
   //Modified Groth algorithm parameters
   private String epsilon = "0.01";
@@ -447,13 +447,16 @@ public class GridManager {
 
   public void removeCompletedWorkItemsForTask(String taskID) {
     //int iter=done.size();
-    for (int i = 0; i < done.size(); i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        done.remove(i);
-        i--;
-        //iter--;
+    try{
+      for (int i = 0; i < done.size(); i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          done.remove(i);
+          i--;
+          //iter--;
+        }
       }
     }
+    catch(Exception e){e.printStackTrace();}
   }
 
   public synchronized void checkinResult(ScanWorkItemResult swir) {
@@ -483,12 +486,15 @@ public class GridManager {
 
   public boolean doneContains(ScanWorkItemResult swir) {
     boolean hasit = false;
-    int iter = done.size();
-    for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberWorkItem().equals(swir.getUniqueNumberWorkItem())) {
-        hasit = true;
+    try{
+      int iter = done.size();
+      for (int i = 0; i < iter; i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberWorkItem().equals(swir.getUniqueNumberWorkItem()))) {
+          hasit = true;
+        }
       }
-    }
+      }
+    catch(Exception e){}
     return hasit;
   }
 
@@ -505,13 +511,16 @@ public class GridManager {
 
   public int getNumWorkItemsCompleteForTask(String taskID) {
     int num = 0;
-    if(done==null){done = new ArrayList<ScanWorkItemResult>();}
-    int iter = done.size();
-    for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        num++;
+    try{
+      if(done==null){done = new ArrayList<ScanWorkItemResult>();}
+      int iter = done.size();
+      for (int i = 0; i < iter; i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          num++;
+        }
       }
-    }
+      }
+    catch(Exception e){}
     return num;
   }
 
@@ -547,8 +556,13 @@ public class GridManager {
     ArrayList<MatchObject> list = new ArrayList<MatchObject>();
     int iter = done.size();
     for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        list.add(done.get(i).getResult());
+      try{
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          list.add(done.get(i).getResult());
+        }
+      }
+      catch(Exception e) {
+        //do nothing for now
       }
     }
     return list;
@@ -624,11 +638,11 @@ public class GridManager {
   }
   */
   
-  public void addScanTaskSize(String scanTaskID, int size){
-    scanTaskSizes.put(scanTaskID, new Integer(size));
-  }
+  //public void addScanTaskSize(String scanTaskID, int size){
+  //  scanTaskSizes.put(scanTaskID, new Integer(size));
+  //}
   
-  public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
+  //public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
   
   public static ConcurrentHashMap<String,EncounterLite> getMatchGraph(){return matchGraph;}
   public static void addMatchGraphEntry(String elID,EncounterLite el){
@@ -662,6 +676,8 @@ public class GridManager {
     }
     
   }
+  
+  public void clearDoneItems(){done = new ArrayList<ScanWorkItemResult>();}
     
 
 }

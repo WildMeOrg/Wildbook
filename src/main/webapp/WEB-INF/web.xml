@@ -318,7 +318,9 @@
 
 					/ResurrectDeletedEncounter = authc,roles[admin]
 					
-
+				/OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
+                 /OccurrenceSearchExportGtm = authc, roles[researcher]
+				
 
             </param-value>
         </init-param>
@@ -598,6 +600,10 @@
 	<servlet-mapping>
  		<servlet-name>ResumableUpload</servlet-name>
 		<url-pattern>/ResumableUpload</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+ 		<servlet-name>ResumableUpload</servlet-name>
+		<url-pattern>/upload</url-pattern>
 	</servlet-mapping>
 
     <servlet>
@@ -1133,11 +1139,12 @@
     <servlet-name>EncounterAddImage</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddImage</servlet-class>
   </servlet>
-
+<!--
   <servlet>
     <servlet-name>CalendarXMLServer2</servlet-name>
     <servlet-class>org.ecocean.servlet.CalendarXMLServer2</servlet-class>
   </servlet>
+  -->
   <servlet>
     <servlet-name>CalendarXMLServer</servlet-name>
     <servlet-class>org.ecocean.servlet.CalendarXMLServer</servlet-class>
@@ -1288,6 +1295,26 @@
     <servlet-name>OccurrenceClusterMASet</servlet-name>
     <servlet-class>org.ecocean.servlet.OccurrenceClusterMASet</servlet-class>
   </servlet>
+  
+    <servlet>
+    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportMetadataExcel</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>OccurrenceSearchExportGtm</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
+  </servlet>
+  
+  
+    <servlet-mapping>
+    <servlet-name>OccurrenceSearchExportGtm</servlet-name>
+    <url-pattern>/OccurrenceSearchExportGtm</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
+    <url-pattern>/OccurrenceSearchExportMetadataExcel</url-pattern>
+  </servlet-mapping>
 
 
 <servlet-mapping>
@@ -1896,10 +1923,12 @@
     <url-pattern>/IndividualSetSex</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>CalendarXMLServer2</servlet-name>
     <url-pattern>/CalendarXMLServer2</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>CalendarXMLServer</servlet-name>

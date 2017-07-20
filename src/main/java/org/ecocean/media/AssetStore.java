@@ -37,6 +37,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import java.security.MessageDigest;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
@@ -169,6 +170,12 @@ public abstract class AssetStore implements java.io.Serializable {
     // limit to the somewhat arbitrary 75 char (which is enough for 64char of sha256 has + 11 "extra"?)
     public abstract String hashCode(JSONObject params);
 
+    //not so much creation date/time but sourced from asset (e.g. exif or youtube metadata)
+    //  override as desired per type but probably should really call asset.getDateTime() which will do other work to check metadata etc
+    public DateTime getDateTime(MediaAsset ma) {
+        return null;
+    }
+
     //these have to do with "child types" which are essentially derived MediaAssets ... much work TODO here -- including possibly making this its own class?
     //  i am not making this an abstract now but rather subclass can override. maybe silly? future will decide
     //  also, order matters here!  should be from "best" to "worst" so that things can degrade nicely when better ones are not available
@@ -226,15 +233,18 @@ public abstract class AssetStore implements java.io.Serializable {
     }
 
 
+    /*
+      hello!  2017-03-09 important paradigm shift here!  now this no longer limiting search to parent-store.
+       (1) this "should be" backwards compatible; (2) we now have parent-child assets that cross store boundaries (YouTubeAssetStore / children)
+       (3) restricting to store is kinda silly cuz id is primary key so would never have duplicate id across more than one store anyway
+    */
+    
     public ArrayList<MediaAsset> findAllChildren(MediaAsset parent, Shepherd myShepherd) {
         if ((parent == null) || (parent.getId() < 1)) return null;
-        
         ArrayList<MediaAsset> all=new ArrayList<MediaAsset>();
-        //System.out.println("pid = " + parent.getId());
         Extent mac = myShepherd.getPM().getExtent(MediaAsset.class, true);
-        //System.out.println("parentId == " + parent.getId() + " && this.store.id == " + this.id);
-        Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId() + " && this.store.id == " + this.id);
-        //Query matches = myShepherd.getPM().newQuery(mac, "parentId == 30 && this.store.id == " + this.id);
+        //Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId() + " && this.store.id == " + this.id);
+        Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId());
         try {
             Collection c = (Collection) (matches.execute());
             all = new ArrayList<MediaAsset>(c);
@@ -244,7 +254,6 @@ public abstract class AssetStore implements java.io.Serializable {
         } catch (javax.jdo.JDOException ex) {
             System.out.println(this.toString() + " .findAllChildren(" + parent.toString() + ") threw exception " + ex.toString());
             ex.printStackTrace();
-            //return null;
         }
         matches.closeAll();
         return all;

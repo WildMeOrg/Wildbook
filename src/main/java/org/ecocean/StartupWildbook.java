@@ -13,7 +13,7 @@ import java.net.URL;
 
 import org.ecocean.*;
 import org.ecocean.grid.MatchGraphCreationThread;
-import org.ecocean.grid.ScanTaskCleanupThread;
+//import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
@@ -35,6 +35,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class StartupWildbook implements ServletContextListener {
 
+  ScheduledExecutorService schedExec = null;
+  ScheduledFuture schedFuture = null;
   // this function is automatically run on webapp init
   // it is attached via web.xml's <listener></listener>
   public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
@@ -106,30 +108,26 @@ public class StartupWildbook implements ServletContextListener {
 
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
+        if (skipInit(sce, null)) return;
         System.out.println("* StartupWildbook initialized called");
         ServletContext context = sce.getServletContext();
+/*
         URL res = null;
         try {
             res = context.getResource("/");
         } catch (Exception ex) {}
-System.out.println("  StartupWildbook.contextInitialized() res = " + res);
-        //this is very hacky but lets it prime IA only during tomcat restart (not .war deploy)
-        //if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
-        if ((res != null) && res.toString().equals("jndi:/localhost/")) {
-            IBEISIA.primeIA();
+        // res -> e.g. "jndi:/localhost/fubar"
+*/
+        if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
         createMatchGraph();
-        }
 
-        //File qdir = ScheduledQueue.setQueueDir(context);
-        File qdir = null;
+        File qdir = ScheduledQueue.setQueueDir(context);
         if (qdir == null) {
             System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
-        } else if ((res == null) || !res.toString().equals("jndi:/localhost/")) {  //mimicking primeIA() here, and skipping for improper resource
-            System.out.println("+ INFO: queue service start skipped for res=" + res.toString());
         } else {
             System.out.println("+ queue service starting; dir = " + qdir.toString());
-            final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
-            ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+            schedExec = Executors.newScheduledThreadPool(5);
+            schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
                 int count = 0;
                 public void run() {
                     ++count;
@@ -163,6 +161,8 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
 
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("* StartupWildbook destroyed called");
+        schedExec.shutdown();
+        schedFuture.cancel(true);
     }
 
 
@@ -170,7 +170,34 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
       System.out.println("Entering createMatchGraph StartupWildbook method.");
       ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
       es.execute(new MatchGraphCreationThread());
-
     }
 
+    private static boolean skipInit(ServletContextEvent sce, String extra) {
+        String fname = "/tmp/WB_SKIP_INIT" + ((extra == null) ? "" : "_" + extra);
+        boolean skip = new File(fname).exists();
+        System.out.println("++ StartupWildbook.skipInit() test on " + extra + " [" + fname + "] --> " + skip);
+        return skip;
+    }
+
+/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem... 
+    //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
+    private static boolean properStartupResource(ServletContextEvent sce) {
+        if (sce == null) return false;
+        ServletContext context = sce.getServletContext(); 
+        if (context == null) return false;
+        URL res = null;
+        try {
+            res = context.getResource("/");
+        } catch (Exception ex) {
+            System.out.println("  ERROR: StartupWildbook.properStartupResource() .getResource() threw exception: " + ex);
+            return false;
+        }
+System.out.println("  StartupWildbook.properStartupResource() res = " + res);
+        if (res == null) return false;
+        return res.toString().equals("jndi:/localhost/uptest/");
+    }
+*/
+
+
 }
+
