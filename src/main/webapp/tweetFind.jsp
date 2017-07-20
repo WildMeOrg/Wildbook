@@ -40,24 +40,15 @@ try {
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
 Twitter twitterInst = TwitterUtil.init(request);
-Shepherd myShepherd = new Shepherd("context0");
+Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
+myShepherd.setAction("tweetFind.jsp");
 
-
-TwitterAssetStore tas = new TwitterAssetStore("twitterAssetStore");
-myShepherd.getPM().makePersistent(tas);
-
-// TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
-if (tas == null) {
-	rtn.put("error", "no TwitterAssetStore");
-	out.println(rtn);
-	return;
-}
-
-String newSinceIdString = Long.toString(System.currentTimeMillis());
-try{
-  Util.writeToFile(newSinceIdString, dataDir + "/twitterTimeStamp.txt");
-} catch(FileNotFoundException e){
-  e.printStackTrace();
+// Find or create TwitterAssetStore and make it persistent with myShepherd
+TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
+if(tas == null){
+	tas = new TwitterAssetStore("twitterAssetStore");
+	myShepherd.getPM().makePersistent(tas);
+	myShepherd.commitDBTransaction();
 }
 
 try{
@@ -65,13 +56,10 @@ try{
   out.println("timeStampAsText is " + timeStampAsText);
 } catch(FileNotFoundException e){
   e.printStackTrace();
-  // sinceId = 832273339657785300L;
 } catch(IOException e){
   e.printStackTrace();
-  // sinceId = 832273339657785300L;
 }
 
-sinceId = 832273339657785300L;
 rtn.put("sinceId", sinceId);
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
@@ -148,9 +136,19 @@ for (Status tweet : qr.getTweets()) {
 	tarr.put(tj);
 }
 
+// Write new timestamp to track last twitter pull
+String newSinceIdString = Long.toString(System.currentTimeMillis());
+try{
+  Util.writeToFile(newSinceIdString, dataDir + "/twitterTimeStamp.txt");
+} catch(FileNotFoundException e){
+  e.printStackTrace();
+}
+
 rtn.put("success", true);
 rtn.put("data", tarr);
 out.println(rtn);
+
+myShepherd.closeDBTransaction();
 
 /*
 String ids[] = null;
