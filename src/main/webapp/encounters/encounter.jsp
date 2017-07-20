@@ -151,7 +151,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
   
-  String mapKey = CommonConfiguration.getGoogleSearchKey(context);
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
 
