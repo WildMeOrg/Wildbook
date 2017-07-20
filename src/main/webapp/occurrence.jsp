@@ -44,7 +44,7 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("occurrence.jsp");
 
-
+  String num = request.getParameter("number").replaceAll("\\+", "").trim();
 
   boolean isOwner = false;
   if (request.getUserPrincipal()!=null) {
@@ -514,6 +514,167 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 <p>&nbsp;</p>
 
+<!-- Begin Dual Column for Observations and Biopsy's?!?!?! Yup! -->
+
+<div class="row">
+	<div class="col-xs-6">
+	  <!-- Observations Column -->
+
+				<%
+					if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+				%>
+				<h2>
+					<img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
+					<%=props.getProperty("dynamicProperties")%>
+					<button class="btn btn-md" type="button" name="button"
+						id="editDynamic">Edit</button>
+					<button class="btn btn-md" type="button" name="button"
+						id="closeEditDynamic" style="display: none;">Close Edit</button>
+				</h2>
+
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editDynamic").click(function() {
+    $(".editFormDynamic").show();
+
+  });
+
+  $("#closeEditDynamic").click(function() {
+    $(".editFormDynamic, .editTextDynamic, .resultMessageDiv").hide();
+  });
+});
+</script>
+				<%
+					} else {
+				%>
+				<h2>
+					<img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
+					<%=props.getProperty("dynamicProperties")%></h2>
+
+				<%
+					}
+							// Let's make a list of editable Observations... Dynamically!
+							// Hey! In this page the current Occurrence is "sharky" not "occ"...
+							
+							if (sharky.getBaseObservationArrayList() != null) {
+								ArrayList<Observation> obs = sharky.getBaseObservationArrayList();
+								System.out.println("Observations ... "+obs);
+								int numObservations = sharky.getBaseObservationArrayList().size();
+								for (Observation ob : obs) {
+									
+									String nm = ob.getName();
+									String vl = ob.getValue();
+									System.out.println("Name ??? : "+nm);
+									System.out.println("Value ??? : "+vl);
+				%>
+				<p class="para">
+					<em><%=nm%></em>:
+					<%=vl%>
+					<!-- Start dynamic (Observation) form. -->
+					<!-- REMEMBER! These observations use a lot of legacy front end html etc from the deprecated dynamic properties! -->
+				<div id="dialogDP<%=nm%>"
+					title="<%=props.getProperty("set")%> <%=nm%>"
+					class="editFormDynamic">
+					<p class="editTextDynamic">
+						<strong><%=props.getProperty("set")%> <%=nm%></strong>
+					</p>
+					<p class="editTextDynamic">
+						<em><small><%=props.getProperty("setDPMessage")%></small></em>
+					</p>
+
+					<form name="addDynProp" action="../BaseClassSetObservation"
+						method="post" class="editFormDynamic">
+						<%System.out.println("Naaaammmeee ???? "+nm);%>
+						<%System.out.println("Naaaammmeee ???? "+vl);%>
+						<input name="name" type="hidden" value="<%=nm%>" /> 
+						<input name="number" type="hidden" value="<%=num%>" />
+						<!-- This servlet can handle encounters or occurrences, so you have to pass it the Type!  -->
+						<input name="type" type="hidden" value="Occurrence" />
+						<div class="form-group row">
+							<div class="col-sm-3">
+								<label><%=props.getProperty("propertyValue")%>:</label>
+							</div>
+							<div class="col-sm-5">
+								<input name="value" type="text" class="form-control"
+									id="dynInput" value="<%=vl%>"/>
+							</div>
+							<div class="col-sm-4">
+								<input name="Set" type="submit" id="dynEdit"
+									value="<%=props.getProperty("initCapsSet")%>"
+									class="btn btn-sm editFormBtn" />
+							</div>
+						</div>
+					</form>
+
+				</div>
+				<%
+					}
+								if (numObservations == 0) {
+				%>
+				<p><%=props.getProperty("none")%></p>
+				<%
+					}
+							}
+							//display a message if none are defined
+							else {
+				%>
+				<p><%=props.getProperty("none")%></p>
+				<%
+					}
+				%>
+				<div id="dialogDPAdd"
+					title="<%=props.getProperty("addDynamicProperty")%>"
+					class="editFormDynamic">
+					<p class="editTextDynamic">
+						<strong><%=props.getProperty("addDynamicProperty")%></strong>
+					</p>
+					<form name="addDynProp" action="../BaseClassSetObservation"
+						method="post" class="editFormDynamic">
+						<input name="number" type="hidden" value="<%=num%>" />
+						<input name="type" type="hidden" value="Occurrence" />
+						<div class="form-group row">
+							<div class="col-sm-3">
+								<label><%=props.getProperty("propertyName")%>:</label>
+							</div>
+							<div class="col-sm-5">
+								<input name="name" type="text" class="form-control"
+									id="addDynPropInput" />
+							</div>
+						</div>
+						<div class="form-group row">
+							<div class="col-sm-3">
+								<label><%=props.getProperty("propertyValue")%>:</label>
+							</div>
+							<div class="col-sm-5">
+								<input name="value" type="text" class="form-control"
+									id="addDynPropInput2" />
+							</div>
+						</div>
+						<input name="Set" type="submit" id="addDynPropBtn"
+							value="<%=props.getProperty("initCapsSet")%>"
+							class="btn btn-sm editFormBtn" />
+					</form>
+				</div>
+				
+				
+	</div>			
+	<div class="col-md-6">
+	  <!-- Biopsy's -->
+		<h2>Biopsy Table...</h2>
+
+	</div>
+</div>
+
+
+
+<br/>
+
+<!-- Here's the map table...  -->
 <table>
 <tr>
 <td>
@@ -572,7 +733,6 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 <br />
 
 <%
-
 } 
     else {
     	%>
