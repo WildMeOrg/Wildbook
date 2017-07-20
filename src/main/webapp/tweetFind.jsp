@@ -42,11 +42,11 @@ JSONObject rtn = new JSONObject("{\"success\": false}");
 Twitter twitterInst = TwitterUtil.init(request);
 Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
 myShepherd.setAction("tweetFind.jsp");
-myShepherd.beginDBTransaction();
 
 // Find or create TwitterAssetStore and make it persistent with myShepherd
 TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
 if(tas == null){
+	myShepherd.beginDBTransaction();
 	tas = new TwitterAssetStore("twitterAssetStore");
 	myShepherd.getPM().makePersistent(tas);
 	myShepherd.commitDBTransaction();
@@ -74,23 +74,15 @@ for (Status tweet : qr.getTweets()) {
 
 	JSONObject p = new JSONObject();
 	p.put("id", tweet.getId());
-	try {
-		MediaAsset ma = tas.find(p, myShepherd);
-		if (ma != null) {
-			System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
-			continue;
-		} else {
-			// Create a media asset for the tweet
-			ma = tas.create(tweet.getId());
-			ma.updateMetadata();
-			MediaAssetFactory.save(ma, myShepherd);
-		}
-		
-		myShepherd.commitDBTransaction();
-	} catch(Exception e){
-		myShepherd.rollbackDBTransaction();
-		e.printStackTrace();
+
+	// Attempt to find MediaAsset for tweet, and skip media asset creation if it exists
+	MediaAsset ma = tas.find(p, myShepherd);
+	if (ma != null) {
+		System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
+		continue;
 	}
+	
+	// Check for tweet and entities
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
 	if (jtweet == null) continue;
 	JSONObject ents = jtweet.optJSONObject("entities");
@@ -101,11 +93,9 @@ for (Status tweet : qr.getTweets()) {
     if(tweeterScreenName == null){
       continue;
     }
-
   } catch(Exception e){
     e.printStackTrace();
   }
-
 
 	JSONObject tj = new JSONObject();  //just for output purposes
 	tj.put("tweet", TwitterUtil.toJSONObject(tweet));
@@ -126,27 +116,43 @@ for (Status tweet : qr.getTweets()) {
     }
   }
 
-	ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
-	ma.addLabel("_original");
-	MediaAssetMetadata md = ma.updateMetadata();
-	MediaAssetFactory.save(ma, myShepherd);
-	tj.put("maId", ma.getId());
-	tj.put("metadata", ma.getMetadata().getData());
-	System.out.println(tweet.getId() + ": created tweet asset " + ma);
+	// Attempt to create media asset, rollback DB transaction if it fails
+	myShepherd.beginDBTransaction();
+	try{
+		ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
+		ma.addLabel("_original");
+		MediaAssetMetadata md = ma.updateMetadata();
+		MediaAssetFactory.save(ma, myShepherd);
+		tj.put("maId", ma.getId());
+		tj.put("metadata", ma.getMetadata().getData());
+		System.out.println(tweet.getId() + ": created tweet asset " + ma);
+		myShepherd.commitDBTransaction();
+	} catch(Exception e){
+		myShepherd.rollbackDBTransaction();
+		e.printStackTrace();
+	}
 
+	// Save entities as media assets to shepherd database
 	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
 	if ((mas == null) || (mas.size() < 1)) {
 		System.out.println(tweet.getId() + ": no entity assets?");
 	} else {
 		JSONArray jent = new JSONArray();
 		for (MediaAsset ent : mas) {
-			JSONObject ej = new JSONObject();
-			MediaAssetFactory.save(ent, myShepherd);
-    	// String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
-			// System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
-			ej.put("maId", ent.getId());
-			// ej.put("taskId", taskId);
-			jent.put(ej);
+			myShepherd.beginDBTransaction();
+			try {
+				JSONObject ej = new JSONObject();
+				MediaAssetFactory.save(ent, myShepherd);
+				// String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
+				// System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
+				ej.put("maId", ent.getId());
+				// ej.put("taskId", taskId);
+				jent.put(ej);
+				myShepherd.commitDBTransaction();
+			} catch(Exception e){
+				myShepherd.rollbackDBTransaction();
+				e.printStackTrace();
+			}
 		}
 		tj.put("entities", jent);
 	}
