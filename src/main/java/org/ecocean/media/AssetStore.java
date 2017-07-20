@@ -331,6 +331,8 @@ public abstract class AssetStore implements java.io.Serializable {
         float[] transformArray = new float[0];
         boolean needsTransform = false;
         String args = null;  //i think the only real arg would be watermark text (which is largely unused)
+        String overlayText = "";
+        if ((opts != null) && (opts.get("overlayText") != null)) overlayText = opts.get("overlayText").toString();
 
         switch (type) {
             case "master":
@@ -343,7 +345,7 @@ public abstract class AssetStore implements java.io.Serializable {
                 action = "maintainAspectRatio";
                 width = 2048;
                 height = 2048;
-                args = opts.get("overlayText").toString();
+                args = overlayText;
                 break;
             case "thumb":
                 width = 100;
@@ -352,11 +354,11 @@ public abstract class AssetStore implements java.io.Serializable {
             case "mid":
                 width = 800;
                 height = 600;
-                args = opts.get("overlayText").toString();
+                args = overlayText;
                 break;
             case "watermark":
                 //action = "watermark";
-                args = opts.get("overlayText").toString();
+                args = overlayText;
                 width = 250;
                 height = 200;
                 break;
