@@ -46,6 +46,7 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
         if (sinceId >= 0l){
           System.out.println("sinceId is " + Long.toString(sinceId) + " and is >= 0l");
           query.setSinceId(sinceId);
+          query.setCount(100);
         }
         return tw.search(query);
     }
