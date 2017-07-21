@@ -111,7 +111,8 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
         reply = "Thanks for tweet " + twitterId + ", @" + screenName + "! Could you send me a pic in a new tweet?";
       }
       try {
-        createTweet(reply, twitterInst);
+        String status = createTweet(reply, twitterInst);
+        System.out.println("status tweeted: " + status);
       } catch(TwitterException e) {
         e.printStackTrace();
       }

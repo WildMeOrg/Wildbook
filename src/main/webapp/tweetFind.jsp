@@ -79,18 +79,28 @@ for (Status tweet : qr.getTweets()) {
 	MediaAsset ma = tas.find(p, myShepherd);
 	if (ma != null) {
 		System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
+    out.println("media asset already exists. Skipping");
 		continue;
 	}
 
 	// Check for tweet and entities
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
-	if (jtweet == null) continue;
+	if (jtweet == null){
+    out.println("tweet is null. Skipping");
+    continue;
+
+  }
+  // out.println(jtweet.toString());
 	JSONObject ents = jtweet.optJSONObject("entities");
-	if (ents == null) continue;
+	if (ents == null){
+    out.println("entities is null. Skipping");
+    continue;
+  }
 
   try{
     tweeterScreenName = jtweet.optJSONObject("user").getString("screen_name");
     if(tweeterScreenName == null){
+      out.println("screen name is null. Skipping");
       continue;
     }
   } catch(Exception e){
@@ -102,17 +112,23 @@ for (Status tweet : qr.getTweets()) {
 
 	JSONArray emedia = null;
 	if (ents != null) emedia = ents.optJSONArray("media");
-	if ((ents == null) || (emedia == null) || (emedia.length() < 1)) continue;
+	if ((ents == null) || (emedia == null) || (emedia.length() < 1)){
+    out.println("emedia is null or of length <1. Skipping");
+    continue;
+  }
 
   for(int i=0; i<emedia.length(); i++){
-    Boolean hasBeenTweeted = false;
+    // Boolean hasBeenTweeted = false;
     JSONObject jent = emedia.getJSONObject(i);
     String mediaType = jent.getString("type");
     tweetID = Long.toString(tweet.getId());
     if(mediaType == null || tweetID == null){
+      out.println("mediaType or tweetID is null. Skipping");
       continue;
-    } else if (tweetID != null){
-      TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID); //sendCourtesyTweet takes care of whether mediaType is a photo or not
+    } else if (tweetID != null && mediaType != null){
+      out.println("got to sendCourtesyTweet");
+      //sendCourtesyTweet takes care of whether mediaType is a photo or not
+      TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
     }
   }
 
@@ -135,6 +151,7 @@ for (Status tweet : qr.getTweets()) {
 	// Save entities as media assets to shepherd database
 	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
 	if ((mas == null) || (mas.size() < 1)) {
+    out.println(tweet.getId() + ": no entity assets?");
 		System.out.println(tweet.getId() + ": no entity assets?");
 	} else {
 		JSONArray jent = new JSONArray();
@@ -143,8 +160,9 @@ for (Status tweet : qr.getTweets()) {
 			try {
 				JSONObject ej = new JSONObject();
 				MediaAssetFactory.save(ent, myShepherd);
-				// String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
-				// System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
+				String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
+        out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
+				System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
 				ej.put("maId", ent.getId());
 				// ej.put("taskId", taskId);
 				jent.put(ej);
@@ -166,8 +184,6 @@ if(tarr.length() == 0){
 } else {
 	newSinceIdString = Long.toString(System.currentTimeMillis());
 }
-
-
 try{
   Util.writeToFile(newSinceIdString, dataDir + "/twitterTimeStamp.txt");
 } catch(FileNotFoundException e){
