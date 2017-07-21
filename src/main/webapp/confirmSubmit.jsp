@@ -238,7 +238,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   if (informMe != null) {
     List<String> cOther = NotificationMailer.splitEmails(informMe);
     for (String emailTo : cOther) {
-    	NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
+    	NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo, "newSubmission-summary", tagMap);
     	mailer.setUrlScheme(request.getScheme());
       	es.execute(mailer);
     }
@@ -253,7 +253,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
     for (String emailTo : cOther) {
       String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
       tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+      NotificationMailer mailer=new NotificationMailer(context, langCode, emailTo, "newSubmission", tagMap);
       mailer.setUrlScheme(request.getScheme());
       es.execute(mailer);
     }
@@ -263,7 +263,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
     for (String emailTo : cOther) {
       String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
       tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+      NotificationMailer mailer=new NotificationMailer(context, langCode, emailTo, "newSubmission", tagMap);
       mailer.setUrlScheme(request.getScheme());
       es.execute(mailer);
     }
@@ -275,7 +275,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
     for (String emailTo : cOther) {
       String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
       tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+      NotificationMailer mailer=new NotificationMailer(context, langCode, emailTo, "newSubmission", tagMap);
       mailer.setUrlScheme(request.getScheme());
       es.execute(mailer);
     }
