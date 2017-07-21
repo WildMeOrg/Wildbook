@@ -81,7 +81,7 @@ for (Status tweet : qr.getTweets()) {
 		System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
 		continue;
 	}
-	
+
 	// Check for tweet and entities
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
 	if (jtweet == null) continue;
@@ -111,8 +111,8 @@ for (Status tweet : qr.getTweets()) {
     tweetID = Long.toString(tweet.getId());
     if(mediaType == null || tweetID == null){
       continue;
-    } else if (mediaType.equals("photo") && tweetID != null){
-      TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
+    } else if (tweetID != null){
+      TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID); //sendCourtesyTweet takes care of whether mediaType is a photo or not
     }
   }
 
@@ -167,7 +167,7 @@ if(tarr.length() == 0){
 	newSinceIdString = Long.toString(System.currentTimeMillis());
 }
 
- 
+
 try{
   Util.writeToFile(newSinceIdString, dataDir + "/twitterTimeStamp.txt");
 } catch(FileNotFoundException e){
