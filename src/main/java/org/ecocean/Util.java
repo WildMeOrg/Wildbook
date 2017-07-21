@@ -12,6 +12,10 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 import org.json.JSONObject;
 import org.json.JSONException;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.text.DateFormat;
+import java.util.TimeZone;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
@@ -599,5 +603,14 @@ public class Util {
       FileInputStream inputStream = new FileInputStream(path);
       String readData = IOUtils.toString(inputStream);
       return readData;
+    }
+
+    public static String convertEpochTimeToHumanReadable (long epochTime){
+      Date date = new Date(epochTime);
+          DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+          format.setTimeZone(TimeZone.getTimeZone("Etc/GMT"));
+          String formatted = format.format(date);
+          formatted = format.format(date);
+          return formatted.toString();
     }
 }
