@@ -43,7 +43,10 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
     public static QueryResult findTweets(String search, long sinceId) throws TwitterException {
         Twitter tw = tfactory.getInstance();
         Query query = new Query(search);
-        if (sinceId >= 0l) query.setSinceId(sinceId);
+        if (sinceId >= 0l){
+          System.out.println("sinceId is " + Long.toString(sinceId) + " and is >= 0l");
+          query.setSinceId(sinceId);
+        }
         return tw.search(query);
     }
 
