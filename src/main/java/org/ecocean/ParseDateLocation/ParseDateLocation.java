@@ -21,6 +21,81 @@ import org.ecocean.translate.DetectTranslate;
 import org.joda.time.LocalDateTime;
 
 public class ParseDateLocation {
+
+  public static String parseDate(String textInput){
+    
+    int year=-1;
+    int month=-1;
+    int day=-1;
+    
+    boolean NLPsuccess=false;
+    try{
+      System.out.println(">>>>>> looking for date with NLP");
+      //call Stanford NLP function to find and select a date from ytRemarks
+      String myDate= ServletUtilities.nlpDateParse(textInput);
+      //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
+      if (myDate!=null) {
+          System.out.println(">>>>>> NLP found date: "+myDate);
+          int numCharact= myDate.length();
+
+          if(numCharact>=4){
+
+            try{
+              year=(new Integer(myDate.substring(0, 4))).intValue();
+              NLPsuccess=true;
+
+              if(numCharact>=7){
+                try {
+                  month=(new Integer(myDate.substring(5, 7))).intValue();
+                  if(numCharact>=10){
+                    try {
+                      day=(new Integer(myDate.substring(8, 10))).intValue();
+                      }
+                    catch (Exception e) { day=-1; }
+                  }
+                else{day=-1;}
+                }
+                catch (Exception e) { month=-1;}
+              }
+              else{month=-1;}
+
+            }
+            catch(Exception e){
+              e.printStackTrace();
+            }
+        }
+
+      }
+
+    }
+    catch(Exception e){
+      System.out.println("Exception in NLP in IBEISIA.class");
+      e.printStackTrace();
+    }
+
+    //NLP failure? let's try brute force detection across all languages supported by this Wildbook
+    if(!NLPsuccess){
+      System.out.println(">>>>>> looking for date with brute force");
+      //next parse for year
+      LocalDateTime dt = new LocalDateTime();
+      int nowYear=dt.getYear();
+      int oldestYear=nowYear-20;
+      for(int i=nowYear;i>oldestYear;i--){
+        String yearCheck=(new Integer(i)).toString();
+        if (textInput.indexOf(yearCheck) != -1) {
+          year=i;
+          System.out.println("...detected a year in comments!");
+        }
+      }
+    }
+
+    //end brute force date detection if NLP failed
+
+      String result = (year > 0 ? Integer.toString(year) : "") + (month > 0 ? Integer.toString(month) : "") + (day > 0 ? Integer.toString(day) : "");
+      
+      return result;
+  }
+
   public static void date(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context, String text) {
     System.out.println(">>>>>> detection created " + occ.toString());
 
