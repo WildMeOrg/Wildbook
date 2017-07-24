@@ -28,7 +28,7 @@ public class ParseDateLocation {
     String locationCode="";
     Properties locationCodes = new Properties();
 
-    //Detect and translate if needed
+    //Detect language and translate if needed
     try{
       String detectedLanguage = DetectTranslate.detectLanguage(text, context);
       if(!detectedLanguage.toLowerCase().startsWith("en")){
@@ -42,12 +42,16 @@ public class ParseDateLocation {
 
     //Parse any text matching a location from submitActionClass.properties and map them to their location codes
     try{
+      System.out.println("mf getting properties before");
       locationCodes=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+      System.out.println("mf getting properties after");
       Enumeration locationCodesEnum = locationCodes.propertyNames();
       String textToLowerCase = text.toLowerCase();
       while (locationCodesEnum.hasMoreElements()) {
         String currentLocationQuery = ((String) locationCodesEnum.nextElement()).trim().toLowerCase();
+        System.out.println("mf currentLocationQuery is " + currentLocationQuery);
         if (textToLowerCase.indexOf(currentLocationQuery) != -1) {
+          System.out.println("mf got an index match!");
           locationCode = locationCodes.getProperty(currentLocationQuery);
           System.out.println("Location code encountered in parseLocation: " + locationCode);
           location+=(currentLocationQuery+", ");
