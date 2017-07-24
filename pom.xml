@@ -107,8 +107,21 @@
     <dependency>
         <groupId>org.pac4j</groupId>
         <artifactId>pac4j-oauth</artifactId>
-        <version>1.7.0</version>
+        <version>1.9.7</version>
     </dependency>
+
+    <dependency>
+          <groupId>org.scribe</groupId>
+          <artifactId>scribe</artifactId>
+          <version>1.3.7</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+          <version>3.0</version>
+      </dependency>
+
 
 <dependency>
 	<groupId>com.amazonaws</groupId>
@@ -404,12 +417,34 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.7.12</version>
     </dependency>
-	
+
   <dependency>
       <groupId>org.twitter4j</groupId>
       <artifactId>twitter4j-core</artifactId>
       <version>4.0.5</version>
   </dependency>
+
+  <!-- START QR code generating dependencies-->
+     <dependency>
+       <groupId>com.google.zxing</groupId>
+       <artifactId>core</artifactId>
+       <version>2.2</version>
+ </dependency>
+
+     <dependency>
+         <groupId>net.glxn</groupId>
+         <artifactId>qrgen</artifactId>
+         <version>1.3</version>
+ </dependency>
+
+ <!-- END QR code generating dependencies -->
+
+ <dependency>
+ 	<groupId>com.mchange</groupId>
+ 	<artifactId>c3p0</artifactId>
+ 	<version>0.9.5.2</version>
+ </dependency>
+
 
     <dependency>
       <groupId>com.google.apis</groupId>
@@ -449,7 +484,66 @@
 </dependency>
 
 
-  </dependencies>
+
+  <!-- natural date language processing-->
+  <dependency>
+    <groupId>com.joestelmach</groupId>
+    <artifactId>natty</artifactId>
+    <version>0.13</version>
+  </dependency>
+      <!-- YouTube Data V3 support -->
+      <!-- This dependency is only used for the Topics API sample, which requires the Jackson JSON parser -->
+          <dependency>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-mapper-asl</artifactId>
+              <version>1.9.4</version>
+          </dependency>
+
+          <!-- dependencies for translation -->
+          <dependency>
+          <groupId>com.google.cloud</groupId>
+          <artifactId>google-cloud-translate</artifactId>
+          <version>0.17.2-beta</version>
+        </dependency>
+
+        <dependency>
+          <groupId>com.google.truth</groupId>
+          <artifactId>truth</artifactId>
+          <version>0.32</version>
+        </dependency>
+        <dependency>
+          <groupId>com.googlecode</groupId>
+          <artifactId>google-api-translate-java</artifactId>
+          <version>0.92</version>
+        </dependency>
+        <!-- dependencies for Stanford NLP -->
+        <dependency>
+        <groupId>edu.stanford.nlp</groupId>
+        <artifactId>stanford-corenlp</artifactId>
+        <version>3.8.0</version>
+        </dependency>
+        <dependency>
+        <groupId>edu.stanford.nlp</groupId>
+        <artifactId>stanford-corenlp</artifactId>
+        <version>3.6.0</version>
+        <classifier>models</classifier> <!--  will get the dependent model jars -->
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-parser -->
+        <dependency>
+          <groupId>edu.stanford.nlp</groupId>
+          <artifactId>stanford-parser</artifactId>
+          <version>3.7.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
+        <dependency>
+          <groupId>net.sourceforge.tess4j</groupId>
+          <artifactId>tess4j</artifactId>
+          <version>3.4.0</version>
+        </dependency>
+
+
+</dependencies>
+
 
   <build>
     <resources>
