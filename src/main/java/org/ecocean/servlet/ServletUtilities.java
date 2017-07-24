@@ -72,6 +72,7 @@ import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.pipeline.*;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.time.*;
+// import edu.stanford.nlp.NERClassifierCombiner;
 import edu.stanford.nlp.time.SUTime.Temporal;
 import edu.stanford.nlp.util.CoreMap;
 import org.joda.time.LocalDate;
@@ -817,7 +818,7 @@ String rootWebappPath = "xxxxxx";
       pipeline.addAnnotator(new TokenizerAnnotator(false));
       pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
       pipeline.addAnnotator(new POSTaggerAnnotator(false));
-      pipeline.addAnnotator(new NERClassifierCombiner(false)); //TODO not sure how this works https://stanfordnlp.github.io/CoreNLP/ner.html
+      // pipeline.addAnnotator(new NERClassifierCombiner(false)); //TODO not sure how this works https://stanfordnlp.github.io/CoreNLP/ner.html
       //TODO lots of room for improvement here, I'm sure. Used nlpDateParse method as a model
       text = text.replaceAll("[,.!?;:]", "$0 ");
       System.out.println("text: "+text);
