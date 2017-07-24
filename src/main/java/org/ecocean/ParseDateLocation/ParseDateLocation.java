@@ -22,11 +22,22 @@ import org.joda.time.LocalDateTime;
 
 public class ParseDateLocation {
 
-  public static String parseDate(String textInput){
+  public static String parseDate(String textInput, String context){
     
     int year=-1;
     int month=-1;
     int day=-1;
+
+    try{
+      String detectedLanguage = DetectTranslate.detectLanguage(textInput, context);
+      if(!detectedLanguage.toLowerCase().startsWith("en")){
+        textInput= DetectTranslate.translateToEnglish(textInput, context);
+        System.out.println("Translated text for parseLocation is " + textInput);
+      }
+    } catch(Exception e){
+      System.out.println("Exception trying to detect language.");
+      e.printStackTrace();
+    }
     
     boolean NLPsuccess=false;
     try{
