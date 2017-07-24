@@ -21,6 +21,59 @@ import org.ecocean.translate.DetectTranslate;
 import org.joda.time.LocalDateTime;
 
 public class ParseDateLocation {
+
+  public static String parseLocation (String text, String context){
+    String location="";
+    String locationCode="";
+
+    //Detect and translate if needed
+    try{
+      String detectedLanguage = DetectTranslate.detectLanguage(text);
+      if(!detectedLanguage.toLowerCase().startsWith("en")){
+        text= DetectTranslate.translateToEnglish(text, context);
+        System.out.println("Translated text for parseLocation is " + text);
+      }
+    } catch(Exception e){
+      System.out.println("Exception trying to detect language.");
+      e.printStackTrace();
+    }
+
+    //Parse any text matching a location from submitActionClass.properties and map them to their location codes
+    try{
+      locationCodes=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+      Enumeration locationCodesEnum = locationCodes.propertyNames();
+      String textToLowerCase = text.toLowerCase();
+      while (locationCodesEnum.hasMoreElements()) {
+        String currentLocationQuery = ((String) locationCodesEnum.nextElement()).trim().toLowerCase();
+        if (textToLowerCase.indexOf(currentLocationQuery) != -1) {
+          locationCode = props.getProperty(currentLocationQuery);
+          System.out.println("Location code encountered in parseLocation: " + locationCode);
+          location+=(currentLocationQuery+", ");
+        }
+      }
+    } catch(Exception e){
+      e.printStackTrace();
+      System.out.println("Exception trying to comb for location codes.");
+    }
+
+    //Use natural language processing to try to extract location
+    try{
+      location += nlpLocationParse(text);
+    } catch(Exception e){
+      System.out.println("Exception trying to run nlpLocationParse.");
+      e.printStackTrace();
+    }
+
+    //Parse gps coordinates
+    try{
+
+    } catch(Exception e){
+      System.out.println("Exception trying to parse gps coordinates.");
+      e.printStackTrace();
+    }
+
+  }
+
   public static void date(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context, String text) {
     System.out.println(">>>>>> detection created " + occ.toString());
 
