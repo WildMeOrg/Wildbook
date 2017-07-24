@@ -66,19 +66,10 @@ public class ParseDateLocation {
 
     //Parse gps coordinates
     try{
-      String text = "saw a whale at 45.5938,-122.737"; //TODO remove this!!
       // String PATTERN = ".*?([+-]?\\d+\\.?\\d+)\\s*,\\s*([+-]?\\d+\\.?\\d+).*?"; //doesn't seem as robust as
       String PATTERN = ".?[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?).?";
       Pattern pattern = Pattern.compile(PATTERN);
       Matcher matcher = pattern.matcher(text);
-      int i = 0;
-      while (matcher.find()) {
-         for (int j = 0; j <= matcher.groupCount(); j++) {
-            System.out.println("------------------------------------");
-            System.out.println("Group " + i + ": " + matcher.group(j));
-            i++;
-         }
-      }
       if(matcher.matches()){
         String gpsCoords = matcher.group(0);
         System.out.println("GPS coordinates found: " + gpsCoords + " Adding to location.");
