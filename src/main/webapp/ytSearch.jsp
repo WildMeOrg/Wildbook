@@ -10,8 +10,8 @@ org.joda.time.DateTime,
 org.json.JSONObject,
 org.json.JSONArray,
 com.google.api.services.youtube.model.SearchResult,
-
-org.ecocean.media.*
+org.ecocean.media.*,
+java.util.ArrayList
               "
 %>
 
@@ -37,6 +37,43 @@ try {
 rtn.put("since", sinceMS);
 rtn.put("sinceDateTime", new DateTime(sinceMS));
 
+ArrayList<String> phrasesToIgnoreVideo=new ArrayList<String>();
+phrasesToIgnoreVideo.add("documentary");
+phrasesToIgnoreVideo.add("documental");
+phrasesToIgnoreVideo.add("hungry shark world");
+phrasesToIgnoreVideo.add("hungry shark game");
+phrasesToIgnoreVideo.add("dory");
+phrasesToIgnoreVideo.add("nemo");
+phrasesToIgnoreVideo.add("abyssrium");
+phrasesToIgnoreVideo.add("whale shark card");
+phrasesToIgnoreVideo.add("octonauts");
+phrasesToIgnoreVideo.add("gta");
+phrasesToIgnoreVideo.add("megalodon");
+phrasesToIgnoreVideo.add("abzu");
+phrasesToIgnoreVideo.add("bbc");
+phrasesToIgnoreVideo.add("disney");
+phrasesToIgnoreVideo.add("white shark");
+phrasesToIgnoreVideo.add("top 10");
+phrasesToIgnoreVideo.add("tap tap");
+phrasesToIgnoreVideo.add("nickelodeon");
+phrasesToIgnoreVideo.add("attack");
+phrasesToIgnoreVideo.add("paw patrol");
+phrasesToIgnoreVideo.add("aliexpress");
+phrasesToIgnoreVideo.add("shark tank");
+phrasesToIgnoreVideo.add("rockstar");
+phrasesToIgnoreVideo.add("tubmates");
+phrasesToIgnoreVideo.add("photoshop");
+phrasesToIgnoreVideo.add("animal facts");
+phrasesToIgnoreVideo.add("tiggu");
+phrasesToIgnoreVideo.add("banjo");
+phrasesToIgnoreVideo.add("aquarium");
+phrasesToIgnoreVideo.add("shark simulator");
+phrasesToIgnoreVideo.add("ultimate shark simulator");
+phrasesToIgnoreVideo.add("ultimatesharksimulator");
+phrasesToIgnoreVideo.add("animal planet");
+
+int numPhrases=phrasesToIgnoreVideo.size();
+
 
 String keyword = request.getParameter("keyword");
 if (keyword == null) {
@@ -57,7 +94,18 @@ if (keyword == null) {
 		rtn.put("count", vids.size());
 		JSONArray varr = new JSONArray();
 		for (SearchResult vid : vids) {
-			varr.put(new JSONObject(vid.toString()));
+			
+			//check the video for strings that indicate non-data videos (e.g., video games, documentaries, etc.)
+			boolean filterMe=false;
+			String consolidatedRemarks=vid.toString().toLowerCase();
+			for(int i=0;i<numPhrases;i++){
+				String filterString=phrasesToIgnoreVideo.get(i);
+				if(consolidatedRemarks.indexOf(filterString)!=-1)filterMe=true;
+			}
+			
+			if(!filterMe)varr.put(new JSONObject(vid.toString()));
+			
+			
 		}
 		rtn.put("videos", varr);
 	}

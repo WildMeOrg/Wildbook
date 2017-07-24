@@ -3139,12 +3139,16 @@ public class Shepherd {
   }
 
   public List<MarkedIndividual> getMarkedIndividualsByAlternateID(String altID) {
-    String filter = "this.alternateid.toLowerCase() == \"" + altID.toLowerCase() + "\"";
-    Extent encClass = pm.getExtent(MarkedIndividual.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    ArrayList al = new ArrayList(c);
-    acceptedEncounters.closeAll();
+    ArrayList al = new ArrayList();
+    try{
+      String filter = "this.alternateid.toLowerCase() == \"" + altID.toLowerCase() + "\"";
+      Extent encClass = pm.getExtent(MarkedIndividual.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      al = new ArrayList(c);
+      acceptedEncounters.closeAll();
+    }
+    catch(Exception e){e.printStackTrace();}
     return al;
   }
 
