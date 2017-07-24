@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<jnlp spec="1.0+" 
+      codebase="http://www.whaleshark.org/interconnect/mac/" 
+      href="interconnect.jnlp">
+
+  <information>
+    <title>Interconnect</title>
+    <vendor>ECOCEAN</vendor>
+    <homepage href="http://www.ecocean.org/"/>
+    <description>Part of the ECOCEAN Whale Shark Photo-identification Library.</description>
+    <icon href="ws_icon.gif"/>
+    <offline-allowed/>
+  </information>
+
+  <security>
+    <all-permissions/>
+  </security>
+
+  <resources>
+    <j2se version="1.5+"/>
+    <jar href="Interconnect.jar" main="true"/>
+  </resources>
+
+  <application-desc main-class="Interconnect"/>
+
+</jnlp> 

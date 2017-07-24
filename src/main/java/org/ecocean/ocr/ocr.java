@@ -16,7 +16,7 @@ import org.ecocean.YouTube;
 import javax.imageio.ImageIO;
 
 public class ocr {
-  
+
   public static ArrayList<File> makeFilesFrames(ArrayList<MediaAsset> frames){
     if (frames == null) throw new RuntimeException("Not media assets for this video?");
     try {
@@ -27,15 +27,15 @@ public class ocr {
         filesFrames.add(frame.localPath().toFile());
       }
       return filesFrames;
-      
+
     } catch (Exception e) {
       System.out.println("caught exception while trying to convert frames into jpg files.");
     }
     return null;
-    
+
   }
   public static String getTextFrames(ArrayList<File> filesFrames, String context) {
-    
+
 //    ArrayList<String> framesTexts = new ArrayList<String>();
     try {
 
@@ -49,8 +49,8 @@ public class ocr {
             try {
                 String frameText = instance.doOCR(fileFrame);
                 //System.out.println(frameText);
-//                framesTexts.add(frameText);          
-                if (!(framesTexts.toString()).contains(frameText)) {         
+//                framesTexts.add(frameText);
+                if (!(framesTexts.toString()).contains(frameText)) {
                   framesTexts.append(frameText+ " ");
                 }
             } catch (TesseractException e) {
@@ -59,11 +59,11 @@ public class ocr {
     }
       String ocrRemarks= framesTexts.toString();
       return ocrRemarks;
-      
+
     } catch (Exception e) {
       System.out.println("Exception while trying to convert fileFrames into text.");
     }
-     return null; 
+     return null;
 
   }
 
