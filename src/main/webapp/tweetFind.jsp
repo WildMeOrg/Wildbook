@@ -12,6 +12,7 @@ java.io.File,
 org.json.JSONObject,
 org.json.JSONArray,
 org.ecocean.identity.IBEISIA,
+org.ecocean.ParseDateLocation.*,
 twitter4j.QueryResult,
 twitter4j.Status,
 twitter4j.*,
@@ -32,6 +33,12 @@ String tweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
 long sinceId = 832273339657785300L;
+
+String testTweetText = "Saw this cool humpback whale in the galapagos!";
+String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos";
+String textTweetGpsText = "saw a whale at 45.5938,-122.737";
+
+ParseDateLocation.parseLocation(testTweetText, request.getSession().getServletContext());
 
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -164,7 +171,7 @@ for (Status tweet : qr.getTweets()) {
         out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
 				System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
 				ej.put("maId", ent.getId());
-				// ej.put("taskId", taskId);
+				ej.put("taskId", taskId);
 				jent.put(ej);
 				myShepherd.commitDBTransaction();
 			} catch(Exception e){
