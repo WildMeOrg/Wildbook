@@ -17,8 +17,9 @@ twitter4j.Status,
 twitter4j.*,
 org.ecocean.servlet.ServletUtilities,
 
-org.ecocean.media.*
-              "
+org.ecocean.media.*,
+org.ecocean.ParseDateLocation.*
+"
 %>
 
 
@@ -32,6 +33,7 @@ String tweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
 long sinceId = 832273339657785300L;
+String dateTest = "Saw a whale on monday June 13, 2017";
 
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -67,6 +69,7 @@ try{
 }
 
 rtn.put("sinceId", sinceId);
+rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest));
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
