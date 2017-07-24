@@ -12,13 +12,13 @@ java.io.File,
 org.json.JSONObject,
 org.json.JSONArray,
 org.ecocean.identity.IBEISIA,
-org.ecocean.ParseDateLocation.*,
 twitter4j.QueryResult,
 twitter4j.Status,
 twitter4j.*,
 org.ecocean.servlet.ServletUtilities,
 
-org.ecocean.media.*
+org.ecocean.media.*,
+org.ecocean.ParseDateLocation.*
               "
 %>
 
