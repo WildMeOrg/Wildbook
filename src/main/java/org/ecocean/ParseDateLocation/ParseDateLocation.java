@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,10 +26,11 @@ public class ParseDateLocation {
   public static String parseLocation (String text, String context){
     String location="";
     String locationCode="";
+    Properties locationCodes = new Properties();
 
     //Detect and translate if needed
     try{
-      String detectedLanguage = DetectTranslate.detectLanguage(text);
+      String detectedLanguage = DetectTranslate.detectLanguage(text, context);
       if(!detectedLanguage.toLowerCase().startsWith("en")){
         text= DetectTranslate.translateToEnglish(text, context);
         System.out.println("Translated text for parseLocation is " + text);
@@ -46,7 +48,7 @@ public class ParseDateLocation {
       while (locationCodesEnum.hasMoreElements()) {
         String currentLocationQuery = ((String) locationCodesEnum.nextElement()).trim().toLowerCase();
         if (textToLowerCase.indexOf(currentLocationQuery) != -1) {
-          locationCode = props.getProperty(currentLocationQuery);
+          locationCode = locationCodes.getProperty(currentLocationQuery);
           System.out.println("Location code encountered in parseLocation: " + locationCode);
           location+=(currentLocationQuery+", ");
         }
@@ -58,7 +60,7 @@ public class ParseDateLocation {
 
     //Use natural language processing to try to extract location
     try{
-      location += nlpLocationParse(text);
+      location += ServletUtilities.nlpLocationParse(text);
     } catch(Exception e){
       System.out.println("Exception trying to run nlpLocationParse.");
       e.printStackTrace();
@@ -81,6 +83,7 @@ public class ParseDateLocation {
       e.printStackTrace();
     }
 
+    return location;
   }
 
   public static void date(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context, String text) {
