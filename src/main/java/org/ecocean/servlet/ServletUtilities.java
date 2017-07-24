@@ -393,11 +393,11 @@ public class ServletUtilities {
         else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
           isOwner = true;
         }
-        
+
         //whaleshark.org custom
         if((request.getRemoteUser().equals("rgrampus"))&&(enc.getLocationCode().startsWith("2h"))){isOwner=false;}
-        
-        
+
+
       }
       return isOwner;
   //}
@@ -749,7 +749,7 @@ String rootWebappPath = "xxxxxx";
         if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
     }
 
-    
+
     /* see webapps/captchaExample.jsp for implementation */
 
     //note: this only handles single-widget (per page) ... if we need multiple, will have to extend things here
@@ -772,7 +772,7 @@ String rootWebappPath = "xxxxxx";
     public static boolean captchaIsValid(HttpServletRequest request) {
         return captchaIsValid(getContext(request), request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
     }
-    
+
     public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
         if (context == null) context = "context0";
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
@@ -808,6 +808,27 @@ String rootWebappPath = "xxxxxx";
         System.out.println("INFO: captchaIsValid() api call returned: " + gresp.toString());
         return gresp.optBoolean("success", false);
     }
+
+    public static String nlpLocationParse(String text){
+      System.out.println("Entering nlpLocationParse");
+      //create my pipeline with the help of the annotators I added.
+      Properties props = new Properties();
+      AnnotationPipeline pipeline = new AnnotationPipeline();
+      pipeline.addAnnotator(new TokenizerAnnotator(false));
+      pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+      pipeline.addAnnotator(new POSTaggerAnnotator(false));
+      pipeline.addAnnotator(new NERClassifierCombiner(false)); //TODO not sure how this works https://stanfordnlp.github.io/CoreNLP/ner.html
+      //TODO lots of room for improvement here, I'm sure. Used nlpDateParse method as a model
+      text = text.replaceAll("[,.!?;:]", "$0 ");
+      System.out.println("text: "+text);
+      String [] text1= text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
+      String text2 = String.join(" ", text1);
+      Annotation annotation = new Annotation(text2);
+
+      //TODO incomplete as is. Not sure where to go from here...
+      return "nlpLocationParse method is incomplete";
+    }
+
     public static String nlpDateParse(String text) {
       System.out.println("Entering nlpParseDate");
       //create my pipeline with the help of the annotators I added.
@@ -817,27 +838,27 @@ String rootWebappPath = "xxxxxx";
       pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
       pipeline.addAnnotator(new POSTaggerAnnotator(false));
       pipeline.addAnnotator(new TimeAnnotator("sutime", props));
-      
+
       text = text.replaceAll("[,.!?;:]", "$0 ");
       System.out.println("text: "+text);
       String [] text1= text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
       String text2 = String.join(" ", text1);
-     
+
       System.out.println("text2: "+text2);
       Annotation annotation = new Annotation(text2);
-      
-      
+
+
       //get current date (no time) and formatted with Joda time.
       LocalDate date = LocalDate.now();
       DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
       String referenceDate = dateFormat.print(date);
-      
+
       //pass current date and record date (or dates) given by text in TIMEX3(an ISO 8601 extention)format.
-      annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);      
+      annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
       pipeline.annotate(annotation);
       List<CoreMap> timexAnnsAll = annotation.get(TimeAnnotations.TimexAnnotations.class);
-      
-      ArrayList<String> arrayListDates= new ArrayList<String>();         
+
+      ArrayList<String> arrayListDates= new ArrayList<String>();
       for(CoreMap cm: timexAnnsAll) {
         Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
 //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
@@ -846,14 +867,14 @@ String rootWebappPath = "xxxxxx";
         arrayListDates.add(dateStr.replaceAll("-XX", ""));
       }
       System.out.println("NLP dates found+:"+ arrayListDates);
-      
+
     if (!arrayListDates.isEmpty()) {
         //turn arrayList into an array to be able to use the old For loop and compare dates.
         String[] arrayDates = new String[arrayListDates.size()];
         arrayDates = arrayListDates.toArray(arrayDates);
         //select best date among the options based on their length.
         String selectedDate= "";
-        
+
         //multiple entries found, now sort on length
         if(arrayListDates.size()>1){
           for (int i = 0; i < arrayDates.length; i++) {
@@ -865,9 +886,9 @@ String rootWebappPath = "xxxxxx";
               }else {
                 selectedDate = arrayDates[0];
               }
-             
+
             }
-        
+
           }
       }
       //only 1 entry, return it
@@ -877,7 +898,7 @@ String rootWebappPath = "xxxxxx";
     }else {
       return null;
     }
-      
+
     }
 
 
