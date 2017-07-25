@@ -810,7 +810,7 @@ String rootWebappPath = "xxxxxx";
         return gresp.optBoolean("success", false);
     }
 
-    public static String nlpLocationParse(String text) throws nlpLocationParseException {
+    public static String nlpLocationParse(String text) throws RuntimeException {
       System.out.println("Entering nlpLocationParse");
       //create my pipeline with the help of the annotators I added.
       Properties props = new Properties();
@@ -832,7 +832,7 @@ String rootWebappPath = "xxxxxx";
       if (returnVal !=null){
         return returnVal;
       } else{
-        throw new nlpLocationParseException("nlpLocationParse is null");
+        throw new RuntimeException("nlpLocationParse is null");
       }
     }
 
