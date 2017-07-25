@@ -810,7 +810,7 @@ String rootWebappPath = "xxxxxx";
         return gresp.optBoolean("success", false);
     }
 
-    public static String nlpLocationParse(String text){
+    public static String nlpLocationParse(String text) throws nlpLocationParseException {
       System.out.println("Entering nlpLocationParse");
       //create my pipeline with the help of the annotators I added.
       Properties props = new Properties();
@@ -826,8 +826,14 @@ String rootWebappPath = "xxxxxx";
       String text2 = String.join(" ", text1);
       Annotation annotation = new Annotation(text2);
 
+
       //TODO incomplete as is. Not sure where to go from here...
-      return "nlpLocationParse method is incomplete";
+      String returnVal = "nlpLocationParse method is incomplete";
+      if (returnVal !=null){
+        return returnVal;
+      } else{
+        throw new nlpLocationParseException("nlpLocationParse is null");
+      }
     }
 
     public static String nlpDateParse(String text) {

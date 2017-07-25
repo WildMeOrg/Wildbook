@@ -26,68 +26,88 @@ public class ParseDateLocation {
   public static String parseLocation (String text, String context){
     String location="";
     String locationCode="";
-    Properties locationCodes = new Properties();
 
-    //Detect language and translate if needed
     try{
-      String detectedLanguage = DetectTranslate.detectLanguage(text, context);
-      if(!detectedLanguage.toLowerCase().startsWith("en")){
-        text= DetectTranslate.translateToEnglish(text, context);
-        System.out.println("Translated text for parseLocation is " + text);
-      }
-    } catch(Exception e){
-      System.out.println("Exception trying to detect language.");
+      location += detectLanguageAndTranslateToEnglish(text, context);
+    } catch(TranslationFailException e){
       e.printStackTrace();
     }
 
-    //Parse any text matching a location from submitActionClass.properties and map them to their location codes
     try{
-      System.out.println("mf getting properties before");
-      locationCodes=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
-      System.out.println("mf getting properties after");
-      Enumeration locationCodesEnum = locationCodes.propertyNames();
-      String textToLowerCase = text.toLowerCase();
-      while (locationCodesEnum.hasMoreElements()) {
-        String currentLocationQuery = ((String) locationCodesEnum.nextElement()).trim().toLowerCase();
-        System.out.println("mf currentLocationQuery is " + currentLocationQuery);
-        if (textToLowerCase.indexOf(currentLocationQuery) != -1) {
-          System.out.println("mf got an index match!");
-          locationCode = locationCodes.getProperty(currentLocationQuery);
-          System.out.println("Location code encountered in parseLocation: " + locationCode);
-          location+=(currentLocationQuery+", ");
-        }
-      }
-    } catch(Exception e){
+      location += parseLocationCodes(text,context);
+    } catch(LocationCodeException e){
       e.printStackTrace();
-      System.out.println("Exception trying to comb for location codes.");
     }
 
-    //Use natural language processing to try to extract location
     try{
       location += ServletUtilities.nlpLocationParse(text);
-    } catch(Exception e){
-      System.out.println("Exception trying to run nlpLocationParse.");
+    } catch(nlpLocationParseException e){
       e.printStackTrace();
     }
 
-    //Parse gps coordinates
     try{
-      // String PATTERN = ".*?([+-]?\\d+\\.?\\d+)\\s*,\\s*([+-]?\\d+\\.?\\d+).*?"; //doesn't seem as robust as
-      String PATTERN = ".?[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?).?";
-      Pattern pattern = Pattern.compile(PATTERN);
-      Matcher matcher = pattern.matcher(text);
-      if(matcher.matches()){
-        String gpsCoords = matcher.group(0);
-        System.out.println("GPS coordinates found: " + gpsCoords + " Adding to location.");
-        location += gpsCoords;
-      }
-
-    } catch(Exception e){
-      System.out.println("Exception trying to parse gps coordinates.");
+      location += parseGpsCoordinates(text);
+    } catch(GpsParseException e){
       e.printStackTrace();
     }
 
     return location;
+  }
+
+  public static String detectLanguageAndTranslateToEnglish(String text, String context) throws TranslationFailException{
+    String detectedLanguage = DetectTranslate.detectLanguage(text, context);
+    if(!detectedLanguage.toLowerCase().startsWith("en")){
+      text= DetectTranslate.translateToEnglish(text, context);
+      System.out.println("Translated text for parseLocation is " + text);
+    }
+    if(text !=null){
+      return text;
+    } else{
+      throw new TranslationFailException("Translation failed");
+    }
+  }
+
+  public static String parseLocationCodes(String text, String context) throws LocationCodeException{
+    Properties locationCodes = new Properties();
+    String returnVal = null;
+    System.out.println("mf getting properties before");
+    locationCodes=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+    System.out.println("mf getting properties after");
+    Enumeration locationCodesEnum = locationCodes.propertyNames();
+    String textToLowerCase = text.toLowerCase();
+    while (locationCodesEnum.hasMoreElements()) {
+      String currentLocationQuery = ((String) locationCodesEnum.nextElement()).trim().toLowerCase();
+      System.out.println("mf currentLocationQuery is " + currentLocationQuery);
+      if (textToLowerCase.indexOf(currentLocationQuery) != -1) {
+        System.out.println("mf got an index match!");
+        locationCode = locationCodes.getProperty(currentLocationQuery);
+        System.out.println("Location code encountered in parseLocation: " + locationCode);
+        returnVal = locationCode;
+      }
+    }
+    if(returnVal != null){
+      retur returnVal;
+    } else{
+      throw new LocationCodeException("parseLocationCodes produced a null result");
+    }
+  }
+
+  public static String parseGpsCoordinates(String text) throws GpsParseException{
+    String returnVal = null;
+    // String PATTERN = ".*?([+-]?\\d+\\.?\\d+)\\s*,\\s*([+-]?\\d+\\.?\\d+).*?"; //doesn't seem as robust as
+    String PATTERN = ".?[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?).?";
+    Pattern pattern = Pattern.compile(PATTERN);
+    Matcher matcher = pattern.matcher(text);
+    if(matcher.matches()){
+      String gpsCoords = matcher.group(0);
+      System.out.println("GPS coordinates found: " + gpsCoords + " Adding to location.");
+      returnVal = gpsCoords;
+    }
+    if(returnVal != null){
+      return returnVal;
+    } else{
+      throw new GpsParseException("Gps coordinates were null");
+    }
   }
 
   public static void date(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context, String text) {
