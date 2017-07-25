@@ -25,36 +25,35 @@ public class ParseDateLocation {
 
   public static String parseLocation (String text, String context){
     String location="";
-    String locationCode="";
 
     try{
       location += detectLanguageAndTranslateToEnglish(text, context);
-    } catch(TranslationFailException e){
+    } catch(RuntimeException e){
       e.printStackTrace();
     }
 
     try{
       location += parseLocationCodes(text,context);
-    } catch(LocationCodeException e){
+    } catch(RuntimeException e){
       e.printStackTrace();
     }
 
     try{
       location += ServletUtilities.nlpLocationParse(text);
-    } catch(nlpLocationParseException e){
+    } catch(RuntimeException e){
       e.printStackTrace();
     }
 
     try{
       location += parseGpsCoordinates(text);
-    } catch(GpsParseException e){
+    } catch(RuntimeException e){
       e.printStackTrace();
     }
 
     return location;
   }
 
-  public static String detectLanguageAndTranslateToEnglish(String text, String context) throws TranslationFailException{
+  public static String detectLanguageAndTranslateToEnglish(String text, String context) throws RuntimeException{
     String detectedLanguage = DetectTranslate.detectLanguage(text, context);
     if(!detectedLanguage.toLowerCase().startsWith("en")){
       text= DetectTranslate.translateToEnglish(text, context);
@@ -63,11 +62,11 @@ public class ParseDateLocation {
     if(text !=null){
       return text;
     } else{
-      throw new TranslationFailException("Translation failed");
+      throw new RuntimeException("Translation failed: text started out as or became null");
     }
   }
 
-  public static String parseLocationCodes(String text, String context) throws LocationCodeException{
+  public static String parseLocationCodes(String text, String context) throws RuntimeException{
     Properties locationCodes = new Properties();
     String returnVal = null;
     System.out.println("mf getting properties before");
@@ -80,19 +79,18 @@ public class ParseDateLocation {
       System.out.println("mf currentLocationQuery is " + currentLocationQuery);
       if (textToLowerCase.indexOf(currentLocationQuery) != -1) {
         System.out.println("mf got an index match!");
-        locationCode = locationCodes.getProperty(currentLocationQuery);
-        System.out.println("Location code encountered in parseLocation: " + locationCode);
-        returnVal = locationCode;
+        returnVal = locationCodes.getProperty(currentLocationQuery);
+        System.out.println("Location code encountered in parseLocation: " + returnVal);
       }
     }
     if(returnVal != null){
-      retur returnVal;
+      return returnVal;
     } else{
-      throw new LocationCodeException("parseLocationCodes produced a null result");
+      throw new RuntimeException("parseLocationCodes produced a null result");
     }
   }
 
-  public static String parseGpsCoordinates(String text) throws GpsParseException{
+  public static String parseGpsCoordinates(String text) throws RuntimeException{
     String returnVal = null;
     // String PATTERN = ".*?([+-]?\\d+\\.?\\d+)\\s*,\\s*([+-]?\\d+\\.?\\d+).*?"; //doesn't seem as robust as
     String PATTERN = ".?[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?).?";
@@ -106,7 +104,7 @@ public class ParseDateLocation {
     if(returnVal != null){
       return returnVal;
     } else{
-      throw new GpsParseException("Gps coordinates were null");
+      throw new RuntimeException("Gps coordinates were null");
     }
   }
 
