@@ -58,8 +58,8 @@ public class Cluster {
   }
 
   public static List<Occurrence> defaultCluster(List<MediaAsset> assets, Shepherd myShepherd) throws IOException {
-    //return makeNOccurrences(10, assets, myShepherd);
-    return runJonsClusterer(assets, myShepherd);
+    return makeNOccurrences(100, assets, myShepherd);
+    //return runJonsClusterer(assets, myShepherd);
   }
 
 

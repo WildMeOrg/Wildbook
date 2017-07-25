@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<jnlp spec="1.0+" 
+      codebase="http://www.whaleshark.org/spot/" 
+      href="spot.jnlp">
+
+  <information>
+    <title>Spot!</title>
+    <vendor>ECOCEAN</vendor>
+    <homepage href="http://ecocean.org/"/>
+    <description>Part of the ECOCEAN photo identification library.</description>
+    <icon href="ws_icon.gif"/>
+    <offline-allowed/>
+  </information>
+
+  <security>
+    <all-permissions/>
+  </security>
+
+  <resources>
+    <j2se version="1.5+"/>
+    <jar href="spot.jar" main="true"/>
+    <jar href="log4j.jar"/>
+    <extension href="http://download.java.net/media/java3d/webstart/release/java3d-latest.jnlp"/>
+  </resources>
+
+  <application-desc main-class="org.ecocean.Spot"/>
+
+</jnlp> 

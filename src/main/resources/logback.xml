@@ -9,9 +9,9 @@
   <property name="htmlPattern" value="%date%thread%mdc%level%logger%msg"/>
 
   <appender name="GENERICLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-  	<file>/data/wildbook_data_dir/logs/activity.log</file>
+  	<file>/data/whaleshark_data_dirs/shepherd_data_dir/logs/activity.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>/data/wildbook_data_dir/logs/%d{yyyy-MM-}activity.log.gz</fileNamePattern>
+      <fileNamePattern>/data/whaleshark_data_dirs/shepherd_data_dir/logs/%d{yyyy-MM-}activity.log.gz</fileNamePattern>
       <maxHistory>6</maxHistory>
     </rollingPolicy>
     <encoder>
@@ -20,9 +20,9 @@
   </appender>
 
   <appender name="SUBMISSIONFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>/data/wildbook_data_dir/logs/encounter-submission.htm</file>
+    <file>/data/whaleshark_data_dirs/shepherd_data_dir/logs/encounter-submission.htm</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>/data/wildbook_data_dir/logs/%d{yyyy-MM-}encounter-submission.htm</fileNamePattern>
+      <fileNamePattern>/data/whaleshark_data_dirs/shepherd_data_dir/logs/%d{yyyy-MM-}encounter-submission.htm</fileNamePattern>
     </rollingPolicy>
     <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
       <!-- Assigned PatternLayoutEncoder by default -->
@@ -33,9 +33,9 @@
   </appender>
 
   <appender name="ENCOUNTERDELETEFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>/data/wildbook_data_dir/logs/encounter-delete.htm</file>
+    <file>/data/whaleshark_data_dirs/shepherd_data_dir/logs/encounter-delete.htm</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <fileNamePattern>/data/wildbook_data_dir/logs/%d{yyyy-MM-}encounter-delete.htm</fileNamePattern>
+        <fileNamePattern>/data/whaleshark_data_dirs/shepherd_data_dir/logs/%d{yyyy-MM-}encounter-delete.htm</fileNamePattern>
       </rollingPolicy>
     <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
       <!-- Assigned PatternLayoutEncoder by default -->
@@ -46,9 +46,9 @@
   </appender>
 
   <appender name="USERFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>/data/wildbook_data_dir/logs/user-access.htm</file>
+    <file>/data/whaleshark_data_dirs/shepherd_data_dir/logs/user-access.htm</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <fileNamePattern>/data/wildbook_data_dir/logs/%d{yyyy-MM-}user-access.htm</fileNamePattern>
+        <fileNamePattern>/data/whaleshark_data_dirs/shepherd_data_dir/logs/%d{yyyy-MM-}user-access.htm</fileNamePattern>
       </rollingPolicy>
     <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
       <!-- Assigned PatternLayoutEncoder by default -->

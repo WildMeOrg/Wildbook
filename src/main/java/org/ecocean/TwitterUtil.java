@@ -24,10 +24,11 @@ import twitter4j.json.DataObjectFactory;
 public class TwitterUtil {
     private static TwitterFactory tfactory = null;
 
-    public static void init(HttpServletRequest request) {
+    public static Twitter init(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         tfactory = getTwitterFactory(context);
 System.out.println("INFO: initialized TwitterUtil.tfactory");
+        return tfactory.getInstance();
     }
 
     public static boolean isActive() {
@@ -42,7 +43,11 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
     public static QueryResult findTweets(String search, long sinceId) throws TwitterException {
         Twitter tw = tfactory.getInstance();
         Query query = new Query(search);
-        if (sinceId >= 0l) query.setSinceId(sinceId);
+        if (sinceId >= 0l){
+          System.out.println("sinceId is " + Long.toString(sinceId) + " and is >= 0l");
+          query.setSinceId(sinceId);
+          query.setCount(100);
+        }
         return tw.search(query);
     }
 
@@ -98,5 +103,32 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
             .setOAuthAccessTokenSecret(accessTokenSecret);
         return new TwitterFactory(cb.build());
     }
+
+    public static void sendCourtesyTweet(String screenName, String mediaType,  Twitter twitterInst, String twitterId) {
+      String reply = null;
+      if(mediaType.equals("photo")) {
+        reply = "Thank you for the photo from tweet " + twitterId + ", @" + screenName + "! Result pending!";
+      } else {
+        reply = "Thanks for tweet " + twitterId + ", @" + screenName + "! Could you send me a pic in a new tweet?";
+      }
+      try {
+        String status = createTweet(reply, twitterInst);
+        System.out.println("status tweeted: " + status);
+      } catch(TwitterException e) {
+        e.printStackTrace();
+      }
+    }
+
+    public static String createTweet(String tweet, Twitter twitterInst) throws TwitterException {
+      String returnVal = null;
+      try {
+        Status status = twitterInst.updateStatus(tweet);
+        returnVal = status.getText();
+      } catch(TwitterException e) {
+        e.printStackTrace();
+      }
+      return returnVal;
+
+  }
 
 }
