@@ -70,13 +70,17 @@ import org.apache.commons.lang.StringEscapeUtils;
 import java.util.*;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.pipeline.*;
-import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.time.*;
-// import edu.stanford.nlp.NERClassifierCombiner;
 import edu.stanford.nlp.time.SUTime.Temporal;
 import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
+
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
+
 
 
 //ATOM feed
@@ -812,23 +816,32 @@ String rootWebappPath = "xxxxxx";
 
     public static String nlpLocationParse(String text) throws RuntimeException {
       System.out.println("Entering nlpLocationParse");
+      String returnVal = "nlpLocationParse method is incomplete";
       //create my pipeline with the help of the annotators I added.
+
       Properties props = new Properties();
-      AnnotationPipeline pipeline = new AnnotationPipeline();
-      pipeline.addAnnotator(new TokenizerAnnotator(false));
-      pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
-      pipeline.addAnnotator(new POSTaggerAnnotator(false));
-      // pipeline.addAnnotator(new NERClassifierCombiner(false)); //TODO not sure how this works https://stanfordnlp.github.io/CoreNLP/ner.html
-      //TODO lots of room for improvement here, I'm sure. Used nlpDateParse method as a model
+      props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner"); //tokenize, ssplit, pos, lemma, truecase, 
+      StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+
       text = text.replaceAll("[,.!?;:]", "$0 ");
       System.out.println("text: "+text);
       String [] text1= text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
       String text2 = String.join(" ", text1);
-      Annotation annotation = new Annotation(text2);
 
+      edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text2);
+
+      pipeline.annotate(document);
+
+      List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+      for(CoreMap sentence: sentences) {
+        for (CoreLabel token: sentence.get(TokensAnnotation.class)) {
+          String ne = token.get(NamedEntityTagAnnotation.class);
+          System.out.println("ne is " + ne);
+        }
+      }
 
       //TODO incomplete as is. Not sure where to go from here...
-      String returnVal = "nlpLocationParse method is incomplete";
+
       if (returnVal !=null){
         return returnVal;
       } else{
@@ -852,7 +865,7 @@ String rootWebappPath = "xxxxxx";
       String text2 = String.join(" ", text1);
 
       System.out.println("text2: "+text2);
-      Annotation annotation = new Annotation(text2);
+      edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
 
 
       //get current date (no time) and formatted with Joda time.

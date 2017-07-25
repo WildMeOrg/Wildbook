@@ -41,6 +41,8 @@ String testTweetText = "Saw this cool humpback whale in the galapagos, Ecuador!"
 String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos en mexico. Sé que no están en mexico. No sea camote.";
 String textTweetGpsText = "saw a whale at 45.5938,-122.737 in ningaloo. #bestvacationever";
 String testTweetMultipleLocations = "whale! In Phuket, Thailand!";
+String testTweetNLPLocation = "land whale! In Nashville, Tennessee!";
+
 
 String result = null;
 result = ParseDateLocation.parseLocation(testTweetText, context);
@@ -54,6 +56,9 @@ out.println("result from " + textTweetGpsText + " is " + result);
 
 result = ParseDateLocation.parseLocation(testTweetMultipleLocations, context);
 out.println("result from " + testTweetMultipleLocations + " is " + result);
+
+result = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
+out.println("result from " + testTweetNLPLocation + " is " + result);
 //End test parseLocation TODO remove this after testing complete
 
 try {
