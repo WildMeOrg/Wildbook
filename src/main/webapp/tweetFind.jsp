@@ -34,11 +34,22 @@ String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
 long sinceId = 832273339657785300L;
 
+//Test parseLocation TODO remove this after testing complete
+String context = ServletUtilities.getContext(request);
 String testTweetText = "Saw this cool humpback whale in the galapagos!";
 String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos";
 String textTweetGpsText = "saw a whale at 45.5938,-122.737";
 
-ParseDateLocation.parseLocation(testTweetText, request.getSession().getServletContext());
+String result = null;
+result = ParseDateLocation.parseLocation(testTweetText, context);
+out.println("result from " + testTweetText + " is " + result);
+
+result = ParseDateLocation.parseLocation(testTweetTextNonEnglish, context);
+out.println("result from " + testTweetTextNonEnglish + " is " + result);
+
+result = ParseDateLocation.parseLocation(textTweetGpsText, context);
+out.println("result from " + textTweetGpsText + " is " + result);
+//End test parseLocation TODO remove this after testing complete
 
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -93,7 +104,6 @@ for (Status tweet : qr.getTweets()) {
 	// Check for tweet and entities
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
 	if (jtweet == null){
-    out.println("tweet is null. Skipping");
     continue;
 
   }
@@ -133,7 +143,6 @@ for (Status tweet : qr.getTweets()) {
       out.println("mediaType or tweetID is null. Skipping");
       continue;
     } else if (tweetID != null && mediaType != null){
-      out.println("got to sendCourtesyTweet");
       //sendCourtesyTweet takes care of whether mediaType is a photo or not
       TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
     }

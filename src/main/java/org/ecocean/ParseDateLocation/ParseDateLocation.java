@@ -27,25 +27,25 @@ public class ParseDateLocation {
     String location="";
 
     try{
-      location += detectLanguageAndTranslateToEnglish(text, context);
+      text = detectLanguageAndTranslateToEnglish(text, context);
     } catch(RuntimeException e){
       e.printStackTrace();
     }
 
     try{
-      location += parseLocationCodes(text,context);
+      location +=  ", " + parseLocationCodes(text,context);
     } catch(RuntimeException e){
       e.printStackTrace();
     }
 
     try{
-      location += ServletUtilities.nlpLocationParse(text);
+      location +=  ", " + ServletUtilities.nlpLocationParse(text);
     } catch(RuntimeException e){
       e.printStackTrace();
     }
 
     try{
-      location += parseGpsCoordinates(text);
+      location +=  ", " + parseGpsCoordinates(text);
     } catch(RuntimeException e){
       e.printStackTrace();
     }
@@ -57,7 +57,7 @@ public class ParseDateLocation {
     String detectedLanguage = DetectTranslate.detectLanguage(text, context);
     if(!detectedLanguage.toLowerCase().startsWith("en")){
       text= DetectTranslate.translateToEnglish(text, context);
-      System.out.println("Translated text for parseLocation is " + text);
+      // System.out.println("Translated text for parseLocation is " + text);
     }
     if(text !=null){
       return text;
@@ -69,18 +69,13 @@ public class ParseDateLocation {
   public static String parseLocationCodes(String text, String context) throws RuntimeException{
     Properties locationCodes = new Properties();
     String returnVal = null;
-    System.out.println("mf getting properties before");
     locationCodes=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
-    System.out.println("mf getting properties after");
     Enumeration locationCodesEnum = locationCodes.propertyNames();
     String textToLowerCase = text.toLowerCase();
     while (locationCodesEnum.hasMoreElements()) {
       String currentLocationQuery = ((String) locationCodesEnum.nextElement()).trim().toLowerCase();
-      System.out.println("mf currentLocationQuery is " + currentLocationQuery);
       if (textToLowerCase.indexOf(currentLocationQuery) != -1) {
-        System.out.println("mf got an index match!");
         returnVal = locationCodes.getProperty(currentLocationQuery);
-        System.out.println("Location code encountered in parseLocation: " + returnVal);
       }
     }
     if(returnVal != null){
@@ -98,7 +93,7 @@ public class ParseDateLocation {
     Matcher matcher = pattern.matcher(text);
     if(matcher.matches()){
       String gpsCoords = matcher.group(0);
-      System.out.println("GPS coordinates found: " + gpsCoords + " Adding to location.");
+      // System.out.println("GPS coordinates found: " + gpsCoords + " Adding to location.");
       returnVal = gpsCoords;
     }
     if(returnVal != null){
