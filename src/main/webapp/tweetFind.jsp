@@ -69,7 +69,7 @@ try{
 }
 
 rtn.put("sinceId", sinceId);
-rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest));
+rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest, request.getContextPath()));
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
