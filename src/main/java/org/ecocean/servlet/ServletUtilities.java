@@ -853,13 +853,13 @@ String rootWebappPath = "xxxxxx";
       pipeline.addAnnotator(new TimeAnnotator("sutime", props));
 
       text = text.replaceAll("[,.!?;:]", "$0 ");
-      System.out.println("text: "+text);
-      String [] text1= text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
+      System.out.println("text: " + text);
+      String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase()
+          .split("\\s+");
       String text2 = String.join(" ", text1);
 
       System.out.println("text2: "+text2);
       edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
-
 
       //get current date (no time) and formatted with Joda time.
       LocalDate date = LocalDate.now();
@@ -869,52 +869,99 @@ String rootWebappPath = "xxxxxx";
       //pass current date and record date (or dates) given by text in TIMEX3(an ISO 8601 extention)format.
       annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
       pipeline.annotate(annotation);
-      List<CoreMap> timexAnnsAll = annotation.get(TimeAnnotations.TimexAnnotations.class);
+      List<CoreMap> timexAnnsAll = annotation
+          .get(TimeAnnotations.TimexAnnotations.class);
 
-      ArrayList<String> arrayListDates= new ArrayList<String>();
-      for(CoreMap cm: timexAnnsAll) {
+      ArrayList<String> arrayListDates = new ArrayList<String>();
+      for (CoreMap cm : timexAnnsAll) {
         Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
-//        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
-        String dateStr= myDate.toString();
-        System.out.println(".....found date: "+dateStr);
+        //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
+        String dateStr = myDate.toString();
+        System.out.println(".....found date: " + dateStr);
         arrayListDates.add(dateStr.replaceAll("-XX", ""));
       }
-      System.out.println("NLP dates found+:"+ arrayListDates);
+      System.out.println("NLP dates found+:" + arrayListDates);
 
-    if (!arrayListDates.isEmpty()) {
+      if (!arrayListDates.isEmpty()) {
         //turn arrayList into an array to be able to use the old For loop and compare dates.
         String[] arrayDates = new String[arrayListDates.size()];
         arrayDates = arrayListDates.toArray(arrayDates);
         //select best date among the options based on their length.
-        String selectedDate= "";
+        String selectedDate = "";
 
         //multiple entries found, now sort on length
-        if(arrayListDates.size()>1){
+        if (arrayListDates.size() > 1) {
           for (int i = 0; i < arrayDates.length; i++) {
-            for (int j = i+1; j < arrayDates.length; j++) {
-              if (arrayDates[i].length()>arrayDates[j].length()) {
-                selectedDate= arrayDates[i];
-              }else if (arrayDates[i].length()<arrayDates[j].length()) {
+            for (int j = i + 1; j < arrayDates.length; j++) {
+              if (arrayDates[i].length() > arrayDates[j].length()) {
+                selectedDate = arrayDates[i];
+              } else if (arrayDates[i].length() < arrayDates[j].length()) {
                 selectedDate = arrayDates[j];
-              }else {
+              } else {
                 selectedDate = arrayDates[0];
               }
 
             }
 
           }
-      }
-      //only 1 entry, return it
-      else{selectedDate=arrayListDates.get(0);}
-        System.out.println("selectedDate is: "+selectedDate); // format is yyyy-mm-dd
+        }
+        //only 1 entry, return it
+        else {
+          selectedDate = arrayListDates.get(0);
+        }
+        System.out.println("selectedDate is: " + selectedDate); // format is yyyy-mm-dd
         return selectedDate;
-    }else {
-      return null;
-    }
+      } else {
+        return null;
+      }
 
     }
 
+    /* Same as nlpDateParse, but will return the entire arraylist instead of
+    ** just the best date
+    */
+    public static ArrayList<String> nlpDateParseToArrayList(String text){
+      System.out.println("Entering nlpParseDateArray");
 
+      // create pipeline with annotators like above
+      Properties props = new Properties();
+      AnnotationPipeline pipeline = new AnnotationPipeline();
+      pipeline.addAnnotator(new TokenizerAnnotator(false));
+      pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+      pipeline.addAnnotator(new POSTaggerAnnotator(false));
+      pipeline.addAnnotator(new TimeAnnotator("sutime", props));
+
+      // replace special characters using regex
+      text = text.replaceAll("[,.!?;:]", "$0 ");
+      System.out.println("text: " + text);
+      String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
+      String text2 = String.join(" ", text1);
+
+      System.out.println("text2: " + text2);
+      // Create annotation using new string
+      edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
+
+      // Get current date (not time) and formatted with Joda time as above
+      LocalDate date = LocalDate.now();
+      DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+      String referenceDate = dateTimeFormatter.print(date);
+
+      // Pass current date and record date(s) given by text in TIMEX3(ISO 8601 standard) format.
+      annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
+      pipeline.annotate(annotation);
+      List<CoreMap> timexAnnsAll = annotation.get(TimeAnnotations.TimexAnnotations.class);
+
+      ArrayList<String> arrayListDates = new ArrayList<String>();
+      for(CoreMap cm : timexAnnsAll){
+        Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
+        String dateStr = myDate.toString();
+        System.out.println(".....found date: " + dateStr);
+        arrayListDates.add(dateStr.replaceAll("-XX", ""));
+      }
+      System.out.println("NLP dates found+: " + arrayListDates);
+
+      return arrayListDates;
+    }
 
 
 }
