@@ -33,6 +33,7 @@ String tweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
 long sinceId = 832273339657785300L;
+String dateTest = "Saw a whale on monday June 13, 2017";
 
 //Test parseLocation TODO remove this after testing complete
 String context = ServletUtilities.getContext(request);
@@ -88,6 +89,7 @@ try{
 }
 
 rtn.put("sinceId", sinceId);
+rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest, request.getContextPath()));
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
