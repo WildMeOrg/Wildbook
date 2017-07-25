@@ -33,7 +33,7 @@ public class ParseDateLocation {
     }
 
     try{
-      location +=  ", " + parseLocationCodes(text,context);
+      location += getLocationCodeKey(text,context);
     } catch(RuntimeException e){
       e.printStackTrace();
     }
@@ -59,47 +59,65 @@ public class ParseDateLocation {
       text= DetectTranslate.translateToEnglish(text, context);
       // System.out.println("Translated text for parseLocation is " + text);
     }
-    if(text !=null){
+    if(text !=null && !text.equals("")){
       return text;
     } else{
-      throw new RuntimeException("Translation failed: text started out as or became null");
+      throw new RuntimeException("Translation failed: text started out as or became null or empty");
     }
   }
 
-  public static String parseLocationCodes(String text, String context) throws RuntimeException{
+  public static String getLocationCodeKey(String text, String context) throws RuntimeException{
     Properties locationCodes = new Properties();
-    String returnVal = null;
-    locationCodes=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+    String returnVal = "";
+    locationCodes=ShepherdProperties.getProperties("submitActionClass.properties", "", context);
     Enumeration locationCodesEnum = locationCodes.propertyNames();
     String textToLowerCase = text.toLowerCase();
     while (locationCodesEnum.hasMoreElements()) {
       String currentLocationQuery = ((String) locationCodesEnum.nextElement()).trim().toLowerCase();
       if (textToLowerCase.indexOf(currentLocationQuery) != -1) {
-        returnVal = locationCodes.getProperty(currentLocationQuery);
+        if (!returnVal.equals("")){
+            returnVal += (", " + currentLocationQuery);
+            // locationCode = locationCodes.getProperty(currentLocationQuery);
+        } else{
+          returnVal += currentLocationQuery;
+        }
+
       }
     }
-    if(returnVal != null){
-      return returnVal;
+    if(returnVal != null && !returnVal.equals("")){
+      return returnVal.trim();
     } else{
-      throw new RuntimeException("parseLocationCodes produced a null result");
+      throw new RuntimeException("parseLocationCodes produced a null or empty result");
     }
   }
 
   public static String parseGpsCoordinates(String text) throws RuntimeException{
-    String returnVal = null;
-    // String PATTERN = ".*?([+-]?\\d+\\.?\\d+)\\s*,\\s*([+-]?\\d+\\.?\\d+).*?"; //doesn't seem as robust as
-    String PATTERN = ".?[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?).?";
-    Pattern pattern = Pattern.compile(PATTERN);
+    System.out.println("text going into parseGpsCoordinates: " + text);
+    String returnVal = "";
+    String PATTERN_1 = ".*?([+-]?\\d+\\.?\\d+)\\s*,\\s*([+-]?\\d+\\.?\\d+).*?"; //doesn't seem as robust as
+    String PATTERN_2 = ".*?([-+]?)([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*([-+]?)(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?).*?";
+
+    //first try with less specific one
+    Pattern pattern = Pattern.compile(PATTERN_1);
     Matcher matcher = pattern.matcher(text);
     if(matcher.matches()){
-      String gpsCoords = matcher.group(0);
-      // System.out.println("GPS coordinates found: " + gpsCoords + " Adding to location.");
+      String gpsCoords = matcher.group(1) + ", " + matcher.group(2);//matcher.group(0);
       returnVal = gpsCoords;
     }
-    if(returnVal != null){
+
+    //then try with more specific one
+    pattern = Pattern.compile(PATTERN_2);
+    matcher = pattern.matcher(text);
+    if(matcher.matches()){
+      String gpsCoords = matcher.group(1) + matcher.group(2) + ", " + matcher.group(5) + matcher.group(6);
+      returnVal = gpsCoords;
+    }
+
+    if(returnVal != null && !returnVal.equals("")){
       return returnVal;
     } else{
-      throw new RuntimeException("Gps coordinates were null");
+      //TODO there's probably some nlp gps coordinates we can try next if the regular expressions don't work above
+      throw new RuntimeException("Gps coordinates were null or empty");
     }
   }
 

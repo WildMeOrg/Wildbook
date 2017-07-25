@@ -36,9 +36,10 @@ long sinceId = 832273339657785300L;
 
 //Test parseLocation TODO remove this after testing complete
 String context = ServletUtilities.getContext(request);
-String testTweetText = "Saw this cool humpback whale in the galapagos!";
-String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos";
-String textTweetGpsText = "saw a whale at 45.5938,-122.737";
+String testTweetText = "Saw this cool humpback whale in the galapagos, Ecuador!";
+String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos en mexico. Sé que no están en mexico. No sea camote.";
+String textTweetGpsText = "saw a whale at 45.5938,-122.737 in ningaloo. #bestvacationever";
+String testTweetMultipleLocations = "whale! In Phuket, Thailand!";
 
 String result = null;
 result = ParseDateLocation.parseLocation(testTweetText, context);
@@ -49,6 +50,9 @@ out.println("result from " + testTweetTextNonEnglish + " is " + result);
 
 result = ParseDateLocation.parseLocation(textTweetGpsText, context);
 out.println("result from " + textTweetGpsText + " is " + result);
+
+result = ParseDateLocation.parseLocation(testTweetMultipleLocations, context);
+out.println("result from " + testTweetMultipleLocations + " is " + result);
 //End test parseLocation TODO remove this after testing complete
 
 try {
@@ -74,7 +78,6 @@ try{
 	// the timestamp is written with a new line at the end, so we need to strip that out before converting
   String timeStampAsText = Util.readFromFile(dataDir + "/twitterTimeStamp.txt");
   timeStampAsText = timeStampAsText.replace("\n", "");
-  out.println("timeStampAsText is " + timeStampAsText);
   sinceId = Long.parseLong(timeStampAsText, 10);
 } catch(FileNotFoundException e){
 	e.printStackTrace();
