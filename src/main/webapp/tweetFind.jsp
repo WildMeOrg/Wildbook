@@ -33,9 +33,9 @@ String tweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
 long sinceId = 832273339657785300L;
-String dateTest = "Saw a whale on monday June 13, 2017";
 
 //Test parseLocation TODO remove this after testing complete
+String dateTest = "Saw a whale on monday June 13, 2017";
 String context = ServletUtilities.getContext(request);
 String testTweetText = "Saw this cool humpback whale in the galapagos, Ecuador!";
 String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos en mexico. Sé que no están en mexico. No sea camote.";
