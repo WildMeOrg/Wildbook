@@ -41,7 +41,7 @@ String testTweetText = "Saw this cool humpback whale in the galapagos, Ecuador!"
 String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos en mexico. Sé que no están en mexico. No sea camote.";
 String textTweetGpsText = "saw a whale at 45.5938,-122.737 in ningaloo. #bestvacationever";
 String testTweetMultipleLocations = "whale! In Phuket, Thailand!";
-String testTweetNLPLocation = "land whale! In Nashville, Tennessee!";
+String testTweetNLPLocation = "land whale! In Nashville, tennessee!";
 
 
 String result = null;

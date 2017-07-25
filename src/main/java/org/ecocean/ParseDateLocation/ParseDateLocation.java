@@ -39,7 +39,10 @@ public class ParseDateLocation {
     }
 
     try{
-      location +=  ", " + ServletUtilities.nlpLocationParse(text);
+      ArrayList<String> nlpLocations = ServletUtilities.nlpLocationParse(text);
+      for (int i = 0; i<nlpLocations.size(); i++){
+        location += ", " + nlpLocations.get(i);
+      }
     } catch(RuntimeException e){
       e.printStackTrace();
     }

@@ -814,39 +814,30 @@ String rootWebappPath = "xxxxxx";
         return gresp.optBoolean("success", false);
     }
 
-    public static String nlpLocationParse(String text) throws RuntimeException {
-      System.out.println("Entering nlpLocationParse");
-      String returnVal = "nlpLocationParse method is incomplete";
-      //create my pipeline with the help of the annotators I added.
-
+    public static ArrayList<String> nlpLocationParse(String text) throws RuntimeException {
+      ArrayList<String> locations = new ArrayList<>();
       Properties props = new Properties();
-      props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner"); //tokenize, ssplit, pos, lemma, truecase, 
+      props.setProperty("annotators", "tokenize,ssplit,pos,lemma,truecase,ner"); //TODO truecase doesn't seem to be making a difference here. If this doesn't change with some tweaking, you may want to remove the stanford-corenlp class:model-english dependency
       StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-
-      text = text.replaceAll("[,.!?;:]", "$0 ");
-      System.out.println("text: "+text);
-      String [] text1= text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
-      String text2 = String.join(" ", text1);
-
-      edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text2);
-
+      edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text);
       pipeline.annotate(document);
-
       List<CoreMap> sentences = document.get(SentencesAnnotation.class);
       for(CoreMap sentence: sentences) {
         for (CoreLabel token: sentence.get(TokensAnnotation.class)) {
           String ne = token.get(NamedEntityTagAnnotation.class);
-          System.out.println("ne is " + ne);
+          if(ne.equals("LOCATION")){
+            String word = token.get(TextAnnotation.class);
+            locations.add(word);
+          }
         }
       }
 
-      //TODO incomplete as is. Not sure where to go from here...
-
-      if (returnVal !=null){
-        return returnVal;
+      if (locations.size() > 0){
+        return locations;
       } else{
-        throw new RuntimeException("nlpLocationParse is null");
+        throw new RuntimeException("no locations found");
       }
+
     }
 
     public static String nlpDateParse(String text) {

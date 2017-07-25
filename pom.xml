@@ -585,12 +585,7 @@
 	    <artifactId>stanford-corenlp</artifactId>
 	    <version>3.8.0</version>
 		</dependency>
-		<dependency>
-		  <groupId>edu.stanford.nlp</groupId>
-		  <artifactId>stanford-corenlp</artifactId>
-		  <version>3.6.0</version>
-		  <classifier>models</classifier> <!--  will get the dependent model jars TODO note this is all languages. Might be worth paring down...-->
-		</dependency>
+    
 		<!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-parser -->
 		<dependency>
 		    <groupId>edu.stanford.nlp</groupId>
