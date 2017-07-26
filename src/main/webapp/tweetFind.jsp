@@ -33,6 +33,7 @@ long sinceId = 832273339657785300L;
 
 //Test parseLocation TODO remove this after testing complete
 String dateTest = "Saw a whale on monday June 13, 2017";
+String dateArrayTest = "Saw a whale on June 13, 2017 and on July 1, 2017";
 String context = ServletUtilities.getContext(request);
 String testTweetText = "Saw this cool humpback whale in the galapagos, Ecuador!";
 String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos en mexico. Sé que no están en mexico. No sea camote.";
@@ -56,6 +57,12 @@ out.println("results from " + testTweetMultipleLocations + " is " + results);
 
 results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
 out.println("results from " + testTweetNLPLocation + " is " + results);
+
+result = ParseDateLocation.parseDate(dateTest, context);
+out.println("result from " + dateTest + " is " + result);
+
+ArrayList<String> resultArray = ParseDateLocation.parseDateToArrayList(dateArrayTest, context);
+out.println("result from " + dateArrayTest + " is " + resultArray);
 //End test parseLocation TODO remove this after testing complete
 
 try {
@@ -91,7 +98,10 @@ try{
 }
 
 rtn.put("sinceId", sinceId);
+<<<<<<< HEAD
 // rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest, context));
+=======
+>>>>>>> Clean up parseDateToArrayList, add test to tweetFind
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
