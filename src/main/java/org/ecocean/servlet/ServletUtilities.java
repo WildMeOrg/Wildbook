@@ -818,7 +818,7 @@ String rootWebappPath = "xxxxxx";
     public static ArrayList<String> nlpLocationParse(String text) throws RuntimeException {
       ArrayList<String> locations = new ArrayList<>();
       Properties props = new Properties();
-      props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner"); //TODO truecase doesn't seem to be making a difference here. If this doesn't change with some tweaking, you may want to remove the stanford-corenlp class:model-english dependency
+      props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner"); //TODO adding truecase before ner doesn't seem to be making a difference here. If this doesn't change with some tweaking, you may want to remove the stanford-corenlp class:model-english dependency. Update: the stanford-corenlp class:model-english dependency seems essential even when truecase is excluded. Very weird.
       StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
       edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text);
       pipeline.annotate(document);
