@@ -97,6 +97,7 @@ JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
 
 //Begin loop through the each of the tweets since the last timestamp
+out.println("size of the arrayList of statuses is " + Integer.toString(qr.getTweets().size()));
 for(int i = 0 ; i<qr.getTweets().size(); i++){
   Status tweet = qr.getTweets().get(i);
 
@@ -157,7 +158,9 @@ for(int i = 0 ; i<qr.getTweets().size(); i++){
 	if (ents != null) emedia = ents.optJSONArray("media");
   if((emedia == null) || (emedia.length() < 1)){
     //tweet doesn't have media
+    Thread.sleep(30000);
     TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID);
+    // TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
     // out.println("emedia is null or of length <1. Skipping");
     continue;
   }
@@ -166,11 +169,13 @@ for(int i = 0 ; i<qr.getTweets().size(); i++){
     // Boolean hasBeenTweeted = false;
     JSONObject jent = emedia.getJSONObject(j);
     String mediaType = jent.getString("type");
-    if(mediaType == null){
-      // out.println("mediaType is null. Skipping");
-      continue;
-    } else{
-      TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
+    try{
+      if(mediaType.equals("photo")){
+        Thread.sleep(30000);
+        TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
+      }
+    } catch(Exception e){
+      e.printStackTrace();
     }
   }
 
