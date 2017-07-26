@@ -98,10 +98,7 @@ try{
 }
 
 rtn.put("sinceId", sinceId);
-<<<<<<< HEAD
 // rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest, context));
-=======
->>>>>>> Clean up parseDateToArrayList, add test to tweetFind
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
