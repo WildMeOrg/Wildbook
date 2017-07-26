@@ -858,13 +858,8 @@ String rootWebappPath = "xxxxxx";
           .split("\\s+");
       String text2 = String.join(" ", text1);
 
-<<<<<<< HEAD
       System.out.println("text2: "+text2);
       edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
-=======
-      System.out.println("text2: " + text2);
-      Annotation annotation = new Annotation(text2);
->>>>>>> Fix merge conflicts in ServletUtitlies
 
       //get current date (no time) and formatted with Joda time.
       LocalDate date = LocalDate.now();
