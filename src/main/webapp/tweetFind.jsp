@@ -27,6 +27,7 @@ org.ecocean.ParseDateLocation.*
 String baseUrl = null;
 String tweeterScreenName = null;
 Long tweetID = null;
+Long mostRecentTweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
 Long sinceId = 890302524275662848L;
@@ -103,8 +104,12 @@ JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
 
 //Begin loop through the each of the tweets since the last timestamp
-for (Status tweet : qr.getTweets()) {
+for(int i = 0 ; i<qr.getTweets().size(); i++){
+  Status tweet = qr.getTweets().get(i);
 
+  if(i == 0){
+    mostRecentTweetID = (Long) tweet.getId();
+  }
   tweetID = (Long) tweet.getId();
   if(tweetID == null){
     out.println("tweetID is null. Skipping");
@@ -164,9 +169,9 @@ for (Status tweet : qr.getTweets()) {
     continue;
   }
 
-  for(int i=0; i<emedia.length(); i++){
+  for(int j=0; j<emedia.length(); j++){
     // Boolean hasBeenTweeted = false;
-    JSONObject jent = emedia.getJSONObject(i);
+    JSONObject jent = emedia.getJSONObject(j);
     String mediaType = jent.getString("type");
     if(mediaType == null){
       // out.println("mediaType is null. Skipping");
@@ -236,10 +241,10 @@ for (Status tweet : qr.getTweets()) {
 
 // Write new timestamp to track last twitter pull
 Long newSinceIdString;
-if(tweetID == null){
+if(mostRecentTweetID == null){
 	newSinceIdString = sinceId;
 } else {
-	newSinceIdString = tweetID;
+	newSinceIdString = mostRecentTweetID;
 }
 try{
   Util.writeToFile(Long.toString(newSinceIdString), dataDir + "/twitterTimeStamp.txt");
