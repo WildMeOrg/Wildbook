@@ -1,7 +1,6 @@
 <%@ page contentType="text/plain; charset=utf-8" language="java"
 
-import java.util.ArrayList;
-     import="org.ecocean.*,
+import="org.ecocean.*,
 java.util.ArrayList,
 java.io.FileNotFoundException,
 java.io.IOException,
@@ -24,11 +23,7 @@ org.ecocean.ParseDateLocation.*
               "
 %>
 
-
-
-
 <%
-/* note this is kinda experimental... not really production.  you probably want instead to look at other tweet*jsp for now */
 String baseUrl = null;
 String tweeterScreenName = null;
 String tweetID = null;
@@ -60,7 +55,7 @@ results = ParseDateLocation.parseLocation(testTweetMultipleLocations, context);
 out.println("results from " + testTweetMultipleLocations + " is " + results);
 
 results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
-out.println("results from " + testTweetNLPLocation + " is " + result);
+out.println("results from " + testTweetNLPLocation + " is " + results);
 //End test parseLocation TODO remove this after testing complete
 
 try {
