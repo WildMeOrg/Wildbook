@@ -94,7 +94,7 @@ try{
 }
 
 rtn.put("sinceId", sinceId);
-rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest, request.getContextPath()));
+// rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest, context));
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
@@ -175,32 +175,32 @@ for (Status tweet : qr.getTweets()) {
 	}
 
 	// Save entities as media assets to shepherd database
-	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
-	if ((mas == null) || (mas.size() < 1)) {
-    out.println(tweet.getId() + ": no entity assets?");
-		System.out.println(tweet.getId() + ": no entity assets?");
-	} else {
-		JSONArray jent = new JSONArray();
-		for (MediaAsset ent : mas) {
-			myShepherd.beginDBTransaction();
-			try {
-				JSONObject ej = new JSONObject();
-				MediaAssetFactory.save(ent, myShepherd);
-				String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
-        out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
-				System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
-				ej.put("maId", ent.getId());
-				ej.put("taskId", taskId);
-				jent.put(ej);
-				myShepherd.commitDBTransaction();
-			} catch(Exception e){
-				myShepherd.rollbackDBTransaction();
-				e.printStackTrace();
-			}
-		}
-		tj.put("entities", jent);
-	}
-	tarr.put(tj);
+// 	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
+// 	if ((mas == null) || (mas.size() < 1)) {
+//     out.println(tweet.getId() + ": no entity assets?");
+// 		System.out.println(tweet.getId() + ": no entity assets?");
+// 	} else {
+// 		JSONArray jent = new JSONArray();
+// 		for (MediaAsset ent : mas) {
+// 			myShepherd.beginDBTransaction();
+// 			try {
+// 				JSONObject ej = new JSONObject();
+// 				MediaAssetFactory.save(ent, myShepherd);
+// 				String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
+//         out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
+// 				System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
+// 				ej.put("maId", ent.getId());
+// 				ej.put("taskId", taskId);
+// 				jent.put(ej);
+// 				myShepherd.commitDBTransaction();
+// 			} catch(Exception e){
+// 				myShepherd.rollbackDBTransaction();
+// 				e.printStackTrace();
+// 			}
+// 		}
+// 		tj.put("entities", jent);
+// 	}
+// 	tarr.put(tj);
 }
 
 // Write new timestamp to track last twitter pull
