@@ -178,6 +178,18 @@ for (Status tweet : qr.getTweets()) {
 		e.printStackTrace();
 	}
 
+	// Attempt to parse date information from media & tweets
+	String tweetText = tweet.getText();
+	ArrayList<String> parsedDates = ParseDateLocation.parseDateToArrayList(tweetText);
+
+	if(!parseDates.isEmpty()){
+		// TODO: something with the dates
+	} else {
+		// parse twitter created at timestamp
+		String twitterCreatedAt = tweet.getCreatedAt();
+		String parseCreatedAt = ParseDateLocation.parseDate(twitterCreatedAt);
+	}
+
 	// Save entities as media assets to shepherd database
 // 	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
 // 	if ((mas == null) || (mas.size() < 1)) {
