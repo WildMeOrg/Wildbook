@@ -26,10 +26,10 @@ org.ecocean.ParseDateLocation.*
 <%
 String baseUrl = null;
 String tweeterScreenName = null;
-String tweetID = null;
+Long tweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
-long sinceId = 832273339657785300L;
+Long sinceId = 890302524275662848L;
 
 //Test parseLocation TODO remove this after testing complete
 String dateTest = "Saw a whale on monday June 13, 2017";
@@ -98,7 +98,7 @@ JSONArray tarr = new JSONArray();
 //Begin loop through the each of the tweets since the last timestamp
 for (Status tweet : qr.getTweets()) {
 
-  tweetID = Long.toString(tweet.getId());
+  tweetID = (Long) tweet.getId();
   if(tweetID == null){
     out.println("tweetID is null. Skipping");
     continue;
@@ -216,14 +216,14 @@ for (Status tweet : qr.getTweets()) {
 //End looping through the tweets
 
 // Write new timestamp to track last twitter pull
-String newSinceIdString;
-if(tarr.length() == 0){
-	newSinceIdString = Long.toString(sinceId);
+Long newSinceIdString;
+if(tweetID == null){
+	newSinceIdString = sinceId;
 } else {
-	newSinceIdString = Long.toString(System.currentTimeMillis());
+	newSinceIdString = tweetID;
 }
 try{
-  Util.writeToFile(newSinceIdString, dataDir + "/twitterTimeStamp.txt");
+  Util.writeToFile(Long.toString(newSinceIdString), dataDir + "/twitterTimeStamp.txt");
   out.println("wrote a new twitterTimeStamp: " + newSinceIdString);
 } catch(FileNotFoundException e){
   e.printStackTrace();
