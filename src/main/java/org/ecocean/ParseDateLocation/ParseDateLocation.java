@@ -209,10 +209,7 @@ public class ParseDateLocation {
 
   // Same as above method, but this will return an arraylist instead of a string
   public static ArrayList<String> parseDateToArrayList(String inputText, String context){
-<<<<<<< HEAD
     ArrayList<String> parsedDates = new ArrayList<String>();
-=======
->>>>>>> Add parseDateToArrayList method
 
     // Attempt to detect language of input text
     try {
@@ -225,44 +222,21 @@ public class ParseDateLocation {
       e.printStackTrace();
     }
 
-<<<<<<< HEAD
-=======
-    boolean NLPsuccess = false;
->>>>>>> Add parseDateToArrayList method
     try {
       System.out.println(">>>>> looking for date with NLP");
       // Call NLP function to find and select a date from input
       // This will return an arraylist of date strings
-<<<<<<< HEAD
       parsedDates = ServletUtilities.nlpDateParseToArrayList(inputText);
-=======
-      ArrayList<String> parsedDates = ServletUtilities.nlpDateParseToArrayList(inputText);
-      /* Parse through the selected date to grab year, month, and day separately.
-      ** Remove zero from month and day with intValue
-      */
-      // TODO: parse through date arraylist
-      if(!parsedDates.isEmpty()){
-        System.out.println(">>>>> NLP found date(s): " + parsedDates);
-        for(String parsedDate : parsedDates){
-          // TODO: verify that dates are correct somehow?
-        }
-      }
->>>>>>> Add parseDateToArrayList method
     } catch (Exception e){
       System.out.println("Exception in NLP");
       e.printStackTrace();
     }
 
-<<<<<<< HEAD
     if(!parsedDates.isEmpty()){
       return parsedDates;
     } else {
       return null;
     }
-=======
-    // Return null by default
-    return null;
->>>>>>> Add parseDateToArrayList method
   }
 
   public static void date(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context, String text) {
