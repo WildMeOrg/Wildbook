@@ -26,10 +26,10 @@ org.ecocean.ParseDateLocation.*
 <%
 String baseUrl = null;
 String tweeterScreenName = null;
-String tweetID = null;
+Long tweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
-long sinceId = 832273339657785300L;
+Long sinceId = 890302524275662848L;
 
 //Test parseLocation TODO remove this after testing complete
 String dateTest = "Saw a whale on monday June 13, 2017";
@@ -44,18 +44,19 @@ String testTweetNLPLocation = "land whale! In Nashville, tennessee!";
 
 ArrayList<String> results = null;
 results = ParseDateLocation.parseLocation(testTweetText, context);
-out.println("results from " + testTweetText + " is " + results);
+// out.println("results from " + testTweetText + " is " + results);
 
 results = ParseDateLocation.parseLocation(testTweetTextNonEnglish, context);
-out.println("results from " + testTweetTextNonEnglish + " is " + results);
+// out.println("results from " + testTweetTextNonEnglish + " is " + results);
 
 results = ParseDateLocation.parseLocation(textTweetGpsText, context);
-out.println("results from " + textTweetGpsText + " is " + results);
+// out.println("results from " + textTweetGpsText + " is " + results);
 
 results = ParseDateLocation.parseLocation(testTweetMultipleLocations, context);
-out.println("results from " + testTweetMultipleLocations + " is " + results);
+// out.println("results from " + testTweetMultipleLocations + " is " + results);
 
 results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
+<<<<<<< HEAD
 out.println("results from " + testTweetNLPLocation + " is " + results);
 
 String result = ParseDateLocation.parseDate(dateTest, context);
@@ -63,6 +64,9 @@ out.println("result from " + dateTest + " is " + result);
 
 ArrayList<String> resultArray = ParseDateLocation.parseDateToArrayList(dateArrayTest, context);
 out.println("result from " + dateArrayTest + " is " + resultArray);
+=======
+// out.println("results from " + testTweetNLPLocation + " is " + results);
+>>>>>>> 5c208f5d9e547ce9a88c2badc05c97a989e054d4
 //End test parseLocation TODO remove this after testing complete
 
 try {
@@ -96,22 +100,31 @@ try{
 } catch(NumberFormatException e){
 	e.printStackTrace();
 }
-
 rtn.put("sinceId", sinceId);
-// rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest, context));
+out.println("sinceId is " + sinceId);
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
+
+//Begin loop through the each of the tweets since the last timestamp
 for (Status tweet : qr.getTweets()) {
+
+  tweetID = (Long) tweet.getId();
+  if(tweetID == null){
+    out.println("tweetID is null. Skipping");
+    continue;
+  }
+
+  out.println("newIncomingTweet: " + tweetID);
 
 	JSONObject p = new JSONObject();
 	p.put("id", tweet.getId());
 
-	// Attempt to find MediaAsset for tweet, and skip media asset creation if it exists
+  // Attempt to find MediaAsset for tweet, and skip media asset creation if it exists
 	MediaAsset ma = tas.find(p, myShepherd);
 	if (ma != null) {
 		System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
-    out.println("media asset already exists. Skipping");
+    // out.println("media asset already exists. Skipping");
 		continue;
 	}
 
@@ -119,19 +132,24 @@ for (Status tweet : qr.getTweets()) {
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
 	if (jtweet == null){
     continue;
-
   }
-  // out.println(jtweet.toString());
+  try{
+    out.println(jtweet.getString("text"));
+  }catch(Exception e){
+    e.printStackTrace();
+  }
+
+
 	JSONObject ents = jtweet.optJSONObject("entities");
 	if (ents == null){
-    out.println("entities is null. Skipping");
+    // out.println("entities is null. Skipping");
     continue;
   }
 
   try{
     tweeterScreenName = jtweet.optJSONObject("user").getString("screen_name");
     if(tweeterScreenName == null){
-      out.println("screen name is null. Skipping");
+      // out.println("screen name is null. Skipping");
       continue;
     }
   } catch(Exception e){
@@ -143,8 +161,10 @@ for (Status tweet : qr.getTweets()) {
 
 	JSONArray emedia = null;
 	if (ents != null) emedia = ents.optJSONArray("media");
-	if ((ents == null) || (emedia == null) || (emedia.length() < 1)){
-    out.println("emedia is null or of length <1. Skipping");
+  if((emedia == null) || (emedia.length() < 1)){
+    //tweet doesn't have media
+    TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID);
+    // out.println("emedia is null or of length <1. Skipping");
     continue;
   }
 
@@ -152,31 +172,29 @@ for (Status tweet : qr.getTweets()) {
     // Boolean hasBeenTweeted = false;
     JSONObject jent = emedia.getJSONObject(i);
     String mediaType = jent.getString("type");
-    tweetID = Long.toString(tweet.getId());
-    if(mediaType == null || tweetID == null){
-      out.println("mediaType or tweetID is null. Skipping");
+    if(mediaType == null){
+      // out.println("mediaType is null. Skipping");
       continue;
-    } else if (tweetID != null && mediaType != null){
-      //sendCourtesyTweet takes care of whether mediaType is a photo or not
+    } else{
       TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
     }
   }
 
-	// Attempt to create media asset, rollback DB transaction if it fails
-	myShepherd.beginDBTransaction();
-	try{
-		ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
-		ma.addLabel("_original");
-		MediaAssetMetadata md = ma.updateMetadata();
-		MediaAssetFactory.save(ma, myShepherd);
-		tj.put("maId", ma.getId());
-		tj.put("metadata", ma.getMetadata().getData());
-		System.out.println(tweet.getId() + ": created tweet asset " + ma);
-		myShepherd.commitDBTransaction();
-	} catch(Exception e){
-		myShepherd.rollbackDBTransaction();
-		e.printStackTrace();
-	}
+  // Attempt to create media asset, rollback DB transaction if it fails
+	// myShepherd.beginDBTransaction();
+	// try{
+	// 	ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
+	// 	ma.addLabel("_original");
+	// 	MediaAssetMetadata md = ma.updateMetadata();
+	// 	MediaAssetFactory.save(ma, myShepherd);
+		// tj.put("maId", ma.getId());
+		// tj.put("metadata", ma.getMetadata().getData());
+		// System.out.println(tweet.getId() + ": created tweet asset " + ma);
+	// 	myShepherd.commitDBTransaction();
+	// } catch(Exception e){
+		// myShepherd.rollbackDBTransaction();
+		// e.printStackTrace();
+	// }
 
 	// Attempt to parse date information from media & tweets
 	String tweetText = tweet.getText();
@@ -191,50 +209,52 @@ for (Status tweet : qr.getTweets()) {
 	}
 
 	// Save entities as media assets to shepherd database
-// 	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
-// 	if ((mas == null) || (mas.size() < 1)) {
-//     out.println(tweet.getId() + ": no entity assets?");
-// 		System.out.println(tweet.getId() + ": no entity assets?");
-// 	} else {
-// 		JSONArray jent = new JSONArray();
-// 		for (MediaAsset ent : mas) {
+	// List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
+	// if ((mas == null) || (mas.size() < 1)) {
+  //   out.println(tweet.getId() + ": no entity assets?");
+	// 	System.out.println(tweet.getId() + ": no entity assets?");
+	// } else {
+	// 	JSONArray jent = new JSONArray();
+		// for (MediaAsset ent : mas) {
 // 			myShepherd.beginDBTransaction();
-// 			try {
-// 				JSONObject ej = new JSONObject();
+			// try {
+				// JSONObject ej = new JSONObject();
 // 				MediaAssetFactory.save(ent, myShepherd);
 // 				String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
 //         out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
 // 				System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
-// 				ej.put("maId", ent.getId());
-// 				ej.put("taskId", taskId);
-// 				jent.put(ej);
+				// ej.put("maId", ent.getId());
+				// ej.put("taskId", taskId);
+				// jent.put(ej);
 // 				myShepherd.commitDBTransaction();
-// 			} catch(Exception e){
+			// } catch(Exception e){
 // 				myShepherd.rollbackDBTransaction();
-// 				e.printStackTrace();
-// 			}
-// 		}
-// 		tj.put("entities", jent);
+				// e.printStackTrace();
+			// }
+		// }
+		// tj.put("entities", jent);
 // 	}
-// 	tarr.put(tj);
+	tarr.put(tj);
 }
+//End looping through the tweets
 
 // Write new timestamp to track last twitter pull
-String newSinceIdString;
-if(tarr.length() == 0){
-	newSinceIdString = Long.toString(sinceId);
+Long newSinceIdString;
+if(tweetID == null){
+	newSinceIdString = sinceId;
 } else {
-	newSinceIdString = Long.toString(System.currentTimeMillis());
+	newSinceIdString = tweetID;
 }
 try{
-  Util.writeToFile(newSinceIdString, dataDir + "/twitterTimeStamp.txt");
+  Util.writeToFile(Long.toString(newSinceIdString), dataDir + "/twitterTimeStamp.txt");
+  out.println("wrote a new twitterTimeStamp: " + newSinceIdString);
 } catch(FileNotFoundException e){
   e.printStackTrace();
 }
 
 rtn.put("success", true);
 rtn.put("data", tarr);
-out.println(rtn);
+// out.println(rtn);
 
 myShepherd.closeDBTransaction();
 
