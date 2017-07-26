@@ -1,4 +1,6 @@
 <%@ page contentType="text/plain; charset=utf-8" language="java"
+
+import java.util.ArrayList;
      import="org.ecocean.*,
 java.util.ArrayList,
 java.io.FileNotFoundException,
@@ -44,21 +46,21 @@ String testTweetMultipleLocations = "whale! In Phuket, Thailand!";
 String testTweetNLPLocation = "land whale! In Nashville, tennessee!";
 
 
-String result = null;
-result = ParseDateLocation.parseLocation(testTweetText, context);
-out.println("result from " + testTweetText + " is " + result);
+ArrayList<String> results = null;
+results = ParseDateLocation.parseLocation(testTweetText, context);
+out.println("results from " + testTweetText + " is " + results);
 
-result = ParseDateLocation.parseLocation(testTweetTextNonEnglish, context);
-out.println("result from " + testTweetTextNonEnglish + " is " + result);
+results = ParseDateLocation.parseLocation(testTweetTextNonEnglish, context);
+out.println("results from " + testTweetTextNonEnglish + " is " + results);
 
-result = ParseDateLocation.parseLocation(textTweetGpsText, context);
-out.println("result from " + textTweetGpsText + " is " + result);
+results = ParseDateLocation.parseLocation(textTweetGpsText, context);
+out.println("results from " + textTweetGpsText + " is " + results);
 
-result = ParseDateLocation.parseLocation(testTweetMultipleLocations, context);
-out.println("result from " + testTweetMultipleLocations + " is " + result);
+results = ParseDateLocation.parseLocation(testTweetMultipleLocations, context);
+out.println("results from " + testTweetMultipleLocations + " is " + results);
 
-result = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
-out.println("result from " + testTweetNLPLocation + " is " + result);
+results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
+out.println("results from " + testTweetNLPLocation + " is " + result);
 //End test parseLocation TODO remove this after testing complete
 
 try {

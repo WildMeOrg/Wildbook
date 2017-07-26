@@ -23,8 +23,8 @@ import org.joda.time.LocalDateTime;
 
 public class ParseDateLocation {
 
-  public static String parseLocation (String text, String context){
-    String location="";
+  public static ArrayList<String> parseLocation (String text, String context){
+    ArrayList<String> locations = new ArrayList<>();
 
     try{
       text = detectLanguageAndTranslateToEnglish(text, context);
@@ -33,7 +33,7 @@ public class ParseDateLocation {
     }
 
     try{
-      location += getLocationCodeKey(text,context);
+      locations.add(getLocationCodeKey(text,context));
     } catch(RuntimeException e){
       e.printStackTrace();
     }
@@ -41,26 +41,25 @@ public class ParseDateLocation {
     try{
       ArrayList<String> nlpLocations = ServletUtilities.nlpLocationParse(text);
       for (int i = 0; i<nlpLocations.size(); i++){
-        location += ", " + nlpLocations.get(i);
+        locations.add(nlpLocations.get(i));
       }
     } catch(RuntimeException e){
       e.printStackTrace();
     }
 
     try{
-      location +=  ", " + parseGpsCoordinates(text);
+      locations.add(parseGpsCoordinates(text));
     } catch(RuntimeException e){
       e.printStackTrace();
     }
 
-    return location;
+    return locations;
   }
 
   public static String detectLanguageAndTranslateToEnglish(String text, String context) throws RuntimeException{
     String detectedLanguage = DetectTranslate.detectLanguage(text, context);
     if(!detectedLanguage.toLowerCase().startsWith("en")){
       text= DetectTranslate.translateToEnglish(text, context);
-      // System.out.println("Translated text for parseLocation is " + text);
     }
     if(text !=null && !text.equals("")){
       return text;
@@ -80,7 +79,6 @@ public class ParseDateLocation {
       if (textToLowerCase.indexOf(currentLocationQuery) != -1) {
         if (!returnVal.equals("")){
             returnVal += (", " + currentLocationQuery);
-            // locationCode = locationCodes.getProperty(currentLocationQuery);
         } else{
           returnVal += currentLocationQuery;
         }
