@@ -106,10 +106,14 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
 
     public static void sendCourtesyTweet(String screenName, String mediaType,  Twitter twitterInst, String twitterId) {
       String reply = null;
+      System.out.println("is mediaType null? " + Boolean.toString(mediaType == null));
+      System.out.println("is mediaType a photo? " + Boolean.toString(mediaType.equals("photo")));
       if(mediaType.equals("photo")) {
         reply = "Thank you for the photo from tweet " + twitterId + ", @" + screenName + "! Result pending!";
+        System.out.println("reply would be: " + reply);
       } else {
         reply = "Thanks for tweet " + twitterId + ", @" + screenName + "! Could you send me a pic in a new tweet?";
+        System.out.println("reply would be: " + reply);
       }
       try {
         String status = createTweet(reply, twitterInst);

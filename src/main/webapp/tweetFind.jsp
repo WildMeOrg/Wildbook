@@ -89,18 +89,19 @@ try{
 } catch(NumberFormatException e){
 	e.printStackTrace();
 }
-
 rtn.put("sinceId", sinceId);
-// rtn.put("Date Test:", ParseDateLocation.parseDate(dateTest, context));
+
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
+
+//Begin loop through the each of the tweets since the last timestamp
 for (Status tweet : qr.getTweets()) {
 
 	JSONObject p = new JSONObject();
 	p.put("id", tweet.getId());
 
-	// Attempt to find MediaAsset for tweet, and skip media asset creation if it exists
+  // Attempt to find MediaAsset for tweet, and skip media asset creation if it exists
 	MediaAsset ma = tas.find(p, myShepherd);
 	if (ma != null) {
 		System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
@@ -112,9 +113,9 @@ for (Status tweet : qr.getTweets()) {
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
 	if (jtweet == null){
     continue;
-
   }
-  // out.println(jtweet.toString());
+  out.println(jtweet.toString());
+  
 	JSONObject ents = jtweet.optJSONObject("entities");
 	if (ents == null){
     out.println("entities is null. Skipping");
@@ -134,9 +135,17 @@ for (Status tweet : qr.getTweets()) {
 	JSONObject tj = new JSONObject();  //just for output purposes
 	tj.put("tweet", TwitterUtil.toJSONObject(tweet));
 
+  tweetID = Long.toString(tweet.getId());
+  if(tweetID == null){
+    out.println("tweetID is null. Skipping");
+    continue;
+  }
+
 	JSONArray emedia = null;
 	if (ents != null) emedia = ents.optJSONArray("media");
-	if ((ents == null) || (emedia == null) || (emedia.length() < 1)){
+  if((emedia == null) || (emedia.length() < 1)){
+    //tweet doesn't have media
+    TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID);
     out.println("emedia is null or of length <1. Skipping");
     continue;
   }
@@ -145,17 +154,15 @@ for (Status tweet : qr.getTweets()) {
     // Boolean hasBeenTweeted = false;
     JSONObject jent = emedia.getJSONObject(i);
     String mediaType = jent.getString("type");
-    tweetID = Long.toString(tweet.getId());
-    if(mediaType == null || tweetID == null){
-      out.println("mediaType or tweetID is null. Skipping");
+    if(mediaType == null){
+      out.println("mediaType is null. Skipping");
       continue;
-    } else if (tweetID != null && mediaType != null){
-      //sendCourtesyTweet takes care of whether mediaType is a photo or not
+    } else{
       TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
     }
   }
 
-	// Attempt to create media asset, rollback DB transaction if it fails
+  // Attempt to create media asset, rollback DB transaction if it fails
 	myShepherd.beginDBTransaction();
 	try{
 		ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
@@ -199,6 +206,7 @@ for (Status tweet : qr.getTweets()) {
 // 	}
 // 	tarr.put(tj);
 }
+//End looping through the tweets
 
 // Write new timestamp to track last twitter pull
 String newSinceIdString;
