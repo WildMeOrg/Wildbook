@@ -56,7 +56,6 @@ results = ParseDateLocation.parseLocation(testTweetMultipleLocations, context);
 // out.println("results from " + testTweetMultipleLocations + " is " + results);
 
 results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
-<<<<<<< HEAD
 out.println("results from " + testTweetNLPLocation + " is " + results);
 
 String result = ParseDateLocation.parseDate(dateTest, context);
@@ -64,9 +63,6 @@ out.println("result from " + dateTest + " is " + result);
 
 ArrayList<String> resultArray = ParseDateLocation.parseDateToArrayList(dateArrayTest, context);
 out.println("result from " + dateArrayTest + " is " + resultArray);
-=======
-// out.println("results from " + testTweetNLPLocation + " is " + results);
->>>>>>> 5c208f5d9e547ce9a88c2badc05c97a989e054d4
 //End test parseLocation TODO remove this after testing complete
 
 try {
