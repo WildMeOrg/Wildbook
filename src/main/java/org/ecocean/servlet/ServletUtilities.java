@@ -858,7 +858,7 @@ String rootWebappPath = "xxxxxx";
           .split("\\s+");
       String text2 = String.join(" ", text1);
 
-      System.out.println("text2: "+text2);
+      System.out.println("text2: " + text2);
       edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
 
       //get current date (no time) and formatted with Joda time.
