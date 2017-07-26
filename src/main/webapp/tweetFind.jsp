@@ -58,7 +58,7 @@ out.println("results from " + testTweetMultipleLocations + " is " + results);
 results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
 out.println("results from " + testTweetNLPLocation + " is " + results);
 
-result = ParseDateLocation.parseDate(dateTest, context);
+String result = ParseDateLocation.parseDate(dateTest, context);
 out.println("result from " + dateTest + " is " + result);
 
 ArrayList<String> resultArray = ParseDateLocation.parseDateToArrayList(dateArrayTest, context);
