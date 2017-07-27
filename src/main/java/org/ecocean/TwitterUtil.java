@@ -19,7 +19,6 @@ import java.security.InvalidKeyException;
 */
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
-import twitter4j.json.DataObjectFactory;
 
 public class TwitterUtil {
     private static TwitterFactory tfactory = null;
@@ -66,7 +65,7 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
     public static String toJSONString(Object obj) {
         if (obj == null) return null;
         //TODO catch exceptions etc and return null
-        return DataObjectFactory.getRawJSON(obj);
+        return TwitterObjectFactory.getRawJSON(obj);
     }
     public static JSONObject toJSONObject(Object obj) {
         String s = toJSONString(obj);
