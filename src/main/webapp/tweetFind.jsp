@@ -126,30 +126,23 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 	}
 
 	// Check for tweet and entities
-  System.out.println("Is the tweet null before JSONifying? " + Integer.toString(i) + "th is null?: " + Boolean.toString(tweet==null));
+  out.println("Is the tweet null before JSONifying? " + Integer.toString(i) + "th is null?: " + Boolean.toString(tweet==null));
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
 	if (jtweet == null){
-    System.out.println("tweet is null skipping");
+    out.println("tweet is null skipping");
     continue;
   }
   try{
     out.println(tweet.getText());
   }catch(Exception e){
-    System.out.println("something went terribly wrong");
+    out.println("something went terribly wrong getting tweet text");
     e.printStackTrace();
   }
 
-
-	JSONObject ents = jtweet.optJSONObject("entities");
-	if (ents == null){
-    // out.println("entities is null. Skipping");
-    continue;
-  }
-
   try{
-    tweeterScreenName = jtweet.optJSONObject("user").getString("screen_name");
+    tweeterScreenName = tweet.getUser().getScreenName(); //jtweet.optJSONObject("user").getString("screen_name");
     if(tweeterScreenName == null){
-      // out.println("screen name is null. Skipping");
+      out.println("screen name is null. Skipping");
       continue;
     }
   } catch(Exception e){
@@ -159,24 +152,35 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 	JSONObject tj = new JSONObject();  //just for output purposes
 	tj.put("tweet", TwitterUtil.toJSONObject(tweet));
 
+
+  JSONObject ents = jtweet.optJSONObject("entities");
+	if (ents == null){
+    out.println("got to send entityless tweet;");
+    // Thread.sleep(30000);
+    TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID);
+    out.println("entities is null. Skipping");
+    continue;
+  }
+
 	JSONArray emedia = null;
 	if (ents != null) emedia = ents.optJSONArray("media");
   if((emedia == null) || (emedia.length() < 1)){
     //tweet doesn't have media
-    Thread.sleep(30000);
-    TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID);
+
     // TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
-    // out.println("emedia is null or of length <1. Skipping");
+    out.println("emedia is null or of length <1. Skipping");
     continue;
   }
 
   for(int j=0; j<emedia.length(); j++){
+    out.println("got into emedia for loop");
     // Boolean hasBeenTweeted = false;
     JSONObject jent = emedia.getJSONObject(j);
     String mediaType = jent.getString("type");
     try{
-      if(mediaType.equals("photo")){
-        Thread.sleep(30000);
+      if(mediaType != null){
+        // Thread.sleep(30000);
+        out.println("got to send tweet with some kind of mediaType");
         TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
       }
     } catch(Exception e){
