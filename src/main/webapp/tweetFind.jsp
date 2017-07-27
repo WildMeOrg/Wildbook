@@ -201,11 +201,11 @@ for(int i = 0 ; i<qr.getTweets().size(); i++){
 	String tweetText = tweet.getText();
 	ArrayList<String> parsedDates = ParseDateLocation.parseDateToArrayList(tweetText);
 
-	if(!parseDates.isEmpty()){
+	if(!parsedDates.isEmpty()){
 		// TODO: something with the dates
 	} else {
 		// parse twitter created at timestamp
-		String twitterCreatedAt = tweet.getCreatedAt();
+		String twitterCreatedAt = tweet.getCreatedAt().toString();
 		String parseCreatedAt = ParseDateLocation.parseDate(twitterCreatedAt);
 	}
 
