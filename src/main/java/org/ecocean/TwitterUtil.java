@@ -21,7 +21,6 @@ import java.security.InvalidKeyException;
 */
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
-import twitter4j.json.DataObjectFactory;
 
 public class TwitterUtil {
     private static TwitterFactory tfactory = null;
