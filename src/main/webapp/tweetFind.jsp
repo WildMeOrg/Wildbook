@@ -59,7 +59,7 @@ results = ParseDateLocation.parseLocation(testTweetMultipleLocations, context);
 results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
 out.println("results from " + testTweetNLPLocation + " is " + results);
 
-result = ParseDateLocation.parseDate(dateTest, context);
+String result = ParseDateLocation.parseDate(dateTest, context);
 out.println("result from " + dateTest + " is " + result);
 
 ArrayList<String> resultArray = ParseDateLocation.parseDateToArrayList(dateArrayTest, context);
@@ -208,6 +208,18 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 		// myShepherd.rollbackDBTransaction();
 		// e.printStackTrace();
 	// }
+
+	// Attempt to parse date information from media & tweets
+	String tweetText = tweet.getText();
+	ArrayList<String> parsedDates = ParseDateLocation.parseDateToArrayList(tweetText);
+
+	if(!parsedDates.isEmpty()){
+		// TODO: something with the dates
+	} else {
+		// parse twitter created at timestamp
+		String twitterCreatedAt = tweet.getCreatedAt().toString();
+		String parseCreatedAt = ParseDateLocation.parseDate(twitterCreatedAt);
+	}
 
 	// Save entities as media assets to shepherd database
 	// List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
