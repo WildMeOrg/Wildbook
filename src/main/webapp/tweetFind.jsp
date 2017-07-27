@@ -98,8 +98,10 @@ JSONArray tarr = new JSONArray();
 
 //Begin loop through the each of the tweets since the last timestamp
 out.println("size of the arrayList of statuses is " + Integer.toString(qr.getTweets().size()));
-for(int i = 0 ; i<qr.getTweets().size(); i++){
-  Status tweet = qr.getTweets().get(i);
+List<Status> tweetStatuses = qr.getTweets();
+for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().size(); i++
+  Status tweet = tweetStatuses.get(i);
+  out.println("i is " + Integer.toString(i));
 
   if(i == 0){
     mostRecentTweetID = (Long) tweet.getId();
@@ -124,13 +126,16 @@ for(int i = 0 ; i<qr.getTweets().size(); i++){
 	}
 
 	// Check for tweet and entities
+  System.out.println("Is the tweet null before JSONifying? " + Integer.toString(i) + "th is null?: " + Boolean.toString(tweet==null));
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
 	if (jtweet == null){
+    System.out.println("tweet is null skipping");
     continue;
   }
   try{
-    out.println(jtweet.getString("text"));
+    out.println(tweet.getText());
   }catch(Exception e){
+    System.out.println("something went terribly wrong");
     e.printStackTrace();
   }
 
