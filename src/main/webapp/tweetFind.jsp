@@ -34,7 +34,6 @@ Long sinceId = 890302524275662848L;
 
 //Test parseLocation TODO remove this after testing complete
 String dateTest = "Saw a whale on monday June 13, 2017";
-String dateArrayTest = "Saw a whale on June 13, 2017 and on July 1, 2017";
 String context = ServletUtilities.getContext(request);
 String testTweetText = "Saw this cool humpback whale in the galapagos, Ecuador!";
 String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos en mexico. Sé que no están en mexico. No sea camote.";
@@ -57,13 +56,7 @@ results = ParseDateLocation.parseLocation(testTweetMultipleLocations, context);
 // out.println("results from " + testTweetMultipleLocations + " is " + results);
 
 results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
-out.println("results from " + testTweetNLPLocation + " is " + results);
-
-String result = ParseDateLocation.parseDate(dateTest, context);
-out.println("result from " + dateTest + " is " + result);
-
-ArrayList<String> resultArray = ParseDateLocation.parseDateToArrayList(dateArrayTest, context);
-out.println("result from " + dateArrayTest + " is " + resultArray);
+// out.println("results from " + testTweetNLPLocation + " is " + results);
 //End test parseLocation TODO remove this after testing complete
 
 try {
@@ -159,17 +152,8 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 	JSONObject tj = new JSONObject();  //just for output purposes
 	tj.put("tweet", TwitterUtil.toJSONObject(tweet));
 
-
-  // JSONObject ents = jtweet.optJSONObject("mediaEntities");
-	// if (ents == null){
-  //   out.println("got to send entityless tweet;");
-  //   TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID);
-  //   out.println("entities is null. Skipping");
-  //   continue;
-  // }
-
 	JSONArray emedia = null;
-	emedia = jtweet.optJSONArray("mediaEntities");
+	emedia = jtweet.optJSONArray("extendedMediaEntities");
   if((emedia == null) || (emedia.length() < 1)){
     // tweet doesn't have media
     TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
@@ -177,16 +161,23 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
     continue;
   }
 
+  int photoCount = 0;
   for(int j=0; j<emedia.length(); j++){
     out.println("got into emedia for loop");
-    // Boolean hasBeenTweeted = false;
+    out.println("j is " + Integer.toString(j));
     JSONObject jent = emedia.getJSONObject(j);
     String mediaType = jent.getString("type");
+    // String mediaEntityURL = jent.getString("mediaURL");
+    Long mediaEntityId = Long.parseLong(jent.getString("id"));
+    out.println("mediaEntityId is " + Long.toString(mediaEntityId));
     try{
-      if(mediaType != null){
-        // Thread.sleep(30000);
-        out.println("got to send tweet with some kind of mediaType");
-        TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, tweetID);
+      if(mediaType.equals("photo")){
+        out.println("got to send tweet with photo");
+        //For now, just one courtesy tweet per tweet, even if the tweet contains multiple images
+        if(photoCount<1){
+            TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, mediaEntityId);
+        }
+        photoCount += 1;
       }
     } catch(Exception e){
       e.printStackTrace();
@@ -208,18 +199,6 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 		// myShepherd.rollbackDBTransaction();
 		// e.printStackTrace();
 	// }
-
-	// Attempt to parse date information from media & tweets
-	String tweetText = tweet.getText();
-	ArrayList<String> parsedDates = ParseDateLocation.parseDateToArrayList(tweetText);
-
-	if(!parsedDates.isEmpty()){
-		// TODO: something with the dates
-	} else {
-		// parse twitter created at timestamp
-		String twitterCreatedAt = tweet.getCreatedAt().toString();
-		String parseCreatedAt = ParseDateLocation.parseDate(twitterCreatedAt);
-	}
 
 	// Save entities as media assets to shepherd database
 	// List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
