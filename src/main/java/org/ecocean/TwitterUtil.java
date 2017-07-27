@@ -5,6 +5,8 @@ import java.util.Properties;
 import org.ecocean.servlet.ServletUtilities;
 import org.json.JSONObject;
 import org.json.JSONException;
+
+import com.google.gson.Gson;
 /*
 import java.net.URL;
 import java.io.File;
@@ -62,14 +64,22 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
         return null;
     }
 
-    public static String toJSONString(Object obj) {
-        if (obj == null) return null;
-        //TODO catch exceptions etc and return null
-        return TwitterObjectFactory.getRawJSON(obj);
+    public static String toJSONString(Object obj) throws RuntimeException {
+        String returnVal = null;
+        Gson gson = new Gson();
+        returnVal = gson.toJson(obj);
+        if(returnVal == null){
+          throw new RuntimeException("JSON string ended up null!");
+        }
+        System.out.println(returnVal);
+        return returnVal;
     }
     public static JSONObject toJSONObject(Object obj) {
         String s = toJSONString(obj);
-        if (s == null) return null;
+        if (s == null){
+          System.out.println("toJSONString is null");
+          return null;
+        }
         try {
             JSONObject j = new JSONObject(s);
             return j;
