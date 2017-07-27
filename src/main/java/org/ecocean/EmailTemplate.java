@@ -221,6 +221,8 @@ public final class EmailTemplate {
   public void replaceRegex(String search, String replace, int flags, boolean all) {
     subj.replaceRegex(search, replace, all);
     plainBody.replaceRegex(search, replace, all);
+    plainBody.setText(StringEscapeUtils.unescapeHtml4(this.plainBody.getText()));
+    
     if (htmlBody != null)
       htmlBody.replaceRegex(search, replace, all);
   }
@@ -291,6 +293,8 @@ public final class EmailTemplate {
    */
   public void replaceRegexInPlainText(String search, String replace, boolean all) {
     plainBody.replaceRegex(search, replace, all);
+    plainBody.setText(StringEscapeUtils.unescapeHtml4(plainBody.getText()));
+    
   }
 
   /**
