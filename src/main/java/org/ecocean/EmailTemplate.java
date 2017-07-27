@@ -104,7 +104,7 @@ public final class EmailTemplate {
   public EmailTemplate(String subj, File plain, File html, Charset csP, Charset csH, String host, int port, boolean useSSL) throws IOException {
     this.subj = new TemplateFiller(subj);
     this.plainBody = new TemplateFiller(plain);
-    plainBody.setText(StringEscapeUtils.unescapeHtml4(plainBody.getText()));
+    this.plainBody.setText(StringEscapeUtils.unescapeHtml4(this.plainBody.getText()));
     if (html != null)
       this.htmlBody = new TemplateFiller(html);
     this.charsetPlain = csP;
@@ -130,6 +130,7 @@ public final class EmailTemplate {
   public EmailTemplate(String subj, File plain, File html) throws IOException {
     this.subj = new TemplateFiller(subj);
     this.plainBody = new TemplateFiller(plain);
+    this.plainBody.setText(StringEscapeUtils.unescapeHtml4(this.plainBody.getText()));
     if (html != null)
       this.htmlBody = new TemplateFiller(html);
   }
@@ -155,6 +156,7 @@ public final class EmailTemplate {
   public EmailTemplate(String subject, String body, Charset cs) {
     this.subj = new TemplateFiller(subject);
     this.plainBody = new TemplateFiller(body);
+    this.plainBody.setText(StringEscapeUtils.unescapeHtml4(this.plainBody.getText()));
     charsetPlain = cs;
   }
 
