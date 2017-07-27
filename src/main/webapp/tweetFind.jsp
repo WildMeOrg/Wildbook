@@ -153,21 +153,19 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 	tj.put("tweet", TwitterUtil.toJSONObject(tweet));
 
 
-  JSONObject ents = jtweet.optJSONObject("entities");
-	if (ents == null){
-    out.println("got to send entityless tweet;");
-    // Thread.sleep(30000);
-    TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID);
-    out.println("entities is null. Skipping");
-    continue;
-  }
+  // JSONObject ents = jtweet.optJSONObject("mediaEntities");
+	// if (ents == null){
+  //   out.println("got to send entityless tweet;");
+  //   TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID);
+  //   out.println("entities is null. Skipping");
+  //   continue;
+  // }
 
 	JSONArray emedia = null;
-	if (ents != null) emedia = ents.optJSONArray("media");
+	emedia = jtweet.optJSONArray("mediaEntities");
   if((emedia == null) || (emedia.length() < 1)){
-    //tweet doesn't have media
-
-    // TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
+    // tweet doesn't have media
+    TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
     out.println("emedia is null or of length <1. Skipping");
     continue;
   }
