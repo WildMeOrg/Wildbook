@@ -72,7 +72,7 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
         if(returnVal == null){
           throw new RuntimeException("JSON string ended up null!");
         }
-        System.out.println(returnVal);
+        // System.out.println(returnVal);
         return returnVal;
     }
     public static JSONObject toJSONObject(Object obj) {
