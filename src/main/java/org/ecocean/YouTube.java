@@ -3,9 +3,13 @@ package org.ecocean;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URL;
 import org.json.JSONObject;
+import org.ecocean.ParseDateLocation.ParseDateLocation;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.translate.DetectTranslate;
+
 import java.io.File;
 import java.util.List;
+import java.util.Properties;
 //import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -185,7 +189,7 @@ System.out.println("]=== done with .extractFrames()");
         return null;
     }
     public static String postQuestion(String questionToPost,String videoId, Occurrence occur) { 
-      if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
+//      if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
         
@@ -251,10 +255,36 @@ System.out.println("]=== done with .extractFrames()");
                 System.out
                         .println("\n-------------------------------------------------------------\n");
             } 
-            
+          //search for Date and Location, and if found set in encounter:
+//            String detectedLanguage="en";
+//            try{
+//              detectedLanguage= DetectTranslate.detect(replies, context);
+//            }
+//            catch(Exception e){
+//              System.out.println("I hit an exception trying to detect language.");
+//              e.printStackTrace();
+//            }
+//            
+//            Properties comment = new Properties();               
+//            comment= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+//            
+//            String commentToPost=null;
+//            if (ParseDateLocation.searchAndSet(occur, context, replies)!=null
+//            ) {
+//              commentToPost= comment.getProperty("muchThanks");                  
+//            }else {
+//              commentToPost= comment.getProperty("thanksAnyway");
+//            }
+//            
+//            if(commentToPost!=null){
+//              String postId= occur.getSocialMediaQueryCommentID();
+//              try{
+//                YouTube.sendReply(postId, commentToPost);
+//              }
+//              catch(Exception e){e.printStackTrace();}
+//            }
             return replies;
-    
-      }
+        }
       }catch (GoogleJsonResponseException e) {
       e.printStackTrace();
       System.err.println("There was a service error: " + e.getDetails().getCode() + " : " + e.getDetails().getMessage());
