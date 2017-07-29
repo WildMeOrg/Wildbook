@@ -71,6 +71,7 @@ phrasesToIgnoreVideo.add("shark simulator");
 phrasesToIgnoreVideo.add("ultimate shark simulator");
 phrasesToIgnoreVideo.add("ultimatesharksimulator");
 phrasesToIgnoreVideo.add("animal planet");
+phrasesToIgnoreVideo.add("deer");
 
 int numPhrases=phrasesToIgnoreVideo.size();
 
