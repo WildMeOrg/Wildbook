@@ -538,6 +538,30 @@
 		    <artifactId>google-api-translate-java</artifactId>
 		    <version>0.92</version>
 		</dependency>
+<!-- dependencies for Google Vision/OCR -->
+	<dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-vision</artifactId>
+      <version>0.20.0-beta</version>
+    </dependency>
+    
+     <dependency>
+      <groupId>com.google.auth</groupId>
+      <artifactId>google-auth-library-oauth2-http</artifactId>
+      <version>0.6.1</version>
+     </dependency>
+     
+     <dependency>
+      <groupId>com.google.auth</groupId>
+      <artifactId>google-auth-library-credentials</artifactId>
+      <version>0.6.1</version>
+    </dependency>
+    
+    <dependency>
+    <groupId>com.google.apis</groupId>
+    <artifactId>google-api-services-vision</artifactId>
+    <version>v1-rev358-1.22.0</version>
+	</dependency>  
 <!-- dependencies for Stanford NLP -->
 		<dependency>
 	    <groupId>edu.stanford.nlp</groupId>
