@@ -53,7 +53,7 @@ public class GoogleOcr {
   public static String getTextFrames(List<byte[]> bytesFrames, String context) {
     // Instantiates Stella's credentials
     String CLIENT_ID= CommonConfiguration.getProperty("clientIDVision", context);
-    String CLIENT_SECRET= CommonConfiguration.getProperty("cientSecretVision", context);
+    String CLIENT_SECRET= CommonConfiguration.getProperty("clientSecretVision", context);
     String refreshToken = CommonConfiguration.getProperty("refreshTokenVision", context);
     Vision vision = null;
 
