@@ -59,6 +59,8 @@ import java.util.Locale;
 import java.util.Date;
 import org.joda.time.Instant;
 
+import org.ecocean.ocr.*;
+
 
 public class IBEISIA {
 
@@ -2717,11 +2719,11 @@ return Util.generateUUID();
                 if(parent!=null){
                   ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
                   if((frames!=null)&&(frames.size()>0)){
-                      ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
+                      ArrayList<File> filesFrames= ocr.makeFilesFrames(frames);
                      
                       //Google OCR
-                      List<byte[]>bytesFrames= GoogleOcr.makeBytesFrames(frames);
-                      ocrRemarks = ocr.getTextFrames(bytesFrames, context);
+                      ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
+                      ocrRemarks = GoogleOcr.getTextFrames(bytesFrames, context);
                         
                       //Tess4j OCR - requires Tesseract on the command line-DANGEROUS/CRASH PRONE
                       //ocrRemarks = ocr.getTextFrames(filesFrames, context);
