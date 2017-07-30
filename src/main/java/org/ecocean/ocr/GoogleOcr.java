@@ -55,6 +55,7 @@ public class GoogleOcr {
     String CLIENT_ID= CommonConfiguration.getProperty("clientIDVision", context);
     String CLIENT_SECRET= CommonConfiguration.getProperty("clientSecretVision", context);
     String refreshToken = CommonConfiguration.getProperty("refreshTokenVision", context);
+    System.out.println("Trying Google creds ID: " +CLIENT_ID+" secret:"+CLIENT_SECRET+" refreshoken:"+refreshToken);
     Vision vision = null;
 
     try {
@@ -71,6 +72,7 @@ public class GoogleOcr {
                    .build();
       
     } catch (Exception e) {
+      e.printStackTrace();
       System.out.println("oh no, why can't we access credentials!");
     }
     if (vision !=null) {
@@ -92,7 +94,7 @@ public class GoogleOcr {
                     .annotate(new BatchAnnotateImagesRequest().setRequests(requests.build()));
               BatchAnnotateImagesResponse batchResponse = annotate.execute();
               
-              if(batchResponse.getResponses().get(0).getTextAnnotations().get(0).getDescription() == null){
+              if((batchResponse==null)||(batchResponse.getResponses()==null)||(batchResponse.getResponses().get(0).getTextAnnotations()==null)||(batchResponse.getResponses().get(0).getTextAnnotations().get(0).getDescription() == null)){
                 System.out.println("wait what, no text found in image?");
               }else {
                 System.out.println(batchResponse.getResponses().get(0).getTextAnnotations().get(0).getDescription());
@@ -122,6 +124,7 @@ public class GoogleOcr {
         return ocrRemarks;
         
       } catch (Exception e) {
+        e.printStackTrace();
         System.out.println("Exception while trying to convert fileFrames into text.");
       }
     }    
