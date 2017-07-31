@@ -140,16 +140,25 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
       }
     }
 
-    public static String createTweet(String tweet, Twitter twitterInst) throws TwitterException {
-      String returnVal = null;
-      try {
-        Status status = twitterInst.updateStatus(tweet);
-        returnVal = status.getText();
-      } catch(TwitterException e) {
-        e.printStackTrace();
-      }
-      return returnVal;
+  public static String createTweet(String tweet, Twitter twitterInst) throws TwitterException {
+    String returnVal = null;
+    try {
+      Status status = twitterInst.updateStatus(tweet);
+      returnVal = status.getText();
+    } catch(TwitterException e) {
+      e.printStackTrace();
+    }
+    return returnVal;
 
+  }
+
+  public static void sendDetectionNotSuccessfulTweet(String screenName, Twitter twitterInst){
+    String tweet = "We were not able to detect a whale in the image(s). Please go to http://www.flukebook.org/submit.jsp to make a manual submission.";
+    try {
+      String status = createTweet(tweet, twitterInst);
+    } catch (TwitterException e){
+      e.printStackTrace();
+    }
   }
 
 }
