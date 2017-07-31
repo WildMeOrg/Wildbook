@@ -47,11 +47,13 @@ public class ParseDateLocation {
       e.printStackTrace();
     }
 
-    try{
-      locations.add(parseGpsCoordinates(text));
-    } catch(RuntimeException e){
-      e.printStackTrace();
-    }
+
+    //TODO parseGpsCoordinates ends up returning matches for dates, so commenting out for now
+    // try{
+    //   locations.add(parseGpsCoordinates(text));
+    // } catch(RuntimeException e){
+    //   e.printStackTrace();
+    // }
 
     return locations;
   }
@@ -98,7 +100,7 @@ public class ParseDateLocation {
     String PATTERN_1 = ".*?([+-]?\\d+\\.?\\d+)\\s*,\\s*([+-]?\\d+\\.?\\d+).*?"; //doesn't seem as robust as
     String PATTERN_2 = ".*?([-+]?)([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*([-+]?)(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?).*?";
 
-    //first try with less specific one
+    // first try with less specific one
     Pattern pattern = Pattern.compile(PATTERN_1);
     Matcher matcher = pattern.matcher(text);
     if(matcher.matches()){
@@ -106,7 +108,7 @@ public class ParseDateLocation {
       returnVal = gpsCoords;
     }
 
-    //then try with more specific one
+    // then try with more specific one
     pattern = Pattern.compile(PATTERN_2);
     matcher = pattern.matcher(text);
     if(matcher.matches()){
