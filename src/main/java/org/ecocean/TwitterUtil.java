@@ -161,15 +161,6 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
       }
     }
 
-    public static void sendDetectionButNoIdTweet(String screenName, String imageId, Twitter twitterInst) {
-      String reply = "Hi, @" + screenName + "! We were able to detect a humpback whale fluke in image " + imageId + ". We couldn't match to any known flukes in our database. Thanks for contributing to our data set!";
-      try {
-        String status = createTweet(reply, twitterInst);
-      } catch(TwitterException e) {
-        e.printStackTrace();
-      }
-    }
-
     public static String createTweet(String tweet, Twitter twitterInst) throws TwitterException {
       String returnVal = null;
       try {
@@ -180,14 +171,4 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
       }
       return returnVal;
     }
-
-  public static void sendDetectionNotSuccessfulTweet(String screenName, Twitter twitterInst){
-    String tweet = "We were not able to detect a whale in the image(s). Please go to http://www.flukebook.org/submit.jsp to make a manual submission.";
-    try {
-      String status = createTweet(tweet, twitterInst);
-    } catch (TwitterException e){
-      e.printStackTrace();
-    }
-  }
-
 }
