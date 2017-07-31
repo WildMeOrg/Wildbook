@@ -14,7 +14,7 @@ import org.ecocean.ShepherdProperties;
 import org.ecocean.YouTube;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.YouTubeAssetStore;
-import org.ecocean.ocr.ocr;
+//import org.ecocean.ocr.ocr;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.translate.DetectTranslate;
 import org.joda.time.LocalDateTime;
