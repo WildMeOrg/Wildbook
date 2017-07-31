@@ -77,7 +77,7 @@ JSONObject rtn = new JSONObject("{\"success\": false}");
 Twitter twitterInst = TwitterUtil.init(request);
 
 // Testing tweetMethods
-TwitterUtil.sendDetectionButNoIdTweet("markaaronfisher", "12341", twitterInst);
+
 //End testing tweetMethods
 
 Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
