@@ -66,9 +66,7 @@ results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
 out.println("results from " + testTweetNLPLocation + " is " + results);
 //End test parseLocation TODO remove this after testing complete
 
-// Testing tweetMethods
-TwitterUtil.sendDetectionButNoIdTweet(tweeterScreenName, "12341", twitterInst);
-//End testing tweetMethods
+
 
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -77,6 +75,11 @@ try {
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
 Twitter twitterInst = TwitterUtil.init(request);
+
+// Testing tweetMethods
+TwitterUtil.sendDetectionButNoIdTweet("markaaronfisher", "12341", twitterInst);
+//End testing tweetMethods
+
 Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
 myShepherd.setAction("tweetFind.jsp");
 
