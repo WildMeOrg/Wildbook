@@ -172,10 +172,10 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
     out.println("mediaEntityId is " + Long.toString(mediaEntityId));
     try{
       if(mediaType.equals("photo")){
-        out.println("got to send tweet with photo");
         //For now, just one courtesy tweet per tweet, even if the tweet contains multiple images
         if(photoCount<1){
-            TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, mediaEntityId);
+          out.println("got to send tweet with photo");
+          TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, mediaEntityId);
         }
         photoCount += 1;
       }
