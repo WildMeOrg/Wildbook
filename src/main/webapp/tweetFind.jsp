@@ -18,7 +18,8 @@ twitter4j.Status,
 twitter4j.*,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
-org.ecocean.ParseDateLocation.*
+org.ecocean.ParseDateLocation.*,
+java.util.concurrent.ThreadLocalRandom
               "
 %>
 
@@ -77,7 +78,17 @@ JSONObject rtn = new JSONObject("{\"success\": false}");
 Twitter twitterInst = TwitterUtil.init(request);
 
 // Testing tweetMethods
+String randomNumStr = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
+String randomNum2Str = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
+TwitterUtil.sendDetectionAndIdentificationTweet("markaaronfisher", randomNumStr, twitterInst, randomNum2Str, true, true);
 
+randomNumStr = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
+randomNum2Str = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
+TwitterUtil.sendDetectionAndIdentificationTweet("markaaronfisher", randomNumStr, twitterInst, randomNum2Str, true, false);
+
+randomNumStr = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
+randomNum2Str = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
+TwitterUtil.sendDetectionAndIdentificationTweet("markaaronfisher", randomNumStr, twitterInst, randomNum2Str, false, false);
 //End testing tweetMethods
 
 Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
@@ -229,18 +240,6 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 		// myShepherd.rollbackDBTransaction();
 		// e.printStackTrace();
 	// }
-
-	// Attempt to parse date information from media & tweets
-	String tweetText = tweet.getText();
-	ArrayList<String> parsedDates = ParseDateLocation.parseDateToArrayList(tweetText, context);
-
-	if(!parsedDates.isEmpty()){
-		// TODO: something with the dates
-	} else {
-		// parse twitter created at timestamp
-		String twitterCreatedAt = tweet.getCreatedAt().toString();
-		String parseCreatedAt = ParseDateLocation.parseDate(twitterCreatedAt, context);
-	}
 
 	// Save entities as media assets to shepherd database
 	// List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
