@@ -140,6 +140,27 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
       }
     }
 
+    public static void sendDetectionAndIdentificationTweet(String screenName, String imageId, Twitter twitterInst, String whaleId, boolean detected, boolean identified){
+      String tweet = null, tweet2 = null;
+      if(detected && identified){
+        tweet = "Hi, @" + screenName + "! We detected a whale in " + imageId + " and identified it as " + whaleId + "!";
+        tweet2 = "Here's some info on " + whaleId + ": ";
+      } else if(detected && !identified){
+        tweet = "We detected a whale in " + imageId + " but we were not able to identify it.";
+        tweet2 = "If you'd like to make a manual submission for " + imageId + ", please go to http://www.flukebook.org/submit.jsp";
+      } else {
+        tweet = "We were not able to identify a whale in " + imageId + ".";
+        tweet2 = "If you'd like to make a manual submission for " + imageId + ", please go to http://www.flukebook.org/submit.jsp";
+      }
+
+      try {
+        String status1 = createTweet(tweet, twitterInst);
+        String status2 = createTweet(tweet2, twitterInst);
+      } catch(TwitterException e){
+        e.printStackTrace();
+      }
+    }
+
     public static void sendDetectionButNoIdTweet(String screenName, String imageId, Twitter twitterInst) {
       String reply = "Hi, @" + screenName + "! We were able to detect a humpback whale fluke in image " + imageId + ". We couldn't match to any known flukes in our database. Thanks for contributing to our data set!";
       try {
@@ -158,7 +179,15 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
         e.printStackTrace();
       }
       return returnVal;
+    }
 
+  public static void sendDetectionNotSuccessfulTweet(String screenName, Twitter twitterInst){
+    String tweet = "We were not able to detect a whale in the image(s). Please go to http://www.flukebook.org/submit.jsp to make a manual submission.";
+    try {
+      String status = createTweet(tweet, twitterInst);
+    } catch (TwitterException e){
+      e.printStackTrace();
+    }
   }
 
 }

@@ -960,11 +960,7 @@ String rootWebappPath = "xxxxxx";
       }
       System.out.println("NLP dates found+: " + arrayListDates);
 
-      if(!arrayListDates.isEmpty()){
-        return arrayListDates;
-      } else {
-        return null;
-      }
+      return arrayListDates;
     }
 
 

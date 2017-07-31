@@ -230,6 +230,18 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 		// e.printStackTrace();
 	// }
 
+	// Attempt to parse date information from media & tweets
+	String tweetText = tweet.getText();
+	ArrayList<String> parsedDates = ParseDateLocation.parseDateToArrayList(tweetText, context);
+
+	if(!parsedDates.isEmpty()){
+		// TODO: something with the dates
+	} else {
+		// parse twitter created at timestamp
+		String twitterCreatedAt = tweet.getCreatedAt().toString();
+		String parseCreatedAt = ParseDateLocation.parseDate(twitterCreatedAt, context);
+	}
+
 	// Save entities as media assets to shepherd database
 	// List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
 	// if ((mas == null) || (mas.size() < 1)) {

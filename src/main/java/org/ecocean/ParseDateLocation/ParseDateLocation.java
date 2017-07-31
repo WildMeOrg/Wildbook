@@ -234,11 +234,7 @@ public class ParseDateLocation {
       e.printStackTrace();
     }
 
-    if(!parsedDates.isEmpty()){
-      return parsedDates;
-    } else {
-      return null;
-    }
+    return parsedDates;
   }
 
   public static void date(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context, String text) {
