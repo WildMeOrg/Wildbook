@@ -204,6 +204,7 @@ public class TwitterAssetStore extends AssetStore {
 ///// note: might also want to walk .entities.urls -- https://dev.twitter.com/overview/api/entities-in-twitter-objects#urls
     public static List<MediaAsset> entitiesAsMediaAssets(MediaAsset ma) {
         JSONObject raw = getRawJSONObject(ma);
+        // System.out.println(raw.toString());
         AssetStore store = ma.getStore();
         if (raw == null) return null;
         if ((raw.optJSONObject("extended_entities") == null) || (raw.getJSONObject("extended_entities").optJSONArray("media") == null)) return null;
@@ -224,6 +225,33 @@ public class TwitterAssetStore extends AssetStore {
         return mas;
     }
 
+    public static List<MediaAsset> entitiesAsMediaAssetsGsonObj(MediaAsset ma) {
+        JSONObject raw = getRawJSONObject(ma);
+        System.out.println(raw.toString());
+        AssetStore store = ma.getStore();
+        if (raw == null) return null;
+        if ((raw.optJSONArray("extendedMediaEntities") == null)){
+          System.out.println("aw.optJSONArray('extendedMediaEntities') is null");
+          return null;
+        }
+        List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        JSONArray jarr = raw.getJSONArray("extendedMediaEntities");
+        for (int i = 0 ; i < jarr.length() ; i++) {
+            JSONObject p = jarr.optJSONObject(i);
+            if (p == null) continue;
+            p.put("id", p.optString("id", null));  //squash the long id at "id" with string
+            MediaAsset kid = store.create(p);
+            kid.addLabel("_entity");
+            setEntityMetadata(kid);
+            kid.getMetadata().getDataAsString(); //TODO no idea what this does -MF
+            kid.setParentId(ma.getId());
+            //derivationMethods?  metadata? (of image) etc.... ??
+            mas.add(kid);
+            System.out.println("Probably added a kid to the media assets");
+        }
+        return mas;
+    }
+
     //this assumes we already set metadata
     public static JSONObject getRawJSONObject(MediaAsset ma) {
         if (ma == null) return null;
@@ -231,7 +259,7 @@ public class TwitterAssetStore extends AssetStore {
         if ((md == null) || (md.getData() == null) || (md.getDataAsString() == null)) return null;
         return md.getData().optJSONObject(METADATA_KEY_RAWJSON);
     }
-    
+
     //currently there really only is "minimal" for tweets: namely the json data from twitter
     //  this is keyed as "twitterRawJson"
     //  NOTE: this also assumes TwitterUtil.init(request) has been called
@@ -266,5 +294,3 @@ public class TwitterAssetStore extends AssetStore {
 
 
 }
-
-
