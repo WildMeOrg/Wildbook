@@ -6,7 +6,7 @@ import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
 import org.ecocean.media.YouTubeAssetStore;
-import org.ecocean.ocr.ocr;
+//import org.ecocean.ocr.ocr;
 //import org.ecocean.youtube.PostQuestion;
 import org.ecocean.translate.DetectTranslate;
 import org.ecocean.Shepherd;

@@ -95,8 +95,9 @@ public class GoogleOcr {
               BatchAnnotateImagesResponse batchResponse = annotate.execute();
               
               if((batchResponse==null)||(batchResponse.getResponses()==null)||(batchResponse.getResponses().get(0).getTextAnnotations()==null)||(batchResponse.getResponses().get(0).getTextAnnotations().get(0).getDescription() == null)){
-                System.out.println("wait what, no text found in image?");
-              }else {
+                //System.out.println("wait what, no text found in image?");
+              }
+              else {
                 System.out.println(batchResponse.getResponses().get(0).getTextAnnotations().get(0).getDescription());
                 String frameText= batchResponse.getResponses().get(0).getTextAnnotations().get(0).getDescription();
                 if (!(framesTexts.toString()).contains(frameText)) {         
