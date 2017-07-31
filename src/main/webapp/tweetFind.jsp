@@ -17,7 +17,6 @@ twitter4j.QueryResult,
 twitter4j.Status,
 twitter4j.*,
 org.ecocean.servlet.ServletUtilities,
-
 org.ecocean.media.*,
 org.ecocean.ParseDateLocation.*
               "
@@ -66,6 +65,10 @@ out.println("results from " + testTweetMultipleLocations + " is " + results);
 results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
 out.println("results from " + testTweetNLPLocation + " is " + results);
 //End test parseLocation TODO remove this after testing complete
+
+// Testing tweetMethods
+TwitterUtil.sendDetectionButNoIdTweet(tweeterScreenName, "12341", twitterInst);
+//End testing tweetMethods
 
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
