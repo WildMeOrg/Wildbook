@@ -44,7 +44,9 @@ public class Occurrence implements java.io.Serializable{
   private String comments = "None";
   private String modified;
   private String dateTimeCreated;
-    private String observer;
+
+    private String browseType;
+/*
     private Double distance;
     private Double decimalLatitude;
     private Double decimalLongitude;
@@ -59,7 +61,7 @@ public class Occurrence implements java.io.Serializable{
     private Integer numSubMales;
     private Integer numSubFemales;
     private Integer numJuveniles;
-
+*/
 
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
@@ -276,6 +278,19 @@ public class Occurrence implements java.io.Serializable{
         this.dateTime = dt;
     }
 
+
+    public void setBrowseType(String bt) {
+        browseType = bt;
+    }
+
+    public String getBrowseType() {
+        return browseType;
+
+    }
+
+
+
+/*
 	public String getObserver() {
 		return this.observer;
 	}
@@ -359,6 +374,7 @@ public class Occurrence implements java.io.Serializable{
 	public void setBearing(Double b) {
 		this.bearing = b;
 	}
+*/
 
 
   public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {

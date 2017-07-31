@@ -253,7 +253,7 @@ function placeMarker(location) {
     }
 
   function initialize() {
-    var mapZoom = 6;
+    var mapZoom = 4;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
@@ -791,7 +791,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             <label class="control-label"><%=props.getProperty("submit_indiv") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-	        <input type="text" id="indiv-id" placeholder="type name to search existing" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="indiv-id" />
+	        <input type="text" id="indiv-id" placeholder="type name to search known individuals" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="indiv-id" />
 		</div>
 	</div>
 

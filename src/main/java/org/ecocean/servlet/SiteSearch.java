@@ -39,6 +39,8 @@ import org.ecocean.User;
 import org.ecocean.CommonConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.google.gson.Gson;
 //import com.samsix.util.string.StringUtilities;
@@ -61,18 +63,25 @@ public class SiteSearch extends HttpServlet {
 
     @Override
     public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        String context="context0";
-        context=ServletUtilities.getContext(request);
-        
         //set up for response
         response.setContentType("text/json");
         PrintWriter out = response.getWriter();
 
-        String term = request.getParameter("term");
-        if ((term == null) || term.equals("")) {
-            out.println("[]");
+        //term= is legacy "generic search", so it has its own behavior/results
+        if (request.getParameter("term") != null) {
+            out.println(termSearch(request.getParameter("term"), request));
             return;
         }
+
+        //all newer types return as part of a bigger structure
+        JSONObject res = new JSONObject();
+
+        res.put("occBrowse", occBrowse(request.getParameter("occBrowse"), request));
+        out.println(res.toString());
+    }
+
+    private String termSearch(String term, HttpServletRequest request) {
+        if ((term == null) || term.equals("")) return "[]";
 
         String regex = ".*" + term.toLowerCase() + ".*";
 
@@ -94,6 +103,8 @@ public class SiteSearch extends HttpServlet {
                 ;
         
         Query query=null;;
+        String context="context0";
+        context=ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("SiteSearch.class");
         myShepherd.beginDBTransaction();
@@ -201,6 +212,32 @@ public class SiteSearch extends HttpServlet {
         //
         // return our results
         //
-        out.println(new Gson().toJson(list));
+        return new Gson().toJson(list);
+    }
+
+
+    //giraffespotter-specific
+    private JSONArray occBrowse(String term, HttpServletRequest request) {
+        JSONArray rtn = new JSONArray();
+        if ((term == null) || term.equals("")) return rtn;
+
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("SiteSearch.class2");
+        myShepherd.beginDBTransaction();
+
+        String regex = "%" + term.toLowerCase() + "%";
+        rtn.put(regex);
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT DISTINCT(\"BROWSETYPE\") FROM \"ENCOUNTER\" where \"BROWSETYPE\" like ?");
+        List<String> btypes = (List<String>)q.execute(regex);
+        if (btypes != null) {
+            for (String b : btypes) {
+                rtn.put(b);
+            }
+        }
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+
+        return rtn;
     }
 }

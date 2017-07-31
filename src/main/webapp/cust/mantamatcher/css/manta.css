@@ -7517,7 +7517,8 @@ label {
   clear: both;
   float: none;
   display: block;
-  background: url(../img/wildbook_logo_white.svg) no-repeat;
+  background: url(../img/GS_Spotter07302017_scaled.png) no-repeat;
+  background-size: auto 75px;
 }
 @media (min-width: 768px) {
   .navbar-brand {
@@ -7975,7 +7976,7 @@ form table th {
   color: #ffffff;
 }
 .header-top-wrapper {
-  background: #333333;
+  background: #555;
 }
 .header-top-wrapper .container {
   padding-top: 10px;

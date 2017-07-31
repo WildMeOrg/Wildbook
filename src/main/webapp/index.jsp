@@ -135,9 +135,33 @@ margin-bottom: 8px !important;
     	// Create an array of styles for our Google Map.
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
 
+/*
+	var gmap_styles = [
 
-        var center = new google.maps.LatLng(0,0);
-        var mapZoom = 8;
+		{
+			stylers: [{visibility: "off"}]
+		},
+		{
+              		featureType: 'administrative.country',
+              		elementType: 'labels.text',
+              		stylers: [{visibility: "on"}]
+            	},
+		{
+              		featureType: 'administrative',
+              		elementType: 'labels.text',
+              		stylers: [{color: '#444'}]
+            	},
+		{
+			featureType: "administrative",
+			elementType: "geometry.stroke",
+			stylers: [{visibility:"on"}]//,{color:"#00c0f7"},{weight:1}]
+		}
+	];
+*/
+
+
+	var center = new google.maps.LatLng(0.6811362994451233, 36.551513671875);
+        var mapZoom = 6;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
@@ -171,6 +195,7 @@ margin-bottom: 8px !important;
 
  	    //iterate here to add points per location ID
 
+/*
  		var maxZoomService = new google.maps.MaxZoomService();
  		maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
  			    if (response.status == google.maps.MaxZoomStatus.OK) {
@@ -180,6 +205,7 @@ margin-bottom: 8px !important;
  			    }
 
  		});
+*/
 
 
  		// let's add map points for our locationIDs
@@ -210,9 +236,9 @@ margin-bottom: 8px !important;
 	 		          %>
 
 	 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
-			          bounds.extend(latLng);
+			          //bounds.extend(latLng);
 
-	 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+	 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 50px;vertical-align: middle;width:50px;height:50px;padding: 2px; background-image: url('/cust/mantamatcher/img/giraffe-silhouette-white.svg');background-size: cover\"><a style=\"font-size: 1.5em; text-shadow: 0 0 3px #FFF; x-webkit-text-stroke: 1px #FFF;\" href=\"/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
 
 
 	 		         var marker<%=i%> = new RichMarker({
@@ -226,7 +252,7 @@ margin-bottom: 8px !important;
 
 
 	 			      markers.push(marker<%=i%>);
-	 		          map.fitBounds(bounds);
+	 		          //map.fitBounds(bounds);
 
 	 				<%
 	 			} //end if
@@ -409,7 +435,6 @@ finally{
 	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=props.getProperty("carouselSubmit") %><span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=props.getProperty("carouselVerify") %><span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. <%=props.getProperty("carouselMatching") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. <%=props.getProperty("carouselResult") %><span class="caret"></span></li>
 	    </ol>
 		<div class="carousel-inner text-left">
 			<div class="item active">
@@ -455,17 +480,6 @@ finally{
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
 					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerResultsH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerResultsP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
 				</div>
 			</div>
 		</div>
@@ -534,7 +548,7 @@ finally{
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
 	                            <li>
-	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
+	                                <img src="cust/mantamatcher/img/giraffe-silhouette.svg" alt="" width="85px" height="75px" class="pull-left" />
 	                                <small>
 	                                    <time>
 	                                        <%=thisEnc.getDate() %>
@@ -646,11 +660,13 @@ finally{
         <main class="container">
             <article class="text-center">
                 <div class="row">
+<!--
                     <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
-                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
+-->
+                    <div xclass="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
-                        <p class="lead"><%=props.getProperty("contributors") %></p>
-                        <a href="#" title=""><%=props.getProperty("contributors") %></a>
+                        <p class="lead"><%=props.getProperty("whyBody") %></p>
+                        <a href="overview.jsp" title=""><%=props.getProperty("whyMore") %></a>
                     </div>
                 </div>
             </article>
@@ -666,59 +682,6 @@ finally{
 
 </div>
 
-<div class="container-fluid">
-    <section class="container main-section">
-
-        <!-- Complete header for adoption section in index properties file -->
-        <%=props.getProperty("adoptionHeader") %>
-        <section class="adopt-section row">
-
-            <!-- Complete text body for adoption section in index properties file -->
-            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-              <%=props.getProperty("adoptionBody") %>
-            </div>
-            <%
-            myShepherd.beginDBTransaction();
-            try{
-	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
-	            if(adopt!=null){
-	            %>
-	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
-		                <div class="focusbox-inner" style="overflow: hidden;">
-		                	<%
-		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
-
-		                	%>
-		                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
-		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
-		                    <%
-		                    if(adopt.getAdopterQuote()!=null){
-		                    %>
-			                    <blockquote>
-			                        <%=adopt.getAdopterQuote() %>
-			                    </blockquote>
-		                    <%
-		                    }
-		                    %>
-		                </div>
-		            </div>
-
-	            <%
-				}
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
-
-            %>
-
-
-        </section>
-
-
-        <hr/>
-        <%= props.getProperty("donationText") %>
-    </section>
-</div>
 
 <jsp:include page="footer.jsp" flush="true"/>
 

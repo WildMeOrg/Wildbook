@@ -108,7 +108,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>
+                <a href="http://www.wildme.org" target="_new" id="wild-me-badge">A Wild me project</a>
                   <div class="search-and-secondary-wrapper">
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
@@ -308,15 +308,16 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                        	<!--
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
 
+                          	<li><a href="<%=urlLoc %>/links.jsp"><%=props.getProperty("links")%></a></li>
+                        	<!--
                           	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
 
                           	<!--
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                             -->
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                             -->
                         </ul>
                       </li>
 
