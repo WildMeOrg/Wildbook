@@ -114,18 +114,13 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
 
     public static void sendCourtesyTweet(String screenName, String mediaType,  Twitter twitterInst, Long twitterId) {
       String reply = null;
-      System.out.println("is mediaType null? " + Boolean.toString(mediaType == null));
-      System.out.println("is mediaType a photo? " + Boolean.toString(mediaType.equals("photo")));
       if(mediaType.equals("photo")) {
         reply = "Thank you for the photo(s), including id " + Long.toString(twitterId) + ", @" + screenName + "! Result pending!";
-        System.out.println("reply would be: " + reply);
       } else {
         reply = "Thanks for tweet " + Long.toString(twitterId) + ", @" + screenName + "! Could you send me a pic in a new tweet?";
-        System.out.println("reply would be: " + reply);
       }
       try {
         String status = createTweet(reply, twitterInst);
-        System.out.println("status tweeted: " + status);
       } catch(TwitterException e) {
         e.printStackTrace();
       }
@@ -133,18 +128,13 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
 
     public static void sendCourtesyTweet(String screenName, String mediaType,  Twitter twitterInst, String id) {
       String reply = null;
-      System.out.println("is mediaType null? " + Boolean.toString(mediaType == null));
-      System.out.println("is mediaType a photo? " + Boolean.toString(mediaType.equals("photo")));
       if(mediaType.equals("photo")) {
         reply = "Thank you for the photo(s), including id " + id + ", @" + screenName + "! Result pending!";
-        System.out.println("reply would be: " + reply);
       } else {
         reply = "Thanks for tweet " + id + ", @" + screenName + "! Could you send me a pic in a new tweet?";
-        System.out.println("reply would be: " + reply);
       }
       try {
         String status = createTweet(reply, twitterInst);
-        System.out.println("status tweeted: " + status);
       } catch(TwitterException e) {
         e.printStackTrace();
       }
