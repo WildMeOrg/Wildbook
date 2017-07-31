@@ -2719,13 +2719,14 @@ return Util.generateUUID();
                 if(parent!=null){
                   ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
                   if((frames!=null)&&(frames.size()>0)){
-                      ArrayList<File> filesFrames= ocr.makeFilesFrames(frames);
-                     
+                      
                       //Google OCR
                       ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
                       ocrRemarks = GoogleOcr.getTextFrames(bytesFrames, context);
                         
                       //Tess4j OCR - requires Tesseract on the command line-DANGEROUS/CRASH PRONE
+                      //ArrayList<File> filesFrames= ocr.makeFilesFrames(frames);
+                      
                       //ocrRemarks = ocr.getTextFrames(filesFrames, context);
                        
                       if(ocrRemarks==null)ocrRemarks="";
