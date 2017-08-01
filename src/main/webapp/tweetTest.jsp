@@ -40,6 +40,7 @@ String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos
 String textTweetGpsText = "saw a whale at 45.5938,-122.737 in ningaloo. #bestvacationever";
 String testTweetMultipleLocations = "whale! In Phuket, Thailand!";
 String testTweetNLPLocation = "land whale! In Nashville, tennessee!";
+String futureString = "Saw a whale on July 2, 2017. I'm going to see one tomorrow too!";
 
 // Test methods
 ArrayList<String> results = null;
@@ -99,4 +100,9 @@ try{
 	e.printStackTrace();
 }
 
+// Natural Language Processing (NLP) tests
+String testWithFutureString = ServeletUtilities.nlpDateParse(futureString);
+String testWithNoDate = ServeletUtilities.nlpDateParse(testTweetText);
+String testWithNoDateAndGPSCoordinates = ServeletUtilities.nlpDateParse(textTweetGpsText);
+// End NLP tests
 %>
