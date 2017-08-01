@@ -893,6 +893,8 @@ String rootWebappPath = "xxxxxx";
         if (arrayListDates.size() > 1) {
           for (int i = 0; i < arrayDates.length; i++) {
             for (int j = i + 1; j < arrayDates.length; j++) {
+
+              // THIS LOGIC, BASED ON STRING LENGTH, DOES NOT WORK
               if (arrayDates[i].length() > arrayDates[j].length()) {
                 selectedDate = arrayDates[i];
               } else if (arrayDates[i].length() < arrayDates[j].length()) {
@@ -900,6 +902,7 @@ String rootWebappPath = "xxxxxx";
               } else {
                 selectedDate = arrayDates[0];
               }
+              //END BAD LOGIC
 
             }
 
