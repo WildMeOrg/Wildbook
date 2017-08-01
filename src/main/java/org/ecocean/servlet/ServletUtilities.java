@@ -1,21 +1,21 @@
 /*
- * Wildbook - A Mark-Recapture Framework
- * Copyright (C) 2011-2014 Jason Holmberg
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+* Wildbook - A Mark-Recapture Framework
+* Copyright (C) 2011-2014 Jason Holmberg
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 
 package org.ecocean.servlet;
 
@@ -148,12 +148,12 @@ public class ServletUtilities {
   }
 
   /**
-   * Inform (via email) researchers who've logged an interest in encounter.
-   * @param request servlet request
-   * @param encounterNumber ID of encounter to inform about
-   * @param message message to include in email notification
-   * @param context webapp context
-   */
+  * Inform (via email) researchers who've logged an interest in encounter.
+  * @param request servlet request
+  * @param encounterNumber ID of encounter to inform about
+  * @param message message to include in email notification
+  * @param context webapp context
+  */
   public static void informInterestedParties(HttpServletRequest request, String encounterNumber, String message, String context) {
     Shepherd shep = new Shepherd(context);
     shep.setAction("ServletUtilities.class.informInterestedParties");
@@ -169,7 +169,7 @@ public class ServletUtilities {
             tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + encounterNumber);
             tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(mailTo));
             tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, message == null ? "" : message);
-//            String langCode = ServletUtilities.getLanguageCode(request);
+            //            String langCode = ServletUtilities.getLanguageCode(request);
             NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "encounterDataUpdate", tagMap);
             es.execute(mailer);
           }
@@ -182,12 +182,12 @@ public class ServletUtilities {
   }
 
   /**
-   * Inform (via email) researchers who've logged an interest in individual.
-   * @param request servlet request
-   * @param individualID ID of individual to inform about
-   * @param message message to include in email notification
-   * @param context webapp context
-   */
+  * Inform (via email) researchers who've logged an interest in individual.
+  * @param request servlet request
+  * @param individualID ID of individual to inform about
+  * @param message message to include in email notification
+  * @param context webapp context
+  */
   public static void informInterestedIndividualParties(HttpServletRequest request, String individualID, String message, String context) {
     Shepherd shep = new Shepherd(context);
     shep.setAction("ServletUtilities.informInterestedIndividualParties.class");
@@ -203,7 +203,7 @@ public class ServletUtilities {
             tagMap.put(NotificationMailer.EMAIL_NOTRACK, "individual=" + individualID);
             tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(mailTo));
             tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, message == null ? "" : message);
-//            String langCode = ServletUtilities.getLanguageCode(request);
+            //            String langCode = ServletUtilities.getLanguageCode(request);
             NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "individualDataUpdate", tagMap);
             es.execute(mailer);
           }
@@ -224,25 +224,25 @@ public class ServletUtilities {
       return overrideText;
     }
     else{
-    try {
-      StringBuffer SBreader = new StringBuffer();
-      String line;
-      FileReader fileReader = new FileReader(findResourceOnFileSystem(fileName));
+      try {
+        StringBuffer SBreader = new StringBuffer();
+        String line;
+        FileReader fileReader = new FileReader(findResourceOnFileSystem(fileName));
 
-      BufferedReader buffread = new BufferedReader(fileReader);
-      while ((line = buffread.readLine()) != null) {
-        SBreader.append(line + "\n");
-      }
-      line = SBreader.toString();
-      fileReader.close();
-      buffread.close();
-      return line;
+        BufferedReader buffread = new BufferedReader(fileReader);
+        while ((line = buffread.readLine()) != null) {
+          SBreader.append(line + "\n");
         }
-        catch (Exception e) {
-      e.printStackTrace();
-      return "";
+        line = SBreader.toString();
+        fileReader.close();
+        buffread.close();
+        return line;
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+        return "";
+      }
     }
-  }
   }
 
   //Logs a new ATOM entry
@@ -287,14 +287,14 @@ public class ServletUtilities {
 
         List<SyndCategory> categories = new ArrayList<SyndCategory>();
         if(CommonConfiguration.getProperty("htmlTitle",context)!=null){
-        	SyndCategory category2 = new SyndCategoryImpl();
-        	category2.setName(CommonConfiguration.getProperty("htmlTitle",context));
-        	categories.add(category2);
-		}
+          SyndCategory category2 = new SyndCategoryImpl();
+          category2.setName(CommonConfiguration.getProperty("htmlTitle",context));
+          categories.add(category2);
+        }
         newItem.setCategories(categories);
         if(CommonConfiguration.getProperty("htmlAuthor",context)!=null){
-        	newItem.setAuthor(CommonConfiguration.getProperty("htmlAuthor",context));
-		}
+          newItem.setAuthor(CommonConfiguration.getProperty("htmlAuthor",context));
+        }
         items.add(newItem);
         feed.setEntries(items);
 
@@ -307,11 +307,11 @@ public class ServletUtilities {
 
       }
     } catch (IOException ioe) {
-      	System.out.println("ERROR: Could not find the ATOM file.");
-      	ioe.printStackTrace();
+      System.out.println("ERROR: Could not find the ATOM file.");
+      ioe.printStackTrace();
     } catch (Exception e) {
-      	System.out.println("Unknown exception trying to add an entry to the ATOM file.");
-      	e.printStackTrace();
+      System.out.println("Unknown exception trying to add an entry to the ATOM file.");
+      e.printStackTrace();
     }
 
   }
@@ -321,7 +321,7 @@ public class ServletUtilities {
     //File rssFile=new File("nofile.xml");
 
     try {
-		System.out.println("Looking for RSS file: "+rssFile.getCanonicalPath());
+      System.out.println("Looking for RSS file: "+rssFile.getCanonicalPath());
       if (rssFile.exists()) {
 
         SAXReader reader = new SAXReader();
@@ -358,15 +358,15 @@ public class ServletUtilities {
       }
     }
     catch (IOException ioe) {
-      	System.out.println("ERROR: Could not find the RSS file.");
-      	ioe.printStackTrace();
+      System.out.println("ERROR: Could not find the RSS file.");
+      ioe.printStackTrace();
     }
     catch (DocumentException de) {
-      	System.out.println("ERROR: Could not read the RSS file.");
-      	de.printStackTrace();
+      System.out.println("ERROR: Could not read the RSS file.");
+      de.printStackTrace();
     } catch (Exception e) {
-      	System.out.println("Unknown exception trying to add an entry to the RSS file.");
-      	e.printStackTrace();
+      System.out.println("Unknown exception trying to add an entry to the RSS file.");
+      e.printStackTrace();
     }
   }
 
@@ -389,45 +389,45 @@ public class ServletUtilities {
   public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request) {
     boolean isOwner = false;
     //if (request.isUserInRole("admin")) {
-      if (request.getUserPrincipal()!=null) {
-        if (request.isUserInRole("admin")) {
-          isOwner = true;
-        }
-        else if (request.isUserInRole(enc.getLocationCode())) {
-          isOwner = true;
-        }
-        else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
-          isOwner = true;
-        }
-
-        //whaleshark.org custom
-        if((request.getRemoteUser().equals("rgrampus"))&&(enc.getLocationCode().startsWith("2h"))){isOwner=false;}
-
-
+    if (request.getUserPrincipal()!=null) {
+      if (request.isUserInRole("admin")) {
+        isOwner = true;
       }
-      return isOwner;
-  //}
-   // return isOwner;
-}
+      else if (request.isUserInRole(enc.getLocationCode())) {
+        isOwner = true;
+      }
+      else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
+        isOwner = true;
+      }
+
+      //whaleshark.org custom
+      if((request.getRemoteUser().equals("rgrampus"))&&(enc.getLocationCode().startsWith("2h"))){isOwner=false;}
+
+
+    }
+    return isOwner;
+    //}
+    // return isOwner;
+  }
 
   public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request) {
     //if (request.isUserInRole("admin")) {
-      if (request.getUserPrincipal()!=null) {
-          //return true;
+    if (request.getUserPrincipal()!=null) {
+      //return true;
 
-        if (request.isUserInRole("admin")) {
+      if (request.isUserInRole("admin")) {
+        return true;
+      }
+
+      Vector encounters = sharky.getEncounters();
+      int numEncs = encounters.size();
+      for (int y = 0; y < numEncs; y++) {
+        Encounter enc = (Encounter) encounters.get(y);
+        if (request.isUserInRole(enc.getLocationCode())) {
           return true;
         }
-
-        Vector encounters = sharky.getEncounters();
-        int numEncs = encounters.size();
-        for (int y = 0; y < numEncs; y++) {
-          Encounter enc = (Encounter) encounters.get(y);
-          if (request.isUserInRole(enc.getLocationCode())) {
-            return true;
-          }
-        }
       }
+    }
     //}
     return false;
   }
@@ -435,18 +435,18 @@ public class ServletUtilities {
   //occurrence
   public static boolean isUserAuthorizedForOccurrence(Occurrence sharky, HttpServletRequest request) {
 
-      if (request.getUserPrincipal()!=null) {
+    if (request.getUserPrincipal()!=null) {
 
-          if (request.isUserInRole("admin")) {  return true;  }
-          ArrayList<Encounter> encounters = sharky.getEncounters();
-          int numEncs = encounters.size();
-          for (int y = 0; y < numEncs; y++) {
-            Encounter enc = (Encounter) encounters.get(y);
-            if (request.isUserInRole(enc.getLocationCode())) {
-              return true;
-            }
-          }
+      if (request.isUserInRole("admin")) {  return true;  }
+      ArrayList<Encounter> encounters = sharky.getEncounters();
+      int numEncs = encounters.size();
+      for (int y = 0; y < numEncs; y++) {
+        Encounter enc = (Encounter) encounters.get(y);
+        if (request.isUserInRole(enc.getLocationCode())) {
+          return true;
+        }
       }
+    }
 
 
     return false;
@@ -482,77 +482,77 @@ public class ServletUtilities {
   }
 
   /*public static String cleanFileName(String aTagFragment) {
-    final StringBuffer result = new StringBuffer();
+  final StringBuffer result = new StringBuffer();
 
-    final StringCharacterIterator iterator = new StringCharacterIterator(aTagFragment);
-    char character = iterator.current();
-    while (character != CharacterIterator.DONE) {
-      if (character == '<') {
-        result.append("_");
-      } else if (character == '>') {
-        result.append("_");
-      } else if (character == '\"') {
-        result.append("_");
-      } else if (character == '\'') {
-        result.append("_");
-      } else if (character == '\\') {
-        result.append("_");
-      } else if (character == '&') {
-        result.append("_");
-      } else if (character == ' ') {
-        result.append("_");
-      } else if (character == '#') {
-        result.append("_");
-      } else {
-        //the char is not a special one
-        //add it to the result as is
-        result.append(character);
-      }
-      character = iterator.next();
-    }
-    return result.toString();
-  }
-  */
+  final StringCharacterIterator iterator = new StringCharacterIterator(aTagFragment);
+  char character = iterator.current();
+  while (character != CharacterIterator.DONE) {
+  if (character == '<') {
+  result.append("_");
+} else if (character == '>') {
+result.append("_");
+} else if (character == '\"') {
+result.append("_");
+} else if (character == '\'') {
+result.append("_");
+} else if (character == '\\') {
+result.append("_");
+} else if (character == '&') {
+result.append("_");
+} else if (character == ' ') {
+result.append("_");
+} else if (character == '#') {
+result.append("_");
+} else {
+//the char is not a special one
+//add it to the result as is
+result.append(character);
+}
+character = iterator.next();
+}
+return result.toString();
+}
+*/
 
-  public static String preventCrossSiteScriptingAttacks(String description) {
-    description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-    description = description.replaceAll("eval\\((.*)\\)", "");
-    description = description.replaceAll("[\\\"\\\'][\\s]*((?i)javascript):(.*)[\\\"\\\']", "\"\"");
-    description = description.replaceAll("((?i)script)", "");
-    description = description.replaceAll("onerror", "");
-    //description = description.replaceAll("alert", "");
-    description = StringEscapeUtils.escapeHtml(description);
-    return description;
-  }
+public static String preventCrossSiteScriptingAttacks(String description) {
+  description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  description = description.replaceAll("eval\\((.*)\\)", "");
+  description = description.replaceAll("[\\\"\\\'][\\s]*((?i)javascript):(.*)[\\\"\\\']", "\"\"");
+  description = description.replaceAll("((?i)script)", "");
+  description = description.replaceAll("onerror", "");
+  //description = description.replaceAll("alert", "");
+  description = StringEscapeUtils.escapeHtml(description);
+  return description;
+}
 
-  public static String getDate() {
-    DateTime dt = new DateTime();
-    DateTimeFormatter fmt = ISODateTimeFormat.date();
-    return (fmt.print(dt));
-  }
+public static String getDate() {
+  DateTime dt = new DateTime();
+  DateTimeFormatter fmt = ISODateTimeFormat.date();
+  return (fmt.print(dt));
+}
 
-  public static Connection getConnection() throws SQLException {
+public static Connection getConnection() throws SQLException {
 
-    Connection conn = null;
-    Properties connectionProps = new Properties();
-    connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
-    connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
+  Connection conn = null;
+  Properties connectionProps = new Properties();
+  connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
+  connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
 
 
-    conn = DriverManager.getConnection(
-           CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"),
-           connectionProps);
+  conn = DriverManager.getConnection(
+  CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"),
+  connectionProps);
 
-    System.out.println("Connected to database for authentication.");
-    return conn;
+  System.out.println("Connected to database for authentication.");
+  return conn;
 }
 
 public static String hashAndSaltPassword(String clearTextPassword, String salt) {
-    return new Sha512Hash(clearTextPassword, salt, 200000).toHex();
+  return new Sha512Hash(clearTextPassword, salt, 200000).toHex();
 }
 
 public static ByteSource getSalt() {
-    return new SecureRandomNumberGenerator().nextBytes();
+  return new SecureRandomNumberGenerator().nextBytes();
 }
 
 public static String getContext(HttpServletRequest request){
@@ -578,7 +578,7 @@ public static String getContext(HttpServletRequest request){
   if(cookies!=null){
     for(Cookie cookie : cookies){
       if("wildbookContext".equals(cookie.getName())){
-          return cookie.getValue();
+        return cookie.getValue();
       }
     }
   }
@@ -630,7 +630,7 @@ public static String getLanguageCode(HttpServletRequest request){
   if(cookies!=null){
     for(Cookie cookie : cookies){
       if("wildbookLangCode".equals(cookie.getName())){
-          if(supportedLanguages.contains(cookie.getValue())){return cookie.getValue();}
+        if(supportedLanguages.contains(cookie.getValue())){return cookie.getValue();}
       }
     }
   }
@@ -642,329 +642,358 @@ public static String getLanguageCode(HttpServletRequest request){
 }
 
 
-	public static String dataDir(String context, String rootWebappPath) {
-		File webappsDir = new File(rootWebappPath).getParentFile();
-		File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-		return shepherdDataDir.getAbsolutePath();
-	}
+public static String dataDir(String context, String rootWebappPath) {
+  File webappsDir = new File(rootWebappPath).getParentFile();
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+  if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+  return shepherdDataDir.getAbsolutePath();
+}
 
-	//like above, but can pass a subdir to append
-	public static String dataDir(String context, String rootWebappPath, String subdir) {
-		return dataDir(context, rootWebappPath) + File.separator + subdir;
-	}
+//like above, but can pass a subdir to append
+public static String dataDir(String context, String rootWebappPath, String subdir) {
+  return dataDir(context, rootWebappPath) + File.separator + subdir;
+}
 
 /*
-	//like above, but only need request passed
-	public static String dataDir(HttpServletRequest request) {
-		String context = "context0";
-		context = ServletUtilities.getContext(request);
-		//String rootWebappPath = request.getServletContext().getRealPath("/");  // only in 3.0??
-		//String rootWebappPath = request.getSession(true).getServlet().getServletContext().getRealPath("/");
-		ServletContext s = request.getServletContext();
+//like above, but only need request passed
+public static String dataDir(HttpServletRequest request) {
+String context = "context0";
+context = ServletUtilities.getContext(request);
+//String rootWebappPath = request.getServletContext().getRealPath("/");  // only in 3.0??
+//String rootWebappPath = request.getSession(true).getServlet().getServletContext().getRealPath("/");
+ServletContext s = request.getServletContext();
 String rootWebappPath = "xxxxxx";
-		return dataDir(context, rootWebappPath);
-	}
+return dataDir(context, rootWebappPath);
+}
 */
 
 
-  private static String loadOverrideText(String shepherdDataDir, String fileName, String langCode) {
-    //System.out.println("Starting loadOverrideProps");
-    StringBuffer myText=new StringBuffer("");
-    //Properties myProps=new Properties();
-    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
-    //System.out.println(configDir.getAbsolutePath());
-    //sometimes this ends up being the "bin" directory of the J2EE container
-    //we need to fix that
-    if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
-      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
-      configDir=new File(fixedPath);
-      //System.out.println("Fixing the bin issue in Shepherd PMF. ");
-      //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+private static String loadOverrideText(String shepherdDataDir, String fileName, String langCode) {
+  //System.out.println("Starting loadOverrideProps");
+  StringBuffer myText=new StringBuffer("");
+  //Properties myProps=new Properties();
+  File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
+  //System.out.println(configDir.getAbsolutePath());
+  //sometimes this ends up being the "bin" directory of the J2EE container
+  //we need to fix that
+  if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
+    String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
+    configDir=new File(fixedPath);
+    //System.out.println("Fixing the bin issue in Shepherd PMF. ");
+    //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+  }
+  //System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
+  if(!configDir.exists()){configDir.mkdirs();}
+  File configFile = new File(configDir, fileName);
+  if (configFile.exists()) {
+    //System.out.println("ShepherdProps: "+"Overriding default properties with " + configFile.getAbsolutePath());
+    FileInputStream fileInputStream = null;
+    try {
+      fileInputStream = new FileInputStream(configFile);
+
+
+      BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
+      StringBuilder out = new StringBuilder();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        myText.append(line);
+      }
+
+
+
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    finally {
+      if (fileInputStream != null) {
+        try {
+          fileInputStream.close();
+        } catch (Exception e2) {
+          e2.printStackTrace();
+        }
+      }
+    }
+  }
+  return myText.toString();
 }
-    //System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
-    if(!configDir.exists()){configDir.mkdirs();}
-    File configFile = new File(configDir, fileName);
-    if (configFile.exists()) {
-      //System.out.println("ShepherdProps: "+"Overriding default properties with " + configFile.getAbsolutePath());
-      FileInputStream fileInputStream = null;
+
+public static String handleNullString(Object obj){
+  if(obj==null){return "";}
+  return obj.toString();
+}
+
+
+public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) throws IOException {
+  StringBuilder sb = new StringBuilder();
+  BufferedReader reader = request.getReader();
+  try {
+    String line;
+    while ((line = reader.readLine()) != null) {
+      sb.append(line).append('\n');
+    }
+  } finally {
+    reader.close();
+  }
+  //ParseException
+  return new JSONObject(sb.toString());
+}
+
+
+public static String getParameterOrAttribute(String name, HttpServletRequest request) {
+  String result = request.getParameter(name);
+  if (name != null) {
+    result = (String) request.getAttribute(name);
+  }
+  return result;
+}
+
+//handy "let anyone do anything (?) cors stuff
+public static void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+  response.setHeader("Access-Control-Allow-Origin", "*");
+  response.setHeader("Access-Control-Allow-Methods", "GET, POST");
+  if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+}
+
+
+/* see webapps/captchaExample.jsp for implementation */
+
+//note: this only handles single-widget (per page) ... if we need multiple, will have to extend things here
+public static String captchaWidget(HttpServletRequest request) {
+  return captchaWidget(request, null);
+}
+public static String captchaWidget(HttpServletRequest request, String params) {
+  String context = getContext(request);
+  Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
+  if (recaptchaProps == null) return "<div class=\"error captcha-error captcha-missing-properties\">Unable to get captcha settings.</div>";
+  String siteKey = recaptchaProps.getProperty("siteKey");
+  String secretKey = recaptchaProps.getProperty("secretKey");  //really dont need this here
+  if ((siteKey == null) || (secretKey == null)) return "<div class=\"error captcha-error captcha-missing-key\">Unable to get captcha key settings.</div>";
+  return "<script>function recaptchaCompleted() { return (grecaptcha && grecaptcha.getResponse(0)); }</script>\n" +
+  "<script src='https://www.google.com/recaptcha/api.js" + ((params == null) ? "" : "?" + params) + "' async defer></script>\n" +
+  "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
+}
+
+//  https://developers.google.com/recaptcha/docs/verify
+public static boolean captchaIsValid(HttpServletRequest request) {
+  return captchaIsValid(getContext(request), request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
+}
+
+public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
+  if (context == null) context = "context0";
+  Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
+  if (recaptchaProps == null) {
+    System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
+    return false;
+  }
+  String siteKey = recaptchaProps.getProperty("siteKey");  //really dont need this here
+  String secretKey = recaptchaProps.getProperty("secretKey");
+  if ((siteKey == null) || (secretKey == null)) {
+    System.out.println("WARNING: could not determine keys for captchaIsValid(); failing");
+    return false;
+  }
+  if (uresp == null) {
+    System.out.println("WARNING: g-recaptcha-response is null in captchaIsValid(); failing");
+    return false;
+  }
+  JSONObject cdata = new JSONObject();
+  cdata.put("secret", secretKey);
+  cdata.put("remoteip", remoteIP);  //i guess this is technically optional (so we dont care if null?)
+  cdata.put("response", uresp);
+  JSONObject gresp = null;
+  try {
+    gresp = RestClient.post(new URL("https://www.google.com/recaptcha/api/siteverify"), cdata);
+  } catch (Exception ex) {
+    System.out.println("WARNING: exception calling captcha api in captchaIsValid(); failing: " + ex.toString());
+    return false;
+  }
+  if (gresp == null) {  //would this ever happen?
+    System.out.println("WARNING: null return from captcha api in captchaIsValid(); failing");
+    return false;
+  }
+  System.out.println("INFO: captchaIsValid() api call returned: " + gresp.toString());
+  return gresp.optBoolean("success", false);
+}
+
+public static ArrayList<String> nlpLocationParse(String text) throws RuntimeException {
+  ArrayList<String> locations = new ArrayList<>();
+  Properties props = new Properties();
+  props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner"); //TODO adding truecase before ner doesn't seem to be making a difference here. If this doesn't change with some tweaking, you may want to remove the stanford-corenlp class:model-english dependency. Update: the stanford-corenlp class:model-english dependency seems essential even when truecase is excluded. Very weird.
+  StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+  edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text);
+  pipeline.annotate(document);
+  List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+  for(CoreMap sentence: sentences) {
+    for (CoreLabel token: sentence.get(TokensAnnotation.class)) {
+      String ne = token.get(NamedEntityTagAnnotation.class);
+      if(ne.equals("LOCATION")){
+        String word = token.get(TextAnnotation.class);
+        System.out.println("Location captured: " + word);
+        locations.add(word);
+      }
+    }
+  }
+
+  if (locations.size() > 0){
+    return locations;
+  } else{
+    throw new RuntimeException("no locations found");
+  }
+
+}
+
+public static String nlpDateParse(String text) {
+  System.out.println("Entering nlpParseDate");
+  //create my pipeline with the help of the annotators I added.
+  Properties props = new Properties();
+  AnnotationPipeline pipeline = new AnnotationPipeline();
+  pipeline.addAnnotator(new TokenizerAnnotator(false));
+  pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+  pipeline.addAnnotator(new POSTaggerAnnotator(false));
+  pipeline.addAnnotator(new TimeAnnotator("sutime", props));
+
+  text = text.replaceAll("[,.!?;:]", "$0 ");
+  System.out.println("text: " + text);
+  String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase()
+  .split("\\s+");
+  String text2 = String.join(" ", text1);
+
+  System.out.println("text2: " + text2);
+  edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
+
+  //get current date (no time) and formatted with Joda time.
+  LocalDate date = LocalDate.now();
+  DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
+  String referenceDate = dateFormat.print(date);
+
+  //pass current date and record date (or dates) given by text in TIMEX3(an ISO 8601 extention)format.
+  annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
+  pipeline.annotate(annotation);
+  List<CoreMap> timexAnnsAll = annotation
+  .get(TimeAnnotations.TimexAnnotations.class);
+
+  ArrayList<String> arrayListDates = new ArrayList<String>();
+  for (CoreMap cm : timexAnnsAll) {
+    Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
+    //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
+    String dateStr = myDate.toString();
+    System.out.println(".....found date: " + dateStr);
+    arrayListDates.add(dateStr.replaceAll("-XX", ""));
+  }
+  System.out.println("NLP dates found+:" + arrayListDates);
+
+  if (!arrayListDates.isEmpty()) {
+    //turn arrayList into an array to be able to use the old For loop and compare dates.
+    String[] arrayDates = new String[arrayListDates.size()];
+    arrayDates = arrayListDates.toArray(arrayDates);
+    String selectedDate = "";
+
+    try{
+      selectedDate = selectBestDateFromCandidates(arrayDates);
+    } catch(Exception e){
+      e.printStackTrace();
+    }
+    if(selectedDate == null | selectedDate.equals("")){
+      throw new RuntimeException("selectedDate was empty or null in the nlpDateParse method");
+    } else{
+      return selectedDate;
+    }
+  } else{
+    throw new RuntimeException("no candidate dates found in nlpDateParse method");
+  }
+}
+
+public static String selectBestDateFromCandidates(String[] candidates) throws RuntimeException{
+  String selectedDate = "";
+
+  if(candidates.length <1){
+    throw new RuntimeException("list of candidate dates was empty");
+  } else if(candidates.length == 1){
+    selectedDate = candidates[0];
+  } else if (candidates.length > 1) {
+
+    //filter by options that are valid dates
+    ArrayList<String> validDates = new ArrayList<String>();
+    DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+    Date date;
+    String newDateString = null;
+    for(int i =0; i<candidates.length; i++){
+      String candidateString = candidates[i];
       try {
-        fileInputStream = new FileInputStream(configFile);
-
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
-        StringBuilder out = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            myText.append(line);
-        }
-
-
-
-
-      } catch (Exception e) {
-        e.printStackTrace();
+        candidateString = df.parse(candidateString);
+        newDateString = df.format(startDate);
+        validDates.add(newDateString);
+      } catch (ParseException e) {
+        continue;
       }
-      finally {
-        if (fileInputStream != null) {
-          try {
-            fileInputStream.close();
-          } catch (Exception e2) {
-            e2.printStackTrace();
-          }
+    }
+
+    //Now select the longest one?
+    for (int j = 0; j < validDates.size(); j++) {
+      for (int k = j + 1; k < validDates.size(); k++) {
+        if (validDates.get(j).length() > validDates.get(k).length()) {
+          selectedDate = validDates.get(j);
+        } else if (validDates.get(j).length() < validDates.get(k).length()) {
+          selectedDate = validDates.get(k);
+        } else {
+          selectedDate = arrayDates[0];
         }
       }
     }
-    return myText.toString();
   }
 
-  public static String handleNullString(Object obj){
-    if(obj==null){return "";}
-    return obj.toString();
+  if(selectedDate == null | selectedDate.equals("")){
+    throw new RuntimeException("selectedDate either null or empty");
+  } else {
+    return selectedDate;
   }
+}
 
+/* Same as nlpDateParse, but will return the entire arraylist instead of
+** just the best date
+*/
+public static ArrayList<String> nlpDateParseToArrayList(String text){
+  System.out.println("Entering nlpParseDateArray");
 
-    public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = request.getReader();
-        try {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append('\n');
-            }
-        } finally {
-            reader.close();
-        }
-//ParseException
-        return new JSONObject(sb.toString());
-    }
+  // create pipeline with annotators like above
+  Properties props = new Properties();
+  AnnotationPipeline pipeline = new AnnotationPipeline();
+  pipeline.addAnnotator(new TokenizerAnnotator(false));
+  pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+  pipeline.addAnnotator(new POSTaggerAnnotator(false));
+  pipeline.addAnnotator(new TimeAnnotator("sutime", props));
 
+  // replace special characters using regex
+  text = text.replaceAll("[,.!?;:]", "$0 ");
+  System.out.println("text: " + text);
+  String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
+  String text2 = String.join(" ", text1);
 
-    public static String getParameterOrAttribute(String name, HttpServletRequest request) {
-      String result = request.getParameter(name);
-      if (name != null) {
-        result = (String) request.getAttribute(name);
-      }
-      return result;
-    }
+  System.out.println("text2: " + text2);
+  // Create annotation using new string
+  edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
 
-    //handy "let anyone do anything (?) cors stuff
-    public static void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST");
-        if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
-    }
+  // Get current date (not time) and formatted with Joda time as above
+  LocalDate date = LocalDate.now();
+  DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+  String referenceDate = dateTimeFormatter.print(date);
 
+  // Pass current date and record date(s) given by text in TIMEX3(ISO 8601 standard) format.
+  annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
+  pipeline.annotate(annotation);
+  List<CoreMap> timexAnnsAll = annotation.get(TimeAnnotations.TimexAnnotations.class);
 
-    /* see webapps/captchaExample.jsp for implementation */
+  ArrayList<String> arrayListDates = new ArrayList<String>();
+  for(CoreMap cm : timexAnnsAll){
+    Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
+    String dateStr = myDate.toString();
+    System.out.println(".....found date: " + dateStr);
+    arrayListDates.add(dateStr.replaceAll("-XX", ""));
+  }
+  System.out.println("NLP dates found+: " + arrayListDates);
 
-    //note: this only handles single-widget (per page) ... if we need multiple, will have to extend things here
-    public static String captchaWidget(HttpServletRequest request) {
-        return captchaWidget(request, null);
-    }
-    public static String captchaWidget(HttpServletRequest request, String params) {
-        String context = getContext(request);
-        Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
-        if (recaptchaProps == null) return "<div class=\"error captcha-error captcha-missing-properties\">Unable to get captcha settings.</div>";
-        String siteKey = recaptchaProps.getProperty("siteKey");
-        String secretKey = recaptchaProps.getProperty("secretKey");  //really dont need this here
-        if ((siteKey == null) || (secretKey == null)) return "<div class=\"error captcha-error captcha-missing-key\">Unable to get captcha key settings.</div>";
-        return "<script>function recaptchaCompleted() { return (grecaptcha && grecaptcha.getResponse(0)); }</script>\n" +
-            "<script src='https://www.google.com/recaptcha/api.js" + ((params == null) ? "" : "?" + params) + "' async defer></script>\n" +
-            "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
-    }
-
-    //  https://developers.google.com/recaptcha/docs/verify
-    public static boolean captchaIsValid(HttpServletRequest request) {
-        return captchaIsValid(getContext(request), request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
-    }
-
-    public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
-        if (context == null) context = "context0";
-        Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
-        if (recaptchaProps == null) {
-            System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
-            return false;
-        }
-        String siteKey = recaptchaProps.getProperty("siteKey");  //really dont need this here
-        String secretKey = recaptchaProps.getProperty("secretKey");
-        if ((siteKey == null) || (secretKey == null)) {
-            System.out.println("WARNING: could not determine keys for captchaIsValid(); failing");
-            return false;
-        }
-        if (uresp == null) {
-            System.out.println("WARNING: g-recaptcha-response is null in captchaIsValid(); failing");
-            return false;
-        }
-        JSONObject cdata = new JSONObject();
-        cdata.put("secret", secretKey);
-        cdata.put("remoteip", remoteIP);  //i guess this is technically optional (so we dont care if null?)
-        cdata.put("response", uresp);
-        JSONObject gresp = null;
-        try {
-            gresp = RestClient.post(new URL("https://www.google.com/recaptcha/api/siteverify"), cdata);
-        } catch (Exception ex) {
-            System.out.println("WARNING: exception calling captcha api in captchaIsValid(); failing: " + ex.toString());
-            return false;
-        }
-        if (gresp == null) {  //would this ever happen?
-            System.out.println("WARNING: null return from captcha api in captchaIsValid(); failing");
-            return false;
-        }
-        System.out.println("INFO: captchaIsValid() api call returned: " + gresp.toString());
-        return gresp.optBoolean("success", false);
-    }
-
-    public static ArrayList<String> nlpLocationParse(String text) throws RuntimeException {
-      ArrayList<String> locations = new ArrayList<>();
-      Properties props = new Properties();
-      props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner"); //TODO adding truecase before ner doesn't seem to be making a difference here. If this doesn't change with some tweaking, you may want to remove the stanford-corenlp class:model-english dependency. Update: the stanford-corenlp class:model-english dependency seems essential even when truecase is excluded. Very weird.
-      StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-      edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text);
-      pipeline.annotate(document);
-      List<CoreMap> sentences = document.get(SentencesAnnotation.class);
-      for(CoreMap sentence: sentences) {
-        for (CoreLabel token: sentence.get(TokensAnnotation.class)) {
-          String ne = token.get(NamedEntityTagAnnotation.class);
-          if(ne.equals("LOCATION")){
-            String word = token.get(TextAnnotation.class);
-            System.out.println("Location captured: " + word);
-            locations.add(word);
-          }
-        }
-      }
-
-      if (locations.size() > 0){
-        return locations;
-      } else{
-        throw new RuntimeException("no locations found");
-      }
-
-    }
-
-    public static String nlpDateParse(String text) {
-      System.out.println("Entering nlpParseDate");
-      //create my pipeline with the help of the annotators I added.
-      Properties props = new Properties();
-      AnnotationPipeline pipeline = new AnnotationPipeline();
-      pipeline.addAnnotator(new TokenizerAnnotator(false));
-      pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
-      pipeline.addAnnotator(new POSTaggerAnnotator(false));
-      pipeline.addAnnotator(new TimeAnnotator("sutime", props));
-
-      text = text.replaceAll("[,.!?;:]", "$0 ");
-      System.out.println("text: " + text);
-      String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase()
-          .split("\\s+");
-      String text2 = String.join(" ", text1);
-
-      System.out.println("text2: " + text2);
-      edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
-
-      //get current date (no time) and formatted with Joda time.
-      LocalDate date = LocalDate.now();
-      DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
-      String referenceDate = dateFormat.print(date);
-
-      //pass current date and record date (or dates) given by text in TIMEX3(an ISO 8601 extention)format.
-      annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
-      pipeline.annotate(annotation);
-      List<CoreMap> timexAnnsAll = annotation
-          .get(TimeAnnotations.TimexAnnotations.class);
-
-      ArrayList<String> arrayListDates = new ArrayList<String>();
-      for (CoreMap cm : timexAnnsAll) {
-        Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
-        //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
-        String dateStr = myDate.toString();
-        System.out.println(".....found date: " + dateStr);
-        arrayListDates.add(dateStr.replaceAll("-XX", ""));
-      }
-      System.out.println("NLP dates found+:" + arrayListDates);
-
-      if (!arrayListDates.isEmpty()) {
-        //turn arrayList into an array to be able to use the old For loop and compare dates.
-        String[] arrayDates = new String[arrayListDates.size()];
-        arrayDates = arrayListDates.toArray(arrayDates);
-        //select best date among the options based on their length.
-        String selectedDate = "";
-
-        //multiple entries found, now sort on length
-        if (arrayListDates.size() > 1) {
-          for (int i = 0; i < arrayDates.length; i++) {
-            for (int j = i + 1; j < arrayDates.length; j++) {
-
-              // THIS LOGIC, BASED ON STRING LENGTH, DOES NOT WORK
-              if (arrayDates[i].length() > arrayDates[j].length()) {
-                selectedDate = arrayDates[i];
-              } else if (arrayDates[i].length() < arrayDates[j].length()) {
-                selectedDate = arrayDates[j];
-              } else {
-                selectedDate = arrayDates[0];
-              }
-              //END BAD LOGIC
-
-            }
-
-          }
-        }
-        //only 1 entry, return it
-        else {
-          selectedDate = arrayListDates.get(0);
-        }
-        System.out.println("selectedDate is: " + selectedDate); // format is yyyy-mm-dd
-        return selectedDate;
-      } else {
-        return null;
-      }
-
-    }
-
-    /* Same as nlpDateParse, but will return the entire arraylist instead of
-    ** just the best date
-    */
-    public static ArrayList<String> nlpDateParseToArrayList(String text){
-      System.out.println("Entering nlpParseDateArray");
-
-      // create pipeline with annotators like above
-      Properties props = new Properties();
-      AnnotationPipeline pipeline = new AnnotationPipeline();
-      pipeline.addAnnotator(new TokenizerAnnotator(false));
-      pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
-      pipeline.addAnnotator(new POSTaggerAnnotator(false));
-      pipeline.addAnnotator(new TimeAnnotator("sutime", props));
-
-      // replace special characters using regex
-      text = text.replaceAll("[,.!?;:]", "$0 ");
-      System.out.println("text: " + text);
-      String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
-      String text2 = String.join(" ", text1);
-
-      System.out.println("text2: " + text2);
-      // Create annotation using new string
-      edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
-
-      // Get current date (not time) and formatted with Joda time as above
-      LocalDate date = LocalDate.now();
-      DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
-      String referenceDate = dateTimeFormatter.print(date);
-
-      // Pass current date and record date(s) given by text in TIMEX3(ISO 8601 standard) format.
-      annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
-      pipeline.annotate(annotation);
-      List<CoreMap> timexAnnsAll = annotation.get(TimeAnnotations.TimexAnnotations.class);
-
-      ArrayList<String> arrayListDates = new ArrayList<String>();
-      for(CoreMap cm : timexAnnsAll){
-        Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
-        String dateStr = myDate.toString();
-        System.out.println(".....found date: " + dateStr);
-        arrayListDates.add(dateStr.replaceAll("-XX", ""));
-      }
-      System.out.println("NLP dates found+: " + arrayListDates);
-
-      return arrayListDates;
-    }
+  return arrayListDates;
+}
 
 
 }
