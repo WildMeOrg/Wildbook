@@ -28,6 +28,7 @@ String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
 String testFileName = "/twitterTimeStampTestFile.txt";
 long sinceId = 890302524275662848L;
+JSONObject rtn = new JSONObject();
 
 Twitter twitterInst = TwitterUtil.init(request);
 
@@ -104,5 +105,9 @@ try{
 String testWithFutureString = ServeletUtilities.nlpDateParse(futureString);
 String testWithNoDate = ServeletUtilities.nlpDateParse(testTweetText);
 String testWithNoDateAndGPSCoordinates = ServeletUtilities.nlpDateParse(textTweetGpsText);
+
+rtn.put("testWithFutureString", "Input String: " + futureString + " || Output: " + testWithFutureString);
+rtn.put("testWithNoDate", "Input String: " + testTweetText + " || Output: " + testWithNoDate);
+rtn.put("testWithNoDateAndGPSCoordinates" + textTweetGpsText + " || Output: " + testWithNoDateAndGPSCoordinates);
 // End NLP tests
 %>
