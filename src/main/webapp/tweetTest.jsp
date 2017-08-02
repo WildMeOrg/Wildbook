@@ -41,7 +41,8 @@ String testTweetTextNonEnglish = "Ayer vi una ballena increible en los galapagos
 String textTweetGpsText = "saw a whale at 45.5938,-122.737 in ningaloo. #bestvacationever";
 String testTweetMultipleLocations = "whale! In Phuket, Thailand!";
 String testTweetNLPLocation = "land whale! In Nashville, tennessee!";
-String futureString = "Saw a whale on July 2, 2017. I'm going to see one tomorrow too!";
+String futureString = "Saw a whale on July 2, 2017. I'm going to see one tomorrow too! Tomorrow will be a better day for whale-watching.";
+String pastString = "Saw a whale on July 2, 2017. I saw one yesterday, too! Yesterday's was cooler. Yesterday it was warm outside.";
 
 // Test methods
 ArrayList<String> results = null;
@@ -102,28 +103,47 @@ try{
 }
 
 // Natural Language Processing (NLP) tests
-String testWithFutureString = ServletUtilities.nlpDateParse(futureString);
-String testWithNoDate = ServletUtilities.nlpDateParse(testTweetText);
-String testWithNoDateAndGPSCoordinates = ServletUtilities.nlpDateParse(textTweetGpsText);
+try{
+  String testWithFutureString = ServletUtilities.nlpDateParse(futureString);
+} catch(Exception e){
+  e.printStackTrace();
+}
+
+try{
+  String testWithFutureString = ServletUtilities.nlpDateParse(pastString);
+} catch(Exception e){
+  e.printStackTrace();
+}
+
+try{
+  String testWithNoDate = ServletUtilities.nlpDateParse(testTweetText);
+} catch(Exception e){
+  e.printStackTrace();
+}
+try{
+  String testWithNoDateAndGPSCoordinates = ServletUtilities.nlpDateParse(textTweetGpsText);
+} catch(Exception e){
+  e.printStackTrace();
+}
 
 
-try{
-  rtn.put("testWithFutureString", "Input String: " + futureString + " || Output: " + testWithFutureString);
-} catch(Exception e){
-  out.println("futureString");
-  e.printStackTrace();
-}
-try{
-  rtn.put("testWithNoDate", "Input String: " + testTweetText + " || Output: " + testWithNoDate);
-} catch(Exception e){
-  out.println("testWithNoDate");
-  e.printStackTrace();
-}
-try{
-  rtn.put("testWithNoDateAndGPSCoordinates", "Input String" + textTweetGpsText + " || Output: " + testWithNoDateAndGPSCoordinates);
-} catch(Exception e){
-  out.println("testWithNoDateAndGPSCoordinates");
-  e.printStackTrace();
-}
+// try{
+//   rtn.put("testWithFutureString", "Input String: " + futureString + " || Output: " + testWithFutureString);
+// } catch(Exception e){
+//   out.println("futureString");
+//   e.printStackTrace();
+// }
+// try{
+//   rtn.put("testWithNoDate", "Input String: " + testTweetText + " || Output: " + testWithNoDate);
+// } catch(Exception e){
+//   out.println("testWithNoDate");
+//   e.printStackTrace();
+// }
+// try{
+//   rtn.put("testWithNoDateAndGPSCoordinates", "Input String" + textTweetGpsText + " || Output: " + testWithNoDateAndGPSCoordinates);
+// } catch(Exception e){
+//   out.println("testWithNoDateAndGPSCoordinates");
+//   e.printStackTrace();
+// }
 // End NLP tests
 %>
