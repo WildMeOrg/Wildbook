@@ -58,6 +58,7 @@ import java.util.Map;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.util.Calendar;
 
 import org.ecocean.*;
 import org.apache.shiro.crypto.hash.*;
@@ -845,7 +846,7 @@ public static ArrayList<String> nlpLocationParse(String text) throws RuntimeExce
 
 }
 
-public static String nlpDateParse(String text) {
+public static String nlpDateParse(String text) throws Exception{
   System.out.println("Entering nlpParseDate with text " + text);
   //create my pipeline with the help of the annotators I added.
   Properties props = new Properties();
@@ -897,12 +898,12 @@ public static String nlpDateParse(String text) {
       e.printStackTrace();
     }
     if(selectedDate == null | selectedDate.equals("")){
-      throw new RuntimeException("selectedDate was empty or null in the nlpDateParse method");
+      throw new Exception("selectedDate was empty or null in the nlpDateParse method");
     } else{
       return selectedDate;
     }
   } else{
-    throw new RuntimeException("no candidate dates found in nlpDateParse method");
+    throw new Exception("No candidate dates found in nlpDateParse method");
   }
 }
 
@@ -910,31 +911,36 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
   String selectedDate = "";
 
   if(candidates.length <1){
-    throw new RuntimeException("list of candidate dates was empty");
+    throw new Exception("list of candidate dates was empty");
   } else if(candidates.length == 1){
     selectedDate = candidates[0];
   } else if (candidates.length > 1) {
 
     //filter by options that are valid dates
     ArrayList<String> validDates = new ArrayList<String>();
-    DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-    // java.util.Date date;
-    String newDateString = null;
-    java.util.Date candiDate;
-    for(int i =0; i<candidates.length; i++){
-      String candidateString = candidates[i];
-      try {
-        candiDate = df.parse(candidateString);
-        newDateString = df.format(candiDate);
-        validDates.add(newDateString);
-      } catch (ParseException e) {
-        continue;
-      }
+    try{
+      validDates = removeInvalidDates(candidates);
+    } catch(Exception e){
+      // e.printStackTrace();
+    }
+    try{
+      System.out.println(validDates);
+    } catch(Exception e){
+      System.out.println("couldn't print validDates");
+      // e.printStackTrace();
     }
 
     //filter by options that are not in the future
 
     //if non-yesterday dates exist as well as yesterday ones, prefer the non-yesterdays. Otherwise, just get the yesterday.
+    ArrayList<String> validDatesFilteredByYesterday = new ArrayList<String>();
+    try{
+      validDatesFilteredByYesterday = removeYesterdayDatesIfTheyAreNotTheOnlyDates(validDates);
+      System.out.println(validDatesFilteredByYesterday);
+    } catch(Exception e){
+      System.out.println("couldn't print validDatesFilteredByYesterday");
+      // e.printStackTrace();
+    }
 
 
     //Now select the longest one?
@@ -952,7 +958,7 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
   }
 
   if(selectedDate == null | selectedDate.equals("")){
-    throw new Exception("selectedDate either null or empty");
+    throw new Exception("selectedDate either null or empty after selecting for longest one");
   } else {
     return selectedDate;
   }
@@ -961,6 +967,70 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
 /* Same as nlpDateParse, but will return the entire arraylist instead of
 ** just the best date
 */
+
+public static ArrayList<String> removeInvalidDates(String[] candidates) throws Exception{
+  ArrayList<String> validDates = new ArrayList<String>();
+  DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+  String newDateString = null;
+  java.util.Date candiDate;
+  for(int i =0; i<candidates.length; i++){
+    String candidateString = candidates[i];
+    System.out.println("candidateString in removeInvalidDates method is " + candidateString);
+    try {
+      candiDate = df.parse(candidateString);
+      newDateString = df.format(candiDate);
+      validDates.add(newDateString);
+      System.out.println("newDateString " + newDateString + " added to validDates");
+    } catch (ParseException e) {
+      continue;
+    }
+  }
+  if(validDates == null | validDates.size()<1){
+    throw new Exception("validDates arrayList is empty or null in removeInvalidDates method");
+  } else{
+    return validDates;
+  }
+}
+
+public static ArrayList<String> removeYesterdayDatesIfTheyAreNotTheOnlyDates(ArrayList<String> candidates) throws Exception{
+    String yesterday = getYesterdayDateString();
+    ArrayList<String> returnCandidates = new ArrayList<String>();
+    System.out.println("yesterday's date is " + yesterday);
+    //TODO add code
+    int yesterdayCounter = 0;
+    for(int i = 0; i<candidates.size(); i++){
+      if (candidates.get(i).equals(yesterday)){
+        yesterdayCounter ++;
+      } else {
+        returnCandidates.add(candidates.get(i));
+      }
+    }
+    if(yesterdayCounter == candidates.size() | yesterdayCounter == 0){
+      //yesterday is the only date or yesterday doesn't occur at all
+      returnCandidates = candidates;
+    } else if (yesterdayCounter != 0 && yesterdayCounter < candidates.size()){
+      //keep returnCandidates as it is from the for loop above
+    }
+    if(returnCandidates == null | returnCandidates.size()<1){
+      throw new Exception("removeYesterdayDatesIfTheyAreNotTheOnlyDates method returned null or empty arrayList");
+    } else{
+      return returnCandidates;
+    }
+}
+
+public static String getYesterdayDateString() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return dateFormat.format(getYesterday());
+}
+
+public static java.util.Date getYesterday() {
+    final Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.DATE, -1);
+    return cal.getTime();
+}
+
+
+
 public static ArrayList<String> nlpDateParseToArrayList(String text){
   System.out.println("Entering nlpParseDateArray");
 
