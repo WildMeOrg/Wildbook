@@ -214,6 +214,7 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 			myShepherd.beginDBTransaction();
 			try {
 				JSONObject ej = new JSONObject();
+        ent.updateMetadata();
 				MediaAssetFactory.save(ent, myShepherd);
 				String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
         out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);

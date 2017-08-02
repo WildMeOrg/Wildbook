@@ -846,7 +846,7 @@ public static ArrayList<String> nlpLocationParse(String text) throws RuntimeExce
 }
 
 public static String nlpDateParse(String text) {
-  System.out.println("Entering nlpParseDate");
+  System.out.println("Entering nlpParseDate with text " + text);
   //create my pipeline with the help of the annotators I added.
   Properties props = new Properties();
   AnnotationPipeline pipeline = new AnnotationPipeline();
@@ -858,7 +858,7 @@ public static String nlpDateParse(String text) {
   text = text.replaceAll("[,.!?;:]", "$0 ");
   System.out.println("text: " + text);
   String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase()
-  .split("\\s+");
+    .split("\\s+"); //TODO I think this does a better version of what the above (text = text.replaceAll("[,.!?;:]", "$0 ");) does?? -Mark Fisher
   String text2 = String.join(" ", text1);
 
   System.out.println("text2: " + text2);
@@ -906,7 +906,7 @@ public static String nlpDateParse(String text) {
   }
 }
 
-public static String selectBestDateFromCandidates(String[] candidates) throws RuntimeException{
+public static String selectBestDateFromCandidates(String[] candidates) throws Exception{
   String selectedDate = "";
 
   if(candidates.length <1){
@@ -932,6 +932,11 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ru
       }
     }
 
+    //filter by options that are not in the future
+
+    //if non-yesterday dates exist as well as yesterday ones, prefer the non-yesterdays. Otherwise, just get the yesterday.
+
+
     //Now select the longest one?
     for (int j = 0; j < validDates.size(); j++) {
       for (int k = j + 1; k < validDates.size(); k++) {
@@ -947,7 +952,7 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ru
   }
 
   if(selectedDate == null | selectedDate.equals("")){
-    throw new RuntimeException("selectedDate either null or empty");
+    throw new Exception("selectedDate either null or empty");
   } else {
     return selectedDate;
   }
