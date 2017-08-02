@@ -28,7 +28,6 @@ String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
 String testFileName = "/twitterTimeStampTestFile.txt";
 long sinceId = 890302524275662848L;
-JSONObject rtn = new JSONObject();
 
 Twitter twitterInst = TwitterUtil.init(request);
 
