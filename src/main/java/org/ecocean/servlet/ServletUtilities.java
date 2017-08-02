@@ -55,6 +55,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.sql.*;
 import java.util.Collection;
 import java.util.Map;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 import org.ecocean.*;
 import org.apache.shiro.crypto.hash.*;
@@ -915,13 +918,14 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ru
     //filter by options that are valid dates
     ArrayList<String> validDates = new ArrayList<String>();
     DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-    Date date;
+    // java.util.Date date;
     String newDateString = null;
+    java.util.Date candiDate;
     for(int i =0; i<candidates.length; i++){
       String candidateString = candidates[i];
       try {
-        candidateString = df.parse(candidateString);
-        newDateString = df.format(startDate);
+        candiDate = df.parse(candidateString);
+        newDateString = df.format(candiDate);
         validDates.add(newDateString);
       } catch (ParseException e) {
         continue;
@@ -936,7 +940,7 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ru
         } else if (validDates.get(j).length() < validDates.get(k).length()) {
           selectedDate = validDates.get(k);
         } else {
-          selectedDate = arrayDates[0];
+          selectedDate = validDates.get(0);
         }
       }
     }
