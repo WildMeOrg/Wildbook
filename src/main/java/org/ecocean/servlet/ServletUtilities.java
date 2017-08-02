@@ -931,11 +931,20 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
     }
 
     //filter by options that are not in the future
+    ArrayList<String> validDatesWithFutureDatesRemoved = new ArrayList<String>();
+    try{
+      validDatesWithFutureDatesRemoved = removeFutureDates(validDates);
+      System.out.println(validDatesWithFutureDatesRemoved);
+    } catch(Exception e){
+      System.out.println("couldn't run removeFutureDates");
+      // e.printStackTrace();
+    }
+
 
     //if non-yesterday dates exist as well as yesterday ones, prefer the non-yesterdays. Otherwise, just get the yesterday.
     ArrayList<String> validDatesFilteredByYesterday = new ArrayList<String>();
     try{
-      validDatesFilteredByYesterday = removeYesterdayDatesIfTheyAreNotTheOnlyDates(validDates);
+      validDatesFilteredByYesterday = removeYesterdayDatesIfTheyAreNotTheOnlyDates(validDatesWithFutureDatesRemoved);
       System.out.println(validDatesFilteredByYesterday);
     } catch(Exception e){
       System.out.println("couldn't print validDatesFilteredByYesterday");
@@ -992,6 +1001,39 @@ public static ArrayList<String> removeInvalidDates(String[] candidates) throws E
   }
 }
 
+public static ArrayList<String> removeFutureDates(ArrayList<String> candidates) throws Exception{
+  ArrayList<String> returnCandidates = new ArrayList<String>();
+  java.util.Date today =  getToday();
+  for(int i = 0; i<candidates.size(); i++){
+    String currentDateString = candidates.get(i);
+    try{
+      java.util.Date currentDateObj = convertStringToDateYYYYMMdd(currentDateString);
+      if(!currentDateObj.after(today)){
+        returnCandidates.add(currentDateString);
+      }
+    } catch(Exception e){
+      e.printStackTrace();
+      continue;
+    }
+  }
+  if(returnCandidates == null | returnCandidates.size()<1){
+    throw new Exception("return list is null or empty after removeFutureDates runs");
+  } else{
+    return returnCandidates;
+  }
+}
+
+public static java.util.Date convertStringToDateYYYYMMdd(String dateString) throws Exception{
+  DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+  java.util.Date returnDate;
+  returnDate = df.parse(dateString);
+  if(returnDate == null){
+    throw new Exception("date in convertStringToDateYYYYMMdd is null");
+  } else{
+    return returnDate;
+  }
+}
+
 public static ArrayList<String> removeYesterdayDatesIfTheyAreNotTheOnlyDates(ArrayList<String> candidates) throws Exception{
     String yesterday = getYesterdayDateString();
     ArrayList<String> returnCandidates = new ArrayList<String>();
@@ -1016,6 +1058,17 @@ public static ArrayList<String> removeYesterdayDatesIfTheyAreNotTheOnlyDates(Arr
     } else{
       return returnCandidates;
     }
+}
+
+public static String getTodayDateString() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return dateFormat.format(getToday());
+}
+
+public static java.util.Date getToday() {
+    final Calendar cal = Calendar.getInstance();
+    // cal.add(Calendar.DATE);
+    return cal.getTime();
 }
 
 public static String getYesterdayDateString() {
