@@ -102,12 +102,28 @@ try{
 }
 
 // Natural Language Processing (NLP) tests
-String testWithFutureString = ServeletUtilities.nlpDateParse(futureString);
-String testWithNoDate = ServeletUtilities.nlpDateParse(testTweetText);
-String testWithNoDateAndGPSCoordinates = ServeletUtilities.nlpDateParse(textTweetGpsText);
+String testWithFutureString = ServletUtilities.nlpDateParse(futureString);
+String testWithNoDate = ServletUtilities.nlpDateParse(testTweetText);
+String testWithNoDateAndGPSCoordinates = ServletUtilities.nlpDateParse(textTweetGpsText);
 
-rtn.put("testWithFutureString", "Input String: " + futureString + " || Output: " + testWithFutureString);
-rtn.put("testWithNoDate", "Input String: " + testTweetText + " || Output: " + testWithNoDate);
-rtn.put("testWithNoDateAndGPSCoordinates" + textTweetGpsText + " || Output: " + testWithNoDateAndGPSCoordinates);
+
+try{
+  rtn.put("testWithFutureString", "Input String: " + futureString + " || Output: " + testWithFutureString);
+} catch(Exception e){
+  out.println("futureString");
+  e.printStackTrace();
+}
+try{
+  rtn.put("testWithNoDate", "Input String: " + testTweetText + " || Output: " + testWithNoDate);
+} catch(Exception e){
+  out.println("testWithNoDate");
+  e.printStackTrace();
+}
+try{
+  rtn.put("testWithNoDateAndGPSCoordinates", "Input String" + textTweetGpsText + " || Output: " + testWithNoDateAndGPSCoordinates);
+} catch(Exception e){
+  out.println("testWithNoDateAndGPSCoordinates");
+  e.printStackTrace();
+}
 // End NLP tests
 %>
