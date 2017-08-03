@@ -204,7 +204,7 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 	}
 
 	// Save entities as media assets to shepherd database
-	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssetsGsonObj(ma);
+	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssetsGsonObj(ma, tweetID);
 	if ((mas == null) || (mas.size() < 1)) {
     out.println(tweet.getId() + ": no entity assets?");
 		System.out.println(tweet.getId() + ": no entity assets?");
@@ -214,6 +214,8 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 			myShepherd.beginDBTransaction();
 			try {
 				JSONObject ej = new JSONObject();
+        // JSONObject test = TwitterUtil.toJSONObject(ent);
+        // out.println(TwitterUtil.toJSONString(test));
         ent.updateMetadata();
 				MediaAssetFactory.save(ent, myShepherd);
 				String taskId = IBEISIA.IAIntake(ent, myShepherd, request);

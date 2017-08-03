@@ -18,6 +18,8 @@
 
 package org.ecocean.media;
 
+import java.util.regex.*;
+
 import twitter4j.Status;
 import java.io.File;
 import java.nio.file.Path;
@@ -225,7 +227,7 @@ public class TwitterAssetStore extends AssetStore {
         return mas;
     }
 
-    public static List<MediaAsset> entitiesAsMediaAssetsGsonObj(MediaAsset ma) {
+    public static List<MediaAsset> entitiesAsMediaAssetsGsonObj(MediaAsset ma, Long parentTweetId) {
         JSONObject raw = getRawJSONObject(ma);
         System.out.println(raw.toString());
         AssetStore store = ma.getStore();
@@ -242,6 +244,7 @@ public class TwitterAssetStore extends AssetStore {
             p.put("id", p.optString("id", null));  //squash the long id at "id" with string
             MediaAsset kid = store.create(p);
             kid.addLabel("_entity");
+            kid.addLabel("_parentTweet:" + Long.toString(parentTweetId));
             setEntityMetadata(kid);
             kid.getMetadata().getDataAsString(); //TODO no idea what this does -MF
             kid.setParentId(ma.getId());
@@ -264,12 +267,67 @@ public class TwitterAssetStore extends AssetStore {
     //  this is keyed as "twitterRawJson"
     //  NOTE: this also assumes TwitterUtil.init(request) has been called
     public MediaAssetMetadata extractMetadata(MediaAsset ma, boolean minimal) throws IOException {
+        ArrayList<String> labels =  ma.getLabels();
+        System.out.println("labels:");
+        System.out.println(labels);
+        try{
+          Long parentTweetId = getParentTweetIdFromLabels(labels);
+        } catch(Exception e){
+          e.printStackTrace();
+        }
+
         JSONObject data = new JSONObject();
         Long id = longIdFromParameters(ma.getParameters());
         if (id == null) return new MediaAssetMetadata(data);
-        Status tweet = TwitterUtil.getTweet(id);
-        data.put(METADATA_KEY_RAWJSON, TwitterUtil.toJSONObject(tweet));
+        Status tweet = null;
+        if(labels.contains("_entity")){
+          System.out.println("it's an entity");
+          try{
+            Long parentTweetIdFromEntity = getParentTweetIdFromLabels(labels);
+            tweet = TwitterUtil.getTweet(parentTweetIdFromEntity);
+          } catch(Exception e){
+            e.printStackTrace();
+          }
+        } else{
+          tweet = TwitterUtil.getTweet(id);
+        }
+        if(tweet != null){
+          data.put(METADATA_KEY_RAWJSON, TwitterUtil.toJSONObject(tweet));
+        }
         return new MediaAssetMetadata(data);
+    }
+
+    public Long getParentTweetIdFromLabels(ArrayList<String> labels) throws Exception{
+      Long returnVal = null;
+      for(int i = 0; i<labels.size(); i++){
+        System.out.println("label is: " + labels.get(i));
+        try{
+          returnVal = parseParentTweetId(labels.get(i));
+        } catch(Exception e){
+          continue;
+        }
+      }
+      if(returnVal == null){
+        throw new Exception("returnVal in getParentTweetIdFromLabels is null");
+      } else{
+        return returnVal;
+      }
+    }
+
+    public Long parseParentTweetId(String label) throws Exception{
+      Long returnVal = null;
+      String PATTERN = "_parentTweet:(\\d+)"; //doesn't seem as robust as
+      Pattern pattern = Pattern.compile(PATTERN);
+      Matcher matcher = pattern.matcher(label);
+      if(matcher.matches()){
+        returnVal = Long.parseLong(matcher.group(1));
+        System.out.println("parseParentTweetId got " + returnVal);
+      }
+      if(returnVal == null){
+        throw new Exception("returnVal in parseParentTweetId is null");
+      } else{
+        return returnVal;
+      }
     }
 
     private static void setEntityMetadata(MediaAsset ma) {

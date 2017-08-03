@@ -64,12 +64,12 @@ System.out.println("INFO: initialized TwitterUtil.tfactory");
         return null;
     }
 
-    public static String toJSONString(Object obj) throws RuntimeException {
+    public static String toJSONString(Object obj) {
         String returnVal = null;
         Gson gson = new Gson();
         returnVal = gson.toJson(obj);
         if(returnVal == null){
-          throw new RuntimeException("JSON string ended up null!");
+          System.out.println("returnVal in toJSONString is null");
         }
         System.out.println(returnVal);
         return returnVal;
