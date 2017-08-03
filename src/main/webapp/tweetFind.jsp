@@ -31,9 +31,11 @@ String tweetText = null;
 Long mostRecentTweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
-Long sinceId = 890302524275662848L;
 String context = ServletUtilities.getContext(request);
-
+Long sinceId = 890302524275662848L;
+String twitterTimeStampFile = "/twitterTimeStamp.txt";
+String iaPendingResultsFile = "/pendingAssetsIA.json";
+JSONArray iaPendingResults;
 
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -55,9 +57,10 @@ if(tas == null){
 	myShepherd.commitDBTransaction();
 }
 
+// Retrieve timestamp for the last twitter check
 try{
 	// the timestamp is written with a new line at the end, so we need to strip that out before converting
-  String timeStampAsText = Util.readFromFile(dataDir + "/twitterTimeStamp.txt");
+  String timeStampAsText = Util.readFromFile(dataDir + twitterTimeStampFile);
   timeStampAsText = timeStampAsText.replace("\n", "");
   sinceId = Long.parseLong(timeStampAsText, 10);
 } catch(FileNotFoundException e){
@@ -72,6 +75,16 @@ out.println("sinceId is " + sinceId);
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
+
+// Retrieve current assets that are being processed by IA
+try {
+	String iaPendingResultsAsString = Util.readFromFile(dataDir + iaPendingResultsFile);
+	iaPendingResults = new JSONArray(iaPendingResultsAsString);
+} catch(Exception e){
+	e.printStackTrace();
+}
+
+// END PENDING ASSET RETRIEVAL
 
 //##################Begin loop through the each of the tweets since the last timestamp##################
 // out.println("size of the arrayList of statuses is " + Integer.toString(qr.getTweets().size()));
