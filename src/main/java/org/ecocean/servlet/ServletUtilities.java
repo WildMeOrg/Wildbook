@@ -953,16 +953,23 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
 
 
     //Now select the longest one?
-    for (int j = 0; j < validDates.size(); j++) {
-      for (int k = j + 1; k < validDates.size(); k++) {
-        if (validDates.get(j).length() > validDates.get(k).length()) {
-          selectedDate = validDates.get(j);
-        } else if (validDates.get(j).length() < validDates.get(k).length()) {
-          selectedDate = validDates.get(k);
-        } else {
-          selectedDate = validDates.get(0);
+    if(validDatesFilteredByYesterday == null | validDatesFilteredByYesterday.size()<1){
+      throw new Exception("validDatesFilteredByYesterday is null or empty before selecting the longest string");
+    }
+    if(validDatesFilteredByYesterday.size()>1){
+      for (int j = 0; j < validDatesFilteredByYesterday.size(); j++) {
+        for (int k = j + 1; k < validDatesFilteredByYesterday.size(); k++) {
+          if (validDatesFilteredByYesterday.get(j).length() > validDatesFilteredByYesterday.get(k).length()) {
+            selectedDate = validDatesFilteredByYesterday.get(j);
+          } else if (validDatesFilteredByYesterday.get(j).length() < validDatesFilteredByYesterday.get(k).length()) {
+            selectedDate = validDatesFilteredByYesterday.get(k);
+          } else {
+            selectedDate = validDatesFilteredByYesterday.get(0);
+          }
         }
       }
+    } else if(validDatesFilteredByYesterday.size()==1){
+      selectedDate = validDatesFilteredByYesterday.get(0);
     }
   }
 
@@ -973,10 +980,6 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
   }
 }
 
-/* Same as nlpDateParse, but will return the entire arraylist instead of
-** just the best date
-*/
-
 public static ArrayList<String> removeInvalidDates(String[] candidates) throws Exception{
   ArrayList<String> validDates = new ArrayList<String>();
   DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -984,12 +987,12 @@ public static ArrayList<String> removeInvalidDates(String[] candidates) throws E
   java.util.Date candiDate;
   for(int i =0; i<candidates.length; i++){
     String candidateString = candidates[i];
-    System.out.println("candidateString in removeInvalidDates method is " + candidateString);
+    // System.out.println("candidateString in removeInvalidDates method is " + candidateString);
     try {
       candiDate = df.parse(candidateString);
       newDateString = df.format(candiDate);
       validDates.add(newDateString);
-      System.out.println("newDateString " + newDateString + " added to validDates");
+      // System.out.println("newDateString " + newDateString + " added to validDates");
     } catch (ParseException e) {
       continue;
     }
@@ -997,11 +1000,14 @@ public static ArrayList<String> removeInvalidDates(String[] candidates) throws E
   if(validDates == null | validDates.size()<1){
     throw new Exception("validDates arrayList is empty or null in removeInvalidDates method");
   } else{
+    System.out.println("returning the following from removeInvalidDates:");
+    System.out.println(validDates);
     return validDates;
   }
 }
 
 public static ArrayList<String> removeFutureDates(ArrayList<String> candidates) throws Exception{
+  //TODO add handling for tweets coming from future in datelines
   ArrayList<String> returnCandidates = new ArrayList<String>();
   java.util.Date today =  getToday();
   for(int i = 0; i<candidates.size(); i++){
@@ -1019,6 +1025,8 @@ public static ArrayList<String> removeFutureDates(ArrayList<String> candidates) 
   if(returnCandidates == null | returnCandidates.size()<1){
     throw new Exception("return list is null or empty after removeFutureDates runs");
   } else{
+    System.out.println("returning the following from removeFutureDates:");
+    System.out.println(returnCandidates);
     return returnCandidates;
   }
 }
@@ -1083,7 +1091,9 @@ public static java.util.Date getYesterday() {
 }
 
 
-
+/* Same as nlpDateParse, but will return the entire arraylist instead of
+** just the best date
+*/
 public static ArrayList<String> nlpDateParseToArrayList(String text){
   System.out.println("Entering nlpParseDateArray");
 
