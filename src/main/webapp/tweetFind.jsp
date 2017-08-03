@@ -76,7 +76,7 @@ QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
 
-// Retrieve current assets that are being processed by IA
+// Retrieve current results that are being processed by IA
 try {
 	String iaPendingResultsAsString = Util.readFromFile(dataDir + iaPendingResultsFile);
 	iaPendingResults = new JSONArray(iaPendingResultsAsString);
@@ -84,7 +84,12 @@ try {
 	e.printStackTrace();
 }
 
-// END PENDING ASSET RETRIEVAL
+// Check if JSON data exists
+if(iaPendingResults != null){
+	// TODO: check if IA has finished processing the pending results
+}
+
+// END PENDING IA RETRIEVAL
 
 //##################Begin loop through the each of the tweets since the last timestamp##################
 // out.println("size of the arrayList of statuses is " + Integer.toString(qr.getTweets().size()));
