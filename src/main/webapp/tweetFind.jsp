@@ -140,7 +140,7 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
   }
 
   try{
-    tweeterScreenName = tweet.getUser().getScreenName(); //jtweet.optJSONObject("user").getString("screen_name");
+    tweeterScreenName = tweet.getUser().getScreenName();
     if(tweeterScreenName == null){
       out.println("screen name is null. Skipping");
       continue;
@@ -194,6 +194,8 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 		ma.addLabel("_original");
 		MediaAssetMetadata md = ma.updateMetadata();
 		MediaAssetFactory.save(ma, myShepherd);
+    JSONObject test = TwitterUtil.toJSONObject(ma);
+    out.println(TwitterUtil.toJSONString(test));
 		tj.put("maId", ma.getId());
 		tj.put("metadata", ma.getMetadata().getData());
 		System.out.println(tweet.getId() + ": created tweet asset " + ma);
@@ -216,8 +218,11 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 				JSONObject ej = new JSONObject();
         // JSONObject test = TwitterUtil.toJSONObject(ent);
         // out.println(TwitterUtil.toJSONString(test));
-        ent.updateMetadata();
-				MediaAssetFactory.save(ent, myShepherd);
+        MediaAssetMetadata entMd = ent.updateMetadata();
+        MediaAssetFactory.save(ent, myShepherd);
+        // JSONObject test = TwitterUtil.toJSONObject(entMd);
+        // out.println(TwitterUtil.toJSONString(test));
+				// MediaAssetFactory.save(ent, myShepherd);
 				String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
         out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
 				System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);

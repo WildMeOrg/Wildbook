@@ -229,7 +229,7 @@ public class TwitterAssetStore extends AssetStore {
 
     public static List<MediaAsset> entitiesAsMediaAssetsGsonObj(MediaAsset ma, Long parentTweetId) {
         JSONObject raw = getRawJSONObject(ma);
-        System.out.println(raw.toString());
+        // System.out.println(raw.toString());
         AssetStore store = ma.getStore();
         if (raw == null) return null;
         if ((raw.optJSONArray("extendedMediaEntities") == null)){
@@ -281,7 +281,6 @@ public class TwitterAssetStore extends AssetStore {
         if (id == null) return new MediaAssetMetadata(data);
         Status tweet = null;
         if(labels.contains("_entity")){
-          System.out.println("it's an entity");
           try{
             Long parentTweetIdFromEntity = getParentTweetIdFromLabels(labels);
             tweet = TwitterUtil.getTweet(parentTweetIdFromEntity);
@@ -300,7 +299,6 @@ public class TwitterAssetStore extends AssetStore {
     public Long getParentTweetIdFromLabels(ArrayList<String> labels) throws Exception{
       Long returnVal = null;
       for(int i = 0; i<labels.size(); i++){
-        System.out.println("label is: " + labels.get(i));
         try{
           returnVal = parseParentTweetId(labels.get(i));
         } catch(Exception e){
@@ -321,7 +319,6 @@ public class TwitterAssetStore extends AssetStore {
       Matcher matcher = pattern.matcher(label);
       if(matcher.matches()){
         returnVal = Long.parseLong(matcher.group(1));
-        System.out.println("parseParentTweetId got " + returnVal);
       }
       if(returnVal == null){
         throw new Exception("returnVal in parseParentTweetId is null");
@@ -331,6 +328,7 @@ public class TwitterAssetStore extends AssetStore {
     }
 
     private static void setEntityMetadata(MediaAsset ma) {
+        System.out.println("Hey mark. Got here.");
         if (ma.getParameters() == null) return;
         JSONObject d = new JSONObject("{\"attributes\": {} }");
         if ((ma.getParameters().optJSONObject("sizes") != null) && (ma.getParameters().getJSONObject("sizes").optJSONObject("large") != null)) {
