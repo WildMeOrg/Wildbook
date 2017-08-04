@@ -847,7 +847,7 @@ public static ArrayList<String> nlpLocationParse(String text) throws RuntimeExce
 }
 
 public static String nlpDateParse(String text) throws Exception{
-  System.out.println("Entering nlpParseDate with text " + text);
+  System.out.println("Entering nlpDateParse with text " + text);
   //create my pipeline with the help of the annotators I added.
   Properties props = new Properties();
   AnnotationPipeline pipeline = new AnnotationPipeline();
@@ -987,12 +987,10 @@ public static ArrayList<String> removeInvalidDates(String[] candidates) throws E
   java.util.Date candiDate;
   for(int i =0; i<candidates.length; i++){
     String candidateString = candidates[i];
-    // System.out.println("candidateString in removeInvalidDates method is " + candidateString);
     try {
       candiDate = df.parse(candidateString);
       newDateString = df.format(candiDate);
       validDates.add(newDateString);
-      // System.out.println("newDateString " + newDateString + " added to validDates");
     } catch (ParseException e) {
       continue;
     }
@@ -1000,8 +998,6 @@ public static ArrayList<String> removeInvalidDates(String[] candidates) throws E
   if(validDates == null | validDates.size()<1){
     throw new Exception("validDates arrayList is empty or null in removeInvalidDates method");
   } else{
-    System.out.println("returning the following from removeInvalidDates:");
-    System.out.println(validDates);
     return validDates;
   }
 }
@@ -1025,8 +1021,6 @@ public static ArrayList<String> removeFutureDates(ArrayList<String> candidates) 
   if(returnCandidates == null | returnCandidates.size()<1){
     throw new Exception("return list is null or empty after removeFutureDates runs");
   } else{
-    System.out.println("returning the following from removeFutureDates:");
-    System.out.println(returnCandidates);
     return returnCandidates;
   }
 }
@@ -1045,8 +1039,6 @@ public static java.util.Date convertStringToDateYYYYMMdd(String dateString) thro
 public static ArrayList<String> removeYesterdayDatesIfTheyAreNotTheOnlyDates(ArrayList<String> candidates) throws Exception{
     String yesterday = getYesterdayDateString();
     ArrayList<String> returnCandidates = new ArrayList<String>();
-    System.out.println("yesterday's date is " + yesterday);
-    //TODO add code
     int yesterdayCounter = 0;
     for(int i = 0; i<candidates.size(); i++){
       if (candidates.get(i).equals(yesterday)){
@@ -1075,7 +1067,6 @@ public static String getTodayDateString() {
 
 public static java.util.Date getToday() {
     final Calendar cal = Calendar.getInstance();
-    // cal.add(Calendar.DATE);
     return cal.getTime();
 }
 
