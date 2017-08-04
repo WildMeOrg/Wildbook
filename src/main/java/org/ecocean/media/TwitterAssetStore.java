@@ -218,6 +218,7 @@ public class TwitterAssetStore extends AssetStore {
             p.put("id", p.optString("id_str", null));  //squash the long id at "id" with string
             MediaAsset kid = store.create(p);
             kid.addLabel("_entity");
+            //TODO here
             setEntityMetadata(kid);
             kid.getMetadata().getDataAsString(); //TODO no idea what this does -MF
             kid.setParentId(ma.getId());
@@ -250,7 +251,9 @@ public class TwitterAssetStore extends AssetStore {
             kid.setParentId(ma.getId());
             //derivationMethods?  metadata? (of image) etc.... ??
             mas.add(kid);
-            System.out.println("Probably added a kid to the media assets");
+            System.out.println("i is: " + Integer.toString(i));
+            JSONObject test = TwitterUtil.toJSONObject(kid);
+            System.out.println(TwitterUtil.toJSONString(test));
         }
         return mas;
     }
