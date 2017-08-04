@@ -194,8 +194,8 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 		ma.addLabel("_original");
 		MediaAssetMetadata md = ma.updateMetadata();
 		MediaAssetFactory.save(ma, myShepherd);
-    JSONObject test = TwitterUtil.toJSONObject(ma);
-    out.println(TwitterUtil.toJSONString(test));
+    // JSONObject test = TwitterUtil.toJSONObject(ma);
+    // out.println(TwitterUtil.toJSONString(test));
 		tj.put("maId", ma.getId());
 		tj.put("metadata", ma.getMetadata().getData());
 		System.out.println(tweet.getId() + ": created tweet asset " + ma);
