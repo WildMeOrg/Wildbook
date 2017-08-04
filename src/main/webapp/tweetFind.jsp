@@ -35,7 +35,7 @@ String context = ServletUtilities.getContext(request);
 Long sinceId = 890302524275662848L;
 String twitterTimeStampFile = "/twitterTimeStamp.txt";
 String iaPendingResultsFile = "/pendingAssetsIA.json";
-JSONArray iaPendingResults;
+JSONArray iaPendingResults = null;
 
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -87,6 +87,9 @@ try {
 // Check if JSON data exists
 if(iaPendingResults != null){
 	// TODO: check if IA has finished processing the pending results
+	out.println(iaPendingResults);
+} else {
+	out.println("No pending results");
 }
 
 // END PENDING IA RETRIEVAL
