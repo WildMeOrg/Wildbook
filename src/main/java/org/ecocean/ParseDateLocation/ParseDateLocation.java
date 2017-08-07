@@ -126,6 +126,8 @@ public class ParseDateLocation {
     }
   }
 
+
+  //NOTE: overloaded parseDate method for tweet4j status objects specifically. There is another parseDate method!
   public static String parseDate(String textInput, String context, Status tweet){
 
     int year=-1;
@@ -211,6 +213,7 @@ public class ParseDateLocation {
       return result;
   }
 
+  //NOTE: parseDate method WITHOUT tweet4j status object as a parameter. There is another parseDate method!
   public static String parseDate(String textInput, String context){
 
     int year=-1;
