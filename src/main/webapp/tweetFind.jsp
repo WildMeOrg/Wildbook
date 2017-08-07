@@ -10,6 +10,7 @@ java.io.IOException,
 java.io.InputStream,
 java.io.InputStreamReader,
 java.io.File,
+java.util.Date,
 org.json.JSONObject,
 org.json.JSONArray,
 org.ecocean.identity.IBEISIA,
@@ -31,9 +32,11 @@ String tweetText = null;
 Long mostRecentTweetID = null;
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
-Long sinceId = 890302524275662848L;
 String context = ServletUtilities.getContext(request);
-
+Long sinceId = 890302524275662848L;
+String twitterTimeStampFile = "/twitterTimeStamp.txt";
+String iaPendingResultsFile = "/pendingAssetsIA.json";
+JSONArray iaPendingResults = null;
 
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -55,9 +58,10 @@ if(tas == null){
 	myShepherd.commitDBTransaction();
 }
 
+// Retrieve timestamp for the last twitter check
 try{
 	// the timestamp is written with a new line at the end, so we need to strip that out before converting
-  String timeStampAsText = Util.readFromFile(dataDir + "/twitterTimeStamp.txt");
+  String timeStampAsText = Util.readFromFile(dataDir + twitterTimeStampFile);
   timeStampAsText = timeStampAsText.replace("\n", "");
   sinceId = Long.parseLong(timeStampAsText, 10);
 } catch(FileNotFoundException e){
@@ -72,6 +76,25 @@ out.println("sinceId is " + sinceId);
 QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
 // out.println(qr.getTweets().size());
+
+// Retrieve current results that are being processed by IA
+try {
+	String iaPendingResultsAsString = Util.readFromFile(dataDir + iaPendingResultsFile);
+	iaPendingResults = new JSONArray(iaPendingResultsAsString);
+} catch(Exception e){
+	e.printStackTrace();
+}
+
+// Check if JSON data exists
+if(iaPendingResults != null){
+	// TODO: check if IA has finished processing the pending results
+	out.println(iaPendingResults);
+} else {
+	out.println("No pending results");
+	iaPendingResults = new JSONArray();
+}
+
+// END PENDING IA RETRIEVAL
 
 //##################Begin loop through the each of the tweets since the last timestamp##################
 // out.println("size of the arrayList of statuses is " + Integer.toString(qr.getTweets().size()));
@@ -228,7 +251,10 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 				System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
 				ej.put("maId", ent.getId());
 				ej.put("taskId", taskId);
+				ej.put("creationTimeStamp", new Date());
 				jent.put(ej);
+				// Put ej into pending results array
+				iaPendingResults.put(ej);
 				myShepherd.commitDBTransaction();
 			} catch(Exception e){
 				myShepherd.rollbackDBTransaction();
@@ -249,10 +275,19 @@ if(mostRecentTweetID == null){
 	newSinceIdString = mostRecentTweetID;
 }
 try{
-  Util.writeToFile(Long.toString(newSinceIdString), dataDir + "/twitterTimeStamp.txt");
+  Util.writeToFile(Long.toString(newSinceIdString), dataDir + twitterTimeStampFile);
   out.println("wrote a new twitterTimeStamp: " + newSinceIdString);
 } catch(FileNotFoundException e){
   e.printStackTrace();
+}
+
+// Write pending results array to file
+try {
+	String iaPendingResultsAsString = iaPendingResults.toString();
+	Util.writeToFile(iaPendingResultsAsString, dataDir + iaPendingResultsFile);
+	out.println("Successfully wrote pending results to file");
+} catch (Exception e){
+	e.printStackTrace();
 }
 
 rtn.put("success", true);
