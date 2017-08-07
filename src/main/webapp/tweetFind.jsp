@@ -97,16 +97,12 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
   // Attempt to find MediaAsset for tweet, and skip media asset creation if it exists
 	MediaAsset ma = tas.find(p, myShepherd);
 	if (ma != null) {
-		// System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
-    // out.println("media asset already exists. Skipping");
 		continue;
 	}
 
 	// ##################Check for tweet and entities##################
-  // out.println("Is the tweet null before JSONifying? " + Integer.toString(i) + "th is null?: " + Boolean.toString(tweet==null));
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
 	if (jtweet == null){
-    // out.println("tweet is null skipping");
     continue;
   }
   try{
@@ -131,19 +127,19 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
   }
 
   //temporary: test parseDate()
-  try{
-    String date = ParseDateLocation.parseDate(tweetText,context, tweet);
-    out.println("single date is: ");
-    out.println(date);
-  } catch(Exception e){
-    out.println("something went terribly wrong getting the single date from the tweet text");
-    e.printStackTrace();
-    continue;
-  }
+  // try{
+  //   String date = ParseDateLocation.parseDate(tweetText,context, tweet);
+  //   out.println("single date is: ");
+  //   out.println(date);
+  // } catch(Exception e){
+  //   out.println("something went terribly wrong getting the single date from the tweet text");
+  //   e.printStackTrace();
+  //   continue;
+  // }
 
   try{
     ArrayList<String> dates = ParseDateLocation.parseDateToArrayList(tweetText,context);
-    // out.println(dates);
+    //TODO parseDateToArrayList may need to be updated (and overloaded?)?
   } catch(Exception e){
     out.println("something went terribly wrong getting dates from the tweet text");
     e.printStackTrace();
@@ -167,90 +163,17 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 	JSONArray emedia = null;
 	emedia = jtweet.optJSONArray("extendedMediaEntities");
   if((emedia == null) || (emedia.length() < 1)){
-    // tweet doesn't have media
     TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
-    out.println("emedia is null or of length <1. Skipping");
     continue;
   }
 
-  int photoCount = 0;
+  TwitterUtil.sendPhotoSpecificCourtesyTweet(emedia, tweeterScreenName, twitterInst);
 
-  //##################Loop through the extendedMediaEntities and run image processing on each##################
-  for(int j=0; j<emedia.length(); j++){
-    // out.println("got into emedia for loop");
-    // out.println("j is " + Integer.toString(j));
-    JSONObject jent = emedia.getJSONObject(j);
-    String mediaType = jent.getString("type");
-    // String mediaEntityURL = jent.getString("mediaURL");
-    Long mediaEntityId = Long.parseLong(jent.getString("id"));
-    // out.println("mediaEntityId is " + Long.toString(mediaEntityId));
-    try{
-      if(mediaType.equals("photo")){
-        //For now, just one courtesy tweet per tweet, even if the tweet contains multiple images
-        if(photoCount<1){
-          // out.println("got to send tweet with photo");
-          TwitterUtil.sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, mediaEntityId);
-        }
-        photoCount += 1;
-      }
-    } catch(Exception e){
-      e.printStackTrace();
-    }
-  }
+  tj = TwitterUtil.makeParentTweetMediaAssetAndSave(myShepherd, tas, tweet, tj);
+  //retrieve ma now that it has been saved
+  ma = tas.find(p, myShepherd);
 
-  // Attempt to create media asset, rollback DB transaction if it fails
-	myShepherd.beginDBTransaction();
-	try{
-		ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
-		ma.addLabel("_original");
-		MediaAssetMetadata md = ma.updateMetadata();
-		MediaAssetFactory.save(ma, myShepherd);
-    // JSONObject test = TwitterUtil.toJSONObject(ma);
-    // out.println(TwitterUtil.toJSONString(test));
-		tj.put("maId", ma.getId());
-		tj.put("metadata", ma.getMetadata().getData());
-		System.out.println(tweet.getId() + ": created tweet asset " + ma);
-		myShepherd.commitDBTransaction();
-	} catch(Exception e){
-		myShepherd.rollbackDBTransaction();
-		e.printStackTrace();
-	}
-
-	// Save entities as media assets to shepherd database
-	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssetsGsonObj(ma, tweetID);
-	if ((mas == null) || (mas.size() < 1)) {
-    out.println(tweet.getId() + ": no entity assets?");
-		System.out.println(tweet.getId() + ": no entity assets?");
-	} else {
-		JSONArray jent = new JSONArray();
-		for (MediaAsset ent : mas) {
-			myShepherd.beginDBTransaction();
-			try {
-				JSONObject ej = new JSONObject();
-        out.println("Got here hi hi hi");
-        MediaAssetMetadata entMd = ent.updateMetadata();
-        MediaAssetFactory.save(ent, myShepherd);
-        JSONObject test = TwitterUtil.toJSONObject(entMd);
-        out.println("metadata: ");
-        out.println(TwitterUtil.toJSONString(test));
-        test = TwitterUtil.toJSONObject(ent);
-        out.println("entity mediaAsset: ");
-        out.println(TwitterUtil.toJSONString(test));
-				// MediaAssetFactory.save(ent, myShepherd);
-				String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
-        out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
-				System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
-				ej.put("maId", ent.getId());
-				ej.put("taskId", taskId);
-				jent.put(ej);
-				myShepherd.commitDBTransaction();
-			} catch(Exception e){
-				myShepherd.rollbackDBTransaction();
-				e.printStackTrace();
-			}
-		}
-		tj.put("entities", jent);
-	}
+  tj = TwitterUtil.saveEntitiesAsMediaAssetsToSheperdDatabaseAndSendEachToImageAnalysis(ma, tweetID, myShepherd, tj, request);
 	tarr.put(tj);
 }
 //End looping through the tweets
