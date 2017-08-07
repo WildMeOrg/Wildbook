@@ -851,7 +851,7 @@ public static ArrayList<String> nlpLocationParse(String text) throws RuntimeExce
 
 //overloaded version to deal with tweets
 public static String nlpDateParse(String text, Status tweet) throws Exception{
-  System.out.println("Entering nlpDateParse with text " + text);
+  System.out.println("Entering nlpDateParse twitter version with text " + text);
   //create my pipeline with the help of the annotators I added.
   Properties props = new Properties();
   AnnotationPipeline pipeline = new AnnotationPipeline();
@@ -897,6 +897,7 @@ public static String nlpDateParse(String text, Status tweet) throws Exception{
     String selectedDate = "";
 
     try{
+      System.out.println("About to enter selectBestDateFromCandidates");
       selectedDate = selectBestDateFromCandidates(arrayDates);
     } catch(Exception e){
       e.printStackTrace();
@@ -995,9 +996,7 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
 
   if(candidates.length <1){
     throw new Exception("list of candidate dates was empty");
-  } else if(candidates.length == 1){
-    selectedDate = candidates[0];
-  } else if (candidates.length > 1) {
+  } else if (candidates.length >= 1) {
 
     //filter by options that are valid dates
     ArrayList<String> validDates = new ArrayList<String>();
@@ -1017,6 +1016,9 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
     ArrayList<String> validDatesWithFutureDatesRemoved = new ArrayList<String>();
     try{
       validDatesWithFutureDatesRemoved = removeFutureDates(validDates);
+      System.out.println("Before future removal:");
+      System.out.println(validDates);
+      System.out.println("After future removal:");
       System.out.println(validDatesWithFutureDatesRemoved);
     } catch(Exception e){
       System.out.println("couldn't run removeFutureDates");
