@@ -197,11 +197,8 @@ public class TwitterUtil {
     }
   }
 
-  public static JSONObject saveEntitiesAsMediaAssetsToSheperdDatabaseAndSendEachToImageAnalysis(MediaAsset ma, Long tweetID, Shepherd myShepherd, JSONObject tj, HttpServletRequest request){
-    List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssetsGsonObj(ma, tweetID);
+  public static JSONObject saveEntitiesAsMediaAssetsToSheperdDatabaseAndSendEachToImageAnalysis(List<MediaAsset> mas, Long tweetID, Shepherd myShepherd, JSONObject tj, HttpServletRequest request){
     if ((mas == null) || (mas.size() < 1)) {
-      // out.println(tweet.getId() + ": no entity assets?");
-      // System.out.println(tweet.getId() + ": no entity assets?");
     } else {
       JSONArray jent = new JSONArray();
       for (MediaAsset ent : mas) {
@@ -211,11 +208,11 @@ public class TwitterUtil {
           MediaAssetMetadata entMd = ent.updateMetadata();
           MediaAssetFactory.save(ent, myShepherd);
           JSONObject test = TwitterUtil.toJSONObject(entMd);
-          System.out.println("metadata: ");
-          System.out.println(TwitterUtil.toJSONString(test));
+          // System.out.println("metadata: ");
+          // System.out.println(TwitterUtil.toJSONString(test));
           test = TwitterUtil.toJSONObject(ent);
-          System.out.println("entity mediaAsset: ");
-          System.out.println(TwitterUtil.toJSONString(test));
+          // System.out.println("entity mediaAsset: ");
+          // System.out.println(TwitterUtil.toJSONString(test));
           // MediaAssetFactory.save(ent, myShepherd);
           String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
           // System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
