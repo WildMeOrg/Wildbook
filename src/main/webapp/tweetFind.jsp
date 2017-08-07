@@ -91,6 +91,7 @@ if(iaPendingResults != null){
 	out.println(iaPendingResults);
 } else {
 	out.println("No pending results");
+	iaPendingResults = new JSONArray();
 }
 
 // END PENDING IA RETRIEVAL
