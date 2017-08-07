@@ -10,6 +10,7 @@ java.io.IOException,
 java.io.InputStream,
 java.io.InputStreamReader,
 java.io.File,
+java.util.Date,
 org.json.JSONObject,
 org.json.JSONArray,
 org.ecocean.identity.IBEISIA,
@@ -242,7 +243,10 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 				System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
 				ej.put("maId", ent.getId());
 				ej.put("taskId", taskId);
+				ej.put("creationTimeStamp", new Date());
 				jent.put(ej);
+				// Put ej into pending results array
+				iaPendingResults.put(ej);
 				myShepherd.commitDBTransaction();
 			} catch(Exception e){
 				myShepherd.rollbackDBTransaction();
@@ -263,10 +267,19 @@ if(mostRecentTweetID == null){
 	newSinceIdString = mostRecentTweetID;
 }
 try{
-  Util.writeToFile(Long.toString(newSinceIdString), dataDir + "/twitterTimeStamp.txt");
+  Util.writeToFile(Long.toString(newSinceIdString), dataDir + twitterTimeStampFile);
   out.println("wrote a new twitterTimeStamp: " + newSinceIdString);
 } catch(FileNotFoundException e){
   e.printStackTrace();
+}
+
+// Write pending results array to file
+try {
+	String iaPendingResultsAsString = iaPendingResults.toString();
+	Util.writeToFile(iaPendingResultsAsString, dataDir + iaPendingResultsFile);
+	out.println("Successfully wrote pending results to file");
+} catch (Exception e){
+	e.printStackTrace();
 }
 
 rtn.put("success", true);
