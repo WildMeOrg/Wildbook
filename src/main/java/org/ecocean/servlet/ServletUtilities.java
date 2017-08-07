@@ -86,6 +86,8 @@ import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 
+import twitter4j.Status;
+
 
 
 //ATOM feed
@@ -844,6 +846,87 @@ public static ArrayList<String> nlpLocationParse(String text) throws RuntimeExce
     throw new RuntimeException("no locations found");
   }
 
+}
+
+
+//overloaded version to deal with tweets
+public static String nlpDateParse(String text, Status tweet) throws Exception{
+  System.out.println("Entering nlpDateParse with text " + text);
+  //create my pipeline with the help of the annotators I added.
+  Properties props = new Properties();
+  AnnotationPipeline pipeline = new AnnotationPipeline();
+  pipeline.addAnnotator(new TokenizerAnnotator(false));
+  pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+  pipeline.addAnnotator(new POSTaggerAnnotator(false));
+  pipeline.addAnnotator(new TimeAnnotator("sutime", props));
+
+  text = text.replaceAll("[,.!?;:]", "$0 ");
+  System.out.println("text: " + text);
+  String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase()
+    .split("\\s+"); //TODO I think this does a better version of what the above (text = text.replaceAll("[,.!?;:]", "$0 ");) does?? -Mark Fisher
+  String text2 = String.join(" ", text1);
+
+  System.out.println("text2: " + text2);
+  edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
+
+  //get current date (no time) and formatted with Joda time.
+  LocalDate date = LocalDate.now();
+  DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
+  String referenceDate = dateFormat.print(date);
+
+  //pass current date and record date (or dates) given by text in TIMEX3(an ISO 8601 extention)format.
+  annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
+  pipeline.annotate(annotation);
+  List<CoreMap> timexAnnsAll = annotation
+  .get(TimeAnnotations.TimexAnnotations.class);
+
+  ArrayList<String> arrayListDates = new ArrayList<String>();
+  for (CoreMap cm : timexAnnsAll) {
+    Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
+    //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
+    String dateStr = myDate.toString();
+    System.out.println(".....found date: " + dateStr);
+    arrayListDates.add(dateStr.replaceAll("-XX", ""));
+  }
+  System.out.println("NLP dates found+:" + arrayListDates);
+
+  if (!arrayListDates.isEmpty()) {
+    //turn arrayList into an array to be able to use the old For loop and compare dates.
+    String[] arrayDates = new String[arrayListDates.size()];
+    arrayDates = arrayListDates.toArray(arrayDates);
+    String selectedDate = "";
+
+    try{
+      selectedDate = selectBestDateFromCandidates(arrayDates);
+    } catch(Exception e){
+      e.printStackTrace();
+    }
+    if(selectedDate == null | selectedDate.equals("")){
+      try{
+        java.util.Date tweetDate = tweet.getCreatedAt();
+        DateFormat dfTweetStamp = new SimpleDateFormat("yyyy-MM-dd");
+        selectedDate = dfTweetStamp.format(tweetDate);
+        System.out.println("Date of tweet when all other candidates were eliminated is: " + selectedDate);
+        return selectedDate;
+      } catch(Exception e){
+        e.printStackTrace();
+        throw new Exception("Couldn't fetch a timeStamp for the tweet to use as a last-resort date after all other candidates were eliminated");
+      }
+    } else{
+      return selectedDate;
+    }
+  } else{
+    try{
+      java.util.Date tweetDate = tweet.getCreatedAt();
+      DateFormat dfTweetStamp = new SimpleDateFormat("yyyy-MM-dd");
+      String selectedDate = dfTweetStamp.format(tweetDate);
+      System.out.println("Date of tweet when no other candidates existed is: " + selectedDate);
+      return selectedDate;
+    } catch(Exception e){
+      e.printStackTrace();
+      throw new Exception("Couldn't fetch a timeStamp for the tweet to use as a last-resort date when no other candidates existed");
+    }
+  }
 }
 
 public static String nlpDateParse(String text) throws Exception{

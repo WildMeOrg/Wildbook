@@ -130,9 +130,20 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
     continue;
   }
 
+  //temporary: test parseDate()
+  try{
+    String date = ParseDateLocation.parseDate(tweetText,context, tweet);
+    out.println("single date is: ");
+    out.println(date);
+  } catch(Exception e){
+    out.println("something went terribly wrong getting the single date from the tweet text");
+    e.printStackTrace();
+    continue;
+  }
+
   try{
     ArrayList<String> dates = ParseDateLocation.parseDateToArrayList(tweetText,context);
-    out.println(dates);
+    // out.println(dates);
   } catch(Exception e){
     out.println("something went terribly wrong getting dates from the tweet text");
     e.printStackTrace();
@@ -216,12 +227,15 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 			myShepherd.beginDBTransaction();
 			try {
 				JSONObject ej = new JSONObject();
-        // JSONObject test = TwitterUtil.toJSONObject(ent);
-        // out.println(TwitterUtil.toJSONString(test));
+        out.println("Got here hi hi hi");
         MediaAssetMetadata entMd = ent.updateMetadata();
         MediaAssetFactory.save(ent, myShepherd);
-        // JSONObject test = TwitterUtil.toJSONObject(entMd);
-        // out.println(TwitterUtil.toJSONString(test));
+        JSONObject test = TwitterUtil.toJSONObject(entMd);
+        out.println("metadata: ");
+        out.println(TwitterUtil.toJSONString(test));
+        test = TwitterUtil.toJSONObject(ent);
+        out.println("entity mediaAsset: ");
+        out.println(TwitterUtil.toJSONString(test));
 				// MediaAssetFactory.save(ent, myShepherd);
 				String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
         out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
