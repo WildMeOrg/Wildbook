@@ -87,14 +87,17 @@ try {
 
 // Check if JSON data exists
 if(iaPendingResults != null){
-	// TODO: check if IA has finished processing the pending results
 	// out.println(iaPendingResults);
 	for(JSONObject pendingResult : iaPendingResults){
+		JSONObject resultStatus = null;
 		try {
-			JSONObject resultStatus = IBEISIA.getJobResultLogged(pendingResult.get("taskId"), context);
+			resultStatus = IBEISIA.getJobResultLogged(pendingResult.get("taskId"), context);
 		} catch(Exception e){
 			e.printStackTrace();
 			out.println("Unable to get result status from IBEISIA for" + pendingResult.get("maId"));
+		}
+		if(resultStatus != null){
+			out.println("Result status:" + resultStatus);
 		}
 	}
 } else {
