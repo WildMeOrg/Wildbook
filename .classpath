@@ -23,8 +23,8 @@
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.7.12/slf4j-api-1.7.12.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.8.3/commons-beanutils-1.8.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-web/1.2.1/shiro-web-1.2.1.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/pac4j/pac4j-oauth/1.9.4/pac4j-oauth-1.9.4.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/pac4j/pac4j-core/1.9.4/pac4j-core-1.9.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/pac4j/pac4j-oauth/1.9.7/pac4j-oauth-1.9.7.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/pac4j/pac4j-core/1.9.7/pac4j-core-1.9.7.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/github/scribejava/scribejava-apis/2.5.3/scribejava-apis-2.5.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/github/scribejava/scribejava-core/2.5.3/scribejava-core-2.5.3.jar"/>

@@ -97,7 +97,7 @@ my<%@ page contentType="text/html; charset=utf-8" language="java"
 String context="context0";
 context=ServletUtilities.getContext(request);
 //get encounter number
-String num = request.getParameter("number").replaceAll("\\+", "").trim();
+String num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
@@ -607,7 +607,7 @@ $(function() {
 							</td>
 							<td>
 								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
+								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"))%>" data-type="button_count"></div></td>
 						</tr>
 					</table>
           </div>
@@ -4758,7 +4758,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
           <%
           TissueSample thisSample=new TissueSample();
           String sampleIDString="";
-          if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))&&(request.getParameter("sampleID")!=null) && (request.getParameter("function")!=null) && (request.getParameter("function").equals("1")) &&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+          if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))&&(request.getParameter("sampleID")!=null) && (request.getParameter("function")!=null) && (request.getParameter("function").equals("1")) &&(myShepherd.isTissueSample(request.getParameter("sampleID"), ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"))))){
         	  sampleIDString=request.getParameter("sampleID");
         	  thisSample=myShepherd.getTissueSample(sampleIDString, enc.getCatalogNumber());
 
@@ -4945,7 +4945,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
 //setup the javascript to handle displaying an edit tissue sample dialog box
-if((request.getParameter("sampleID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("tissueSample") && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+if((request.getParameter("sampleID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("tissueSample") && (myShepherd.isTissueSample(request.getParameter("sampleID"), ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"))))){
 %>
 <script>
 dlgSample.dialog("open");
