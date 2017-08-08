@@ -1241,8 +1241,11 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
-                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // || !is whale_fluke
+                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue() || !jann.optString("species", "unkown").equals("whale_fluke")) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
+
                             needsReview = true;
+                            System.out.println("Detection didn't find a whale fluke");
+                            // TwitterUtil.sendDetectionAndIdentificationTweet(screenName, imageId, twitterInst, whaleId, false, false); //TODO find a way to get screenName, imageId, etc. over here
                             continue;
                         }
                         //these are annotations we can make automatically from ia detection.  we also do the same upon review return
@@ -1257,7 +1260,10 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         newAnns.put(ann.getId());
                         try {
                             //TODO how to know *if* we should start identification
-                            //////ident.put(ann.getId(), IAIntake(ann, myShepherd, request));  //not doing ident for whaleshark.org
+                            if(jann.optDouble("confidence", -1.0) >= getDetectionCutoffValue() && jann.optString("species", "unkown").equals("whale_fluke")){
+                              System.out.println("Detection found a whale fluke; sending to identification");
+                              ident.put(ann.getId(), IAIntake(ann, myShepherd, request));
+                            }
                         } catch (Exception ex) {
                             System.out.println("WARNING: IAIntake threw exception " + ex);
                         }
@@ -1368,6 +1374,14 @@ System.out.println("**** " + ann);
                 if (needIdentificationReview(rlist, clist, i, context)) {
                     needReview = true;
                     needReviewMap.put(annId, true);
+                } else if(clist.optDouble(i, -99.0) >= getIdentificationCutoffValue()){
+                  System.out.println("Maybe identified it??");
+                  try{
+                    System.out.println(rlist.optString(i, "unknown"));
+                  } catch(Exception e){
+                    e.printStackTrace();
+                  }
+
                 }
             }
         }
@@ -1410,7 +1424,7 @@ System.out.println("*****************\nhey i think we are happy with these annot
 
     //scores < these will require human review (otherwise they carry on automatically)
     public static double getDetectionCutoffValue() {
-        return 0.7;
+        return 0.25;
     }
     public static double getIdentificationCutoffValue() {
         return 0.8;
