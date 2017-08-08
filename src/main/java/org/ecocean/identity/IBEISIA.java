@@ -1368,7 +1368,9 @@ System.out.println("**** " + ann);
             JSONArray rlist = infDict.getJSONObject("annot_pair_dict").getJSONArray("review_pair_list");
             JSONArray clist = infDict.getJSONObject("annot_pair_dict").optJSONArray("confidence_list");  //this allows for null case, fyi
             for (int i = 0 ; i < rlist.length() ; i++) {
-                //note: it *seems like* annot_uuid_1 is *always* the member that is from the query_annot_uuid_list... but?? is it?
+                //NOTE: it *seems like* annot_uuid_1 is *always* the member that is from the query_annot_uuid_list... but?? is it? NOTE: Mark and Chris assumed this was true in the line below that looks like String matchUuid = rlist.getJSONObject(i).optJSONObject("annot_uuid_2");
+
+                //NOTE: will the review_pair_list and confidence_list always be in descending order? IF not, then TODO we'll have to only select the best match (what if there's more than one really good match)
                 String annId = fromFancyUUID(rlist.getJSONObject(i).getJSONObject("annot_uuid_1"));  //gets not opts here... so ungraceful fail possible
                 if (!needReviewMap.containsKey(annId)) needReviewMap.put(annId, false); //only set first, so if set true it stays true
                 if (needIdentificationReview(rlist, clist, i, context)) {
