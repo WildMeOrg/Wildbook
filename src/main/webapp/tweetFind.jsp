@@ -97,6 +97,8 @@ if(iaPendingResults != null){
 			out.println("Unable to get result status from IBEISIA for" + pendingResult.get("maId"));
 		}
 		if(resultStatus != null){
+			// TODO: take status and determine if job is complete
+			// Once the job is complete, notify twitter sender of the detectin and identification confidence
 			out.println("Result status:" + resultStatus);
 		}
 	}
@@ -215,6 +217,12 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
   tj = TwitterUtil.saveEntitiesAsMediaAssetsToSheperdDatabaseAndSendEachToImageAnalysis(mas, tweetID, myShepherd, tj, request);
   //TODO iaPendingResults.put(ej); needs to go in this method, but how to extrac iaPendingResults after???
 	tarr.put(tj);
+
+	// Retrieve the list of pending IA entities, and put them into iaPendingResults
+	JSONArray pendingEntities = new JSONArray(tj.get("entities"));
+	for(JSONObject entity : pendingEntities){
+		iaPendingResults.put(entity);
+	}
 }
 //End looping through the tweets
 
