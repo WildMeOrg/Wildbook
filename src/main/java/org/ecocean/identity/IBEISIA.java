@@ -1377,7 +1377,11 @@ System.out.println("**** " + ann);
                 } else if(clist.optDouble(i, -99.0) >= getIdentificationCutoffValue()){
                   System.out.println("Maybe identified it??");
                   try{
-                    System.out.println(rlist.optString(i, "unknown"));
+                    String matchUuid = rlist.getJSONObject(i).optJSONObject("annot_uuid_2");
+                    System.out.println(matchUuid);
+                    //TODO get baseURL
+                    // String info = baseURL + "/individuals.jsp/?number=" + matchUuid;
+                    //TODO pass info to tweet
                   } catch(Exception e){
                     e.printStackTrace();
                   }
