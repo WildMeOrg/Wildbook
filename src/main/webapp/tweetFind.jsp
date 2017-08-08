@@ -93,7 +93,7 @@ if(iaPendingResults != null){
 		JSONObject pendingResult = null;
 		try {
 			pendingResult = iaPendingResults.getJSONObject(i);
-			resultStatus = IBEISIA.getJobResultLogged(pendingResult.getString("taskId"), context);
+			resultStatus = IBEISIA.getTaskResults(pendingResult.getString("taskId"), context);
 		} catch(Exception e){
 			e.printStackTrace();
 			out.println("Unable to get result status from IBEISIA for pending result");
