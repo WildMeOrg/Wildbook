@@ -69,6 +69,8 @@ out.println("results from " + testTweetMultipleLocations + " is " + results);
 results = ParseDateLocation.parseLocation(testTweetNLPLocation, context);
 out.println("results from " + testTweetNLPLocation + " is " + results);
 
+out.println("Don't forget to conduct additional tests on an emulator with gps coordinates from somewhere in asia.");
+
 // Testing tweetMethods
 String randomNumStr = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
 String randomNum2Str = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
