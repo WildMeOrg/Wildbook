@@ -1241,7 +1241,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
-                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) {
+                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // || !is whale_fluke
                             needsReview = true;
                             continue;
                         }
@@ -1284,7 +1284,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     occ.setDWCDateLastModified();
                     occ.setDateTimeCreated();
                     occ.addComments("<i>created during frame collation by IA</i>");
-                    
+
                     JSONArray je = new JSONArray();
                     for (Encounter enc : encs) {
                         enc.setOccurrenceID(occ.getOccurrenceID());
@@ -2673,16 +2673,16 @@ System.out.println("* * * * * * * IAIntake(ident) NOT YET IMPLEMENTED ====> " + 
 return Util.generateUUID();
     }
 */
-    
+
     //this is called when a batch of encounters (which should be on this occurrence) were made from detection
     // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
     public static void fromDetection(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context)  {
         System.out.println(">>>>>> detection created " + occ.toString());
-        
+
         //set the locationID/location/date on all encounters by inspecting detected comments on the first encounter
         if((occ.getEncounters()!=null)&&(occ.getEncounters().get(0)!=null)){
-          
-          
+
+
           String locCode=null;
           String location="";
           int year=-1;
@@ -2692,11 +2692,11 @@ return Util.generateUUID();
           int numEncounters=encounters.size();
           Encounter enc=encounters.get(0);
           String ytRemarks=enc.getOccurrenceRemarks().trim().toLowerCase();
-          
+
           String detectedLanguage="en";
           try{
             detectedLanguage= DetectTranslate.detect(ytRemarks, context);
-            
+
             if(!detectedLanguage.toLowerCase().startsWith("en")){
               ytRemarks= DetectTranslate.translate(ytRemarks, context);
             }
@@ -2725,7 +2725,7 @@ return Util.generateUUID();
                       //}
                       //else {
                       //  ocrRemarks= "";
-                      //}   
+                      //}
                     }
                   }
                   else{
@@ -2737,20 +2737,20 @@ return Util.generateUUID();
             catch (Exception e) {
               e.printStackTrace();
               System.out.println("I hit an exception trying to find ocrRemarks.");
-            }        
-          
+            }
+
           if(enc.getOccurrenceRemarks()!=null){
-            
+
             String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase()+" "+ ocrRemarks.toLowerCase();
-            
+
             System.out.println("Let's parse these remarks for date and location: "+remarks);
-            
+
             Properties props = new Properties();
-    
+
             //OK, let's check the comments and tags for retrievable metadata
             try {
-              
-              
+
+
             //first parse for location and locationID
               try{
                 props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
@@ -2764,18 +2764,18 @@ return Util.generateUUID();
                     System.out.println(".....Building an idea of location: "+location);
                   }
                 }
-              
+
               }
               catch(Exception e){
                 e.printStackTrace();
               }
-              
-              
+
+
               //reset date to exclude OCR, which can currently confuse NLP
               //remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase();
-              
-              
-              
+
+
+
               //reset remarks to avoid dates embedded in researcher comments
 //              remarks=enc.getOccurrenceRemarks().trim().toLowerCase();
               //if no one has set the date already, use NLP to try to figure it out
@@ -2793,24 +2793,24 @@ return Util.generateUUID();
                     if (myDate!=null) {
                         System.out.println(">>>>>> NLP found date: "+myDate);
                         //int numCharact= myDate.length();
-                     
+
                         /*if(numCharact>=4){
-                          
+
                           try{
                             year=(new Integer(myDate.substring(0, 4))).intValue();
                             NLPsuccess=true;
-                            
+
                             if(numCharact>=7){
-                              try { 
+                              try {
                                 month=(new Integer(myDate.substring(5, 7))).intValue();
                                 if(numCharact>=10){
                                   try {
-                                    day=(new Integer(myDate.substring(8, 10))).intValue(); 
-                                    } 
+                                    day=(new Integer(myDate.substring(8, 10))).intValue();
+                                    }
                                   catch (Exception e) { day=-1; }
                                 }
                               else{day=-1;}
-                              } 
+                              }
                               catch (Exception e) { month=-1;}
                             }
                             else{month=-1;}
@@ -2821,10 +2821,10 @@ return Util.generateUUID();
                           }
                       }
                         */
-                        
+
                         //current datetime just for quality comparison
                         LocalDateTime dt = new LocalDateTime();
-                        
+
                         DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
                         LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseLocalDateTime(myDate));
                         //System.out.println("     reportedDateTime is: "+reportedDateTime.toString(parser1));
@@ -2852,10 +2852,10 @@ return Util.generateUUID();
                           try { day=reportedDateTime.getDayOfMonth(); } catch (Exception e) { day=0; }
                         }
                         else{day=-1;}
-                        
-                        
+
+
                     }
-                    
+
 //                      Parser parser = new Parser();
 //                      List groups = parser.parse(ytRemarks);
 //                      int numGroups=groups.size();
@@ -2892,7 +2892,7 @@ return Util.generateUUID();
                     System.out.println("Exception in NLP in IBEISIA.class");
                     e.printStackTrace();
                 }
-                  
+
                   //NLP failure? let's try brute force detection across all languages supported by this Wildbook
                   if(!NLPsuccess){
                     System.out.println(">>>>>> looking for date with brute force");
@@ -2905,7 +2905,7 @@ return Util.generateUUID();
                       if (ytRemarks.indexOf(yearCheck) != -1) {
                         year=i;
                         System.out.println("...detected a year in comments!");
-                        
+
                         /**
                         //check for month
                         List<String> langs=CommonConfiguration.getIndexedPropertyValues("language", context);
@@ -2928,13 +2928,13 @@ return Util.generateUUID();
                           } //end for
                         */
                         }
-                        
+
                       }
                 }
-                  
-                //end brute force date detection if NLP failed  
-                  
-                  
+
+                //end brute force date detection if NLP failed
+
+
                   //if we found a date via NLP or brute force, let's use it here
                   if(year>-1){
                     for(int i=0;i<numEncounters;i++){
@@ -2945,22 +2945,22 @@ return Util.generateUUID();
                         if(day>-1){enc.setDay(day);}
                       }
                     }
-                    
+
                   }
-              
+
             }//end if set date
-              
-                
+
+
               }
 
             catch (Exception props_e) {
               props_e.printStackTrace();
             }
           }
-          
+
           //if we found a locationID, iterate and set it on every Encounter
           if(locCode!=null){
-            
+
             for(int i=0;i<numEncounters;i++){
               Encounter enctemp=encounters.get(i);
               enctemp.setLocationID(locCode);
@@ -2971,8 +2971,8 @@ return Util.generateUUID();
                 }
             }
           }
-          
-          
+
+
           //set the Wildbook A.I. user if it exists
           if(myShepherd.getUser("wildbookai")!=null){
             for(int i=0;i<numEncounters;i++){
@@ -2980,52 +2980,52 @@ return Util.generateUUID();
               enctemp.setSubmitterID("wildbookai");
             }
           }
-          
+
           //if date and/or location not found, ask youtube poster through comment section.
           //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
           try{
             //YouTube.init(request);
             Properties quest = new Properties();
             //Properties questEs = new Properties();
-            
+
             //TBD-simplify to one set of files
             quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
             //questEs= ShepherdProperties.getProperties("questEs.properties");
-            
+
             String questionToPost=null;
-            
+
             if((enc.getDateInMilliseconds()==null)&&(locCode==null)){
               questionToPost= quest.getProperty("whenWhere");
-              
+
             }
             else if(enc.getDateInMilliseconds()==null){
               questionToPost= quest.getProperty("when");
-       
+
             }
             else if(locCode==null){
               questionToPost= quest.getProperty("where");
             }
-            
+
             if(questionToPost!=null){
-            String videoId = enc.getEventID().replaceAll("youtube:",""); 
+            String videoId = enc.getEventID().replaceAll("youtube:","");
               //String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
               try{
                 YouTube.postQuestion(questionToPost,videoId, occ);
               }
               catch(Exception e){e.printStackTrace();}
             }
-          
+
         }
          catch(Exception yet){
            System.out.println("Caught exception trying to post a YouTube question.");
            yet.printStackTrace();
          }
 
-          
-        
+
+
         }
         //end set date/location/locationID on Encounters
-        
+
     }
 
 
