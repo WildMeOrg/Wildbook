@@ -139,7 +139,7 @@ public class TwitterAssetStore extends AssetStore {
             u = "https://www.twitter.com/statuses/" + id;
         } else if (ma.hasLabel("_entity")) {
             //could also use params.type ("photo") if need be?
-            if (ma.getParameters() != null) u = ma.getParameters().optString("media_url", null);
+            if (ma.getParameters() != null) u = ma.getParameters().optString("mediaURL", null);
         }
         if (u == null) return null;  //dunno/how!
         try {
@@ -332,12 +332,26 @@ public class TwitterAssetStore extends AssetStore {
 
     private static void setEntityMetadata(MediaAsset ma) {
         System.out.println("Hey mark. Got here.");
+        System.out.println("MediaAssetId is: " + ma.toString());
         if (ma.getParameters() == null) return;
         JSONObject d = new JSONObject("{\"attributes\": {} }");
-        if ((ma.getParameters().optJSONObject("sizes") != null) && (ma.getParameters().getJSONObject("sizes").optJSONObject("large") != null)) {
-            d.getJSONObject("attributes").put("width", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("w", 0));
-            d.getJSONObject("attributes").put("height", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("h", 0));
+        if ((ma.getParameters().optJSONObject("sizes") != null) && (ma.getParameters().getJSONObject("sizes").optJSONObject("3") != null)) {
+            d.getJSONObject("attributes").put("width", ma.getParameters().getJSONObject("sizes").getJSONObject("3").optDouble("width", 0));
+            d.getJSONObject("attributes").put("height", ma.getParameters().getJSONObject("sizes").getJSONObject("3").optDouble("height", 0));
         }
+	String mimeGuess = ma.getParameters().optString("type", "unknown");
+	if (mimeGuess.equals("photo")) mimeGuess = "image";
+	mimeGuess += "/";
+	String url = ma.getParameters().optString("mediaURL", ".unknown");
+	int i = url.lastIndexOf(".");
+	String ext = "jpeg";
+/*
+	if (i > -1) {
+		ext = url.substring(i);
+	}
+*/
+	mimeGuess += ext;
+	d.getJSONObject("attributes").put("contentType", mimeGuess);
         ma.setMetadata(new MediaAssetMetadata(d));
     }
 
