@@ -86,6 +86,8 @@ import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 
+import twitter4j.Status;
+
 
 
 //ATOM feed
@@ -846,8 +848,90 @@ public static ArrayList<String> nlpLocationParse(String text) throws RuntimeExce
 
 }
 
+
+//overloaded version to deal with tweets
+public static String nlpDateParse(String text, Status tweet) throws Exception{
+  System.out.println("Entering nlpDateParse twitter version with text " + text);
+  //create my pipeline with the help of the annotators I added.
+  Properties props = new Properties();
+  AnnotationPipeline pipeline = new AnnotationPipeline();
+  pipeline.addAnnotator(new TokenizerAnnotator(false));
+  pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+  pipeline.addAnnotator(new POSTaggerAnnotator(false));
+  pipeline.addAnnotator(new TimeAnnotator("sutime", props));
+
+  text = text.replaceAll("[,.!?;:]", "$0 ");
+  System.out.println("text: " + text);
+  String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase()
+    .split("\\s+"); //TODO I think this does a better version of what the above (text = text.replaceAll("[,.!?;:]", "$0 ");) does?? -Mark Fisher
+  String text2 = String.join(" ", text1);
+
+  System.out.println("text2: " + text2);
+  edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
+
+  //get current date (no time) and formatted with Joda time.
+  LocalDate date = LocalDate.now();
+  DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
+  String referenceDate = dateFormat.print(date);
+
+  //pass current date and record date (or dates) given by text in TIMEX3(an ISO 8601 extention)format.
+  annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
+  pipeline.annotate(annotation);
+  List<CoreMap> timexAnnsAll = annotation
+  .get(TimeAnnotations.TimexAnnotations.class);
+
+  ArrayList<String> arrayListDates = new ArrayList<String>();
+  for (CoreMap cm : timexAnnsAll) {
+    Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
+    //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
+    String dateStr = myDate.toString();
+    System.out.println(".....found date: " + dateStr);
+    arrayListDates.add(dateStr.replaceAll("-XX", ""));
+  }
+  System.out.println("NLP dates found+:" + arrayListDates);
+
+  if (!arrayListDates.isEmpty()) {
+    //turn arrayList into an array to be able to use the old For loop and compare dates.
+    String[] arrayDates = new String[arrayListDates.size()];
+    arrayDates = arrayListDates.toArray(arrayDates);
+    String selectedDate = "";
+
+    try{
+      System.out.println("About to enter selectBestDateFromCandidates");
+      selectedDate = selectBestDateFromCandidates(arrayDates);
+    } catch(Exception e){
+      e.printStackTrace();
+    }
+    if(selectedDate == null | selectedDate.equals("")){
+      try{
+        java.util.Date tweetDate = tweet.getCreatedAt();
+        DateFormat dfTweetStamp = new SimpleDateFormat("yyyy-MM-dd");
+        selectedDate = dfTweetStamp.format(tweetDate);
+        System.out.println("Date of tweet when all other candidates were eliminated is: " + selectedDate);
+        return selectedDate;
+      } catch(Exception e){
+        e.printStackTrace();
+        throw new Exception("Couldn't fetch a timeStamp for the tweet to use as a last-resort date after all other candidates were eliminated");
+      }
+    } else{
+      return selectedDate;
+    }
+  } else{
+    try{
+      java.util.Date tweetDate = tweet.getCreatedAt();
+      DateFormat dfTweetStamp = new SimpleDateFormat("yyyy-MM-dd");
+      String selectedDate = dfTweetStamp.format(tweetDate);
+      System.out.println("Date of tweet when no other candidates existed is: " + selectedDate);
+      return selectedDate;
+    } catch(Exception e){
+      e.printStackTrace();
+      throw new Exception("Couldn't fetch a timeStamp for the tweet to use as a last-resort date when no other candidates existed");
+    }
+  }
+}
+
 public static String nlpDateParse(String text) throws Exception{
-  System.out.println("Entering nlpParseDate with text " + text);
+  System.out.println("Entering nlpDateParse with text " + text);
   //create my pipeline with the help of the annotators I added.
   Properties props = new Properties();
   AnnotationPipeline pipeline = new AnnotationPipeline();
@@ -912,9 +996,7 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
 
   if(candidates.length <1){
     throw new Exception("list of candidate dates was empty");
-  } else if(candidates.length == 1){
-    selectedDate = candidates[0];
-  } else if (candidates.length > 1) {
+  } else if (candidates.length >= 1) {
 
     //filter by options that are valid dates
     ArrayList<String> validDates = new ArrayList<String>();
@@ -934,6 +1016,9 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
     ArrayList<String> validDatesWithFutureDatesRemoved = new ArrayList<String>();
     try{
       validDatesWithFutureDatesRemoved = removeFutureDates(validDates);
+      System.out.println("Before future removal:");
+      System.out.println(validDates);
+      System.out.println("After future removal:");
       System.out.println(validDatesWithFutureDatesRemoved);
     } catch(Exception e){
       System.out.println("couldn't run removeFutureDates");
@@ -987,12 +1072,10 @@ public static ArrayList<String> removeInvalidDates(String[] candidates) throws E
   java.util.Date candiDate;
   for(int i =0; i<candidates.length; i++){
     String candidateString = candidates[i];
-    // System.out.println("candidateString in removeInvalidDates method is " + candidateString);
     try {
       candiDate = df.parse(candidateString);
       newDateString = df.format(candiDate);
       validDates.add(newDateString);
-      // System.out.println("newDateString " + newDateString + " added to validDates");
     } catch (ParseException e) {
       continue;
     }
@@ -1000,8 +1083,6 @@ public static ArrayList<String> removeInvalidDates(String[] candidates) throws E
   if(validDates == null | validDates.size()<1){
     throw new Exception("validDates arrayList is empty or null in removeInvalidDates method");
   } else{
-    System.out.println("returning the following from removeInvalidDates:");
-    System.out.println(validDates);
     return validDates;
   }
 }
@@ -1025,8 +1106,6 @@ public static ArrayList<String> removeFutureDates(ArrayList<String> candidates) 
   if(returnCandidates == null | returnCandidates.size()<1){
     throw new Exception("return list is null or empty after removeFutureDates runs");
   } else{
-    System.out.println("returning the following from removeFutureDates:");
-    System.out.println(returnCandidates);
     return returnCandidates;
   }
 }
@@ -1045,8 +1124,6 @@ public static java.util.Date convertStringToDateYYYYMMdd(String dateString) thro
 public static ArrayList<String> removeYesterdayDatesIfTheyAreNotTheOnlyDates(ArrayList<String> candidates) throws Exception{
     String yesterday = getYesterdayDateString();
     ArrayList<String> returnCandidates = new ArrayList<String>();
-    System.out.println("yesterday's date is " + yesterday);
-    //TODO add code
     int yesterdayCounter = 0;
     for(int i = 0; i<candidates.size(); i++){
       if (candidates.get(i).equals(yesterday)){
@@ -1075,7 +1152,6 @@ public static String getTodayDateString() {
 
 public static java.util.Date getToday() {
     final Calendar cal = Calendar.getInstance();
-    // cal.add(Calendar.DATE);
     return cal.getTime();
 }
 
