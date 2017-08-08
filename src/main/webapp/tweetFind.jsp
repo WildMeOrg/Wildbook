@@ -88,13 +88,15 @@ try {
 // Check if JSON data exists
 if(iaPendingResults != null){
 	// out.println(iaPendingResults);
-	for(JSONObject pendingResult : iaPendingResults){
+	for(int i = 0; i < iaPendingResults.length(); i++){
 		JSONObject resultStatus = null;
+		JSONObject pendingResult = null;
 		try {
-			resultStatus = IBEISIA.getJobResultLogged(pendingResult.get("taskId"), context);
+			pendingResult = iaPendingResults.getJSONObject(i);
+			resultStatus = IBEISIA.getJobResultLogged(pendingResult.getString("taskId"), context);
 		} catch(Exception e){
 			e.printStackTrace();
-			out.println("Unable to get result status from IBEISIA for" + pendingResult.get("maId"));
+			out.println("Unable to get result status from IBEISIA for pending result");
 		}
 		if(resultStatus != null){
 			// TODO: take status and determine if job is complete
@@ -219,9 +221,23 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 	tarr.put(tj);
 
 	// Retrieve the list of pending IA entities, and put them into iaPendingResults
-	JSONArray pendingEntities = new JSONArray(tj.get("entities"));
-	for(JSONObject entity : pendingEntities){
-		iaPendingResults.put(entity);
+	JSONArray pendingEntities = null;
+	try {
+		pendingEntities = new JSONArray(tj.getJSONArray("entities"));
+	} catch(Exception e){
+		e.printStackTrace();
+		out.println("Unable to retrieve entities.");
+	}
+	if(pendingEntities != null){
+		for(int j = 0; j < pendingEntities.length(); j++){
+		try {
+			JSONObject entity = pendingEntities.getJSONObject(j);
+			iaPendingResults.put(entity);
+		} catch(Exception e){
+			e.printStackTrace();
+			out.println("Unable to retrieve entity from pending entities array.");
+		}
+	}
 	}
 }
 //End looping through the tweets
