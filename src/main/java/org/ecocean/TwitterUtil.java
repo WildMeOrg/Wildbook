@@ -205,21 +205,15 @@ public class TwitterUtil {
         myShepherd.beginDBTransaction();
         try {
           JSONObject ej = new JSONObject();
-          MediaAssetMetadata entMd = ent.updateMetadata();
+          // MediaAssetMetadata entMd = ent.updateMetadata();
           MediaAssetFactory.save(ent, myShepherd);
-          JSONObject test = TwitterUtil.toJSONObject(entMd);
-          // System.out.println("metadata: ");
-          // System.out.println(TwitterUtil.toJSONString(test));
-          test = TwitterUtil.toJSONObject(ent);
-          // System.out.println("entity mediaAsset: ");
-          // System.out.println(TwitterUtil.toJSONString(test));
+          System.out.println("Ent's mediaAssetID is " + ent.toString());
           // MediaAssetFactory.save(ent, myShepherd);
           String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
-          // System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
-          // System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
           ej.put("maId", ent.getId());
           ej.put("taskId", taskId);
           jent.put(ej);
+          // myShepherd.getPM().makePersistent(ej); //maybe?
           myShepherd.commitDBTransaction();
         } catch(Exception e){
           myShepherd.rollbackDBTransaction();
