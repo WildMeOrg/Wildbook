@@ -238,7 +238,7 @@ margin-bottom: 8px !important;
 	 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
 			          //bounds.extend(latLng);
 
-	 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 50px;vertical-align: middle;width:50px;height:50px;padding: 2px; background-image: url('/cust/mantamatcher/img/giraffe-silhouette-white.svg');background-size: cover\"><a style=\"font-size: 1.5em; text-shadow: 0 0 3px #FFF; x-webkit-text-stroke: 1px #FFF;\" href=\"/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+	 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 100px;vertical-align: middle;width:80px;height:100px;padding: 2px; background-image: url('/cust/mantamatcher/img/giraffe-silhouette.svg');background-size: cover\"><a style=\"font-size: 1.5em; text-shadow: 0 0 2px #FFF; color: #000 !important; webkit-text-stroke: 1px #FFF;\" href=\"/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
 
 
 	 		         var marker<%=i%> = new RichMarker({
@@ -446,7 +446,7 @@ finally{
 
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
+					<img class="pull-right" src="images/step-1.jpg" alt=""  />
 				</div>
 			</div>
 			<div class="item">
@@ -457,7 +457,7 @@ finally{
           </p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
+					<img class="pull-right" src="images/step-2.jpg" alt=""  />
 				</div>
 			</div>
 			<div class="item">
@@ -468,7 +468,7 @@ finally{
           </p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
+					<img class="pull-right" src="images/step-3.jpg" alt=""  />
 				</div>
 			</div>
 			<div class="item">
@@ -479,7 +479,7 @@ finally{
           </p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
+					<img class="pull-right" src="images/step-4.jpg" alt=""  />
 				</div>
 			</div>
 		</div>

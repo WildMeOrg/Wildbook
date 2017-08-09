@@ -7976,7 +7976,7 @@ form table th {
   color: #ffffff;
 }
 .header-top-wrapper {
-  background: #555;
+  background: #FFF;
 }
 .header-top-wrapper .container {
   padding-top: 10px;
@@ -8126,14 +8126,17 @@ ibeis-badge {
 	Content
 */
 /* Hero */
-.hero,
 .data-section {
+  background-image: url("../img/background-data-section.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+}
+.hero {
   background-image: url("../img/hero_manta.jpg");
   background-size: cover;
   background-repeat: no-repeat;
-  background-position: 50% 50%;
-}
-.hero {
+  background-position: center bottom;
   position: relative;
 }
 .hero .container {
