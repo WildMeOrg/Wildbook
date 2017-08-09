@@ -106,11 +106,13 @@ if(iaPendingResults != null){
 				out.println("IA complete for object " + pendingResult.getString("taskId") + "! Removing from pending");
 				iaPendingResults.remove(i);
 			} else {
-				out.println("IA failed for object " + pendingResult.getString("taskId") + ". Notifying sender.");
-				// TODO: Notify sender of failed processing? ---> Will ask Jon about this
+				out.println("IA failed for object " + pendingResult.getString("taskId") + ".");
 			}
 		} else {
 			System.out.println("Pending result " + pendingResult.getString("taskId") + " has not been processed yet.");
+
+			// Check if 24 hrs have passed since the result process was started and notify sender if it's timed out
+			
 		}
 	}
 } else {
