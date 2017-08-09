@@ -3,6 +3,7 @@ package org.ecocean;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Properties;
 import org.ecocean.servlet.ServletUtilities;
+import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -16,7 +17,6 @@ import com.google.gson.Gson;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 
 /*
 import java.net.URL;
@@ -213,7 +213,7 @@ public class TwitterUtil {
           String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
           ej.put("maId", ent.getId());
           ej.put("taskId", taskId);
-          ej.put("creationDate", new Date());
+          ej.put("creationDate", new LocalDateTime());
           jent.put(ej);
           // myShepherd.getPM().makePersistent(ej); //maybe?
           myShepherd.commitDBTransaction();
