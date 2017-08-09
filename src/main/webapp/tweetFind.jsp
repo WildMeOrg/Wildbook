@@ -93,15 +93,18 @@ if(iaPendingResults != null){
 		JSONObject pendingResult = null;
 		try {
 			pendingResult = iaPendingResults.getJSONObject(i);
-			resultStatus = IBEISIA.getJobResultLogged(pendingResult.getString("taskId"), context);
+			resultStatus = IBEISIA.getTaskResults(pendingResult.getString("taskId"), context);
 		} catch(Exception e){
 			e.printStackTrace();
 			out.println("Unable to get result status from IBEISIA for pending result");
 		}
 		if(resultStatus != null){
 			// TODO: take status and determine if job is complete
-			// Once the job is complete, notify twitter sender of the detectin and identification confidence
-			out.println("Result status:" + resultStatus);
+			// Once the job is complete, notify twitter sender of the detection and identification confidence
+			// This section might be moved to a java file instead of being executed in the jsp file
+			out.println("Result status: " + resultStatus);
+		} else {
+			System.out.println("Pending result " + pendingResult.getString("taskId") + " has not been processed yet.");
 		}
 	}
 } else {
@@ -201,12 +204,12 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 	JSONArray emedia = null;
 	emedia = jtweet.optJSONArray("extendedMediaEntities");
   if((emedia == null) || (emedia.length() < 1)){
-    TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
+    // TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
     continue;
   }
 
   //sendPhotoSpecificCourtesyTweet will detect a photo in your tweet object and tweet the user an acknowledgement about this. If multiple images are sent in the same tweet, this response will only happen once.
-  TwitterUtil.sendPhotoSpecificCourtesyTweet(emedia, tweeterScreenName, twitterInst);
+  // TwitterUtil.sendPhotoSpecificCourtesyTweet(emedia, tweeterScreenName, twitterInst);
 
   tj = TwitterUtil.makeParentTweetMediaAssetAndSave(myShepherd, tas, tweet, tj);
   //retrieve ma now that it has been saved
