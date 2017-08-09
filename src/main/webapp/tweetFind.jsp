@@ -20,8 +20,9 @@ twitter4j.*,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.ecocean.ParseDateLocation.*,
-java.util.concurrent.ThreadLocalRandom
-              "
+java.util.concurrent.ThreadLocalRandom,
+org.joda.time.LocalDateTime,
+org.joda.time.Interval"
 %>
 
 <%
@@ -112,7 +113,14 @@ if(iaPendingResults != null){
 			System.out.println("Pending result " + pendingResult.getString("taskId") + " has not been processed yet.");
 
 			// Check if 24 hrs have passed since the result process was started and notify sender if it's timed out
-			
+			LocalDateTime resultCreation = new LocalDateTime(pendingResult.getString("creationDate"));
+			LocalDateTime timeNow = new LocalDateTime();
+			Interval interval = new Interval(resultCreation, timeNow);
+
+			if(interval.toDuration().getStandardHours() >= 24){
+				out.println("Object " + pendingResult.getString("taskId") + " has timed out in IA. Notifying sender.");
+				TwitterUtil.sendTimeoutTweet(pendingResult.getString("tweeterScreenName"), twitterInst, pendingResult.getString("maId"));
+			}
 		}
 	}
 } else {

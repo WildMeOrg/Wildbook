@@ -214,6 +214,8 @@ public class TwitterUtil {
           ej.put("maId", ent.getId());
           ej.put("taskId", taskId);
           ej.put("creationDate", new LocalDateTime());
+          String tweeterScreenName = tj.getJSONObject("tweet").getJSONObject("user").getString("screen_name");
+          ej.put("tweeterScreenName", tweeterScreenName);
           jent.put(ej);
           // myShepherd.getPM().makePersistent(ej); //maybe?
           myShepherd.commitDBTransaction();
@@ -244,6 +246,17 @@ public class TwitterUtil {
       String status1 = createTweet(tweet, twitterInst);
       String status2 = createTweet(tweet2, twitterInst);
     } catch(TwitterException e){
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendTimeoutTweet(String screenName, Twitter twitterInst, String id) {
+    String reply = "Hello @" + screenName + "The image you sent for tweet " + id + " was unable to be processed";
+    String reply2 = "@" + screenName + ", if you'd like to make a manual submission, please go to http://www.flukebook.org/submit.jsp";
+    try {
+      String status = createTweet(reply, twitterInst);
+      String status2 = createTweet(reply2, twitterInst);
+    } catch(TwitterException e) {
       e.printStackTrace();
     }
   }
