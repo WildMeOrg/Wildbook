@@ -165,6 +165,7 @@ System.out.println("created???? " + ma);
 
 
     private ArrayList<SuperSpot> parseSpots(JSONArray arr) {
+      try{
         if ((arr == null) || (arr.length() < 1)) return null;
         ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();
         for (int i = 0 ; i < arr.length() ; i++) {
@@ -177,6 +178,12 @@ System.out.println("created???? " + ma);
             spots.add(new SuperSpot(x, y, -1.0));
         }
         return spots;
+      }
+      catch(Exception e){
+        e.printStackTrace();
+        
+      }
+      return null;
     }
 
 }
