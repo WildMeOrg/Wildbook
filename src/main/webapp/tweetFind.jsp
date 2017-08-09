@@ -99,10 +99,16 @@ if(iaPendingResults != null){
 			out.println("Unable to get result status from IBEISIA for pending result");
 		}
 		if(resultStatus != null){
-			// TODO: take status and determine if job is complete
-			// Once the job is complete, notify twitter sender of the detection and identification confidence
-			// This section might be moved to a java file instead of being executed in the jsp file
+			// If job is complete, remove from iaPendingResults
 			out.println("Result status: " + resultStatus);
+
+			if(resultStatus.getBoolean("success")){
+				out.println("IA complete for object " + pendingResult.getString("taskId") + "! Removing from pending");
+				iaPendingResults.remove(i);
+			} else {
+				out.println("IA failed for object " + pendingResult.getString("taskId") + ". Notifying sender.");
+				// TODO: Notify sender of failed processing? ---> Will ask Jon about this
+			}
 		} else {
 			System.out.println("Pending result " + pendingResult.getString("taskId") + " has not been processed yet.");
 		}
