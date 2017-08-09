@@ -220,12 +220,12 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
 	JSONArray emedia = null;
 	emedia = jtweet.optJSONArray("extendedMediaEntities");
   if((emedia == null) || (emedia.length() < 1)){
-    // TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
+    TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
     continue;
   }
 
   //sendPhotoSpecificCourtesyTweet will detect a photo in your tweet object and tweet the user an acknowledgement about this. If multiple images are sent in the same tweet, this response will only happen once.
-  // TwitterUtil.sendPhotoSpecificCourtesyTweet(emedia, tweeterScreenName, twitterInst);
+  TwitterUtil.sendPhotoSpecificCourtesyTweet(emedia, tweeterScreenName, twitterInst);
 
   tj = TwitterUtil.makeParentTweetMediaAssetAndSave(myShepherd, tas, tweet, tj);
   //retrieve ma now that it has been saved
