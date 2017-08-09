@@ -21,7 +21,7 @@ org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.ecocean.ParseDateLocation.*,
 java.util.concurrent.ThreadLocalRandom,
-org.joda.time.LocalDateTime,
+org.joda.time.DateTime,
 org.joda.time.Interval"
 %>
 
@@ -105,7 +105,7 @@ if(iaPendingResults != null){
 
 			if(resultStatus.getBoolean("success")){
 				out.println("IA complete for object " + pendingResult.getString("taskId") + "! Removing from pending");
-				iaPendingResults.remove(i);
+				iaPendingResults = TwitterUtil.removePendingEntry(iaPendingResults, i);
 			} else {
 				out.println("IA failed for object " + pendingResult.getString("taskId") + ".");
 			}
@@ -113,8 +113,8 @@ if(iaPendingResults != null){
 			System.out.println("Pending result " + pendingResult.getString("taskId") + " has not been processed yet.");
 
 			// Check if 24 hrs have passed since the result process was started and notify sender if it's timed out
-			LocalDateTime resultCreation = new LocalDateTime(pendingResult.getString("creationDate"));
-			LocalDateTime timeNow = new LocalDateTime();
+			DateTime resultCreation = new DateTime(pendingResult.getString("creationDate"));
+			DateTime timeNow = new DateTime();
 			Interval interval = new Interval(resultCreation, timeNow);
 
 			if(interval.toDuration().getStandardHours() >= 24){

@@ -5,6 +5,7 @@ import java.util.Properties;
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 
 import org.ecocean.media.TwitterAssetStore;
@@ -270,5 +271,17 @@ public class TwitterUtil {
       e.printStackTrace();
     }
     return returnVal;
+  }
+
+  public static JSONArray removePendingEntry(JSONArray pendingResults, int index){
+    ArrayList<JSONObject> list = new ArrayList<>();
+    for(int i = 0; i < pendingResults.length(); i++){
+      if(i == index){
+        continue;
+      } else {
+        list.add(pendingResults.getJSONObject(i));
+      }
+    }
+    return new JSONArray(list);
   }
 }
