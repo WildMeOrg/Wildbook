@@ -1245,7 +1245,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
 
                             needsReview = true;
                             System.out.println("Detection didn't find a whale fluke");
-                            // TwitterUtil.sendDetectionAndIdentificationTweet(screenName, imageId, twitterInst, whaleId, false, false); //TODO find a way to get screenName, imageId, etc. over here
+                            // TwitterUtil.sendDetectionAndIdentificationTweet(screenName, imageId, twitterInst, whaleId, false, false, ""); //TODO find a way to get screenName, imageId, etc. over here
                             continue;
                         }
                         //these are annotations we can make automatically from ia detection.  we also do the same upon review return
@@ -1328,8 +1328,12 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         enc.detectedAnnotation(myShepherd, request, ann);
     }
 
-
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request) {
+      processCallbackIdentify(taskID, logs, resp, request, null, null, null, null, null, null);
+
+    }
+
+    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst, String whaleId, boolean detected, boolean identified) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
         if (ids == null) {
@@ -1383,7 +1387,12 @@ System.out.println("**** " + ann);
                     System.out.println(matchUuid);
                     //TODO get baseURL
                     // String info = baseURL + "/individuals.jsp/?number=" + matchUuid;
-                    //TODO pass info to tweet
+                    if(screenName != null && imageId != null && twitterInst != null){
+                      //TODO pass info to tweet
+                    } else{
+                      System.out.println("Arguments to generate a return tweet were not available; skipped.");
+                    }
+
                   } catch(Exception e){
                     e.printStackTrace();
                   }

@@ -225,11 +225,11 @@ public class TwitterUtil {
     return tj;
   }
 
-  public static void sendDetectionAndIdentificationTweet(String screenName, String imageId, Twitter twitterInst, String whaleId, boolean detected, boolean identified){
+  public static void sendDetectionAndIdentificationTweet(String screenName, String imageId, Twitter twitterInst, String whaleId, boolean detected, boolean identified, String additionalInfo){
     String tweet = null, tweet2 = null;
     if(detected && identified){
       tweet = "Hi, @" + screenName + "! We detected a whale in " + imageId + " and identified it as " + whaleId + "!";
-      tweet2 = "@" + screenName + ", here's some info on " + whaleId + ": "; //TODO flesh out either by pulling info from db now that whaleId is available, or by passing some info as an additional argument in this method
+      tweet2 = "@" + screenName + ", here's some info on " + whaleId + ": " + additionalInfo;
     } else if(detected && !identified){
       tweet =  "Hi, @" + screenName + "! We detected a whale in " + imageId + " but we were not able to identify it.";
       tweet2 = "@" + screenName + ", if you'd like to make a manual submission for " + imageId + ", please go to http://www.flukebook.org/submit.jsp";
