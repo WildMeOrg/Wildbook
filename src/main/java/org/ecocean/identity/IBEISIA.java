@@ -59,6 +59,9 @@ import java.util.Locale;
 import java.util.Date;
 import org.joda.time.Instant;
 
+import twitter4j.Status;
+import twitter4j.*;
+
 
 public class IBEISIA {
 
@@ -1182,6 +1185,10 @@ System.out.println("**** type ---------------> [" + type + "]");
 */
 
     private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, HttpServletRequest request) {
+      return processCallbackDetect(taskID, logs, resp, myShepherd, request, null, null, null);
+    }
+
+    private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
 System.out.println("***** ids = " + ids);
@@ -1329,11 +1336,10 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
     }
 
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request) {
-      processCallbackIdentify(taskID, logs, resp, request, null, null, null, null, null, null);
-
+      return processCallbackIdentify(taskID, logs, resp, request, null, null, null);
     }
 
-    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst, String whaleId, boolean detected, boolean identified) {
+    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
         if (ids == null) {
@@ -1383,7 +1389,7 @@ System.out.println("**** " + ann);
                 } else if(clist.optDouble(i, -99.0) >= getIdentificationCutoffValue()){
                   System.out.println("Maybe identified it??");
                   try{
-                    String matchUuid = rlist.getJSONObject(i).optJSONObject("annot_uuid_2");
+                    String matchUuid = rlist.getJSONObject(i).getJSONObject("annot_uuid_2").toString();
                     System.out.println(matchUuid);
                     //TODO get baseURL
                     // String info = baseURL + "/individuals.jsp/?number=" + matchUuid;
