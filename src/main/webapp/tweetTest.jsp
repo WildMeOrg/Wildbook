@@ -19,7 +19,9 @@ twitter4j.*,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.ecocean.ParseDateLocation.*,
-java.util.concurrent.ThreadLocalRandom"
+java.util.concurrent.ThreadLocalRandom,
+org.joda.time.DateTime,
+org.joda.time.Interval"
 
 %>
 
@@ -27,6 +29,7 @@ java.util.concurrent.ThreadLocalRandom"
 String rootDir = request.getSession().getServletContext().getRealPath("/");
 String dataDir = ServletUtilities.dataDir("context0", rootDir);
 String testFileName = "/twitterTimeStampTestFile.txt";
+String testPendingResultsFile = "/testPendingResultsFile.json";
 long sinceId = 890302524275662848L;
 
 Twitter twitterInst = TwitterUtil.init(request);
@@ -105,6 +108,81 @@ try{
 } catch(NumberFormatException e){
 	e.printStackTrace();
 }
+
+// START Pending results tests
+
+// Create test JSONObject and save it to file
+JSONArray  testJSONArray = new JSONArray();
+JSONObject testObject = new JSONObject();
+testObject.put("maId", "testMAId230948a");
+testObject.put("taskId", "testTaskId230984afs");
+testObject.put("creationDate", new DateTime());
+JSONObject testObject2 = new JSONObject();
+testObject2.put("maId", "testMAId45908sjk");
+testObject2.put("taskId", "testTaskId2098098sdfjk");
+testObject2.put("creationDate", new DateTime());
+testJSONArray.put(testObject);
+testJSONArray.put(testObject2);
+
+try {
+	String iaPendingResultsAsString = testJSONArray.toString();
+	Util.writeToFile(iaPendingResultsAsString, dataDir + testPendingResultsFile);
+	out.println("Successfully wrote pending results to file");
+} catch (Exception e){
+	e.printStackTrace();
+}
+
+testJSONArray = null;
+
+// Test that JSONArray for pending results was correctly saved
+try {
+	String iaPendingResultsAsString = Util.readFromFile(dataDir + testPendingResultsFile);
+  testJSONArray = new JSONArray(iaPendingResultsAsString);
+  out.println("Test array: " + testJSONArray);
+} catch(Exception e){
+	e.printStackTrace();
+}
+
+// Check if JSON data exists
+if(testJSONArray != null){
+	// out.println(testJSONArray);
+	for(int i = 0; i < testJSONArray.length(); i++){
+		JSONObject resultStatus = null;
+		JSONObject pendingResult = null;
+		try {
+			pendingResult = testJSONArray.getJSONObject(i);
+			// resultStatus = IBEISIA.getTaskResults(pendingResult.getString("taskId"), context);
+		} catch(Exception e){
+			e.printStackTrace();
+			out.println("Unable to get result status from IBEISIA for pending result");
+		}
+		if(i == 1){ // test for second object
+			// If job is complete, remove from testJSONArray
+			// out.println("Result status: " + resultStatus);
+
+      out.println("Removing object " + pendingResult.getString("taskId") + "!");
+      testJSONArray = TwitterUtil.removePendingEntry(testJSONArray, i);
+		} else {
+			System.out.println("Pending result " + pendingResult.getString("taskId") + " has not been processed yet.");
+
+			// Test that interval works properly
+			DateTime resultCreation = new DateTime(pendingResult.getString("creationDate"));
+			DateTime timeNow = new DateTime();
+      Interval interval = new Interval(resultCreation, timeNow);
+      out.println("Interval: " + interval);
+      out.println("Interval duration: " + interval.toDuration().plus(5000000).getStandardHours());
+
+			// if(interval.toDuration().getStandardHours() >= 24){
+			// 	out.println("Object " + pendingResult.getString("taskId") + " has timed out in IA. Notifying sender.");
+			// 	TwitterUtil.sendTimeoutTweet(pendingResult.getString("tweeterScreenName"), twitterInst, pendingResult.getString("maId"));
+			// }
+		}
+	}
+} else {
+	out.println("No pending results");
+	testJSONArray = new JSONArray();
+}
+// END PENDING RESULTS TESTS
 
 // Natural Language Processing (NLP) tests
 String testWithFutureString = null;
