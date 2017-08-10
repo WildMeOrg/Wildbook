@@ -3,7 +3,7 @@ package org.ecocean;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
@@ -49,6 +49,11 @@ public class Occurrence implements java.io.Serializable{
   private String modified;
   //private String locationID;
   private String dateTimeCreated;
+  
+  //social media registration fields for AI-created occurrences
+  private String socialMediaSourceID;
+  private String socialMediaQueryCommentID;
+  private String socialMediaQueryCommentReplies;
 
   // this is helpful for sorting but isn't (for now) intended to be UI-facing
   // rather it's set from Encounters
@@ -812,11 +817,7 @@ public class Occurrence implements java.io.Serializable{
 
     }
     
-    //this is called when a batch of encounters (which should be on this occurrence) were made from detection
-    // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
-    public void fromDetection(Shepherd myShepherd, HttpServletRequest request) {
-        System.out.println(">>>>>> detection created " + this);
-    }
+
 
     public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
       
@@ -826,6 +827,19 @@ public class Occurrence implements java.io.Serializable{
       
 
     }
+    
+    //social media registration fields for AI-created occurrences
+    public String getSocialMediaSourceID(){return socialMediaSourceID;};
+    public void setSocialMediaSourceID(String id){socialMediaSourceID=id;};
+    
+    
+    public String getSocialMediaQueryCommentID(){return socialMediaQueryCommentID;};
+    public void setSocialMediaQueryCommentID(String id){socialMediaQueryCommentID=id;};
+    //each night we look for one occurrence that has commentid but not commentresponseid.
+    
+    public String getSocialMediaQueryCommentRelies(){return socialMediaQueryCommentReplies;};
+    public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
+
 
 
 }

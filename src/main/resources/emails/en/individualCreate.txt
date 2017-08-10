@@ -2,9 +2,9 @@ SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
 Just a quick e-mail to let you know that the encounter that you submitted
-has been added as a new, previously unidentified manta!
+has been added as a new, previously unidentified whale shark!
 
-You discovered a new manta for science!
+You discovered a new whale for science!
 
 Newly marked: @INDIVIDUAL_ID@
 @INDIVIDUAL_LINK@
@@ -14,6 +14,6 @@ Encounter: @ENCOUNTER_ID@
 
 Thanks again for your critical help! If you're interested in supporting our
 research to understand and protect animals like yours, please adopt and
-nickname your animal:
+nickname your animal.
 
         

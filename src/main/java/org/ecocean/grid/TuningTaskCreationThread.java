@@ -66,6 +66,7 @@ public class TuningTaskCreationThread implements Runnable, ISharkGridThread {
 
   public void createThem() {
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("TuningTaskCreationThread");
     GridManager gm = GridManagerFactory.getGridManager();
 
     String secondRun = "true";

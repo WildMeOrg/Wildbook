@@ -113,6 +113,16 @@
       <field name="groupBehavior" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
+	  
+       <field name="socialMediaSourceID" persistence-modifier="persistent">
+        <column length="1024" allows-null="true"/>
+      </field>
+	       <field name="socialMediaQueryCommentID" persistence-modifier="persistent">
+        <column length="1024" allows-null="true"/>
+      </field>
+	       <field name="socialMediaQueryCommentReplies" persistence-modifier="persistent">
+        <column length="1024" allows-null="true"/>
+      </field>
 
       <field name="individualCount" persistence-modifier="persistent">
         <column jdbc-type="INTEGER" allows-null="true"/>

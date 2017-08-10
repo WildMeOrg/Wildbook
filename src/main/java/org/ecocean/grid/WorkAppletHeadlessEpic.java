@@ -88,7 +88,11 @@ public class WorkAppletHeadlessEpic {
   public static void main(String args[]) {
 
     urlArray.add("https://www.whaleshark.org");
+    
+    //addresses for spotashark-related wildbooks
     urlArray.add("http://www.spotashark.com");
+    urlArray.add("http://ncaquariums.wildbook.org");
+    
     // IP for Bass Server
     urlArray.add("http://34.209.17.78");
 
