@@ -120,6 +120,7 @@ if(iaPendingResults != null){
 			if(interval.toDuration().getStandardHours() >= 24){
 				out.println("Object " + pendingResult.getString("taskId") + " has timed out in IA. Notifying sender.");
 				TwitterUtil.sendTimeoutTweet(pendingResult.getString("tweeterScreenName"), twitterInst, pendingResult.getString("maId"));
+				iaPendingResults = TwitterUtil.removePendingEntry(iaPendingResults, i);
 			}
 		}
 	}
