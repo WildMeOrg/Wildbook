@@ -20,8 +20,9 @@ twitter4j.*,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.ecocean.ParseDateLocation.*,
-java.util.concurrent.ThreadLocalRandom
-              "
+java.util.concurrent.ThreadLocalRandom,
+org.joda.time.DateTime,
+org.joda.time.Interval"
 %>
 
 <%
@@ -93,15 +94,34 @@ if(iaPendingResults != null){
 		JSONObject pendingResult = null;
 		try {
 			pendingResult = iaPendingResults.getJSONObject(i);
-			resultStatus = IBEISIA.getJobResultLogged(pendingResult.getString("taskId"), context);
+			resultStatus = IBEISIA.getTaskResults(pendingResult.getString("taskId"), context);
 		} catch(Exception e){
 			e.printStackTrace();
 			out.println("Unable to get result status from IBEISIA for pending result");
 		}
 		if(resultStatus != null){
-			// TODO: take status and determine if job is complete
-			// Once the job is complete, notify twitter sender of the detectin and identification confidence
-			out.println("Result status:" + resultStatus);
+			// If job is complete, remove from iaPendingResults
+			out.println("Result status: " + resultStatus);
+
+			if(resultStatus.getBoolean("success")){
+				out.println("IA complete for object " + pendingResult.getString("taskId") + "! Removing from pending");
+				iaPendingResults = TwitterUtil.removePendingEntry(iaPendingResults, i);
+			} else {
+				out.println("IA failed for object " + pendingResult.getString("taskId") + ".");
+			}
+		} else {
+			System.out.println("Pending result " + pendingResult.getString("taskId") + " has not been processed yet.");
+
+			// Check if 24 hrs have passed since the result process was started and notify sender if it's timed out
+			DateTime resultCreation = new DateTime(pendingResult.getString("creationDate"));
+			DateTime timeNow = new DateTime();
+			Interval interval = new Interval(resultCreation, timeNow);
+
+			if(interval.toDuration().getStandardHours() >= 24){
+				out.println("Object " + pendingResult.getString("taskId") + " has timed out in IA. Notifying sender.");
+				TwitterUtil.sendTimeoutTweet(pendingResult.getString("tweeterScreenName"), twitterInst, pendingResult.getString("maId"));
+				iaPendingResults = TwitterUtil.removePendingEntry(iaPendingResults, i);
+			}
 		}
 	}
 } else {
