@@ -45,9 +45,17 @@ String pastString = "Saw a whale on July 2, 2017. I saw one yesterday, too! Yest
 String futureFirstString = "I'm going to see whales tomorrow! I saw one on July 3 2017 as well.";
 String pastFirstString = "I saw a whale yesterday, and last week! I saw one on July 4 2017 as well.";
 String yesterdayString = "Saw a whale yesterday.";
+String monthYearString = "Saw a whale April, 2017.";
+String yearString = "Saw a whale in 2015.";
 
 // Test methods
 ArrayList<String> results = null;
+results = ParseDateLocation.parseLocation(monthYearString, context);
+out.println("results from " + monthYearString + " is " + results);
+
+results = ParseDateLocation.parseLocation(yearString, context);
+out.println("results from " + yearString + " is " + results);
+
 results = ParseDateLocation.parseLocation(dateTest, context);
 out.println("results from " + dateTest + " is " + results);
 
@@ -74,15 +82,15 @@ out.println("Don't forget to conduct additional tests on an emulator with gps co
 // Testing tweetMethods
 String randomNumStr = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
 String randomNum2Str = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
-TwitterUtil.sendDetectionAndIdentificationTweet("markaaronfisher", randomNumStr, twitterInst, randomNum2Str, true, true);
+TwitterUtil.sendDetectionAndIdentificationTweet("markaaronfisher", randomNumStr, twitterInst, randomNum2Str, true, true, "http://www.google.com");
 
 randomNumStr = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
 randomNum2Str = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
-TwitterUtil.sendDetectionAndIdentificationTweet("markaaronfisher", randomNumStr, twitterInst, randomNum2Str, true, false);
+TwitterUtil.sendDetectionAndIdentificationTweet("markaaronfisher", randomNumStr, twitterInst, randomNum2Str, true, false, "");
 
 randomNumStr = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
 randomNum2Str = Integer.toString(ThreadLocalRandom.current().nextInt(1, 10000 + 1));
-TwitterUtil.sendDetectionAndIdentificationTweet("markaaronfisher", randomNumStr, twitterInst, randomNum2Str, false, false);
+TwitterUtil.sendDetectionAndIdentificationTweet("markaaronfisher", randomNumStr, twitterInst, randomNum2Str, false, false, "");
 // End Testing tweetMethods
 
 // Timestamp test
@@ -114,6 +122,8 @@ String testWithNoDateAndGPSCoordinates = null;
 String testWithFutureFirstString = null;
 String testWithPastFirstString = null;
 String testWithYesterdayString = null;
+String testWithMonthYearString = null;
+String testWithYearString = null;
 
 try{
   testWithFutureString = ServletUtilities.nlpDateParse(futureString);
@@ -158,6 +168,19 @@ try{
 }
 
 try{
+  testWithMonthYearString = ServletUtilities.nlpDateParse(monthYearString);
+} catch(Exception e){
+  e.printStackTrace();
+}
+
+try{
+  testWithYearString = ServletUtilities.nlpDateParse(yearString);
+} catch(Exception e){
+  e.printStackTrace();
+}
+
+//output
+try{
   out.println("Input String: " + futureString + " || Output: " + testWithFutureString);
 } catch(Exception e){
   out.println("futureString");
@@ -197,6 +220,18 @@ try{
   out.println("Input String: " + yesterdayString + " || Output: " + testWithYesterdayString);
 } catch(Exception e){
   out.println("testWithNoDateAndGPSCoordinates");
+  e.printStackTrace();
+}
+try{
+  out.println("Input String: " + monthYearString + " || Output: " + testWithMonthYearString);
+} catch(Exception e){
+  out.println("testWithMonthYearString");
+  e.printStackTrace();
+}
+try{
+  out.println("Input String: " + yearString + " || Output: " + testWithYearString);
+} catch(Exception e){
+  out.println("testWithYearString");
   e.printStackTrace();
 }
 // End NLP tests
