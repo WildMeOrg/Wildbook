@@ -1394,7 +1394,11 @@ System.out.println("**** " + ann);
                 } else if(clist.optDouble(i, -99.0) >= getIdentificationCutoffValue()){
                   System.out.println("Maybe identified it??");
                   try{
+
+                    //String matchUuid = rlist.getJSONObject(i).optJSONObject("annot_uuid_2").toString();
+
                     String matchUuid = rlist.getJSONObject(i).getJSONObject("annot_uuid_2").toString();
+
                     System.out.println(matchUuid);
                     //TODO get baseURL
                     // String info = baseURL + "/individuals.jsp/?number=" + matchUuid;

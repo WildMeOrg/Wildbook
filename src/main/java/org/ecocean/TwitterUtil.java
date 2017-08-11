@@ -3,7 +3,9 @@ package org.ecocean;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Properties;
 import org.ecocean.servlet.ServletUtilities;
+import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 
 import org.ecocean.media.TwitterAssetStore;
@@ -212,6 +214,9 @@ public class TwitterUtil {
           String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
           ej.put("maId", ent.getId());
           ej.put("taskId", taskId);
+          ej.put("creationDate", new LocalDateTime());
+          String tweeterScreenName = tj.getJSONObject("tweet").getJSONObject("user").getString("screen_name");
+          ej.put("tweeterScreenName", tweeterScreenName);
           jent.put(ej);
           // myShepherd.getPM().makePersistent(ej); //maybe?
           myShepherd.commitDBTransaction();
@@ -225,11 +230,13 @@ public class TwitterUtil {
     return tj;
   }
 
-  public static void sendDetectionAndIdentificationTweet(String screenName, String imageId, Twitter twitterInst, String whaleId, boolean detected, boolean identified, String additionalInfo){
+
+  public static void sendDetectionAndIdentificationTweet(String screenName, String imageId, Twitter twitterInst, String whaleId, boolean detected, boolean identified, String info){
     String tweet = null, tweet2 = null;
     if(detected && identified){
       tweet = "Hi, @" + screenName + "! We detected a whale in " + imageId + " and identified it as " + whaleId + "!";
-      tweet2 = "@" + screenName + ", here's some info on " + whaleId + ": " + additionalInfo;
+      tweet2 = "@" + screenName + ", here's some info on " + whaleId + ": " + info; //TODO flesh out either by pulling info from db now that whaleId is available, or by passing some info as an additional argument in this method
+
     } else if(detected && !identified){
       tweet =  "Hi, @" + screenName + "! We detected a whale in " + imageId + " but we were not able to identify it.";
       tweet2 = "@" + screenName + ", if you'd like to make a manual submission for " + imageId + ", please go to http://www.flukebook.org/submit.jsp";
@@ -246,6 +253,17 @@ public class TwitterUtil {
     }
   }
 
+  public static void sendTimeoutTweet(String screenName, Twitter twitterInst, String id) {
+    String reply = "Hello @" + screenName + "The image you sent for tweet " + id + " was unable to be processed";
+    String reply2 = "@" + screenName + ", if you'd like to make a manual submission, please go to http://www.flukebook.org/submit.jsp";
+    try {
+      String status = createTweet(reply, twitterInst);
+      String status2 = createTweet(reply2, twitterInst);
+    } catch(TwitterException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static String createTweet(String tweet, Twitter twitterInst) throws TwitterException {
     String returnVal = null;
     try {
@@ -255,5 +273,17 @@ public class TwitterUtil {
       e.printStackTrace();
     }
     return returnVal;
+  }
+
+  public static JSONArray removePendingEntry(JSONArray pendingResults, int index){
+    ArrayList<JSONObject> list = new ArrayList<>();
+    for(int i = 0; i < pendingResults.length(); i++){
+      if(i == index){
+        continue;
+      } else {
+        list.add(pendingResults.getJSONObject(i));
+      }
+    }
+    return new JSONArray(list);
   }
 }
