@@ -20,7 +20,9 @@ twitter4j.*,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.ecocean.ParseDateLocation.*,
-java.util.concurrent.ThreadLocalRandom
+java.util.concurrent.ThreadLocalRandom,
+org.joda.time.DateTime,
+org.joda.time.Interval
               "
 %>
 
