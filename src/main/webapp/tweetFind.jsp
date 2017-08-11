@@ -20,9 +20,8 @@ twitter4j.*,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.ecocean.ParseDateLocation.*,
-java.util.concurrent.ThreadLocalRandom,
-org.joda.time.DateTime,
-org.joda.time.Interval"
+java.util.concurrent.ThreadLocalRandom
+              "
 %>
 
 <%
@@ -88,42 +87,8 @@ try {
 
 // Check if JSON data exists
 if(iaPendingResults != null){
-	// out.println(iaPendingResults);
-	for(int i = 0; i < iaPendingResults.length(); i++){
-		JSONObject resultStatus = null;
-		JSONObject pendingResult = null;
-		try {
-			pendingResult = iaPendingResults.getJSONObject(i);
-			resultStatus = IBEISIA.getTaskResults(pendingResult.getString("taskId"), context);
-		} catch(Exception e){
-			e.printStackTrace();
-			out.println("Unable to get result status from IBEISIA for pending result");
-		}
-		if(resultStatus != null){
-			// If job is complete, remove from iaPendingResults
-			out.println("Result status: " + resultStatus);
-
-			if(resultStatus.getBoolean("success")){
-				out.println("IA complete for object " + pendingResult.getString("taskId") + "! Removing from pending");
-				iaPendingResults = TwitterUtil.removePendingEntry(iaPendingResults, i);
-			} else {
-				out.println("IA failed for object " + pendingResult.getString("taskId") + ".");
-			}
-		} else {
-			System.out.println("Pending result " + pendingResult.getString("taskId") + " has not been processed yet.");
-
-			// Check if 24 hrs have passed since the result process was started and notify sender if it's timed out
-			DateTime resultCreation = new DateTime(pendingResult.getString("creationDate"));
-			DateTime timeNow = new DateTime();
-			Interval interval = new Interval(resultCreation, timeNow);
-
-			if(interval.toDuration().getStandardHours() >= 24){
-				out.println("Object " + pendingResult.getString("taskId") + " has timed out in IA. Notifying sender.");
-				TwitterUtil.sendTimeoutTweet(pendingResult.getString("tweeterScreenName"), twitterInst, pendingResult.getString("maId"));
-				iaPendingResults = TwitterUtil.removePendingEntry(iaPendingResults, i);
-			}
-		}
-	}
+	// TODO: check if IA has finished processing the pending results
+	out.println(iaPendingResults);
 } else {
 	out.println("No pending results");
 	iaPendingResults = new JSONArray();
@@ -239,26 +204,6 @@ for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().si
   tj = TwitterUtil.saveEntitiesAsMediaAssetsToSheperdDatabaseAndSendEachToImageAnalysis(mas, tweetID, myShepherd, tj, request);
   //TODO iaPendingResults.put(ej); needs to go in this method, but how to extrac iaPendingResults after???
 	tarr.put(tj);
-
-	// Retrieve the list of pending IA entities, and put them into iaPendingResults
-	JSONArray pendingEntities = null;
-	try {
-		pendingEntities = new JSONArray(tj.getJSONArray("entities"));
-	} catch(Exception e){
-		e.printStackTrace();
-		out.println("Unable to retrieve entities.");
-	}
-	if(pendingEntities != null){
-		for(int j = 0; j < pendingEntities.length(); j++){
-		try {
-			JSONObject entity = pendingEntities.getJSONObject(j);
-			iaPendingResults.put(entity);
-		} catch(Exception e){
-			e.printStackTrace();
-			out.println("Unable to retrieve entity from pending entities array.");
-		}
-	}
-	}
 }
 //End looping through the tweets
 

@@ -1068,6 +1068,8 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
 public static ArrayList<String> removeInvalidDates(String[] candidates) throws Exception{
   ArrayList<String> validDates = new ArrayList<String>();
   DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+  DateFormat df2 = new SimpleDateFormat("yyyy-MM");
+  DateFormat df3 = new SimpleDateFormat("yyyy");
   String newDateString = null;
   java.util.Date candiDate;
   for(int i =0; i<candidates.length; i++){
@@ -1077,7 +1079,21 @@ public static ArrayList<String> removeInvalidDates(String[] candidates) throws E
       newDateString = df.format(candiDate);
       validDates.add(newDateString);
     } catch (ParseException e) {
-      continue;
+      try{
+        candiDate = df2.parse(candidateString);
+        newDateString = df2.format(candiDate);
+        validDates.add(newDateString);
+      } catch(Exception f){
+        try{
+          candiDate = df3.parse(candidateString);
+          newDateString = df3.format(candiDate);
+          validDates.add(newDateString);
+        } catch(Exception g){
+          g.printStackTrace();
+          continue;
+        }
+      }
+
     }
   }
   if(validDates == null | validDates.size()<1){
@@ -1094,7 +1110,10 @@ public static ArrayList<String> removeFutureDates(ArrayList<String> candidates) 
   for(int i = 0; i<candidates.size(); i++){
     String currentDateString = candidates.get(i);
     try{
-      java.util.Date currentDateObj = convertStringToDateYYYYMMdd(currentDateString);
+      java.util.Date currentDateObj = convertStringToDate(currentDateString);
+      if(currentDateObj == null){
+        System.out.println("currentDateObj in removeFutureDates is null");
+      }
       if(!currentDateObj.after(today)){
         returnCandidates.add(currentDateString);
       }
@@ -1110,12 +1129,27 @@ public static ArrayList<String> removeFutureDates(ArrayList<String> candidates) 
   }
 }
 
-public static java.util.Date convertStringToDateYYYYMMdd(String dateString) throws Exception{
+public static java.util.Date convertStringToDate(String dateString) throws Exception{
   DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-  java.util.Date returnDate;
-  returnDate = df.parse(dateString);
+  DateFormat df2 = new SimpleDateFormat("yyyy-MM");
+  DateFormat df3 = new SimpleDateFormat("yyyy");
+  java.util.Date returnDate = null;
+  try{
+    returnDate = df.parse(dateString);
+  } catch(Exception e){
+    try{
+      returnDate = df2.parse(dateString);
+    } catch(Exception f){
+      try{
+        returnDate = df3.parse(dateString);
+      } catch(Exception g){
+        g.printStackTrace();
+      }
+    }
+  }
+
   if(returnDate == null){
-    throw new Exception("date in convertStringToDateYYYYMMdd is null");
+    throw new Exception("date in convertStringToDate is null");
   } else{
     return returnDate;
   }
