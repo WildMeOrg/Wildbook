@@ -9,7 +9,7 @@
     </style>
 
     <filter id="color-overlay-1" filterUnits="userSpaceOnUse">
-      <feFlood flood-color="#fff"/>
+      <feFlood flood-color="#AAA"/>
       <feComposite operator="in" in2="SourceGraphic"/>
       <feBlend in2="SourceGraphic" result="solidFill"/>
     </filter>
