@@ -36,6 +36,10 @@ context=ServletUtilities.getContext(request);
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
+		<p>McKinney JA, Hoffmayer ER, Holmberg J, Graham RT, Driggers WB III, de la Parra-Venegas R, et al. (2017) Long-term assessment of whale shark population demography and connectivity using photo-identification in the Western Atlantic Ocean. PLoS ONE 12(8): e0180495. https://doi.org/10.1371/journal.pone.0180495
+		<br><a href="http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0180495">Web link</a>
+		</p>
+		
 		<p>Macena BCL, Hazin FHV (2016) Whale Shark (<em>Rhincodon typus</em>) Seasonal Occurrence, Abundance and Demographic Structure in the Mid-Equatorial Atlantic Ocean. PLoSONE 11(10):e0164440.doi:10.1371/journal.pone.0164440<br>
 		<a href="http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0164440">Web link</a>
 		</p>
