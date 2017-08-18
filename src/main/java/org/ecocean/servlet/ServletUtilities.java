@@ -789,7 +789,12 @@ String rootWebappPath = "xxxxxx";
         return gresp.optBoolean("success", false);
     }
 
+    public static void importJsp(String filename, HttpServletRequest request, HttpServletResponse response) throws javax.servlet.ServletException, java.io.IOException {
 
+      PrintWriter out = response.getWriter();
+      request.getRequestDispatcher(filename).include(request, response);
+
+    }
 
 
 }
