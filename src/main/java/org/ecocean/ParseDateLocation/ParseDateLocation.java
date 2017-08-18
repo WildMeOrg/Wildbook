@@ -127,9 +127,9 @@ public class ParseDateLocation {
   //NOTE: overloaded parseDate method for tweet4j status objects specifically. There is another parseDate method!
   public static String parseDate(String textInput, String context, Status tweet){
 
-    int year=-1;
-    int month=-1;
-    int day=-1;
+    //int year=-1;
+    //int month=-1;
+    //int day=-1;
 
     try{
       String detectedLanguage = DetectTranslate.detectLanguage(textInput, context);
@@ -141,15 +141,18 @@ public class ParseDateLocation {
       System.out.println("Exception trying to detect language.");
       e.printStackTrace();
     }
-
-    boolean NLPsuccess=false;
+    String myDate=null;
+    //boolean NLPsuccess=false;
     try{
       System.out.println(">>>>>> looking for date with NLP");
       //call Stanford NLP function to find and select a date from ytRemarks
-      String myDate= ServletUtilities.nlpDateParse(textInput, tweet);
+      myDate= ServletUtilities.nlpDateParse(textInput, tweet);
       //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
+      System.out.println(">>>>>> NLP found date: "+myDate);
+      
+      /*
       if (myDate!=null) {
-          System.out.println(">>>>>> NLP found date: "+myDate);
+          
           int numCharact= myDate.length();
 
           if(numCharact>=4){
@@ -180,6 +183,7 @@ public class ParseDateLocation {
         }
 
       }
+      */
 
     }
     catch(Exception e){
@@ -188,6 +192,7 @@ public class ParseDateLocation {
     }
 
     //NLP failure? let's try brute force detection across all languages supported by this Wildbook
+    /*
     if(!NLPsuccess){
       System.out.println(">>>>>> looking for date with brute force");
       //next parse for year
@@ -202,20 +207,21 @@ public class ParseDateLocation {
         }
       }
     }
+    */
 
     //end brute force date detection if NLP failed
 
-      String result = (year > 0 ? Integer.toString(year) : "") + (month > 0 ? Integer.toString(month) : "") + (day > 0 ? Integer.toString(day) : "");
+      //String result = (year > 0 ? Integer.toString(year) : "") + (month > 0 ? Integer.toString(month) : "") + (day > 0 ? Integer.toString(day) : "");
 
-      return result;
+      return myDate;
   }
 
   //NOTE: parseDate method WITHOUT tweet4j status object as a parameter. There is another parseDate method!
   public static String parseDate(String textInput, String context){
 
-    int year=-1;
-    int month=-1;
-    int day=-1;
+    //int year=-1;
+    //int month=-1;
+    //int day=-1;
 
     try{
       String detectedLanguage = DetectTranslate.detectLanguage(textInput, context);
@@ -227,17 +233,22 @@ public class ParseDateLocation {
       System.out.println("Exception trying to detect language.");
       e.printStackTrace();
     }
+    
+    String myDate=null;
 
-    boolean NLPsuccess=false;
+    //boolean NLPsuccess=false;
     try{
       System.out.println(">>>>>> looking for date with NLP");
       //call Stanford NLP function to find and select a date from ytRemarks
-      String myDate= ServletUtilities.nlpDateParse(textInput);
+      myDate= ServletUtilities.nlpDateParse(textInput);
+      System.out.println(">>>>>> NLP found date: "+myDate);
       //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
+      /*
       if (myDate!=null) {
-          System.out.println(">>>>>> NLP found date: "+myDate);
-          int numCharact= myDate.length();
+          
+          //int numCharact= myDate.length();
 
+          
           if(numCharact>=4){
 
             try{
@@ -264,8 +275,11 @@ public class ParseDateLocation {
               e.printStackTrace();
             }
         }
+          
+          
 
       }
+      */
 
     }
     catch(Exception e){
@@ -273,6 +287,7 @@ public class ParseDateLocation {
       e.printStackTrace();
     }
 
+    /*
     //NLP failure? let's try brute force detection across all languages supported by this Wildbook
     if(!NLPsuccess){
       System.out.println(">>>>>> looking for date with brute force");
@@ -288,12 +303,13 @@ public class ParseDateLocation {
         }
       }
     }
+    */
 
     //end brute force date detection if NLP failed
 
-      String result = (year > 0 ? Integer.toString(year) : "") + (month > 0 ? Integer.toString(month) : "") + (day > 0 ? Integer.toString(day) : "");
+      //String result = (year > 0 ? Integer.toString(year) : "") + (month > 0 ? Integer.toString(month) : "") + (day > 0 ? Integer.toString(day) : "");
 
-      return result;
+      return myDate;
   }
 
   // Same as above method, but this will return an arraylist instead of a string
