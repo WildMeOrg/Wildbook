@@ -70,6 +70,8 @@ public class ImportAccess extends HttpServlet {
     myShepherd.setAction("AccessImport.class");
 
     ServletUtilities.importJsp("header.jsp", request, response);
+    // for alignment after header
+    out.println("<div class=\"container\"><div class=\"row\">");
 
     if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
       out.println("-- Wildbook not initialized. Starting Wildbook. --");
@@ -181,6 +183,9 @@ public class ImportAccess extends HttpServlet {
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
     db.close(); 
+    // for alignment after header
+    out.println("</div></div>");
+    ServletUtilities.importJsp("footer.jsp", request, response);
   }  
   
   private ArrayList<String> getColumnMasterList(Table table) {
@@ -190,20 +195,32 @@ public class ImportAccess extends HttpServlet {
     for (int i=0;i<columns.size();i++) {
       columnMasterList.add(columns.get(i).getName());
     }
-    out.println("All of the columns in this Table : "+columnMasterList.toString()+"\n");
+    //out.println("All of the columns in this Table : "+columnMasterList.toString()+"\n");
     return columnMasterList;
   }
 
 
   private boolean processIDPhotosTable(Table idPhotos, java.io.PrintWriter out) {
   	out.println("    processing IDPhotos table");
-  	List<String> idPhotosCols = getColumnMasterList(idPhotos);
+    printTable(idPhotos, out);
   	return true;
+  }
+
+  public void printTable(Table table, java.io.PrintWriter out) {
+    List<String> colNames = getColumnMasterList(table);
+    out.println("<table>");
+    for (String colName : colNames) {
+      out.println("<tr><td>");
+      out.print(colName);
+      out.print("</td></tr>");
+    } 
+    out.println("</table>");
+
   }
 
   private boolean processSightingHistoryTable(Table sightingHistory, java.io.PrintWriter out) {
   	out.println("    processing SightingHistory table");
-  	List<String> sightingHistoryCols = getColumnMasterList(sightingHistory);
+    printTable(sightingHistory, out);
   	return true;
   }
 
