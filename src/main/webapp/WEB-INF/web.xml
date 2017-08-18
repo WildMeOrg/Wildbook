@@ -212,6 +212,8 @@
 				  /InterconnectSubmitSpots = authc, roles[researcher]
 				  /interconnectSubmitSpots= authc, roles[researcher]
 				   /ImportSRGD = authc, roles[admin]
+          /ImportAccess = authc, roles[admin]
+
 
 				   /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 				   /interconnect/mac/Interconnect.jar = authc, roles[researcher]
@@ -492,6 +494,10 @@
   <servlet>
     <servlet-name>ImportIA</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.ImportIA</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>ImportAccess</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.ImportAccess</servlet-class>
   </servlet>
 
 
@@ -1555,7 +1561,7 @@
         <servlet-mapping>
           <servlet-name>KinalyzerExport</servlet-name>
           <url-pattern>/KinalyzerExport</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping>R
 
 
         <servlet-mapping>
@@ -1566,6 +1572,11 @@
   <servlet-mapping>
       <servlet-name>ImportIA</servlet-name>
       <url-pattern>/ImportIA</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+      <servlet-name>ImportAccess</servlet-name>
+      <url-pattern>/ImportAccess</url-pattern>
   </servlet-mapping>
 
 
