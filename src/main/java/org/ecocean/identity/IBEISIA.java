@@ -5,6 +5,7 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
+import org.ecocean.ParseDateLocation.ParseDateLocation;
 import org.ecocean.media.YouTubeAssetStore;
 //import org.ecocean.ocr.ocr;
 //import org.ecocean.youtube.PostQuestion;
@@ -2834,8 +2835,9 @@ return Util.generateUUID();
                 try{
                     System.out.println(">>>>>> looking for date with NLP");
                     //call Stanford NLP function to find and select a date from ytRemarks
-                    String myDate= ServletUtilities.nlpDateParse(remarks);
-                    System.out.println("Finished nlpPrseDate");;
+                    //String myDate= ServletUtilities.nlpDateParse(remarks);
+                    String myDate=ParseDateLocation.parseDate(remarks, context);
+                    System.out.println("Finished ParseDateLocation.parseDate");;
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
                         System.out.println(">>>>>> NLP found date: "+myDate);
