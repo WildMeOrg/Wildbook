@@ -333,10 +333,10 @@ System.out.println("]=== done with .extractFrames()");
         return null;
     }
 
-    public static void postOccurrenceMessageToYouTubeIfAppropriate(String message, Occurrence occur){
+    public static void postOccurrenceMessageToYouTubeIfAppropriate(String message, Occurrence occur, Shepherd myShepherd){
       
         //validate if we should even be worrying about YouTube mediaassets for this occurrence
-        if(occur.hasMediaFromAssetStoreType(AssetStoreType.YouTube)){
+        if(occur.hasMediaAssetFromRootStoreType(myShepherd, AssetStoreType.YouTube)){
           System.out.println("This occurrence has a YouTube Media Asset, so let's try to post to the OP the message I was given: "+message);
           //first, does this Occurrence have a commentID?
           String videoID=occur.getSocialMediaSourceID().replaceFirst("youtube:", "");
