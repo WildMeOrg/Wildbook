@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URL;
 import org.json.JSONObject;
 import org.ecocean.ParseDateLocation.ParseDateLocation;
+import org.ecocean.media.AssetStoreType;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.translate.DetectTranslate;
 
@@ -332,7 +333,32 @@ System.out.println("]=== done with .extractFrames()");
         return null;
     }
 
-
+    public static void postOccurrenceMessageToYouTubeIfAppropriate(String message, Occurrence occur){
+      
+        //validate if we should even be worrying about YouTube mediaassets for this occurrence
+        if(occur.hasMediaFromAssetStoreType(AssetStoreType.YouTube)){
+          System.out.println("This occurrence has a YouTube Media Asset, so let's try to post to the OP the message I was given: "+message);
+          //first, does this Occurrence have a commentID?
+          String videoID=occur.getSocialMediaSourceID().replaceFirst("youtube:", "");
+          String commentID=occur.getSocialMediaQueryCommentID();
+          if(commentID==null){
+            //this is a new comment to post
+            System.out.println("Posting a new YouTube comment");
+            postQuestion(message,videoID, occur);
+          }
+          else{
+            //we have a comment that we originally posted that we can reply to.
+            String concatReplies=getReplies(occur);
+            if(concatReplies.indexOf(message)==-1){
+              //we ourselves haven't posted this before (i.e., don't harass user with multiple, similar comments)
+              System.out.println("Replying to a previous YouTube comment");
+              sendReply(commentID, message);
+              
+            }
+          }
+        }
+      
+    }
 
 }
 

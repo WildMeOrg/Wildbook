@@ -2960,5 +2960,27 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                 .append("numAnnotations", ((annotations == null) ? 0 : annotations.size()))
                 .toString();
     }
+    
+    public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
+      System.out.println("Entering Encounter.hasMediaFromAssetStoreType");
+      if(getMediaAssetsOfType(aType).size()>0){return true;}
+      return false;
+    }
+    
+    public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
+      System.out.println("Entering Encounter.getMediaAssetsOfType");
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      try{
+        ArrayList<MediaAsset> assets=getMedia();
+        int numAssets=assets.size();
+        for(int i=0;i<numAssets;i++){
+          MediaAsset ma=assets.get(i);
+          if(ma.getStore().getType()==aType){results.add(ma);}
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      System.out.println("Exiting Encounter.getMediaAssetsOfType with this num results: "+results.size());
+      return results;
+    }
 
 }

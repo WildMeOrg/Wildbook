@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.HashSet;
 import org.joda.time.DateTime;
 import java.text.SimpleDateFormat;
+
+import org.ecocean.media.AssetStoreType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
@@ -847,6 +849,27 @@ public class Occurrence implements java.io.Serializable{
     public String getSocialMediaQueryCommentReplies(){return socialMediaQueryCommentReplies;};
     public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
 
-
+    public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
+      if(getMediaAssetsOfType(aType).size()>0){return true;}
+      return false;
+    }
+    
+    public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      try{
+        int numEncs=encounters.size();
+        for(int k=0;k<numEncs;k++){
+          
+          ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
+          int numAssets=assets.size();
+          for(int i=0;i<numAssets;i++){
+            MediaAsset ma=assets.get(i);
+            if(ma.getStore().getType()==aType){results.add(ma);}
+          }
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      return results;
+    }
 
 }

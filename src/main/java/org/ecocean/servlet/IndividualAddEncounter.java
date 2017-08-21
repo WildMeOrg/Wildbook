@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import java.util.Properties;
+
 import javax.jdo.*;
 
 
@@ -127,6 +129,22 @@ public class IndividualAddEncounter extends HttpServlet {
             else if ( ((addToMe.getSex()==null)||(addToMe.getSex().equals("unknown"))) &&(enc2add.getSex()!=null)) {
               addToMe.setSex(enc2add.getSex());
             }
+            
+            
+            try{
+              //let's do a YouTube post-back check
+              if(enc2add.getOccurrenceID()!=null){
+                if(myShepherd.isOccurrence(enc2add.getOccurrenceID())){
+                  Occurrence occur=myShepherd.getOccurrence(enc2add.getOccurrenceID());
+                  //TBD-support more than just en language
+                  Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
+                  String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
+                  System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
+                  YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur);
+                }
+              }
+            }
+            catch(Exception e){e.printStackTrace();}
             
             
             
