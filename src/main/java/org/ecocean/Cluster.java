@@ -189,6 +189,7 @@ System.out.println("dateAttribute -> " + dateAttribute);
                                         if (photoOffset >= assets.size()) throw new RuntimeException("photonumber " + pnum + " > assets.size() " + assets.size());
                                     }
                                     break;
+                                /* legacy zebra stuff    
                                 case "habitat":
                                     occ.setHabitat(getValueString(ael));
                                     break;
@@ -216,6 +217,8 @@ System.out.println("dateAttribute -> " + dateAttribute);
                                 case "numberof612monthsfemales":
                                     //
                                     break;
+                                    */
+                                    
                             }
 
                             //TODO ... do something with the value!

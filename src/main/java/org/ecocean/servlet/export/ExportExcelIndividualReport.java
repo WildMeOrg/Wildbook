@@ -141,6 +141,8 @@ public class ExportExcelIndividualReport extends HttpServlet{
         }
         cols.add(new Label(9, sheetRow, foals));
 
+        
+        /*
         if (occ == null) {
             cols.add(new Label(10, sheetRow, "-"));
             cols.add(new Label(11, sheetRow, "-"));
@@ -172,6 +174,8 @@ public class ExportExcelIndividualReport extends HttpServlet{
                 cols.add(new Label(13, sheetRow, ds.toString()));
             }
         }
+        
+        */
 
         cols.add(new Label(14, sheetRow, enc.getImageOriginalName()));
         cols.add(new Label(15, sheetRow, enc.getCatalogNumber()));
