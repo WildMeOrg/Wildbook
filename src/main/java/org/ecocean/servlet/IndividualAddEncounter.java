@@ -140,7 +140,7 @@ public class IndividualAddEncounter extends HttpServlet {
                   Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
                   String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
                   System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
-                  YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur);
+                  YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd);
                 }
               }
             }

@@ -871,5 +871,23 @@ public class Occurrence implements java.io.Serializable{
       catch(Exception e){e.printStackTrace();}
       return results;
     }
+    
+    public boolean hasMediaAssetFromRootStoreType(Shepherd myShepherd, AssetStoreType aType){
+      try{
+        int numEncs=encounters.size();
+        for(int k=0;k<numEncs;k++){
+          
+          ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
+          int numAssets=assets.size();
+          for(int i=0;i<numAssets;i++){
+            MediaAsset ma=assets.get(i);
+            if(ma.getStore().getType()==aType){return true;}
+            if(ma.getParentRoot(myShepherd).getStore().getType()==aType){return true;}
+          }
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      return false;
+    }
 
 }
