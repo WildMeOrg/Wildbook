@@ -107,26 +107,8 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
         String[] colHeaders = new String[]{
           "occurrenceID",
           "dateTime",
-          "groupSize",
-          "individualCount",
-          "num",
-        	"habitat",
-          "groupType",
-          "groupActivity",
-        	"numTerMales",
-        	"numBachMales",
-        	"numNonLactFemales",
-        	"numLactFemales",
-          "numJuveniles",
-          "imageSet",
-          "soil",
-          "rain",
-          "activity",
-          "habitatOpenness",
-          "grassGreenness",
-          "grassHeight",
-          "weather",
-          "wind"
+          "individualCount"
+          
         };
 
         for (int i=0; i<colHeaders.length; i++) {
@@ -145,8 +127,10 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
 
             rowLabels.add(new Label(0, count, enc.getOccurrenceID()));
             rowLabels.add(new Label(1, count, cleanToString(enc.getDateTime())));
-            rowLabels.add(new Label(2, count, cleanToString(enc.getGroupSize())));
-            rowLabels.add(new Label(3, count, cleanToString(enc.getIndividualCount())));
+            //rowLabels.add(new Label(2, count, cleanToString(enc.getGroupSize())));
+            rowLabels.add(new Label(2, count, cleanToString(enc.getIndividualCount())));
+            
+            /*
             rowLabels.add(new Label(4, count, enc.getHabitat()));
             rowLabels.add(new Label(5, count, enc.getGroupType()));
             rowLabels.add(new Label(6, count, enc.getGroupActivity()));
@@ -164,6 +148,8 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
             rowLabels.add(new Label(18, count, enc.getGrassHeight()));
             rowLabels.add(new Label(19, count, enc.getWeather()));
             rowLabels.add(new Label(20, count, enc.getWind()));
+            
+            */
 
             for(Label lab: rowLabels) {
               sheet.addCell(lab);
