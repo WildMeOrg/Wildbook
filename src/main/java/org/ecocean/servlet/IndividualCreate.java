@@ -21,8 +21,6 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
-import org.ecocean.CommonConfiguration;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -36,6 +34,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -121,6 +120,23 @@ public class IndividualCreate extends HttpServlet {
             ok2add=myShepherd.addMarkedIndividual(newShark);
             
             enc2make.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to newly marked individual " + newIndividualID + ".</p>");
+            
+            
+            try{
+              //let's do a YouTube post-back check
+              if(enc2make.getOccurrenceID()!=null){
+                if(myShepherd.isOccurrence(enc2make.getOccurrenceID())){
+                  Occurrence occur=myShepherd.getOccurrence(enc2make.getOccurrenceID());
+                  //TBD-support more than just en language
+                  Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
+                  String message=ytProps.getProperty("newIndividual").replaceAll("%INDIVIDUAL%", enc2make.getIndividualID());
+                  System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
+                  YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd);
+                }
+              }
+            }
+            catch(Exception e){e.printStackTrace();}
+            
           } 
           catch (Exception le) {
             locked = true;
