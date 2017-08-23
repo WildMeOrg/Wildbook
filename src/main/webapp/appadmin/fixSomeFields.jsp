@@ -4,7 +4,7 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,
-java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%
 
@@ -25,11 +25,7 @@ Shepherd myShepherd=new Shepherd(context);
 
 
 <body>
-<<<<<<< HEAD
-<p>Removing all workspaces.</p>
-=======
 
->>>>>>> origin/crc
 <ul>
 <%
 
@@ -37,54 +33,54 @@ myShepherd.beginDBTransaction();
 
 int numFixes=0;
 
-<<<<<<< HEAD
-try {
-
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
-
-  Iterator allSpaces=myShepherd.getAllWorkspaces();
-
-  boolean committing=true;
-
-
-  while(allSpaces.hasNext()){
-
-    Workspace wSpace=(Workspace)allSpaces.next();
-
-    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
-
-  	numFixes++;
-
-    if (committing) {
-      myShepherd.throwAwayWorkspace(wSpace);
-  		myShepherd.commitDBTransaction();
-  		myShepherd.beginDBTransaction();
-    }
-  }
-=======
 try{
+	Occurrence occur=myShepherd.getOccurrence("f433d9e8-fe37-4427-8f7d-9d7a9491a95c");
+	 int numEncs=occur.getEncounters().size();
+     for(int k=0;k<numEncs;k++){
+       
+       ArrayList<MediaAsset> assets=occur.getEncounters().get(k).getMedia();
+       int numAssets=assets.size();
+       for(int i=0;i<numAssets;i++){
+       MediaAsset ma=assets.get(i);
+       %>
+       <li><%=ma.getId()%>
+       <%
+         AssetStore mas=ma.getStore();
+       	%>
+       	...<%=mas.getType() %>
+       	<%
+       	//if(ma){}
+       	
+         if(occur.hasMediaAssetFromRootStoreType(myShepherd, AssetStoreType.YouTube)){
+        	 %>
+        	 ...YEAH YOUTUBE PARENT with video ID: <%=ma.getParent(myShepherd).getId() %>!
+        	 <%
+         }
+       %>
+       </li>
+       <%
+       }
+     }
+     %>
+     </ul>
+     <%
+     
+     //TBD-support more than just en language
+     Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
+     String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", "TST_ID");
+     System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
+     YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd);
 
-	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
-	
-
-
-	while(allEncs.hasNext()){
-		
-		MarkedIndividual enc=(MarkedIndividual)allEncs.next();
-		enc.refreshDependentProperties(context);
-		myShepherd.commitDBTransaction();
-		myShepherd.beginDBTransaction();
-
-	}
-	myShepherd.rollbackDBTransaction();
-	
->>>>>>> origin/crc
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
+	%>
+	<p>Reported error: <%=e.getMessage() %> <%=e.getStackTrace().toString() %></p>
+	<%
+	e.printStackTrace();
 }
 finally{
+	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 
 }
@@ -92,11 +88,6 @@ finally{
 %>
 
 </ul>
-<<<<<<< HEAD
-<p>Done successfully: <%=numFixes %> workspaces deleted.</p>
-=======
-<p>Done successfully: <%=numFixes %></p>
 
->>>>>>> origin/crc
 </body>
 </html>
