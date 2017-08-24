@@ -131,7 +131,7 @@ public class IndividualCreate extends HttpServlet {
                   Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
                   String message=ytProps.getProperty("newIndividual").replaceAll("%INDIVIDUAL%", enc2make.getIndividualID());
                   System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
-                  YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd);
+                  YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd,request);
                 }
               }
             }
