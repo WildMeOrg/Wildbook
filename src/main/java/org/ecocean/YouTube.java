@@ -213,6 +213,7 @@ System.out.println("]=== done with .extractFrames()");
         commentThread.setSnippet(snippet);
 
         com.google.api.services.youtube.YouTube.CommentThreads.Insert commentThreadsInsertRequest = youtube2.commentThreads().insert(parameters.get("part").toString(), commentThread);
+        commentThreadsInsertRequest.setKey(apiKey);
         CommentThread response = commentThreadsInsertRequest.execute();
           
 //        System.out.println(response);
@@ -334,6 +335,7 @@ System.out.println("]=== done with .extractFrames()");
     }
 
     public static void postOccurrenceMessageToYouTubeIfAppropriate(String message, Occurrence occur, Shepherd myShepherd, HttpServletRequest request){
+        System.out.println("--Entering YouTube.postOccurrenceMessageToYouTubeIfAppropriate");
       
         //validate if we should even be worrying about YouTube mediaassets for this occurrence
         if((occur.getSocialMediaSourceID()!=null)&&(occur.hasMediaAssetFromRootStoreType(myShepherd, AssetStoreType.YouTube))){
@@ -358,6 +360,12 @@ System.out.println("]=== done with .extractFrames()");
             }
           }
         }
+        else{
+          System.out.println("This is not a candidate for YouTube feedback.");
+        }
+        
+        System.out.println("--Exiting YouTube.postOccurrenceMessageToYouTubeIfAppropriate");
+        
       
     }
 

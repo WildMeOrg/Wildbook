@@ -12,7 +12,7 @@ String context="context0";
 
 
 
-<sharks>						
+<sharks greeting="hello!">						
 
 <%
 
@@ -24,11 +24,10 @@ Iterator allSharks=myShepherd.getAllMarkedIndividuals();
 try{
 
 
-while(allSharks.hasNext()){
+//while(allSharks.hasNext()){
 
-	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
-	
-	//if(sharky.wasSightedInLocationCode("1a2")){
+	//MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	MarkedIndividual sharky=myShepherd.getMarkedIndividual("A-001");
 
 		%>
 		
@@ -142,9 +141,9 @@ while(allSharks.hasNext()){
 		</shark>
 		<%
 	
-	//}
+
 	
-}
+//}
 
 myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();

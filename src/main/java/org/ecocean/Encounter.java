@@ -1433,11 +1433,13 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
 
   public ArrayList<SuperSpot> getLeftReferenceSpots() {
-    return HACKgetAnyReferenceSpots();
+    //return HACKgetAnyReferenceSpots();
+    return leftReferenceSpots;
   }
 
   public ArrayList<SuperSpot> getRightReferenceSpots() {
-    return HACKgetAnyReferenceSpots();
+    //return HACKgetAnyReferenceSpots();
+    return rightReferenceSpots;
   }
 
 /*  gone! no more setting spots on encounters!  ... whoa there, yes there is for whaleshark.org */
