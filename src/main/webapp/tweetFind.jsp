@@ -1,95 +1,277 @@
 <%@ page contentType="text/plain; charset=utf-8" language="java"
-     import="org.ecocean.*,
+
+import="org.ecocean.*,
 java.util.ArrayList,
+java.io.FileNotFoundException,
+java.io.IOException,
 java.util.List,
 java.io.BufferedReader,
 java.io.IOException,
 java.io.InputStream,
 java.io.InputStreamReader,
 java.io.File,
+java.util.Date,
 org.json.JSONObject,
 org.json.JSONArray,
 org.ecocean.identity.IBEISIA,
 twitter4j.QueryResult,
 twitter4j.Status,
-
-org.ecocean.media.*
+twitter4j.*,
+org.ecocean.servlet.ServletUtilities,
+org.ecocean.media.*,
+org.ecocean.ParseDateLocation.*,
+java.util.concurrent.ThreadLocalRandom,
+org.joda.time.DateTime,
+org.joda.time.Interval
               "
 %>
 
-
-
-
 <%
-/* note this is kinda experimental... not really production.  you probably want instead to look at other tweet*jsp for now */
 String baseUrl = null;
+String tweeterScreenName = null;
+Long tweetID = null;
+String tweetText = null;
+Long mostRecentTweetID = null;
+String rootDir = request.getSession().getServletContext().getRealPath("/");
+String dataDir = ServletUtilities.dataDir("context0", rootDir);
+String context = ServletUtilities.getContext(request);
+Long sinceId = 890302524275662848L;
+String twitterTimeStampFile = "/twitterTimeStamp.txt";
+String iaPendingResultsFile = "/pendingAssetsIA.json";
+JSONArray iaPendingResults = null;
+
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
 } catch (java.net.URISyntaxException ex) {}
 
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
-TwitterUtil.init(request);
-Shepherd myShepherd = new Shepherd("context0");
+Twitter twitterInst = TwitterUtil.init(request);
+
+Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
+myShepherd.setAction("tweetFind.jsp");
+
+// Find or create TwitterAssetStore and make it persistent with myShepherd
 TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
-if (tas == null) {
-	rtn.put("error", "no TwitterAssetStore");
-	out.println(rtn);
-	return;
+if(tas == null){
+	myShepherd.beginDBTransaction();
+	tas = new TwitterAssetStore("twitterAssetStore");
+	myShepherd.getPM().makePersistent(tas);
+	myShepherd.commitDBTransaction();
 }
 
-long sinceId = 832273339657785300L;
+// Retrieve timestamp for the last twitter check
+try{
+	// the timestamp is written with a new line at the end, so we need to strip that out before converting
+  String timeStampAsText = Util.readFromFile(dataDir + twitterTimeStampFile);
+  timeStampAsText = timeStampAsText.replace("\n", "");
+  sinceId = Long.parseLong(timeStampAsText, 10);
+} catch(FileNotFoundException e){
+	e.printStackTrace();
+} catch(IOException e){
+	e.printStackTrace();
+} catch(NumberFormatException e){
+	e.printStackTrace();
+}
 rtn.put("sinceId", sinceId);
-QueryResult qr = TwitterUtil.findTweets("whaleshark filter:media", sinceId);
+out.println("sinceId is " + sinceId);
+QueryResult qr = TwitterUtil.findTweets("@wildmetweetbot", sinceId);
 JSONArray tarr = new JSONArray();
-for (Status tweet : qr.getTweets()) {
+// out.println(qr.getTweets().size());
+
+// Retrieve current results that are being processed by IA
+try {
+	String iaPendingResultsAsString = Util.readFromFile(dataDir + iaPendingResultsFile);
+	iaPendingResults = new JSONArray(iaPendingResultsAsString);
+} catch(Exception e){
+	e.printStackTrace();
+}
+
+// Check if JSON data exists
+if(iaPendingResults != null){
+
+	// out.println(iaPendingResults);
+	for(int i = 0; i < iaPendingResults.length(); i++){
+		JSONObject resultStatus = null;
+		JSONObject pendingResult = null;
+		try {
+			pendingResult = iaPendingResults.getJSONObject(i);
+			resultStatus = IBEISIA.getTaskResults(pendingResult.getString("taskId"), context);
+		} catch(Exception e){
+			e.printStackTrace();
+			out.println("Unable to get result status from IBEISIA for pending result");
+		}
+		if(resultStatus != null){
+			// If job is complete, remove from iaPendingResults
+			out.println("Result status: " + resultStatus);
+
+			if(resultStatus.getBoolean("success")){
+				out.println("IA complete for object " + pendingResult.getString("taskId") + "! Removing from pending");
+				iaPendingResults = TwitterUtil.removePendingEntry(iaPendingResults, i);
+			} else {
+				out.println("IA failed for object " + pendingResult.getString("taskId") + ".");
+			}
+		} else {
+			System.out.println("Pending result " + pendingResult.getString("taskId") + " has not been processed yet.");
+
+			// Check if 24 hrs have passed since the result process was started and notify sender if it's timed out
+			DateTime resultCreation = new DateTime(pendingResult.getString("creationDate"));
+			DateTime timeNow = new DateTime();
+			Interval interval = new Interval(resultCreation, timeNow);
+
+			if(interval.toDuration().getStandardHours() >= 24){
+				out.println("Object " + pendingResult.getString("taskId") + " has timed out in IA. Notifying sender.");
+				TwitterUtil.sendTimeoutTweet(pendingResult.getString("tweeterScreenName"), twitterInst, pendingResult.getString("maId"));
+			}
+		}
+	}
+
+} else {
+	out.println("No pending results");
+	iaPendingResults = new JSONArray();
+}
+
+// END PENDING IA RETRIEVAL
+
+//##################Begin loop through the each of the tweets since the last timestamp##################
+// out.println("size of the arrayList of statuses is " + Integer.toString(qr.getTweets().size()));
+List<Status> tweetStatuses = qr.getTweets();
+for(int i = 0 ; i<tweetStatuses.size(); i++){  //int i = 0 ; i<qr.getTweets().size(); i++
+  Status tweet = tweetStatuses.get(i);
+  // out.println("i is " + Integer.toString(i));
+
+  if(i == 0){
+    mostRecentTweetID = (Long) tweet.getId();
+  }
+  tweetID = (Long) tweet.getId();
+  if(tweetID == null){
+    // out.println("tweetID is null. Skipping");
+    continue;
+  }
+
+  // out.println("newIncomingTweet: " + tweetID);
+
 	JSONObject p = new JSONObject();
 	p.put("id", tweet.getId());
+
+  // Attempt to find MediaAsset for tweet, and skip media asset creation if it exists
 	MediaAsset ma = tas.find(p, myShepherd);
 	if (ma != null) {
-		System.out.println(ma + " exists for tweet id=" + tweet.getId() + "; skipping");
 		continue;
 	}
+
+	// ##################Check for tweet and entities##################
 	JSONObject jtweet = TwitterUtil.toJSONObject(tweet);
-	if (jtweet == null) continue;
-	JSONObject ents = jtweet.optJSONObject("entities");
-	if (ents == null) continue;
+	if (jtweet == null){
+    continue;
+  }
+  try{
+    tweetText = tweet.getText();
+    if(tweetText == null){
+      continue;
+    }
+  }catch(Exception e){
+    out.println("something went terribly wrong getting tweet text");
+    e.printStackTrace();
+    continue;
+  }
+
+
+  try{
+    ArrayList<String> locations = ParseDateLocation.parseLocation(tweetText, context);
+    out.println(locations);
+  } catch(Exception e){
+    out.println("something went terribly wrong getting locations from the tweet text");
+    e.printStackTrace();
+    continue;
+  }
+
+  //temporary: test parseDate()
+  // try{
+  //   String date = ParseDateLocation.parseDate(tweetText,context, tweet);
+  //   out.println("single date is: ");
+  //   out.println(date);
+  // } catch(Exception e){
+  //   out.println("something went terribly wrong getting the single date from the tweet text");
+  //   e.printStackTrace();
+  //   continue;
+  // }
+
+  try{
+    ArrayList<String> dates = ParseDateLocation.parseDateToArrayList(tweetText,context);
+    //TODO parseDateToArrayList may need to be updated (and overloaded?)?
+  } catch(Exception e){
+    out.println("something went terribly wrong getting dates from the tweet text");
+    e.printStackTrace();
+    continue;
+  }
+
+  try{
+    tweeterScreenName = tweet.getUser().getScreenName();
+    if(tweeterScreenName == null){
+      out.println("screen name is null. Skipping");
+      continue;
+    }
+  } catch(Exception e){
+    e.printStackTrace();
+    continue;
+  }
+
 	JSONObject tj = new JSONObject();  //just for output purposes
 	tj.put("tweet", TwitterUtil.toJSONObject(tweet));
-	JSONArray emedia = null;
-	if (ents != null) emedia = ents.optJSONArray("media");
-	if ((ents == null) || (emedia == null) || (emedia.length() < 1)) continue;
 
-	ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
-	ma.addLabel("_original");
-	MediaAssetMetadata md = ma.updateMetadata();
-	MediaAssetFactory.save(ma, myShepherd);
-	tj.put("maId", ma.getId());
-	tj.put("metadata", ma.getMetadata().getData());
-	System.out.println(tweet.getId() + ": created tweet asset " + ma);
-	List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssets(ma);
-	if ((mas == null) || (mas.size() < 1)) {
-		System.out.println(tweet.getId() + ": no entity assets?");
-	} else {
-		JSONArray jent = new JSONArray();
-		for (MediaAsset ent : mas) {
-			JSONObject ej = new JSONObject();
-			MediaAssetFactory.save(ent, myShepherd);
-    			String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
-			System.out.println(tweet.getId() + ": created entity asset " + ent + "; detection taskId " + taskId);
-			ej.put("maId", ent.getId());
-			ej.put("taskId", taskId);
-			jent.put(ej);
-		}
-		tj.put("entities", jent);
-	}
+	JSONArray emedia = null;
+	emedia = jtweet.optJSONArray("extendedMediaEntities");
+  if((emedia == null) || (emedia.length() < 1)){
+    TwitterUtil.sendCourtesyTweet(tweeterScreenName, "", twitterInst, tweetID+1);
+    continue;
+  }
+
+  //sendPhotoSpecificCourtesyTweet will detect a photo in your tweet object and tweet the user an acknowledgement about this. If multiple images are sent in the same tweet, this response will only happen once.
+  TwitterUtil.sendPhotoSpecificCourtesyTweet(emedia, tweeterScreenName, twitterInst);
+
+  tj = TwitterUtil.makeParentTweetMediaAssetAndSave(myShepherd, tas, tweet, tj);
+  //retrieve ma now that it has been saved
+  ma = tas.find(p, myShepherd);
+
+  List<MediaAsset> mas = TwitterAssetStore.entitiesAsMediaAssetsGsonObj(ma, tweetID);
+
+  // dates = addPhotoDatesToPreviouslyParsedDates(dates, mas); //TODO write this/ think about when we want this to happen. We will ultimately add the dates and locations to encounter objects, so perhaps this should only occur downstream of successful detection? Another question is how to tack all of the previously-captured date candidates (or just the best one from ParseDateLocation.parseDate()?) onto each photo while keeping the photo-specific captured date strings attached to only their parent photo...
+
+  tj = TwitterUtil.saveEntitiesAsMediaAssetsToSheperdDatabaseAndSendEachToImageAnalysis(mas, tweetID, myShepherd, tj, request);
+  //TODO iaPendingResults.put(ej); needs to go in this method, but how to extrac iaPendingResults after???
 	tarr.put(tj);
+}
+//End looping through the tweets
+
+// Write new timestamp to track last twitter pull
+Long newSinceIdString;
+if(mostRecentTweetID == null){
+	newSinceIdString = sinceId;
+} else {
+	newSinceIdString = mostRecentTweetID;
+}
+try{
+  Util.writeToFile(Long.toString(newSinceIdString), dataDir + twitterTimeStampFile);
+  out.println("wrote a new twitterTimeStamp: " + newSinceIdString);
+} catch(FileNotFoundException e){
+  e.printStackTrace();
+}
+
+// Write pending results array to file
+try {
+	String iaPendingResultsAsString = iaPendingResults.toString();
+	Util.writeToFile(iaPendingResultsAsString, dataDir + iaPendingResultsFile);
+	out.println("Successfully wrote pending results to file");
+} catch (Exception e){
+	e.printStackTrace();
 }
 
 rtn.put("success", true);
 rtn.put("data", tarr);
-out.println(rtn);
+// out.println(rtn);
 
+myShepherd.closeDBTransaction();
 
 /*
 String ids[] = null;
@@ -188,6 +370,3 @@ if (!success) {
 
 
 %>
-
-
-

@@ -1,21 +1,21 @@
 /*
- * Wildbook - A Mark-Recapture Framework
- * Copyright (C) 2011-2014 Jason Holmberg
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+* Wildbook - A Mark-Recapture Framework
+* Copyright (C) 2011-2014 Jason Holmberg
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 
 package org.ecocean.servlet;
 
@@ -55,6 +55,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.sql.*;
 import java.util.Collection;
 import java.util.Map;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+import java.util.Calendar;
 
 import org.ecocean.*;
 import org.apache.shiro.crypto.hash.*;
@@ -66,6 +70,25 @@ import java.util.Properties;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang.StringEscapeUtils;
+//parse Date with Stanford NLP
+import java.util.*;
+import edu.stanford.nlp.ling.CoreAnnotations;
+import edu.stanford.nlp.pipeline.*;
+import edu.stanford.nlp.time.*;
+import edu.stanford.nlp.time.SUTime.Temporal;
+import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
+
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+
+import twitter4j.Status;
+
+
 
 //ATOM feed
 
@@ -131,12 +154,12 @@ public class ServletUtilities {
   }
 
   /**
-   * Inform (via email) researchers who've logged an interest in encounter.
-   * @param request servlet request
-   * @param encounterNumber ID of encounter to inform about
-   * @param message message to include in email notification
-   * @param context webapp context
-   */
+  * Inform (via email) researchers who've logged an interest in encounter.
+  * @param request servlet request
+  * @param encounterNumber ID of encounter to inform about
+  * @param message message to include in email notification
+  * @param context webapp context
+  */
   public static void informInterestedParties(HttpServletRequest request, String encounterNumber, String message, String context) {
     Shepherd shep = new Shepherd(context);
     shep.setAction("ServletUtilities.class.informInterestedParties");
@@ -152,7 +175,7 @@ public class ServletUtilities {
             tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + encounterNumber);
             tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(mailTo));
             tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, message == null ? "" : message);
-//            String langCode = ServletUtilities.getLanguageCode(request);
+            //            String langCode = ServletUtilities.getLanguageCode(request);
             NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "encounterDataUpdate", tagMap);
             es.execute(mailer);
           }
@@ -165,12 +188,12 @@ public class ServletUtilities {
   }
 
   /**
-   * Inform (via email) researchers who've logged an interest in individual.
-   * @param request servlet request
-   * @param individualID ID of individual to inform about
-   * @param message message to include in email notification
-   * @param context webapp context
-   */
+  * Inform (via email) researchers who've logged an interest in individual.
+  * @param request servlet request
+  * @param individualID ID of individual to inform about
+  * @param message message to include in email notification
+  * @param context webapp context
+  */
   public static void informInterestedIndividualParties(HttpServletRequest request, String individualID, String message, String context) {
     Shepherd shep = new Shepherd(context);
     shep.setAction("ServletUtilities.informInterestedIndividualParties.class");
@@ -186,7 +209,7 @@ public class ServletUtilities {
             tagMap.put(NotificationMailer.EMAIL_NOTRACK, "individual=" + individualID);
             tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(mailTo));
             tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, message == null ? "" : message);
-//            String langCode = ServletUtilities.getLanguageCode(request);
+            //            String langCode = ServletUtilities.getLanguageCode(request);
             NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "individualDataUpdate", tagMap);
             es.execute(mailer);
           }
@@ -207,25 +230,25 @@ public class ServletUtilities {
       return overrideText;
     }
     else{
-    try {
-      StringBuffer SBreader = new StringBuffer();
-      String line;
-      FileReader fileReader = new FileReader(findResourceOnFileSystem(fileName));
+      try {
+        StringBuffer SBreader = new StringBuffer();
+        String line;
+        FileReader fileReader = new FileReader(findResourceOnFileSystem(fileName));
 
-      BufferedReader buffread = new BufferedReader(fileReader);
-      while ((line = buffread.readLine()) != null) {
-        SBreader.append(line + "\n");
-      }
-      line = SBreader.toString();
-      fileReader.close();
-      buffread.close();
-      return line;
+        BufferedReader buffread = new BufferedReader(fileReader);
+        while ((line = buffread.readLine()) != null) {
+          SBreader.append(line + "\n");
         }
-        catch (Exception e) {
-      e.printStackTrace();
-      return "";
+        line = SBreader.toString();
+        fileReader.close();
+        buffread.close();
+        return line;
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+        return "";
+      }
     }
-  }
   }
 
   //Logs a new ATOM entry
@@ -270,14 +293,14 @@ public class ServletUtilities {
 
         List<SyndCategory> categories = new ArrayList<SyndCategory>();
         if(CommonConfiguration.getProperty("htmlTitle",context)!=null){
-        	SyndCategory category2 = new SyndCategoryImpl();
-        	category2.setName(CommonConfiguration.getProperty("htmlTitle",context));
-        	categories.add(category2);
-		}
+          SyndCategory category2 = new SyndCategoryImpl();
+          category2.setName(CommonConfiguration.getProperty("htmlTitle",context));
+          categories.add(category2);
+        }
         newItem.setCategories(categories);
         if(CommonConfiguration.getProperty("htmlAuthor",context)!=null){
-        	newItem.setAuthor(CommonConfiguration.getProperty("htmlAuthor",context));
-		}
+          newItem.setAuthor(CommonConfiguration.getProperty("htmlAuthor",context));
+        }
         items.add(newItem);
         feed.setEntries(items);
 
@@ -290,11 +313,11 @@ public class ServletUtilities {
 
       }
     } catch (IOException ioe) {
-      	System.out.println("ERROR: Could not find the ATOM file.");
-      	ioe.printStackTrace();
+      System.out.println("ERROR: Could not find the ATOM file.");
+      ioe.printStackTrace();
     } catch (Exception e) {
-      	System.out.println("Unknown exception trying to add an entry to the ATOM file.");
-      	e.printStackTrace();
+      System.out.println("Unknown exception trying to add an entry to the ATOM file.");
+      e.printStackTrace();
     }
 
   }
@@ -304,7 +327,7 @@ public class ServletUtilities {
     //File rssFile=new File("nofile.xml");
 
     try {
-		System.out.println("Looking for RSS file: "+rssFile.getCanonicalPath());
+      System.out.println("Looking for RSS file: "+rssFile.getCanonicalPath());
       if (rssFile.exists()) {
 
         SAXReader reader = new SAXReader();
@@ -341,15 +364,15 @@ public class ServletUtilities {
       }
     }
     catch (IOException ioe) {
-      	System.out.println("ERROR: Could not find the RSS file.");
-      	ioe.printStackTrace();
+      System.out.println("ERROR: Could not find the RSS file.");
+      ioe.printStackTrace();
     }
     catch (DocumentException de) {
-      	System.out.println("ERROR: Could not read the RSS file.");
-      	de.printStackTrace();
+      System.out.println("ERROR: Could not read the RSS file.");
+      de.printStackTrace();
     } catch (Exception e) {
-      	System.out.println("Unknown exception trying to add an entry to the RSS file.");
-      	e.printStackTrace();
+      System.out.println("Unknown exception trying to add an entry to the RSS file.");
+      e.printStackTrace();
     }
   }
 
@@ -372,40 +395,45 @@ public class ServletUtilities {
   public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request) {
     boolean isOwner = false;
     //if (request.isUserInRole("admin")) {
-      if (request.getUserPrincipal()!=null) {
-        if (request.isUserInRole("admin")) {
-          isOwner = true;
-        }
-        else if (request.isUserInRole(enc.getLocationCode())) {
-          isOwner = true;
-        }
-        else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
-          isOwner = true;
-        }
+    if (request.getUserPrincipal()!=null) {
+      if (request.isUserInRole("admin")) {
+        isOwner = true;
       }
-      return isOwner;
-  //}
-   // return isOwner;
-}
+      else if (request.isUserInRole(enc.getLocationCode())) {
+        isOwner = true;
+      }
+      else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
+        isOwner = true;
+      }
+
+      //whaleshark.org custom
+      if((request.getRemoteUser().equals("rgrampus"))&&(enc.getLocationCode().startsWith("2h"))){isOwner=false;}
+
+
+    }
+    return isOwner;
+    //}
+    // return isOwner;
+  }
 
   public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request) {
     //if (request.isUserInRole("admin")) {
-      if (request.getUserPrincipal()!=null) {
-          //return true;
+    if (request.getUserPrincipal()!=null) {
+      //return true;
 
-        if (request.isUserInRole("admin")) {
+      if (request.isUserInRole("admin")) {
+        return true;
+      }
+
+      Vector encounters = sharky.getEncounters();
+      int numEncs = encounters.size();
+      for (int y = 0; y < numEncs; y++) {
+        Encounter enc = (Encounter) encounters.get(y);
+        if (request.isUserInRole(enc.getLocationCode())) {
           return true;
         }
-
-        Vector encounters = sharky.getEncounters();
-        int numEncs = encounters.size();
-        for (int y = 0; y < numEncs; y++) {
-          Encounter enc = (Encounter) encounters.get(y);
-          if (request.isUserInRole(enc.getLocationCode())) {
-            return true;
-          }
-        }
       }
+    }
     //}
     return false;
   }
@@ -413,18 +441,18 @@ public class ServletUtilities {
   //occurrence
   public static boolean isUserAuthorizedForOccurrence(Occurrence sharky, HttpServletRequest request) {
 
-      if (request.getUserPrincipal()!=null) {
+    if (request.getUserPrincipal()!=null) {
 
-          if (request.isUserInRole("admin")) {  return true;  }
-          ArrayList<Encounter> encounters = sharky.getEncounters();
-          int numEncs = encounters.size();
-          for (int y = 0; y < numEncs; y++) {
-            Encounter enc = (Encounter) encounters.get(y);
-            if (request.isUserInRole(enc.getLocationCode())) {
-              return true;
-            }
-          }
+      if (request.isUserInRole("admin")) {  return true;  }
+      ArrayList<Encounter> encounters = sharky.getEncounters();
+      int numEncs = encounters.size();
+      for (int y = 0; y < numEncs; y++) {
+        Encounter enc = (Encounter) encounters.get(y);
+        if (request.isUserInRole(enc.getLocationCode())) {
+          return true;
+        }
       }
+    }
 
 
     return false;
@@ -460,77 +488,77 @@ public class ServletUtilities {
   }
 
   /*public static String cleanFileName(String aTagFragment) {
-    final StringBuffer result = new StringBuffer();
+  final StringBuffer result = new StringBuffer();
 
-    final StringCharacterIterator iterator = new StringCharacterIterator(aTagFragment);
-    char character = iterator.current();
-    while (character != CharacterIterator.DONE) {
-      if (character == '<') {
-        result.append("_");
-      } else if (character == '>') {
-        result.append("_");
-      } else if (character == '\"') {
-        result.append("_");
-      } else if (character == '\'') {
-        result.append("_");
-      } else if (character == '\\') {
-        result.append("_");
-      } else if (character == '&') {
-        result.append("_");
-      } else if (character == ' ') {
-        result.append("_");
-      } else if (character == '#') {
-        result.append("_");
-      } else {
-        //the char is not a special one
-        //add it to the result as is
-        result.append(character);
-      }
-      character = iterator.next();
-    }
-    return result.toString();
-  }
-  */
+  final StringCharacterIterator iterator = new StringCharacterIterator(aTagFragment);
+  char character = iterator.current();
+  while (character != CharacterIterator.DONE) {
+  if (character == '<') {
+  result.append("_");
+} else if (character == '>') {
+result.append("_");
+} else if (character == '\"') {
+result.append("_");
+} else if (character == '\'') {
+result.append("_");
+} else if (character == '\\') {
+result.append("_");
+} else if (character == '&') {
+result.append("_");
+} else if (character == ' ') {
+result.append("_");
+} else if (character == '#') {
+result.append("_");
+} else {
+//the char is not a special one
+//add it to the result as is
+result.append(character);
+}
+character = iterator.next();
+}
+return result.toString();
+}
+*/
 
-  public static String preventCrossSiteScriptingAttacks(String description) {
-    description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-    description = description.replaceAll("eval\\((.*)\\)", "");
-    description = description.replaceAll("[\\\"\\\'][\\s]*((?i)javascript):(.*)[\\\"\\\']", "\"\"");
-    description = description.replaceAll("((?i)script)", "");
-    description = description.replaceAll("onerror", "");
-    //description = description.replaceAll("alert", "");
-    description = StringEscapeUtils.escapeHtml(description);
-    return description;
-  }
+public static String preventCrossSiteScriptingAttacks(String description) {
+  description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  description = description.replaceAll("eval\\((.*)\\)", "");
+  description = description.replaceAll("[\\\"\\\'][\\s]*((?i)javascript):(.*)[\\\"\\\']", "\"\"");
+  description = description.replaceAll("((?i)script)", "");
+  description = description.replaceAll("onerror", "");
+  //description = description.replaceAll("alert", "");
+  description = StringEscapeUtils.escapeHtml(description);
+  return description;
+}
 
-  public static String getDate() {
-    DateTime dt = new DateTime();
-    DateTimeFormatter fmt = ISODateTimeFormat.date();
-    return (fmt.print(dt));
-  }
+public static String getDate() {
+  DateTime dt = new DateTime();
+  DateTimeFormatter fmt = ISODateTimeFormat.date();
+  return (fmt.print(dt));
+}
 
-  public static Connection getConnection() throws SQLException {
+public static Connection getConnection() throws SQLException {
 
-    Connection conn = null;
-    Properties connectionProps = new Properties();
-    connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
-    connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
+  Connection conn = null;
+  Properties connectionProps = new Properties();
+  connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
+  connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
 
 
-    conn = DriverManager.getConnection(
-           CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"),
-           connectionProps);
+  conn = DriverManager.getConnection(
+  CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"),
+  connectionProps);
 
-    System.out.println("Connected to database for authentication.");
-    return conn;
+  System.out.println("Connected to database for authentication.");
+  return conn;
 }
 
 public static String hashAndSaltPassword(String clearTextPassword, String salt) {
-    return new Sha512Hash(clearTextPassword, salt, 200000).toHex();
+  return new Sha512Hash(clearTextPassword, salt, 200000).toHex();
 }
 
 public static ByteSource getSalt() {
-    return new SecureRandomNumberGenerator().nextBytes();
+  return new SecureRandomNumberGenerator().nextBytes();
 }
 
 public static String getContext(HttpServletRequest request){
@@ -556,7 +584,7 @@ public static String getContext(HttpServletRequest request){
   if(cookies!=null){
     for(Cookie cookie : cookies){
       if("wildbookContext".equals(cookie.getName())){
-          return cookie.getValue();
+        return cookie.getValue();
       }
     }
   }
@@ -608,7 +636,7 @@ public static String getLanguageCode(HttpServletRequest request){
   if(cookies!=null){
     for(Cookie cookie : cookies){
       if("wildbookLangCode".equals(cookie.getName())){
-          if(supportedLanguages.contains(cookie.getValue())){return cookie.getValue();}
+        if(supportedLanguages.contains(cookie.getValue())){return cookie.getValue();}
       }
     }
   }
@@ -620,180 +648,604 @@ public static String getLanguageCode(HttpServletRequest request){
 }
 
 
-	public static String dataDir(String context, String rootWebappPath) {
-		File webappsDir = new File(rootWebappPath).getParentFile();
-		File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-		return shepherdDataDir.getAbsolutePath();
-	}
+public static String dataDir(String context, String rootWebappPath) {
+  File webappsDir = new File(rootWebappPath).getParentFile();
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+  if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+  return shepherdDataDir.getAbsolutePath();
+}
 
-	//like above, but can pass a subdir to append
-	public static String dataDir(String context, String rootWebappPath, String subdir) {
-		return dataDir(context, rootWebappPath) + File.separator + subdir;
-	}
+//like above, but can pass a subdir to append
+public static String dataDir(String context, String rootWebappPath, String subdir) {
+  return dataDir(context, rootWebappPath) + File.separator + subdir;
+}
 
 /*
-	//like above, but only need request passed
-	public static String dataDir(HttpServletRequest request) {
-		String context = "context0";
-		context = ServletUtilities.getContext(request);
-		//String rootWebappPath = request.getServletContext().getRealPath("/");  // only in 3.0??
-		//String rootWebappPath = request.getSession(true).getServlet().getServletContext().getRealPath("/");
-		ServletContext s = request.getServletContext();
+//like above, but only need request passed
+public static String dataDir(HttpServletRequest request) {
+String context = "context0";
+context = ServletUtilities.getContext(request);
+//String rootWebappPath = request.getServletContext().getRealPath("/");  // only in 3.0??
+//String rootWebappPath = request.getSession(true).getServlet().getServletContext().getRealPath("/");
+ServletContext s = request.getServletContext();
 String rootWebappPath = "xxxxxx";
-		return dataDir(context, rootWebappPath);
-	}
+return dataDir(context, rootWebappPath);
+}
 */
 
 
-  private static String loadOverrideText(String shepherdDataDir, String fileName, String langCode) {
-    //System.out.println("Starting loadOverrideProps");
-    StringBuffer myText=new StringBuffer("");
-    //Properties myProps=new Properties();
-    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
-    //System.out.println(configDir.getAbsolutePath());
-    //sometimes this ends up being the "bin" directory of the J2EE container
-    //we need to fix that
-    if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
-      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
-      configDir=new File(fixedPath);
-      //System.out.println("Fixing the bin issue in Shepherd PMF. ");
-      //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
-}
-    //System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
-    if(!configDir.exists()){configDir.mkdirs();}
-    File configFile = new File(configDir, fileName);
-    if (configFile.exists()) {
-      //System.out.println("ShepherdProps: "+"Overriding default properties with " + configFile.getAbsolutePath());
-      FileInputStream fileInputStream = null;
-      try {
-        fileInputStream = new FileInputStream(configFile);
+private static String loadOverrideText(String shepherdDataDir, String fileName, String langCode) {
+  //System.out.println("Starting loadOverrideProps");
+  StringBuffer myText=new StringBuffer("");
+  //Properties myProps=new Properties();
+  File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
+  //System.out.println(configDir.getAbsolutePath());
+  //sometimes this ends up being the "bin" directory of the J2EE container
+  //we need to fix that
+  if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
+    String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
+    configDir=new File(fixedPath);
+    //System.out.println("Fixing the bin issue in Shepherd PMF. ");
+    //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+  }
+  //System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
+  if(!configDir.exists()){configDir.mkdirs();}
+  File configFile = new File(configDir, fileName);
+  if (configFile.exists()) {
+    //System.out.println("ShepherdProps: "+"Overriding default properties with " + configFile.getAbsolutePath());
+    FileInputStream fileInputStream = null;
+    try {
+      fileInputStream = new FileInputStream(configFile);
 
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
-        StringBuilder out = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            myText.append(line);
-        }
-
-
-
-
-      } catch (Exception e) {
-        e.printStackTrace();
+      BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
+      StringBuilder out = new StringBuilder();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        myText.append(line);
       }
-      finally {
-        if (fileInputStream != null) {
-          try {
-            fileInputStream.close();
-          } catch (Exception e2) {
-            e2.printStackTrace();
+
+
+
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    finally {
+      if (fileInputStream != null) {
+        try {
+          fileInputStream.close();
+        } catch (Exception e2) {
+          e2.printStackTrace();
+        }
+      }
+    }
+  }
+  return myText.toString();
+}
+
+public static String handleNullString(Object obj){
+  if(obj==null){return "";}
+  return obj.toString();
+}
+
+
+public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) throws IOException {
+  StringBuilder sb = new StringBuilder();
+  BufferedReader reader = request.getReader();
+  try {
+    String line;
+    while ((line = reader.readLine()) != null) {
+      sb.append(line).append('\n');
+    }
+  } finally {
+    reader.close();
+  }
+  //ParseException
+  return new JSONObject(sb.toString());
+}
+
+
+public static String getParameterOrAttribute(String name, HttpServletRequest request) {
+  String result = request.getParameter(name);
+  if (name != null) {
+    result = (String) request.getAttribute(name);
+  }
+  return result;
+}
+
+//handy "let anyone do anything (?) cors stuff
+public static void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+  response.setHeader("Access-Control-Allow-Origin", "*");
+  response.setHeader("Access-Control-Allow-Methods", "GET, POST");
+  if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+}
+
+
+/* see webapps/captchaExample.jsp for implementation */
+
+//note: this only handles single-widget (per page) ... if we need multiple, will have to extend things here
+public static String captchaWidget(HttpServletRequest request) {
+  return captchaWidget(request, null);
+}
+public static String captchaWidget(HttpServletRequest request, String params) {
+  String context = getContext(request);
+  Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
+  if (recaptchaProps == null) return "<div class=\"error captcha-error captcha-missing-properties\">Unable to get captcha settings.</div>";
+  String siteKey = recaptchaProps.getProperty("siteKey");
+  String secretKey = recaptchaProps.getProperty("secretKey");  //really dont need this here
+  if ((siteKey == null) || (secretKey == null)) return "<div class=\"error captcha-error captcha-missing-key\">Unable to get captcha key settings.</div>";
+  return "<script>function recaptchaCompleted() { return (grecaptcha && grecaptcha.getResponse(0)); }</script>\n" +
+  "<script src='https://www.google.com/recaptcha/api.js" + ((params == null) ? "" : "?" + params) + "' async defer></script>\n" +
+  "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
+}
+
+//  https://developers.google.com/recaptcha/docs/verify
+public static boolean captchaIsValid(HttpServletRequest request) {
+  return captchaIsValid(getContext(request), request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
+}
+
+public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
+  if (context == null) context = "context0";
+  Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
+  if (recaptchaProps == null) {
+    System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
+    return false;
+  }
+  String siteKey = recaptchaProps.getProperty("siteKey");  //really dont need this here
+  String secretKey = recaptchaProps.getProperty("secretKey");
+  if ((siteKey == null) || (secretKey == null)) {
+    System.out.println("WARNING: could not determine keys for captchaIsValid(); failing");
+    return false;
+  }
+  if (uresp == null) {
+    System.out.println("WARNING: g-recaptcha-response is null in captchaIsValid(); failing");
+    return false;
+  }
+  JSONObject cdata = new JSONObject();
+  cdata.put("secret", secretKey);
+  cdata.put("remoteip", remoteIP);  //i guess this is technically optional (so we dont care if null?)
+  cdata.put("response", uresp);
+  JSONObject gresp = null;
+  try {
+    gresp = RestClient.post(new URL("https://www.google.com/recaptcha/api/siteverify"), cdata);
+  } catch (Exception ex) {
+    System.out.println("WARNING: exception calling captcha api in captchaIsValid(); failing: " + ex.toString());
+    return false;
+  }
+  if (gresp == null) {  //would this ever happen?
+    System.out.println("WARNING: null return from captcha api in captchaIsValid(); failing");
+    return false;
+  }
+  System.out.println("INFO: captchaIsValid() api call returned: " + gresp.toString());
+  return gresp.optBoolean("success", false);
+}
+
+public static ArrayList<String> nlpLocationParse(String text) throws RuntimeException {
+  ArrayList<String> locations = new ArrayList<>();
+  Properties props = new Properties();
+  props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner"); //TODO adding truecase before ner doesn't seem to be making a difference here. If this doesn't change with some tweaking, you may want to remove the stanford-corenlp class:model-english dependency. Update: the stanford-corenlp class:model-english dependency seems essential even when truecase is excluded. Very weird.
+  StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+  edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text);
+  pipeline.annotate(document);
+  List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+  for(CoreMap sentence: sentences) {
+    for (CoreLabel token: sentence.get(TokensAnnotation.class)) {
+      String ne = token.get(NamedEntityTagAnnotation.class);
+      if(ne.equals("LOCATION")){
+        String word = token.get(TextAnnotation.class);
+        System.out.println("Location captured: " + word);
+        locations.add(word);
+      }
+    }
+  }
+
+  if (locations.size() > 0){
+    return locations;
+  } else{
+    throw new RuntimeException("no locations found");
+  }
+
+}
+
+
+//overloaded version to deal with tweets
+public static String nlpDateParse(String text, Status tweet) throws Exception{
+  System.out.println("Entering nlpDateParse twitter version with text " + text);
+  //create my pipeline with the help of the annotators I added.
+  Properties props = new Properties();
+  AnnotationPipeline pipeline = new AnnotationPipeline();
+  pipeline.addAnnotator(new TokenizerAnnotator(false));
+  pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+  pipeline.addAnnotator(new POSTaggerAnnotator(false));
+  pipeline.addAnnotator(new TimeAnnotator("sutime", props));
+
+  text = text.replaceAll("[,.!?;:]", "$0 ");
+  System.out.println("text: " + text);
+  String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase()
+    .split("\\s+"); //TODO I think this does a better version of what the above (text = text.replaceAll("[,.!?;:]", "$0 ");) does?? -Mark Fisher
+  String text2 = String.join(" ", text1);
+
+  System.out.println("text2: " + text2);
+  edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
+
+  //get current date (no time) and formatted with Joda time.
+  LocalDate date = LocalDate.now();
+  DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
+  String referenceDate = dateFormat.print(date);
+
+  //pass current date and record date (or dates) given by text in TIMEX3(an ISO 8601 extention)format.
+  annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
+  pipeline.annotate(annotation);
+  List<CoreMap> timexAnnsAll = annotation
+  .get(TimeAnnotations.TimexAnnotations.class);
+
+  ArrayList<String> arrayListDates = new ArrayList<String>();
+  for (CoreMap cm : timexAnnsAll) {
+    Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
+    //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
+    String dateStr = myDate.toString();
+    System.out.println(".....found date: " + dateStr);
+    arrayListDates.add(dateStr.replaceAll("-XX", ""));
+  }
+  System.out.println("NLP dates found+:" + arrayListDates);
+
+  if (!arrayListDates.isEmpty()) {
+    //turn arrayList into an array to be able to use the old For loop and compare dates.
+    String[] arrayDates = new String[arrayListDates.size()];
+    arrayDates = arrayListDates.toArray(arrayDates);
+    String selectedDate = "";
+
+    try{
+      System.out.println("About to enter selectBestDateFromCandidates");
+      selectedDate = selectBestDateFromCandidates(arrayDates);
+    } catch(Exception e){
+      e.printStackTrace();
+    }
+    if(selectedDate == null | selectedDate.equals("")){
+      try{
+        java.util.Date tweetDate = tweet.getCreatedAt();
+        DateFormat dfTweetStamp = new SimpleDateFormat("yyyy-MM-dd");
+        selectedDate = dfTweetStamp.format(tweetDate);
+        System.out.println("Date of tweet when all other candidates were eliminated is: " + selectedDate);
+        return selectedDate;
+      } catch(Exception e){
+        e.printStackTrace();
+        throw new Exception("Couldn't fetch a timeStamp for the tweet to use as a last-resort date after all other candidates were eliminated");
+      }
+    } else{
+      return selectedDate;
+    }
+  } else{
+    try{
+      java.util.Date tweetDate = tweet.getCreatedAt();
+      DateFormat dfTweetStamp = new SimpleDateFormat("yyyy-MM-dd");
+      String selectedDate = dfTweetStamp.format(tweetDate);
+      System.out.println("Date of tweet when no other candidates existed is: " + selectedDate);
+      return selectedDate;
+    } catch(Exception e){
+      e.printStackTrace();
+      throw new Exception("Couldn't fetch a timeStamp for the tweet to use as a last-resort date when no other candidates existed");
+    }
+  }
+}
+
+public static String nlpDateParse(String text) throws Exception{
+  System.out.println("Entering nlpDateParse with text " + text);
+  //create my pipeline with the help of the annotators I added.
+  Properties props = new Properties();
+  AnnotationPipeline pipeline = new AnnotationPipeline();
+  pipeline.addAnnotator(new TokenizerAnnotator(false));
+  pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+  pipeline.addAnnotator(new POSTaggerAnnotator(false));
+  pipeline.addAnnotator(new TimeAnnotator("sutime", props));
+
+  text = text.replaceAll("[,.!?;:]", "$0 ");
+  System.out.println("text: " + text);
+  String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase()
+    .split("\\s+"); //TODO I think this does a better version of what the above (text = text.replaceAll("[,.!?;:]", "$0 ");) does?? -Mark Fisher
+  String text2 = String.join(" ", text1);
+
+  System.out.println("text2: " + text2);
+  edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
+
+  //get current date (no time) and formatted with Joda time.
+  LocalDate date = LocalDate.now();
+  DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
+  String referenceDate = dateFormat.print(date);
+
+  //pass current date and record date (or dates) given by text in TIMEX3(an ISO 8601 extention)format.
+  annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
+  pipeline.annotate(annotation);
+  List<CoreMap> timexAnnsAll = annotation
+  .get(TimeAnnotations.TimexAnnotations.class);
+
+  ArrayList<String> arrayListDates = new ArrayList<String>();
+  for (CoreMap cm : timexAnnsAll) {
+    Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
+    //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
+    String dateStr = myDate.toString();
+    System.out.println(".....found date: " + dateStr);
+    arrayListDates.add(dateStr.replaceAll("-XX", ""));
+  }
+  System.out.println("NLP dates found+:" + arrayListDates);
+
+  if (!arrayListDates.isEmpty()) {
+    //turn arrayList into an array to be able to use the old For loop and compare dates.
+    String[] arrayDates = new String[arrayListDates.size()];
+    arrayDates = arrayListDates.toArray(arrayDates);
+    String selectedDate = "";
+
+    try{
+      selectedDate = selectBestDateFromCandidates(arrayDates);
+    } catch(Exception e){
+      e.printStackTrace();
+    }
+    if(selectedDate == null | selectedDate.equals("")){
+      throw new Exception("selectedDate was empty or null in the nlpDateParse method");
+    } else{
+      return selectedDate;
+    }
+  } else{
+    throw new Exception("No candidate dates found in nlpDateParse method");
+  }
+}
+
+public static String selectBestDateFromCandidates(String[] candidates) throws Exception{
+  String selectedDate = "";
+
+  if(candidates.length <1){
+    throw new Exception("list of candidate dates was empty");
+  } else if (candidates.length >= 1) {
+
+    //filter by options that are valid dates
+    ArrayList<String> validDates = new ArrayList<String>();
+    try{
+      validDates = removeInvalidDates(candidates);
+    } catch(Exception e){
+      // e.printStackTrace();
+    }
+    try{
+      System.out.println(validDates);
+    } catch(Exception e){
+      System.out.println("couldn't print validDates");
+      // e.printStackTrace();
+    }
+
+    //filter by options that are not in the future
+    ArrayList<String> validDatesWithFutureDatesRemoved = new ArrayList<String>();
+    try{
+      validDatesWithFutureDatesRemoved = removeFutureDates(validDates);
+      System.out.println("Before future removal:");
+      System.out.println(validDates);
+      System.out.println("After future removal:");
+      System.out.println(validDatesWithFutureDatesRemoved);
+    } catch(Exception e){
+      System.out.println("couldn't run removeFutureDates");
+      // e.printStackTrace();
+    }
+
+
+    //if non-yesterday dates exist as well as yesterday ones, prefer the non-yesterdays. Otherwise, just get the yesterday.
+    ArrayList<String> validDatesFilteredByYesterday = new ArrayList<String>();
+    try{
+      validDatesFilteredByYesterday = removeYesterdayDatesIfTheyAreNotTheOnlyDates(validDatesWithFutureDatesRemoved);
+      System.out.println(validDatesFilteredByYesterday);
+    } catch(Exception e){
+      System.out.println("couldn't print validDatesFilteredByYesterday");
+      // e.printStackTrace();
+    }
+
+
+    //Now select the longest one?
+    if(validDatesFilteredByYesterday == null | validDatesFilteredByYesterday.size()<1){
+      throw new Exception("validDatesFilteredByYesterday is null or empty before selecting the longest string");
+    }
+    if(validDatesFilteredByYesterday.size()>1){
+      for (int j = 0; j < validDatesFilteredByYesterday.size(); j++) {
+        for (int k = j + 1; k < validDatesFilteredByYesterday.size(); k++) {
+          if (validDatesFilteredByYesterday.get(j).length() > validDatesFilteredByYesterday.get(k).length()) {
+            selectedDate = validDatesFilteredByYesterday.get(j);
+          } else if (validDatesFilteredByYesterday.get(j).length() < validDatesFilteredByYesterday.get(k).length()) {
+            selectedDate = validDatesFilteredByYesterday.get(k);
+          } else {
+            selectedDate = validDatesFilteredByYesterday.get(0);
           }
         }
       }
+    } else if(validDatesFilteredByYesterday.size()==1){
+      selectedDate = validDatesFilteredByYesterday.get(0);
     }
-    return myText.toString();
   }
 
-  public static String handleNullString(Object obj){
-    if(obj==null){return "";}
-    return obj.toString();
+  if(selectedDate == null | selectedDate.equals("")){
+    throw new Exception("selectedDate either null or empty after selecting for longest one");
+  } else {
+    return selectedDate;
   }
+}
 
-
-    public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = request.getReader();
-        try {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append('\n');
-            }
-        } finally {
-            reader.close();
+public static ArrayList<String> removeInvalidDates(String[] candidates) throws Exception{
+  ArrayList<String> validDates = new ArrayList<String>();
+  DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+  DateFormat df2 = new SimpleDateFormat("yyyy-MM");
+  DateFormat df3 = new SimpleDateFormat("yyyy");
+  String newDateString = null;
+  java.util.Date candiDate;
+  for(int i =0; i<candidates.length; i++){
+    String candidateString = candidates[i];
+    try {
+      candiDate = df.parse(candidateString);
+      newDateString = df.format(candiDate);
+      validDates.add(newDateString);
+    } catch (ParseException e) {
+      try{
+        candiDate = df2.parse(candidateString);
+        newDateString = df2.format(candiDate);
+        validDates.add(newDateString);
+      } catch(Exception f){
+        try{
+          candiDate = df3.parse(candidateString);
+          newDateString = df3.format(candiDate);
+          validDates.add(newDateString);
+        } catch(Exception g){
+          g.printStackTrace();
+          continue;
         }
-//ParseException
-        return new JSONObject(sb.toString());
-    }
-
-
-    public static String getParameterOrAttribute(String name, HttpServletRequest request) {
-      String result = request.getParameter(name);
-      if (name != null) {
-        result = (String) request.getAttribute(name);
       }
-      return result;
-    }
 
-    //handy "let anyone do anything (?) cors stuff
-    public static void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST");
-        if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
     }
+  }
+  if(validDates == null | validDates.size()<1){
+    throw new Exception("validDates arrayList is empty or null in removeInvalidDates method");
+  } else{
+    return validDates;
+  }
+}
 
-    
-    /* see webapps/captchaExample.jsp for implementation */
-
-    //note: this only handles single-widget (per page) ... if we need multiple, will have to extend things here
-    public static String captchaWidget(HttpServletRequest request) {
-        return captchaWidget(request, null);
+public static ArrayList<String> removeFutureDates(ArrayList<String> candidates) throws Exception{
+  //TODO add handling for tweets coming from future in datelines
+  ArrayList<String> returnCandidates = new ArrayList<String>();
+  java.util.Date today =  getToday();
+  for(int i = 0; i<candidates.size(); i++){
+    String currentDateString = candidates.get(i);
+    try{
+      java.util.Date currentDateObj = convertStringToDate(currentDateString);
+      if(currentDateObj == null){
+        System.out.println("currentDateObj in removeFutureDates is null");
+      }
+      if(!currentDateObj.after(today)){
+        returnCandidates.add(currentDateString);
+      }
+    } catch(Exception e){
+      e.printStackTrace();
+      continue;
     }
-    public static String captchaWidget(HttpServletRequest request, String params) {
-        String context = getContext(request);
-        Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
-        if (recaptchaProps == null) return "<div class=\"error captcha-error captcha-missing-properties\">Unable to get captcha settings.</div>";
-        String siteKey = recaptchaProps.getProperty("siteKey");
-        String secretKey = recaptchaProps.getProperty("secretKey");  //really dont need this here
-        if ((siteKey == null) || (secretKey == null)) return "<div class=\"error captcha-error captcha-missing-key\">Unable to get captcha key settings.</div>";
-        return "<script>function recaptchaCompleted() { return (grecaptcha && grecaptcha.getResponse(0)); }</script>\n" +
-            "<script src='https://www.google.com/recaptcha/api.js" + ((params == null) ? "" : "?" + params) + "' async defer></script>\n" +
-            "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
-    }
+  }
+  if(returnCandidates == null | returnCandidates.size()<1){
+    throw new Exception("return list is null or empty after removeFutureDates runs");
+  } else{
+    return returnCandidates;
+  }
+}
 
-    //  https://developers.google.com/recaptcha/docs/verify
-    public static boolean captchaIsValid(HttpServletRequest request) {
-        return captchaIsValid(getContext(request), request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
+public static java.util.Date convertStringToDate(String dateString) throws Exception{
+  DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+  DateFormat df2 = new SimpleDateFormat("yyyy-MM");
+  DateFormat df3 = new SimpleDateFormat("yyyy");
+  java.util.Date returnDate = null;
+  try{
+    returnDate = df.parse(dateString);
+  } catch(Exception e){
+    try{
+      returnDate = df2.parse(dateString);
+    } catch(Exception f){
+      try{
+        returnDate = df3.parse(dateString);
+      } catch(Exception g){
+        g.printStackTrace();
+      }
     }
-    
-    public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
-        if (context == null) context = "context0";
-        Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
-        if (recaptchaProps == null) {
-            System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
-            return false;
-        }
-        String siteKey = recaptchaProps.getProperty("siteKey");  //really dont need this here
-        String secretKey = recaptchaProps.getProperty("secretKey");
-        if ((siteKey == null) || (secretKey == null)) {
-            System.out.println("WARNING: could not determine keys for captchaIsValid(); failing");
-            return false;
-        }
-        if (uresp == null) {
-            System.out.println("WARNING: g-recaptcha-response is null in captchaIsValid(); failing");
-            return false;
-        }
-        JSONObject cdata = new JSONObject();
-        cdata.put("secret", secretKey);
-        cdata.put("remoteip", remoteIP);  //i guess this is technically optional (so we dont care if null?)
-        cdata.put("response", uresp);
-        JSONObject gresp = null;
-        try {
-            gresp = RestClient.post(new URL("https://www.google.com/recaptcha/api/siteverify"), cdata);
-        } catch (Exception ex) {
-            System.out.println("WARNING: exception calling captcha api in captchaIsValid(); failing: " + ex.toString());
-            return false;
-        }
-        if (gresp == null) {  //would this ever happen?
-            System.out.println("WARNING: null return from captcha api in captchaIsValid(); failing");
-            return false;
-        }
-        System.out.println("INFO: captchaIsValid() api call returned: " + gresp.toString());
-        return gresp.optBoolean("success", false);
+  }
+
+  if(returnDate == null){
+    throw new Exception("date in convertStringToDate is null");
+  } else{
+    return returnDate;
+  }
+}
+
+public static ArrayList<String> removeYesterdayDatesIfTheyAreNotTheOnlyDates(ArrayList<String> candidates) throws Exception{
+    String yesterday = getYesterdayDateString();
+    ArrayList<String> returnCandidates = new ArrayList<String>();
+    int yesterdayCounter = 0;
+    for(int i = 0; i<candidates.size(); i++){
+      if (candidates.get(i).equals(yesterday)){
+        yesterdayCounter ++;
+      } else {
+        returnCandidates.add(candidates.get(i));
+      }
     }
+    if(yesterdayCounter == candidates.size() | yesterdayCounter == 0){
+      //yesterday is the only date or yesterday doesn't occur at all
+      returnCandidates = candidates;
+    } else if (yesterdayCounter != 0 && yesterdayCounter < candidates.size()){
+      //keep returnCandidates as it is from the for loop above
+    }
+    if(returnCandidates == null | returnCandidates.size()<1){
+      throw new Exception("removeYesterdayDatesIfTheyAreNotTheOnlyDates method returned null or empty arrayList");
+    } else{
+      return returnCandidates;
+    }
+}
+
+public static String getTodayDateString() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return dateFormat.format(getToday());
+}
+
+public static java.util.Date getToday() {
+    final Calendar cal = Calendar.getInstance();
+    return cal.getTime();
+}
+
+public static String getYesterdayDateString() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return dateFormat.format(getYesterday());
+}
+
+public static java.util.Date getYesterday() {
+    final Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.DATE, -1);
+    return cal.getTime();
+}
 
 
+/* Same as nlpDateParse, but will return the entire arraylist instead of
+** just the best date
+*/
+public static ArrayList<String> nlpDateParseToArrayList(String text){
+  System.out.println("Entering nlpParseDateArray");
+
+  // create pipeline with annotators like above
+  Properties props = new Properties();
+  AnnotationPipeline pipeline = new AnnotationPipeline();
+  pipeline.addAnnotator(new TokenizerAnnotator(false));
+  pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+  pipeline.addAnnotator(new POSTaggerAnnotator(false));
+  pipeline.addAnnotator(new TimeAnnotator("sutime", props));
+
+  // replace special characters using regex
+  text = text.replaceAll("[,.!?;:]", "$0 ");
+  System.out.println("text: " + text);
+  String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase().split("\\s+");
+  String text2 = String.join(" ", text1);
+
+  System.out.println("text2: " + text2);
+  // Create annotation using new string
+  edu.stanford.nlp.pipeline.Annotation annotation = new edu.stanford.nlp.pipeline.Annotation(text2);
+
+  // Get current date (not time) and formatted with Joda time as above
+  LocalDate date = LocalDate.now();
+  DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+  String referenceDate = dateTimeFormatter.print(date);
+
+  // Pass current date and record date(s) given by text in TIMEX3(ISO 8601 standard) format.
+  annotation.set(CoreAnnotations.DocDateAnnotation.class, referenceDate);
+  pipeline.annotate(annotation);
+  List<CoreMap> timexAnnsAll = annotation.get(TimeAnnotations.TimexAnnotations.class);
+
+  ArrayList<String> arrayListDates = new ArrayList<String>();
+  for(CoreMap cm : timexAnnsAll){
+    Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
+    String dateStr = myDate.toString();
+    System.out.println(".....found date: " + dateStr);
+    arrayListDates.add(dateStr.replaceAll("-XX", ""));
+  }
+  System.out.println("NLP dates found+: " + arrayListDates);
+
+  return arrayListDates;
+}
 
 
 }

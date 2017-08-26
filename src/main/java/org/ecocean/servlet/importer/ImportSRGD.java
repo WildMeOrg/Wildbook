@@ -65,7 +65,7 @@ public class ImportSRGD extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
-
+    myShepherd.setAction("ImportSRGD");
     System.out.println("\n\nStarting ImportSRGD servlet...");
     
     //setup data dir
