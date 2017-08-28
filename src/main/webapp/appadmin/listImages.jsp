@@ -24,10 +24,10 @@ Iterator allSharks=myShepherd.getAllMarkedIndividuals();
 try{
 
 
-//while(allSharks.hasNext()){
+while(allSharks.hasNext()){
 
-	//MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
-	MarkedIndividual sharky=myShepherd.getMarkedIndividual("A-001");
+	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	//MarkedIndividual sharky=myShepherd.getMarkedIndividual("A-001");
 
 		%>
 		
@@ -143,7 +143,7 @@ try{
 	
 
 	
-//}
+}
 
 myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
