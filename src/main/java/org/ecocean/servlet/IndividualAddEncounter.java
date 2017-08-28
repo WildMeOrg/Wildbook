@@ -133,8 +133,10 @@ public class IndividualAddEncounter extends HttpServlet {
             
             try{
               //let's do a YouTube post-back check
+              System.out.println("In IndividualAddEncounter trying to fire YouTube..");
               if(enc2add.getOccurrenceID()!=null){
                 if(myShepherd.isOccurrence(enc2add.getOccurrenceID())){
+                  System.out.println("...In IndividualAddEncounter found an occurrence..");
                   Occurrence occur=myShepherd.getOccurrence(enc2add.getOccurrenceID());
                   //TBD-support more than just en language
                   Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
