@@ -2831,7 +2831,7 @@ return Util.generateUUID();
               if(enc.getDateInMilliseconds()!=null){setDate=false;}
               //next use natural language processing for date
               if(setDate){
-                boolean NLPsuccess=false;
+                //boolean NLPsuccess=false;
                 try{
                     System.out.println(">>>>>> looking for date with NLP");
                     //call Stanford NLP function to find and select a date from ytRemarks
@@ -2943,7 +2943,8 @@ return Util.generateUUID();
                 }
 
                   //NLP failure? let's try brute force detection across all languages supported by this Wildbook
-                  if(!NLPsuccess){
+                /*  
+                if(!NLPsuccess){
                     System.out.println(">>>>>> looking for date with brute force");
                     //next parse for year
                     LocalDateTime dt = new LocalDateTime();
@@ -2955,7 +2956,7 @@ return Util.generateUUID();
                         year=i;
                         System.out.println("...detected a year in comments!");
 
-                        /**
+                      
                         //check for month
                         List<String> langs=CommonConfiguration.getIndexedPropertyValues("language", context);
                         int numLangs=langs.size();
@@ -2975,11 +2976,12 @@ return Util.generateUUID();
                             }
                             catch(Exception e){e.printStackTrace();}
                           } //end for
-                        */
+                        
                         }
 
                       }
                 }
+                */
 
                 //end brute force date detection if NLP failed
 
