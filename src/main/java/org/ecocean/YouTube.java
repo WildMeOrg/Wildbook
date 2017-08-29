@@ -236,7 +236,7 @@ System.out.println("]=== done with .extractFrames()");
       try {
         String commentId=occur.getSocialMediaQueryCommentID();
         CommentListResponse commentsListResponse = youtube.comments().list("snippet")
-            .setParentId(commentId).setTextFormat("plainText").execute();
+            .setParentId(commentId).setTextFormat("plainText").setKey(apiKey).execute();
         List<Comment> comments = commentsListResponse.getItems();
         String replies = "";
         if (comments.isEmpty()) {
