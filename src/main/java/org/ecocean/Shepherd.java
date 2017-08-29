@@ -138,6 +138,9 @@ public class Shepherd {
     }
     return (uniqueID);
   }
+  public String storeNewEncounter(Encounter enc) {
+    return storeNewEncounter(enc, Util.generateUUID());
+  }
 
   public String storeNewAnnotation(Annotation enc) {
     //enc.setOccurrenceID(uniqueID);
