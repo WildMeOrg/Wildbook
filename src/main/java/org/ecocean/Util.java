@@ -571,4 +571,9 @@ public class Util {
       return values;
     }
 
+    // replaces wrong-slashes with right-slashes
+    public static String windowsFileStringToLinux(String windowsFileString) {
+      return windowsFileString.replace("\\","/");
+    }
+
 }
