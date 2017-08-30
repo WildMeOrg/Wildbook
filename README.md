@@ -47,3 +47,5 @@ Emails are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/reso
 Actual jsp files are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
 
 Add new location IDs here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
+
+HTML entity encoder/decoder: https://mothereff.in/html-entities
