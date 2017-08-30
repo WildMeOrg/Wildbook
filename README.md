@@ -48,6 +48,6 @@ Actual jsp files are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src
 
 Add new location IDs here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
 
-Edit commonConfiguration.properties here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
+commonConfiguration.properties here (for reference only, gets overridden): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
 
 HTML entity encoder/decoder: https://mothereff.in/html-entities
