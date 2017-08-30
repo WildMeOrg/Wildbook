@@ -35,3 +35,13 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 
 <p><img style="float: right;" align="middle" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> http://www.wildme.org
+
+<h2>Spotting Giant Sea Bass</h2>
+
+Localization files are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
+
+Image files go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
+
+Emails are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
+
+Actual jsp files are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
