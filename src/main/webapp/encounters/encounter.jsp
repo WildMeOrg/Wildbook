@@ -707,7 +707,7 @@ if(enc.getLocation()!=null){
   <%
     if (enc.getDepthAsDouble() !=null) {
   %>
-  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
+  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("feet")%> <%
   } else {
   %> <%=encprops.getProperty("unknown") %>
   <%
