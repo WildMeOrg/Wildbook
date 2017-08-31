@@ -319,7 +319,7 @@ System.out.println("]=== done with .extractFrames()");
         comment.setSnippet(snippet);
 
         com.google.api.services.youtube.YouTube.Comments.Insert commentsInsertRequest = youtube.comments().insert(parameters.get("part").toString(), comment);
-
+        commentsInsertRequest.setKey(apiKey);
         Comment response = commentsInsertRequest.execute();
         System.out.println(response);
         String receipt = response.getSnippet().getTextDisplay();
