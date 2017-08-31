@@ -356,7 +356,7 @@ System.out.println("]=== done with .extractFrames()");
           else{
             //we have a comment that we originally posted that we can reply to.
             String concatReplies=getReplies(occur);
-            if(concatReplies.indexOf(message)==-1){
+            if((concatReplies!=null)&&(concatReplies.indexOf(message)==-1)){
               //we ourselves haven't posted this before (i.e., don't harass user with multiple, similar comments)
               System.out.println("Replying to a previous YouTube comment");
               //sendReply(commentID, message);
