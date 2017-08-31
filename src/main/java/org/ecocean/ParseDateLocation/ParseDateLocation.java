@@ -340,6 +340,8 @@ public class ParseDateLocation {
     return parsedDates;
   }
 
+  
+  /*
   public static void date(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context, String text) {
     System.out.println(">>>>>> detection created " + occ.toString());
 
@@ -532,5 +534,6 @@ public class ParseDateLocation {
 
 //    }
   }
+  */
 
 }

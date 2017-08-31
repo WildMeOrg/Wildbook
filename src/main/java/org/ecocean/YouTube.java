@@ -296,7 +296,7 @@ System.out.println("]=== done with .extractFrames()");
         return null;
     }
     
-    public static String sendReply(String commentId, String commentToPost) {  //pubAfter is ms since epoch
+   /* public static String sendReply(String commentId, String commentToPost) {  //pubAfter is ms since epoch
       if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
@@ -322,6 +322,8 @@ System.out.println("]=== done with .extractFrames()");
         commentsInsertRequest.setKey(apiKey);
         Comment response = commentsInsertRequest.execute();
         System.out.println(response);
+        
+        
         String receipt = response.getSnippet().getTextDisplay();
         return receipt;
       }catch (GoogleJsonResponseException e) {
@@ -333,6 +335,8 @@ System.out.println("]=== done with .extractFrames()");
       }
         return null;
     }
+    
+    */
 
     public static void postOccurrenceMessageToYouTubeIfAppropriate(String message, Occurrence occur, Shepherd myShepherd, HttpServletRequest request){
         System.out.println("--Entering YouTube.postOccurrenceMessageToYouTubeIfAppropriate");
@@ -355,7 +359,8 @@ System.out.println("]=== done with .extractFrames()");
             if(concatReplies.indexOf(message)==-1){
               //we ourselves haven't posted this before (i.e., don't harass user with multiple, similar comments)
               System.out.println("Replying to a previous YouTube comment");
-              sendReply(commentID, message);
+              //sendReply(commentID, message);
+              postQuestion(message,videoID, occur);
               
             }
           }
