@@ -287,19 +287,28 @@ public class Encounter implements java.io.Serializable {
   }
 
     public Encounter(Annotation ann) {
-        this(new ArrayList<Annotation>(Arrays.asList(ann)));
+      this(new ArrayList<Annotation>(Arrays.asList(ann)));
     }
+
 
     public Encounter(ArrayList<Annotation> anns) {
         this.catalogNumber = Util.generateUUID();
         this.annotations = anns;
-        this.setDateFromAssets();
-        this.setSpeciesFromAnnotations();
-        this.setLatLonFromAssets();
+        if (!this.annotationsAreEmpty()) {
+          this.setDateFromAssets();
+          this.setSpeciesFromAnnotations();
+          this.setLatLonFromAssets();
+        }
         this.setDWCDateAdded();
         this.setDWCDateLastModified();
         this.resetDateInMilliseconds();
     }
+    private boolean annotationsAreEmpty() {
+      return( this.annotations == null       ||
+              this.annotations.size() == 0 || 
+             (this.annotations.size() == 1 && (this.annotations.get(0)==null)) );
+    }
+
 
 
   /**

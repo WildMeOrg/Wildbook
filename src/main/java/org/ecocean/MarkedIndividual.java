@@ -169,6 +169,32 @@ public class MarkedIndividual implements java.io.Serializable {
       return isNew;
 
  }
+  public boolean addEncounterNoCommit(Encounter newEncounter, String context) {
+
+      newEncounter.assignToMarkedIndividual(individualID);
+
+      //get and therefore set the haplotype if necessary
+      getHaplotype();
+
+      boolean isNew=true;
+      for(int i=0;i<encounters.size();i++) {
+        Encounter tempEnc=(Encounter)encounters.get(i);
+        if(tempEnc.getEncounterNumber().equals(newEncounter.getEncounterNumber())) {
+          isNew=false;
+        }
+      }
+
+      //prevent duplicate addition of encounters
+      if(isNew){
+        encounters.add(newEncounter);
+        numberEncounters++;
+        //refreshDependentProperties(context);
+      }
+      setTaxonomyFromEncounters();  //will only set if has no value
+      setSexFromEncounters();       //likewise
+      return isNew;
+
+ }
 
    /**Removes an encounter from this MarkedIndividual.
    *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
