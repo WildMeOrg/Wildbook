@@ -1042,7 +1042,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         for(int i=0;i<numKeywords;i++){
           Keyword kw=keywords.get(i);
           if (kw==null) return false;
-          if((kw.getIndexname().equals(keywordName))||(kw.getReadableName().equals(keywordName))){return true;}
+          if((keywordName.equals(kw.getIndexname())||keywordName.equals(kw.getReadableName()))) return true; 
         }
       }
       
