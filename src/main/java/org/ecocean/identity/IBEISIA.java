@@ -2513,6 +2513,7 @@ System.out.println("queryConfigDict() got species=" + species + "; and opt = " +
     }
 
     public static void primeIA() {
+        System.out.println("primeIA is called!");
         setIAPrimed(false);
         if (!iaEnabled()) return;
 System.out.println("<<<<< BEFORE : " + isIAPrimed());
