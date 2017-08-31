@@ -576,4 +576,10 @@ public class Util {
       return windowsFileString.replace("\\","/");
     }
 
+    public static boolean fileExists(String filepath) {
+      File f = new File(filepath);
+      return (f.exists() && !f.isDirectory());
+    }
+
+
 }
