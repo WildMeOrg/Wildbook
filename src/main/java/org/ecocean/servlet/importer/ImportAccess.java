@@ -43,11 +43,73 @@ public class ImportAccess extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private static PrintWriter out;
   private static String context;
+
+  // Hack. TODO: remove?
+  private static boolean runOncePercompile = false;
+
+  private static boolean committing = false; // for developing w/o mucking up database
   
   // Okay, we might need to build a hashmap out of every line in this table, so we can create multiple encounters 
   // for the date/sighting number pairs that occure multiple times. 
   HashMap<String,Integer> duplicatePairsMap = new HashMap<String,Integer>();
   ArrayList<String> failedEncs = new ArrayList<String>();
+
+  // so we can bounce objects around between helper methods w/o worrying about shepherd permanence so much
+  Map<String,MarkedIndividual> generatedIndividuals = new HashMap<String, MarkedIndividual>();
+  Map<String,Encounter> generatedEncounters = new HashMap<String, Encounter>();
+  Map<String,Occurrence> generatedOccurrences = new HashMap<String, Occurrence>();
+
+  private String photoLocation;
+
+  private AssetStore astore;
+  public static final String DEFAULT_ASSETSTORE_NAME = "Oman-Asset-Store";
+
+  private List<String> missingPhotos = new ArrayList<String>();
+
+  Integer rowLimitForTesting;
+
+  private void commitIndividuals(Shepherd myShepherd) {
+    for (MarkedIndividual indy : generatedIndividuals.values()) {
+      if (!myShepherd.isMarkedIndividual(indy.getIndividualID())) {
+        myShepherd.storeNewMarkedIndividual(indy);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      }
+    }
+  }
+  private void commitEncounters(Shepherd myShepherd) {
+    for (Encounter indy : generatedEncounters.values()) {
+      if (!myShepherd.isEncounter(indy.getIndividualID())) {
+        myShepherd.storeNewEncounter(indy);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      }
+    }
+  }
+  private void commitOccurrence(Shepherd myShepherd) {
+    for (Occurrence indy : generatedOccurrences.values()) {
+      if (!myShepherd.isOccurrence(indy.getOccurrenceID())) {
+        myShepherd.storeNewOccurrence(indy);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      }
+    }
+  }
+
+  // // I find AssetStores confusing, hence the convenience method
+  // private LocalAssetStore  getLocalAssetStore(Shepherd myShepherd) {
+  //   return getLocalAssetStore(DEFAULT_ASSETSTORE_NAME, myShepherd);
+  // }
+
+  private AssetStore  getAssetStore(Shepherd myShepherd) {
+
+    return AssetStore.getDefault(myShepherd);
+
+    //AssetStore store = AssetStore.get(storeName);
+    //if (store != null) return store;
+    
+  }
+
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -60,19 +122,21 @@ public class ImportAccess extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+    if (runOncePercompile) return;
+    //else runOncePercompile = true;
+
+    rowLimitForTesting = 200;
+    missingPhotos = new ArrayList<String>();
+
     context = ServletUtilities.getContext(request);
     out = response.getWriter();
 
-    Shepherd myShepherd = new Shepherd(context);
+    boolean skipSightingsHistory = true;
+    boolean skipIDPhotos = false;
 
-    // Check if we have created and asset store yet, and if not create one.
+    Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
     myShepherd.setAction("AccessImport.class");
-
-    ServletUtilities.importJsp("header.jsp", request, response);
-    // for alignment after header
-    out.println("<div class=\"container\"><div class=\"row\">");
-
     if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
       out.println("-- Wildbook not initialized. Starting Wildbook. --");
       StartupWildbook.initializeWildbook(request, myShepherd);
@@ -81,15 +145,15 @@ public class ImportAccess extends HttpServlet {
     myShepherd.closeDBTransaction();
       
     
-    String dbName = "omanData2016.04.20.accdb";
-    if (request.getParameter("file") != null) {
-      dbName = request.getParameter("file");
-    }
+    String dbName = "omanData2017.07.04.mdb";
+    if (request.getParameter("file") != null) dbName = request.getParameter("file");
     
-    String dbLocation = "/data/";
-    if (request.getParameter("location") != null) {
-      dbLocation = request.getParameter("location");
-    }
+    String dbLocation = "/data/oman_import/";
+    if (request.getParameter("location") != null) dbLocation = request.getParameter("location");
+
+    photoLocation = "/data/oman_import/photos";
+
+    if ((request.getParameter("committing")!=null) && !request.getParameter("committing").equals("false")) committing = true; // unsets default false value
 
     Database db = null;  
     try {
@@ -100,6 +164,11 @@ public class ImportAccess extends HttpServlet {
     }
     
     
+    // Displaying full html with some jsp templating
+    ServletUtilities.importJsp("header.jsp", request, response);
+    // for alignment after header
+    out.println("<div class=\"container\"><div class=\"row\">");
+
     out.println("***** Beginning Access Database Import. *****\n");
     
     Set<String> tables = db.getTableNames();
@@ -108,79 +177,36 @@ public class ImportAccess extends HttpServlet {
     myShepherd.beginDBTransaction();
 
 
-    out.println("<h3> Preprocessing IDPhotos table</h3>");
-    out.println("<p>");
-    if (!tables.contains("IDPhotos")) throw new IOException("Formatting Exception: No IDphotos table!");
-    out.println("Table present: "+tables.contains("IDPhotos"));
-    Table idPhotos = db.getTable("IDPhotos");
-    out.println("Table present: "+tables.contains("IDPhotos"));
-    processIDPhotosTable(idPhotos, out);
-    out.println("</p>");
 
-    out.println("<p>");
-    if (!tables.contains("SightingHistory")) throw new IOException("Formatting Exception: No SightingHistory table!");
-    out.println("<h3> Preprocessing SightingHistory table</h3>");
-    out.println("Table present: "+tables.contains("SightingHistory"));
-    Table sightingHistory = db.getTable("SightingHistory");
-    processSightingHistoryTable(sightingHistory, out);
-    out.println("</p>");
-
-
-
-        /*
-    // These switches allow you to work on different tables without doing the whole import a bunch of times.
-    boolean dumlTableSwitch = true;
-    if (dumlTableSwitch) {    
-      try {
-        out.println("********************* Let's process the DUML Table!\n");
-        // Hit the SIGHTINGS table to find out whether we need to create multiple encounters for a given occurrence.
-        buildEncounterDuplicationMap(db.getTable("SIGHTINGS"), myShepherd);
-        
-        processDUML(db.getTable("DUML"), myShepherd);
-      } catch (Exception e) {
-        out.println(e);
-        out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Could not process DUML table!!!");
-      }
-    }  
-    
-    boolean sightingsTableSwitch = true;
-    if (sightingsTableSwitch) {
-      try {
-        out.println("********************* Let's process the SIGHTINGS Table!\n");
-        processSightings(db.getTable("SIGHTINGS"), myShepherd);
-      } catch (Exception e) {
-        out.println(e);
-        e.printStackTrace();
-        out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Could not process SIGHTINGS table!!!");
-      }      
+    if (!skipSightingsHistory) {
+      out.println("<div>");
+      out.println("<p>");
+      if (!tables.contains("SightingHistory")) throw new IOException("Formatting Exception: No SightingHistory table!");
+      out.println("<h3> Processing SightingHistory table</h3>");
+      out.println("Table present: "+tables.contains("SightingHistory"));
+      Table sightingHistory = db.getTable("SightingHistory");
+      boolean sightingHistoryDone = processSightingHistoryTable(sightingHistory, out, myShepherd);
+      out.println("</p>");
+      out.println("</div>");
     }
-    
-    boolean effortTableSwitch = true;
-    if (effortTableSwitch) {
-      try {
-        out.println("********************* Let's process the EFFORT Table!\n");
-        processEffortTable(db.getTable("EFFORT"), myShepherd);
-      } catch (Exception e) {
-        out.println(e);
-        e.printStackTrace();
-        out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Could not process Effort table!!!");
-      }      
+
+
+    if (!skipIDPhotos) {
+
+      out.println("<div>");
+      out.println("<h3> Processing IDPhotos table</h3>");
+      out.println("<p>");
+      if (!tables.contains("IDPhotos")) throw new IOException("Formatting Exception: No IDphotos table!");
+      Table idPhotos = db.getTable("IDPhotos");
+
+      out.println("Table present: "+tables.contains("IDPhotos")+" about to call processIDPhotosTable.");
+      out.println("</p>");
+      boolean idPhotosDone = processIDPhotosTable(idPhotos, out, myShepherd);
+      out.println("<p>Done with idPhotos. Result = "+idPhotosDone+"</p>");
+      out.println("</div>");
     }
-    
-    boolean biopsyTableSwitch = true;
-    if (biopsyTableSwitch) {
-      try {
-        out.println("********************* Let's process the BiopsySamples Table!\n");
-        processBiopsyTable(db.getTable("Biopsy Samples"), myShepherd, db.getTable("DUML"));
-      } catch (Exception e) {
-        out.println(e);
-        e.printStackTrace();
-        out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Could not process BiopsySamples table!!!");
-      }      
-    }
-    
-    */
-    myShepherd.commitDBTransaction();
+
+    if (committing) myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
     db.close(); 
     // for alignment after header
@@ -188,1133 +214,377 @@ public class ImportAccess extends HttpServlet {
     ServletUtilities.importJsp("footer.jsp", request, response);
   }  
   
-  private ArrayList<String> getColumnMasterList(Table table) {
-    // This is a list of column names. We are gonna take them out as we process them so we know if we missed any at the end. 
-    ArrayList<String> columnMasterList = new ArrayList<String>();
-    List<? extends Column> columns = table.getColumns();
-    for (int i=0;i<columns.size();i++) {
-      columnMasterList.add(columns.get(i).getName());
-    }
-    //out.println("All of the columns in this Table : "+columnMasterList.toString()+"\n");
-    return columnMasterList;
-  }
 
+  private boolean processIDPhotosTable(Table table, java.io.PrintWriter out, Shepherd myShepherd) throws IOException {
 
-  private boolean processIDPhotosTable(Table idPhotos, java.io.PrintWriter out) {
-  	out.println("    processing IDPhotos table");
-    printTable(idPhotos, out);
-  	return true;
-  }
-
-  public void printTable(Table table, java.io.PrintWriter out) {
-    List<String> colNames = getColumnMasterList(table);
-    out.println("<table>");
-    for (String colName : colNames) {
-      out.println("<tr><td>");
-      out.print(colName);
-      out.print("</td></tr>");
-    } 
-    out.println("</table>");
-
-  }
-
-  private boolean processSightingHistoryTable(Table sightingHistory, java.io.PrintWriter out) {
-  	out.println("    processing SightingHistory table");
-    printTable(sightingHistory, out);
-  	return true;
-  }
-
-  /*
-  private void processDUML(Table table, Shepherd myShepherd) {
-    
-  
-    out.println("DUML Table has "+table.getRowCount()+" Rows!\n");
-    
-    int errors = 0;
-    
-    int newOccs = 0;
-    int newEncs = 0;
-    
-    int locations = 0;
-    int dates = 0;
-    int projects = 0;
-    int speciesIds = 0;
-    int behaviors = 0;
-    int depths = 0;
-    int lats = 0;
-    int lons = 0;
-    int endTimes = 0;
-    int sightNos = 0;
-    
+  	out.println("<p>IDPhotosTable: processing IDPhotos table.</p>");
     ArrayList<String> columnMasterList = getColumnMasterList(table);
-       
+    int success = 0;
+    out.println("<p>IDPhotos Table has "+table.getRowCount()+" Rows!</p>");
+    printTable(table, out);
+    out.println("<p>IDPhotos Table is done printing now</p>");
+
+   System.out.println("    PROCIDPHOTOS: getting asset store");
+    AssetStore astore = getAssetStore(myShepherd);
+   System.out.println("    PROCIDPHOTOS: got asset store "+astore);
+
     Row thisRow = null;
-    Encounter newEnc = null;
-    int totalInSightingsArray = 0;
-    for (int i=0;i<table.getRowCount();i++) {
-      newEnc = new Encounter();
+    int printPeriod = 1; // how often to print certain log statements
+
+    boolean doOnceOnlyForTesting = true;
+    int rowNum = 0;
+   System.out.println("    PROCIDPHOTOS: entering row loop");
+
+    for (;rowNum<table.getRowCount()&&rowLimitForTesting!=null&&rowNum<rowLimitForTesting;rowNum++) {
+      boolean printing = true;//((rowNum%printPeriod)==0);
+      if (printing) System.out.println("    PROCIDPHOTOS: beginning row "+rowNum+".");
       try {
         thisRow = table.getNextRow();
       } catch (IOException io) {
         io.printStackTrace();
-        out.println("!!!!!!!!!!!!!! Could not get next Row in DUML table...");
+        out.println("\n!!!!!!!!!!!!!! Could not get next Row in IDPhotos table on row "+rowNum+"...\n");
       }
-      //Might as well give it an ID here.
-      newEnc.setCatalogNumber(Util.generateUUID());
-      newEnc.setDWCDateAdded();
-      newEnc.setDWCDateLastModified();
-      newEnc.setState("approved");
-      // Get the date. 
-      out.println("---------------- ROW : "+i); 
-      try {
-        String date = null;
-        String startTime = null;
-        if (thisRow.get("DATE") != null) {
-          if (thisRow.get("StartTime") != null) {
-            startTime = thisRow.get("StartTime").toString();
-          }
-          date = thisRow.get("DATE").toString();   
-          if (startTime==null) {
-            out.println("No startTime found in DUML Access table for Date : "+date+" SightNo : "+thisRow.get("SIGHTNO"));
-          } 
-          String verbatimDate = processDateString(date, startTime);
-          
-          DateTime dateTime = dateStringToDateTime(verbatimDate, "EEE MMM dd hh:mm a yyyy");
-          
-          newEnc.setVerbatimEventDate(dateTime.toString());          
-          newEnc.setDateInMilliseconds(dateTime.getMillis());  
-          dates += 1;
-          //out.println("--------------------------------------------- DateTime String : "+dateTime.toString()+" Stored startTime : "+startTime);
-          //out.println("--------------------------------------- .getDate() produces....  "+newEnc.getDate());
-          //  out.println("--- ++++++++ ENTIRE ROW STRING :"+thisRow.toString()+"\n\n");
-          if (columnMasterList.contains("DATE") || columnMasterList.contains("StartTime")) {
-            columnMasterList.remove("DATE");  
-            columnMasterList.remove("StartTime");
-          }
-        } 
-        // Lets crush that into a DateTime for milli's and stuff.. 
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a date for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      //get the End Date
-      try {
-        String et = null;
-        String date = null;
-        if (thisRow.get("EndTime") != null) {
-          date = thisRow.get("DATE").toString();
-          et = thisRow.get("EndTime").toString();
-          String dateString = processDateString(date, et);
-          DateTime dateTime = dateStringToDateTime(dateString, "EEE MMM dd hh:mm a yyyy");
-          newEnc.setEndDateInMilliseconds(dateTime.getMillis());
-          endTimes += 1;
-          //out.println("---------------- End Time : "+et);
-          if (columnMasterList.contains("EndTime")) {
-            columnMasterList.remove("EndTime");
-          }
-        }
-      } catch (Exception e) {
-        //out.println("!!!!!!!!!!!!!! Could not process an endTime for row "+i+" in DUML");
-        out.println("Here's the offending date : "+thisRow.get("EndTime").toString());
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      // Get SIGHTNO... 
-      
-      try {
-        String sn = null;
-        if (thisRow.get("SIGHTNO") != null) {
-          sn = thisRow.get("SIGHTNO").toString();
-          out.println("SN ---------------- "+sn);
-          if (sn.contains("-") && sn.contains("0")) {
-            //out.println("SN2 ---------------- "+sn);
-            sn = sn.replace("0", "");
-            sn = sn.replace("-", "");
-          }
-          newEnc.setSightNo(sn);    
-          sightNos += 1;
-          //out.println("---------------- SIGHTNO : "+sn);
-          if (columnMasterList.contains("SIGHTNO")) {
-            columnMasterList.remove("SIGHTNO");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a SIGHTNO for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      //get the Location
-      try {
-        String location = null;
-        if (thisRow.get("Location") != null) {
-          location = thisRow.get("Location").toString();          
-          newEnc.setVerbatimLocality(location);    
-          // newEnc.setLocationID(location);
-          newEnc.setLocation(location);
-          newEnc.setLocationID(location);
-          locations += 1;
-          //out.println("---------------- Location : "+location);
-          if (columnMasterList.contains("Location")) {
-            columnMasterList.remove("Location");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a location for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      //get the Project
-      try {
-        String project = null;
-        if (thisRow.get("Project") != null) {
-          project = thisRow.get("Project").toString();          
-          //out.println("---------------- Project : "+project);
-          newEnc.setSubmitterProject(project);    
-          projects += 1;
-          if (columnMasterList.contains("Project")) {
-            columnMasterList.remove("Project");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a project for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      // Get the Species ID
-      try {
-        String speciesId = null;
-        if (thisRow.get("SPECIES_ID") != null) {
-          speciesId = thisRow.get("SPECIES_ID").toString();          
-          //out.println("---------------- Species_ID : "+speciesId);
-          newEnc.setGenus(speciesId);
-          //newEnc.setSpecificEpithet(speciesId);
-          speciesIds += 1;
-          if (columnMasterList.contains("SPECIES_ID")) {
-            columnMasterList.remove("SPECIES_ID");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a speciesId for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      // Get the Behavior
-      try {
-        String behavior = null;
-        if (thisRow.get("BEHAV STATE") != null) {
-          behavior = thisRow.get("BEHAV STATE").toString();          
-          //out.println("---------------- Behavior : "+behavior);
-          if (Double.parseDouble(behavior) < 9.99) {
-            newEnc.setBehavior(behavior);    
-            behaviors += 1;            
-          }
-          if (columnMasterList.contains("BEHAV STATE")) {
-            columnMasterList.remove("BEHAV STATE");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a behavior for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      // Get the Comments
-      try {
-        String comments = null;
-        if (thisRow.get("COMMENTS") != null) {
-          comments = thisRow.get("COMMENTS").toString();          
-          //out.println("---------------- Comments : "+comments);
-          newEnc.setComments(comments);    
-          comments += 1;
-          if (columnMasterList.contains("COMMENTS")) {
-            columnMasterList.remove("COMMENTS");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process comments for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      // Get the maximum depth.
-      try {
-        String depth = null;
-        if (thisRow.get("DEPTH") != null) {
-          depth = thisRow.get("DEPTH").toString();          
-          //out.println("---------------- DEPTH : "+depth);
-          Double depthLong = Double.parseDouble(depth);
-          if (depthLong < 9.99) {
-            newEnc.setMaximumDepthInMeters(depthLong);                
-            depths += 1;
-          }
-          if (columnMasterList.contains("DEPTH")) {
-            columnMasterList.remove("DEPTH");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a MaxDepth for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      // Get the decimal latitude..
-      try {
-        String lat = null;
-        if (thisRow.get("LAT") != null) {
-          lat = thisRow.get("LAT").toString();          
-          //out.println("---------------- Lat : "+lat);
-          //Double latDouble = Double.parseDouble(lat);
-          BigDecimal bd = new BigDecimal(lat);
-          Double db = bd.doubleValue();
-          
-          newEnc.setDecimalLatitude(db);    
-          lats += 1;
-          if (columnMasterList.contains("LAT")) {
-            columnMasterList.remove("LAT");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a LAT for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      // Get the decimal longitude..
-      try {
-        String lon = null;
-        if (thisRow.get("LONG") != null) {
-          lon = thisRow.get("LONG").toString();          
-          //out.println("---------------- Lon : "+lon);
-          //Double lonDouble = Double.parseDouble(lon);
-          BigDecimal bd = new BigDecimal(lon);
-          Double db = bd.doubleValue();
-          
-          newEnc.setDecimalLongitude(db);    
-          lons += 1;
-          if (columnMasterList.contains("LONG")) {
-            columnMasterList.remove("LONG");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a LONG for row "+i+" in DUML");
-        e.printStackTrace();
-        errors +=1;
-      }
-      
-      // Get the ending decimal latitude..
-      try {
-        String lat = null;
-        if (thisRow.get("END LAT") != null && !thisRow.get("END LAT").equals("null")) {
-          lat = thisRow.get("END LAT").toString();          
-          //out.println("---------------- END LAT : "+lat);
-          
-          if (lat != null && !lat.equals("null") && !lat.equals("")) {
-            //Double latDouble = Double.parseDouble(lat);
-            
-            BigDecimal bd = new BigDecimal(lat);
-            Double db = bd.doubleValue();
-            
-            newEnc.setEndDecimalLatitude(db);    
-          }
-          
-          if (columnMasterList.contains("END LAT")) {
-            columnMasterList.remove("END LAT");
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a END LAT for row "+i+" in DUML");
-        //e.printStackTrace();
-        //errors +=1;
-      }
-      
-      // Get the ending decimal longitude..
-      try {
-        String lon = null;
-        if (thisRow.get("END LONG") != null && !thisRow.get("END LONG").equals("null")) {
-          lon = thisRow.get("END LONG").toString();          
-          //out.println("---------------- END LON : "+lon);
-          
-          if (lon != null && !lon.equals("null") && !lon.equals("")) {
-            //Double lonDouble = Double.parseDouble(lon);
-            BigDecimal bd = new BigDecimal(lon);
-            Double db = bd.doubleValue();
-            
-            newEnc.setEndDecimalLongitude(db);               
-          }
-          
-          if (columnMasterList.contains("END LONG")) {
-            columnMasterList.remove("END LONG");
-          }
-        }
-      } catch (Exception e) {
-         
-        out.println("!!!!!!!!!!!!!! Could not process a END LONG for row "+i+" in DUML");
-        //e.printStackTrace();
-        //errors +=1;
-      }
-      
-      //Beauscale Measurement
-      try {
-       Double bs = null;
-       Measurement bsm = null;
-       if (thisRow.getDouble("BEAUSCALE") != null) {
-         bs = thisRow.getDouble("BEAUSCALE");
-         if (bs < 9.0 && bs != null) {
-           bsm = new Measurement(newEnc.getCatalogNumber(),"BEAUSCALE",bs,"","");
-           bsm.setDatasetName("BEAUSCALE");
-           bsm.setEventStartDate(newEnc.getDate());
-           myShepherd.getPM().makePersistent(bsm);
-           columnMasterList.remove("BEAUSCALE");
-           newEnc.setMeasurement(bsm, myShepherd);           
-         }
-         //out.println("---------------- BEAUSCALE : "+bsm.getValue());
-       } 
-      } catch (Exception e) {
-        errors +=1;
-        e.printStackTrace();
-        out.println("!!!!!!!!!!!!!! Could not process a BEAUSCALE measurement for row "+i+" in DUML");
-      }
-      
-      //Salinity Measurement
-      try {
-       Double sl = null;
-       Measurement slm = null;
-       if (thisRow.getDouble("SALINITY") != null) {
-         sl = thisRow.getDouble("SALINITY");
-         if (sl < 9.99 && sl != null) {
-           slm = new Measurement(newEnc.getCatalogNumber(),"SALINITY",sl,"","");
-           slm.setDatasetName("SALINITY");
-           slm.setEventStartDate(newEnc.getDate());
-           myShepherd.getPM().makePersistent(slm);
-           columnMasterList.remove("SALINITY");
-           newEnc.setMeasurement(slm, myShepherd);           
-         }
-         //out.println("---------------- BEAUSCALE : "+bsm.getValue());
-       } 
-      } catch (Exception e) {
-        errors +=1;
-        e.printStackTrace();
-        out.println("!!!!!!!!!!!!!! Could not process a BEAUSCALE measurement for row "+i+" in DUML");
-      }
-      
-      //WaterTemp Measurement
-      try {
-        Double wt = null;
-        Measurement wtm = null;
-        if (thisRow.get("WATERTEMP") != null) {
-          wt = Double.valueOf(thisRow.get("WATERTEMP").toString());   
-          if (wt < 99.9 && wt != null) {
-            wtm = new Measurement(newEnc.getCatalogNumber(),"WATERTEMP",wt,"","");
-            wtm.setDatasetName("WATERTEMP");
-            wtm.setEventStartDate(newEnc.getDate());
-            //out.println("---------------- WATERTEMP TEST STRING: "+wt.toString());
-            myShepherd.getPM().makePersistent(wtm);
-            columnMasterList.remove("WATERTEMP");
-            newEnc.setMeasurement(wtm, myShepherd);            
-          }
-        } 
-      } catch (Exception e) {
-        errors += 1;
-        e.printStackTrace();
-        out.println("!!!!!!!!!!!!!! Could not process a WATERTEMP measurement for row "+i+" in DUML");
-      }
-      
-      try {
-        ArrayList<Encounter> duplicateEncs = new ArrayList<Encounter>();
-        String sightNo = newEnc.getSightNo().toUpperCase().trim();
-        String dateForKey = newEnc.getDate().substring(0,11).trim();
-        String pairKey = sightNo + dateForKey;
-        int duplicates = 0;
-        try {
-          if (duplicatePairsMap.containsKey(pairKey)) {
-            duplicates = duplicatePairsMap.get(pairKey).intValue();
-            totalInSightingsArray += duplicates;
-          } else {
-            duplicates = 1;
-          }
-        } catch (Exception e) {
-          e.printStackTrace(out);
-          out.println("Failed to retrieve duplicate number for pairKey : "+pairKey);
-        }
-        
-        out.println("Creating "+duplicates+" encounters for the occurrence with this date/number match.");
-        while (duplicateEncs.size() < duplicates ) {
-          Encounter dup = (Encounter) deepCopy(newEnc);
-          dup.setCatalogNumber(Util.generateUUID());
-          duplicateEncs.add(dup);
-        }
-        
-        // Take care of business by generating an ID for the encounter object(s) and persisting it (them). 
-        Occurrence occ = null;
-        if (duplicateEncs.size() > 0) {
-          for (Encounter dups : duplicateEncs) {
-            try {
-              myShepherd.getPM().makePersistent(dups);  
-              myShepherd.commitDBTransaction();
-              myShepherd.beginDBTransaction();
-              newEncs += 1;
-            } catch (Exception e) {
-              out.println("Failed to store new Encounter with catalog number : "+dups.getCatalogNumber());
-              e.printStackTrace();
-            }        
-          }          
-          // Gonna need an occurrence for all this stuff too. Each of these sightings is technically a group sighting. 
-          try {
-            occ = new Occurrence(Util.generateUUID(), duplicateEncs.get(0));
-            myShepherd.getPM().makePersistent(occ);  
-            // What the heck, where did this come from? It's the method that add all the remaining columns as observations, of course!
-            processRemainingColumnsAsObservations(occ,columnMasterList,thisRow);
-            duplicateEncs.get(0).setOccurrenceID(occ.getOccurrenceID());
-            myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-            newOccs +=1;
-          } catch (Exception e) {
-            e.printStackTrace(out);
-            out.println("Failed to create and store an occurrence for this sighting number.");
-          }
-        }
-                
-        if (duplicateEncs.size() > 1) {
-          for (int dups=1;dups<duplicateEncs.size();dups++) {
-            occ.addEncounter(duplicateEncs.get(dups));
-            duplicateEncs.get(dups).setOccurrenceID(occ.getOccurrenceID());
-            myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-          }
-        }        
-      } catch (Exception e) {
-        out.println("Here's where your code Broke:\n\n");
-        e.printStackTrace(out); 
-      }
-    }         
-    out.println("There are a total of "+totalInSightingsArray+" valid sightings (have a date and sighting number) to match against.");
-    
-    
-    out.println("Created "+newEncs+" new Encounters and "+newOccs+" new Occurrences.");
-    out.println("\n\n************** LAT's vs rows: "+lats+"/"+table.getRowCount());
-    out.println("************** LONG's vs rows: "+lons+"/"+table.getRowCount());
-    out.println("************** Species ID's vs rows: "+speciesIds+"/"+table.getRowCount());
-    out.println("************** Behaviors vs rows: "+behaviors+"/"+table.getRowCount());
-    out.println("************** Depths vs rows: "+depths+"/"+table.getRowCount());
-    out.println("************** Locations vs rows: "+locations+"/"+table.getRowCount());
-    out.println("************** Dates vs rows: "+dates+"/"+table.getRowCount());
-    out.println("************** Projects vs rows: "+projects+"/"+table.getRowCount());
-    out.println("************** EndTimes vs rows: "+endTimes+"/"+table.getRowCount());
-    out.println("************** SIGHTNOS vs rows: "+sightNos+"/"+table.getRowCount());
-    out.println("************** Behaviors vs rows: "+behaviors+"/"+table.getRowCount()+"\n\n");
-    if (errors > 0) {
-      out.println("!!!!!!!!!!!!!!  You got "+errors+" problems and all of them are because of your code.   !!!!!!!!!!!!!!\n\n");
+      processIDPhotosRow(thisRow, myShepherd, columnMasterList, astore, printing);
+      if (printing) System.out.println("    PROCIDPHOTOS: Done with row "+rowNum+".");
     } 
-    out.println("--------------================  REMAINING COLUMNS : "+columnMasterList+"  ================--------------\n\n");
-    out.println("******* !!!! TOTALLY CRUSHED IT !!!! *******\n\n");
+    System.out.println("    PROCIDPHOTOS: Done with row Processing");
+    int numMissingPhotos = missingPhotos.size();
+    out.println("<p>IDPhotos Table is done processing <strong>"+rowNum+" rows</strong>. <strong>"+(rowNum-numMissingPhotos)+" photos found</strong> and <strong>"+numMissingPhotos+" missing photos</strong>.</p>");
+    System.out.println("<p>IDPhotos Table is done processing "+rowNum+" rows. "+(rowNum-numMissingPhotos)+" photos found and "+numMissingPhotos+" missing photos.</p>");
+
+    System.out.println("<p>We made <strong>"+generatedEncounters.size()+" Encounters,. "+generatedIndividuals.size()+" Individuals, and "+generatedOccurrences.size()+" Occurrences.</strong></p>");
+
+
+  	return true;
+  }
+
+
+  private boolean processIDPhotosRow(Row thisRow, Shepherd myShepherd, ArrayList<String> columnMasterList, AssetStore astore, boolean print) {
+    // have to manually enable comitting (ie no committing arg = no committing)
+    return processIDPhotosRow(thisRow,myShepherd,columnMasterList,astore,false,print);
   }
   
-  private void processRemainingColumnsAsObservations(Object obj, ArrayList<String> columnMasterList, Row thisRow) {
-    //Lets grab every other little thing in the Column master list and try to process it without the whole thing blowing up.
-    // Takes an Encounter, or an Occurrence! Whoa! Even a TissueSample! 
-    
-    // Lets make this work for the new obs added to the DataCollectionEvent...
-    Encounter enc = null;
-    Occurrence occ = null;
-    TissueSample ts = null;
-    String id = null;
-    if (obj.getClass().getSimpleName().equals("Encounter")) {
-      enc = (Encounter) obj;
-      id = ((Encounter) obj).getPrimaryKeyID();
-    } 
-    if (obj.getClass().getSimpleName().equals("Occurrence")) {
-      occ = (Occurrence) obj;
-      id = ((Occurrence) obj).getPrimaryKeyID();
-    }
-    if (obj.getClass().getSimpleName().equals("TissueSample")) {
-      ts = (TissueSample) obj;
-      id = ((TissueSample) obj).getDataCollectionEventID();
-    }
-    
-    ArrayList<Observation> newObs = new ArrayList<Observation>();
-    for (String column : columnMasterList) {
-      String value = null;
-      try {
-        if (thisRow.get(column) != null) {
-          value = thisRow.get(column.trim()).toString().trim();
-          if (value.length() > 0) {
-            Observation ob = new Observation(column.toString(), value, obj, id);
-            newObs.add(ob);           
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-        out.println("Failed to create and store Observation "+column+" with value "+value+" for encounter "+id);
-      }
-    }
-    if (newObs.size() > 0) {
-      try {
-        if (enc != null) {
-          enc.addBaseObservationArrayList(newObs);
-          enc.getBaseObservationArrayList().toString();
-        }
-        if (occ != null) {
-          occ.addBaseObservationArrayList(newObs); 
-          occ.getBaseObservationArrayList().toString();
-        }
-        if (ts != null) {
-          ts.addBaseObservationArrayList(newObs); 
-          ts.getBaseObservationArrayList().toString();
-        }
-        out.println("YEAH!!! added "+newObs.size()+" observations to Encounter "+id+" : ");
-      } catch (Exception e) {
-        e.printStackTrace();
-        out.println("Failed to add the array of observations to this object.");
-      }        
-    }
-  }
-  
-  private void processEffortTable(Table table, Shepherd myShepherd) {
-    
-    if (!myShepherd.getPM().currentTransaction().isActive()) {
+  private boolean processIDPhotosRow(Row thisRow, Shepherd myShepherd, ArrayList<String> columnMasterList, AssetStore astore, boolean commit, boolean print) {
+
+    String occID = occurrenceCodeForIDPhotoRow(thisRow);
+
+    Annotation ann = getAnnotationForIDPhotoRow(thisRow, astore, myShepherd);
+    if (print) System.out.println("    PROCIDPHOTOS got Annotation "+ann);
+
+    Encounter enc = getEncounterForIDPhotoRow(thisRow, ann, occID, myShepherd);
+    if (print) System.out.println("    PROCIDPHOTOS got Encounter "+enc);
+
+    Occurrence occ = getOccurrenceForIDPhotoRow(thisRow, enc, myShepherd);
+    if (enc!=null && occ!=null) enc.setOccurrenceID(occ.getOccurrenceID());
+    if (print) System.out.println("    PROCIDPHOTOS got Occurrence "+occ);
+
+    MarkedIndividual indy = getMarkedIndividualForIDPhotoRow(thisRow, enc, myShepherd);
+    if (print) System.out.println("    PROCIDPHOTOS got individual "+indy);
+
+    if (committing) {
+      myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
     }
-    
-    out.println("Effort Table has "+table.getRowCount()+" Rows!\n");
-    
-    int matchedNum = 0;
-    int success = 0;
-    Row thisRow = null;
-    
-    for (int i=0;i<table.getRowCount();i++) {
-      Survey sv = null;
-      SurveyTrack st = null;
-      try {
-        thisRow = table.getNextRow();
-      } catch (IOException io) {
-        io.printStackTrace();
-        out.println("!!!!!!!!!!!!!! Could not get next Row in SIGHTINGS table...");
-      }
-      
-      String date = null;
-      try {
-        if (thisRow.get("DATE") != null) {
-          date = thisRow.get("DATE").toString();          
-          String verbatimDate = date.substring(0, 11) + date.substring(date.length() - 5);
-          DateTime dateTime = dateStringToDateTime(verbatimDate, "EEE MMM dd yyyy");
-          date = dateTime.toString().substring(0,10);
-          sv = new Survey(date);
-          myShepherd.getPM().makePersistent(sv);
-          myShepherd.commitDBTransaction();
-          myShepherd.beginDBTransaction();
-          
-          st = new SurveyTrack(sv);
-          myShepherd.getPM().makePersistent(st);
-          myShepherd.commitDBTransaction();
-          myShepherd.beginDBTransaction();
-          
-          sv.addSurveyTrack(st);
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a DATE for row "+i+" in EFFORT");
-        e.printStackTrace();
-      }
-      
-      try {
-        if (thisRow.get("SurveyHrs") != null) {
-          String es = thisRow.getString("SurveyHrs");
-          es = es.replace("/","").toUpperCase();
-          if (!es.equals("NA")) {
-            System.out.println("SurveyHrs resulting string : "+es);
-            Double effort = Double.valueOf(es);
-            Measurement effortMeasurement = new Measurement();
-            effortMeasurement.setUnits("Hours");
-            effortMeasurement.setValue(effort);
-            myShepherd.getPM().makePersistent(effortMeasurement);
-            myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-            sv.setEffort(effortMeasurement);            
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process SurveyHrs and create a measurement for row "+i+" in EFFORT");
-        out.println(thisRow.toString());
-        e.printStackTrace();
-      }
-      
-      try {
-        if (thisRow.get("Vessel") != null) {
-          String effort = thisRow.getString("Vessel");
-          st.setVesselID(effort);
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process Vessel for row "+i+" in EFFORT");
-        e.printStackTrace();
-      }
-      
-      String project = null;
-      try {
-        if (thisRow.get("PROJECT") != null) {
-          project = thisRow.getString("PROJECT");
-          sv.setProjectName(project);
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process PROJECT for row "+i+" in EFFORT");
-        e.printStackTrace();
-      }
-      
-      try {
-        if (thisRow.get("COMMENTS") != null) {
-          String comments = thisRow.getString("COMMENTS");
-          sv.addComments(comments);
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process COMMENTS for row "+i+" in EFFORT");
-        e.printStackTrace();
-      }
-      
-      ArrayList<Encounter> encsOnThisDate = null;
-      try {
-        if (thisRow.get("SURVEY AREA") != null) {
-          String surveyArea = thisRow.getString("SURVEY AREA");
-          // Set this on associated encounters too.  
-          st.setLocationID(surveyArea.trim());
-          
-          encsOnThisDate = myShepherd.getEncounterArrayWithShortDate(date);
-          
-          out.println("Can we find an enc for this Survey and Track? We have "+encsOnThisDate.size()+" encs to check.");
-          boolean matched = false;
-          for (Encounter enc : encsOnThisDate) {
-            
-            String encLoc = null;
-            if (enc.getLocation()!=null) {
-              encLoc = enc.getLocation().trim();
-            }
-            String encProj = null;
-            if (enc.getObservationByName("Project")!=null) {
-              encProj = enc.getSubmitterProject().trim();
-            }
-             
-            if (encLoc != null || encProj != null) {
-              out.println("(enc:surveyTrack) Location : "+encLoc+" = "+st.getLocationID()+" Project : "+encProj+" = "+project);
-              if (encProj != null && project != null)  {
-                if (encProj.contains(project) || project.contains(encProj)) {
-                  out.println("MATCH!!! At least on project name... (enc:surveyTrack) Project : "+enc.getObservationByName("Project").getValue()+" = "+project);
-                  st.addOccurence(myShepherd.getOccurrence(enc.getOccurrenceID()));
-                  sv.addSurveyTrack(st);
-                  success++;
-                  matched = true;
-                } else {
-                  out.println("Nope...");
-                } 
-              } else if (encLoc != null && surveyArea != null) {
-                if (enc.getLocationID().contains(surveyArea) || surveyArea.contains(enc.getLocationID())) {
-                  out.println("MATCH!!! At least on location ID... (enc:surveyTrack) Location : "+enc.getLocationID()+" = "+st.getLocationID()+" Project : "+enc.getSubmitterProject()+" = "+sv.getProjectName());
-                  st.addOccurence(myShepherd.getOccurrence(enc.getOccurrenceID()));
-                  sv.addSurveyTrack(st);
-                  success++;
-                  matched = true;
-                } else {
-                  out.println("Nope...");
-                }
-              } 
-            } else {
-              System.out.println("Location ID for this enc is null!");
-            }    
-          }
-          if (matched==true) {
-            matchedNum ++;
-          }
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process SURVEY AREA for row "+i+" in EFFORT");
-        out.println(thisRow.toString());
-        e.printStackTrace(out);
-      }
-      
+
+    return true;
+  }
+
+
+  // the following getters are helper functions for the table processors
+  private MarkedIndividual getMarkedIndividualForIDPhotoRow(Row thisRow, Encounter enc, Shepherd myShepherd) {
+
+
+    MarkedIndividual indy = null;
+    String indID = thisRow.getString("Individual_id");
+    if (indID == null) return indy;
+
+    System.out.println("    PROCIDPHOTOS got indID " +indID);
+    if (generatedIndividuals.containsKey(indID)) {
+      System.out.println("    PROCIDPHOTOS generatedIndividuals contains our boy");
+      indy = generatedIndividuals.get(indID);
+      System.out.println("    PROCIDPHOTOS got our boy "+indy+" ("+indy.totalEncounters()+" encs).");
+      if (enc!=null) indy.addEncounterNoCommit(enc);
+      System.out.println("    PROCIDPHOTOS ... and added our boy's encounter ("+indy.totalEncounters()+" encs).");
+
+    } else {
+      System.out.println("    PROCIDPHOTOS making a new individual");
+      indy = new MarkedIndividual(indID, enc);
+      generatedIndividuals.put(indID, indy);
     }
-    out.println("+++++++++++++ I created surveys and tracks for "+success+" encounters out of "+table.getRowCount()+" lines in the EFFORT table. +++++++++++++");
-    out.println("+++++++++++++ There were "+matchedNum+" out of "+table.getRowCount()+" effort table entries connected to an encounter.");
+
+    // TODO: process indy?
+
+    return indy;
   }
   
-  private void processSightings(Table table, Shepherd myShepherd) {
-    out.println("Sightings Table has "+table.getRowCount()+" Rows!");    
-    String date = null;
-    String sightNo = null;
-    String idCode = null;
+  private Encounter getEncounterForIDPhotoRow(Row thisRow, Annotation ann, String occID, Shepherd myShepherd) {
     
-    MarkedIndividual indy = null;
-    
-    int noEnc = 0;
-    int addedToExisting = 0;
-    int newEnc = 0;
-    int rowsProcessed = 0;
-    
-    Row thisRow = null;
-    for (int i=0;i<table.getRowCount();i++) {
-      try {
-        thisRow = table.getNextRow();
-        rowsProcessed += 1;
-      } catch (IOException io) {
-        io.printStackTrace();
-        out.println("!!!!!!!!!!!!!! Could not get next Row in SIGHTINGS table...");
-      }
-      
-      try {
-        if (thisRow.get("DATE") != null) {
-          date = thisRow.get("DATE").toString();          
-          
-          String verbatimDate = date.substring(0, 11) + date.substring(date.length() - 5);
-          DateTime dateTime = dateStringToDateTime(verbatimDate, "EEE MMM dd yyyy");
-          date = dateTime.toString().substring(0,10);
-          //out.println("---------------- DATE : "+date);
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a DATE for row "+i+" in SIGHTINGS");
-        //e.printStackTrace();
-      }
-      
-      try {
-        if (thisRow.get("SIGHTNO") != null) {
-          sightNo = thisRow.get("SIGHTNO").toString();          
-          //out.println("---------------- SIGHTNO : "+sightNo);          
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a SIGHTNO for row "+i+" in SIGHTINGS");
-        //e.printStackTrace();
-      }
-      
-      try {
-        if (thisRow.get("ID CODE") != null) {
-          idCode = thisRow.get("ID CODE").toString().trim();          
-          //out.println("---------------- ID CODE : "+idCode);          
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a ID CODE for row "+i+" in SIGHTINGS");
-        //e.printStackTrace();  
-      }
-      
-      // Each sightNo/date pair should have only one encounter with information relevant to all encounters on this occurrence.
-      // We need to see how many rows there are on the sightings table that contain this pair, and make a deep copy of the 
-      // encounter for each.
-      ArrayList<Encounter> encs = null;
-      try {
-        encs = myShepherd.getEncounterArrayWithShortDate(date);
-        if (encs != null) {
-          if (encs.size() == 0) {
-            noEnc +=1;            
-            failedEncs.add(sightNo+date);
-            System.out.println("No Encounter for this date! "+date);
-            //continue;
-          } else {
-            for (int e=0;e<encs.size();e++) {
-              if (!encs.get(e).getSightNo().equals(sightNo)) {
-                encs.remove(encs.get(e));
-              }
-            }    
-            System.out.println("There be "+encs.size()+" Encs for this pair.");            
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-        System.out.println("Failed to retrieve an encounter list for ID Number : "+idCode);
-      }
-      if (encs != null) {
-        for (int j=0;j<encs.size();j++) {
-          Encounter enc = encs.get(j);
-          if (!enc.hasMarkedIndividual() && idCode != null && !idCode.equals("")) {
-            try {
-              if (!myShepherd.isMarkedIndividual(idCode)) {
-                System.out.println("Making new Indy With ID code  : "+idCode);
-                indy = new MarkedIndividual(idCode, enc);
-                enc.assignToMarkedIndividual(indy.getIndividualID());
-                myShepherd.getPM().makePersistent(indy);
-                myShepherd.commitDBTransaction();
-                myShepherd.beginDBTransaction();
-                newEnc += 1;
-                break;
-              } else {
-                indy = myShepherd.getMarkedIndividual(idCode);
-                indy.addEncounter(enc, context);
-                enc.assignToMarkedIndividual(indy.getIndividualID());
-                myShepherd.commitDBTransaction();
-                myShepherd.beginDBTransaction();
-                System.out.println("Adding this encounter to existing Indy : "+indy.getIndividualID()+" Incoming ID : "+idCode);
-                addedToExisting += 1; 
-                break;
-              }
-            } catch (Exception e) {
-              e.printStackTrace();
-              System.out.println("Failed to persist a new Indy for ID Number : "+idCode +" and shortDate "+date);
-            }
-          }             
-        }        
-      } else {
-        myShepherd.rollbackDBTransaction();
-        continue;
-      } 
+    System.out.println("    PROCIDPHOTOS starting getEncounter ");
+
+    String encCode = getEncounterCodeForIDPhotoRow(thisRow);
+    Encounter enc = null;
+
+    System.out.println("    PROCIDPHOTOS got encCode " +encCode);
+    if (generatedEncounters.containsKey(encCode)) {
+      System.out.println("    PROCIDPHOTOS generatedEncounters contains our boy");
+      enc = generatedEncounters.get(encCode);
+      System.out.println("    PROCIDPHOTOS got our enc "+enc);
+
+      if (ann!=null) enc.addAnnotation(ann);
+      System.out.println("    PROCIDPHOTOS ... and loaded our boy's annotation");
+
+    } else {
+      System.out.println("    PROCIDPHOTOS making a new encounter");
+      enc = new Encounter(ann);
+      generatedEncounters.put(encCode, enc);
     }
-    System.out.println("Dates without attached encounters : "+failedEncs);
-    System.out.println("No Encounters to retrieve for date : "+noEnc);
-    System.out.println("New Indy created for this encounter sighting number pair : "+newEnc);
-    System.out.println("Existing Indy's added to encounters from lists retrieved by date  : "+addedToExisting);
-    System.out.println("Rows Processed : "+rowsProcessed);
+
+    // Parse the various columns
+    System.out.println("    PROCIDPHOTOS Now to load the columns of the table into our boy");
+    
+    System.out.println("    ** PROCIDPHOTOS about to set date");
+    Date encTime = thisRow.getDate("Date");
+    System.out.println("    ** PROCIDPHOTOS about to set date to "+encTime);
+    if (encTime!=null) {
+      enc.setDateInMilliseconds(encTime.getTime());
+      System.out.println("    PROCIDPHOTOS set date to "+encTime);
+    } else System.out.println("    PROCIDPHOTOS set date to "+encTime);
+
+    String project = thisRow.getString("Project_code");
+    if (project!=null) enc.setSubmitterProject(project);
+    System.out.println("    PROCIDPHOTOS set project "+project);
+
+
+    String indID = thisRow.getString("Individual_id");
+    if (indID!=null) enc.setIndividualID(indID);
+    System.out.println("    PROCIDPHOTOS set indID "+indID);
+
+    String otherId = thisRow.getString("Individual_designation");
+    if (otherId!=null) enc.setAlternateID(otherId);
+    System.out.println("    PROCIDPHOTOS set otherId "+otherId);
+
+
+    enc.setOccurrenceID(occID);
+    System.out.println("    PROCIDPHOTOS set occID "+occID);
+
+
+    boolean needsPhotogName = (enc.getPhotographerName()==null || "".equals(enc.getPhotographerName()));
+    System.out.println("    PROCIDPHOTOS needsPhotogName "+needsPhotogName);
+
+    boolean photogCheck = isIDPhotoRowExemplar(thisRow) || needsPhotogName;
+    System.out.println("    PROCIDPHOTOS photogCheck "+photogCheck);
+
+    if (photogCheck) {
+      enc.setPhotographerName(thisRow.getString("Photographer"));
+      System.out.println("    PROCIDPHOTOS setPhotographerName "+thisRow.getString("Photographer"));
+    }
+    else {System.out.println("    PROCIDPHOTOS did not need to set photog name ");}
+
+    // System.out.println("    PROCIDPHOTOS: encCode is done loading");
+    return enc;
   }
-    
-  // Okay, lets try this again.
-  private void processBiopsyTable(Table table,Shepherd myShepherd,Table tableDUML) {
-    
+  // each row in idphotos is an annotation, but you can deduce which encounter it is by the individual_id and date fields
+  private String getEncounterCodeForIDPhotoRow(Row thisRow) {
+    try {
+      String indivDayCode = getDailyGroupNameForIDPhotoRow(thisRow);
+      Date rowDate = getDateForIDPhotoRow(thisRow);
+      if ((indivDayCode == null || "".equals(indivDayCode)) && rowDate == null) return null;
+      return indivDayCode + rowDate.toString();
+    } catch (Exception e) {
+      System.out.println("    PROCIDPHOTOS: getMediaAssetForIDPhotoRow: no encounter code found for row "+loggingRefForIDPhotoRow(thisRow));
+    }
+    return null;
+  }
+
+  private boolean isIDPhotoRowExemplar(Row thisRow) {
+    System.out.println("    PROCIDPHOTOS: isRowExemplar starting");
+    Boolean bit = thisRow.getBoolean("Representative_photo");
+    System.out.println("    PROCIDPHOTOS: isRowExemplar got bit "+bit);
+    if (bit == null) return false;
+    return bit.booleanValue();
+  }
+
+  private String getDailyGroupNameForIDPhotoRow(Row thisRow) {
+    // since "Individual_designation" of A2^2 means the second member of group A2 on that day...
+    String individualDesignation = thisRow.get("Individual_designation").toString();
+    System.out.println("    PROCIDPHOTOS: getDailyGroupNameForIDPhotoRow got full string "+individualDesignation);
+    if (individualDesignation == null || individualDesignation.equals("")) return null;
+    System.out.println("    PROCIDPHOTOS: getDailyGroupNameForIDPhotoRow returning "+(individualDesignation.split("\\^")[0]));
+    return (individualDesignation.split("\\^")[0]);
+  }
+
+  private String getDailyIndivNameForIDPhotoRow(Row thisRow) {
+    // since "Individual_designation" of A2^2 means the second member of group A2 on that day...
+    String individualDesignation = thisRow.get("Individual_designation").toString();
+    if (individualDesignation == null || individualDesignation.equals("") || (individualDesignation.split("^").length==0)) return null;
+    return individualDesignation.split("^")[1];
+  }
+
+  private Date getDateForIDPhotoRow(Row thisRow) {
+    return thisRow.getDate("Date");
+  }
+
+  private DateTime getDateTimeForIDPhotoRow(Row thisRow) {
+    Date date = getDateForIDPhotoRow(thisRow);
+    if (date==null) return null;
+    return new DateTime(date);
+  }
+
+  private Occurrence getOccurrenceForIDPhotoRow(Row thisRow, Encounter enc, Shepherd myShepherd) {
+    String occCode = occurrenceCodeForIDPhotoRow(thisRow);
+    Occurrence occ;
+    if (generatedOccurrences.containsKey(occCode)) occ = generatedOccurrences.get(occCode);
+    else if (myShepherd.isOccurrence(occCode)) return myShepherd.getOccurrence(occCode);
+    else occ = new Occurrence(occCode, enc);
+
+    // TODO: process occ
+    String groupDesignation = getDailyGroupNameForIDPhotoRow(thisRow);
+    if (groupDesignation!=null) occ.addComments("Daily group code="+groupDesignation);
+    System.out.println("    PROCIDPHOTOS set group designation "+groupDesignation);
+
+    return occ;
+
+  }
+  private String occurrenceCodeForIDPhotoRow(Row thisRow) {
+    try {
+      String omcd = thisRow.getString("OMCD Sighting ID");
+      return "OMCD"+omcd; // label the omcd row
+    } catch (Exception e) {
+      try {
+        return getDateForIDPhotoRow(thisRow).toString() + getDailyGroupNameForIDPhotoRow(thisRow);
+      }
+      catch (Exception f) {
+        System.out.println("    PROCIDPHOTOS: getOccurrenceCodeForIDPhotoRow: no occurrence code found for row "+loggingRefForIDPhotoRow(thisRow)+"; returning a UUID");
+      }
+    }
+    return Util.generateUUID();
+  }
+
+
+  private Annotation getAnnotationForIDPhotoRow(Row thisRow, AssetStore astore, Shepherd myShepherd) {
+    MediaAsset ma = getMediaAssetForIDPhotoRow(thisRow, astore, myShepherd);
+    if (ma==null) return null;
+    return new Annotation("Megaptera novaeangliae", ma);
+  }
+
+  // since Access rows aren't numbered, this is useful for logging
+  private String loggingRefForIDPhotoRow(Row thisRow) {
+    String refKey = "RecID";
+    try {
+      return thisRow.get("RecID").toString();
+    } catch (Exception e) {
+      return "NOT_PARSED";
+    }
+  }
+
+  private MediaAsset getMediaAssetForIDPhotoRow(Row thisRow, AssetStore astore, Shepherd myShepherd) {
+    String localFileLocation;
+    try {
+      localFileLocation = thisRow.getString("Photo_location");
+    } catch (NullPointerException npe) {
+      System.out.println("    PROCIDPHOTOS: getMediaAssetForIDPhotoRow: no Photo_location column found for row "+loggingRefForIDPhotoRow(thisRow));
+      return null;
+    }
+    try {
+      if (localFileLocation==null || "".equals(localFileLocation)) return null;
+      localFileLocation = Util.windowsFileStringToLinux(localFileLocation);
+      localFileLocation = photoLocation+"/"+localFileLocation;
+      boolean fileExists = Util.fileExists(localFileLocation);
+      // System.out.println("    PROCIDPHOTOS: getIDPhotosMediaAsset got localFileLocation "+localFileLocation+" this file exists="+fileExists);
+      if (!fileExists) {
+        missingPhotos.add(localFileLocation);
+        return null;
+      }
+      // create MediaAsset and return it
+      JSONObject assetParams = new JSONObject();
+      assetParams.put("path",localFileLocation);
+      MediaAsset ma = astore.create(assetParams);
+
+      // MA processing
+      ma.setUserDateTime(getDateTimeForIDPhotoRow(thisRow));
+
+      String keyword = thisRow.getString("Photo_category");
+      if (keyword != null) ma.addKeyword(new Keyword(keyword));
+
+      String frameKeyword = thisRow.getString("Frame");
+      if (frameKeyword != null) ma.addKeyword(new Keyword(frameKeyword));
+
+      String rollKeyword = thisRow.getString("Roll");
+      if (rollKeyword != null) ma.addKeyword(new Keyword(rollKeyword));
+
+      String filmTypeKeyword = thisRow.getString("Film_type");
+      if (filmTypeKeyword != null) ma.addKeyword(new Keyword(filmTypeKeyword));
+
+      return ma;
+    } catch (Exception e) {
+      System.out.println("Exception on getIDPhotosMediaAsset! Returning a null asset.");
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+
+
+  private boolean processSightingHistoryTable(Table table, java.io.PrintWriter out, Shepherd myShepherd) {
+  	out.println("    processing SightingHistory table");
     ArrayList<String> columnMasterList = getColumnMasterList(table);
     int success = 0;
-    out.println("Biopsy Samples Table has "+table.getRowCount()+" Rows!");
+    out.println("IDPhotos Table has "+table.getRowCount()+" Rows!");
+    printTable(table, out);
+
     Row thisRow = null;
     
+    int printPeriod = 0; // how often to print certain log statements
     for (int i=0;i<table.getRowCount();i++) {
+      
       try {
         thisRow = table.getNextRow();
       } catch (IOException io) {
         io.printStackTrace();
-        out.println("\n!!!!!!!!!!!!!! Could not get next Row in Biopsy Sample table...\n");
+        out.println("\n!!!!!!!!!!!!!! Could not get next Row in SightingHistory table on row "+i+"...\n");
       }
-      
-      String date = null;
-      String time = null;
-      String sightNo = null;
-      try {
-        if (thisRow.get("DateCreated") != null && thisRow.get("SightNo") != null && thisRow.get("Time") != null) {
-          date = thisRow.get("DateCreated").toString(); 
-          time = thisRow.get("Time").toString();
-          sightNo = thisRow.get("SightNo").toString().trim(); 
-          columnMasterList.remove("DateCreated");
-          columnMasterList.remove("Time");
-          columnMasterList.remove("SightNo");
-          
-          String verbatimDate = date.substring(0, 11) + time.substring(11, time.length() - 5) + date.substring(date.length() - 5);
-          DateTime dateTime = dateStringToDateTime(verbatimDate, "EEE MMM dd hh:mm:ss z yyyy");
-          date = dateTime.toString().substring(0,10);      
-          out.println("Simple Date for this biopsy : "+date);
-        }
-      } catch (Exception e) {
-        e.printStackTrace(out);
-        out.println("**********  Failed to grab date and time info from biopsy table.");
-      }
-      Occurrence occ = null;
-      //Encounter thisEnc = null;
-      try {
-        ArrayList<Encounter> encArr = myShepherd.getEncounterArrayWithShortDate(date);
-        if (!encArr.isEmpty()) {
-          out.println("Iterating through array of "+encArr.size()+" encounterss to find a  match...");
-          for (Encounter enc : encArr) {
-            if (enc.getSightNo().equals(sightNo)) {
-              occ = myShepherd.getOccurrence(enc.getOccurrenceID());
-              //thisEnc = enc;
-              out.println("------ MATCH! "+sightNo+" = "+enc.getSightNo()+" Breaking the loop. ------");
-              break;
-            }
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-        out.println("Failed to retrieve Occurrence for this encounter.");
-      }
-      if (occ != null) {
-        out.println("Found a date match for this biopsy! Occurrence:"+occ.getPrimaryKeyID()+". Processing Biopsy...");
-        boolean created = processBiopsyRow(thisRow, occ, myShepherd, columnMasterList); 
-        if (created) {
-          success += 1;          
-        }
-      }
+
+      processSightingHistoryRow(thisRow, myShepherd, columnMasterList);
        
     } 
-    out.println("Successfully created "+success+" tissue samples."); 
+
+  	return true;
   }
-  
-  private boolean processBiopsyRow(Row thisRow, Occurrence occ, Shepherd myShepherd, ArrayList<String> columnMasterList) {
-    String sampleId = null;
-    // The name sampleID is kinda deceptive for internal wildbook purposes. This ID is only unique for successful biopsy attempts..
-    // Unsuccessful biopsys are still recorded as a TissueSample object, as requested. It belongs in the STATE column of the sample.
-    TissueSample ts = null;
+
+  // This gets the list of Occurrence names from the idPhotosTable.
+  // Each day Oman gives individuals names like "A4^2" to denote the 2nd individual in group A4
+  // of that day. So, we would get the string "A4:<datestring>"" for that entry.
+  // private Set<String> getOccurrenceNames(Table idPhotosTable) {
+
+  // }
+
+  // in ASWN Oman MS Access Data, "OMCD Sighting ID" is a column heading referencing what map to occurrences
+  private Occurrence getOrMakeOMCDOccurrence(Row thisRow, Shepherd myShepherd, Encounter enc) {
+
+    String omcdCode;
+    Occurrence occ;
     try {
-      if (occ != null) { 
-        try {
-          ts = new TissueSample("", sampleId );
-          // And load it up.
-          try {
-            if (!myShepherd.getPM().currentTransaction().isActive()) {
-              myShepherd.beginDBTransaction();
-            }
-            
-            String permit = null;
-            String sex = null;
-            String sampleID = null;
-            
-            // These fields are the anchors for the tissue sample. Minimum data needed for an entry.
-            columnMasterList.remove("Permit");
-            if (thisRow.get("Permit") != null) {
-              permit = thisRow.getString("Permit").toString();
-              ts.setPermit(permit);
-            }
-            columnMasterList.remove("Sample_ID");
-            if (thisRow.get("Sample_ID") != null) {
-              sampleID = thisRow.get("Sample_ID").toString();
-              
-              if (sampleID.toLowerCase().contains("miss")) {
-                ts.setState("Miss");
-              }
-              if (sampleID.toLowerCase().contains("hit no sample")) {
-                ts.setState("Hit - No Sample");
-              } else {
-                ts.setState("Sampled");
-              }
-            }
-            if (thisRow.get("Vessel") != null) {
-              String vessel = null;
-              vessel = thisRow.getString("Vessel").toString();
-              // Lets store this on the occurrence. It needs to be part of the process connecting Surveys-->Tracks-->Occurrences
-              Observation v = new Observation("Vessel",vessel,occ,occ.getPrimaryKeyID());
-              myShepherd.getPM().makePersistent(v);
-              myShepherd.commitDBTransaction();
-              myShepherd.beginDBTransaction();
-              occ.addObservation(v);
-            }
-              
-            // This should grab physical and satellite tags. Separated for clarity.
-            processTags(thisRow, myShepherd, occ);
-            columnMasterList.remove("DTAG_ID");
-            columnMasterList.remove("SatTag_ID");
-            
-            // This does exactly what it sounds like it does.
-            processRemainingColumnsAsObservations(ts, columnMasterList, thisRow);
-            
-            if (thisRow.get("Conf_sex") != null) {
-              // One of the fields will be a SexAnalysis/BiologicalMeasurement stored on the tissue sample.
-              sex = thisRow.getString("Conf_sex").toString();
-              SexAnalysis sexAnalysis = new SexAnalysis(Util.generateUUID(), sex,occ.getPrimaryKeyID(),sampleID);
-              myShepherd.getPM().makePersistent(sexAnalysis);
-              myShepherd.commitDBTransaction();
-              myShepherd.beginDBTransaction();
-              ts.addGeneticAnalysis(sexAnalysis);
-            }
-            myShepherd.getPM().makePersistent(ts);
-            myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-            occ.addBaseTissueSample(ts);
-          } catch (Exception e) {
-            e.printStackTrace();
-            out.println("\n Failed to save created tissue sample to occurrence.");
-          }
-          
-          myShepherd.commitDBTransaction();
-          System.out.println("Created a Tissue Sample for Occ"+occ.getPrimaryKeyID());
-          return true;
-        } catch (Exception e) {
-          e.printStackTrace();
-          out.println("\nFailed to make the tissue sample.");
-        }        
-      }        
-    } catch (Exception e) {  
-      out.println("\nFailed to validate Occ ID : "+occ.getPrimaryKeyID()+" and sampleID : "+sampleId+" for TissueSample creation.");
-      
+      omcdCode = thisRow.get("OMCD Sighting ID").toString();
+      occ = myShepherd.getOccurrence(omcdCode);
+      if (occ == null) occ = new Occurrence(omcdCode, enc);
+    } catch (Exception e) {
+      System.out.println("getOrMakeOMCDOccurrence: no OMCD Sighting ID on this row");
+      throw e;
     }
-     
-    occ.getBaseTissueSampleArrayList().toString();
+    return occ;
+  }
+
+  // null (no-) encounter version of func
+  private Occurrence getOrMakeOMCDOccurrence(Row thisRow, Shepherd myShepherd) {
+    return getOrMakeOMCDOccurrence(thisRow, myShepherd, null);
+  }
+
+  private boolean processSightingHistoryRow(Row thisRow, Shepherd myShepherd, ArrayList<String> columnMasterList) {
+
+
     return false;
   }
-  
-  private void processTags(Row thisRow, Shepherd myShepherd, Occurrence occ) {
-    String satTagID = null;
-    String dTagID = null;
-    
-    if (thisRow.get("SatTag_ID") != null || thisRow.get("DTAG_ID") != null) { 
-      if (occ != null) {
-        try {
-          System.out.println("Gonna try to make a tag for this Enc.");
-          if (thisRow.get("SatTag_ID") != null) {
-            satTagID = thisRow.get("SatTag_ID").toString();
-            SatelliteTag st = new SatelliteTag();
-            st.setName(satTagID);
-            st.setId(Util.generateUUID());
-            occ.addBaseSatelliteTag(st);
-            System.out.println("Created a SatTag for occurrence "+occ.getPrimaryKeyID());
-          }
-          if (thisRow.get("DTAG_ID") != null) {
-            dTagID = thisRow.get("DTAG_ID").toString();
-            DigitalArchiveTag dt = new DigitalArchiveTag();
-            dt.setDTagID(dTagID);
-            dt.setId(Util.generateUUID());
-            occ.addBaseDigitalArchiveTag(dt);
-            System.out.println("Created a DTag for occurrence "+occ.getPrimaryKeyID());
-          }       
-        } catch (Exception e) {
-          e.printStackTrace();
-          out.println("Caught exception while creating tags for biopsy.");
-        }       
-      } else {
-        System.out.println("Didn't find an encounter to add this tag ");
-      }           
-    }
-  }
-  	
-  private void buildEncounterDuplicationMap(Table table, Shepherd myShepherd) {
-    out.println("Building map of duplicate encounters...");
-    String sightNo = null;
-    String date = null;
-    
-    int sumOfValues = 0;
-    int rowsProcessed = 0;
-    Row thisRow = null;
-    for (int i=0;i<table.getRowCount();i++) {
-      try {
-        thisRow = table.getNextRow();
-        rowsProcessed += 1;
-      } catch (IOException io) {
-        io.printStackTrace();
-        out.println("!!!!!!!!!!!!!! Failed to retrieve row while building duplicate Encounter map.");
-      }
-      
-      try {
-        if (thisRow.get("DATE") != null) {
-          date = thisRow.get("DATE").toString();          
-          
-          String verbatimDate = date.substring(0, 11) + date.substring(date.length() - 5);
-          DateTime dateTime = dateStringToDateTime(verbatimDate, "EEE MMM dd yyyy");
-          date = dateTime.toString().substring(0,10);
-          //out.println("---------------- DATE : "+date);
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a DATE for row "+i+" in SIGHTINGS");
-        e.printStackTrace();
-      }
-      
-      try {
-        if (thisRow.get("SIGHTNO") != null) {
-          sightNo = thisRow.get("SIGHTNO").toString();          
-          //out.println("---------------- SIGHTNO : "+sightNo);          
-        }
-      } catch (Exception e) {
-        out.println("!!!!!!!!!!!!!! Could not process a SIGHTNO for row "+i+" in SIGHTINGS");
-        e.printStackTrace();
-      }
-      
-      String pairKey = sightNo+date;
-      if (!duplicatePairsMap.containsKey(pairKey)) {
-        duplicatePairsMap.put(pairKey.trim(), 1);
-        sumOfValues +=1;
-      } else {        
-        Integer thisVal = duplicatePairsMap.get(pairKey) + 1;
-        duplicatePairsMap.replace(pairKey.trim(),thisVal);
-        sumOfValues +=1;
-      }
-    }
-    
-    out.println("Duplicate Pairs : "+duplicatePairsMap.toString());
-    out.println("Sum of Duplicate Pair HashMap Values : "+sumOfValues);
-    out.println("Total duplicate repairs recorded : "+duplicatePairsMap.size());
-    out.println("Actual rows processed : "+rowsProcessed);
-  }
-  */
+
   
   private DateTime dateStringToDateTime(String verbatim, String format) {
     DateFormat fm = new SimpleDateFormat(format);
@@ -1390,12 +660,49 @@ public class ImportAccess extends HttpServlet {
     }
     return obj;
   }
+
+  public static ArrayList<String> getColumnMasterList(Table table) {
+    // This is a list of column names. We are gonna take them out as we process them so we know if we missed any at the end. 
+    ArrayList<String> columnMasterList = new ArrayList<String>();
+    List<? extends Column> columns = table.getColumns();
+    for (int i=0;i<columns.size();i++) {
+      columnMasterList.add(columns.get(i).getName());
+    }
+    //out.println("All of the columns in this Table : "+columnMasterList.toString()+"\n");
+    return columnMasterList;
+  }
+
+  public static void printTable(Table table, java.io.PrintWriter out) {
+    List<String> colNames = getColumnMasterList(table);
+    System.out.println("beginning to printTable "+table.getName());
+    out.println("<table>");
+    for (String colName : colNames) {
+      out.println("<tr><td>");
+
+      try {out.print(colName);}
+       catch (Exception e) {}
+      out.print("</td></tr>");
+
+    } 
+    out.println("</table>");
+    System.out.println("Done printing table "+table.getName());
+
+  }
+
+
+  private LocalAssetStore initFeatureTypeAndAssetStore(Shepherd myShepherd) {
+    FeatureType.initAll(myShepherd);
+    String rootDir = getServletContext().getRealPath("/");
+    String baseDir = ServletUtilities.dataDir(myShepherd.getContext(), rootDir);
+    String assetStorePath="/data/wildbook_data_dir/encounters";
+    //String rootURL="http://localhost:8080";
+    String rootURL="flukebook.org";
+    String assetStoreURL=rootURL+"/wildbook_data_dir/encounters";
+    //////////////// begin local //////////////
+    LocalAssetStore as = new LocalAssetStore("Oman-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
+    myShepherd.getPM().makePersistent(as);
+    return as;
+  }
+
+
 }
-
-
-  
-  
-  
-  
-  
-  
