@@ -169,7 +169,7 @@ public class MarkedIndividual implements java.io.Serializable {
       return isNew;
 
  }
-  public boolean addEncounterNoCommit(Encounter newEncounter, String context) {
+  public boolean addEncounterNoCommit(Encounter newEncounter) {
 
       newEncounter.assignToMarkedIndividual(individualID);
 
