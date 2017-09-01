@@ -2196,7 +2196,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
 
     public Annotation getAnnotationWithKeyword(String word) {
-        for (Annotation ann : anns) {
+        for (Annotation ann : annotations) {
           MediaAsset ma = ann.getMediaAsset();
           if (ma!=null && ma.hasKeyword(word)) return ann;
         }
