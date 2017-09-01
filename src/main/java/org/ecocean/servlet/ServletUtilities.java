@@ -1024,12 +1024,25 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
       System.out.println("couldn't run removeFutureDates");
       // e.printStackTrace();
     }
+    
+    //remove excessive past dates
+    ArrayList<String> validDatesWithExcessiveDatesRemoved = new ArrayList<String>();
+    try{
+      validDatesWithExcessiveDatesRemoved = removeExcessivePastDates(validDatesWithFutureDatesRemoved);
+      System.out.println("Before excessive past removal:");
+      System.out.println(validDatesWithFutureDatesRemoved);
+      System.out.println("After excessive past removal:");
+      System.out.println(validDatesWithExcessiveDatesRemoved );
+    } catch(Exception e){
+      System.out.println("couldn't run removeExcessivePastDates");
+      // e.printStackTrace();
+    }
 
 
     //if non-yesterday dates exist as well as yesterday ones, prefer the non-yesterdays. Otherwise, just get the yesterday.
     ArrayList<String> validDatesFilteredByYesterday = new ArrayList<String>();
     try{
-      validDatesFilteredByYesterday = removeYesterdayDatesIfTheyAreNotTheOnlyDates(validDatesWithFutureDatesRemoved);
+      validDatesFilteredByYesterday = removeYesterdayDatesIfTheyAreNotTheOnlyDates(validDatesWithExcessiveDatesRemoved );
       System.out.println(validDatesFilteredByYesterday);
     } catch(Exception e){
       System.out.println("couldn't print validDatesFilteredByYesterday");
@@ -1245,6 +1258,32 @@ public static ArrayList<String> nlpDateParseToArrayList(String text){
   System.out.println("NLP dates found+: " + arrayListDates);
 
   return arrayListDates;
+}
+
+//use this function to remove false positive from NLP that are clearly before the project started, such as "1492"
+public static ArrayList<String> removeExcessivePastDates(ArrayList<String> candidates) throws Exception{
+  //TODO add handling for tweets coming from future in datelines
+  ArrayList<String> returnCandidates = new ArrayList<String>();
+  for(int i = 0; i<candidates.size(); i++){
+    String currentDateString = candidates.get(i);
+    try{
+      java.util.Date currentDateObj = convertStringToDate(currentDateString);
+      if(currentDateObj == null){
+        System.out.println("currentDateObj in removeFutureDates is null");
+      }
+      if(!currentDateObj.before(convertStringToDate("1930-01-01"))){
+        returnCandidates.add(currentDateString);
+      }
+    } catch(Exception e){
+      e.printStackTrace();
+      continue;
+    }
+  }
+  if(returnCandidates == null | returnCandidates.size()<1){
+    throw new Exception("return list is null or empty after removeExcessivePastDates runs");
+  } else{
+    return returnCandidates;
+  }
 }
 
 
