@@ -39,6 +39,8 @@ public class Annotation implements java.io.Serializable {
     private int height;
     private float[] transformMatrix;
     private double theta;
+
+    private Double quality;
     //*'annot_yaw': 'REAL',
     //~'annot_detect_confidence': 'REAL',
     //~'annot_exemplar_flag': 'INTEGER',
@@ -124,6 +126,14 @@ public class Annotation implements java.io.Serializable {
     public void setId(String id) {
         this.id = id;
     }
+
+    public Double getQuality() {
+        return quality;
+    }
+    public void setQuality(Double quality) {
+        this.quality = quality;
+    }
+
 
     public String getUUID() {
         return id;
