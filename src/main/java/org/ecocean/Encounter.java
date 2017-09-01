@@ -2195,6 +2195,15 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         }
     }
 
+    public Annotation getAnnotationWithKeyword(String word) {
+        for (Annotation ann : anns) {
+          MediaAsset ma = ann.getMediaAsset();
+          if (ma!=null && ma.hasKeyword(word)) return ann;
+        }
+        return null;
+    }
+
+
     //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
     public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
         if ((anns == null) || (anns.size() < 1)) return null;
