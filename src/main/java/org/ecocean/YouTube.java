@@ -3,14 +3,14 @@ package org.ecocean;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URL;
 import org.json.JSONObject;
-import org.ecocean.ParseDateLocation.ParseDateLocation;
+//import org.ecocean.ParseDateLocation.ParseDateLocation;
 import org.ecocean.media.AssetStoreType;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.translate.DetectTranslate;
+//import org.ecocean.translate.DetectTranslate;
 
 import java.io.File;
 import java.util.List;
-import java.util.Properties;
+//import java.util.Properties;
 //import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 //import com.google.api.services.youtube.YouTube;
 //import com.google.api.services.samples.youtube.cmdline.Auth;
 import com.google.api.services.youtube.model.*;
-//import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.YouTube.CommentThreads;
 
 // see: https://developers.google.com/youtube/v3/code_samples/java#search_by_keyword
 
@@ -257,34 +257,7 @@ System.out.println("]=== done with .extractFrames()");
                 System.out
                         .println("\n-------------------------------------------------------------\n");
             } 
-          //search for Date and Location, and if found set in encounter:
-//            String detectedLanguage="en";
-//            try{
-//              detectedLanguage= DetectTranslate.detect(replies, context);
-//            }
-//            catch(Exception e){
-//              System.out.println("I hit an exception trying to detect language.");
-//              e.printStackTrace();
-//            }
-//            
-//            Properties comment = new Properties();               
-//            comment= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
-//            
-//            String commentToPost=null;
-//            if (ParseDateLocation.searchAndSet(occur, context, replies)!=null
-//            ) {
-//              commentToPost= comment.getProperty("muchThanks");                  
-//            }else {
-//              commentToPost= comment.getProperty("thanksAnyway");
-//            }
-//            
-//            if(commentToPost!=null){
-//              String postId= occur.getSocialMediaQueryCommentID();
-//              try{
-//                YouTube.sendReply(postId, commentToPost);
-//              }
-//              catch(Exception e){e.printStackTrace();}
-//            }
+
             return replies;
         }
       }catch (GoogleJsonResponseException e) {
@@ -347,22 +320,14 @@ System.out.println("]=== done with .extractFrames()");
           System.out.println("This occurrence has a YouTube Media Asset, so let's try to post to the OP the message I was given: "+message);
           //first, does this Occurrence have a commentID?
           String videoID=occur.getSocialMediaSourceID().replaceFirst("youtube:", "");
-          String commentID=occur.getSocialMediaQueryCommentID();
-          if(commentID==null){
-            //this is a new comment to post
-            System.out.println("Posting a new YouTube comment");
-            postQuestion(message,videoID, occur);
-          }
-          else{
-            //we have a comment that we originally posted that we can reply to.
-            String concatReplies=getReplies(occur);
-            if((concatReplies!=null)&&(concatReplies.indexOf(message)==-1)){
+
+          String concatReplies=getVideoComments(occur);
+          if((concatReplies==null)||(concatReplies.indexOf(message)==-1)){
               //we ourselves haven't posted this before (i.e., don't harass user with multiple, similar comments)
               System.out.println("Replying to a previous YouTube comment");
-              //sendReply(commentID, message);
+
               postQuestion(message,videoID, occur);
               
-            }
           }
         }
         else{
@@ -373,6 +338,36 @@ System.out.println("]=== done with .extractFrames()");
         
       
     }
+    
+    
+    public static String getVideoComments(Occurrence occur) {  //pubAfter is ms since epoch
+      if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
+      if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
+      try {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put("part", "snippet,replies");
+        String videoID=occur.getSocialMediaSourceID().replaceFirst("youtube:", "");
+        parameters.put("videoId", videoID);
+
+        CommentThreads.List commentThreadsListByVideoIdRequest = youtube.commentThreads().list(parameters.get("part").toString());
+        if (parameters.containsKey("videoId") && parameters.get("videoId") != "") {
+            commentThreadsListByVideoIdRequest.setVideoId(parameters.get("videoId").toString());
+        }
+
+        CommentThreadListResponse response = commentThreadsListByVideoIdRequest.execute();
+        return response.toString();
+      }
+      catch (GoogleJsonResponseException e) {
+        e.printStackTrace();
+        System.err.println("There was a service error: " + e.getDetails().getCode() + " : " + e.getDetails().getMessage());
+      } 
+      catch (Throwable t) {
+        t.printStackTrace();
+      }
+      return null;
+    }
+    
+    
 
 }
 
