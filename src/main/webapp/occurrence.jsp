@@ -574,6 +574,16 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 <%
 
 } 
+    else {
+    	%>
+    	
+    	<p class="para">There is no corresponding occurrence number in the database. Please double-check the occurrence number and try again.</p>
+
+    	<form action="occurrence.jsp" method="post" name="encounter"><strong>Go
+    	  to occurrence: </strong> <input name="number" type="text" value="" size="20"> <input name="Go" type="submit" value="Submit" /></form>
+
+    	<%
+    }
 
 
 
