@@ -20,6 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.translate.DetectTranslate;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -127,7 +128,28 @@ public class IndividualCreate extends HttpServlet {
               if(enc2make.getOccurrenceID()!=null){
                 if(myShepherd.isOccurrence(enc2make.getOccurrenceID())){
                   Occurrence occur=myShepherd.getOccurrence(enc2make.getOccurrenceID());
-                  //TBD-support more than just en language
+                 
+                  //determine language for response
+                  String ytRemarks=enc2make.getOccurrenceRemarks().trim().toLowerCase();
+                  String detectedLanguage="en";
+                  try{
+                    detectedLanguage= DetectTranslate.detect(ytRemarks, context);
+
+                    if(!detectedLanguage.toLowerCase().startsWith("en")){
+                      ytRemarks= DetectTranslate.translate(ytRemarks, context);
+                    }
+                    if(detectedLanguage.startsWith("es")){detectedLanguage="es";}
+                    else{detectedLanguage="en";}
+                  }
+                  catch(Exception e){
+                    System.out.println("I hit an exception trying to detect language.");
+                    e.printStackTrace();
+                  }
+                  //end determine language for response
+                  
+                  
+                  
+                  
                   Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
                   String message=ytProps.getProperty("newIndividual").replaceAll("%INDIVIDUAL%", enc2make.getIndividualID());
                   System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
