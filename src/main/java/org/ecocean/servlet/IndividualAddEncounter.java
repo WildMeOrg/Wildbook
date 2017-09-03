@@ -20,6 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.translate.DetectTranslate;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -139,7 +140,28 @@ public class IndividualAddEncounter extends HttpServlet {
                   System.out.println("...In IndividualAddEncounter found an occurrence..");
                   Occurrence occur=myShepherd.getOccurrence(enc2add.getOccurrenceID());
                   //TBD-support more than just en language
-                  Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
+                  
+                  //determine language for response
+                  String ytRemarks=enc2add.getOccurrenceRemarks().trim().toLowerCase();
+                  String detectedLanguage="en";
+                  try{
+                    detectedLanguage= DetectTranslate.detect(ytRemarks, context);
+
+                    if(!detectedLanguage.toLowerCase().startsWith("en")){
+                      ytRemarks= DetectTranslate.translate(ytRemarks, context);
+                    }
+                    if(detectedLanguage.startsWith("es")){detectedLanguage="es";}
+                    else{detectedLanguage="en";}
+                  }
+                  catch(Exception e){
+                    System.out.println("I hit an exception trying to detect language.");
+                    e.printStackTrace();
+                  }
+                  //end determine language for response
+
+                  
+                  
+                  Properties ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
                   String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
                   System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
                   YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd,request);
