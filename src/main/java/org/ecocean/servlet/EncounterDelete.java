@@ -114,6 +114,21 @@ public class EncounterDelete extends HttpServlet {
           ObjectOutputStream oos = new ObjectOutputStream(fout);
           oos.writeObject(backUpEnc);
           oos.close();
+          
+          if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
+            Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
+            occur.removeEncounter(enc2trash);
+            enc2trash.setOccurrenceID(null);
+            
+            //delete Occurrence if it's last encounter has been removed.
+            if(occur.getNumberEncounters()==0){
+              myShepherd.throwAwayOccurrence(occur);
+            }
+            
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+     
+          }
 
           //record who deleted this encounter
           enc2trash.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Deleted this encounter from the database.");
