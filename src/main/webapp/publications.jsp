@@ -36,6 +36,10 @@ context=ServletUtilities.getContext(request);
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
+		<p>
+		Reynolds SD, Norman BM, Beger M, Franklin CE, Dwyer RG. Movement, distribution and marine reserve use by an endangered migratory giant. Divers Distrib. 2017;00:1–12.
+		<br><a href="https://doi.org/10.1111/ddi.12618">Web link</a></p>
+		
 		<p>McKinney JA, Hoffmayer ER, Holmberg J, Graham RT, Driggers WB III, de la Parra-Venegas R, et al. (2017) Long-term assessment of whale shark population demography and connectivity using photo-identification in the Western Atlantic Ocean. PLoS ONE 12(8): e0180495. https://doi.org/10.1371/journal.pone.0180495
 		<br><a href="http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0180495">Web link</a>
 		</p>
