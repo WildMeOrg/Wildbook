@@ -499,7 +499,7 @@ public class ServletUtilities {
     description = description.replaceAll("((?i)script)", "");
     description = description.replaceAll("onerror", "");
     //description = description.replaceAll("alert", "");
-    description = StringEscapeUtils.escapeHtml(description);
+    //description = StringEscapeUtils.escapeHtml(description);  //no we dont want this here -- causes data to be stored with html entities
     return description;
   }
 
