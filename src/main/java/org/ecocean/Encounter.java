@@ -2686,6 +2686,16 @@ it should be considered an asyncronous action that happens in the background mag
 /////other possiblity: only pass basedir??? do we need context if we do that?
 
                 public boolean refreshAssetFormats(Shepherd myShepherd) {
+                    ArrayList<MediaAsset> mas = this.getMedia();
+                    if ((mas == null) || (mas.size() < 1)) return true;
+                    for (MediaAsset ma : mas) {
+                        ma.updateStandardChildren(myShepherd, this.optsForMediaAssets());
+                    }
+                    return true;
+                }
+
+                // this is *very* wwf-seal-specific, in that it creates the args for textual overlay on the image!
+                public HashMap<String,Object> optsForMediaAssets() {
                     HashMap<String,Object> opts = new HashMap<String,Object>();
                     int year = Calendar.getInstance().get(Calendar.YEAR);
                     String copyr = Integer.toString(year);  //SUPERHACK! copyright symbol gets prepended in shell script. :(
@@ -2693,13 +2703,9 @@ it should be considered an asyncronous action that happens in the background mag
                     if ((pname != null) && !pname.equals("")) copyr += " " + pname + " /";
                     copyr += " WWF";
                     opts.put("overlayText", copyr);
-                    ArrayList<MediaAsset> mas = this.getMedia();
-                    if ((mas == null) || (mas.size() < 1)) return true;
-                    for (MediaAsset ma : mas) {
-                        ma.updateStandardChildren(myShepherd, opts);
-                    }
-                    return true;
+                    return opts;
                 }
+
 /*
 NOTE on "thumb.jpg" ... we only get one of these per encounter; and we do not have stored (i dont think?) which SPV it came from!
 this is a problem, as we cant make a thumb in refreshAssetFormats(req, spv) since we dont know if that is the "right" spv.

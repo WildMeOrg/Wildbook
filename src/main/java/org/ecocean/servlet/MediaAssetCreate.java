@@ -179,6 +179,7 @@ System.out.println("source config -> " + cfg.toString());
 */
 
             String setId = st.optString("setId", null);
+            boolean skipChildrenCreation = st.optBoolean("skipChildrenCreation", false);
             //attempt to validate setId (if we have one)
             if ((setId != null) && (sets.get(setId) == null)) {
                 MediaAssetSet s = null;
@@ -270,7 +271,7 @@ System.out.println(i + ") params -> " + params.toString());
                     targetMA.addLabel("_original");
                     targetMA.setAccessControl(request);
                     MediaAssetFactory.save(targetMA, myShepherd);
-	            targetMA.updateStandardChildren(myShepherd);  //lets always do this (and can add flag to disable later if needed)
+	            if (!skipChildrenCreation) targetMA.updateStandardChildren(myShepherd);
                     if (setId != null) {
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
                         sets.get(setId).addMediaAsset(targetMA);

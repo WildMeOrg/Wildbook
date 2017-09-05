@@ -4629,7 +4629,8 @@ button#upload-button {
           "MediaAssetCreate": [
             {"assets": [
                {"filename": filenames[0] }
-              ]
+              ],
+             "skipChildrenCreation": true
             }
           ]
         }),
@@ -4638,7 +4639,7 @@ button#upload-button {
           var maId = d.withoutSet[0].id;
           console.info('parsed id = '+maId);
 
-          var ajaxData = {"attach":"true","EncounterID":"<%=encNum%>","MediaAssetID":maId};
+          var ajaxData = {"attach":"true","EncounterID":"<%=encNum%>","MediaAssetID":maId,"createChildren":true};
           var ajaxDataString = JSON.stringify(ajaxData);
           console.info("ajaxDataString="+ajaxDataString);
 

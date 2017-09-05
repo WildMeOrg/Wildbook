@@ -83,6 +83,7 @@ public class MediaAssetAttach extends HttpServlet {
     if (args.optString("attach")!=null && args.optString("attach").equals("true")) {
       if (!alreadyAttached) {
         enc.addMediaAsset(ma);
+        if (args.optBoolean("createChildren", false)) ma.updateStandardChildren(myShepherd, enc.optsForMediaAssets());  //opts thing is wwf-specific
         res.put("action","attach");
         res.put("success",true);
       }
