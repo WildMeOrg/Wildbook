@@ -449,6 +449,11 @@ public class MediaAsset implements java.io.Serializable {
         return iattr.getHeight();
     }
 
+    public void addToMetadata(String key, String value) {
+        if (metadata==null) metadata = new MediaAssetMetadata();
+        metadata.addDatum(key, value);
+    }
+
 
 
 
