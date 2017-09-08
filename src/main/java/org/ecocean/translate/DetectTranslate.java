@@ -25,6 +25,7 @@ public class DetectTranslate {
     Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
     Detection detection = translate.detect(text);
     String detectedLanguage = detection.getLanguage();
+    System.out.println("Detected language "+detectedLanguage+" from text: "+text);
     return detectedLanguage;
   }
 
