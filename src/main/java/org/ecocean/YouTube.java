@@ -235,7 +235,7 @@ System.out.println("]=== done with .extractFrames()");
       if (youtube2 == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       try {
         String commentId=occur.getSocialMediaQueryCommentID();
-        CommentListResponse commentsListResponse = youtube.comments().list("snippet")
+        CommentListResponse commentsListResponse = youtube2.comments().list("snippet")
             .setParentId(commentId).setTextFormat("plainText").setKey(apiKey).execute();
         List<Comment> comments = commentsListResponse.getItems();
         String replies = "";
@@ -349,7 +349,7 @@ System.out.println("]=== done with .extractFrames()");
         String videoID=occur.getSocialMediaSourceID().replaceFirst("youtube:", "");
         parameters.put("videoId", videoID);
 
-        CommentThreads.List commentThreadsListByVideoIdRequest = youtube.commentThreads().list(parameters.get("part").toString());
+        CommentThreads.List commentThreadsListByVideoIdRequest = youtube2.commentThreads().list(parameters.get("part").toString());
         if (parameters.containsKey("videoId") && parameters.get("videoId") != "") {
             commentThreadsListByVideoIdRequest.setVideoId(parameters.get("videoId").toString());
         }
