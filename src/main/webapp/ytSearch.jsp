@@ -42,11 +42,12 @@ phrasesToIgnoreVideo.add("documentary");
 phrasesToIgnoreVideo.add("documental");
 phrasesToIgnoreVideo.add("hungry shark world");
 phrasesToIgnoreVideo.add("hungry shark game");
+phrasesToIgnoreVideo.add("hungry shark evolution");
 phrasesToIgnoreVideo.add("dory");
 phrasesToIgnoreVideo.add("nemo");
 phrasesToIgnoreVideo.add("abyssrium");
 phrasesToIgnoreVideo.add("whale shark card");
-phrasesToIgnoreVideo.add("octonauts");
+phrasesToIgnoreVideo.add("octonaut");
 phrasesToIgnoreVideo.add("gta");
 phrasesToIgnoreVideo.add("megalodon");
 phrasesToIgnoreVideo.add("abzu");
@@ -73,6 +74,8 @@ phrasesToIgnoreVideo.add("ultimatesharksimulator");
 phrasesToIgnoreVideo.add("animal planet");
 phrasesToIgnoreVideo.add("deer");
 phrasesToIgnoreVideo.add("shark week");
+phrasesToIgnoreVideo.add("kids");
+phrasesToIgnoreVideo.add("children");
 
 int numPhrases=phrasesToIgnoreVideo.size();
 
@@ -102,7 +105,7 @@ if (keyword == null) {
 			String consolidatedRemarks=vid.toString().toLowerCase();
 			for(int i=0;i<numPhrases;i++){
 				String filterString=phrasesToIgnoreVideo.get(i);
-				if(consolidatedRemarks.indexOf(filterString)!=-1)filterMe=true;
+				if((consolidatedRemarks.indexOf(filterString)!=-1)||(consolidatedRemarks.indexOf(filterString.replaceAll(" ",""))!=-1))filterMe=true;
 			}
 			
 			if(!filterMe)varr.put(new JSONObject(vid.toString()));
