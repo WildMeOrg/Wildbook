@@ -9,9 +9,10 @@ prepare:
   cache:
     key: maven
     paths:
-      - /root/.m2
+      - ./m2Repository
   script:
     - pwd
+    - cp settings.xml /root/.m2/settings.xml
     - mvn dependency:resolve -B -U
 
 test:
@@ -20,7 +21,7 @@ test:
   cache:
     key: maven
     paths:
-      - ~/.m2
+      - ./m2Repository
   dependencies:
     - prepare
   script:
@@ -32,7 +33,7 @@ build:
   cache:
     key: maven
     paths:
-      - ~/.m2
+      - ./m2Repository
   artifacts:
     expire_in: 1 week
     paths:
