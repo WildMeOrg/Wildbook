@@ -129,7 +129,7 @@ public class Occurrence implements java.io.Serializable{
     for(int i=0;i<encounters.size();i++) {
       Encounter tempEnc=(Encounter)encounters.get(i);
       if(tempEnc.getEncounterNumber().equals(enc.getEncounterNumber())) {
-        isNew=false;
+        return false;
       }
     }
 
