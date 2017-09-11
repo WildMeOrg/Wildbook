@@ -1,5 +1,6 @@
 stages:
   - setup
+  - test
   - build
 
 prepare:
@@ -12,8 +13,20 @@ prepare:
   script:
     - mvn dependency:resolve -B -U
 
-mavenBuild:
+test:
   stage: test
+  image: maven:3.3.9-jdk-8
+  cache:
+    key: maven
+    paths:
+      - ~/.m2
+  dependencies:
+    - prepare
+  script:
+    - mvn test -B
+
+build:
+  stage: build
   image: maven:3.3.9-jdk-8
   cache:
     key: maven
@@ -24,6 +37,6 @@ mavenBuild:
     paths:
       - ./target/wildbook-6.0.0-EXPERIMENTAL.war
   dependencies:
-    - prepare
+    - test
   script:
-    - mvn clean install -Dmaven.javadoc.skip=true
+    - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
