@@ -140,6 +140,13 @@ public class Occurrence implements java.io.Serializable{
 
   }
 
+  // like addEncounter but adds backwards link to this enc
+  public void addEncounterAndUpdateIt(Encounter enc){
+    addEncounter(enc);
+    enc.setOccurrenceID(this.getOccurrenceID());
+  }
+
+
   public ArrayList<Encounter> getEncounters(){
     return encounters;
   }
