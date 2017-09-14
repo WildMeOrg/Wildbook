@@ -575,6 +575,17 @@ public class MarkedIndividual implements java.io.Serializable {
     nickName = newName;
   }
 
+  public String setNickNameFromEncounters() {
+    for (Encounter enc: encounters) {
+      if (enc.getAlternateID()!=null) {
+        setNickName(enc.getAlternateID());
+        break;
+      }
+    }
+    return getNickName();
+  }
+
+
   public void setNickNamer(String newNamer) {
     nickNamer = newNamer;
   }
