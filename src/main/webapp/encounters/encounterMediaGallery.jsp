@@ -167,7 +167,10 @@ function forceLink(el) {
   </script>
   <%
   for(int f=0;f<numEncs;f++){
+
 		  Encounter enc = encs.get(f);
+		  System.out.println("EMG: starting for enc "+enc.getCatalogNumber());
+
 		  ArrayList<Annotation> anns = enc.getAnnotations();
 		JSONObject iaTasks = new JSONObject();
 
@@ -175,15 +178,24 @@ function forceLink(el) {
 		    %> <script>console.log('no annnotations found for encounter <%=encNum %>'); </script> <%
 		  }
 		  else {
+
 		  	for (Annotation ann: anns) {
+		  		System.out.println("    EMG: starting for ann "+ann);
+
+		  		if (ann == null) continue;
 		      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+		      System.out.println("    EMG: got tasks "+tasks);
+
 		      MediaAsset ma = ann.getMediaAsset();
 		      String filename = ma.getFilename();
-		      
+		      System.out.println("    EMG: got ma at"+filename);
+
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
 		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a><br>";
 		      }
+		      	System.out.println("    EMG: got indID element "+individualID);
+
 		      
 		      //Start caption render JSP side
 		      String[] capos=new String[1];
@@ -195,6 +207,8 @@ function forceLink(el) {
 		      
 		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" "+ma.getId()+"</p>";
 		      captionLinks.add(capos);
+		      System.out.println("    EMG: got capos "+capos[0]);
+
 		      //end caption render JSP side
 		      
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
@@ -202,11 +216,17 @@ function forceLink(el) {
 
 		  		
 		  		if (ma != null) {
+		  			System.out.println("    EMG: ma is not null");
+
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
+		  				System.out.println("    EMG: j is not null");
+
 						j.put("annotationId", ann.getId());
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
+
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
+
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
 							//   also: prob should check *what* is detected. :) somewhere....
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
@@ -229,6 +249,9 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 							//note: this violates safeUrl / etc... use with caution in your branch?
 							j.put("url", ma.webURL().toString());
 						}
+						// Should fix oman images not appearing on import
+						j.put("url", ma.webURL().toString());
+
 						all.put(j);
 					}
 		  		}
@@ -322,6 +345,7 @@ if(request.getParameter("encounterNumber")!=null){
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
   var assets = <%=all.toString()%>;
+  <% System.out.println("All = "+all); %>
   var captions = <%=captions.toString()%>
   captions.forEach( function(elem) {
     console.log("caption here: "+elem);
@@ -356,11 +380,21 @@ if(request.getParameter("encounterNumber")!=null){
 
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
-    console.log("EMG asset "+index+" id: "+assetId);
+    console.log("   EMG asset "+index+" id: "+assetId);
+    <% System.out.println("    EMG: asset is forEach'd"); %>
     if (<%=isGrid%>) {
+    	    console.log("   EMG : isGrid true!");
+
+    	<% System.out.println("    EMG: calling grid version"); %>
+
       maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     } else {
-      maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+    	    	    console.log("   EMG : isGrid false!");
+
+    	    	<% System.out.println("    EMG: calling nongrid version"); %>
+      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+
+      //maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
     }
 
 /*   now added to image hamburger menu
@@ -443,7 +477,7 @@ function doImageEnhancer(sel) {
 			tid
 		]);
 	}
-
+*/
 <%
 if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&((CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true")))){
 %>
