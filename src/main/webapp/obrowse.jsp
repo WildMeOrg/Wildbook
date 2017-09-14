@@ -26,10 +26,19 @@ java.util.Properties" %>
 		if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
 			h += "<div>Annotations:<ul>";
 			for (int i = 0 ; i < enc.getAnnotations().size() ; i++) {
-				h += "<li><a href=\"obrowse.jsp?type=Annotation&id=" + enc.getAnnotations().get(i).getId() + "\">Annotation " + enc.getAnnotations().get(i).getId() + "</a></li>";
+				Annotation ann = enc.getAnnotations().get(i);
+				if (ann!=null) {
+					h += "<li><a href=\"obrowse.jsp?type=Annotation&id=" + enc.getAnnotations().get(i).getId() + "\">Annotation " + enc.getAnnotations().get(i).getId() + "</a></li>";
+				} else {
+					h += "<li>NULL Annotation!</li>";
+				}
 			}
 			h += "</ul></div>";
 		}
+		// Add some Occurrence and MarkedIndividual Stuff.
+		h+= "<p>OccurrenceID: "+enc.getOccurrenceID()+"</p>";
+		h+= "<p>IndividualID: "+enc.getIndividualID()+"</p>";
+
 		return h + "</div>";
 	}
 
@@ -85,7 +94,7 @@ java.util.Properties" %>
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
 		shown.add(ma);
 		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b><ul style=\"width: 65%\">";
-		if (ma.webURL().toString().matches(".+.mp4$")) {
+		if (ma.webURL()!=null && ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
 			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><img title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></a>";
@@ -160,6 +169,7 @@ if (type.equals("Encounter")) {
 		out.println(showEncounter(enc));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
 		needForm = true;
 	}
 
@@ -170,6 +180,7 @@ if (type.equals("Encounter")) {
 		out.println(showMediaAsset(ma));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
 		needForm = true;
 	}
 
@@ -179,6 +190,7 @@ if (type.equals("Encounter")) {
 		out.println(showAnnotation(ann));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
 		needForm = true;
 	}
 
@@ -188,6 +200,7 @@ if (type.equals("Encounter")) {
 		out.println(showFeature(f));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
 		needForm = true;
 	}
 
@@ -202,6 +215,7 @@ if (type.equals("Encounter")) {
 		}
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
 		needForm = true;
 	}
 
