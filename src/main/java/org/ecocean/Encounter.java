@@ -255,6 +255,8 @@ public class Encounter implements java.io.Serializable {
   // (not necessarily an individual name from the WB database)
   private String fieldID;
 
+  // This is a standard 1-5 color scale used by cetacean researchers
+  private Integer flukeType;
 
   //start constructors
 
@@ -366,6 +368,11 @@ public class Encounter implements java.io.Serializable {
   public void removeRightSpots() {
     rightSpots = null;
   }
+
+  public Integer getFlukeType() {return this.flukeType;}
+  public void setFlukeType(Integer flukeType) {this.flukeType=flukeType;}
+
+
 
     //yes, there "should" be only one of each of these, but we be thorough!
     public void removeLeftSpotMediaAssets(Shepherd myShepherd) {
