@@ -250,12 +250,27 @@ public class Encounter implements java.io.Serializable {
 
   private Boolean mmaCompatible = false;
 
+  // This is what researchers eyeball is the individual's ID in the field
+  // it could be a name that only has meaning in the context of that day's work
+  // (not necessarily an individual name from the WB database)
+  private String fieldID;
+
+
   //start constructors
 
   /**
    * empty constructor required by the JDO Enhancer
    */
   public Encounter() {
+  }
+
+  public Encounter(boolean skipSetup) {
+    if (skipSetup) return;
+    this.catalogNumber = Util.generateUUID();
+    this.setDWCDateAdded();
+    this.setDWCDateLastModified();
+    this.resetDateInMilliseconds();
+    this.annotations = new ArrayList<Annotation>();
   }
 
   /**
@@ -697,6 +712,14 @@ public class Encounter implements java.io.Serializable {
     }
     return imageNamesOnly;
   }
+
+  public String getFieldID() {
+    return this.fieldID;
+  }
+  public void setFieldID(String fieldID) {
+    this.fieldID = fieldID;
+  }
+
 
   /**
    * Adds another image to the collection of images for this encounter.
@@ -2196,7 +2219,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
 
     public Annotation getAnnotationWithKeyword(String word) {
+        System.out.println("getAnnotationWithKeyword called for "+word);
+        System.out.println("getAnnotationWithKeyword called, annotations = "+annotations);
+        if (annotations == null) return null;
         for (Annotation ann : annotations) {
+          if (ann==null) continue;
           MediaAsset ma = ann.getMediaAsset();
           if (ma!=null && ma.hasKeyword(word)) return ann;
         }
