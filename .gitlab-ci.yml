@@ -2,6 +2,7 @@ stages:
   - setup
   - test
   - build
+  - deploy
 
 prepare:
   stage: setup
@@ -40,10 +41,6 @@ build:
     key: maven
     paths:
       - ./m2Repository
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - ./target/wildbook-6.0.0-EXPERIMENTAL.war
   dependencies:
     - test
   script:
@@ -53,3 +50,21 @@ build:
     - python get-pip.py
     - pip install awscli --upgrade --user
     - ~/.local/bin/aws s3 cp ./target/wildbook-6.0.0-EXPERIMENTAL.war s3://wildbook-matt-test
+
+deploy-container:
+  tags:
+    - docker
+  stage: deploy
+  dependencies:
+    - build
+  services:
+    - docker:dind
+  script:
+    - wget https://bootstrap.pypa.io/get-pip.py
+    - python get-pip.py
+    - pip install awscli --upgrade --user
+    - ~/.local/bin/aws s3 cp s3://wildbook-matt-test ./
+    - docker login registry.example.com -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    - docker build -t wildbook .
+    - docker tag wildbook wildbook:latest
+    - docker tag push wildbook:latest
