@@ -38,16 +38,16 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 <h2>Spotting Giant Sea Bass</h2>
 
-Localization files are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
+**Localization files (most copy)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
 
-Image files go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
+**Image files** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
 
-Emails are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
+**Emails** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
 
-Actual jsp files are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
+Actual **jsp files** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
 
-Add new location IDs here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
+Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
 
-commonConfiguration.properties here (for reference only, gets overridden): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
+**commonConfiguration.properties** here (for reference only, gets overridden): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
 
 HTML entity encoder/decoder: https://mothereff.in/html-entities
