@@ -46,7 +46,7 @@ build:
   script:
     - cp settings.xml /root/.m2/settings.xml
     - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
-    - s3cp ./target/wildbook-6.0.0-EXPERIMENTAL.war s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war
+    - ./s3cp ./target/wildbook-6.0.0-EXPERIMENTAL.war s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war
 
 deploy-container:
   tags:
