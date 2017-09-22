@@ -57,7 +57,7 @@ deploy-container:
   services:
     - docker:dind
   script:
-    - s3cp s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war ./target/wildbook-6.0.0-EXPERIMENTAL.war
+    - ./s3cp s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war ./target/wildbook-6.0.0-EXPERIMENTAL.war
     - docker login registry.example.com -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     - docker build -t wildbook .
     - docker tag wildbook wildbook:latest
