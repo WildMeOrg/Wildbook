@@ -46,10 +46,7 @@ build:
   script:
     - cp settings.xml /root/.m2/settings.xml
     - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
-    - wget https://bootstrap.pypa.io/get-pip.py
-    - python get-pip.py
-    - pip install awscli --upgrade --user
-    - ~/.local/bin/aws s3 cp ./target/wildbook-6.0.0-EXPERIMENTAL.war s3://wildbook-matt-test
+    - s3cp ./target/wildbook-6.0.0-EXPERIMENTAL.war s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war
 
 deploy-container:
   tags:
@@ -60,10 +57,7 @@ deploy-container:
   services:
     - docker:dind
   script:
-    - wget https://bootstrap.pypa.io/get-pip.py
-    - python get-pip.py
-    - pip install awscli --upgrade --user
-    - ~/.local/bin/aws s3 cp s3://wildbook-matt-test ./
+    - s3cp s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war ./target/wildbook-6.0.0-EXPERIMENTAL.war
     - docker login registry.example.com -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     - docker build -t wildbook .
     - docker tag wildbook wildbook:latest
