@@ -49,6 +49,9 @@ build:
     - ./s3cp ./target/wildbook-6.0.0-EXPERIMENTAL.war s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war
 
 deploy-container:
+  image: docker:latest
+  variables:
+    DOCKER_DRIVER: overlay2
   tags:
     - docker
   stage: deploy
@@ -56,6 +59,8 @@ deploy-container:
     - build
   services:
     - docker:dind
+  before_script:
+  - docker info
   script:
     - ./s3cp s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war ./target/wildbook-6.0.0-EXPERIMENTAL.war
     - docker login registry.example.com -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
