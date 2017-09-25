@@ -66,4 +66,4 @@ deploy-container:
     - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
     - docker build -t wildbook .
     - docker tag wildbook wildbook:latest
-    - docker push wildbook:latest
+    - docker push mattmclaugh/wildbook:latest
