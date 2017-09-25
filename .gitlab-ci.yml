@@ -63,7 +63,7 @@ deploy-container:
   - docker info
   script:
     - ./s3cp s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war ./target/wildbook-6.0.0-EXPERIMENTAL.war
-    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD https://index.docker.io/v1/
     - docker build -t wildbook .
     - docker tag wildbook wildbook:latest
     - docker tag push wildbook:latest
