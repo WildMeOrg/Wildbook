@@ -143,6 +143,10 @@ public class IndividualAddEncounter extends HttpServlet {
                   
                   //determine language for response
                   String ytRemarks=enc2add.getOccurrenceRemarks().trim().toLowerCase();
+                  int commentEnd=ytRemarks.indexOf("from youtube video:");
+                  if(commentEnd>0){
+                    ytRemarks=ytRemarks.substring(commentEnd);
+                  }
                   String detectedLanguage="en";
                   try{
                     detectedLanguage= DetectTranslate.detect(ytRemarks, context);

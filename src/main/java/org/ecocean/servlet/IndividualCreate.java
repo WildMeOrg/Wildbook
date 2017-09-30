@@ -131,6 +131,11 @@ public class IndividualCreate extends HttpServlet {
                  
                   //determine language for response
                   String ytRemarks=enc2make.getOccurrenceRemarks().trim().toLowerCase();
+                  int commentEnd=ytRemarks.indexOf("from youtube video:");
+                  if(commentEnd>0){
+                    ytRemarks=ytRemarks.substring(commentEnd);
+                  }
+                  
                   String detectedLanguage="en";
                   try{
                     detectedLanguage= DetectTranslate.detect(ytRemarks, context);
@@ -150,7 +155,7 @@ public class IndividualCreate extends HttpServlet {
                   
                   
                   
-                  Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
+                  Properties ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
                   String message=ytProps.getProperty("newIndividual").replaceAll("%INDIVIDUAL%", enc2make.getIndividualID());
                   System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
                   YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd,request);
