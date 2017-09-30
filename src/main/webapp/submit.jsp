@@ -768,7 +768,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   <fieldset>
     <div class="row">
       <div class="col-xs-12 col-lg-6">
-        <h3><%=props.getProperty("aboutYou") %></h3>
+	      <h3><%=props.getProperty("aboutYou") %></br></h3>
         <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
