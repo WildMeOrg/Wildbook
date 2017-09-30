@@ -684,7 +684,7 @@ public class MediaAsset implements java.io.Serializable {
             top = MediaAssetFactory.load(parentId, myShepherd);
             if (top == null) throw new RuntimeException("bestSafeAsset() failed to find parent on " + this);
             if (!top.hasLabel("_original")) {
-                System.out.println("INFO: " + this + " had a non-_original parent of " + top + "; so using this");
+                //System.out.println("INFO: " + this + " had a non-_original parent of " + top + "; so using this");
                 return this;  //we stick with this cuz we are kinda at a dead end
             }
         }
