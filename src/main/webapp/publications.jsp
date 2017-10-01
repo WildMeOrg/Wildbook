@@ -37,9 +37,14 @@ context=ServletUtilities.getContext(request);
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
 		<p>
+		Thomson JA, Araujo G, Labaja J, McCoy E, Murray R, Ponzo A. Feeding the world's largest fish: highly variable whale shark residency patterns at a provisioning site in the Philippines. R. Soc. open sci. 2017 4 170394; DOI: 10.1098/rsos.170394. Published 27 September 2017<br>
+		<a href="http://rsos.royalsocietypublishing.org/content/4/9/170394">Web link</a>
+		</p>
+		
+		<p>
 		Robinson DP, Jaidah MY, Bach SS, Rohner CA, Jabado RW, Ormond R, et al. (2017) Some like it hot: Repeat migration and residency of whale sharks within an extreme natural environment. PLoS ONE 12(9): e0185360. https://doi.org/10.1371/journal.pone.0185360
 		<br><a href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0185360">Web link</a></p>
-		</p>
+		
 		
 		<p>
 		Reynolds SD, Norman BM, Beger M, Franklin CE, Dwyer RG. Movement, distribution and marine reserve use by an endangered migratory giant. Divers Distrib. 2017;00:1–12.
