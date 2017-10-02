@@ -43,17 +43,17 @@ Occurrence occ = null;
 Survey sv = null;
 try {
 	
-	System.out.println("Got this occID: "+occID);
+	System.out.println("Got this occID from params: "+occID);
 	occ = myShepherd.getOccurrence(occID);
-	System.out.println("Got this occ: "+occ.getOccurrenceID());
+	System.out.println("Got this occ from DB: "+occ.getOccurrenceID());
 	if (occ.getSurvey(myShepherd)!=null) {
 		number = occ.getSurvey(myShepherd).getID();		
 	} else {
 		System.out.println("No Survey was found for this Occurrence.");
 	}
-	System.out.println("Got this survey number: "+number);
+	System.out.println("Got this survey number from the occ: "+number);
 	sv = myShepherd.getSurvey(number);
-	System.out.println("Got this occ: "+sv.getID());
+	System.out.println("Retreived this survey: "+sv.getID());
 	
 } catch (Exception e) {
 	e.printStackTrace();
@@ -83,10 +83,6 @@ for (SurveyTrack trk : trks ) {
 	polyLineSets.add(lineSet);
 }
 %>
-
-<script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
-<script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
-<script src="javascript/oms.min.js"></script>
 <p><strong><%=props.getProperty("surveyMap") %></strong></p>
 <ul>
 <%
@@ -109,17 +105,21 @@ for (Survey srvy : svs) {
 		
 		<%=svyID%>
 	</li>
+</ul>
 <%
 	}
 }
+if (sv!=null) {
 %>
-<p><%=sv %></p>
-</ul>
+	<p>Survey: <%=sv.getID()%> LineSet:<%=polyLineSets.toString() %></p>
+<%
+}
+%>
 <div id="map">
 </div>
 <script>
-
-
+alert('Test');
+$(document).ready(function() {
   function initMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
       zoom: 7,
@@ -148,12 +148,14 @@ for (Survey srvy : svs) {
   	}
     %>
 	path.setMap(map);
-  }
+	initMap();	 
+ }
+}); 
+  
 </script>
 
 <%
 myShepherd.closeDBTransaction();
 %>
-<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 
