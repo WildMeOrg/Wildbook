@@ -18,7 +18,6 @@ myShepherd.beginDBTransaction();
 props = ShepherdProperties.getProperties("survey.properties", langCode,context);
 
 String number = request.getParameter("occID").trim();
-String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 Survey sv = myShepherd.getSurvey(number);
 ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
@@ -34,6 +33,7 @@ if (sv!=null) {
 	if (sv.getAllSurveyTracks().size()>0) {
 		trks = sv.getAllSurveyTracks();
 	}
+	errors = "<p>No errors.</p>";
 	
 } else {
 	errors += "<p>There was no valid Survey for this ID.</p><br/>";
@@ -41,8 +41,6 @@ if (sv!=null) {
 %>
 
 <jsp:include page="../header.jsp" flush="true" />
-<script src="../tools/jquery/js/jquery.min.js"></script>
-<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="../javascript/oms.min.js"></script>

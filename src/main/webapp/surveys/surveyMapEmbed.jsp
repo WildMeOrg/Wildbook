@@ -29,6 +29,8 @@ props = ShepherdProperties.getProperties("survey.properties", langCode, context)
 Properties locationProps = new Properties();
 locationProps = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
 
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("surveyMapEmbed.jsp");
 myShepherd.beginDBTransaction();
@@ -83,10 +85,13 @@ for (SurveyTrack trk : trks ) {
 	polyLineSets.add(lineSet);
 }
 %>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
+<script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
+<script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
+
 <p><strong><%=props.getProperty("surveyMap") %></strong></p>
 <ul>
 <%
-
 
 for (Survey srvy : svs) {
 	if (srvy.getAllSurveyTracks()!=null) {
@@ -115,10 +120,11 @@ if (sv!=null) {
 <%
 }
 %>
-<div id="map">
-</div>
-<script>
-alert('Test');
+
+<div style="height:300px;" id="map"></div>
+
+<script defer>
+alert('Here\'s The map and stuff. Mapkey:'+'<%=mapKey%>');
 $(document).ready(function() {
   function initMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
@@ -126,16 +132,21 @@ $(document).ready(function() {
       center: {lat: 35.216399, lng: -75.688132},
       mapTypeId: 'terrain'
     });
-
+	console.log('Initializing map...');
     var polyLines = [];
     var path = null;
     
     <% 
     for (String set : polyLineSets) {
+    	
+    	
     %>
 	    var surveyCoordinates = [
-	      <%=set%>
-	    ];    	
+	      {lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.57571, lng: -77.40627},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.54684, lng: -77.31564},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246}, {lat: 34.55015, lng: -77.33599},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.55015, lng: -77.33599},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.57571, lng: -77.40627},{lat: 34.57571, lng: -77.40627},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.57571, lng: -77.40627},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.54684, lng: -77.31564},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246}
+	      
+	    ];  
+    	console.log('Another coord set...'+'<%=set%>');
+	    
 	    path = new google.maps.Polyline({
 	      path: surveyCoordinates,
 	      geodesic: true,
@@ -143,15 +154,14 @@ $(document).ready(function() {
 	      strokeOpacity: 1.0,
 	      strokeWeight: 2
 	    });
+		path.setMap(map);
 	
     <%
   	}
     %>
-	path.setMap(map);
-	initMap();	 
  }
-}); 
-  
+ initMap();	 
+});  
 </script>
 
 <%
