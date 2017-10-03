@@ -117,40 +117,41 @@ for (Survey srvy : svs) {
 if (sv!=null) {
 %>
 	<p>Survey: <%=sv.getID()%> LineSet:<%=polyLineSets.toString() %></p>
+	<p>Survey: <%=sv.getID()%></p>
 <%
 }
 %>
 
-<div style="height:300px;" id="map"></div>
+<div style="height:500px;" id="map"></div>
 
 <script defer>
 alert('Here\'s The map and stuff. Mapkey:'+'<%=mapKey%>');
 $(document).ready(function() {
   function initMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 7,
+      zoom: 8,
       center: {lat: 35.216399, lng: -75.688132},
-      mapTypeId: 'terrain'
+      mapTypeId: 'terrain',
+      gestureHandling: 'greedy'
     });
 	console.log('Initializing map...');
     var polyLines = [];
     var path = null;
     
     <% 
-    for (String set : polyLineSets) {
-    	
-    	
+    for (String set : polyLineSets) {	
     %>
 	    var surveyCoordinates = [
-	      {lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.57571, lng: -77.40627},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.54684, lng: -77.31564},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246}, {lat: 34.55015, lng: -77.33599},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.55015, lng: -77.33599},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.57571, lng: -77.40627},{lat: 34.57571, lng: -77.40627},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.56389, lng: -77.35662},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.57571, lng: -77.40627},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.54684, lng: -77.31564},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246},{lat: 34.55547, lng: -77.35246}
-	      
+				<%=set%>
 	    ];  
     	console.log('Another coord set...'+'<%=set%>');
-	    
+    	
+    	var newColor = generateColor();
+	    console.log(newColor);
 	    path = new google.maps.Polyline({
 	      path: surveyCoordinates,
 	      geodesic: true,
-	      strokeColor: '#FF0000',
+	      strokeColor: newColor,
 	      strokeOpacity: 1.0,
 	      strokeWeight: 2
 	    });
@@ -160,7 +161,19 @@ $(document).ready(function() {
   	}
     %>
  }
- initMap();	 
+ initMap();	
+ 
+ function generateColor() {
+	 console.log("Generating...");
+	 var randomColor = "#";
+	 var hexArr = ['1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+	 for (i=0;i<6;i++) {
+		 var index = Math.floor(Math.random()*15);
+		 console.log("Index... : "+index);
+		 randomColor+= hexArr[index];
+	 }
+	 return randomColor;
+ }
 });  
 </script>
 
