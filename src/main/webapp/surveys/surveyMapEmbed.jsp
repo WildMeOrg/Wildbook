@@ -116,7 +116,6 @@ for (Survey srvy : svs) {
 }
 if (sv!=null) {
 %>
-	<p>Survey: <%=sv.getID()%> LineSet:<%=polyLineSets.toString() %></p>
 	<p>Survey: <%=sv.getID()%></p>
 <%
 }
@@ -136,10 +135,11 @@ $(document).ready(function() {
     });
 	console.log('Initializing map...');
     var polyLines = [];
-    var path = null;
-    
     <% 
+    int currentPathNum = 0;
     for (String set : polyLineSets) {	
+    	currentPathNum++;
+    	String currentPath = "path"+currentPathNum;
     %>
 	    var surveyCoordinates = [
 				<%=set%>
@@ -148,14 +148,15 @@ $(document).ready(function() {
     	
     	var newColor = generateColor();
 	    console.log(newColor);
-	    path = new google.maps.Polyline({
+	    
+	    var <%=currentPath%> = new google.maps.Polyline({
 	      path: surveyCoordinates,
 	      geodesic: true,
 	      strokeColor: newColor,
 	      strokeOpacity: 1.0,
 	      strokeWeight: 2
 	    });
-		path.setMap(map);
+		<%=currentPath%>.setMap(map);
 	
     <%
   	}
