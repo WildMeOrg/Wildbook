@@ -456,7 +456,7 @@ finally{
 
   <!-- All carousel text can be modified in the index properties files -->
 
-	<div id="howtocarousel" class="carousel slide" data-ride="carousel" data-interval="5000">
+	<div id="howtocarousel" class="carousel slide" data-ride="carousel" data-interval="15000">
 		<ol class="list-inline carousel-indicators slide-nav">
 	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. <%=props.getProperty("carouselPhoto") %><span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=props.getProperty("carouselSubmit") %><span class="caret"></span></li>
