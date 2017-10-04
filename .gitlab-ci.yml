@@ -14,7 +14,7 @@ prepare:
     paths:
       - ./m2Repository
   script:
-    - cp settings.xml /root/.m2/settings.xml
+    - cp ./config/docker/settings.xml /root/.m2/settings.xml
     - mvn dependency:resolve -B -U
 
 test:
@@ -29,7 +29,7 @@ test:
   dependencies:
     - prepare
   script:
-    - cp settings.xml /root/.m2/settings.xml
+    - cp ./config/docker/settings.xml /root/.m2/settings.xml
     - mvn test -B
 
 build:
@@ -44,9 +44,9 @@ build:
   dependencies:
     - test
   script:
-    - cp settings.xml /root/.m2/settings.xml
+    - cp ./config/docker/settings.xml /root/.m2/settings.xml
     - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
-    - ./s3cp ./target/wildbook-6.0.0-EXPERIMENTAL.war s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war
+    - ./config/docker/s3cp ./target/wildbook-6.0.0-EXPERIMENTAL.war s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war
 
 deploy-container:
   image: docker:latest
@@ -62,7 +62,7 @@ deploy-container:
   before_script:
   - docker info
   script:
-    - ./s3cp s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war ./target/wildbook-6.0.0-EXPERIMENTAL.war
+    - ./config/docker/s3cp s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war ./target/wildbook-6.0.0-EXPERIMENTAL.war
     - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-    - docker build -t mattmclaugh/wildbook:latest .
+    - docker build -t mattmclaugh/wildbook:latest -f config/docker/Dockerfile .
     - docker push mattmclaugh/wildbook:latest
