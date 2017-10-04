@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame 
+       Remove this if you use the .htaccess -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+  <title>jQuery.ptTimeSelect Documentation</title>
+  <meta name="description" content="" />
+  <meta name="author" content="Paul Tavares" />
+
+  <meta name="viewport" content="width=device-width; initial-scale=1.0" />
+
+  <!-- Replace favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  
+  <link href="http://kevinburke.bitbucket.org/markdowncss/markdown.css" rel="stylesheet"></link>
+  <style type="text/css">
+      h1 {
+          border-bottom: 2px solid;
+          padding-bottom: .5em;
+      }
+      
+  </style>
+  
+</head>
+
+<body>
+  <div>
+    <header>
+      <h1>jQuery.ptTimeSelect Widget</h1>
+    </header>
+    <nav>
+      <p><a href="http://pttimeselect.sourceforge.net/example/index.html">jQuery.ptTimeSelect</a></p>
+    </nav>
+
+    <div id="pt_documentation"> 
+        <h1>ABOUT</h1>
+
+<p>jQuery.ptTimeSelect v0.8</p>
+
+<p>jQuery.ptTimeSelect is a jQuery plugin for usage on input fields
+that displays a popup widget allowing a user to define a time,
+which is written back to an input field.</p>
+
+<h2>AUTHOR</h2>
+
+<p>Paul Tavares, <a href="http://www.purtuga.com">http://www.purtuga.com</a></p>
+
+<p><a href="http://pttimeselect.sourceforge.net">http://pttimeselect.sourceforge.net</a></p>
+
+<h2>LICENSE</h2>
+
+<p>Copyright (c) 2007-2012 Paul T. <a href="http://www.purtuga.com">http://www.purtuga.com</a></p>
+
+<p>Licensed under the same terms as jQuery:</p>
+
+<ul>
+<li>MIT - <a href="http://www.opensource.org/licenses/mit-license.php">http://www.opensource.org/licenses/mit-license.php</a></li>
+<li>GPL - <a href="http://www.opensource.org/licenses/gpl-license.php">http://www.opensource.org/licenses/gpl-license.php</a></li>
+</ul>
+
+<p>User can pick whichever one applies best for their project
+and does not have to contact me.</p>
+
+<h1>CHANGE LOG</h1>
+
+<h2>Version 0.8</h2>
+
+<ul>
+<li><strong>3554560</strong> Documentation needs to be clearer and not as complex
+            (<a href="https://sourceforge.net/tracker/?func=detail&amp;aid=3554560&amp;group_id=190063&amp;atid=931834">https://sourceforge.net/tracker/?func=detail&amp;aid=3554560&amp;group_id=190063&amp;atid=931834</a>)</li>
+<li><strong>3549413</strong> does not support use of jQuery.noConflict() 
+            (<a href="https://sourceforge.net/tracker/?func=detail&amp;aid=3554560&amp;group_id=190063&amp;atid=931834">https://sourceforge.net/tracker/?func=detail&amp;aid=3554560&amp;group_id=190063&amp;atid=931834</a>)</li>
+<li>Simplified packaging - only contains minimal set of file (reduce confusion)</li>
+<li>Move to Markdown documenation.</li>
+<li>Updates to website </li>
+</ul>
+<h1>INSTALL</h1>
+
+<p>jQuery.ptTimeSelect includes the following 2 files that must
+be deployed on the webserver and included in the display page:</p>
+
+<ol>
+<li>jquery.ptTimeSelect.css</li>
+<li>jquery.ptTimeSelect.js</li>
+</ol>
+
+<p>Both of these files are included in the zip file under the
+src folder.</p>
+
+<h2>PREREQUISITES</h2>
+
+<p>jQuery.ptTimeSelect plugin has the following prerequisites:</p>
+
+<ul>
+<li>jQuery <a href="http://www.jquery.com">http://www.jquery.com</a></li>
+<li>jQuery UI Style Sheet (css). No need for full javacript library
+<a href="http://www.jqueryui.com">http://www.jqueryui.com</a></li>
+</ul>
+
+<p>jQuery.ptTimeSelect plugin should be included in the head section
+of the html page, after the entries for jQuery and jQuery UI
+Style sheet as follows:</p>
+
+<pre><code>&lt;head&gt;
+    &lt;script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"&gt;&lt;/script&gt;
+    &lt;link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.22/themes/redmond/jquery-ui.css" /&gt;
+
+    &lt;link rel="stylesheet" type="text/css" href="jquery.ptTimeSelect.css" /&gt;
+    &lt;script type="text/javascript" src="jquery.ptTimeSelect.js"&gt;&lt;/script&gt;
+
+&lt;/head&gt;
+</code></pre>
+<h1>USAGE</h1>
+
+<p>jQuery.ptTimeSelect is called agaist input fields to attach a
+Time Select widget to each matched element. Each element, when
+focused upon, will display a time selection popoup where the
+user can define a time.</p>
+
+<h2>EXAMPLE</h2>
+
+<pre><code>&lt;input name="time" value="" /&gt;
+&lt;script type="text/javascript"&gt;
+    $(document).ready(function(){
+        $('input[name="time"]').ptTimeSelect();
+    });
+&lt;/script&gt;
+</code></pre>
+
+<h2>INPUT PARAMETERS</h2>
+
+<p>The plugin accepts only one input parameter; a javascript object
+with the list of options. All options are optional. See below
+for a list of supported options</p>
+
+<pre><code>$('input[name="time"]').ptTimeSelect({
+    hoursLabel: 'HRS'
+});
+</code></pre>
+
+<h2>OPTIONS</h2>
+
+<ul>
+<li><em>containerClass</em>    - A class to be associated with the popup widget. Default is undefined</li>
+<li><em>containerWidth</em>    - Css width for the container. Default is "20em".</li>
+<li><em>hoursLabel</em>        - Label for the Hours. Default is "Hours"</li>
+<li><em>minutesLabel</em>      - Label for the Mintues container. Default is "Minutes"</li>
+<li><em>setButtonLabel</em>    - Label for the Set button. Deafult is "Set"</li>
+<li><em>popupImage</em>        - The html element (ex. img or text) to be appended next
+                      to each input field and that will display the time
+                      select widget upon click. Default is blank ""</li>
+<li><em>zIndex</em>            - Integer for the popup widget z-index. Default is 10</li>
+<li><em>onBeforeShow</em>      - Function to be called before the widget is made visible
+                      to the user. Function is passed 2 arguments: 1) the 
+                      input field as a jquery object and 2) the popup widget
+                      as a jquery object. Default is undefined</li>
+<li><em>onClose</em>           - Function to be called after closing the popup widget.
+                      Function is passed 1 argument: the input field as a 
+                      jquery object. Default is undefined</li>
+<li><em>onFocusDisplay</em>    - True or False indicating if popup is auto displayed
+                      upon focus of the input field. Default is true</li>
+</ul>
+
+<h3>Example</h3>
+
+<pre><code>$('input[name="time"]')
+    .ptTimeSelect({
+        containerClass: undefined,
+        containerWidth: undefined,
+        hoursLabel:     'Hour',
+        minutesLabel:   'Minutes',
+        setButtonLabel: 'Set',
+        popupImage:     undefined,
+        onFocusDisplay: true,
+        zIndex:         10,
+        onBeforeShow:   undefined,
+        onClose:        undefined
+    });
+</code></pre>
+
+<h2>RETURNS</h2>
+
+<p>Function will return a jQuery object with the input selection,
+thus maintaining jQuery's chainable nature.</p>
+
+<pre><code>&lt;input name="time" value="" style="display:none;" /&gt;
+&lt;script type="text/javascript"&gt;
+    $(document).ready(function(){
+        $('input[name="time"]')
+            .ptTimeSelect({
+                zIndex: 100,
+                onBeforeShow: function(input, widget){
+                    // do something before the widget is made visible.
+                }
+            })
+            .show();
+    });
+&lt;/script&gt;
+</code></pre>
+
+    </div>
+
+    <footer>
+     <p>&copy; Copyright  by Paul</p>
+    </footer>
+  </div>
+</body>
+</html>
