@@ -25,18 +25,48 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 
 <jsp:include page="../header.jsp" flush="true" />
 
+<script type="text/javascript">
+
+</script>
 
 <div class="container maincontent">
 	<div class="row">
 		<div class="col-md-12">
 			<h3><%=props.getProperty("createSurvey") %></h3>
-			<hr/>
+			<label><%=props.getProperty("addSurveyDesc") %></label>
+			<hr/>		
+				 <div title="<%=props.getProperty("addTag")%>" class="editFormSurvey">
+					 <form name="addTag" action="../CreateSurvey" method="post" class="editFormSurvey">
+					
+						<label><%=props.getProperty("project")%></label>
+						<input name="project" type="text" class="form-control" id="addSurveyInput" />
+						
+						<label><%=props.getProperty("organization")%></label>
+						<input name="organization" type="text" class="form-control" id="addSurveyInput2" />
+						
+						<label><%=props.getProperty("startTime")%></label>
+						<input name="startTime" type="text" class="form-control" id="addTagInput3" />
+						
+						<label><%=props.getProperty("endTime")%>:</label>
+						<input name="endTime" type="text" class="form-control" id="addTagInput4" />
+						
+						<label><%=props.getProperty("effort")%>:</label>
+						<input name="effort" type="text" class="form-control" id="addTagInput5" />
+						
+						<label><%=props.getProperty("comments")%>:</label>
+						<input name="comments" type="text" class="form-control" id="addTagInput6" />
+						
+						
+						
+						<input name="Create Survey" type="submit" id="addSurveyBtn" value="<%=props.getProperty("submit")%>" class="btn btn-sm editFormBtn" />
+				   
+				    </form>
+				</div>
 			<div id="errorSpan"></div>
 		
 		</div>
 		<div class="col-md-12">
 
-		
 		</div>
 
 	</div>
