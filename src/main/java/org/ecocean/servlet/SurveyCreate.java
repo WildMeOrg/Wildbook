@@ -41,40 +41,63 @@ public class SurveyCreate extends HttpServlet {
       e.printStackTrace();
     }
     
-    String project = null;
-    if (request.getParameter("project")!=null) {
-      project = request.getParameter("project");
+    String date = null;
+    if (request.getParameter("date")!=null) {
+      date = request.getParameter("date");
+    }
+
+    Survey sv = null;
+    if (date!=null) {
+      try {
+        sv = new Survey(date);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }      
     }
     
-    String organization = null;
-    if (request.getParameter("organization")!=null) {
-      project = request.getParameter("organization");
+    try {
+      String project = null;
+      if (request.getParameter("project")!=null) {
+        project = request.getParameter("project");
+        sv.setProjectName(project);
+      }
+      
+      String organization = null;
+      if (request.getParameter("organization")!=null) {
+        organization = request.getParameter("organization");
+        sv.setOrganization(organization);
+      }
+      
+      String startTime = null;
+      if (request.getParameter("startTime")!=null) {
+        startTime = request.getParameter("startTime");
+        sv.setS
+      }
+      
+      String endTime = null;
+      if (request.getParameter("endTime")!=null) {
+        endTime = request.getParameter("endTime");
+      }
+      
+      String effort = null;
+      if (request.getParameter("effort")!=null) {
+        effort = request.getParameter("effort");
+      }
+      
+      String comments = null;
+      if (request.getParameter("comments")!=null) {
+        comments = request.getParameter("comments");
+      }
+      
+      String type = null;
+      if (request.getParameter("type")!=null) {
+        type = request.getParameter("type");
+      }      
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     
-    String startTime = null;
-    if (request.getParameter("startTime")!=null) {
-      project = request.getParameter("startTime");
-    }
     
-    String endTime = null;
-    if (request.getParameter("endTime")!=null) {
-      project = request.getParameter("endTime");
-    }
-    
-    String effort = null;
-    if (request.getParameter("effort")!=null) {
-      project = request.getParameter("effort");
-    }
-    
-    String comments = null;
-    if (request.getParameter("comments")!=null) {
-      project = request.getParameter("comments");
-    }
-    
-    String type = null;
-    if (request.getParameter("type")!=null) {
-      project = request.getParameter("type");
-    }
     
     System.out.println("Ping!");
   }

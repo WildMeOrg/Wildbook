@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>jQuery.ptTimeSelect Sample</title>
+<!--
+    Copyright (c) 2007-2012 Paul T. (purtuga.com)
+    
+    $Date: 2012/08/05 19:40:25 $
+    $Author: paulinho4u $
+    $Revision: 1.1 $
+-->
+
+<!-- Prerequisites: jQuery and jQuery UI Stylesheet -->
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/redmond/jquery-ui.css" />
+
+<!-- Plugin files below -->
+<link rel="stylesheet" type="text/css" href="../src/jquery.ptTimeSelect.css" />
+<script type="text/javascript" src="../src/jquery.ptTimeSelect.js"></script>
+
+</head>
+<body>
+    <h1 class="ui-widget-header" style="padding: 1em;">jQuery.ptTimeSelect Sample 1</h1>
+    <p>Simple call to ptTimeSelect with no paramters defined.</p>
+    
+    <div id="sample1" class="ui-widget-content" style="padding: .5em;">
+        <p>
+            <label>Start</label><br/>
+            <input name="s1Time2" value="" /> <br/>
+            <label>End</label><br/>
+            <input name="s1Time2" value="" />
+        </p>
+        <p>Some extra select boxes to show to it works under IE.<br/>
+            <select>
+                <option>Option 1 here</option>
+                <option>Options 2 here</option>
+            </select><br /> <br />
+            <select>
+                <option>Option 1 here</option>
+                <option>Options 2 here</option>
+            </select>
+        </p>
+    </div>
+    
+    <script type="text/javascript">
+        $(document).ready(function(){
+            // find the input fields and apply the time select to them.
+            $('#sample1 input').ptTimeSelect();
+        });
+    </script>
+
+    <p>Note: In order for this sample file to work, an internext 
+        conection is needed, since it loads jQuery and jQuery UI
+        stylesheet from Google's CDN.</p>
+
+    <p class="ui-widget-content" style="border-left: none; border-right: none; border-bottom: none; margin-top:4em;">
+        <span>Copyright (c) 2007-2012 Paul T. (purtuga.com)</span>
+    </p>
+
+</body>
+</html>

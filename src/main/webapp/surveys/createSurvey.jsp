@@ -36,16 +36,19 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 			<label><%=props.getProperty("addSurveyDesc") %></label>
 			<hr/>		
 				 <div title="<%=props.getProperty("addTag")%>" class="editFormSurvey">
-					 <form name="addTag" action="../CreateSurvey" method="post" class="editFormSurvey">
+					 <form name="addTag" action="../SurveyCreate" method="post" class="editFormSurvey">
 					
+						<label><%=props.getProperty("date")%></label>
+						<input name="date" type="text" class="form-control" id="addSurveyInput0" />
+						
 						<label><%=props.getProperty("project")%></label>
-						<input name="project" type="text" class="form-control" id="addSurveyInput" />
+						<input name="project" type="text" class="form-control" id="addSurveyInput1" />
 						
 						<label><%=props.getProperty("organization")%></label>
 						<input name="organization" type="text" class="form-control" id="addSurveyInput2" />
 						
 						<label><%=props.getProperty("startTime")%></label>
-						<input name="startTime" type="text" class="form-control" id="addTagInput3" />
+						<input name="startTime" type="date" class="form-control" id="addTagInput3" />
 						
 						<label><%=props.getProperty("endTime")%>:</label>
 						<input name="endTime" type="text" class="form-control" id="addTagInput4" />
@@ -57,7 +60,7 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 						<input name="comments" type="text" class="form-control" id="addTagInput6" />
 						
 						<label><%=props.getProperty("type")%>:</label>
-						<input name="type" type="text" class="form-control" id="addTagInput6" />
+						<input name="type" type="text" class="form-control" id="addTagInput7" />
 						
 						
 						<input name="Create Survey" type="submit" id="addSurveyBtn" value="<%=props.getProperty("submit")%>" class="btn btn-sm editFormBtn" />
