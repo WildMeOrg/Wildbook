@@ -61,13 +61,12 @@ American Princess, Breezy Point, ID=NYC0040, Megaptera novaeangliae, Queens, hum
 
         //MediaAsset ids
         int[] ids = new int[]{
-139064,
-139179,
--132,
--2170
+-1,
+-2
         };
 	Shepherd myShepherd=null;
-	myShepherd = new Shepherd("context0");
+	String context = "context0";
+	myShepherd = new Shepherd(context);
 
 	//String[] ids = request.getParameterValues("id");
 	//if ((ids == null) || (ids.length < 1)) throw new RuntimeException("you must have at least one MediaAsset id passed as id=VALUE");
@@ -99,6 +98,7 @@ American Princess, Breezy Point, ID=NYC0040, Megaptera novaeangliae, Queens, hum
 			}
 		} else {
     			Annotation newAnn = new Annotation(species, ma);
+			newAnn.setIsExemplar(true); //we think?  TODO maybe use "fluke" in keywords?
 			anns.add(newAnn);
 			out.println(newAnn + " (new)");
 		}
@@ -129,10 +129,14 @@ out.println(" (" + exifKeywords + ") ");
 
                     if (indivId != null) {
                         MarkedIndividual indiv = myShepherd.getOrCreateMarkedIndividual(indivId, enc);
-                        myShepherd.getPM().makePersistent(indiv);
+			if (indiv != null) {
+				indiv.addEncounter(enc, context);  //only needed if indiv already existed
+                        	myShepherd.getPM().makePersistent(indiv);
+			}
                     }
 
 		    myShepherd.getPM().makePersistent(enc);
+			System.out.println("mediaAssetsToEncountersMulti: [" + i + "] " + ids[i] + " -> " + enc);
 		    out.println("<p>successfully created <a href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\" title=\"" + enc.toString() + "\" target=\"_new\">" + enc.getCatalogNumber() + "</a></p>");
 	        }
                 out.println("</p>");
