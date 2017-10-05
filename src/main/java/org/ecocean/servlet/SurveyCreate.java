@@ -71,7 +71,6 @@ public class SurveyCreate extends HttpServlet {
       String startTime = null;
       if (request.getParameter("startTime")!=null) {
         startTime = request.getParameter("startTime");
-        sv.setS
       }
       
       String endTime = null;
@@ -82,6 +81,9 @@ public class SurveyCreate extends HttpServlet {
       String effort = null;
       if (request.getParameter("effort")!=null) {
         effort = request.getParameter("effort");
+        Double effNum = Double.valueOf(effort);
+        Measurement eff = new Measurement("","",effNum,"HHmm","Observed");
+        sv.setEffort(eff);
       }
       
       String comments = null;
