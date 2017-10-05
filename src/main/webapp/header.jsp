@@ -64,6 +64,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+      <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
     <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
@@ -79,6 +80,8 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
+      
+      
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
@@ -99,6 +102,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
+    <script type="text/javascript" src="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.js"></script>
     <style>
       ul.nav.navbar-nav {
         width: 100%;

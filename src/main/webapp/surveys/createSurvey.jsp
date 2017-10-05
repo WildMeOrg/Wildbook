@@ -48,10 +48,10 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 						<input name="organization" type="text" class="form-control" id="addSurveyInput2" />
 						
 						<label><%=props.getProperty("startTime")%></label>
-						<input name="startTime" type="date" class="form-control" id="addTagInput3" />
+						<input name="startTime" class="form-control" id="addTagInput3" />
 						
 						<label><%=props.getProperty("endTime")%>:</label>
-						<input name="endTime" type="text" class="form-control" id="addTagInput4" />
+						<input name="endTime" class="form-control" id="addTagInput4" />
 						
 						<label><%=props.getProperty("effort")%>:</label>
 						<input name="effort" type="text" class="form-control" id="addTagInput5" />
@@ -78,6 +78,17 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 
 	</div>
 </div>
+
+<input name="time" value="" />
+<script type="text/javascript">
+    $(document).ready(function(){
+        console.log("jQuery version: " + $.fn.jquery);
+        console.log("ptTimeSelect version: " + $.ptTimeSelect.version);
+        console.log("is ptTimeSelect plugin loaded? : " + ($.fn.ptTimeSelect ? "YES" : "NO"));
+        $('input[name="startTime"]').ptTimeSelect();
+        $('input[name="endTime"]').ptTimeSelect();
+    });
+</script>
 
 <jsp:include page="../footer.jsp" flush="true" />
 
