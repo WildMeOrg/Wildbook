@@ -65,6 +65,7 @@ if (sv!=null) {
 				<p>End Time: <%=sv.getEndTimeMilli()%></p>
 				<p>Organization: <%=organization%></p>
 				<p>Project: <%=project%></p>
+				<p>[Add track/path/points]</p>
 			<%	
 			} 
 			%>	
