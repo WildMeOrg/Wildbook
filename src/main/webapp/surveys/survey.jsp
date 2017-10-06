@@ -30,14 +30,18 @@ String date = "";
 String organization = "";
 String project = "";
 if (sv!=null) {
-	project = sv.getProjectName();
+	if (sv.getProjectName()!=null) {
+		project = sv.getProjectName();		
+	}
 	organization = sv.getOrganization();
 	date = sv.getDate();
 	
-	if (sv.getAllSurveyTracks().size()>0) {
+	if (sv.getAllSurveyTracks()!=null&&sv.getAllSurveyTracks().size()>0) {
 		trks = sv.getAllSurveyTracks();
+	} else {
+		errors += "<p>Survey tracks were null or did not exist.</p><br/>";
 	}
-	errors = "<p>No errors.</p>";
+	
 	
 } else {
 	errors += "<p>There was no valid Survey for this ID.</p><br/>";
@@ -63,13 +67,14 @@ if (sv!=null) {
 			<%
 			if (sv!=null) {
 			%>
-				<p>Date: <%=sv.getDate() %></p>
-				<p>Start Time: <%=sv.getStartTimeMilli()%></p>
-				<p>End Time: <%=sv.getEndTimeMilli()%></p>
-				<p>Organization: <%=organization%></p>
 				<p>Project: <%=project%></p>
+				<p>Organization: <%=organization%></p>
+				<p>Date: <%=sv.getDate() %></p>
+				
+				
 				<p>[Add track/path/points]</p>
 				<p>[Add occurrences]</p>
+				<p>[Make points on map clickable]</p>
 			<%	
 			} 
 			%>	
