@@ -48,16 +48,19 @@ for (SurveyTrack trk : trks ) {
 	String lineSet = "";
 	System.out.println("Current track: "+trk.getID());
 	ArrayList<Occurrence> occsWithGps = trk.getAllOccurrences();
-	System.out.println("Number of occs for this track: "+occsWithGps.size());
-	for (Occurrence trackOcc : occsWithGps) {
-		String lat = String.valueOf(trackOcc.getDecimalLatitude());
-		String lon = String.valueOf(trackOcc.getDecimalLongitude());
-		lineSet += "{lat: "+lat+", lng: "+lon+"},";
-		System.out.println(lineSet);
+	if (occsWithGps!=null) {
+		for (Occurrence trackOcc : occsWithGps) {
+			String lat = String.valueOf(trackOcc.getDecimalLatitude());
+			String lon = String.valueOf(trackOcc.getDecimalLongitude());
+			lineSet += "{lat: "+lat+", lng: "+lon+"},";
+			System.out.println(lineSet);
+		}		
+		center = lineSet.split(",")[0]+","+lineSet.split(",")[1];
+		lineSet = lineSet.substring(0,lineSet.length()-1);
+		polyLineSets.add(lineSet);
+	} else {
+		center = "{lat: 35.2195, lng: -75.6903}";
 	}
-	center = lineSet.split(",")[0]+","+lineSet.split(",")[1];
-	lineSet = lineSet.substring(0,lineSet.length()-1);
-	polyLineSets.add(lineSet);
 }
 %>
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
@@ -76,12 +79,12 @@ if (sv!=null) {
 <div style="height:500px;" id="map"></div>
 
 <script defer>
-alert('Here\'s The map and stuff. Mapkey:'+'<%=mapKey%>');
 $(document).ready(function() {
   function initMap() {
 	console.log("Center : "+"<%=center%>");
+	
     var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 12,
+      zoom: 10,
       center: <%=center%>,
       mapTypeId: 'terrain',
       gestureHandling: 'greedy'

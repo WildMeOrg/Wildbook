@@ -83,14 +83,14 @@ public class SurveyCreate extends HttpServlet {
           sv.setOrganization(organization);
         }
         
-        if (request.getParameter("startTime")!=null) {
+        if (request.getParameter("startTime")!=null&&!request.getParameter("startTime").equals("")) {
           String startTime = request.getParameter("startTime");
           long startTimeMilli = dateTimeToLong(date,startTime);
           sv.setStartTimeMilli(startTimeMilli);
           System.out.println("Endtime : "+startTimeMilli);
         }
         
-        if (request.getParameter("endTime")!=null) {
+        if (request.getParameter("endTime")!=null&&!request.getParameter("startTime").equals("")) {
           String endTime = request.getParameter("endTime");
           long endTimeMilli = dateTimeToLong(date,endTime);
           sv.setEndTimeMilli(endTimeMilli);
@@ -98,7 +98,7 @@ public class SurveyCreate extends HttpServlet {
         }
         
         String effort = null;
-        if (request.getParameter("effort")!=null) {
+        if (request.getParameter("effort")!=null&&!request.getParameter("effort").equals("")) {
           effort = request.getParameter("effort");
           Double effNum = Double.valueOf(effort);
           Measurement eff = new Measurement("","",effNum,"HHmm","Observed");
@@ -121,12 +121,16 @@ public class SurveyCreate extends HttpServlet {
         myShepherd.commitDBTransaction();
         
         if (request.getParameter("getsTrack")!=null) {
+          System.out.println("getsTrack says: "+request.getParameter("getsTrack"));
           if (request.getParameter("getsTrack").equals("true")) {
             try {
               myShepherd.beginDBTransaction();
               SurveyTrack st = createSurveyTrack(request, sv);
               myShepherd.commitDBTransaction();
+              st.setParentSurveyID(sv.getID());
               sv.addSurveyTrack(st);
+              System.out.println("Created Survey Track : "+st.getID());
+              System.out.println("Did the survey get it? "+sv.getAllSurveyTracks().toString());
             } catch (Exception e) {
               myShepherd.rollbackDBTransaction();
               e.printStackTrace();
@@ -135,8 +139,8 @@ public class SurveyCreate extends HttpServlet {
         }
         
         message += "<p><strong>Success: </strong> A new survey on "+date+" was created.</p>";
-        message += "<p><strong>View Survey Page: </strong><a href=\"/surveys/survey.jsp?surveyID\"="+sv.getID()+"\"></a></p>";
-              
+        message += "<p><strong>View Survey Page: </strong><a href=\"/surveys/survey.jsp?surveyID="+sv.getID()+"\">Survey ID: "+sv.getID()+"</a></p>";
+        message += "<p>From the Survey home page you can add occurrences and other info.</p>";      
       }
     } catch (Exception e) {
       message += "<p><strong>Error: </strong>There was data included in the submission that the server could not process.</p>";
@@ -181,6 +185,7 @@ public class SurveyCreate extends HttpServlet {
   
   private void printResultMessage(HttpServletRequest request, String context) {
     out.println(ServletUtilities.getHeader(request));
+    message += "<p><strong>Back: </strong><a href=\"/surveys/createSurvey.jsp\">Return to Survey Creation Page</a></p>";
     out.println(message);
     out.println(ServletUtilities.getFooter(context));
     message = "";
