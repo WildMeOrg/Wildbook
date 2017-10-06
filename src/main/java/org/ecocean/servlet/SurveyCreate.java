@@ -1,7 +1,9 @@
 package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -11,6 +13,8 @@ import org.ecocean.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.movement.SurveyTrack;
 
 public class SurveyCreate extends HttpServlet {
 
@@ -18,6 +22,8 @@ public class SurveyCreate extends HttpServlet {
    *  2017
    */
   private static final long serialVersionUID = 1L;
+  private String message = "";
+  PrintWriter out = null;
   
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -37,15 +43,13 @@ public class SurveyCreate extends HttpServlet {
     // Set up for routing to result info.
     response.setContentType("text/html");
     
-    PrintWriter out = null;
+    
     try {
       out = response.getWriter();
     } catch (Exception e) {
       e.printStackTrace();
     }
-    
-    String startTime = null;
-    String endTime = null;
+
     String date = null;
     if (request.getParameter("date")!=null) {
       date = request.getParameter("date");
@@ -58,8 +62,11 @@ public class SurveyCreate extends HttpServlet {
       try {
         sv = new Survey(date);
       } catch (Exception e) {
+        message += "<p><strong>Error: </strong> This survey did not recieve a valid date.</p>";
         e.printStackTrace();
       }      
+    } else {
+      message += "<p style=\"color:red;\"><strong>Error: </strong>Survey must be submitted with a date.</p>";
     }
     
     try {
@@ -77,17 +84,17 @@ public class SurveyCreate extends HttpServlet {
         }
         
         if (request.getParameter("startTime")!=null) {
-          startTime = request.getParameter("startTime");
+          String startTime = request.getParameter("startTime");
           long startTimeMilli = dateTimeToLong(date,startTime);
           sv.setStartTimeMilli(startTimeMilli);
           System.out.println("Endtime : "+startTimeMilli);
         }
         
         if (request.getParameter("endTime")!=null) {
-          endTime = request.getParameter("endTime");
-          long startTimeMilli = dateTimeToLong(date,startTime);
-          sv.setEndTimeMilli(startTimeMilli);
-          System.out.println("Endtime : "+startTimeMilli);
+          String endTime = request.getParameter("endTime");
+          long endTimeMilli = dateTimeToLong(date,endTime);
+          sv.setEndTimeMilli(endTimeMilli);
+          System.out.println("Endtime : "+endTimeMilli);
         }
         
         String effort = null;
@@ -104,31 +111,79 @@ public class SurveyCreate extends HttpServlet {
           sv.addComments(comments);
         }
         
-        String type = null;
-        if (request.getParameter("type")!=null) {
-          type = request.getParameter("type");
-          sv.setProjectType(type);
+        String surveyType = null;
+        if (request.getParameter("surveyType")!=null) {
+          surveyType = request.getParameter("surveyType");
+          sv.setProjectType(surveyType);
         }
-        
+     
         myShepherd.getPM().makePersistent(sv);
         myShepherd.commitDBTransaction();
+        
+        if (request.getParameter("getsTrack")!=null) {
+          if (request.getParameter("getsTrack").equals("true")) {
+            try {
+              myShepherd.beginDBTransaction();
+              SurveyTrack st = createSurveyTrack(request, sv);
+              myShepherd.commitDBTransaction();
+              sv.addSurveyTrack(st);
+            } catch (Exception e) {
+              myShepherd.rollbackDBTransaction();
+              e.printStackTrace();
+            }
+          }
+        }
+        
+        message += "<p><strong>Success: </strong> A new survey on "+date+" was created.</p>";
+        message += "<p><strong>View Survey Page: </strong><a href=\"/surveys/survey.jsp?surveyID\"="+sv.getID()+"\"></a></p>";
+              
       }
     } catch (Exception e) {
+      message += "<p><strong>Error: </strong>There was data included in the submission that the server could not process.</p>";
       myShepherd.rollbackDBTransaction();
       e.printStackTrace();
     }
-    
+    printResultMessage(request, context);
+    out.close();
   }
   
   private Long dateTimeToLong(String dateString, String timeString) {
     try {
-      DateTimeFormatter in = DateTimeFormat.forPattern("dd-MM-yyyy hh:mm"); 
+      dateString = dateString.replaceAll("/","-");
+      DateTimeFormatter in = DateTimeFormat.forPattern("MM-dd-yyyy HH:mm"); 
       DateTime mtFormatted = in.parseDateTime(dateString+" "+timeString); 
       return mtFormatted.getMillis();     
     } catch (Exception e) {
       e.printStackTrace();
     }
     return null;
+  }
+
+  private SurveyTrack createSurveyTrack(HttpServletRequest request, Survey sv) {
+    SurveyTrack st = new SurveyTrack(sv.getID());  
+    if (request.getParameter("vessel")!=null) {
+      String vessel = null;
+      vessel = request.getParameter("vessel");
+      st.setVesselID(vessel);
+    }
+    if (request.getParameter("locationID")!=null) {
+      String locationID = null;
+      locationID = request.getParameter("locationID");
+      st.setLocationID(locationID);
+    }
+    if (request.getParameter("type")!=null) {
+      String type = null;
+      type = request.getParameter("type");
+      st.setType(type);;
+    }
+    return st;
+  }
+  
+  private void printResultMessage(HttpServletRequest request, String context) {
+    out.println(ServletUtilities.getHeader(request));
+    out.println(message);
+    out.println(ServletUtilities.getFooter(context));
+    message = "";
   }
   
   

@@ -17,7 +17,10 @@ Properties props = new Properties();
 myShepherd.beginDBTransaction();
 props = ShepherdProperties.getProperties("survey.properties", langCode,context);
 
-String occID = request.getParameter("occID").trim();
+String occID = "none";
+if (request.getParameter("occID")!=null) {
+occID = request.getParameter("occID").trim();	
+}
 String surveyID = request.getParameter("surveyID").trim();
 
 Survey sv = myShepherd.getSurvey(surveyID);
@@ -66,6 +69,7 @@ if (sv!=null) {
 				<p>Organization: <%=organization%></p>
 				<p>Project: <%=project%></p>
 				<p>[Add track/path/points]</p>
+				<p>[Add occurrences]</p>
 			<%	
 			} 
 			%>	

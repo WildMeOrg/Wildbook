@@ -43,7 +43,7 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 						
 						<label><%=props.getProperty("date")%></label>
 						<div class="input-group date" data-provide="datepicker">
-						    <input name="date" type="text" class="form-control datepicker" id="addSurveyInput0"/>
+						    <input name="date" title="Date" type="text" class="form-control datepicker" id="addSurveyInput0"/>
 						    <div class="input-group-addon">
 						        <span class="glyphicon glyphicon-th"></span>
 						    </div>
@@ -51,14 +51,14 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 						
 						
 						<label><%=props.getProperty("project")%></label>
-						<input name="project" type="text" class="form-control" id="addSurveyInput1" />
+						<input name="project" title="Project" type="text" class="form-control" id="addSurveyInput1" />
 						
 						<label><%=props.getProperty("organization")%></label>
-						<input name="organization" type="text" class="form-control" id="addSurveyInput2" />
+						<input name="organization" title="Organization" type="text" class="form-control" id="addSurveyInput2" />
 						
 						<label><%=props.getProperty("startTime")%></label>
 						<div class="input-group start-clockpicker">
-						    <input name="startTime" type="text" class="form-control" value="12:00" id="addTagInput3"/>
+						    <input name="startTime" title="Start Time" type="text" class="form-control" value="12:00" id="addTagInput3"/>
 						    <span class="input-group-addon">
 						        <span class="glyphicon glyphicon-time"></span>
 						    </span>
@@ -66,26 +66,44 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 						
 						<label><%=props.getProperty("endTime")%></label>
 						<div class="input-group end-clockpicker">
-						    <input name="endTime" type="text" class="form-control" value="12:00" id="addTagInput4"/>
+						    <input name="endTime" title="End Time" type="text" class="form-control" value="12:00" id="addTagInput4"/>
 						    <span class="input-group-addon">
 						        <span class="glyphicon glyphicon-time"></span>
 						    </span>
 						</div>
 						
-						<label><%=props.getProperty("effort")%>:</label>
-						<input name="effort" type="text" class="form-control" id="addTagInput5" />
+						<label><%=props.getProperty("effort")%></label>
+						<input name="effort" title="Effort" type="number" class="form-control" id="addTagInput5" step="0.1" />
 						
 						<label><%=props.getProperty("type")%>:</label>
-						<input name="type" type="text" class="form-control" id="addTagInput7" />
+						<label><small><%=props.getProperty("surveyTypes")%></small></label>
+						<input name="surveyType" title="Survey Type" type="text" class="form-control" id="addTagInput6" />
 						
 						<label><%=props.getProperty("comments")%>:</label>
-						<input name="comments" type="text" class="form-control" id="addTagInput6" />
+						<input name="comments" title="Comments" type="text" class="form-control" id="addTagInput7" />
 						
+						<div id="trackForm" style="display:none;">
+							<hr/>
+							<label><strong><%=props.getProperty("trackProps")%></strong></label>
+							<label><%=props.getProperty("vessel")%>:</label>
+							<input name="vessel" title="Vessel" type="text" class="form-control" id="addTrackInput1" />
+							
+							<label><%=props.getProperty("locationID")%>:</label>
+							<input name="locationID" title="Hatteras, Onslow Bay ect." type="text" class="form-control" id="addTrackInput2" />
+							
+							<label><%=props.getProperty("type")%>:</label>
+							<label><small><%=props.getProperty("trackTypes")%></label>
+							<input name="surveyType" title="Survey Type" type="text" class="form-control" id="addTrackInput3" />
+							
+							<input name="getsTrack" type="hidden" value="false" class="form-control" id="addTrackInput8" />
+						
+						</div>
 						
 						<input name="Create Survey" type="submit" id="addSurveyBtn" value="<%=props.getProperty("submit")%>" class="btn btn-sm editFormBtn" />
 				   								
-						<input name="Define Survey Track" type="submit" id="addSurveyTrackBtn" value="<%=props.getProperty("defineTrack")%>" class="btn btn-sm editFormBtn" />
-				   
+						<input name="Define Survey Track" type="button" id="addSurveyTrackBtn" value="<%=props.getProperty("defineTrack")%>" class="btn btn-sm editFormBtn" />
+				   		<input name="Hide Survey Track Options" type="button" id="hideSurveyTrackBtn" value="<%=props.getProperty("hideTrack")%>" class="btn btn-sm editFormBtn" />		    
+				    
 				    </form>
 				</div>
 			<div id="errorSpan"></div>
@@ -98,20 +116,32 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 	</div>
 </div>
 
-<input name="time" value="" />
 <script type="text/javascript">
     $(document).ready(function(){
-        $('.start-clockpicker').clockpicker();
-        $('.end-clockpicker').clockpicker();   
+    	
+    	$('#hideSurveyTrackBtn').hide();
+    	
+        $('.start-clockpicker').clockpicker({donetext: 'Set'});
+        $('.end-clockpicker').clockpicker({donetext: 'Set'});   
         
         $('.datepicker').datepicker({
             format: 'mm/dd/yyyy',
             startDate: '-3d'
         });
         
-    });
-    
-    
+        $('#addSurveyTrackBtn').click(function(){
+        	$('#addSurveyTrackBtn').hide()
+        	$('#hideSurveyTrackBtn').show()
+        	$('#trackForm').slideDown();
+        	$('addTrackInput8').val('true');
+        });
+        $('#hideSurveyTrackBtn').click(function(){
+        	$('#addSurveyTrackBtn').show()
+        	$('#hideSurveyTrackBtn').hide()
+        	$('#trackForm').slideUp();
+        	$('addTrackInput8').val('false');
+        });
+    });    
 </script>
 
 <jsp:include page="../footer.jsp" flush="true" />

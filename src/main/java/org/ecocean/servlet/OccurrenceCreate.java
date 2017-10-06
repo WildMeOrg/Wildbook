@@ -128,7 +128,7 @@ public class OccurrenceCreate extends HttpServlet {
 
 
         } else {
-          System.out.println("Failed to find a lack of Occ ID on the encounter, and to find a goo Occ Id for a new one.");
+          System.out.println("Failed to find a lack of Occ ID on the encounter, and to find a good Occ Id for a new one.");
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
 
