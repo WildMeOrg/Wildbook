@@ -16,25 +16,32 @@ Properties props = new Properties();
 
 myShepherd.beginDBTransaction();
 props = ShepherdProperties.getProperties("survey.properties", langCode,context);
-
-String occID = "none";
-if (request.getParameter("occID")!=null) {
-occID = request.getParameter("occID").trim();	
-}
 String surveyID = request.getParameter("surveyID").trim();
-
-Survey sv = myShepherd.getSurvey(surveyID);
-ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
+Survey sv = null;
 String errors = "";
+
+try {
+	sv = myShepherd.getSurvey(surveyID);
+} catch (NullPointerException npe) {
+	npe.printStackTrace();
+	errors += "<p>This survey does not belong to an actual survey or is mangled.</p><br/>";
+}
+
 String date = "";
 String organization = "";
 String project = "";
+
+ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
 if (sv!=null) {
 	if (sv.getProjectName()!=null) {
 		project = sv.getProjectName();		
 	}
-	organization = sv.getOrganization();
-	date = sv.getDate();
+	if (sv.getOrganization()!=null) {
+		organization = sv.getOrganization();	
+	}
+	if (sv.getProjectName()!=null) {
+		date = sv.getDate();
+	}
 	
 	if (sv.getAllSurveyTracks()!=null&&sv.getAllSurveyTracks().size()>0) {
 		trks = sv.getAllSurveyTracks();
@@ -69,9 +76,7 @@ if (sv!=null) {
 			%>
 				<p>Project: <%=project%></p>
 				<p>Organization: <%=organization%></p>
-				<p>Date: <%=sv.getDate() %></p>
-				
-				
+				<p>Date: <%=date%></p>
 				<p>[Add track/path/points]</p>
 				<p>[Add occurrences]</p>
 				<p>[Make points on map clickable]</p>
@@ -84,13 +89,29 @@ if (sv!=null) {
 		
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("allTracks") %></strong></p>
-			
+			<%
+			for (SurveyTrack trk : trks) {
+			%>
+				
+				<!-- Begin the horrifying insertion of code from occurence jsp! 
+				At the end of the day! It will save time, I swear!  -->
+				
+				
+				
+				
+				
+				
+				<!-- End horror -->
+				
+			<%	
+			}
+			%>
 		</div>
 		<hr/>
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("surveyMap") %></strong></p>
 			<jsp:include page="surveyMapEmbed.jsp" flush="true">
-         		 <jsp:param name="occID" value="<%=occID%>"/>
+         		 <jsp:param name="surveyID" value="<%=surveyID%>"/>
         	</jsp:include>
 		</div>
 		
