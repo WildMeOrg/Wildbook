@@ -57,14 +57,11 @@ public class EncounterSetObservation extends HttpServlet {
     String dateString = ServletUtilities.getDate();
     
     // What's my class again? What's my class again?
-    System.out.println("What's my class?");
     if (obj.getClass().isInstance(occ)) {
-      System.out.println("Obj isInstance Occ ?? "+obj.getClass().isInstance(occ));
       occ = (Occurrence) obj;
       occ.setDWCDateLastModified(dateString);
     }
     if (obj.getClass().isInstance(enc)) {
-      System.out.println("Obj isInstance Enc ?? "+obj.getClass().isInstance(enc));
       enc = (Encounter) obj;
       enc.setDWCDateLastModified(dateString);
     }  

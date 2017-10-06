@@ -1,25 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.*,org.ecocean.movement.*" %>
 
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2017 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
 
 <%
+
 String context=ServletUtilities.getContext(request);
 Properties props = new Properties();
 String langCode=ServletUtilities.getLanguageCode(request);
@@ -38,22 +21,13 @@ myShepherd.beginDBTransaction();
 ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
 ArrayList<String> polyLines = new ArrayList<String>();
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
-String occID = request.getParameter("occID").trim();
-System.out.println("Got this occ: "+occID);
 String number = null;
-Occurrence occ = null;
 Survey sv = null;
 try {
 	
-	System.out.println("Got this occID from params: "+occID);
-	occ = myShepherd.getOccurrence(occID);
-	System.out.println("Got this occ from DB: "+occ.getOccurrenceID());
-	if (occ.getSurvey(myShepherd)!=null) {
-		number = occ.getSurvey(myShepherd).getID();		
-	} else {
-		System.out.println("No Survey was found for this Occurrence.");
-	}
-	System.out.println("Got this survey number from the occ: "+number);
+	if (request.getParameter("surveyID")!=null) {
+		number = request.getParameter("surveyID");		
+	} 
 	sv = myShepherd.getSurvey(number);
 	System.out.println("Retreived this survey: "+sv.getID());
 	
@@ -61,8 +35,6 @@ try {
 	e.printStackTrace();
 	System.out.println("Could not retreive survey and occurrence for this number.");
 }
-
-ArrayList<Survey> svs = new ArrayList<Survey>();
 
 try {
 	trks = sv.getAllSurveyTracks();	
@@ -93,29 +65,7 @@ for (SurveyTrack trk : trks ) {
 <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
 
 <p><strong><%=props.getProperty("surveyMap") %></strong></p>
-<ul>
 <%
-
-for (Survey srvy : svs) {
-	if (srvy.getAllSurveyTracks()!=null) {	
-%>
-	<li>
-		<%= srvy.getID() %>
-		<%
-		String svyID = "SVID : ";
-		if (myShepherd.getOccurrenceForSurvey(srvy)!=null) {
-			svyID += myShepherd.getOccurrenceForSurvey(srvy).getOccurrenceID();
-		} else {
-			svyID += "None.";
-		}
-		%>
-		
-		<%=svyID%>
-	</li>
-</ul>
-<%
-	}
-}
 if (sv!=null) {
 %>
 	<p>Survey: <%=sv.getID()%></p>
@@ -180,7 +130,6 @@ $(document).ready(function() {
  }
 });  
 </script>
-
 <%
 myShepherd.closeDBTransaction();
 %>
