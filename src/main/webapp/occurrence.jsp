@@ -299,8 +299,7 @@ context=ServletUtilities.getContext(request);
 	      
 	  %>
 	  	<tr>
-	      <td class="lineitem"><%=enc.getDate()%>
-	    </td>
+	      <td class="lineitem"><%=enc.getDate()%></td>
 	    
 	    <td class="lineitem">
 	    	<%if (enc.hasMarkedIndividual()) {%>

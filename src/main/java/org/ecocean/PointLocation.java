@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.Vector;
 
 import org.ecocean.*;
+import org.joda.time.DateTime;
 
 /**
  * Each pointLocation is a specific spot on Earth defined by latitude, longitude
@@ -33,7 +34,6 @@ public class PointLocation implements java.io.Serializable {
 
   private Measurement elevation;
 
-  // It's in milliseconds!
   private Long dateTime = null;
 
   private String correspondingPathID = null;
@@ -75,6 +75,17 @@ public class PointLocation implements java.io.Serializable {
 
   public String getDateTimeInMilli() {
     return dateTime.toString();
+  }
+  
+  public String getDateTimeAsString() {
+    DateTime dt = new DateTime(dateTime);
+    return dt.toString();
+  }
+  
+  public String getTimeAsString() {
+    DateTime dt = new DateTime(dateTime);
+    String time = String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
+    return time;
   }
 
   public void setDateTimeInMilli(Long dt) {

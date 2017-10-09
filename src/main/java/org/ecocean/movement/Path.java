@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import org.ecocean.*;
+import org.joda.time.DateTime;
 
 /**
 * @author Colin Kingen
@@ -66,6 +67,50 @@ public class Path implements java.io.Serializable {
       }
     }
     return null;
+  }
+  
+  public ArrayList<PointLocation> getAllPointLocations() {
+    return pointLocations;
+  }
+  
+  public Long getStartTimeMillis() {
+    Long startLong;
+    if (pointLocations!=null) {
+      startLong = Long.valueOf(pointLocations.get(0).getDateTimeInMilli());
+      for (PointLocation pl : pointLocations) {
+        Long tempLong = Long.valueOf(pl.getDateTimeInMilli());
+        if (tempLong<startLong) {
+          startLong = tempLong;
+        }
+      }
+      return startLong;
+    }
+    return null;
+  }
+  
+  public String getStartTime() {
+    DateTime dt = new DateTime(this.getStartTimeMillis());
+    return String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
+  }
+  
+  public Long getEndTimeMillis() {
+    Long endLong;
+    if (pointLocations!=null) {
+      endLong = Long.valueOf(pointLocations.get(0).getDateTimeInMilli());
+      for (PointLocation pl : pointLocations) {
+        Long tempLong = Long.valueOf(pl.getDateTimeInMilli());
+        if (tempLong>endLong) {
+          endLong = tempLong;
+        }
+      }
+      return endLong;
+    }
+    return null;
+  }
+  
+  public String getEndTime() {
+    DateTime dt = new DateTime(this.getEndTimeMillis());
+    return String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
   }
   
   public void addPointLocation(PointLocation p) {
