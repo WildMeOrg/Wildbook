@@ -14,6 +14,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
 
 public class SurveyCreate extends HttpServlet {
@@ -178,7 +179,7 @@ public class SurveyCreate extends HttpServlet {
     if (request.getParameter("type")!=null) {
       String type = null;
       type = request.getParameter("type");
-      st.setType(type);;
+      st.setType(type);
     }
     return st;
   }

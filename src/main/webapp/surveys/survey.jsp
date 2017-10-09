@@ -30,7 +30,9 @@ try {
 String date = "";
 String organization = "";
 String project = "";
-
+String type = "";
+String effort = "";
+String comments = "";
 ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
 if (sv!=null) {
 	if (sv.getProjectName()!=null) {
@@ -42,7 +44,12 @@ if (sv!=null) {
 	if (sv.getProjectName()!=null) {
 		date = sv.getDate();
 	}
-	
+	if (sv.getEffort()!=null) {
+		effort = String.valueOf(sv.getEffort());
+	}
+	if (sv.getComments()!=null) {
+		comments = sv.getComments();
+	}
 	if (sv.getAllSurveyTracks()!=null&&sv.getAllSurveyTracks().size()>0) {
 		trks = sv.getAllSurveyTracks();
 	} else {
@@ -59,6 +66,7 @@ if (sv!=null) {
 <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="../javascript/oms.min.js"></script>
+<link rel="stylesheet" href="css/ecocean.css" type="text/css" media="all"/>
 
 <div class="container maincontent">
 	<div class="row">
@@ -89,25 +97,66 @@ if (sv!=null) {
 		
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("allTracks") %></strong></p>
+			<table id="trackTable" style="width:100%;">
+				
+				<tr class="lineItem">
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("id") %></strong></td>
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("vessel") %></strong></td>
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("locationID") %></strong></td>
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("type") %></strong></td>
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numPoints") %></strong></td>
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("start") %></strong></td>
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("end") %></strong></td>				
+				</tr>
+			
 			<%
 			for (SurveyTrack trk : trks) {
+				String trkID  = trk.getID();
+				String trkLocationID = trk.getLocationID();
+				String trkVessel = trk.getVesselID();
+				String trkType = trk.getType();
+				String trkStart = "Unavailable";
+				String trkEnd = "Unavailable";
+				Path pth = null;
+					if (trk.getPathID()!=null) {
+						String pthID = trk.getPathID();			
+						pth = myShepherd.getPath(pthID);
+					} else {
+						System.out.println("SurveyTrack "+trkID+" did not have an associated Path.");						
+					}
 			%>
-				
-				<!-- Begin the horrifying insertion of code from occurence jsp! 
-				At the end of the day! It will save time, I swear!  -->
-				
-				
-				
-				
-				
-				
-				<!-- End horror -->
+				<tr>
+					<td class="lineitem"><%=trkID%></td>
+					<td class="lineitem"><%=trkVessel%></td>	
+					<td class="lineitem"><%=trkLocationID%></td>	
+					<td class="lineitem"><%=trkType%></td>
+					<td class="lineitem">
+						<%
+						int numPoints = 0;
+						if (pth!=null&&pth.getAllPointLocations()!=null) {
+							numPoints = pth.getAllPointLocations().size();
+							if (pth.getStartTime()!=null) {
+								trkStart = pth.getStartTime();								
+							}
+							if (pth.getEndTime()!=null) {
+								trkEnd = pth.getEndTime();								
+							}
+						}
+						%>
+						<%=numPoints%>
+					</td>
+					<td><%=trkStart%></td>
+					<td><%=trkEnd%></td>	
+				</tr>
 				
 			<%	
 			}
 			%>
-		</div>
+		</table>
+		<br/>
 		<hr/>
+		<br/>
+		</div>
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("surveyMap") %></strong></p>
 			<jsp:include page="surveyMapEmbed.jsp" flush="true">
@@ -124,6 +173,10 @@ $(document).ready(function() {
 	$('#errorSpan').html('<%=errors%>');
 });
 </script>
+<%
+myShepherd.closeDBTransaction();
+%>
+
 
 <jsp:include page="../footer.jsp" flush="true" />
 

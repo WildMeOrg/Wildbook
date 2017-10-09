@@ -93,7 +93,7 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 							
 							<label><%=props.getProperty("type")%>:</label>
 							<label><small><%=props.getProperty("trackTypes")%></label>
-							<input name="surveyType" title="Survey Type" type="text" class="form-control" id="addTrackInput3" />
+							<input name="type" title="Survey Type" type="text" class="form-control" id="addTrackInput3" />
 							
 							<input name="getsTrack" type="hidden" value="false" class="form-control" id="addTrackBool" />
 						
