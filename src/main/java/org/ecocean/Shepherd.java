@@ -865,6 +865,15 @@ public class Shepherd {
 
   }
 
+  public Keyword getOrCreateKeyword(String name) {
+    Keyword kw = getKeyword(name);
+    if (kw==null) {
+      kw = new Keyword(name);
+      storeNewKeyword(kw);
+    }
+    return kw;
+  }
+
 
 
 
@@ -2684,24 +2693,6 @@ public class Shepherd {
   }
 
 
-  public Iterator<Keyword> getAllKeywords() {
-    Extent allKeywords = null;
-    Iterator it = null;
-    try {
-      allKeywords = pm.getExtent(Keyword.class, true);
-      Query acceptedKeywords = pm.newQuery(allKeywords);
-      acceptedKeywords.setOrdering("readableName descending");
-      Collection c = (Collection) (acceptedKeywords.execute());
-      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
-      acceptedKeywords.closeAll();
-      it = al.iterator();
-    } catch (javax.jdo.JDOException x) {
-      x.printStackTrace();
-      return null;
-    }
-    return it;
-  }
-
   public List<User> getAllUsers() {
     Collection c;
     ArrayList<User> list = new ArrayList<User>();
@@ -2774,21 +2765,80 @@ public class Shepherd {
     return it;
   }
 
+  public Iterator<Keyword> getAllKeywords() {
+    Extent allKeywords = pm.getExtent(Keyword.class, true);
+    Query acceptedKeywords = pm.newQuery(allKeywords);
+    return getAllKeywords(acceptedKeywords);
+  }
+
   public Iterator<Keyword> getAllKeywords(Query acceptedKeywords) {
-    Extent allKeywords = null;
-    Iterator it = null;
+    List<Keyword> words = getSortedKeywordList(acceptedKeywords);
+    return ((words==null) ? null : words.iterator());
+  }
+
+  // allows keywords to be defined in properties file and appear at the top
+  // of the list of all keywords
+  public List<Keyword> getSortedKeywordList(Query acceptedKeywords) {
+    List<Keyword> allKeywords = getAllKeywordsList(acceptedKeywords);
+    List<String> propKeywordNames = CommonConfiguration.getIndexedPropertyValues("keyword",getContext());
+    List<Keyword> propKeywords = new ArrayList<Keyword>();
+
+    System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
+
+    for (String propKwName: propKeywordNames) {
+      for (Keyword kw: allKeywords) {
+        if (kw.getReadableName().equals(propKwName)) {
+          propKeywords.add(kw);
+          break;
+        }
+      }
+    }
+    System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
+    allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
+    propKeywords.addAll(allKeywords);
+    // propKeywords contains all keywords, but those defined in properties are first.
+    return propKeywords;
+
+  }
+
+  public List<Keyword> getAllKeywordsList(Query acceptedKeywords) {
+    // we find all keywords in the database and note which ones
+    // are also listed in the properties file
+    ArrayList<Keyword> al = null;
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
-      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
-      it = al.iterator();
+      al=new ArrayList<Keyword>(c);
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
     }
-    return it;
+    return al;
   }
 
+  public Set<Keyword> getAllKeywordsSet(Query acceptedKeywords) {
+    HashSet<Keyword> al = null;
+    System.out.println("I started getAllKeywordsSet.");
+    try {
+      acceptedKeywords.setOrdering("readableName descending");
+      Collection c = (Collection) (acceptedKeywords.execute());
+      al=new HashSet<Keyword>(c);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return null;
+    }
+    System.out.println("got a set of size "+(al!=null ? al.size() : "ERROR"));
+    return al;
+  }
+
+  public Set<String> getAllKeywordNames(Query acceptedKeywords) {
+    Set<Keyword> keywords = getAllKeywordsSet(acceptedKeywords);
+    Set<String> kwNames = new HashSet<String>();
+    for (Keyword kword: keywords) {
+      kwNames.add(kword.getReadableName());
+    }
+    return kwNames;
+  }
 
   public int getNumKeywords() {
     Extent allWords = null;
@@ -3339,31 +3389,29 @@ public class Shepherd {
   }
 
   public List<String> getAllBehaviors() {
+    System.out.println("getAllBehaviors!");
+    List<String> behaves = getDefinedBehaviors();
+    System.out.println("done with getDefinedBehaviors!");
+    behaves.addAll(getDBBehaviors());
+    return behaves;
+  }
 
+  public List<String> getDefinedBehaviors() {
+    System.out.println("getDefinedBehaviors!");
+    return CommonConfiguration.getIndexedPropertyValues("behavior", this.getContext());
+  }
+
+  public List<String> getDBBehaviors() {
+    System.out.println("getDBBehaviors!");
     Query q = pm.newQuery(Encounter.class);
     q.setResult("distinct behavior");
     q.setOrdering("behavior ascending");
     Collection results = (Collection) q.execute();
-    ArrayList al=new ArrayList(results);
-	    q.closeAll();
+    List al=new ArrayList(results);
+    q.closeAll();
     return al;
-
-
-    //temporary way
-    /**
-     * ArrayList<String> al=new ArrayList<String>();
-     Iterator allenc=getAllEncounters();
-     while(allenc.hasNext()){
-     Encounter enc=(Encounter)allenc.next();
-     if((enc.getBehavior()!=null)&&(!enc.getBehavior().equals(""))){
-     if(!al.contains(enc.getBehavior())){
-     al.add(enc.getBehavior());
-     }
-     }
-     }
-     return al;
-     */
   }
+
 
   public List<String> getAllVerbatimEventDates() {
     Query q = pm.newQuery(Encounter.class);
