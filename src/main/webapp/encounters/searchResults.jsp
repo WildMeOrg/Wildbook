@@ -37,9 +37,9 @@ context=ServletUtilities.getContext(request);
 
 //--let's estimate the number of results that might be unique
 
-  int numUniqueEncounters = 0;
-  int numUnidentifiedEncounters = 0;
-  int numDuplicateEncounters = 0;
+  Integer numUniqueEncounters;
+  Integer numUnidentifiedEncounters;
+  Integer numDuplicateEncounters;
 
 %>
 
