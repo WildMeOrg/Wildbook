@@ -884,9 +884,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       <%
 
 
-        Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
-        for (int n = 0; n < totalKeywords; n++) {
-          Keyword word = keys.next();
+        List<Keyword> keys = myShepherd.getSortedKeywordList(kwQuery);
+        for (Keyword word: keys) {
       %>
       <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
       </option>
