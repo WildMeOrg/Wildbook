@@ -2,6 +2,7 @@
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
+java.util.Vector,
 java.util.ArrayList,
 org.json.JSONObject,
 java.util.Properties" %>
@@ -40,6 +41,32 @@ java.util.Properties" %>
 		h+= "<p>IndividualID: "+enc.getIndividualID()+"</p>";
 
 		return h + "</div>";
+	}
+
+	private String showMarkedIndividual(MarkedIndividual ind) {
+		if (ind == null) return "<b>[none]</b>";
+		String h = "<div class=\"individual shown\"><a target=\"_new\" href=\"individuals.jsp?number=" + ind.getIndividualID() + "\">Individual <b>" + ind.getIndividualID() + "</b></a>";
+		h += "<p>Nickname: "+ind.getNickName()+"</p>";
+		h += "<p>Sex: "+ind.getSex()+"</p>";
+		h += "<p>Taxonomy: "+ind.getSpecificEpithet()+"</p>";
+
+		Vector encs = ind.getEncounters();
+		if ((encs != null) && (encs.size() > 0)) {
+			h += "<div>Encounters:<ul>";
+			for (int i = 0 ; i < encs.size() ; i++) {
+				Encounter enc = (Encounter) encs.get(i);
+				if (enc!=null) {
+					h += "<li><a href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a>";
+					h+= showEncounter(enc);
+					h+= "</li>";	
+				} else {
+					h += "<li>NULL Emcpimter!</li>";
+				}
+			}
+			h += "</ul></div>";
+		}
+		h += "</div>";
+		return h;
 	}
 
 	private String showFeature(Feature f) {
@@ -167,6 +194,16 @@ if (type.equals("Encounter")) {
 	try {
 		Encounter enc = ((Encounter) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Encounter.class, id), true)));
 		out.println(showEncounter(enc));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
+		needForm = true;
+	}
+
+} else if (type.equals("MarkedIndividual")) {
+	try {
+		MarkedIndividual ind = ((MarkedIndividual) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MarkedIndividual.class, id), true)));
+		out.println(showMarkedIndividual(ind));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		ex.printStackTrace();
