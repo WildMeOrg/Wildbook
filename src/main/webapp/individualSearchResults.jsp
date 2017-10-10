@@ -277,7 +277,7 @@
 		{
 			key: 'sex',
 			label: '<%=props.getProperty("sex")%>',//'Sex',
-		},
+		},		
 		{
 			key: 'numberLocations',
 			label: '<%=props.getProperty("numLocationsSighted")%>',
@@ -728,6 +728,8 @@
 <%
     }
     catch(Exception e){
+    	System.out.println("Exception on IndividualSearchResults!");
+    	e.printStackTrace();
     %>
     
     <p>Exception on page!</p>
