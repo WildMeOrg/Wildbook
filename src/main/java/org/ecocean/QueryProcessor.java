@@ -19,6 +19,10 @@ public abstract class QueryProcessor {
     else return (filter += " && ");
   }
 
+  protected static String filterWithCondition(String filter, String condition) {
+    return (prepForCondition(filter)+condition);
+  }
+
   protected static boolean endsWithAmpersands (String filter) {
     return (filter.trim().endsWith("&&"));
   }
