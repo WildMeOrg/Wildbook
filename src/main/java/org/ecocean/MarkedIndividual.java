@@ -59,7 +59,8 @@ public class MarkedIndividual implements java.io.Serializable {
   private String comments = "None";
 
   //sex of the MarkedIndividual
-  private String sex = "unknown";
+  public final String DEFAULT_SEX = "unknown";
+  private String sex = DEFAULT_SEX;
 
   private String genus = "";
   private String specificEpithet;
@@ -69,11 +70,12 @@ public class MarkedIndividual implements java.io.Serializable {
 
   //nickname for the MarkedIndividual...not used for any scientific purpose
   //also the nicknamer for credit
+  // the default is what was previously returned by .getNickName(), not the actual val
+  public final String DEFAULT_NICKNAME = "Unassigned";
   private String nickName = "", nickNamer = "";
 
   //Vector of approved encounter objects added to this MarkedIndividual
   private Vector<Encounter> encounters = new Vector<Encounter>();
-
   //Vector of unapproved encounter objects added to this MarkedIndividual
   //private Vector unidentifiableEncounters = new Vector();
 
@@ -556,7 +558,7 @@ public class MarkedIndividual implements java.io.Serializable {
     if (nickName != null) {
       return nickName;
     } else {
-      return "Unassigned";
+      return DEFAULT_NICKNAME;
     }
   }
 
@@ -575,10 +577,17 @@ public class MarkedIndividual implements java.io.Serializable {
     nickName = newName;
   }
 
+  public boolean hasNickName() {
+    String thisNickName = getNickName();
+    return (thisNickName!=null && !thisNickName.equals(DEFAULT_NICKNAME));
+  }
+
+
   public String setNickNameFromEncounters() {
     for (Encounter enc: encounters) {
       if (enc.getAlternateID()!=null) {
         setNickName(enc.getAlternateID());
+        System.out.println("Setting nickname on individual "+individualID+": "+getNickName());
         break;
       }
     }
@@ -718,6 +727,11 @@ public class MarkedIndividual implements java.io.Serializable {
 
   }
 
+  public boolean hasSex() {
+    String thisSex = getSex();
+    return (thisSex!=null && !thisSex.equals(DEFAULT_SEX));
+  }
+
     public String getGenus() {
         return genus;
     }
@@ -759,14 +773,18 @@ public class MarkedIndividual implements java.io.Serializable {
 
     //similar to above
     public String setSexFromEncounters(boolean force) {
-        if (!force && (sex != null)) return getSex();
+        System.out.println("beginning setSexFromEncounters for indiv "+individualID
+        );
+        if (!force && (sex != null) && !sex.equals("unknown")) return getSex();
         if ((encounters == null) || (encounters.size() < 1)) return getSex();
         for (Encounter enc : encounters) {
-            if (enc.getSex() != null) {
+            if (enc.getSex() != null && !enc.getSex().equals("unknown")) {
                 sex = enc.getSex();
+                System.out.println("   about to return "+sex+"!");
                 return getSex();
             }
         }
+        System.out.println("    about to return "+getSex());
         return getSex();
     }
     public String setSexFromEncounters() {
