@@ -78,6 +78,13 @@ public class ImportAccess extends HttpServlet {
   private int numTaggedRDAnnotsFoundAgain=0;
   private int numTaggedLDAnnotsFoundAgain=0;
 
+  // myShepherd.getKeyword() is expensive so this saves some time
+  private Keyword flukeKeyword;
+  private Keyword rightFinKeyword;
+  private Keyword leftFinKeyword;
+  private Keyword backKeyword;
+  private int numUniqueKeywords = 0;
+
   private void commitIndividuals(Shepherd myShepherd) {
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
@@ -161,6 +168,7 @@ public class ImportAccess extends HttpServlet {
     rowLimitForTesting = 20000;
     missingPhotos = new ArrayList<String>();
 
+
     context = ServletUtilities.getContext(request);
     out = response.getWriter();
 
@@ -176,8 +184,8 @@ public class ImportAccess extends HttpServlet {
     }
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
-      
-    
+    myShepherd.beginDBTransaction();
+
     String dbName = "omanData2017.07.04.mdb";
     if (request.getParameter("file") != null) dbName = request.getParameter("file");
     
@@ -207,9 +215,22 @@ public class ImportAccess extends HttpServlet {
     Set<String> tables = db.getTableNames();
     out.println("********************* Here's the tables : "+tables.toString()+"\n");
     
-    myShepherd.beginDBTransaction();
 
     numEncountersSharedByTables=0;
+
+    flukeKeyword = myShepherd.getOrCreateKeyword("Tail Fluke");
+    leftFinKeyword = myShepherd.getOrCreateKeyword("Left Dorsal Fin");
+    rightFinKeyword = myShepherd.getOrCreateKeyword("Right Dorsal Fin");
+    backKeyword = myShepherd.getOrCreateKeyword("Back");
+    out.println("-- Got three keywords: "+flukeKeyword+", "+leftFinKeyword+", "+rightFinKeyword);
+    numUniqueKeywords = 0;
+
+    // possibly committing the newly created keywords above
+    if (committing) {
+    	myShepherd.commitDBTransaction();
+    	myShepherd.beginDBTransaction();
+    }
+
 
     if (!skipIDPhotos) {
       out.println("<div>");
@@ -247,6 +268,10 @@ public class ImportAccess extends HttpServlet {
     out.println("<p> Number of fluke-tagged annots given quality scores: "+numTaggedAnnotsFoundAgain+"</p>");
     out.println("<p> Number of Right-dorsal-tagged annots given quality scores: "+numTaggedRDAnnotsFoundAgain+"</p>");
     out.println("<p> Number of Left-dorsal-tagged annots given quality scores: "+numTaggedLDAnnotsFoundAgain+"</p>");
+
+
+    out.println("<p> Number of unique, fresh Keywords created: "+numUniqueKeywords+"</p>");
+
     out.println("</div>");    
 
 
@@ -476,17 +501,17 @@ public class ImportAccess extends HttpServlet {
     enc.setSubmitterName("Oman Photo ID Catalog Bulk Import");
 
 
-    String project = getStringSafe(thisRow, "Project_code");
+    String project = thisRow.get("Project_code").toString();
     if (project!=null) enc.setSubmitterProject(project);
     System.out.println("    PROCIDPHOTOS set project "+project);
 
 
-    String indID = getStringSafe(thisRow, "Individual_id");
+    String indID = thisRow.get("Individual_id").toString();
     if (indID!=null) enc.setIndividualID(indID);
     System.out.println("    PROCIDPHOTOS set indID "+indID);
 
 
-    String otherId = getStringSafe(thisRow, "Individual_designation");
+    String otherId = thisRow.get("Individual_designation").toString();
     if (otherId!=null) enc.setDynamicProperty("Field ID", otherId);
     System.out.println("    PROCIDPHOTOS set otherId "+otherId);
 
@@ -690,8 +715,18 @@ public class ImportAccess extends HttpServlet {
       // MA processing
       ma.setUserDateTime(getDateTimeForIDPhotoRow(thisRow));
 
-      String keyword = thisRow.getString("Photo_category");
-      if (keyword != null) ma.addKeyword(new Keyword(keyword));
+      String keywordName = thisRow.getString("Photo_category");
+      Keyword keyword;
+      if ("Tail Fluke".equals(keywordName)) keyword = flukeKeyword;
+      else if ("Left Dorsal Fin".equals(keywordName)) keyword = leftFinKeyword;
+      else if ("Right Dorsal Fin".equals(keywordName)) keyword = rightFinKeyword;
+      else if ("Back".equals(keywordName)) keyword = backKeyword;
+      else {
+      	keyword = new Keyword(keywordName);
+      	numUniqueKeywords++;
+      }
+
+      if (keyword != null) ma.addKeyword(keyword);
 
       String frameKeyword = thisRow.getString("Frame");
       if (frameKeyword != null) {
@@ -809,6 +844,8 @@ public class ImportAccess extends HttpServlet {
     System.out.println("    SHROW-Proc set otherId "+otherId);
 
     enc.setCountry("Oman");
+    enc.setSubmitterName("Oman Photo ID Catalog Bulk Import");
+
 
     String latStr = thisRow.get("Latitude").toString();
     try {enc.setDecimalLatitude(new Double(latStr));}
@@ -895,7 +932,10 @@ public class ImportAccess extends HttpServlet {
     if (satelliteTag != null && !satelliteTag.toLowerCase().equals("No")) enc.setDynamicProperty("Satellite tag",satelliteTag);
     System.out.println("    SHROW-Proc asdf set satelliteTag dyprop "+satelliteTag);
 
-    String nickname = getStringSafe(thisRow, "Nickname");
+    System.out.println("    SHROW-Proc about to try for nickname ");
+    Object nickObj = thisRow.get("Nickname");
+    String nickname = (nickObj==null) ? null : nickObj.toString();
+    System.out.println("    SHROW-Proc got nickname "+nickname);
     if (nickname != null) enc.setAlternateID(nickname);
     System.out.println("    SHROW-Proc set nickname "+nickname);
 
@@ -970,7 +1010,8 @@ public class ImportAccess extends HttpServlet {
       generatedIndividuals.put(indID, indy);
     }
 
-    String nickname = getStringSafe(thisRow, "Nickname");
+    Object nickObj = thisRow.get("Nickname");
+    String nickname = (nickObj==null) ? null : nickObj.toString();
     if (nickname !=null) indy.setNickName(nickname);
     System.out.println("    SHROW-Proc set nickname "+nickname);
 
