@@ -952,6 +952,12 @@ public class MediaAsset implements java.io.Serializable {
         return disposable;
     }
 
+    public boolean hasFamily(Shepherd myShepherd) {
+        if (parentId!=null) return true; // saves the db call below if unnecessary
+        List<MediaAsset> children = findChildren(myShepherd);
+        return(children!=null && children.size() > 0);
+    }
+
     public ArrayList<MediaAsset> findChildren(Shepherd myShepherd) {
         if (store == null) return null;
         ArrayList<MediaAsset> all = store.findAllChildren(this, myShepherd);
@@ -1105,6 +1111,13 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public MediaAssetMetadata getMetadata() {
         return metadata;
     }
+    public boolean hasMetadata() {
+        MediaAssetMetadata data = getMetadata();
+        return ((data != null) && (data.getData() != null) && (data.getData().opt("attributes") != null));
+    }
+    public void setMetadata() throws IOException {
+        setMetadata(updateMetadata());
+    }    
     public void setMetadata(MediaAssetMetadata md) {
         metadata = md;
     }
