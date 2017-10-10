@@ -1117,7 +1117,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     }
     public void setMetadata() throws IOException {
         setMetadata(updateMetadata());
-    }    
+    }
     public void setMetadata(MediaAssetMetadata md) {
         metadata = md;
     }
