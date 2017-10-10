@@ -118,9 +118,10 @@ java.util.Properties" %>
 
 	private String showMediaAsset(MediaAsset ma) {
 		if (ma == null) return "asset: <b>[none]</b>";
-		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
+		if (shown.contains(ma)) return "<div class=\"mediaasset shown\"><a href=\"obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\"> MediaAsset <b>" + ma.getId() + "</b></a></div>";
 		shown.add(ma);
-		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b><ul style=\"width: 65%\">";
+		String h = "<div class=\"mediaasset shown\"><a href=\"obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\"> MediaAsset <b>" + ma.getId() + "</b></a><ul>";
+;
 		if (ma.webURL()!=null && ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
