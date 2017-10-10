@@ -344,8 +344,10 @@ if(request.getParameter("encounterNumber")!=null){
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
+  
+  console.log("Hey we're workin again!");
   var assets = <%=all.toString()%>;
-  <% System.out.println("All = "+all); %>
+  // <% System.out.println(" Got all size = "+all.length()); %>
   var captions = <%=captions.toString()%>
   captions.forEach( function(elem) {
     console.log("caption here: "+elem);
