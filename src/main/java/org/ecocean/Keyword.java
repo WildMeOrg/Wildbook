@@ -88,6 +88,11 @@ public class Keyword {
     return false;
   }
 
+  // convenience method for removing duplicate keywords
+  public boolean isDuplicateOf(Keyword kw) {
+    return (this.readableName.equals(kw.getReadableName()) && !this.indexname.equals(kw.getIndexname()));
+  }
+
 
   /*
   public boolean isMemberOf(Encounter enc) {
