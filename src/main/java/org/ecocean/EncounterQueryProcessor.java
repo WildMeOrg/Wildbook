@@ -1120,18 +1120,21 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     //filter for sex------------------------------------------
     if((request.getParameter("male")!=null)||(request.getParameter("female")!=null)||(request.getParameter("unknown")!=null)){
+      System.out.println("Filter at beginning of sex filtering: "+filter);
       if(request.getParameter("male")==null) {
-        filter+=" && !sex.startsWith('male')";
+        filter = filterWithCondition(filter, "!sex.startsWith('male')");
         prettyPrint.append("Sex is not male.<br />");
       }
       if(request.getParameter("female")==null) {
-        filter+=" && !sex.startsWith('female')";
+        filter = filterWithCondition(filter, "!sex.startsWith('female')");
         prettyPrint.append("Sex is not female.<br />");
       }
       if(request.getParameter("unknown")==null) {
-        filter+=" && !sex.startsWith('unknown') && sex != null";
+        filter = filterWithCondition(filter, "!sex.startsWith('unknown') && sex != null");
         prettyPrint.append("Sex is not unknown.<br />");
       }
+      System.out.println("Filter at end of sex filtering: "+filter);
+
     }
 
     //filter by sex--------------------------------------------------------------------------------------
