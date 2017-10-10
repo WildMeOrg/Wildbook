@@ -2642,6 +2642,14 @@ public class Shepherd {
     commitDBTransaction();
   }
 
+  /**
+   * Since we call these together all over Wildbook
+   */
+  public void updateDBTransaction() {
+    commitDBTransaction();
+    beginDBTransaction();
+  }
+
 
   /**
    * Closes a PersistenceManager

@@ -1657,7 +1657,7 @@ if(enc.getLocation()!=null){
 				<!-- START OCCURRENCE ATTRIBUTE -->
 						<p class="para">
 							<img width="24px" height="24px" align="absmiddle" src="../images/occurrence.png" />&nbsp;<%=encprops.getProperty("occurrenceID") %>:
-							<%
+<!-- 							<%
 							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 							%>
 								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
@@ -1669,7 +1669,10 @@ if(enc.getLocation()!=null){
 							<%
 							}
       				%>
-  					</p>
+ -->  					
+            <a href="../occurrence.jsp?number=<%=enc.getOccurrenceID() %>"><span id="displayOccurrenceID"><%=enc.getOccurrenceID() %></span></a>
+
+            </p>
 
               <%
                 //Remove from occurrence if assigned
@@ -3486,6 +3489,7 @@ else {
 String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
 %>
     <%-- START IMAGES --%>
+    <div class="gallery-container row">
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
         	<jsp:param name="encounterNumber" value="<%=num%>" />
         	<jsp:param name="queryString" value="<%=queryString%>" />
@@ -3493,6 +3497,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
         	<jsp:param name="isOwner" value="<%=isOwner %>" />
         	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
       	</jsp:include>
+    </div>
 
 		<%
 		if(isOwner){
