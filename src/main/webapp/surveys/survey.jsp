@@ -5,7 +5,6 @@ org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.movement.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.util.Date, java.text.SimpleDateFormat, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
-
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -33,6 +32,7 @@ String project = "";
 String type = "";
 String effort = "";
 String comments = "";
+String numOccurrences = "";
 ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
 if (sv!=null) {
 	if (sv.getProjectName()!=null) {
@@ -56,17 +56,15 @@ if (sv!=null) {
 		errors += "<p>Survey tracks were null or did not exist.</p><br/>";
 	}
 	
-	
 } else {
 	errors += "<p>There was no valid Survey for this ID.</p><br/>";
 }
 %>
-
 <jsp:include page="../header.jsp" flush="true" />
 <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="../javascript/oms.min.js"></script>
-<link rel="stylesheet" href="css/ecocean.css" type="text/css" media="all"/>
+<link rel="stylesheet" href="../css/ecocean.css" type="text/css" media="all"/>
 
 <div class="container maincontent">
 	<div class="row">
@@ -75,8 +73,8 @@ if (sv!=null) {
 			<p>The survey contains collections of occurrences and points. It allows you to look at total effort and distance.</p>
 			<hr/>
 			<div id="errorSpan"></div>
-		
 		</div>
+		
 		<div class="col-md-12">
 			<h4>Survey Attributes</h4>
 			<%
@@ -86,29 +84,26 @@ if (sv!=null) {
 				<p>Organization: <%=organization%></p>
 				<p>Date: <%=date%></p>
 				<p>[Add track/path/points]</p>
-				<p>[Add occurrences]</p>
 				<p>[Make points on map clickable]</p>
 			<%	
 			} 
 			%>	
-		
 		</div>
-		
 		
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("allTracks") %></strong></p>
 			<table id="trackTable" style="width:100%;">
-				
+
 				<tr class="lineItem">
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("id") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("vessel") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("locationID") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("type") %></strong></td>
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numOccs") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numPoints") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("start") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("end") %></strong></td>				
-				</tr>
-			
+				</tr>	
 			<%
 			for (SurveyTrack trk : trks) {
 				String trkID  = trk.getID();
@@ -118,18 +113,54 @@ if (sv!=null) {
 				String trkStart = "Unavailable";
 				String trkEnd = "Unavailable";
 				Path pth = null;
-					if (trk.getPathID()!=null) {
-						String pthID = trk.getPathID();			
-						pth = myShepherd.getPath(pthID);
-					} else {
-						System.out.println("SurveyTrack "+trkID+" did not have an associated Path.");						
-					}
+				int numOccs = 0;
+				ArrayList<Occurrence> occs = null;
+				if (trk.getPathID()!=null) {
+					String pthID = trk.getPathID();			
+					pth = myShepherd.getPath(pthID);
+				} else {
+					System.out.println("SurveyTrack "+trkID+" did not have an associated Path.");						
+				}
+				if (trk.getAllOccurrences()!=null) {
+					occs = trk.getAllOccurrences();
+					numOccs = trk.getAllOccurrences().size();
+				}
 			%>
 				<tr>
-					<td class="lineitem"><%=trkID%></td>
+					<td class="lineitem">
+						<%=trkID%>
+						<input name="Show Occurrence ID's" type="button" class="showOccIDs occID-<%=trkID%>" value="<%=props.getProperty("showOccurrences")%>" class="btn btn-sm" />
+						<input name="Hide Occurrence ID's" type="button" class="hideOccIDs occID-<%=trkID%>" value="<%=props.getProperty("hideOccurrences")%>" class="btn btn-sm" />
+						<div class="occIDDiv">
+								<%
+								System.out.println("Hit Occs in table...");
+								if (occs!=null) {
+								%>
+									<label><small>Occurrence ID's:</small></label>
+									<%
+									for (Occurrence occ : occs) {
+										String thisOccID = occ.getPrimaryKeyID();
+									%>
+										<p>
+											<small><%=thisOccID%></small>
+										</p>
+									<%
+	
+									}
+								} else {
+								%>	
+										<p>
+											<small>No occurrences.</small>	
+										</p>
+								<% 	
+								}
+								%>
+						</div>
+					</td>
 					<td class="lineitem"><%=trkVessel%></td>	
 					<td class="lineitem"><%=trkLocationID%></td>	
 					<td class="lineitem"><%=trkType%></td>
+					<td class="lineitem"><%=numOccs%></td>	
 					<td class="lineitem">
 						<%
 						int numPoints = 0;
@@ -145,15 +176,13 @@ if (sv!=null) {
 						%>
 						<%=numPoints%>
 					</td>
-					<td><%=trkStart%></td>
-					<td><%=trkEnd%></td>	
+					<td class="lineitem"><%=trkStart%></td>
+					<td class="lineitem"><%=trkEnd%></td>	
 				</tr>
-				
 			<%	
 			}
 			%>
 		</table>
-		<br/>
 		<hr/>
 		<br/>
 		</div>
@@ -171,7 +200,23 @@ if (sv!=null) {
 <script>
 $(document).ready(function() {
 	$('#errorSpan').html('<%=errors%>');
+	$('.occIDDiv').hide();
+	$('.hideOccIDs').hide();
+	$('.showOccIDs').click(function(){
+		console.log('Show Occ IDs!');
+		$('.occIDDiv').slideDown();
+		$('.showOccIDs').hide();
+		$('.hideOccIDs').show();
+	});
+	$('.hideOccIDs').click(function(){
+		console.log('Hide Occ Ids!');
+		$('.occIDDiv').slideUp();
+		$('.showOccIDs').show();
+		$('.hideOccIDs').hide();
+	});
 });
+
+
 </script>
 <%
 myShepherd.closeDBTransaction();

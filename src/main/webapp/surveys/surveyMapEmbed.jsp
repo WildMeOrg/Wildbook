@@ -66,8 +66,6 @@ for (SurveyTrack trk : trks ) {
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
 <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
-
-<p><strong><%=props.getProperty("surveyMap") %></strong></p>
 <%
 if (sv!=null) {
 %>
