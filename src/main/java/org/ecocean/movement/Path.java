@@ -29,7 +29,12 @@ public class Path implements java.io.Serializable {
   
   private ArrayList<PointLocation> pointLocations; 
   
-  public Path(){};                                                                                                                                                                        
+  public Path(){};
+  
+  public Path(SurveyTrack st) {
+    generateUUID();
+    st.setPathID(pathID);
+  }
   
   public Path(PointLocation pnt) {
     this.pointLocations = new ArrayList<PointLocation>();

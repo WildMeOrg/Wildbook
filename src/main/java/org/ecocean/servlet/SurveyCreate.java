@@ -124,9 +124,10 @@ public class SurveyCreate extends HttpServlet {
         if (request.getParameter("getsTrack")!=null) {
           System.out.println("getsTrack says: "+request.getParameter("getsTrack"));
           if (request.getParameter("getsTrack").equals("true")) {
+            SurveyTrack st = null;
             try {
               myShepherd.beginDBTransaction();
-              SurveyTrack st = createSurveyTrack(request, sv);
+              st = createSurveyTrack(request, sv);
               myShepherd.commitDBTransaction();
               st.setParentSurveyID(sv.getID());
               sv.addSurveyTrack(st);
@@ -136,7 +137,20 @@ public class SurveyCreate extends HttpServlet {
               myShepherd.rollbackDBTransaction();
               e.printStackTrace();
             }
+            try {
+              myShepherd.beginDBTransaction();
+              Path pth = createPath(request, st);
+              myShepherd.getPM().makePersistent(pth);
+              myShepherd.commitDBTransaction();
+              System.out.println("Persisted Path "+pth.getID());
+            } catch (Exception e) {
+              myShepherd.rollbackDBTransaction();
+              System.out.println("Failed to persist a Path for this survey.");
+              e.printStackTrace();
+              
+            }
           }
+          
         }
         
         message += "<p><strong>Success: </strong> A new survey on "+date+" was created.</p>";
@@ -190,6 +204,11 @@ public class SurveyCreate extends HttpServlet {
     out.println(message);
     out.println(ServletUtilities.getFooter(context));
     message = "";
+  }
+  
+  private Path createPath(HttpServletRequest request, SurveyTrack st) {
+    Path pth = new Path(st);
+    return pth;
   }
   
   

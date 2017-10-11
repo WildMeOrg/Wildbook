@@ -141,7 +141,7 @@ public class SurveyTrack implements java.io.Serializable{
         return thisOcc;
       }
     }
-    return null;
+    return null;  
   }
   
   public void addOccurence(Occurrence occ) {
@@ -150,6 +150,7 @@ public class SurveyTrack implements java.io.Serializable{
       if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
         double lat = occ.getDecimalLatitude();
         double lon = occ.getDecimalLongitude();
+        // TODO Make this automatically create a pointLocation...
       }
       setDWCDateLastModified();
     }
@@ -159,6 +160,7 @@ public class SurveyTrack implements java.io.Serializable{
     if (occArray.size() >= 1) {
       for (int i=0; i<occArray.size(); i++) {
         occurrences.add(occArray.get(i));
+     // TODO Make this automatically create pointLocation(s)...
       }
       setDWCDateLastModified();
     }
