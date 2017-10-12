@@ -92,19 +92,19 @@ public class UpdateEmailAddress extends HttpServlet {
       while (it.hasNext()) {
 
         Encounter tempEnc = (Encounter) it.next();
-        if (tempEnc.getSubmitterEmail().indexOf(findEmail) != -1) {
+        if (tempEnc.getSubmitterEmail() != null && tempEnc.getSubmitterEmail().contains(findEmail)) {
           String newSubmitterEmail = tempEnc.getSubmitterEmail().replaceAll(findEmail, replaceEmail);
           tempEnc.setSubmitterEmail(newSubmitterEmail);
           madeChanges = true;
           numChanges++;
         }
-        if (tempEnc.getPhotographerEmail().indexOf(findEmail) != -1) {
+        if (tempEnc.getPhotographerEmail() != null && tempEnc.getPhotographerEmail().contains(findEmail)) {
           String newPhotographerEmail = tempEnc.getPhotographerEmail().replaceAll(findEmail, replaceEmail);
           tempEnc.setPhotographerEmail(newPhotographerEmail);
           madeChanges = true;
           numChanges++;
         }
-        if ((tempEnc.getInformOthers() != null) && (tempEnc.getInformOthers().indexOf(findEmail) != -1)) {
+        if (tempEnc.getInformOthers() != null && tempEnc.getInformOthers().contains(findEmail)) {
           String newPhotographerEmail = tempEnc.getInformOthers().replaceAll(findEmail, replaceEmail);
           tempEnc.setInformOthers(newPhotographerEmail);
           madeChanges = true;
