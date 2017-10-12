@@ -82,7 +82,7 @@ $(document).ready(function() {
 	console.log("Center : "+"<%=center%>");
 	
     var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 10,
+      zoom: 13,
       center: <%=center%>,
       mapTypeId: 'terrain',
       gestureHandling: 'greedy'
