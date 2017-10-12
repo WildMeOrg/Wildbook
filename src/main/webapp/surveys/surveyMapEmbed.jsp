@@ -123,15 +123,20 @@ $(document).ready(function() {
 	    var marker, i;
 
 	    for (i=0; i<markerCoordinates.length; i++) {  
-
 		    var marker = new google.maps.Marker({
 		    	position: new google.maps.LatLng(markerCoordinates[i][i-i], markerCoordinates[i][1]),
 		        map: map,
 		    });
+	        var infowindow = new google.maps.InfoWindow({
+	            content: 'Here is the modal for this occurrence.',
+	            maxWidth: 200
+	          });
+		    marker.addListener('click', function() {
+		          infowindow.open(map, marker);
+		          this.setState({ showModal: true });
+		    });
 	    }
-	    
-	    
-	    
+	    	    
 		<%=currentPath%>.setMap(map);
 	
     <%
