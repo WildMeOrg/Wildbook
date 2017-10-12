@@ -1800,9 +1800,9 @@ div.state-approved span.state {
 }
 
 .showOccIDs, .hideOccIDs {
-	padding: 3px; 
-	margin: 2px 5px 2px 5px;;
-	font-size: 0.75em;
+	padding: 3px !important; 
+	margin: 2px 5px 2px 5px !important;
+	font-size: 0.75em !important;
 }
 
 

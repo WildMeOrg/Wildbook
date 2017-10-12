@@ -85,7 +85,12 @@ if (sv!=null) {
 				<p>Date: <%=date%></p>
 				<p>[Add track/path/points]</p>
 				<p>[Make points on map clickable]</p>
-			<%	
+			<%
+				if (trks!= null) {
+					%>
+						<p>Num survey tracks: <%=trks.size()%></p>
+					<% 
+				}
 			} 
 			%>	
 		</div>
