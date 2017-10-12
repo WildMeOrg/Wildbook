@@ -43,9 +43,11 @@ try {
 	e.printStackTrace();
 }
 ArrayList<String> polyLineSets = new ArrayList<String>();
-String center = "";
+ArrayList<String> allMarkerSets = new ArrayList<String>();
+String center = "{lat: 35.2195, lng: -75.6903}";
 for (SurveyTrack trk : trks ) {
 	String lineSet = "";
+	String markerSet = "";
 	System.out.println("Current track: "+trk.getID());
 	ArrayList<Occurrence> occsWithGps = trk.getAllOccurrences();
 	if (occsWithGps!=null) {
@@ -53,14 +55,16 @@ for (SurveyTrack trk : trks ) {
 			String lat = String.valueOf(trackOcc.getDecimalLatitude());
 			String lon = String.valueOf(trackOcc.getDecimalLongitude());
 			lineSet += "{lat: "+lat+", lng: "+lon+"},";
+			markerSet += "["+lat+","+lon+"],";
 			System.out.println(lineSet);
+			System.out.println(markerSet);
 		}		
 		center = lineSet.split(",")[0]+","+lineSet.split(",")[1];
 		lineSet = lineSet.substring(0,lineSet.length()-1);
+		markerSet = markerSet.substring(0,markerSet.length()-1);
 		polyLineSets.add(lineSet);
-	} else {
-		center = "{lat: 35.2195, lng: -75.6903}";
-	}
+		allMarkerSets.add(markerSet);
+	} 
 }
 %>
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
@@ -91,13 +95,18 @@ $(document).ready(function() {
     var polyLines = [];
     <% 
     int currentPathNum = 0;
-    for (String set : polyLineSets) {	
+    for (int i=0; i<polyLineSets.size(); i++) {
+    	String set = polyLineSets.get(i);
+    	String markerSet = allMarkerSets.get(i);
     	currentPathNum++;
     	String currentPath = "path"+currentPathNum;
     %>
 	    var surveyCoordinates = [
 				<%=set%>
-	    ];  
+	    ];
+	    var markerCoordinates = [
+	    		<%=markerSet%>
+	    ];
     	console.log('Another coord set...'+'<%=set%>');
     	
     	var newColor = generateColor();
@@ -110,6 +119,19 @@ $(document).ready(function() {
 	      strokeOpacity: 1.0,
 	      strokeWeight: 2
 	    });
+	    
+	    var marker, i;
+
+	    for (i=0; i<markerCoordinates.length; i++) {  
+
+		    var marker = new google.maps.Marker({
+		    	position: new google.maps.LatLng(markerCoordinates[i][i-i], markerCoordinates[i][1]),
+		        map: map,
+		    });
+	    }
+	    
+	    
+	    
 		<%=currentPath%>.setMap(map);
 	
     <%
