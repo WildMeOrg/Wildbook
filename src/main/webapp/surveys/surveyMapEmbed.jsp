@@ -44,10 +44,12 @@ try {
 }
 ArrayList<String> polyLineSets = new ArrayList<String>();
 ArrayList<String> allMarkerSets = new ArrayList<String>();
+ArrayList<String> infoWindowSets = new ArrayList<String>();
 String center = "{lat: 35.2195, lng: -75.6903}";
 for (SurveyTrack trk : trks ) {
 	String lineSet = "";
 	String markerSet = "";
+	String infoWindowSet = "";
 	System.out.println("Current track: "+trk.getID());
 	ArrayList<Occurrence> occsWithGps = trk.getAllOccurrences();
 	if (occsWithGps!=null) {
@@ -56,6 +58,11 @@ for (SurveyTrack trk : trks ) {
 			String lon = String.valueOf(trackOcc.getDecimalLongitude());
 			lineSet += "{lat: "+lat+", lng: "+lon+"},";
 			markerSet += "["+lat+","+lon+"],";
+			infoWindowSet += "<p><small>Occurrence ID: "+trackOcc.getOccurrenceID()+"</small</p>";
+			infoWindowSet += "<p><small>Location ID: "+trackOcc.getLocationID()+"</small></p>";
+			infoWindowSet += "<p><small>Lat/Lon: ["+lat+","+lon+"]</small></p>";
+			infoWindowSets.add(infoWindowSet);
+			infoWindowSet = "";
 			System.out.println(lineSet);
 			System.out.println(markerSet);
 		}		
@@ -121,30 +128,33 @@ $(document).ready(function() {
 	    });
 	    
 	    var marker, i;	
-	    var infWindows = {}
+	    var infWindows = [];
 
+		<% 
+		for (int j=0;j<infoWindowSets.size();j++) {
+			String text = infoWindowSets.get(j);
+			String index = String.valueOf(j);
+		%>
+			infWindows.push("<%=text%>");
+			console.log(infWindows);
+		<%
+		} 
+		%>
+	    
 	    for (i=0; i<markerCoordinates.length; i++) {  
 		    var marker = new google.maps.Marker({
 		    	position: new google.maps.LatLng(markerCoordinates[i][i-i], markerCoordinates[i][1]),
 		        map: map,
 		    });
-	        infWindows["infowindow-" + i] = new google.maps.InfoWindow({
-	            content: 'Here is the infowindow for this occurrence.',
-	            maxWidth: 200
-	        });
 	        
-	        var infoWindowContent =  "ContentContent"
-		    //marker.addListener('click', function() {
-			//	  console.log(infWindows);
-			//	  console.log("I? "+i);
-			//	  var windowID = "infoWindow-" + i;
-		    //	  var thisWindow = infWindows[windowID];
-		    //	  console.log("This window : "+thisWindow);
-		    //      thisWindow.open(map, marker);
-		    //      this.setState({ showModal: true });
-		    //});
+		    //marker.setLabel(infWindows[i]);
+	        //Careful with this i. The java and js are both running a for loop. 
+	        console.log("I : "+i);
+	        let infoWindowContent = infWindows[i];
+	        console.log(infWindows[i]);
 		    
             google.maps.event.addListener(marker,'click', function() {
+            	console.log("I : "+i);
                 (new google.maps.InfoWindow({content: infoWindowContent })).open(map, this);
             });
 	    }
