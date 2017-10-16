@@ -13,7 +13,7 @@ Properties locationProps = new Properties();
 locationProps = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-
+String occLocation = urlLoc + "/occurrence.jsp?number=";
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("surveyMapEmbed.jsp");
 myShepherd.beginDBTransaction();
@@ -58,7 +58,8 @@ for (SurveyTrack trk : trks ) {
 			String lon = String.valueOf(trackOcc.getDecimalLongitude());
 			lineSet += "{lat: "+lat+", lng: "+lon+"},";
 			markerSet += "["+lat+","+lon+"],";
-			infoWindowSet += "<p><small>Occurrence ID: "+trackOcc.getOccurrenceID()+"</small</p>";
+			String link =  occLocation + trackOcc.getOccurrenceID();
+			infoWindowSet += "<p><small><a href='"+link+"'>"+trackOcc.getOccurrenceID()+"</a></small</p>";
 			infoWindowSet += "<p><small>Location ID: "+trackOcc.getLocationID()+"</small></p>";
 			infoWindowSet += "<p><small>Lat/Lon: ["+lat+","+lon+"]</small></p>";
 			infoWindowSets.add(infoWindowSet);
