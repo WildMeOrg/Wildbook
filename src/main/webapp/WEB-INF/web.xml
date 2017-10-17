@@ -577,13 +577,13 @@
 	</servlet>
 	
 	<servlet>
-		<servlet-name>ImportLegacyBentoCsv</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.ImportLegacyBentoCsv.java</servlet-class>
+		<servlet-name>ImportLegacyBento</servlet-name>
+		<servlet-class>org.ecocean.servlet.importer.ImportLegacyBento</servlet-class>
 	</servlet>
 	
 	 <servlet-mapping>
- 		<servlet-name>ImportLegacyBentoCsv</servlet-name>
-		<url-pattern>/ImportLegacyBentoCsv</url-pattern>
+ 		<servlet-name>ImportLegacyBento</servlet-name>
+		<url-pattern>/ImportLegacyBento</url-pattern>
 	</servlet-mapping>	
 		
     <servlet-mapping>
