@@ -1,7 +1,6 @@
 package org.ecocean.batch;
 
-import au.com.bytecode.opencsv.CSVReader;
-import au.com.bytecode.opencsv.CSVWriter;
+import com.opencsv.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
