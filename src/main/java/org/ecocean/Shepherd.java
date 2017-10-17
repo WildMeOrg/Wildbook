@@ -2110,6 +2110,15 @@ public class Shepherd {
     }
     return indiv;
   }
+ 
+    //note, new indiv is *not* made persistent here!  so do that yourself if you want to. (shouldnt matter if not-new)
+    public MarkedIndividual getOrCreateMarkedIndividual(String name, Encounter enc) {
+        MarkedIndividual indiv = getMarkedIndividualQuiet(name);
+        if (indiv != null) return indiv;
+        indiv = new MarkedIndividual(name, enc);
+        enc.assignToMarkedIndividual(name);
+        return indiv;
+    }
 
 
   public Occurrence getOccurrence(String id) {
