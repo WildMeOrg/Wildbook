@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
-public class ImportLegacyBentoCsv extends HttpServlet {
+public class ImportLegacyBento extends HttpServlet {
   /**
    * 
    */
@@ -37,7 +37,8 @@ public class ImportLegacyBentoCsv extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private static PrintWriter out;
   private static String context; 
-
+  private String messages;
+  
   
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -52,69 +53,83 @@ public class ImportLegacyBentoCsv extends HttpServlet {
     context = ServletUtilities.getContext(request);
     out.println("=========== Preparing to import legacy bento CSV file. ===========");
     Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("ImportLegacyBentoCsv.class");
+    myShepherd.setAction("ImportLegacyBento.class");
     
     out.println("Grabbing all CSV files... ");
     // Grab each CSV file, make switches similar to access import.
     // Stub a method for each one. 
-    // Find the DUML equivalent -or- start with surveys.     
-    String dir = "/opt/dukeImport/DUML Files for Colin-NEW/Raw Data Files/tables_170303/";
-    CSVReader effortCSV = grabReader(dir, "efforttable_final.csv");
-    CSVReader biopsyCSV = grabReader(dir, "biopsytable_final.csv");
-    CSVReader followsCSV = grabReader(dir, "followstable_final.csv");
-    CSVReader sightingsCSV = grabReader(dir, "sightingstable_final.csv");
-    CSVReader surveyLogCSV = grabReader(dir, "surveylogtable_final.csv");
-    CSVReader tagCSV = grabReader(dir, "tagtable_final.csv");
+    // Find the DUML equivalent -or- start with surveys. 
+    String dir = "/opt/dukeImport/DUML Files for Colin-NEW/Raw Data files/tables_170303/";
+    File rootFile = new File(dir);
+  
+    if (rootFile.exists()) {
+      out.println(rootFile.list().length);
+      out.println(rootFile.getAbsolutePath());
     
-    if (true) {
-      processEffort(myShepherd, effortCSV);
-    }
-    if (true) {
-      processBiopsy(myShepherd, biopsyCSV);
-    }
-    if (true) {
-      processFollows(myShepherd, followsCSV);
-    }
-    if (true) {
-      processSightings(myShepherd, sightingsCSV);
-    }
-    if (true) {
-      processSurveyLog(myShepherd, surveyLogCSV);
-    }
-    if (true) {
-      processTags(myShepherd, tagCSV);
+      CSVReader effortCSV = grabReader(new File (rootFile, "efforttable_final.csv"));
+      CSVReader biopsyCSV = grabReader(new File (rootFile, "biopsytable_final.csv"));
+      CSVReader followsCSV = grabReader(new File (rootFile, "followstable_final.csv"));
+      CSVReader sightingsCSV = grabReader(new File (rootFile, "sightingstable_final.csv"));
+      CSVReader surveyLogCSV = grabReader(new File (rootFile, "surveylogtable_final.csv"));
+      CSVReader tagCSV = grabReader(new File (rootFile, "tagtable_final.csv"));
+      
+      if (true) {
+        processEffort(myShepherd, effortCSV);
+      }
+      if (true) {
+        processBiopsy(myShepherd, biopsyCSV);
+      }
+      if (true) {
+        processFollows(myShepherd, followsCSV);
+      }
+      if (true) {
+        processSightings(myShepherd, sightingsCSV);
+      }
+      if (true) {
+        processSurveyLog(myShepherd, surveyLogCSV);
+      }
+      if (true) {
+        processTags(myShepherd, tagCSV);
+      }      
+    
+    } else {
+      out.println("The Specified Directory Doesn't Exist.");
     }
     
   }
  
-  private CSVReader grabReader(String dir, String filename) {
+  private CSVReader grabReader(File file) {
     CSVReader reader = null;
     try {
-      reader = new CSVReader(new FileReader(dir+filename));
+      reader = new CSVReader(new FileReader(file));
     } catch (FileNotFoundException e) {
-      System.out.println("Failed to retrieve CSV file at "+dir+filename);
+      System.out.println("Failed to retrieve CSV file at "+file.getPath());
       e.printStackTrace();
     }
     return reader;
   }
   
   private void processEffort(Shepherd myShepherd, CSVReader effortCSV) {
+    System.out.println(effortCSV.verifyReader());
     
   }
   private void processBiopsy(Shepherd myShepherd, CSVReader biopsyCSV) {
+    System.out.println(biopsyCSV.verifyReader());
     
   }
   private void processFollows(Shepherd myShepherd, CSVReader followsCSV) {
+    System.out.println(followsCSV.verifyReader());
     
   }
   private void processSightings(Shepherd myShepherd, CSVReader sightingsCSV) {
-    
+    System.out.println(sightingsCSV.verifyReader());
+  
   }
   private void processSurveyLog(Shepherd myShepherd, CSVReader surveyLogCSV) {
-    
+    System.out.println(surveyLogCSV.verifyReader());
   }
   private void processTags(Shepherd myShepherd, CSVReader tagCSV) {
-    
+    System.out.println(tagCSV.verifyReader());
   }
   
 }
