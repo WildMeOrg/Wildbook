@@ -63,8 +63,7 @@ public class ImportLegacyBento extends HttpServlet {
     File rootFile = new File(dir);
   
     if (rootFile.exists()) {
-      out.println(rootFile.list().length);
-      out.println(rootFile.getAbsolutePath());
+      out.println("File path: "+rootFile.getAbsolutePath());
     
       CSVReader effortCSV = grabReader(new File (rootFile, "efforttable_final.csv"));
       CSVReader biopsyCSV = grabReader(new File (rootFile, "biopsytable_final.csv"));
@@ -74,7 +73,7 @@ public class ImportLegacyBento extends HttpServlet {
       CSVReader tagCSV = grabReader(new File (rootFile, "tagtable_final.csv"));
       
       if (true) {
-        processEffort(myShepherd, effortCSV);
+        processEffortFile(myShepherd, effortCSV);
       }
       if (true) {
         processBiopsy(myShepherd, biopsyCSV);
@@ -94,8 +93,7 @@ public class ImportLegacyBento extends HttpServlet {
     
     } else {
       out.println("The Specified Directory Doesn't Exist.");
-    }
-    
+    }   
   }
  
   private CSVReader grabReader(File file) {
@@ -109,16 +107,38 @@ public class ImportLegacyBento extends HttpServlet {
     return reader;
   }
   
-  private void processEffort(Shepherd myShepherd, CSVReader effortCSV) {
+  private void processEffortFile(Shepherd myShepherd, CSVReader effortCSV) {
     System.out.println(effortCSV.verifyReader());
+    Iterator<String[]> rows = effortCSV.iterator();
+    // Just grab the first one. It has all the column names, and theoretically the maximum length of each row. 
+    String[] columnNameArr = rows.next();
+    int numColumns = columnNameArr.length;
+    while (rows.hasNext()) {
+      String[] rowString = rows.next();
+      Survey sv = processEffortRow(columnNameArr,rowString);
+    }
+    out.println(Arrays.toString(rows.next()));
+  }
+  
+  private Survey processEffortRow(String[] names, String[] values) {
+    Survey sv = new Survey();
+    for (int i=0;i<names.length;i++) {
+      
+      if (names[i].equals("Date Created")) {
+        out.println("Date Created : "+values[i]);
+      }
+    
+    }
+    return sv;
+  }
+  
+
+  private void processFollows(Shepherd myShepherd, CSVReader followsCSV) {
+    System.out.println(followsCSV.verifyReader());
     
   }
   private void processBiopsy(Shepherd myShepherd, CSVReader biopsyCSV) {
     System.out.println(biopsyCSV.verifyReader());
-    
-  }
-  private void processFollows(Shepherd myShepherd, CSVReader followsCSV) {
-    System.out.println(followsCSV.verifyReader());
     
   }
   private void processSightings(Shepherd myShepherd, CSVReader sightingsCSV) {
