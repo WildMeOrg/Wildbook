@@ -26,14 +26,11 @@ public class Survey implements java.io.Serializable{
   private String project;
   private String organization;
   private String comments = "None";
-  
   //Scuba, tourism ect...
   private String type;
-  
   //Might need to turn these to big int so can be null.
   private Long startTime;
   private Long endTime;
-  
   // This is the actual amount of effort spent to gather date. 
   // It must be given a defined Measurement object.
   private Measurement effort;
