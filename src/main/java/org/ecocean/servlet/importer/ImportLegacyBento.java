@@ -4,6 +4,9 @@ import org.json.JSONObject;
 
 import com.opencsv.*;
 import java.io.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -116,20 +119,45 @@ public class ImportLegacyBento extends HttpServlet {
     while (rows.hasNext()) {
       String[] rowString = rows.next();
       Survey sv = processEffortRow(columnNameArr,rowString);
+      myShepherd.beginDBTransaction();
+      try {
+        myShepherd.getPM().makePersistent(sv);
+        myShepherd.commitDBTransaction();
+      } catch (Exception e) {
+        myShepherd.rollbackDBTransaction();
+        e.printStackTrace();
+        out.println("Could not persist this Survey : "+Arrays.toString(rowString));
+      }
     }
-    out.println(Arrays.toString(rows.next()));
   }
   
   private Survey processEffortRow(String[] names, String[] values) {
-    Survey sv = new Survey();
+    Survey sv = null;
     for (int i=0;i<names.length;i++) {
-      
+      // Process each row specifically, or dump in observation.
       if (names[i].equals("Date Created")) {
-        out.println("Date Created : "+values[i]);
+        String date = formatDate(values[i]); 
+        if (date!=null) {
+          sv = new Survey(date);          
+        }
       }
-    
     }
     return sv;
+  }
+  
+  private String formatDate(String rawDate) {
+    String date = null;
+    DateTime dt = null;
+    out.println("Raw Date Created : "+rawDate);
+    if (String.valueOf(rawDate.charAt(3)).equals(" ")) {
+      dt = dateStringToDateTime(rawDate,"MMM dd, yyyy, h:m a");          
+    } else if (String.valueOf(rawDate.charAt(4)).equals("-")) {
+      dt = dateStringToDateTime(rawDate,"yyyy-MM-dd'T'kk:mm:ss"); 
+    } else {
+      out.println("Bad date format.");
+    }
+    date = dt.toString().substring(0,10);
+    return date;
   }
   
 
@@ -152,6 +180,19 @@ public class ImportLegacyBento extends HttpServlet {
     System.out.println(tagCSV.verifyReader());
   }
   
+  private DateTime dateStringToDateTime(String verbatim, String format) {
+    DateFormat fm = new SimpleDateFormat(format);
+    Date d = null;
+    try {
+      d = (Date)fm.parse(verbatim);    
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+      out.println("Barfed Parsing a Datestring... Format : "+format);
+    }
+    DateTime dt = new DateTime(d);
+    
+    return dt;
+  }
 }
   
   
