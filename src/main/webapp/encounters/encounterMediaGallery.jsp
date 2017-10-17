@@ -145,9 +145,9 @@ function forceLink(el) {
 		      contentType: 'application/javascript',
 		      success: function(d) {
 		        console.info('identify returned %o', d);
-			if (d.tasks && (d.tasks.length > 0) && d.tasks[0].taskId) {
+		        if (d.taskID) {
 				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
-				window.location.href = 'matchResults.jsp?taskId=' + d.tasks[0].taskId;
+		          window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
 		        } else {
 				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
 		        }
@@ -449,13 +449,12 @@ function doImageEnhancer(sel) {
 */
 	];
 
-//   generic IA stuff, skipped for whaleshark
-	if (wildbook.iaEnabled()) {
+	if (wildbook.iaEnabled()) {  //TODO (the usual) needs to be genericized for IA plugin support (which doesnt yet exist)
 		opt.menu.push(['start new matching scan', function(enh) {
-      if (!isGenusSpeciesSet()) {
-        imageEnhancer.popup("You need full taxonomic classification to start identification!");
-        return;
-      }
+      		if (!isGenusSpeciesSet()) {
+        		imageEnhancer.popup("You need full taxonomic classification to start identification!");
+        		return;
+      		}
 			//var mid = enh.imgEl.context.id.substring(11);
 			var mid = enh.imgEl.data('enh-mediaassetid');
       console.log('%o ?????', mid);
@@ -481,7 +480,7 @@ function doImageEnhancer(sel) {
 	}
 */
 <%
-if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&((CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true")))){
+if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
 %>
 	opt.menu.push(
             [
@@ -494,18 +493,22 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 			var mid = enh.imgEl.context.id.substring(11);
 			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
 		}
+            ],
+            [
+		function(enh) { return imagePopupInfoMenuItem(enh); },
+		function(enh) { imagePopupInfo(enh); }
             ]
 	);
 	<%
     }
 	%>
 
-	opt.menu.push(
-            [
-		function(enh) { return imagePopupInfoMenuItem(enh); },
-		function(enh) { imagePopupInfo(enh); }
-            ]
-	);
+/*
+        if (true) {
+            opt.menu.push(['set image as encounter thumbnail', function(enh) {
+            }]);
+        }
+*/
 
         opt.init = [
             function(el, enh) {
