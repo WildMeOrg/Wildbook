@@ -2,6 +2,7 @@ package org.ecocean.servlet.importer;
 
 import org.json.JSONObject;
 
+// import au.com.bytecode.opencsv.*;
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
@@ -9,20 +10,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
-import org.ecocean.tag.DigitalArchiveTag;
-import org.ecocean.tag.SatelliteTag;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.ecocean.media.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-//import org.apache.poi.hssf.usermodel.*;
-//import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import org.apache.commons.fileupload.*;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -62,6 +55,11 @@ public class ImportLegacyBentoCsv extends HttpServlet {
     
     out.println("Grabbing all CSV files... ");
     String dir = "/opt/dukeImport/DUML Files for Colin-NEW/Raw Data Files/tables_170303/";
+    
+    // Grab each CSV file, make switches similar to access import.
+    // Stub a method for each one. 
+    // Find the DUML equivalent -or- start with surveys. 
+    //CSVReader perser = new CSVReader();
     
     String name = null;
     File effortFile = grabCSVFile(name);
