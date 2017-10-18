@@ -97,12 +97,17 @@ public class Survey implements java.io.Serializable{
   }
   
   public void addComments(String newComments) {
-    if (comments != null && !comments.equals("None")) {
-      comments += newComments;
-    } else {
-      comments = newComments;
+    System.out.println("Comments from survey object : "+newComments);
+    try {
+      if (comments != null && !comments.equals("None")) {
+        comments += newComments;
+      } else {
+        comments = newComments;
+      }
+      setDWCDateLastModified();      
+    } catch (NullPointerException npe) {
+      npe.printStackTrace();
     }
-    setDWCDateLastModified();
   }
   
   public String getID() {

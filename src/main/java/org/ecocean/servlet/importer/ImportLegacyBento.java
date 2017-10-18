@@ -40,7 +40,9 @@ public class ImportLegacyBento extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private static PrintWriter out;
   private static String context; 
-  private String messages;
+  //private String messages;
+  
+  private ArrayList<Survey> masterSurveyArr = new ArrayList<Survey>();
   
   
   public void init(ServletConfig config) throws ServletException {
@@ -110,22 +112,29 @@ public class ImportLegacyBento extends HttpServlet {
     return reader;
   }
   
+  private void processSurveyLog(Shepherd myShepherd, CSVReader surveyLogCSV) {
+    System.out.println(surveyLogCSV.verifyReader());
+    
+  }
+  
   private void processEffortFile(Shepherd myShepherd, CSVReader effortCSV) {
+    System.out.println(effortCSV.verifyReader());
     int totalSurveys = 0;
     int totalRows = 0;
-    System.out.println(effortCSV.verifyReader());
     Iterator<String[]> rows = effortCSV.iterator();
     // Just grab the first one. It has all the column names, and theoretically the maximum length of each row. 
     String[] columnNameArr = rows.next();
-    int numColumns = columnNameArr.length;
+    Survey sv = null;
     while (rows.hasNext()) {
       totalRows += 1;
       String[] rowString = rows.next();
-      Survey sv = processEffortRow(columnNameArr,rowString);
-      myShepherd.beginDBTransaction();
+      sv = processEffortRow(columnNameArr,rowString);
+      myShepherd.beginDBTransaction();        
+
       try {
         myShepherd.getPM().makePersistent(sv);
         myShepherd.commitDBTransaction();
+        masterSurveyArr.add(sv);
         totalSurveys += 1;
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
@@ -140,11 +149,13 @@ public class ImportLegacyBento extends HttpServlet {
     ArrayList<String> obsColumns = new ArrayList<String>();
     Survey sv = null;
     String date = null;
+    
+    // Explicit column index for date is #38.
+    
     for (int i=0;i<names.length;i++) {
-      // Process each row specifically, or dump in observation.
-      if (names[i].equals("Date Created")) {
+      if (names[38].equals("Date Created")) {
         try {
-          date = formatDate(values[i]);           
+          date = formatDate(values[38]);           
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -155,16 +166,22 @@ public class ImportLegacyBento extends HttpServlet {
           sv.setID(Util.generateUUID());
           sv.setDWCDateLastModified();
         }
-      }  
-      if (names[i].equals("Project")&&!values[i].equals("N/A")) {
-        sv.setProjectName(names[i]);
       }
-      if (names[i].equals("Comments")&&!values[i].equals("N/A")) {
-        sv.addComments(names[i]);
+      if (names[i]!=null) {
+        if (names[i].equals("Project")&&!values[i].equals("N/A")) {
+          sv.setProjectName(values[i]);
+          obsColumns.remove("Project");
+        }        
+        if (names[i].equals("Comments")&&!values[i].equals("N/A")) {
+          try {
+            sv.addComments("Penguin!");            
+            obsColumns.remove("Comments");
+          } catch (NullPointerException npe) {
+            npe.printStackTrace();
+            System.out.println(values[i]);
+          }          
+        }        
       }
-
-      
-      
     }
     return sv;
   }
@@ -181,9 +198,6 @@ public class ImportLegacyBento extends HttpServlet {
     System.out.println(sightingsCSV.verifyReader());
   
   }
-  private void processSurveyLog(Shepherd myShepherd, CSVReader surveyLogCSV) {
-    System.out.println(surveyLogCSV.verifyReader());
-  }
   private void processTags(Shepherd myShepherd, CSVReader tagCSV) {
     System.out.println(tagCSV.verifyReader());
   }
@@ -192,15 +206,14 @@ public class ImportLegacyBento extends HttpServlet {
     String date = null;
     DateTime dt = null;
     //out.println("Raw Date Created : "+rawDate);
-    if (!rawDate.equals("N/A")) {
-      // catch dates with no AM/PM stamp
-      if (String.valueOf(rawDate.charAt(3)).equals(" ")) {
-        dt = dateStringToDateTime(rawDate,"MMM dd, yyyy, h:m a");          
+    if (!rawDate.equals("N/A")&&!rawDate.equals("")) {
+      if (rawDate.endsWith("AM")||(rawDate.endsWith("PM"))){
+        dt = dateStringToDateTime(rawDate,"MMM d, yyyy, h:m a");
+      } else if (String.valueOf(rawDate.charAt(3)).equals(" ")) {
+        dt = dateStringToDateTime(rawDate,"MMM dd, yyyy, h:m");          
       } else if (String.valueOf(rawDate.charAt(4)).equals("-")) {
         dt = dateStringToDateTime(rawDate,"yyyy-MM-dd'T'kk:mm:ss"); 
-      } else if (!rawDate.endsWith("AM")&&(!rawDate.endsWith("PM"))){
-        dt = dateStringToDateTime(rawDate,"MMM d, yyyy, h:m");
-      }      
+      }
       date = dt.toString().substring(0,10);
     } 
     return date;
