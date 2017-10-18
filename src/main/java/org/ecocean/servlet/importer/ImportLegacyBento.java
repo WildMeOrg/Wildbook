@@ -111,55 +111,63 @@ public class ImportLegacyBento extends HttpServlet {
   }
   
   private void processEffortFile(Shepherd myShepherd, CSVReader effortCSV) {
+    int totalSurveys = 0;
+    int totalRows = 0;
     System.out.println(effortCSV.verifyReader());
     Iterator<String[]> rows = effortCSV.iterator();
     // Just grab the first one. It has all the column names, and theoretically the maximum length of each row. 
     String[] columnNameArr = rows.next();
     int numColumns = columnNameArr.length;
     while (rows.hasNext()) {
+      totalRows += 1;
       String[] rowString = rows.next();
       Survey sv = processEffortRow(columnNameArr,rowString);
       myShepherd.beginDBTransaction();
       try {
         myShepherd.getPM().makePersistent(sv);
         myShepherd.commitDBTransaction();
+        totalSurveys += 1;
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
         e.printStackTrace();
         out.println("Could not persist this Survey : "+Arrays.toString(rowString));
       }
     }
+    out.println("Created "+totalSurveys+" surveys out of "+totalRows+" rows in EFFORT file.");
   }
   
   private Survey processEffortRow(String[] names, String[] values) {
+    ArrayList<String> obsColumns = new ArrayList<String>();
     Survey sv = null;
+    String date = null;
     for (int i=0;i<names.length;i++) {
       // Process each row specifically, or dump in observation.
       if (names[i].equals("Date Created")) {
-        String date = formatDate(values[i]); 
+        try {
+          date = formatDate(values[i]);           
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         if (date!=null) {
           sv = new Survey(date);          
+        } else {
+          sv = new Survey();
+          sv.setID(Util.generateUUID());
+          sv.setDWCDateLastModified();
         }
+      }  
+      if (names[i].equals("Project")&&!values[i].equals("N/A")) {
+        sv.setProjectName(names[i]);
       }
+      if (names[i].equals("Comments")&&!values[i].equals("N/A")) {
+        sv.addComments(names[i]);
+      }
+
+      
+      
     }
     return sv;
   }
-  
-  private String formatDate(String rawDate) {
-    String date = null;
-    DateTime dt = null;
-    out.println("Raw Date Created : "+rawDate);
-    if (String.valueOf(rawDate.charAt(3)).equals(" ")) {
-      dt = dateStringToDateTime(rawDate,"MMM dd, yyyy, h:m a");          
-    } else if (String.valueOf(rawDate.charAt(4)).equals("-")) {
-      dt = dateStringToDateTime(rawDate,"yyyy-MM-dd'T'kk:mm:ss"); 
-    } else {
-      out.println("Bad date format.");
-    }
-    date = dt.toString().substring(0,10);
-    return date;
-  }
-  
 
   private void processFollows(Shepherd myShepherd, CSVReader followsCSV) {
     System.out.println(followsCSV.verifyReader());
@@ -180,6 +188,24 @@ public class ImportLegacyBento extends HttpServlet {
     System.out.println(tagCSV.verifyReader());
   }
   
+  private String formatDate(String rawDate) {
+    String date = null;
+    DateTime dt = null;
+    //out.println("Raw Date Created : "+rawDate);
+    if (!rawDate.equals("N/A")) {
+      // catch dates with no AM/PM stamp
+      if (String.valueOf(rawDate.charAt(3)).equals(" ")) {
+        dt = dateStringToDateTime(rawDate,"MMM dd, yyyy, h:m a");          
+      } else if (String.valueOf(rawDate.charAt(4)).equals("-")) {
+        dt = dateStringToDateTime(rawDate,"yyyy-MM-dd'T'kk:mm:ss"); 
+      } else if (!rawDate.endsWith("AM")&&(!rawDate.endsWith("PM"))){
+        dt = dateStringToDateTime(rawDate,"MMM d, yyyy, h:m");
+      }      
+      date = dt.toString().substring(0,10);
+    } 
+    return date;
+  }  
+  
   private DateTime dateStringToDateTime(String verbatim, String format) {
     DateFormat fm = new SimpleDateFormat(format);
     Date d = null;
@@ -187,10 +213,9 @@ public class ImportLegacyBento extends HttpServlet {
       d = (Date)fm.parse(verbatim);    
     } catch (ParseException pe) {
       pe.printStackTrace();
-      out.println("Barfed Parsing a Datestring... Format : "+format);
+      out.println("Barfed Parsing a Datestring... Format : "+format+", Verbatim : "+verbatim);
     }
     DateTime dt = new DateTime(d);
-    
     return dt;
   }
 }

@@ -26,13 +26,10 @@ public class Survey implements java.io.Serializable{
   private String project;
   private String organization;
   private String comments = "None";
-  //Scuba, tourism ect...
   private String type;
-  //Might need to turn these to big int so can be null.
   private Long startTime;
   private Long endTime;
   // This is the actual amount of effort spent to gather date. 
-  // It must be given a defined Measurement object.
   private Measurement effort;
   
   private String dateTimeCreated;
@@ -42,10 +39,8 @@ public class Survey implements java.io.Serializable{
   
   private ArrayList<Observation> observations = new ArrayList<Observation>();
   
-  
   //empty constructor used by the JDO enhancer
   public Survey(){}
-  
   
   public Survey(String date){
     this.date=date;
