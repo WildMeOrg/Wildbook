@@ -78,6 +78,9 @@ public class ImportLegacyBento extends HttpServlet {
       CSVReader tagCSV = grabReader(new File (rootFile, "tagtable_final.csv"));
       
       if (true) {
+        processSurveyLogFile(myShepherd, surveyLogCSV);
+      }
+      if (true) {
         processEffortFile(myShepherd, effortCSV);
       }
       if (true) {
@@ -90,15 +93,14 @@ public class ImportLegacyBento extends HttpServlet {
         processSightings(myShepherd, sightingsCSV);
       }
       if (true) {
-        processSurveyLog(myShepherd, surveyLogCSV);
-      }
-      if (true) {
         processTags(myShepherd, tagCSV);
       }      
     
     } else {
       out.println("The Specified Directory Doesn't Exist.");
     }   
+    myShepherd.closeDBTransaction();
+    out.close();
   }
  
   private CSVReader grabReader(File file) {
@@ -112,9 +114,28 @@ public class ImportLegacyBento extends HttpServlet {
     return reader;
   }
   
-  private void processSurveyLog(Shepherd myShepherd, CSVReader surveyLogCSV) {
+  private void processSurveyLogFile(Shepherd myShepherd, CSVReader surveyLogCSV) {
     System.out.println(surveyLogCSV.verifyReader());
+    int totalSurveys = 0;
+    int totalRows = 0;
+    Iterator<String[]> rows = surveyLogCSV.iterator();
+    String[] columnNameArr = rows.next();
+    Survey sv = null;
     
+    while (rows.hasNext()) {
+      totalRows += 1;
+      String[] rowString = rows.next();
+      sv = processSurveyLogRow(columnNameArr,rowString);
+      myShepherd.beginDBTransaction();    
+      
+    }
+    
+  }
+  
+  public Survey processSurveyLogRow(String[] names, String[] values ) {
+    Survey sv = null;
+    
+    return sv;
   }
   
   private void processEffortFile(Shepherd myShepherd, CSVReader effortCSV) {
@@ -145,28 +166,36 @@ public class ImportLegacyBento extends HttpServlet {
     out.println("Created "+totalSurveys+" surveys out of "+totalRows+" rows in EFFORT file.");
   }
   
+  private Survey effortSurveyInstantiate(String date) {
+    Survey sv = null;
+    try {
+      date = formatDate(date);           
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    if (date!=null) {
+      sv = new Survey(date);          
+    } else {
+      sv = new Survey();
+      sv.setID(Util.generateUUID());
+      sv.setDWCDateLastModified();
+    }
+    return sv;
+  }
+  
   private Survey processEffortRow(String[] names, String[] values) {
     ArrayList<String> obsColumns = new ArrayList<String>();
     Survey sv = null;
-    String date = null;
-    
+    boolean match = false;
     // Explicit column index for date is #38.
+    // TODO precede with a check for match in masterArr
+    if (names[38].equals("Date Created")) {
+      if (!match) {
+        sv = effortSurveyInstantiate(values[38]);
+      }
+    }
     
     for (int i=0;i<names.length;i++) {
-      if (names[38].equals("Date Created")) {
-        try {
-          date = formatDate(values[38]);           
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-        if (date!=null) {
-          sv = new Survey(date);          
-        } else {
-          sv = new Survey();
-          sv.setID(Util.generateUUID());
-          sv.setDWCDateLastModified();
-        }
-      }
       if (names[i]!=null) {
         if (names[i].equals("Project")&&!values[i].equals("N/A")) {
           sv.setProjectName(values[i]);
