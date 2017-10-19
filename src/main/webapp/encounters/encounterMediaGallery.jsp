@@ -392,6 +392,7 @@ function doImageEnhancer(sel) {
 if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
 %>
 	opt.menu.push(
+/*
             [
 		'spot mapping',
 		function(enh) {
@@ -403,6 +404,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
 		}
             ],
+*/
             [
 		function(enh) { return imagePopupInfoMenuItem(enh); },
 		function(enh) { imagePopupInfo(enh); }
