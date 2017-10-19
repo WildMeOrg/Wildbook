@@ -115,7 +115,7 @@ public class ImportLegacyBento extends HttpServlet {
   }
   
   private void processSurveyLogFile(Shepherd myShepherd, CSVReader surveyLogCSV) {
-    System.out.println(surveyLogCSV.verifyReader());
+    System.out.println("Processing SURVEYLOG? "+surveyLogCSV.verifyReader());
     int totalSurveys = 0;
     int totalRows = 0;
     Iterator<String[]> rows = surveyLogCSV.iterator();
@@ -126,20 +126,59 @@ public class ImportLegacyBento extends HttpServlet {
       totalRows += 1;
       String[] rowString = rows.next();
       sv = processSurveyLogRow(columnNameArr,rowString);
-      myShepherd.beginDBTransaction();    
-      
+      if (sv!=null) {
+        myShepherd.beginDBTransaction();    
+        try {
+          myShepherd.getPM().makePersistent(sv);
+          myShepherd.commitDBTransaction();
+          masterSurveyArr.add(sv);
+          System.out.println(sv.getID());
+          totalSurveys += 1;
+        } catch (Exception e) {
+          myShepherd.rollbackDBTransaction();
+          e.printStackTrace();
+          out.println("Could not persist this Survey from SURVEYLOG : "+Arrays.toString(rowString));
+        }        
+      }
     }
-    
+    out.println("Created "+totalSurveys+" surveys out of "+totalRows+" rows in SURVEYLOG file.");
   }
   
   public Survey processSurveyLogRow(String[] names, String[] values ) {
+    ArrayList<String> obsColumns = new ArrayList<String>();
     Survey sv = null;
     
+    // explicit column for date in surveylog is #34 
+    if (sv==null) {
+      sv = surveyInstantiate(values[34]);
+    }
+    
+    for (int i=0;i<names.length;i++) {
+      // Make if val=N/A a precursor to all processing, not a check for each.
+      if (values[i]!=null&&!values[i].equals("N/A")&&!values[i].equals("")) {
+        if (names[i]!=null) {
+          if (names[i].equals("Project")) {
+            sv.setProjectName(values[i]);
+            obsColumns.remove("Project");
+          }        
+          if (names[i].equals("Comments")) {
+            try {
+              sv.addComments(values[i]);            
+              obsColumns.remove("Comments");
+            } catch (NullPointerException npe) {
+              npe.printStackTrace();
+              System.out.println(values[i]);
+            }          
+          }        
+        }        
+      }
+    }
     return sv;
   }
   
   private void processEffortFile(Shepherd myShepherd, CSVReader effortCSV) {
-    System.out.println(effortCSV.verifyReader());
+    System.out.println("Processing EFFORT? "+effortCSV.verifyReader());
+    // Why stop now?
     int totalSurveys = 0;
     int totalRows = 0;
     Iterator<String[]> rows = effortCSV.iterator();
@@ -156,17 +195,18 @@ public class ImportLegacyBento extends HttpServlet {
         myShepherd.getPM().makePersistent(sv);
         myShepherd.commitDBTransaction();
         masterSurveyArr.add(sv);
+        System.out.println(sv.getID());
         totalSurveys += 1;
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
         e.printStackTrace();
-        out.println("Could not persist this Survey : "+Arrays.toString(rowString));
+        out.println("Could not persist this Survey from EFFORT : "+Arrays.toString(rowString));
       }
     }
     out.println("Created "+totalSurveys+" surveys out of "+totalRows+" rows in EFFORT file.");
   }
   
-  private Survey effortSurveyInstantiate(String date) {
+  private Survey surveyInstantiate(String date) {
     Survey sv = null;
     try {
       date = formatDate(date);           
@@ -183,32 +223,53 @@ public class ImportLegacyBento extends HttpServlet {
     return sv;
   }
   
+  private Survey checkMasterArrForSurvey(String[] names, String[] values) {
+    //explicit column # for date in surveylog is 38 ("" project "" vessel)
+    //The names and values are from the effort table.
+    //The only surveys available in the arr should be from the survey log table. 
+    String date = formatDate(values[38]);
+    String project = values[28].trim();
+    String vessel = values[36].trim();
+    for (Survey arrSv : masterSurveyArr) {
+      if (arrSv.getDate()!=null&&arrSv.getDate().equals(date)) {
+        if (arrSv.getProjectName()!=null&&arrSv.getProjectName().equals(project)) {
+          return arrSv;
+        }
+        if (arrSv.getObservationByName("Vessel")!=null&&arrSv.getObservationByName("Vessel").getValue().equals(vessel)) {
+          return arrSv;
+        }
+      }
+    }
+    return null;
+  }
+  
   private Survey processEffortRow(String[] names, String[] values) {
     ArrayList<String> obsColumns = new ArrayList<String>();
     Survey sv = null;
-    boolean match = false;
-    // Explicit column index for date is #38.
-    // TODO precede with a check for match in masterArr
+    // Explicit column index for date in effort is #38.
     if (names[38].equals("Date Created")) {
-      if (!match) {
-        sv = effortSurveyInstantiate(values[38]);
+      sv = checkMasterArrForSurvey(names, values); 
+      if (sv==null) {
+        sv = surveyInstantiate(values[38]);
       }
     }
-    
     for (int i=0;i<names.length;i++) {
-      if (names[i]!=null) {
-        if (names[i].equals("Project")&&!values[i].equals("N/A")) {
-          sv.setProjectName(values[i]);
-          obsColumns.remove("Project");
-        }        
-        if (names[i].equals("Comments")&&!values[i].equals("N/A")) {
-          try {
-            sv.addComments("Penguin!");            
-            obsColumns.remove("Comments");
-          } catch (NullPointerException npe) {
-            npe.printStackTrace();
-            System.out.println(values[i]);
-          }          
+      // Make if val=N/A a precursor to all processing, not a check for each.
+      if (values[i]!=null&&!values[i].equals("N/A")&&!values[i].equals("")) {
+        if (names[i]!=null) {
+          if (names[i].equals("Project")) {
+            sv.setProjectName(values[i]);
+            obsColumns.remove("Project");
+          }        
+          if (names[i].equals("Comments")) {
+            try {
+              sv.addComments(values[i]);            
+              obsColumns.remove("Comments");
+            } catch (NullPointerException npe) {
+              npe.printStackTrace();
+              System.out.println(values[i]);
+            }          
+          }        
         }        
       }
     }
@@ -235,7 +296,7 @@ public class ImportLegacyBento extends HttpServlet {
     String date = null;
     DateTime dt = null;
     //out.println("Raw Date Created : "+rawDate);
-    if (!rawDate.equals("N/A")&&!rawDate.equals("")) {
+    if (rawDate!=null&&!rawDate.equals("N/A")&&!rawDate.equals("")) {
       if (rawDate.endsWith("AM")||(rawDate.endsWith("PM"))){
         dt = dateStringToDateTime(rawDate,"MMM d, yyyy, h:m a");
       } else if (String.valueOf(rawDate.charAt(3)).equals(" ")) {
