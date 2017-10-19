@@ -97,7 +97,6 @@ public class Survey implements java.io.Serializable{
   }
   
   public void addComments(String newComments) {
-    System.out.println("Comments from survey object : "+newComments);
     try {
       if (comments != null && !comments.equals("None")) {
         comments += newComments;
@@ -125,7 +124,6 @@ public class Survey implements java.io.Serializable{
   
   public void generateID() {
     String id = Util.generateUUID().toString();  
-    System.out.println("!!! New Survey ID !!!!");
     surveyID = id;
   }
   
