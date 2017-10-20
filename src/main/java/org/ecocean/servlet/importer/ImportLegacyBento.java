@@ -2,6 +2,7 @@ package org.ecocean.servlet.importer;
 
 import org.json.JSONObject;
 
+import com.healthmarketscience.jackcess.Row;
 import com.opencsv.*;
 import java.io.*;
 import java.text.DateFormat;
@@ -12,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.ecocean.*;
+import org.ecocean.genetics.TissueSample;
 import org.ecocean.servlet.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -132,7 +134,7 @@ public class ImportLegacyBento extends HttpServlet {
           myShepherd.getPM().makePersistent(sv);
           myShepherd.commitDBTransaction();
           masterSurveyArr.add(sv);
-          System.out.println(sv.getID());
+          //System.out.println(sv.getID());
           totalSurveys += 1;
         } catch (Exception e) {
           myShepherd.rollbackDBTransaction();
@@ -147,7 +149,6 @@ public class ImportLegacyBento extends HttpServlet {
   public Survey processSurveyLogRow(String[] names, String[] values ) {
     ArrayList<String> obsColumns = new ArrayList<String>();
     Survey sv = null;
-    
     // explicit column for date in surveylog is #34 
     if (sv==null) {
       sv = surveyInstantiate(values[34]);
@@ -195,15 +196,15 @@ public class ImportLegacyBento extends HttpServlet {
         myShepherd.getPM().makePersistent(sv);
         myShepherd.commitDBTransaction();
         masterSurveyArr.add(sv);
-        System.out.println(sv.getID());
+        //System.out.println(sv.getID());
         totalSurveys += 1;
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
         e.printStackTrace();
         out.println("Could not persist this Survey from EFFORT : "+Arrays.toString(rowString));
       }
+      out.println("Created "+totalSurveys+" surveys out of "+totalRows+" rows in EFFORT file.");
     }
-    out.println("Created "+totalSurveys+" surveys out of "+totalRows+" rows in EFFORT file.");
   }
   
   private Survey surveyInstantiate(String date) {
@@ -233,9 +234,11 @@ public class ImportLegacyBento extends HttpServlet {
     for (Survey arrSv : masterSurveyArr) {
       if (arrSv.getDate()!=null&&arrSv.getDate().equals(date)) {
         if (arrSv.getProjectName()!=null&&arrSv.getProjectName().equals(project)) {
+          out.println("Found match in Array: "+arrSv.getProjectName()+" = "+project);
           return arrSv;
         }
         if (arrSv.getObservationByName("Vessel")!=null&&arrSv.getObservationByName("Vessel").getValue().equals(vessel)) {
+          out.println("Found match in Array: "+arrSv.getObservationByName("Vessel").getValue()+" = "+vessel);
           return arrSv;
         }
       }
@@ -250,7 +253,12 @@ public class ImportLegacyBento extends HttpServlet {
     if (names[38].equals("Date Created")) {
       sv = checkMasterArrForSurvey(names, values); 
       if (sv==null) {
-        sv = surveyInstantiate(values[38]);
+        try {
+          sv = surveyInstantiate(values[38]);          
+        } catch (NullPointerException npe) {
+          System.out.println("NPE while trying to instantiate survey.");
+          npe.printStackTrace();
+        }
       }
     }
     for (int i=0;i<names.length;i++) {
@@ -292,19 +300,89 @@ public class ImportLegacyBento extends HttpServlet {
     System.out.println(tagCSV.verifyReader());
   }
   
+  private void processRemainingColumnsAsObservations(Object obj, ArrayList<String> columnList, Row thisRow) {
+    Encounter enc = null;
+    Occurrence occ = null;
+    TissueSample ts = null;
+    Survey sv = null;
+    
+    String id = null;
+    if (obj.getClass().getSimpleName().equals("Encounter")) {
+      enc = (Encounter) obj;
+      id = ((Encounter) obj).getPrimaryKeyID();
+    } 
+    if (obj.getClass().getSimpleName().equals("Occurrence")) {
+      occ = (Occurrence) obj;
+      id = ((Occurrence) obj).getPrimaryKeyID();
+    }
+    if (obj.getClass().getSimpleName().equals("TissueSample")) {
+      ts = (TissueSample) obj;
+      id = ((TissueSample) obj).getSampleID();
+    }
+    if (obj.getClass().getSimpleName().equals("Survey")) {
+      sv = (Survey) obj;
+      id = ((Survey) obj).getID();
+    }
+    
+    ArrayList<Observation> newObs = new ArrayList<Observation>();
+    for (String column : columnList) {
+      String value = null;
+      try {
+        if (thisRow.get(column) != null) {
+          value = thisRow.get(column.trim()).toString().trim();
+          if (value.length() > 0) {
+            Observation ob = new Observation(column.toString(), value, obj, id);
+            newObs.add(ob);           
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        out.println("Failed to create and store Observation "+column+" with value "+value+" for encounter "+id);
+      }
+    }
+    if (newObs.size() > 0) {
+      try {
+        if (enc != null) {
+          enc.addBaseObservationArrayList(newObs);
+          enc.getBaseObservationArrayList().toString();
+        }
+        if (occ != null) {
+          occ.addBaseObservationArrayList(newObs); 
+          occ.getBaseObservationArrayList().toString();
+        }
+        if (ts != null) {
+          ts.addBaseObservationArrayList(newObs); 
+          ts.getBaseObservationArrayList().toString();
+        }
+        if (ts != null) {
+          sv.addBaseObservationArrayList(newObs); 
+          sv.getBaseObservationArrayList().toString();
+        }
+        out.println("Added "+newObs.size()+" observations to "+obj.getClass().getSimpleName()+" "+id+" : ");
+      } catch (Exception e) {
+        e.printStackTrace();
+        out.println("Failed to add the array of observations to this object.");
+      }        
+    }
+  }
+  
   private String formatDate(String rawDate) {
     String date = null;
     DateTime dt = null;
     //out.println("Raw Date Created : "+rawDate);
-    if (rawDate!=null&&!rawDate.equals("N/A")&&!rawDate.equals("")) {
-      if (rawDate.endsWith("AM")||(rawDate.endsWith("PM"))){
-        dt = dateStringToDateTime(rawDate,"MMM d, yyyy, h:m a");
-      } else if (String.valueOf(rawDate.charAt(3)).equals(" ")) {
-        dt = dateStringToDateTime(rawDate,"MMM dd, yyyy, h:m");          
-      } else if (String.valueOf(rawDate.charAt(4)).equals("-")) {
-        dt = dateStringToDateTime(rawDate,"yyyy-MM-dd'T'kk:mm:ss"); 
+    if (rawDate!=null&&rawDate.length()>16) {
+      try {
+        if (rawDate.endsWith("AM")||(rawDate.endsWith("PM"))){
+          dt = dateStringToDateTime(rawDate,"MMM d, yyyy, h:m a");
+        } else if (String.valueOf(rawDate.charAt(3)).equals(" ")) {
+          dt = dateStringToDateTime(rawDate,"MMM dd, yyyy, h:m");          
+        } else if (String.valueOf(rawDate.charAt(4)).equals("-")) {
+          dt = dateStringToDateTime(rawDate,"yyyy-MM-dd'T'kk:mm:ss"); 
+        }
+        date = dt.toString().substring(0,10);        
+      } catch (Exception e) {
+        out.println("*** Here's an unparseable date: "+rawDate+" ***");
       }
-      date = dt.toString().substring(0,10);
     } 
     return date;
   }  
