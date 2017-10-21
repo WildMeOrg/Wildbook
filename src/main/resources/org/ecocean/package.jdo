@@ -23,7 +23,7 @@
       </field>
       
       <field name="comments" persistence-modifier="persistent">
-        <column jdbc-type="VARCHAR" allows-null="true"/>
+        <column length="2048" allows-null="true"/>
       </field>
 
       <field name="type" persistence-modifier="persistent">
