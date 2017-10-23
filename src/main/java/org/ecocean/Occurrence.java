@@ -46,7 +46,8 @@ public class Occurrence implements java.io.Serializable{
   private String dateTimeCreated;
 
     private String browseType;
-/*
+
+    private String observer;
     private Double distance;
     private Double decimalLatitude;
     private Double decimalLongitude;
@@ -61,7 +62,8 @@ public class Occurrence implements java.io.Serializable{
     private Integer numSubMales;
     private Integer numSubFemales;
     private Integer numJuveniles;
-*/
+    private Integer wp;  //i think this is waypoint???
+
 
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
@@ -290,7 +292,7 @@ public class Occurrence implements java.io.Serializable{
 
 
 
-/*
+
 	public String getObserver() {
 		return this.observer;
 	}
@@ -374,7 +376,15 @@ public class Occurrence implements java.io.Serializable{
 	public void setBearing(Double b) {
 		this.bearing = b;
 	}
-*/
+
+	public Integer getWp() {
+		return this.wp;
+	}
+	public void setWp(Integer s) {
+		this.wp = s;
+	}
+
+
 
 
   public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
