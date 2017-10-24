@@ -64,6 +64,14 @@ context=ServletUtilities.getContext(request);
 
 
 
+    .indiv-counts {
+        margin: 10px 0;
+    }
+    .indiv-counts p {
+        margin: -5px 0;
+        padding: 0;
+    }
+
     div.scroll {
       height: 200px;
       overflow: auto;
@@ -210,16 +218,21 @@ context=ServletUtilities.getContext(request);
 <% } %>
 <p>Bearing: <b><%=sharky.getBearing()%></b></p>
 <p>Date: <b><%=sharky.getDateTime()%></b></p>
-<p>Vegetation: <b><%=sharky.getVegetation()%></b></p>
+<p>Vegetation/Habitat: <b><%=sharky.getVegetation()%></b></p>
 <p>Terrain: <b><%=sharky.getTerrain()%></b></p>
-<p>Group size: <b><%=sharky.getGroupSize()%></b></p>
-<p>Adult males: <b><%=sharky.getNumAdultMales()%></b></p>
-<p>Adult females: <b><%=sharky.getNumAdultFemales()%></b></p>
-<p>Sub-males: <b><%=sharky.getNumSubMales()%></b></p>
-<p>Sub-females: <b><%=sharky.getNumSubFemales()%></b></p>
-<p>Juveniles: <b><%=sharky.getNumJuveniles()%></b></p>
+<p>Monitoring zone: <b><%=(sharky.getMonitoringZone() == null) ? "" : sharky.getMonitoringZone()%></b></p>
+<div class="indiv-counts">
+    <p>Group size: <b><%=sharky.getGroupSize()%></b></p>
+    <p>Adult males: <b><%=sharky.getNumAdultMales()%></b></p>
+    <p>Adult females: <b><%=sharky.getNumAdultFemales()%></b></p>
+    <p>Sub-males: <b><%=sharky.getNumSubMales()%></b></p>
+    <p>Sub-females: <b><%=sharky.getNumSubFemales()%></b></p>
+    <p>Juveniles: <b><%=sharky.getNumJuveniles()%></b></p>
+</div>
 
-<p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
+<p>WP: <b><%=sharky.getWp()%></b></p>
+
+<p><%=props.getProperty("numMarkedIndividuals") %>: <b><%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></b></p>
 
 <!--
 <p><%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
@@ -276,7 +289,7 @@ $("a#indies").click(function() {
 <%
 if(sharky.getLocationID()!=null){
 %>
-	<%=sharky.getLocationID() %>
+	<b><%=sharky.getLocationID() %></b>
 <%
 }
 %>
