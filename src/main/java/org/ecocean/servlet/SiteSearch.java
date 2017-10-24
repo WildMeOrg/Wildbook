@@ -227,8 +227,8 @@ public class SiteSearch extends HttpServlet {
         myShepherd.beginDBTransaction();
 
         String regex = "%" + term.toLowerCase() + "%";
-        rtn.put(regex);
-        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT DISTINCT(\"BROWSETYPE\") FROM \"ENCOUNTER\" where \"BROWSETYPE\" like ?");
+        //rtn.put(regex);
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT DISTINCT(\"BROWSETYPE\") FROM \"OCCURRENCE\" where LOWER(\"BROWSETYPE\") like ?");
         List<String> btypes = (List<String>)q.execute(regex);
         if (btypes != null) {
             for (String b : btypes) {
