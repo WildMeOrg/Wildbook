@@ -66,10 +66,26 @@ context=ServletUtilities.getContext(request);
 
     .indiv-counts {
         margin: 10px 0;
+	width: 200px;
+    }
+    .indiv-counts span {
+	width: 130px;
+	display: inline-block;
     }
     .indiv-counts p {
-        margin: -5px 0;
+        margin: -5px 0 -5px 15px;
         padding: 0;
+    }
+    .indiv-counts p.group-size {
+        margin: -5px 0 -5 0;
+    }
+    .indiv-counts p.group-size span {
+	width: 145px;
+    }
+    .indiv-counts b {
+	display: inline-block;
+	width: 2em;
+	text-align: right;
     }
 
     div.scroll {
@@ -217,20 +233,20 @@ context=ServletUtilities.getContext(request);
 <p>Lat/Lon: <b><%=sharky.getDecimalLatitude()%> / <%=sharky.getDecimalLongitude()%></b></p>
 <% } %>
 <p>Bearing: <b><%=sharky.getBearing()%></b></p>
-<p>Date: <b><%=sharky.getDateTime()%></b></p>
+<p>Date: <b><%=(sharky.getDateTime() == null) ? "Unknown" : sharky.getDateTime().toString().substring(0,10)%></b></p>
 <p>Vegetation/Habitat: <b><%=sharky.getVegetation()%></b></p>
 <p>Terrain: <b><%=sharky.getTerrain()%></b></p>
 <p>Monitoring zone: <b><%=(sharky.getMonitoringZone() == null) ? "" : sharky.getMonitoringZone()%></b></p>
 <div class="indiv-counts">
-    <p>Group size: <b><%=sharky.getGroupSize()%></b></p>
-    <p>Adult males: <b><%=sharky.getNumAdultMales()%></b></p>
-    <p>Adult females: <b><%=sharky.getNumAdultFemales()%></b></p>
-    <p>Sub-males: <b><%=sharky.getNumSubMales()%></b></p>
-    <p>Sub-females: <b><%=sharky.getNumSubFemales()%></b></p>
-    <p>Juveniles: <b><%=sharky.getNumJuveniles()%></b></p>
+    <p class="group-size"><span>Group size:</span> <b><%=sharky.getGroupSize()%></b></p>
+    <p><span>Adult males:</span> <b><%=sharky.getNumAdultMales()%></b></p>
+    <p><span>Adult females:</span> <b><%=sharky.getNumAdultFemales()%></b></p>
+    <p><span>Sub-males:</span> <b><%=sharky.getNumSubMales()%></b></p>
+    <p><span>Sub-females:</span> <b><%=sharky.getNumSubFemales()%></b></p>
+    <p><span>Juveniles:</span> <b><%=sharky.getNumJuveniles()%></b></p>
 </div>
 
-<p>WP: <b><%=sharky.getWp()%></b></p>
+<p>WP: <b><%=(sharky.getWp() == null) ? "N/A" : sharky.getWp()%></b></p>
 
 <p><%=props.getProperty("numMarkedIndividuals") %>: <b><%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></b></p>
 
@@ -299,7 +315,8 @@ if(sharky.getLocationID()!=null){
 
 <td align="left" valign="top">
 
-<p><strong><%=sharky.getNumberEncounters()%>
+<hr />
+<p style="font-size: 1.8em;"><strong><%=sharky.getNumberEncounters()%>
 </strong>
   <%=props.getProperty("numencounters") %>
 </p> 
