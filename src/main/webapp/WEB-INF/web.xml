@@ -152,6 +152,9 @@
 
 		/IndividualSetNickname = authc, roles[researcher]
 
+    /match.jsp = authc
+
+
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
