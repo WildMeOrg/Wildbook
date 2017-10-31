@@ -574,24 +574,33 @@
 		    <version>0.92</version>
 		</dependency>
 <!-- dependencies for Stanford NLP -->
-    <dependency>
-      <groupId>edu.stanford.nlp</groupId>
-      <artifactId>stanford-corenlp</artifactId>
-      <version>3.8.0</version>
-      <classifier>models-english</classifier> <!--  will get the dependent model jars -->
-    </dependency>
+
 		<dependency>
 	    <groupId>edu.stanford.nlp</groupId>
 	    <artifactId>stanford-corenlp</artifactId>
 	    <version>3.8.0</version>
 		</dependency>
-
+		<!--
+		<dependency>
+		  <groupId>edu.stanford.nlp</groupId>
+		  <artifactId>stanford-corenlp</artifactId>
+		  <version>3.6.0</version>
+		  <classifier>models</classifier> 
+		</dependency>
+		-->
+		<!-- streamlined and smaller SUTime only Stanford CoreNLP model JAR in the local repo-->
+		<dependency>
+			<groupId>sutime-stanford-corenlp-models</groupId>
+			<artifactId>sutime-stanford-corenlp-models</artifactId>
+			<version>3.6.0</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-parser -->
 		<dependency>
 		    <groupId>edu.stanford.nlp</groupId>
 		    <artifactId>stanford-parser</artifactId>
 		    <version>3.7.0</version>
 		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
 		<dependency>
 		    <groupId>net.sourceforge.tess4j</groupId>
