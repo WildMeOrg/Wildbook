@@ -568,11 +568,19 @@
 	    <artifactId>stanford-corenlp</artifactId>
 	    <version>3.8.0</version>
 		</dependency>
+		<!--
 		<dependency>
 		  <groupId>edu.stanford.nlp</groupId>
 		  <artifactId>stanford-corenlp</artifactId>
 		  <version>3.6.0</version>
-		  <classifier>models</classifier> <!--  will get the dependent model jars -->
+		  <classifier>models</classifier> 
+		</dependency>
+		-->
+		<!-- streamlined and smaller SUTime only Stanford CoreNLP model JAR in the local repo-->
+		<dependency>
+			<groupId>sutime-stanford-corenlp-models</groupId>
+			<artifactId>sutime-stanford-corenlp-models</artifactId>
+			<version>3.6.0</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-parser -->
 		<dependency>
