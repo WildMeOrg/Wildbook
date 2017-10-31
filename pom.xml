@@ -487,11 +487,13 @@
 </dependency>
 
 <!-- natural date language processing-->
+<!--
 <dependency> 
   <groupId>com.joestelmach</groupId>
   <artifactId>natty</artifactId>
   <version>0.13</version>
 </dependency>
+-->
     <!-- YouTube Data V3 support -->
     <!-- This dependency is only used for the Topics API sample, which requires the Jackson JSON parser -->
         <dependency>
