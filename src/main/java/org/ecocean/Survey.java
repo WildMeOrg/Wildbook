@@ -33,8 +33,8 @@ public class Survey implements java.io.Serializable{
   private String organization;
   private String comments = "None";
   private String type;
-  private Long startTime;
-  private Long endTime;
+  private Long startTime = null;
+  private Long endTime = null;
   // This is the actual amount of effort spent to gather date. 
   private Measurement effort;
   
@@ -295,9 +295,16 @@ public class Survey implements java.io.Serializable{
   }
   
   private String milliToMonthDayYear(Long millis) {
-    DateTime dt = new DateTime(millis);
-    DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
-    return dtf.print(dt); 
+    System.out.println("Millis from Survey Object? "+millis.toString());
+    try {
+      DateTime dt = new DateTime();
+      DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
+      System.out.print("What the formatter makes: "+dtf.print(dt));
+      return dtf.print(dt);       
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
   
   public String getStartDateTime() {
