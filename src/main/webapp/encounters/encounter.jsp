@@ -4900,7 +4900,7 @@ $(document).ready(function() {
 							<img align="absmiddle" src="../images/survey_icon_boat.png" />
 							<%=encprops.getProperty("surveyID")%>
 							<button class="btn btn-md" type="button" name="button" id="editSurvey">Edit</button>
-							<button class="btn btn-md" type="button" name="button" id="closeEditSurvey" style="display: none;">Close Edit</button>
+							<button class="btn btn-md" type="button" name="button" id="closeEditSurvey" style="display: none;">Close Edit</button>    
 						</h2>
 				<%
 						if (enc.getSurveyID()!=null) {
