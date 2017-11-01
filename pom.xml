@@ -522,11 +522,13 @@
 </dependency>
 
 <!-- natural date language processing-->
+<!--
 <dependency>
   <groupId>com.joestelmach</groupId>
   <artifactId>natty</artifactId>
   <version>0.13</version>
 </dependency>
+-->
     <!-- YouTube Data V3 support -->
     <!-- This dependency is only used for the Topics API sample, which requires the Jackson JSON parser -->
         <dependency>
@@ -602,26 +604,32 @@
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
+		<!--
 		<dependency>
 		    <groupId>net.sourceforge.tess4j</groupId>
 		    <artifactId>tess4j</artifactId>
 		    <version>3.4.0</version>
 		</dependency>
+		-->
 
 
   <!-- natural date language processing-->
+  <!--
   <dependency>
     <groupId>com.joestelmach</groupId>
     <artifactId>natty</artifactId>
     <version>0.13</version>
   </dependency>
+  -->
       <!-- YouTube Data V3 support -->
       <!-- This dependency is only used for the Topics API sample, which requires the Jackson JSON parser -->
-          <dependency>
+<!--         
+		 <dependency>
               <groupId>org.codehaus.jackson</groupId>
               <artifactId>jackson-mapper-asl</artifactId>
               <version>1.9.4</version>
           </dependency>
+		  -->
 
           <!-- dependencies for translation -->
           <dependency>
@@ -640,31 +648,6 @@
           <artifactId>google-api-translate-java</artifactId>
           <version>0.92</version>
         </dependency>
-        <!-- dependencies for Stanford NLP -->
-        <dependency>
-        <groupId>edu.stanford.nlp</groupId>
-        <artifactId>stanford-corenlp</artifactId>
-        <version>3.8.0</version>
-        </dependency>
-        <dependency>
-        <groupId>edu.stanford.nlp</groupId>
-        <artifactId>stanford-corenlp</artifactId>
-        <version>3.6.0</version>
-        <classifier>models</classifier> <!--  will get the dependent model jars -->
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-parser -->
-        <dependency>
-          <groupId>edu.stanford.nlp</groupId>
-          <artifactId>stanford-parser</artifactId>
-          <version>3.7.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
-        <dependency>
-          <groupId>net.sourceforge.tess4j</groupId>
-          <artifactId>tess4j</artifactId>
-          <version>3.4.0</version>
-        </dependency>
-
 
 </dependencies>
 
