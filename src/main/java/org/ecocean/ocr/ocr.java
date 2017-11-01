@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import net.sourceforge.tess4j.*;
+//import net.sourceforge.tess4j.*;
 
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.YouTubeAssetStore;
@@ -35,6 +35,8 @@ public class ocr {
 
   }
   public static String getTextFrames(ArrayList<File> filesFrames, String context) {
+    return null;  //disabling the below because we dont want to use tess4j right now
+/*
 
 //    ArrayList<String> framesTexts = new ArrayList<String>();
     try {
@@ -64,6 +66,7 @@ public class ocr {
       System.out.println("Exception while trying to convert fileFrames into text.");
     }
      return null;
+*/
 
   }
 
