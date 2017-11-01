@@ -147,8 +147,10 @@ context=ServletUtilities.getContext(request);
 	if (occ.getSurvey(myShepherd)!=null) {
 		String surveyID = occ.getSurvey(myShepherd).getID();
 	%>	
-		<p><strong><%=props.getProperty("correspondingSurvey") %></strong>: <a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getPrimaryKeyID()%>&surveyID=<%=surveyID%>"><%=surveyID%></a></p>
-		<br/>  				
+		<p><strong><%=props.getProperty("correspondingSurvey") %>:</strong> 
+			<a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getPrimaryKeyID()%>&surveyID=<%=surveyID%>"><%=surveyID%>
+			</a>
+		</p>			
 	<%	
 	} else {
 	%>	
@@ -156,6 +158,114 @@ context=ServletUtilities.getContext(request);
 	<%
 	}
 	%>
+	<!-- Triggers edit survey and track ID form. -->
+	<button class="btn btn-md" type="button" name="button" id="editSurvey">Edit</button>
+	<button class="btn btn-md" type="button" name="button" id="closeEditSurvey" style="display: none;">Close Edit</button> 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+<script type="text/javascript">
+	$(document).ready(function() {
+	  var buttons = $("#editSurvey, #closeEditSurvey").on("click", function(){
+	    buttons.toggle();
+	  });
+	  $("#editSurvey").click(function() {
+	    //$(".editFormSurvey, .editTextSurvey, .allEditSurvey").toggle();
+	    $("#addSurveyForm").removeClass(" hidden");
+	    $("#addSurveyForm").slideDown();
+	  });
+	  $("#closeEditSurvey").click(function() {
+	    //$(".editFormSurvey, .editTextSurvey, .resultMessageDiv, .allEditSurvey").toggle();
+	    $("#addSurveyForm").addClass(" hidden");
+	    $("#addSurveyForm").slideUp();
+	  });
+	});
+</script>								
+		<% 
+			if (isOwner) {
+		%>
+			<script type="text/javascript">
+                  $(document).ready(function() {
+                    $("#addEncounter").click(function(event) {
+                      event.preventDefault();
+
+                      //$("#addSurvey").hide();
+
+                      var encID = $("#addEncNumber").val();
+                      var surveyID = $("#surveyID").val();
+                      var surveyTrackID = $("#surveyTrackID").val();
+
+                      $.post("../EncounterSetSurveyAndTrack", {"encID": encID, "surveyTrackID": surveyTrackID, "surveyID": surveyID},
+                      function() {
+                        $("#addEncErrorDiv").hide();
+                        $("#addDiv").addClass("has-success");
+                        $("#createEncCheck").show();
+                        $("#addSurveyCheck").html("Success!");
+                        $("#displayEncID").html(encounter);
+                      })
+                      .fail(function(response) {
+                        console.log("<small>Failed to add to survey.</small>");
+                        $("#addDiv").addClass("has-error");
+                        $("#addEncError, #addEncErrorDiv").show();
+                        $("#addSurveyError").html("<small>Failed to add survey and track! Invalid Input. Check to make sure the track/survey has not already been added, or that it exists.</small>");
+                        $("#addEncounter").show();
+                      });
+                    });
+
+                    $("#add2EncounterInput").click(function() {
+                      $("#addEncError, #addEncCheck, #addEncErrorDiv").hide()
+                      $("#addDiv").removeClass("has-success");
+                      $("#addDiv").removeClass("has-error");
+                      $("#addEncounter").show();
+                      $("#addEncErrorDiv").hide();
+                    });
+                  });
+                </script>
+
+			<div id="addSurveyForm" class="hidden">
+				<div class="highlight resultMessageDiv" id="addSurveyErrorDiv"></div>
+
+				<form name="addSurveyToEncounter" class="editFormSurvey">
+					<input name="number" type="hidden" value="<%=number%>" id="addEncNumber" /> <input name="action" type="hidden" value="add" id="addSurveyAction" />
+					<div class="form-group row">
+
+						<div class="col-sm-8" id="addDiv">
+							<label><%=props.getProperty("addSurvey")%>: </label>
+							<input name="surveyID" id="surveyID" type="text" class="form-control" placeholder="<%=props.getProperty("surveyID")%>" /> 	
+							<br>
+							<label><%=props.getProperty("addSurveyTrack")%>: </label>
+							<label><small>Must be defined to link back from Survey.</small></label>
+							<input name="surveyTrackID" id="surveyTrackID" type="text" class="form-control" placeholder="<%=props.getProperty("surveyTrackID")%>" />
+						</div>
+						<div class="col-sm-8">
+							<input name="Add" type="submit" id="addEncounter" value="<%=props.getProperty("add")%>" class="btn btn-sm editSurveyFormBtn" />
+							<label class="form-control-feedback" id="addSurveyCheck"></label>
+							<label class="form-control-feedback" id="addSurveyError"></label>
+						</div>
+					</div>
+				</form>					
+			</div>
+		<%
+			}
+		%>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<br/>
 	<p><%=props.getProperty("groupBehavior") %>: 
 		<%if(occ.getGroupBehavior()!=null){%>
 			<%=occ.getGroupBehavior() %>
