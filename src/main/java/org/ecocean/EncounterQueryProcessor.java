@@ -323,7 +323,7 @@ public class EncounterQueryProcessor {
           String valNum = thisParam.replace(valID,"");
           obVals.put(valNum,valParam);
         }
-        for (int i=0;i<numObsSearched;i++) {
+        for (int i=1;i<=numObsSearched;i++) {
           if (obKeys.get(i)!=null) {
             obQuery.append("observation");
             prettyPrint.append("observation ");
