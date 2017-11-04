@@ -488,7 +488,7 @@
 
 <!-- natural date language processing-->
 <!--
-<dependency> 
+<dependency>
   <groupId>com.joestelmach</groupId>
   <artifactId>natty</artifactId>
   <version>0.13</version>
@@ -591,6 +591,51 @@
 		    <version>3.7.0</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
+		<!--
+		<dependency>
+		    <groupId>net.sourceforge.tess4j</groupId>
+		    <artifactId>tess4j</artifactId>
+		    <version>3.4.0</version>
+		</dependency>
+		-->
+
+
+  <!-- natural date language processing-->
+  <!--
+  <dependency>
+    <groupId>com.joestelmach</groupId>
+    <artifactId>natty</artifactId>
+    <version>0.13</version>
+  </dependency>
+  -->
+      <!-- YouTube Data V3 support -->
+      <!-- This dependency is only used for the Topics API sample, which requires the Jackson JSON parser -->
+<!--         
+		 <dependency>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-mapper-asl</artifactId>
+              <version>1.9.4</version>
+          </dependency>
+		  -->
+
+          <!-- dependencies for translation -->
+          <dependency>
+          <groupId>com.google.cloud</groupId>
+          <artifactId>google-cloud-translate</artifactId>
+          <version>0.17.2-beta</version>
+        </dependency>
+
+        <dependency>
+          <groupId>com.google.truth</groupId>
+          <artifactId>truth</artifactId>
+          <version>0.32</version>
+        </dependency>
+        <dependency>
+          <groupId>com.googlecode</groupId>
+          <artifactId>google-api-translate-java</artifactId>
+          <version>0.92</version>
+        </dependency>
 
   </dependencies>
 
