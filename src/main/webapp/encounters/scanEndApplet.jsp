@@ -35,9 +35,19 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 
-  session.setMaxInactiveInterval(6000);
-  String num = request.getParameter("number");
-	String encSubdir = Encounter.subdir(num);
+  //session.setMaxInactiveInterval(6000);
+  String num="";
+  if(request.getParameter("number")!=null){
+	Shepherd myShepherd=new Shepherd(context);
+	myShepherd.setAction("scanEndApplet.jsp");
+	myShepherd.beginDBTransaction();
+	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
+  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+	}
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+  }	
+  String encSubdir = Encounter.subdir(num);
 
 	/*
   Shepherd myShepherd = new Shepherd(context);
@@ -121,8 +131,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <ul id="tabmenu">
   <li><a
-    href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-    <%=request.getParameter("number")%>
+    href="encounter.jsp?number=<%=num%>">Encounter
+    <%=num%>
   </a></li>
   <li><a class="active">Modified Groth</a></li>
 
@@ -144,7 +154,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   %>
 
   <li><a
-    href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
+    href="i3sScanEndApplet.jsp?writeThis=true&number=<%=num%>&I3S=true<%=fileSider%>">I3S</a>
   </li>
   <%
     }

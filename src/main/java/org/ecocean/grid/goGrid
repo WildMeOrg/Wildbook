@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=12
+#PBS -l walltime=06:30:00
+#PBS -W group_list=partner83
+
+. /etc/profile.d/modules.sh
+module load java
+
+cd /home/jholmberg/sharkGridHeadless_1.22
+
+l
+cd /home/jholmberg
+
+rm -f goGrid.*

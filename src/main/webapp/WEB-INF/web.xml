@@ -127,8 +127,12 @@
 
                 /rest/** = authcBasicWildbook,roles[rest]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
+                /LightRest/** = authcBasicWildbook,roles[rest]
+
+
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
+				/appadmin/listImages.jsp = authcBasicWildbook
 
 
                 /appadmin/** = authc, roles[admin]
@@ -243,7 +247,9 @@
 
 					/ResurrectDeletedEncounter = authc,roles[admin]
 					
-
+				/OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
+                 /OccurrenceSearchExportGtm = authc, roles[researcher]
+				
 
             </param-value>
         </init-param>
@@ -280,15 +286,6 @@
     <servlet-name>StripePayment</servlet-name>
     <servlet-class>org.ecocean.servlet.StripePayment</servlet-class>
   </servlet>
-
-	<servlet>
-                <servlet-name>ReCAPTCHA</servlet-name>
-                <servlet-class>org.ecocean.servlet.ReCAPTCHA</servlet-class>
-	</servlet>
-	<servlet-mapping>
-                <servlet-name>ReCAPTCHA</servlet-name>
-                <url-pattern>/ReCAPTCHA</url-pattern>
-	</servlet-mapping>
 
   <servlet>
     <description>StripeUpdate</description>
@@ -393,7 +390,7 @@
 
   
   
-  
+
 
   <servlet>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
@@ -714,9 +711,9 @@
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportEmailAddresses</servlet-class>
   </servlet>
-  
 
-  
+
+
      <servlet>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportShapefile</servlet-class>
@@ -769,7 +766,10 @@
       <servlet-class>org.ecocean.servlet.OccurrenceRemoveEncounter</servlet-class>
   </servlet>
 
-
+          <servlet>
+        <servlet-name>CRCExportReport</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>IndividualCreate</servlet-name>
@@ -899,7 +899,7 @@
   </servlet>
 
 
-  
+
    <servlet>
     <servlet-name>EncounterSetScarring</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetScarring</servlet-class>
@@ -1147,6 +1147,15 @@
 		</init-param>
 	</servlet>
 
+  <servlet>
+    <servlet-name>LightRest</servlet-name>
+    <servlet-class>org.ecocean.servlet.LightRestServlet</servlet-class>
+      <init-param>
+        <param-name>persistence-context</param-name>
+        <param-value>ShepherdPMF</param-value>
+    </init-param>
+  </servlet>
+
 
 	<servlet>
 		<servlet-name>PrimeIBEISImageAnalysisForSpecies</servlet-name>
@@ -1223,6 +1232,26 @@
     <servlet-name>OccurrenceClusterMASet</servlet-name>
     <servlet-class>org.ecocean.servlet.OccurrenceClusterMASet</servlet-class>
   </servlet>
+  
+    <servlet>
+    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportMetadataExcel</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>OccurrenceSearchExportGtm</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
+  </servlet>
+  
+  
+    <servlet-mapping>
+    <servlet-name>OccurrenceSearchExportGtm</servlet-name>
+    <url-pattern>/OccurrenceSearchExportGtm</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
+    <url-pattern>/OccurrenceSearchExportMetadataExcel</url-pattern>
+  </servlet-mapping>
 
 
 <servlet-mapping>
@@ -1231,7 +1260,15 @@
 <url-pattern>/rest/*</url-pattern>
 </servlet-mapping>
 
+<servlet-mapping>
+  <servlet-name>CRCExportReport</servlet-name>
+  <url-pattern>/CRCExportReport</url-pattern>
+</servlet-mapping>
 
+<servlet-mapping>
+  <servlet-name>LightRest</servlet-name>
+  <url-pattern>/LightRest/*</url-pattern>
+</servlet-mapping>
 
 <servlet-mapping>
   <servlet-name>StripePayment</servlet-name>
@@ -1695,12 +1732,12 @@
     <servlet-name>IndividualAddEncounter</servlet-name>
     <url-pattern>/IndividualAddEncounter</url-pattern>
   </servlet-mapping>
+
+
   
-  
-  
-  
-  
-  
+
+
+
     <servlet-mapping>
       <servlet-name>OccurrenceAddEncounter</servlet-name>
       <url-pattern>/OccurrenceAddEncounter</url-pattern>
@@ -1759,7 +1796,7 @@
     <servlet-name>EncounterSetMaximumElevation</servlet-name>
     <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
-  
+
 
 
   <servlet-mapping>
@@ -1806,7 +1843,7 @@
     <servlet-name>MassSwapLocationCode</servlet-name>
     <url-pattern>/MassSwapLocationCode</url-pattern>
   </servlet-mapping>
-  
+
 
 
   <servlet-mapping>
