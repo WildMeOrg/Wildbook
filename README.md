@@ -44,7 +44,7 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 **Emails** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
 
-Actual **jsp files** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
+Actual pages (**jsp files**) are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
 
 Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
 
