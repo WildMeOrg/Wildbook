@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
-org.joda.time.format.ISODateTimeFormat,java.net.*,
+org.joda.time.format.ISODateTimeFormat,java.net.*,org.joda.time.*,java.text.DateFormat,java.text.*,
 org.ecocean.grid.*, org.ecocean.media.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
@@ -12,7 +12,6 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 Shepherd myShepherd=new Shepherd(context);
-
 
 
 %>
@@ -25,13 +24,8 @@ Shepherd myShepherd=new Shepherd(context);
 
 
 <body>
-<h1>Fixing some fields</h1>
-<h2>
-<% 
-File testingRootDir = new File();
-out.println("Here is the root file dir for Tomcat! : "+testingRootDir.getAbsolutePath());
-%>
-</h2>
+<h1>Recent Encounter Rodeo</h1>
+
 <ul>
 <%
 
@@ -41,54 +35,70 @@ int numFixes=0;
 // String rootDir;
 
 try {
-
+	if (myShepherd.isEncounter("4b05efec-2985-44e8-b2f2-ace1e56c6e16")) {
+		Encounter missingEnc = myShepherd.getEncounter("4b05efec-2985-44e8-b2f2-ace1e56c6e16");
+		out.println("+                      ****++++ Here's the one that should show up: "+String.valueOf(missingEnc.getDWCDateAddedLong()));
+	    out.println("\n****++++ Date String: "+missingEnc.getDWCDateAdded());
+	    out.println("\n****++++ Date LastModified: "+missingEnc.getDWCDateLastModified()+"                      +");	
+	}
 	// rootDir = request.getSession().getServlet().getServletContext().getRealPath("/");
 	// String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "wildbook_data_dir");
-
-    Iterator allEncounters=myShepherd.getAllEncountersNoQuery();
-
-    boolean committing=true;
-
-   Encounter enc;
-   Properties props = new Properties();
-   
-   while(allEncounters.hasNext()){
-  
-     enc=(Encounter)allEncounters.next();
-     String locCode = "";
-     System.out.println(" **** here is what i think locationID is: " + enc.getLocationID());
-     System.out.println(" **** here is what i think location is: " + enc.getLocation());
+   int num = 5;
+   ArrayList<Encounter> encs = myShepherd.getMostRecentIdentifiedEncountersByDate(num);
+   out.println("\n	 ******** Array size? Should be "+num+"... : "+encs.size());
+   for (Encounter enc : encs){
+  	  
+     out.println("\n **** Encounter Date Long: "+String.valueOf(enc.getDWCDateAddedLong()));
+     out.println("\n **** Encounter Date String: "+enc.getDWCDateAdded());
+     out.println("\n **** Encounter Date LastModified: "+enc.getDWCDateLastModified());
      
+     DateFormat df = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+     Date date = df.parse(enc.getDWCDateAdded());
+     DateTime dt = new DateTime(date);
+     out.println("----------This New DateTime? "+dt.getYear()+"-"+dt.getMonthOfYear()+"-"+dt.getDayOfMonth());
+     out.println("----------Millis Now? "+dt.getMillis());
+     //System.out.println(" **** here is what i think location is: " + enc.getLocation());
+     DateTime now = new DateTime();
      
-       String locTemp = "";
-       try {
-         props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
-		 String location = enc.getLocation().toLowerCase();
-         Enumeration m_enum = props.propertyNames();
-         while (m_enum.hasMoreElements()) {
-           String aLocationSnippet = ((String) m_enum.nextElement()).trim();
-           if (location.indexOf(aLocationSnippet) != -1) {
-             locCode = props.getProperty(aLocationSnippet);
-           }
-           if (locCode != null && locCode != "" && locCode != "None") {
-        	   try {
-    	           myShepherd.beginDBTransaction();   		   
-        		   enc.setLocationID(locCode);
-            	   myShepherd.commitDBTransaction();    
-            	   System.out.println(" **** New Location ID? : " + enc.getLocationID()); 
-        	   } catch (Exception e) {
-        		   System.out.println(" Failed to change location ID! "); 
-        	   	   e.printStackTrace();
-        	   }
-           } else {
-        	   System.out.println(" **** Hmm, didn't like locCode : " + locCode); 
-           }
-         }
-       } catch (Exception props_e) {
-         props_e.printStackTrace();
-         System.out.println("!!!! Threw an Exception trying tyo get the props !!!!");
-       }
-	   numFixes++;     
+	 out.println("\n Now  : "+now.getMillis());
+	 out.println("\n CurrentAdded  : "+enc.getDWCDateAddedLong());
+     boolean commitSwitch = false;
+     if (commitSwitch) {
+	     myShepherd.beginDBTransaction();
+	     if (dt!=null&&dt.getMillis()<now.getMillis()) {
+		     enc.setDWCDateAdded(dt.getMillis());
+		     myShepherd.commitDBTransaction();
+	     }    	 
+     }
+       //String locTemp = "";
+       //try {
+       //  props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+       //	 String location = enc.getLocation().toLowerCase();
+       // Enumeration m_enum = props.propertyNames();
+       // while (m_enum.hasMoreElements()) {
+       //    String aLocationSnippet = ((String) m_enum.nextElement()).trim();
+       //    if (location.indexOf(aLocationSnippet) != -1) {
+       //      locCode = props.getProperty(aLocationSnippet);
+       //    }
+       //    if (locCode != null && locCode != "" && locCode != "None") {
+       // 	   try {
+       //          myShepherd.beginDBTransaction();   		   
+       // 
+       //     	   myShepherd.commitDBTransaction();    
+       //     	   System.out.println(" **** New Location ID? : " + enc.getLocationID()); 
+       //  	   } catch (Exception e) {
+       //  		   System.out.println(" Failed to change location ID! "); 
+       // 	   	   e.printStackTrace();
+       // 	   }
+       //    } else {
+       // 	   System.out.println(" **** Hmm, didn't like locCode : " + locCode); 
+       //    }
+       //  }
+       //} catch (Exception props_e) {
+       //  props_e.printStackTrace();
+       //  System.out.println("!!!! Threw an Exception trying tyo get the props !!!!");
+       //}
+       //	   numFixes++;     
    }
    myShepherd.closeDBTransaction();
 
@@ -102,7 +112,5 @@ catch(Exception e){
 %>
 
 </ul>
-<p>Done successfully: <%=numFixes %></p>
-
 </body>
 </html>
