@@ -236,6 +236,7 @@ public class Encounter implements java.io.Serializable {
   //submitting organization and project further detail the scope of who submitted this project
   private String submitterOrganization;
   private String submitterProject;
+  private List<String> submitterResearchers;
 
   //hold submittedData
   //private List<DataCollectionEvent> collectedData;
@@ -1976,6 +1977,25 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if(newOrg!=null){submitterOrganization = newOrg;}
     	else{submitterOrganization=null;}
     }
+
+	public List<String>() getSubmitterResearchers() {
+		return submitterResearchers();
+	}
+	public void addSubmitterResearcher(String researcher) {
+		if (submitterResearchers==null) submitterResearchers = new ArrayList<String>();
+		submitterResearchers.add(researcher);
+	}
+	public void setSubmitterResearchers(Collection<String> researchers) {
+		this.submitterResearchers = new ArrayList<String>(researchers);
+	}
+
+	public String getSubmitterProject() {
+		return submitterProject;
+	}
+	public void setSubmitterProject(String newProject) {
+   		submitterProject = newProject;
+	}
+
 
    // public List<DataCollectionEvent> getCollectedData(){return collectedData;}
 
