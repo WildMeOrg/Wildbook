@@ -43,32 +43,42 @@ try {
 	}
 	// rootDir = request.getSession().getServlet().getServletContext().getRealPath("/");
 	// String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "wildbook_data_dir");
-   int num = 5;
-   ArrayList<Encounter> encs = myShepherd.getMostRecentIdentifiedEncountersByDate(num);
-   out.println("\n	 ******** Array size? Should be "+num+"... : "+encs.size());
-   for (Encounter enc : encs){
-  	  
-     out.println("\n **** Encounter Date Long: "+String.valueOf(enc.getDWCDateAddedLong()));
-     out.println("\n **** Encounter Date String: "+enc.getDWCDateAdded());
-     out.println("\n **** Encounter Date LastModified: "+enc.getDWCDateLastModified());
-     
-     DateFormat df = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+   int num = 1;
+   //ArrayList<Encounter> encs = myShepherd.getMostRecentIdentifiedEncountersByDate(num);
+   Iterator<Encounter> encs = myShepherd.getAllEncountersNoQuery();
+   //out.println("\n	 ******** Array size? Should be "+num+"... : "+encs.size());
+   Encounter enc = null;
+   while (encs.hasNext()){
+     enc = encs.next();
+     System.out.println("Num: "+num);
+     num++;	  
+     out.println("\n **** Current Date Long: "+String.valueOf(enc.getDWCDateAddedLong()));
+     out.println("\n **** Current Date String: "+enc.getDWCDateAdded());
+     out.println("\n **** Current Date LastModified: "+enc.getDWCDateLastModified());
+     String format = null;
+     if (enc.getDWCDateAdded().length()>11) {
+     	format = "yyyy-MM-dd kk:mm:ss";
+     } else {
+	format = "yyyy-MM-dd";	
+     }
+	
+     DateFormat df = new SimpleDateFormat(format);
      Date date = df.parse(enc.getDWCDateAdded());
      DateTime dt = new DateTime(date);
-     out.println("----------This New DateTime? "+dt.getYear()+"-"+dt.getMonthOfYear()+"-"+dt.getDayOfMonth());
-     out.println("----------Millis Now? "+dt.getMillis());
+     out.println("----------New DateTime Made with Date String? "+dt.getYear()+"-"+dt.getMonthOfYear()+"-"+dt.getDayOfMonth());
+     out.println("----------Millis From New DateTime? "+dt.getMillis());
      //System.out.println(" **** here is what i think location is: " + enc.getLocation());
      DateTime now = new DateTime();
-     
-	 out.println("\n Now  : "+now.getMillis());
-	 out.println("\n CurrentAdded  : "+enc.getDWCDateAddedLong());
+     out.println("\n Right Now  : "+now.getMillis());
+     out.println("\n Value To Change  : "+enc.getDWCDateAddedLong());
      boolean commitSwitch = false;
      if (commitSwitch) {
 	     myShepherd.beginDBTransaction();
 	     if (dt!=null&&dt.getMillis()<now.getMillis()) {
 		     enc.setDWCDateAdded(dt.getMillis());
 		     myShepherd.commitDBTransaction();
-	     }    	 
+	     }
+	     out.println(" New Value : "+enc.getDWCDateAddedLong());    	 
      }
        //String locTemp = "";
        //try {
