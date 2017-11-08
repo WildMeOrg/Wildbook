@@ -1453,7 +1453,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setDWCImageURL(String link) {
     dwcImageURL = link;
   }
-
+  // lmao, we have this capitalization of the getter for reflexivity purposes
+  public String getModified() {
+    return modified;
+  }
   public String getDWCDateLastModified() {
     return modified;
   }
@@ -1468,6 +1471,12 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public String getDWCDateAdded() {
     return dwcDateAdded;
   }
+
+  // lmao, we have this capitalization of the getter for reflexivity purposes
+  public String getDwcDateAdded() {
+    return dwcDateAdded;
+  }
+
 
   public Long getDWCDateAddedLong(){
     return dwcDateAddedLong;
