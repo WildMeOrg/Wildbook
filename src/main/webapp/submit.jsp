@@ -201,12 +201,12 @@ $(function() {
     //
     resetMap();
 
-
+    var dateFormat='dd-mm-yy';
 
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
       changeYear: true,
-      dateFormat: 'yy-mm-dd',
+      dateFormat: dateFormat,
       maxDate: '+1d',
       controlType: 'select',
       alwaysSetTime: false,
@@ -220,7 +220,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker({
         changeMonth: true,
         changeYear: true,
-        dateFormat: 'yy-mm-dd'
+        dateFormat: dateFormat
     });
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
@@ -494,6 +494,36 @@ function showUploadBox() {
         <p class="help-block">
           <%=props.getProperty("examples") %>
           <ul>
+          	<li>15-02-2017 12:30</li>
+          	<li>30-09-2010</li>
+          	<li>12-2014</li>
+          	<li>2003</li>
+
+        <!--
+            <li>2014-01-05 12:30</li>
+            <li>2014-03-23</li>
+            <li>2013-12</li>
+            <li>2010</li>
+        -->
+          </ul>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Herein trying out new html date input --> 
+    <!--
+    <div class="form-group">
+
+      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
+        <input class="form-control" type="datetime-local" style="position: relative; z-index: 101;" name="dateinput" size="20" />
+	</div>
+
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <p class="help-block">
+          <%=props.getProperty("examples") %>
+          <ul>
             <li>2014-01-05 12:30</li>
             <li>2014-03-23</li>
             <li>2013-12</li>
@@ -503,6 +533,7 @@ function showUploadBox() {
       </div>
 
     </div>
+-->
 
 <%
 if(CommonConfiguration.showReleaseDate(context)){

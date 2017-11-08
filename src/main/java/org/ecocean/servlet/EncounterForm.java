@@ -59,6 +59,7 @@ import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
@@ -482,13 +483,32 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
               //System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
               //boolean badDate=false;
               try{
+
+                String datepickerVal = getVal(fv, "datepicker");
+                System.out.println("EncounterForm datepickerVal = "+datepickerVal);
+
                 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
-                LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(fv, "datepicker").replaceAll(" ", "T")));
-                StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"-");
+                DateTimeFormatter euroFormat = DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss");
+                DateTimeFormatter euroFormatNoTime = DateTimeFormat.forPattern("dd-MM-yyyy");
+
+                LocalDateTime reportedDateTime = null;
+                try {
+                    reportedDateTime=new LocalDateTime(euroFormat.parseMillis(datepickerVal));
+                } catch (Exception e) {System.out.println("EncounterForm: euroFormat did not parse date");}
+
+                try {
+                    reportedDateTime=new LocalDateTime(euroFormatNoTime.parseMillis(datepickerVal));
+                } catch (Exception e) {System.out.println("EncounterForm: euroFormatNoDate did not parse date");}
+
+
+                //LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(fv, "datepicker").replaceAll(" ", "T")));
+
+                System.out.println("EncounterForm got reportedDateTime "+reportedDateTime);
+                StringTokenizer str=new StringTokenizer(datepickerVal.replaceAll(" ", "T"),"-");
 
           int numTokens=str.countTokens();
-
+          System.out.println("EncounterForm numTokens ="+numTokens);
 
           if(numTokens>=1){
             //try {
@@ -502,7 +522,10 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
            //} catch (Exception e) { year=-1;}
           }
           if(numTokens>=2){
-            try { month=reportedDateTime.getMonthOfYear(); } catch (Exception e) { month=-1;}
+            try { month=reportedDateTime.getMonthOfYear(); } catch (Exception e) {
+                System.out.println("EncounterForm exception parsing month for reportedDateTime "+reportedDateTime);
+             month=-1;
+            }
           }
           else{month=-1;}
           //see if we can get a day, because we do want to support only yyy-MM too
