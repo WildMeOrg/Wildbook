@@ -173,7 +173,8 @@ public class WorkAppletHeadlessEpic {
             long sleepTime=30000;
             
             //allow 55 minutes
-            long allowedDiff=55*60*1000;
+            //update 2017-11-08 AWS now allows per-second billing, so limit this way down to maximum 180 seconds (two polling intervals)
+            long allowedDiff=3*60*1000;
             
            
             
