@@ -24,7 +24,7 @@ myShepherd.setAction("index.jsp");
 
 
 %>
-
+<!--  
 <style type="text/css">
 .full_screen_map {
 position: absolute !important;
@@ -37,287 +37,11 @@ margin-top: 0px !important;
 margin-bottom: 8px !important;
 </style>
 
+
 <script src="//maps.google.com/maps/api/js?sensor=false"></script>
-
-
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
 <script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
-
-
-
-  <script type="text/javascript">
-
-//Define the overlay, derived from google.maps.OverlayView
-  function Label(opt_options) {
-   // Initialization
-   this.setValues(opt_options);
-
-   // Label specific
-   var span = this.span_ = document.createElement('span');
-   span.style.cssText = 'font-weight: bold;' +
-                        'white-space: nowrap; ' +
-                        'padding: 2px; z-index: 999 !important;';
-   span.style.zIndex=999;
-
-   var div = this.div_ = document.createElement('div');
-   div.style.zIndex=999;
-
-   div.appendChild(span);
-   div.style.cssText = 'position: absolute; display: none;z-index: 999 !important;';
-  };
-  Label.prototype = new google.maps.OverlayView;
-
-  // Implement onAdd
-  Label.prototype.onAdd = function() {
-   var pane = this.getPanes().overlayLayer;
-   pane.appendChild(this.div_);
-
-   // Ensures the label is redrawn if the text or position is changed.
-   var me = this;
-   this.listeners_ = [
-     google.maps.event.addListener(this, 'position_changed',
-         function() { me.draw(); }),
-     google.maps.event.addListener(this, 'text_changed',
-         function() { me.draw(); })
-   ];
-  };
-
-  // Implement onRemove
-  Label.prototype.onRemove = function() {
-   this.div_.parentNode.removeChild(this.div_);
-
-   // Label is removed from the map, stop updating its position/text.
-   for (var i = 0, I = this.listeners_.length; i < I; ++i) {
-     google.maps.event.removeListener(this.listeners_[i]);
-   }
-  };
-
-  // Implement draw
-  Label.prototype.draw = function() {
-   var projection = this.getProjection();
-   var position = projection.fromLatLngToDivPixel(this.get('position'));
-
-   var div = this.div_;
-   div.style.left = position.x + 'px';
-   div.style.top = position.y + 'px';
-   div.style.display = 'block';
-   div.style.zIndex=999;
-
-   this.span_.innerHTML = this.get('text').toString();
-  };
-
-
-  		//map
-  		var map;
-  		var bounds = new google.maps.LatLngBounds();
-
-      function initialize() {
-
-
-    	// Create an array of styles for our Goolge Map.
-  	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
-
-
-        var center = new google.maps.LatLng(0,0);
-        var mapZoom = 8;
-    	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-
-
-        map = new google.maps.Map(document.getElementById('map_canvas'), {
-          zoom: mapZoom,
-          center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID,
-          zoomControl: true,
-          scaleControl: false,
-          scrollwheel: false,
-          disableDoubleClickZoom: true,
-        });
-
-    	  //adding the fullscreen control to exit fullscreen
-    	  var fsControlDiv = document.createElement('DIV');
-    	  var fsControl = new FSControl(fsControlDiv, map);
-    	  fsControlDiv.index = 1;
-    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
-
-    	    // Create a new StyledMapType object, passing it the array of styles,
-    	    // as well as the name to be displayed on the map type control.
-    	    var styledMap = new google.maps.StyledMapType(gmap_styles, {name: "Styled Map"});
-
-    	    //Associate the styled map with the MapTypeId and set it to display.
-    	    map.mapTypes.set('map_style', styledMap);
-    	    map.setMapTypeId('map_style');
-
-        var markers = [];
- 	    var movePathCoordinates = [];
-
- 	    //iterate here to add points per location ID
-
- 		var maxZoomService = new google.maps.MaxZoomService();
- 		maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
- 			    if (response.status == google.maps.MaxZoomStatus.OK) {
- 			    	if(response.zoom < map.getZoom()){
- 			    		map.setZoom(response.zoom);
- 			    	}
- 			    }
-
- 		});
-
-
- 		//let's add map points for our locationIDs
- 		<%
- 		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
- 		int numLocationIDs = locs.size();
- 		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
- 		myShepherd.beginDBTransaction();
- 		try{
-	 		for(int i=0;i<numLocationIDs;i++){
-
-	 			String locID = locs.get(i);
-	 			if((locProps.getProperty(locID)!=null)&&(locProps.getProperty(locID).indexOf(",")!=-1)){
-
-	 				StringTokenizer st = new StringTokenizer(locProps.getProperty(locID), ",");
-	 				String lat = st.nextToken();
-	 				String longit=st.nextToken();
-	 				String thisLatLong=lat+","+longit;
-
-	 		        //now  let's calculate how many
-	 		        int numSightings=myShepherd.getNumEncounters(locID);
-	 		        if(numSightings>0){
-
-	 		        	Integer numSightingsInteger=new Integer(numSightings);
-
-
-	 		          %>
-
-	 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
-			          bounds.extend(latLng);
-
-	 		          var divString<%=i%> = "<div style=\"padding-top: 25px;font-weight:bold;text-align: center;line-height: 35px;vertical-align: middle;width:60px;height:49px; background-image: url('//www.whaleshark.org/cust/mantamatcher/img/fin-silhouette.svg');background-size: cover\"><a href=\"http://www.whaleshark.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
-	 		          //http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png
-
-	 		         var marker<%=i%> = new RichMarker({
-	 		            position: latLng,
-	 		            map: map,
-	 		            draggable: false,
-	 		           content: divString<%=i%>,
-	 		           flat: true
-	 		        });
-
-
-
-	 			      markers.push(marker<%=i%>);
-	 		          map.fitBounds(bounds);
-
-	 				<%
-	 			} //end if
-
-	 			}  //end if
-
-	 		}  //end for
- 		}
- 		catch(Exception e){e.printStackTrace();}
- 		finally{
- 			//myShepherd.rollbackDBTransaction();
- 			//myShepherd.closeDBTransaction();
- 		}
- 	 	%>
-
-
- 	 } // end initialize function
-
-      function fullScreen(){
-  		$("#map_canvas").addClass('full_screen_map');
-  		$('html, body').animate({scrollTop:0}, 'slow');
-  		initialize();
-
-  		//hide header
-  		$("#header_menu").hide();
-
-  		if(overlaysSet){overlaysSet=false;setOverlays();}
-  		//alert("Trying to execute fullscreen!");
-  	}
-
-
-  	function exitFullScreen() {
-  		$("#header_menu").show();
-  		$("#map_canvas").removeClass('full_screen_map');
-
-  		initialize();
-  		if(overlaysSet){overlaysSet=false;setOverlays();}
-  		//alert("Trying to execute exitFullScreen!");
-  	}
-
-
-
-
-  	//making the exit fullscreen button
-  	function FSControl(controlDiv, map) {
-
-  	  // Set CSS styles for the DIV containing the control
-  	  // Setting padding to 5 px will offset the control
-  	  // from the edge of the map
-  	  controlDiv.style.padding = '5px';
-
-  	  // Set CSS for the control border
-  	  var controlUI = document.createElement('DIV');
-  	  controlUI.style.backgroundColor = '#f8f8f8';
-  	  controlUI.style.borderStyle = 'solid';
-  	  controlUI.style.borderWidth = '1px';
-  	  controlUI.style.borderColor = '#a9bbdf';;
-  	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-  	  controlUI.style.cursor = 'pointer';
-  	  controlUI.style.textAlign = 'center';
-  	  controlUI.title = 'Toggle the fullscreen mode';
-  	  //controlDiv.appendChild(controlUI);
-
-  	  // Set CSS for the control interior
-  	  var controlText = document.createElement('DIV');
-  	  controlText.style.fontSize = '12px';
-  	  controlText.style.fontWeight = 'bold';
-  	  controlText.style.color = '#000000';
-  	  controlText.style.paddingLeft = '4px';
-  	  controlText.style.paddingRight = '4px';
-  	  controlText.style.paddingTop = '3px';
-  	  controlText.style.paddingBottom = '2px';
-  	  controlUI.appendChild(controlText);
-  	  controlText.style.visibility='hidden';
-  	  //toggle the text of the button
-
-  	  if($("#map_canvas").hasClass("full_screen_map")){
-  	      controlText.innerHTML = 'Exit Fullscreen';
-  	    } else {
-  	      controlText.innerHTML = 'Fullscreen';
-  	    }
-
-  	  // Setup the click event listeners: toggle the full screen
-
-  	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-  	   if($("#map_canvas").hasClass("full_screen_map")){
-  	    exitFullScreen();
-  	    } else {
-  	    fullScreen();
-  	    }
-  	  });
-
-  	}
-
-
-
-
-
-    google.maps.event.addDomListener(window, 'load', initialize);
-    google.maps.event.addDomListener(window, "resize", function() {
-    	 var center = map.getCenter();
-    	 google.maps.event.trigger(map, "resize");
-    	 map.setCenter(center);
-    	});
-
-
-
-
-  </script>
+-->
 
 <%
 
@@ -365,9 +89,6 @@ finally{
                 <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
             </a>
             <br>
-            <br>
-            <h4 style="color: white;">Our work is possible with the generous support of:</h4>
-            <img border="1px" src="images/QWSP_Logo_small.png" height="125px" width="170px" /> <img border="1px" src="images/Siren_Fleet_small.gif" height="125px" width="128px"  />
         </div>
 
 	</div>
@@ -654,12 +375,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
     </section>
 </div>
 
-<div class="container-fluid main-section">
-    <h2 class="section-header">Encounters around the world</h2>
 
-      <div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
-
-</div>
 
 <div class="container-fluid">
     <section class="container main-section">
@@ -744,6 +460,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
 
 <jsp:include page="footer.jsp" flush="true"/>
 
+<!-- 
 <script>
 window.addEventListener("resize", function(e) { $("#map_canvas").height($("#map_canvas").width()*0.662); });
 google.maps.event.addDomListener(window, "resize", function() {
@@ -751,3 +468,4 @@ google.maps.event.addDomListener(window, "resize", function() {
 	 map.fitBounds(bounds);
 	});
 </script>
+ -->
