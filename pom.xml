@@ -201,10 +201,18 @@
       <version>2.3</version>
     </dependency>
 
+	<!--
 <dependency>
 	<groupId>org.postgresql</groupId>
 	<artifactId>postgresql</artifactId>
 	<version>9.4.1211.jre7</version>
+</dependency>
+-->
+
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>42.1.4</version>
 </dependency>
 
     <dependency>
@@ -490,11 +498,17 @@
       <version>v3-rev182-1.22.0</version>
     </dependency>
 
-
 <dependency>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-dbcp2</artifactId>
     <version>2.1</version>
+</dependency>
+
+<dependency>
+    <groupId>com.zaxxer</groupId>
+    <artifactId>HikariCP</artifactId>
+    <version>2.7.2</version>
+    <scope>compile</scope>
 </dependency>
 
 <dependency>
