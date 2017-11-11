@@ -69,6 +69,7 @@ context=ServletUtilities.getContext(request);
   myShepherd.setAction("individualMapEmbed.jsp");
   myShepherd.beginDBTransaction();
   Vector haveGPSData = new Vector();
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
   if(request.getParameter("name")!=null){
 	  String name = request.getParameter("name");
 	  MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);
@@ -82,7 +83,7 @@ context=ServletUtilities.getContext(request);
   try {
 %>
 
-<script src="//maps.google.com/maps/api/js?language=<%=langCode%>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="javascript/oms.min.js"></script>
@@ -171,7 +172,7 @@ String lastLatLong="";
 					              var encDate1 = '<br/><table><tr><td>' + '<%=props.getProperty("date")%><%=indieEnc.getDate()%>';
 
 					              var encSex2 = '<%if(indieEnc.getSex()!=null){%>'+'<br/>' + '<%=props.getProperty("sex")%><%=indieEnc.getSex()%><%}%>';
-					              var encSize3 = '<%if(indieEnc.getSizeAsDouble()!=null){%>'+'<br/>Size:'+<%=indieEnc.getSize()%>+'m'+<%}%>+'<br/>';
+					              var encSize3 = '<%if(indieEnc.getSizeAsDouble()!=null){%>'+'<br/>Size:'+<%=indieEnc.getSize()%>+'m'+'<%}%><br/>';
 					              var encURL4 = '<br/><a target=\"_blank\" href=\"http:\/\/'+'<%=CommonConfiguration.getURLLocation(request)%>'+'/encounters/encounter.jsp?number='+'<%=indieEnc.getEncounterNumber()%>'+'\" >'+'<%=props.getProperty("gotoEncounter")%>'+'</a></td></tr></table>';
 					              var indyURL5 = '<strong><a target=\"_blank\" href=\"\/\/'+'<%=CommonConfiguration.getURLLocation(request)%>'+'/individuals.jsp?number='+'<%=indieEnc.getIndividualID()%>'+'\">'+'<%=indieEnc.getIndividualID()%>'+'</a></strong>';
 					             
@@ -302,12 +303,13 @@ var markerCluster = new MarkerClusterer(map, markers, options)
     </script>
 
 
-<p><%=mappingnote %></p>
 <%
 if(request.getParameter("occurrence_number")!=null){
 %>
 	<p><%=props.getProperty("occurrenceAdditionalMappingNote") %></p>
 <%
+} else {
+  %><p><%=mappingnote %></p><%
 }
 %>
 
