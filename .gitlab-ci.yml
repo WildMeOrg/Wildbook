@@ -66,5 +66,5 @@ deploy-container:
   - docker info
   script:
     - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-    - docker build -t mattmclaugh/wildbook:latest -f config/docker/Dockerfile .
-    - docker push mattmclaugh/wildbook:latest
+    - docker build -t $DOCKER_ORG/wildbook:latest -f config/docker/Dockerfile .
+    - docker push $DOCKER_ORG/wildbook:latest
