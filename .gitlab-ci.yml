@@ -41,12 +41,15 @@ build:
     key: maven
     paths:
       - ./m2Repository
+  artifacts:
+    paths:
+    - ./target/wildbook-6.0.0-EXPERIMENTAL.war
+    expire_in: 1 week
   dependencies:
     - test
   script:
     - cp ./config/docker/settings.xml /root/.m2/settings.xml
     - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
-    - ./config/docker/s3cp ./target/wildbook-6.0.0-EXPERIMENTAL.war s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war
 
 deploy-container:
   image: docker:latest
@@ -62,7 +65,6 @@ deploy-container:
   before_script:
   - docker info
   script:
-    - ./config/docker/s3cp s3://wildbook-matt-test/wildbook-6.0.0-EXPERIMENTAL.war ./target/wildbook-6.0.0-EXPERIMENTAL.war
     - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
     - docker build -t mattmclaugh/wildbook:latest -f config/docker/Dockerfile .
     - docker push mattmclaugh/wildbook:latest
