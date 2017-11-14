@@ -10,7 +10,7 @@ prepare:
   tags:
     - docker
   cache:
-    key: maven
+    key: maven:v1
     paths:
       - ./m2Repository
   script:
@@ -23,7 +23,7 @@ test:
   tags:
     - docker
   cache:
-    key: maven
+    key: maven:v1
     paths:
       - ./m2Repository
   dependencies:
@@ -38,7 +38,7 @@ build:
   tags:
     - docker
   cache:
-    key: maven
+    key: maven:v1
     paths:
       - ./m2Repository
   artifacts:
