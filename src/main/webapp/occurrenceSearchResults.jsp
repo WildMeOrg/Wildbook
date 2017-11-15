@@ -267,15 +267,20 @@ var colDefn = [
     value: _notUndefined('occurrenceID'),
   },
   {
+    key: 'dateTimeCreated',
+    label: 'Date Created',
+    value: _notUndefined('dateTimeCreated'),
+  },
+  {
 	    key: 'correspondingSurveyID',
 	    label: 'Corresponding Survey',
 	    value: _notUndefined('correspondingSurveyID'),
   }, 	
   {
-    key: 'individualCount',
-    label: 'Encounters',
-    value: _notUndefined('individualCount'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+	key: 'numberEncounters',
+	label: '<%=props.getProperty("numEncounters")%>',
+	value: _colNumberEncounters,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
   },
   {
 		key: 'decimalLatitude',
@@ -290,6 +295,12 @@ var colDefn = [
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   /*
+  {
+    key: 'individualCount',
+    label: 'Encounters',
+    value: _notUndefined('individualCount'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
 	{
 		key: 'individual',
 		label: '<%=props.getProperty("markedIndividual")%>',
@@ -298,12 +309,6 @@ var colDefn = [
 		//sortFunction: function(a,b) {},
 	},
 
-	{
-		key: 'numberEncounters',
-		label: '<%=props.getProperty("numEncounters")%>',
-		value: _colNumberEncounters,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
 	{
 		key: 'maxYearsBetweenResightings',
 		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
@@ -616,9 +621,12 @@ function _colIndividual(o) {
 
 
 function _colNumberEncounters(o) {
-	if (o.numberEncounters == undefined) return '';
-	return o.numberEncounters;
+	if (o.encounters == undefined) return '';
+	//console.log("Here's the encs: "+JSON.stringify(o.encounters));
+	//console.log("Here's th length: "+o.encounters.length);
+	return o.encounters.length;
 }
+
 
 /*
 function _colYearsBetween(o) {
@@ -669,13 +677,19 @@ function _colThumb(o) {
 	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
 }
 
-
 function _colModified(o) {
 	var m = o.get('modified');
 	if (!m) return '';
 	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
+}
+
+function _colOccDate(o) {
+	var dateMillis = o.get('millis');
+	if (!dateMillis) return '';
+	var dateString = new Date(dateMillis).toString();
+	return dateString;
 }
 
 
@@ -688,7 +702,7 @@ function _textExtraction(n) {
 
 function applyFilter() {
 	var t = $('#filter-text').val();
-console.log(t);
+	console.log(t);
 	sTable.filter(t);
 	start = 0;
 	newSlice(1);
