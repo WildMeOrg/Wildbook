@@ -1288,9 +1288,18 @@ public class Shepherd {
       return null;
     }
   }
-
-
-
+  
+  public Iterator<Survey> getAllSurveysNoQuery() {
+    try {
+      Extent svyClass = pm.getExtent(Survey.class, true);
+      Iterator it = svyClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSurveysNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
   public Iterator getAllAnnotationsNoQuery() {
     try {
@@ -1497,7 +1506,22 @@ public class Shepherd {
       return null;
     }
   }
-
+  
+  public Iterator<Survey> getAllSurveys(Query acceptedSurveys, Map<String, Object> paramMap) {
+    Collection c;
+    try {
+      System.out.println("getAllOccurrences is called on query "+acceptedSurveys+" and paramMap "+paramMap);
+      c = (Collection) (acceptedSurveys.executeWithMap(paramMap));
+      ArrayList list = new ArrayList(c);
+      System.out.println("getAllSurveys got "+list.size()+" surveys");
+      Iterator it = list.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
   public List<PatterningPassport> getPatterningPassports() {
     int num = 0;

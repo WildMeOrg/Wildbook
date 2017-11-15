@@ -10,13 +10,13 @@
 
     //let's load out properties
     Properties props = new Properties();
-    Properties occProps = new Properties();
+    Properties svyProps = new Properties();
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
 
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
-    occProps = ShepherdProperties.getProperties("occurrence.properties");
+    svyProps = ShepherdProperties.getProperties("survey.properties");
 
 
     int startNum = 1;
@@ -56,25 +56,22 @@
     } catch (Exception nfe) {
     }
 
-
     Shepherd myShepherd = new Shepherd(context);
     //myShepherd.setAction("occurrenceSearchResults.jsp");
-
-
 
     int numResults = 0;
 
 
-    Vector<Occurrence> rIndividuals = new Vector<Occurrence>();
+    Vector<Survey> numSurveys = new Vector<Survey>();
     myShepherd.beginDBTransaction();
     String order ="";
 
-    OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
-    rIndividuals = result.getResult();
+    SurveyQueryResult result = SurveyQueryProcessor.processQuery(myShepherd, request, order);
+    numSurveys = result.getResult();
 
 
-    if (rIndividuals.size() < listNum) {
-      listNum = rIndividuals.size();
+    if (numSurveys.size() < listNum) {
+      listNum = numSurveys.size();
     }
   %>
 
@@ -129,7 +126,7 @@
 </style>
 
 
-<jsp:include page="header.jsp" flush="true"/>
+<jsp:include page="../header.jsp" flush="true"/>
 
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
@@ -146,15 +143,15 @@
 
 
       <h1 class="intro">
-        <%=occProps.getProperty("OccurrenceSearchResults")%>
+        <%=svyProps.getProperty("OccurrenceSearchResults")%>
       </h1>
 
       <ul id="tabmenu">
 
-        <li><a class="active"><%=occProps.getProperty("table")%>
+        <li><a class="active"><%=svyProps.getProperty("table")%>
         </a></li>
             <li><a
-           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
+           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=svyProps.getProperty("export")%>
          </a></li>
 
       </ul>
@@ -165,7 +162,7 @@
     <td>
 
 
-      <!--<p><%=occProps.getProperty("searchResultsInstructions")%>-->
+      <!--<p><%=svyProps.getProperty("searchResultsInstructions")%>-->
       </p>
     </td>
   </tr>
@@ -178,7 +175,7 @@
 
 
     Vector histories = new Vector();
-    int rIndividualsSize=rIndividuals.size();
+    int numSurveysSize=numSurveys.size();
 
     int count = 0;
     int numNewlyMarked = 0;
@@ -187,7 +184,7 @@
 
 
 	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-	JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
+	JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)numSurveys, jdopm.getExecutionContext());
 	String indsJson = jsonobj.toString();
 
 %>
@@ -255,7 +252,7 @@ var colDefn = [
 
   {
     key: 'imageSet',
-    label: '<%=occProps.getProperty("imageSet")%>',
+    label: '<%=svyProps.getProperty("imageSet")%>',
     value: _notUndefined('imageSet'),
   },
   
@@ -264,7 +261,7 @@ var colDefn = [
   {
     key: 'ID',
     label: 'ID',
-    value: _notUndefined('occurrenceID'),
+    value: _notUndefined('ID'),
   },
   {
     key: 'dateTimeCreated',
@@ -438,7 +435,7 @@ function xxxshow() {
 	$('#results-table td').html('');
 	for (var i = 0 ; i < results.length ; i++) {
 		//$('#results-table tbody tr')[i].title = searchResults[results[i]].individualID;
-		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].occurrenceID);
+		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].ID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
 		}
@@ -463,7 +460,7 @@ function show() {
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
 		//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
-		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].occurrenceID);
+		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].ID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
 		}
@@ -648,7 +645,7 @@ function _colLongitude(o) {
 }
 function _colID(o) {
   if (o.ID == undefined) {
-    if (o.occurrenceID == undefined) return '';
+    if (o.ID == undefined) return '';
     return o.DataCollectionEventID;
   }
   return o.ID;
@@ -753,11 +750,11 @@ function applyFilter() {
 <table width="810" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td align="left">
-      <p><strong><%=occProps.getProperty("matchingOccurrences")%>
+      <p><strong><%=svyProps.getProperty("matchingOccurrences")%>
       </strong>: <span id="count-total"></span>
       </p>
       <%myShepherd.beginDBTransaction();%>
-      <p><strong><%=occProps.getProperty("totalOccurrences")%>
+      <p><strong><%=svyProps.getProperty("totalOccurrences")%>
     </strong>: <%=(myShepherd.getNumOccurrences())%>
       </p>
     </td>
@@ -798,4 +795,4 @@ function applyFilter() {
 
 
 </div>
-<jsp:include page="footer.jsp" flush="true"/>
+<jsp:include page="../footer.jsp" flush="true"/>
