@@ -151,7 +151,7 @@
         <li><a class="active"><%=svyProps.getProperty("table")%>
         </a></li>
             <li><a
-           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=svyProps.getProperty("export")%>
+           href="surveyExportSearchResults.jsp?<%=request.getQueryString() %>"><%=svyProps.getProperty("export")%>
          </a></li>
 
       </ul>

@@ -295,16 +295,18 @@ public class Survey implements java.io.Serializable{
   }
   
   private String milliToMonthDayYear(Long millis) {
-    System.out.println("Millis from Survey Object? "+millis.toString());
-    try {
-      DateTime dt = new DateTime();
-      DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
-      System.out.print("What the formatter makes: "+dtf.print(dt));
-      return dtf.print(dt);       
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
+    //System.out.println("Millis from Survey Object? "+millis.toString());
+    if (millis!=null) {
+      try {
+        DateTime dt = new DateTime();
+        DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
+        System.out.print("What the formatter makes: "+dtf.print(dt));
+        return dtf.print(dt);       
+      } catch (Exception e) {
+        e.printStackTrace();
+      }      
     }
+    return null;
   }
   
   public String getStartDateTime() {
@@ -312,7 +314,7 @@ public class Survey implements java.io.Serializable{
     if (startTime!=null) {
       return milliToMonthDayYear(startTime);
     }
-    return milliToMonthDayYear(startTime);
+    return null;
   }
   
   public String getEndDateTime() {
