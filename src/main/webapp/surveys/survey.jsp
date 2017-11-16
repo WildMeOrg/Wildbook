@@ -49,7 +49,7 @@ if (sv!=null) {
 	if (sv.getOrganization()!=null) {
 		surveyAttributes += "<p>Organization: "+sv.getOrganization()+"</p>";
 	}
-	if (sv.getDate()!=null) {
+	if (sv.getStartDateTime()!=null) {
 		date = sv.getStartDateTime();		
 	}
 	if (sv.getStartDateTime()!=null) {

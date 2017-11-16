@@ -69,7 +69,7 @@ context=ServletUtilities.getContext(request);
 <jsp:include page="../header.jsp" flush="true"/>
 
     <!-- Sliding div content: STEP1 Place inside the head section -->
-  <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
+  <script type="text/javascript" src="../javascript/animatedcollapse.js"></script>
 
   <script type="text/javascript">
     //animatedcollapse.addDiv('location', 'fade=1')
@@ -94,9 +94,9 @@ context=ServletUtilities.getContext(request);
   <!-- /STEP2 Place inside the head section -->
 
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
-<script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
-<script type="text/javascript" src="javascript/geoxml3.js"></script>
-<script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
+<script src="../encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
+<script type="text/javascript" src="../javascript/geoxml3.js"></script>
+<script type="text/javascript" src="../javascript/ProjectedOverlay.js"></script>
 
   <!-- /STEP2 Place inside the head section -->
 
@@ -146,7 +146,7 @@ String formAction="surveySearchResults.jsp";
 
 
 <h1 class="intro"><strong><span class="para">
-		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+		<img src="../images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
   <%=titleString%>
 </h1>
 </p>
@@ -165,7 +165,7 @@ String formAction="surveySearchResults.jsp";
   <td>
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
       color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
   </td>
 </tr>
@@ -213,7 +213,7 @@ String formAction="surveySearchResults.jsp";
     <td>
       <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
         href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-        src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+        src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
         color="#000000"><%=occProps.getProperty("observations") %></font></a></h4>
     </td>
   </tr>
