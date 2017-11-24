@@ -176,7 +176,7 @@ function forceLink(el) {
 		  }
 		  else {
 		  	for (Annotation ann: anns) {
-		      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
 		      MediaAsset ma = ann.getMediaAsset();
 		      String filename = ma.getFilename();
 		      
@@ -232,7 +232,9 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 						all.put(j);
 					}
 		  		}
-		  	}
+		  	} //end loop on each annotation
+		  	
+		  	
 		  	// out.println("var assets = " + all.toString() + ";");
 		    //System.out.println("All media assets as an array: "+all.toString());
 
