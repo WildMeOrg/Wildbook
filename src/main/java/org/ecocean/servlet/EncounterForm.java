@@ -51,6 +51,7 @@ import org.ecocean.Util;
 import org.ecocean.Encounter;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
+import org.ecocean.StudySite;
 import org.ecocean.media.*;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.ShepherdProperties;
@@ -59,6 +60,7 @@ import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.joda.time.LocalDateTime;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -110,6 +112,7 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
 
 private final String UPLOAD_DIRECTORY = "/tmp";
 
+
     //little helper function for pulling values as strings even if null (not set via form)
     private String getVal(HashMap fv, String key) {
         if (fv.get(key) == null) {
@@ -152,6 +155,29 @@ private final String UPLOAD_DIRECTORY = "/tmp";
     return list;
   }
 
+
+  // e.g.  "Vq.31. Gema. 15.05.07"
+  private DateTime getDateFromWwfSpainFilename(String filename) {
+
+    if (filename == null) return null;
+    String[] words = filename.split(" ");
+    String lastWord = words[words.length-1];
+    System.out.println("    EncounterForm: getDateFromWwfSpainFilename got lastWord = "+lastWord);
+    try {
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("dd.MM.yy");
+        DateTime dt = formatter.parseDateTime(lastWord);
+        return dt;
+    } catch (Exception e) {
+        System.out.println("    EncounterForm: getDateFromWwfSpainFilename could not parse date");
+        return null;
+    }
+  }
+
+	private String getTrappingStationFromWwfSpainFilename(String filename) {
+		if (filename==null) return null;
+		String firstWord = filename.split(" ")[0];
+		return firstWord;
+	}
 
   private List<Measurement> getMeasurements(HashMap fv, String encID, String context) {
     List<Measurement> list = new ArrayList<Measurement>();
@@ -601,6 +627,9 @@ System.out.println("about to do enc()");
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
 
+						// wwf spain stuff
+						String stuName = null;
+
             AssetStore astore = AssetStore.getDefault(myShepherd);
             ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
 
@@ -622,10 +651,17 @@ System.out.println("enc ?= " + enc.toString());
                     ma.copyIn(tmpFile);
                     ma.updateMetadata();
 
+                    String filename = ma.getFilename();
+                    System.out.println("EncounterForm got filename "+filename);
+
                     //myShepherd.
 
-                    // here is where we should send the MediaAsset to detection
-                    // ia.sendDetection with singleton list, or go outside of loop to have whole locationDescription
+                    // Here we see if we can get the StudySite name.
+                    String newStuName = getTrappingStationFromWwfSpainFilename(filename);
+                    // we take the shortest non-empty parsed name as the final study site name (there's only one per encounter after all)
+                    if (stuName==null || "".equals(stuName) || (newStuName!=null && newStuName.length()<stuName.length())) {
+                    	stuName = newStuName;
+                    }
 
 
 
@@ -649,6 +685,8 @@ System.out.println("enc ?= " + enc.toString());
                     session.setAttribute("filesOKMessage", num + " " + ((num == 1) ? "file" : "files"));
                 }
             }
+
+
 
             enc.setAnnotations(newAnnotations);
 
@@ -998,60 +1036,71 @@ System.out.println("depth --> " + fv.get("depth").toString());
         System.out.println("EncounterSetGPSFromUTM: problem!");
         e.printStackTrace();
       }
-    }
-    System.out.println("END UTM SETTING");
-
-      // end UTM setting
-
+	    }
+	    System.out.println("END UTM SETTING");
+    // end UTM setting
 
 
 
-      //xxxxxxxx
+	    String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
+
+	    //new additions for DarwinCore
+	    enc.setDWCGlobalUniqueIdentifier(guid);
+	    enc.setDWCImageURL((request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID));
+
+	    //populate DarwinCore dates
+
+	    DateTimeFormatter fmt = ISODateTimeFormat.date();
+	    String strOutputDateTime = fmt.print(dt);
+	    enc.setDWCDateAdded(strOutputDateTime);
+	    enc.setDWCDateAdded(new Long(dt.toDateTime().getMillis()));
+	    //System.out.println("I set the date as a LONG to: "+enc.getDWCDateAddedLong());
+	    enc.setDWCDateLastModified(strOutputDateTime);
 
 
-      String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
+	    //this will try to set from MediaAssetMetadata -- ymmv
+	    if (!llSet) enc.setLatLonFromAssets();
+	    if (enc.getYear() < 1) enc.setDateFromAssets();
 
-      //new additions for DarwinCore
-      enc.setDWCGlobalUniqueIdentifier(guid);
-      enc.setDWCImageURL((request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID));
+      // modifications for WWF spain
+	    System.out.println("   EncounterForm: about to setDateFromAssets. Old date = "+enc.getDate());
+	    enc.setDateFromAssets();
+	    System.out.println("   EncounterForm: setDateFromAssets result "+enc.getDate());
 
-      //populate DarwinCore dates
+	    System.out.println("   EncounterForm: parsed study site name "+stuName);
 
-      DateTimeFormatter fmt = ISODateTimeFormat.date();
-      String strOutputDateTime = fmt.print(dt);
-      enc.setDWCDateAdded(strOutputDateTime);
-      enc.setDWCDateAdded(new Long(dt.toDateTime().getMillis()));
-      //System.out.println("I set the date as a LONG to: "+enc.getDWCDateAddedLong());
-      enc.setDWCDateLastModified(strOutputDateTime);
-
-
-        //this will try to set from MediaAssetMetadata -- ymmv
-        if (!llSet) enc.setLatLonFromAssets();
-        if (enc.getYear() < 1) enc.setDateFromAssets();
-
-            String newnum = "";
-            if (!spamBot) {
-                newnum = myShepherd.storeNewEncounter(enc, encID);
-                //enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
-                enc.refreshAssetFormats(myShepherd);
-
-                Logger log = LoggerFactory.getLogger(EncounterForm.class);
-                log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
-System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
-
-                myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
-                //myShepherd.beginDBTransaction();
+	    StudySite stu = myShepherd.getStudySiteByName(stuName);
+	    if (stu==null) {
+	    	stu = new StudySite(stuName, enc);
+	    	myShepherd.storeNewStudySite(stu);
+	    }
+	    enc.setStudySiteID(stu.getID());
+	    System.out.println("	EncounterForm: set encounter study site ID to "+ enc.getStudySiteID());
 
 
-                String baseUrl = "";
-                try {baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());}
-                catch (Exception E) {};
-                if (assetsForDetection.size() > 0) System.out.println("About to send assets! First asset = "+assetsForDetection.get(0).toString());
-                IBEISIA.beginDetect(assetsForDetection, baseUrl, context);
 
 
-            }
+	    String newnum = "";
+	    if (!spamBot) {
+	        newnum = myShepherd.storeNewEncounter(enc, encID);
+	        //enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
+	        enc.refreshAssetFormats(myShepherd);
+
+	        Logger log = LoggerFactory.getLogger(EncounterForm.class);
+	        log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
+					System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+
+	        myShepherd.commitDBTransaction();
+	        myShepherd.closeDBTransaction();
+	        myShepherd.beginDBTransaction();
+
+	        String baseUrl = "";
+	        try {baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());}
+	        catch (Exception E) {};
+	        if (assetsForDetection.size() > 0) System.out.println("About to send assets! First asset = "+assetsForDetection.get(0).toString());
+	        IBEISIA.beginDetect(assetsForDetection, baseUrl, context);
+	    }
+
 
       if (newnum.equals("fail")) {
         request.setAttribute("number", "fail");
@@ -1077,6 +1126,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
       //return a forward to display.jsp
       System.out.println("Ending data submission.");
+      System.out.println("again checking encounter studysiteID: "+enc.getStudySiteID());
       if (!spamBot) {
         response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
       } else {
@@ -1086,6 +1136,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
     }  //end "if (fileSuccess)
 
+    myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
     //return null;
   }
