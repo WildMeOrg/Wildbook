@@ -285,7 +285,13 @@ public class CommonConfiguration {
   public static String getProperty(String name, String context) {
     return initialize(context).getProperty(name);
   }
-  
+
+  public static String[] getCommaSeparatedProperties(String name, String context) {
+    String allProps = initialize(context).getProperty(name);
+    if (allProps==null) return new String[0];
+    return allProps.split(",");
+  }
+
   public static Enumeration<?> getPropertyNames(String context) {
     return initialize(context).propertyNames();
   }
