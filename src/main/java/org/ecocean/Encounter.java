@@ -1636,6 +1636,12 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return studySiteID;
   }
 
+  // studySiteID is always a UUID, but users will want to know the name of the site
+  public String getStudySiteName(Shepherd myShepherd) {
+  	StudySite stu = myShepherd.getStudySite(getStudySiteID());
+  	return ((stu==null) ? null : stu.getName());
+  }
+
   public void setStudySiteID(String studySiteID) {
     this.studySiteID = studySiteID;
   }
@@ -1898,16 +1904,24 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
     //crawls thru assets and sets date.. in an ideal world would do some kinda avg or whatever if more than one  TODO?
     public void setDateFromAssets() {
+    	DateTime dt = getDateFromAssets();
+    	if (dt!=null) setDateInMilliseconds(dt.getMillis());
+    }
+
+    // separated from above setter so we can see how it runs on encs
+    // that already have a datetime without overwriting
+    public DateTime getDateFromAssets() {
         //FIXME if you dare.  i can *promise you* there are some timezone problems here.  ymmv.
-        if ((annotations == null) || (annotations.size() < 1)) return;
         DateTime dt = null;
+        if ((annotations == null) || (annotations.size() < 1)) return dt;
+
         for (Annotation ann : annotations) {
             MediaAsset ma = ann.getMediaAsset();
             if (ma == null) continue;
             dt = ma.getDateTime();
             if (dt != null) break;  //we just take the first one
         }
-        if (dt != null) setDateInMilliseconds(dt.getMillis());
+        return dt;
     }
 
     public void setSpeciesFromAssets() {
@@ -2213,6 +2227,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
     public List<SinglePhotoVideo> getImages(){return images;}
 
+    public boolean hasAnnotations() {
+        return (annotations!=null && annotations.size()>0);
+    }
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
