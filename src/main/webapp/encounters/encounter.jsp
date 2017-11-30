@@ -1869,21 +1869,19 @@ if(enc.getLocation()!=null){
 
 <!-- Create hyperlink to study site page -->
 <%
-String prettyStudySiteID = enc.getStudySiteID();
-if (prettyStudySiteID!=null) {
-  if (myShepherd.isStudySiteWithName(prettyStudySiteID)) {
+String stuID = enc.getStudySiteID();
+System.out.println("***   Encounter.jsp: got stuID = "+stuID);
+StudySite stu = myShepherd.getStudySite(stuID);
+String displayStu = "none";
+if (stu!=null) {
     // build hyperlink to studysite page
-    String actualID = myShepherd.getStudySiteByName(prettyStudySiteID).getID();
-    String stuUrl = urlLoc + "/studySite.jsp?number="+actualID;
-
-    prettyStudySiteID = "<a href="+stuUrl+">"+prettyStudySiteID+"</a>";
-
-  }
-} else prettyStudySiteID = "none";
+    String stuUrl = urlLoc + "/studySite.jsp?number="+stuID;
+    displayStu = "<a href="+stuUrl+">"+stu.getName()+"</a>";
+} 
 %>
 
 
-<em><%=encprops.getProperty("studySiteID")%>: <span id="displayStudySiteID"><%=prettyStudySiteID%></span></em>
+<em><%=encprops.getProperty("studySiteID")%>: <span id="displayStudySiteID"><%=displayStu%></span></em>
 <br>
 
 <%
