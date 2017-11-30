@@ -60,6 +60,8 @@ public class IndividualCreate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    System.out.println("IndividualCreate servlet: beginning POST");
     request.setCharacterEncoding("UTF-8");
     String context="context0";
     context=ServletUtilities.getContext(request);
@@ -90,12 +92,18 @@ public class IndividualCreate extends HttpServlet {
       
     }
 
+    String encNum = request.getParameter("number");
+    System.out.println("IndividualCreate servlet: got encNum "+encNum+" and indNum "+newIndividualID);
+
 
     //create a new MarkedIndividual from an encounter
 
-    if ( (request.getParameter("number") != null) &&  (!newIndividualID.trim().equals(""))) {
+    if ( (encNum != null) &&  (!newIndividualID.trim().equals(""))) {
+
+      System.out.println("IndividualCreate is proceeding apace");
+
       myShepherd.beginDBTransaction();
-      Encounter enc2make = myShepherd.getEncounter(request.getParameter("number").trim());
+      Encounter enc2make = myShepherd.getEncounter(encNum);
       setDateLastModified(enc2make);
 
       String belongsTo = enc2make.getIndividualID();
@@ -107,8 +115,10 @@ public class IndividualCreate extends HttpServlet {
 
       if (!(myShepherd.isMarkedIndividual(newIndividualID))) {
 
+        System.out.println("IndividualCreate: Supposedly creating new Individual "+newIndividualID);
 
-        if ((belongsTo == null) && (newIndividualID != null)) {
+
+        if (newIndividualID != null) {
           MarkedIndividual newShark = null;
           try {
             newShark = new MarkedIndividual(newIndividualID, enc2make);
@@ -129,6 +139,7 @@ public class IndividualCreate extends HttpServlet {
           }
 
           if (!locked&&ok2add) {
+
             myShepherd.commitDBTransaction();
             myShepherd.closeDBTransaction();
             if (request.getParameter("noemail") == null) {
@@ -174,7 +185,8 @@ public class IndividualCreate extends HttpServlet {
               
               ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile,context);
               
-            }
+            } // end if noemail==null
+
             //set up the directory for this individual
             File thisSharkDir = new File(individualsDir, newIndividualID);
 
@@ -194,7 +206,12 @@ public class IndividualCreate extends HttpServlet {
             if (request.getParameter("noemail") == null) {
               ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
             }
-          } else {
+            int respCode = HttpServletResponse.SC_OK;
+            System.out.println("IndividualCreate: should be wrapping up and returning status code "+respCode);
+            response.setStatus(respCode);
+
+          } // end if !locked and oktoadd
+          else {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT used to create a new individual. This encounter is currently being modified by another user. Please go back and try to create the new individual again in a few seconds.");
             out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
@@ -212,12 +229,15 @@ public class IndividualCreate extends HttpServlet {
         }
 
       } else if ((myShepherd.isMarkedIndividual(newIndividualID))) {
+        System.out.println("IndividualCreate: ERROR: Individual "+newIndividualID+" already exists");
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("Error: A marked individual with the name \""+newIndividualID+"\" already exists in the database. Select a different name and try again.");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
+
+
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> A marked individual by this name already exists in the database. Select a different name and try again.");
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
 
       } else {
         myShepherd.rollbackDBTransaction();
@@ -236,11 +256,7 @@ public class IndividualCreate extends HttpServlet {
       out.println(ServletUtilities.getFooter(context));
       myShepherd.closeDBTransaction();
     }
-
-
     out.close();
     
   }
 }
-
-

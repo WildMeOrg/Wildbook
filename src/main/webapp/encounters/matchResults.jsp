@@ -36,37 +36,54 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 }
 
 
-  session.setMaxInactiveInterval(6000);
-  String taskId = request.getParameter("taskId");
-
-	String jobId = null;
-	String qannId = null;
-	Shepherd myShepherd2 = new Shepherd(context);
-	myShepherd2.setAction("matchResults.jsp2");
-	myShepherd2.beginDBTransaction();
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd2);
-        for (IdentityServiceLog l : logs) {
-            if (l.getServiceJobID() != null) jobId = l.getServiceJobID();
-            if ((l.getObjectIDs() != null) && (l.getObjectIDs().length > 0)) qannId = l.getObjectIDs()[0];
-        }
-
-	String qMediaAssetJson = null;
-       	Annotation qann = null;
-	String num = null;
-	Encounter enc = null;
-	try {
-        	qann = ((Annotation) (myShepherd2.getPM().getObjectById(myShepherd2.getPM().newObjectIdInstance(Annotation.class, qannId), true)));
-	} catch (Exception ex) {}
-	if ((qann != null) && (qann.getMediaAsset() != null)) {
-		qMediaAssetJson = qann.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString();
-        	enc = Encounter.findByAnnotation(qann, myShepherd2);
-		num = enc.getCatalogNumber();
-	}
-	
 
 
-	myShepherd2.rollbackDBTransaction();
-	myShepherd2.closeDBTransaction();
+session.setMaxInactiveInterval(6000);
+String taskId = request.getParameter("taskId");
+
+String jobId = null;
+String qannId = null;
+Shepherd myShepherd2 = new Shepherd(context);
+myShepherd2.setAction("matchResults.jsp2");
+myShepherd2.beginDBTransaction();
+ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd2);
+    for (IdentityServiceLog l : logs) {
+        if (l.getServiceJobID() != null) jobId = l.getServiceJobID();
+        if ((l.getObjectIDs() != null) && (l.getObjectIDs().length > 0)) qannId = l.getObjectIDs()[0];
+    }
+
+String qMediaAssetJson = null;
+Annotation qann = null;
+String num = null;
+Encounter enc = null;
+try {
+    qann = ((Annotation) (myShepherd2.getPM().getObjectById(myShepherd2.getPM().newObjectIdInstance(Annotation.class, qannId), true)));
+} catch (Exception ex) {}
+if ((qann != null) && (qann.getMediaAsset() != null)) {
+	qMediaAssetJson = qann.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString();
+    enc = Encounter.findByAnnotation(qann, myShepherd2);
+	num = enc.getCatalogNumber();
+}
+
+String encNum = request.getParameter("number");
+String encIndivID = null;
+// get encounter number
+if (encNum!=null) {
+	enc = myShepherd2.getEncounter(encNum);
+	encIndivID = enc.getIndividualID();
+}
+System.out.println("MatchResults.jsp has begun with reference encounter "+encNum+" (assigned to individual "+encIndivID+")");
+
+
+
+
+
+System.out.println("done with header on matchResults. Got qannid="+qannId+" qann "+qann+", enc "+enc+" and num "+encNum);
+
+ 
+
+myShepherd2.rollbackDBTransaction();
+myShepherd2.closeDBTransaction();
 %>
 
  <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
@@ -205,6 +222,8 @@ tr.clickable:hover .link-button {
 }
 
 
+
+
 /* makes up for nudging of chart */
 #chart .note {
 	width: 80%;
@@ -247,11 +266,26 @@ var qMediaAsset = <%=((qMediaAssetJson == null) ? "undefined" : qMediaAssetJson)
 
 
 
-<div id="results">Waiting for results....</div>
+<div id="results"><p>Waiting for results....</p></div>
+
+<%
+	String prevIndId = (encIndivID!=null) ? encIndivID : "";
+ %>
 
 <div id="result-images"></div>
 
 
+
+
+<div id="newIndividual">
+	<h2>Make a new individual</h2>
+	<span id="newIndividualResult"><!--the inside of this span is the part that disappears when the result returns-->	
+		<p>Instead of matching this photo to an individual already stored in Wildbook, you can create a new individual from this encounter.</p>
+	</span>
+	
+	<p>New Individual name: <input type="text" id="newIndivname" name="newIndivname" value="<%=prevIndId %>"></input></p>
+	<input type="button" onClick="newIndButtonClick();" value="Create New Individual" />
+</div>
 
 <div id="link"><%
 	if (num != null) out.println("<a href=\"encounter.jsp?number=" + num + "\">Return to encounter</a>");
@@ -287,6 +321,22 @@ var qMediaAsset = <%=((qMediaAssetJson == null) ? "undefined" : qMediaAssetJson)
 
 
 <script>
+
+$( document ).ready(repositionImageInfo);
+
+// hack because flukeScanEnd is opaque
+function repositionImageInfo() {
+	$( ".image-info" ).each(function( index ) {
+		var image = $(this).siblings('img');
+		// no idea why below line doesn't do it
+		$(this).insertAfter(image);
+		// hack because insertAfter does nothing
+		var h = image.height()-$(this).height()+30;
+		$(this).css('margin-bottom','-'+h+'px');
+	});
+}
+
+
 function init2() {   //called from wildbook.init() when finished
     	$('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
     	$('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
@@ -311,6 +361,9 @@ function checkForResults() {
 }
 
 var countdown = 100;
+
+var newIndivHtml = 'Create a new individual<button> test button</button>';
+
 function processResults(res) {
 	if (!res || !res.queryAnnotation) {
 console.info('waiting to try again...');
@@ -330,7 +383,10 @@ console.info('waiting to try again...');
 	}
 	if (!res.matchAnnotations || (res.matchAnnotations.length < 1)) {
 		jQuery('#image-compare').html('<img style="width: 225px; margin: 20px 30%;" src="../images/image-not-found.jpg" />');
-		$('#results').html('No matches found.');
+		//$('#results').html('No matches found.');
+		// here we add the "create individual" button
+		$('#results').html('No matches found. <button> test button</button>');
+
 		return;
 	}
 	if (res.matchAnnotations.length == 1) {
@@ -433,5 +489,45 @@ function approvalButtonClick(encID, indivID) {
 	return true;
 }
 
+function newIndButtonClick() {
+	var encNum = '<%=encNum%>';
+	var indId = $('input#newIndivname').val();
+	var target = '../IndividualCreate?individual=' + indId + '&number=' + encNum +"&source=match.jsp";
+	console.info('newIndButtonClick about to link to %s', target);
+	$('#newIndivname').html('<i>creating individual <em>'+indId+'</em>...</i>');
+	jQuery.ajax({
+		url: target,
+		type: 'GET',
+		dataType: 'text',
+		success: function(d, textStatus, xhr) {
+			console.log("IndividualCreate success case");
+			//console.log("xhr = "+JSON.stringify(xhr));
+			console.log("d = "+JSON.stringify(d));
+			console.log("textStatus = "+textStatus);
+			console.log("HTTP code "+xhr.status);
+			console.log("about to do the html change");
+			$('#newIndividualResult').html(d);
+			console.log("Successfully created new individual and updated html");
+			//window.location.href = 'encounter.jsp?number=' + encID;
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			console.log("IndividualCreate Error case");
+			console.log("HTTP code "+jqXHR.status)
+			console.log("xhr = "+JSON.stringify(jqXHR));
+			console.log("textStatus = "+textStatus);
+			console.log("errorThrown "+errorThrown);
+
+			//console.warn('%o %o %o', x, y, z);
+			if (jqXHR.responseText)  {
+				$('#newIndividualResult').html(jqXHR.responseText);
+				//alert(x.responseText)
+			} else {
+				alert('Error updating encounter: '+JSON.stringify(jqXHR)+" "+textStatus);
+			}
+
+		}
+	});
+	return true;
+}
 
 </script>

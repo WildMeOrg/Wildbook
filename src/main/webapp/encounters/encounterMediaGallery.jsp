@@ -43,6 +43,8 @@ boolean isGrid = (request.getParameter("grid")!=null);
 
 imageShepherd.beginDBTransaction();
 
+System.out.println("EncounterMediaGallery has begun with encNum="+encNum);
+
 //String encNum = request.getParameter("encounterNumber");
 String queryString=request.getParameter("queryString");
 Query query=imageShepherd.getPM().newQuery(queryString);
@@ -118,7 +120,7 @@ try {
 		        console.info('identify returned %o', d);
 		        if (d.taskID) {
 				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
-		          window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+		          window.location.href = 'matchResults.jsp?number=<%=encNum%>&taskId=' + d.taskID;
 		        } else {
 				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
 		        }
@@ -453,7 +455,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 				return;
 			}
       var taskID = enh.imgEl.data('enh-taskid');
-			wildbook.openInTab('matchResults.jsp?taskId=' + taskID);
+			wildbook.openInTab('matchResults.jsp?number=<%=encNum%>&taskId=' + taskID);
 		}
             ],
             [
