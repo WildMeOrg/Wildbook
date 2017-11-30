@@ -1,6 +1,7 @@
  package org.ecocean;
 
 import org.joda.time.DateTime;
+import org.ecocean.Util;
 
 public class StudySite implements java.io.Serializable {
 
@@ -40,16 +41,27 @@ public class StudySite implements java.io.Serializable {
   public StudySite() {
   }
 
-  public StudySite(String id) {
-    this.id = id;
+  public StudySite(String name) {
+    this.id = Util.generateUUID();
+    this.name = name;
   }
 
-  public StudySite(String id, String typeOfSite, Double lat, Double lon) {
-    this.id = id;
+  public StudySite(String name, String typeOfSite, Double lat, Double lon) {
+    this.id = Util.generateUUID();
+    this.name = name;
     this.typeOfSite = typeOfSite;
     this.latitude = lat;
     this.longitude = lon;
   }
+
+  public StudySite(String name, Encounter enc) {
+    this.id = Util.generateUUID();
+    this.name = name;
+    this.latitude = enc.getLatitudeAsDouble();
+    this.longitude = enc.getLongitudeAsDouble();
+    this.locationID = enc.getLocationID();
+  }
+
 
   public void setID(String id) {
     this.id = id;
