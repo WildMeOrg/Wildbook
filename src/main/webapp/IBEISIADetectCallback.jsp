@@ -150,7 +150,7 @@ private void tryToGet(String jobID, String context, HttpServletRequest request) 
 
       // return if annotsToID is empty
 
-      String species = annotsToID.get(0).getSpecies();
+      String species = (annotsToID!=null && annotsToID.size()>0) ? annotsToID.get(0).getSpecies() : null;
       //ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
       ArrayList<Annotation> exemplars = null;
 
