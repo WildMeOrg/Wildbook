@@ -1,16 +1,16 @@
-SUBJECT: Email from MantaMatcher
+SUBJECT: Email from @projectName@
 
 @EMAIL_CONTENT@
 
 Sincerely,
 
-The MantaMatcher Team
+The @projectNameAfterThe@ Team
 
 
 LEGAL STATEMENT
 
-MantaMatcher is copyrighted 2009-2015 by Wild Me.
-Individual contributors to MantaMatcher retain copyrights for submitted images.
+@projectNameCapitalized@ is copyrighted 2009-2015 by Wild Me.
+Individual contributors to @projectName@ retain copyrights for submitted images.
 No reproduction or usage of material in this library is permitted without the
 express permission of the copyright holders.
 

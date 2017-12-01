@@ -193,6 +193,11 @@ public final class NotificationMailer implements Runnable {
     boolean useSSL = CommonConfiguration.getMailHostSslOption(context);
     String mailAuth = CommonConfiguration.getMailAuth(context);
     String[] mAuth = null;
+
+    // default map initialization
+    this.map = CommonConfiguration.getEmailReplacementStrings(context);
+    this.map.putAll(map);
+
     if (mailAuth != null && mailAuth.contains(":"))
       mAuth = mailAuth.split(":", 2);
     try {
@@ -205,8 +210,8 @@ public final class NotificationMailer implements Runnable {
       // Perform tag replacements.
       System.out.println("About to perform string replacements");
 
-      if (map != null) {
-        for (Map.Entry<String, String> me : map.entrySet()) {
+      if (this.map != null) {
+        for (Map.Entry<String, String> me : this.map.entrySet()) {
           try {
             mailer.replace(me.getKey(), me.getValue() == null ? "" : me.getValue());
           }
@@ -216,7 +221,7 @@ public final class NotificationMailer implements Runnable {
           }
         }
         // Remove REMOVEME section when not applicable (i.e. no hashed email info).
-        if (map.containsKey("@URL_LOCATION@") && map.containsKey(EMAIL_HASH_TAG) && map.containsKey(EMAIL_NOTRACK)) {
+        if (this.map.containsKey("@URL_LOCATION@") && this.map.containsKey(EMAIL_HASH_TAG) && this.map.containsKey(EMAIL_NOTRACK)) {
           mailer.replaceInPlainText("@REMOVEME_START@", null, false);
           mailer.replaceInPlainText("@REMOVEME_END@", null, false);
           if (mailer.hasHtmlText()) {
@@ -224,9 +229,9 @@ public final class NotificationMailer implements Runnable {
             mailer.replaceInHtmlText("<!--@REMOVEME_END@-->", null, false);
           }
           // Extra layer to help prevent chance of URL spoof attacks.
-          String noTrack = map.get(EMAIL_NOTRACK);
+          String noTrack = this.map.get(EMAIL_NOTRACK);
           if (noTrack.matches("([a-z]+)=(.+)")) {
-            String link = String.format("http://%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
+            String link = String.format("http://%s/DontTrack?%s&email=%s", this.map.get("@URL_LOCATION@"), noTrack, this.map.get(EMAIL_HASH_TAG));
             mailer.replace("@REMOVEME_LINK@", link, true);
           }
         } else {

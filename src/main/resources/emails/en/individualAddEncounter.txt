@@ -2,7 +2,7 @@ SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
 Just a quick email to let you know that the manta encounter that you
-submitted has been matched to an identified manta in the MantaMatcher
+submitted has been matched to an identified manta in the @projectNameAfterThe@
 photo-identification library.
 Follow these links to find out more:
 

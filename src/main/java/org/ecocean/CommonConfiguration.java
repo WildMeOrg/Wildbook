@@ -513,6 +513,18 @@ public class CommonConfiguration {
     return originalString;
   }
 
+  public static Map<String,String> getEmailReplacementStrings(String context) {
+    Map<String,String> replacementMap = new HashMap<String,String>();
+    String delimiter="@";
+    String[] replacementKeys = getCommaSeparatedProperties("emailReplacementKeys", context);
+    for (String repKey: replacementKeys) {
+      String rep = getProperty(repKey, context);
+      String keyWithDelimiter = delimiter+repKey+delimiter;
+      if (rep!=null && !("".equals(rep))) replacementMap.put(keyWithDelimiter, rep);
+    }
+    return replacementMap;
+  }
+
   public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
     Map<String, String> map = new TreeMap<>();
     boolean hasMore = true;
