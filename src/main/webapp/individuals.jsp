@@ -88,6 +88,8 @@ context=ServletUtilities.getContext(request);
   String edit = props.getProperty("edit");
   String remove = props.getProperty("remove");
   String occurrenceNumber = props.getProperty("occurrenceNumber");
+  System.out.println("We got occurrenceNumber = "+occurrenceNumber);
+  System.out.println("We got sex = "+sex);
   
   String name = "";
   Shepherd myShepherd = new Shepherd(context);
@@ -320,6 +322,7 @@ tableDictionary['sex'] = "<%= sex %>";
 tableDictionary['location'] = "<%= location %>";
 tableDictionary['alternateID'] = "<%= alternateID %>";
 tableDictionary['occurringWith'] = "<%= occurringWith %>";
+tableDictionary['numencounters'] = "<%= numencounters%>";
 tableDictionary['behavior'] = "<%= behavior %>";
 tableDictionary['haplotype'] = "<%= haplotype %>";
 tableDictionary['dataTypes'] = "<%= dataTypes %>";
@@ -334,7 +337,7 @@ tableDictionary['remove'] = "<%= remove %>";
 tableDictionary['date'] = "<%= date %>";
 tableDictionary['unknown'] = "<%= unknown %>";
 tableDictionary['nickname'] = "<%= nickname %>";
-tableDictionary['occurenceNumber'] = "<%= occurrenceNumber %>";
+tableDictionary['occurrenceNumber'] = "<%= occurrenceNumber%>";
 
 
 $(document).ready(function() {

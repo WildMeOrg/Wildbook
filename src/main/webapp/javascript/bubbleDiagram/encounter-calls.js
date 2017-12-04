@@ -175,7 +175,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     .enter().append("th").text(function(d){
       if(d === "text") {
         return dict['occurringWith'];
-      } if (d === "count"){
+      } if (d === "occurrenceNumber"){
         return dict['occurrenceNumber'];
       } if (d === "behavior") {
         return dict['behavior'];
@@ -251,7 +251,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
         if(d == "GOS") {
           return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
         }
-      return d;
+      return d; 
     });
 
     if(sortOn !== null) {
@@ -308,7 +308,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   var encounterData = [];
   var occurringWith = "";
-    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
+  d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
       if(error) {
         console.log("error")
       }
@@ -361,7 +361,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       }
       makeTable(encounterData, "#encountHead", "#encountBody", "date");
     });
-  }
+}
 
   var goToEncounterURL = function(selectedWhale) {
     window.open("/encounters/encounter.jsp?number=" + selectedWhale);
