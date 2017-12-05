@@ -2897,7 +2897,7 @@ return Util.generateUUID();
                         }
                         else{month=-1;}
                         //see if we can get a day, because we do want to support only yyy-MM too
-                        if(str.countTokens()>=3){
+                        if(numTokens>=3){
                           try { day=reportedDateTime.getDayOfMonth(); } catch (Exception e) { day=0; }
                         }
                         else{day=-1;}
@@ -2993,7 +2993,7 @@ return Util.generateUUID();
                       enctemp.setYear(year);
                       if(month>-1){
                         enctemp.setMonth(month);
-                        if(day>-1){enc.setDay(day);}
+                        if(day>-1){enctemp.setDay(day);}
                       }
                     }
 
