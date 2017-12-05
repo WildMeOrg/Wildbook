@@ -655,6 +655,7 @@ public class MediaAsset implements java.io.Serializable {
     public URL safeURL(Shepherd myShepherd) {
         return safeURL(myShepherd, null);
     }
+
     public URL safeURL(HttpServletRequest request) {
         String context = "context0";
         if (request != null) context = ServletUtilities.getContext(request);  //kinda rough, but....
@@ -679,8 +680,12 @@ public class MediaAsset implements java.io.Serializable {
         if (AccessControl.isAnonymous(request)) bestType = "mid";
         if (store instanceof URLAssetStore) bestType = "original";  //this is cuz it is assumed to be a "public" url
 
-        //gotta consider that we are the best!
+        bestType = "master";
+        System.out.println("bestSafeAsset: ma #"+getId()+" has bestType "+bestType);
+
+        //gotta consider that wre are the best!
         if (this.hasLabel("_" + bestType)) return this;
+        System.out.println("have we broken this loop? not if you're reading this!");
 
         //if we are a child asset, we need to find our parent then find best from there!
         MediaAsset top = this;  //assume we are the parent-est
@@ -692,17 +697,25 @@ public class MediaAsset implements java.io.Serializable {
                 return this;  //we stick with this cuz we are kinda at a dead end
             }
         }
+        System.out.println("another checkpoint");
 
         boolean gotBest = false;
         List<String> types = store.allChildTypes();  //note: do we need to care that top may have changed stores????
         for (String t : types) {
             if (t.equals(bestType)) gotBest = true;
+            if (gotBest) System.out.println("We got the best type! it is "+t);
             if (!gotBest) continue;  //skip over any "better" types until we get to best we can use
 //System.out.println("   ....  ??? do we have a " + t);
             //now try to see if we have one!
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
-            if ((kids != null) && (kids.size() > 0)) return kids.get(0); ///not sure how to pick if we have more than one!  "probably rare" case anyway....
+            if ((kids != null) && (kids.size() > 0)) {
+                MediaAsset kid = kids.get(0);
+                System.out.println("We found an asset to return: "+kid.getId());
+                return kid; 
+
+            } ///not sure how to pick if we have more than one!  "probably rare" case anyway....
         }
+        System.out.println("bestSafeAsset returning null");
         return null;  //got nothing!  :(
     }
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request) {
