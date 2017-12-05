@@ -633,23 +633,6 @@
           </dependency>
 		  -->
 
-          <!-- dependencies for translation -->
-          <dependency>
-          <groupId>com.google.cloud</groupId>
-          <artifactId>google-cloud-translate</artifactId>
-          <version>0.17.2-beta</version>
-        </dependency>
-
-        <dependency>
-          <groupId>com.google.truth</groupId>
-          <artifactId>truth</artifactId>
-          <version>0.32</version>
-        </dependency>
-        <dependency>
-          <groupId>com.googlecode</groupId>
-          <artifactId>google-api-translate-java</artifactId>
-          <version>0.92</version>
-        </dependency>
 
   </dependencies>
 
