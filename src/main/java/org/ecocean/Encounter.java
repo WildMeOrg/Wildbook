@@ -1987,8 +1987,8 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     	else{submitterOrganization=null;}
     }
 
-	public List<String>() getSubmitterResearchers() {
-		return submitterResearchers();
+	public List<String> getSubmitterResearchers() {
+		return submitterResearchers;
 	}
 	public void addSubmitterResearcher(String researcher) {
 		if (submitterResearchers==null) submitterResearchers = new ArrayList<String>();
@@ -1997,14 +1997,6 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 	public void setSubmitterResearchers(Collection<String> researchers) {
 		this.submitterResearchers = new ArrayList<String>(researchers);
 	}
-
-	public String getSubmitterProject() {
-		return submitterProject;
-	}
-	public void setSubmitterProject(String newProject) {
-   		submitterProject = newProject;
-	}
-
 
    // public List<DataCollectionEvent> getCollectedData(){return collectedData;}
 
