@@ -697,7 +697,6 @@ public class MediaAsset implements java.io.Serializable {
                 return this;  //we stick with this cuz we are kinda at a dead end
             }
         }
-        System.out.println("another checkpoint");
 
         boolean gotBest = false;
         List<String> types = store.allChildTypes();  //note: do we need to care that top may have changed stores????
