@@ -33,6 +33,10 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.model.*;
 import com.google.api.services.youtube.YouTube.CommentThreads;
 
+import org.ecocean.media.*;
+
+import java.util.ArrayList;
+
 // see: https://developers.google.com/youtube/v3/code_samples/java#search_by_keyword
 
 public class YouTube {
@@ -367,8 +371,81 @@ System.out.println("]=== done with .extractFrames()");
       return null;
     }
     
+    //Given an Occurrence created from a YouTube video, return the video description
+    public static String getVideoDescription(Occurrence occur, Shepherd myShepherd) {
+      String desc=null;
+      if((occur!=null)&&(occur.hasMediaAssetFromRootStoreType(myShepherd, AssetStoreType.YouTube))){
+        if((occur.getEncounters()!=null)&&(occur.getEncounters().size()>0)) {
+          Encounter enc=occur.getEncounters().get(0);
+          ArrayList<MediaAsset> assets=enc.getMedia();
+          if(assets!=null) {
+            MediaAsset ma=assets.get(0);
+            MediaAsset parentRoot=ma.getParentRoot(myShepherd);
+              MediaAssetMetadata mdata=ma.getMetadata();
+              JSONObject data=mdata.getData();
+                if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                    if (parentRoot.getMetadata().getData().optJSONObject("detailed") != null) {
+                        desc = parentRoot.getMetadata().getData().getJSONObject("detailed").optString("description", "[no description]"); 
+                    }
+                }
+              
+              }
+          }
+      }
+      return desc;
+    }
     
-
+  //Given an Occurrence created from a YouTube video, return the video tags
+    public static String getVideoTags(Occurrence occur, Shepherd myShepherd) {
+      String tags=null;
+      if((occur!=null)&&(occur.hasMediaAssetFromRootStoreType(myShepherd, AssetStoreType.YouTube))){
+        if((occur.getEncounters()!=null)&&(occur.getEncounters().size()>0)) {
+          Encounter enc=occur.getEncounters().get(0);
+          ArrayList<MediaAsset> assets=enc.getMedia();
+          if(assets!=null) {
+            MediaAsset ma=assets.get(0);
+            MediaAsset parentRoot=ma.getParentRoot(myShepherd);
+              MediaAssetMetadata mdata=ma.getMetadata();
+              JSONObject data=mdata.getData();
+                if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                  if (parentRoot.getMetadata().getData().getJSONObject("detailed").optJSONArray("tags") != null) {
+                    tags = parentRoot.getMetadata().getData().getJSONObject("detailed").getJSONArray("tags").toString(); 
+                    }
+                }
+              
+              }
+          }
+      }
+      return tags;
+    }
+    
+    //Given an Occurrence created from a YouTube video, return the video title
+    public static String getVideoTitle(Occurrence occur, Shepherd myShepherd) {
+      String title=null;
+      if((occur!=null)&&(occur.hasMediaAssetFromRootStoreType(myShepherd, AssetStoreType.YouTube))){
+        if((occur.getEncounters()!=null)&&(occur.getEncounters().size()>0)) {
+          Encounter enc=occur.getEncounters().get(0);
+          ArrayList<MediaAsset> assets=enc.getMedia();
+          if(assets!=null) {
+            MediaAsset ma=assets.get(0);
+            MediaAsset parentRoot=ma.getParentRoot(myShepherd);
+              MediaAssetMetadata mdata=ma.getMetadata();
+              JSONObject data=mdata.getData();
+                if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                  if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
+                    title=parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]");
+                   }
+                }
+              
+              }
+          }
+      }
+      return title;
+    }
+    
+    
+    
+    
 }
 
 
