@@ -159,16 +159,24 @@ private final String UPLOAD_DIRECTORY = "/tmp";
   // e.g.  "Vq.31. Gema. 15.05.07"
   private DateTime getDateFromWwfSpainFilename(String filename) {
 
-    if (filename == null) return null;
-    String[] words = filename.split(" ");
-    String lastWord = words[words.length-1];
-    System.out.println("    EncounterForm: getDateFromWwfSpainFilename got lastWord = "+lastWord);
     try {
+		System.out.println("    EncounterForm getDateFromWwfSpainFilename for "+filename);
+		if (filename == null) return null;
+		String[] words = filename.split(" ");
+		String lastWord = words[words.length-1];
+		String[] lastWordDotsplit = lastWord.split("\\.");
+
+		String fileExtension = "."+lastWordDotsplit[lastWordDotsplit.length - 1];
+		String lastWordNoExtension = lastWord.split(fileExtension)[0];
+		System.out.println("    EncounterForm: getDateFromWwfSpainFilename got lastWordNoExtension = "+lastWordNoExtension);
+
         DateTimeFormatter formatter = DateTimeFormat.forPattern("dd.MM.yy");
-        DateTime dt = formatter.parseDateTime(lastWord);
+        DateTime dt = formatter.parseDateTime(lastWordNoExtension);
+        System.out.println("    EncounterForm: getDateFromWwfSpainFilename got date "+dt);
         return dt;
     } catch (Exception e) {
-        System.out.println("    EncounterForm: getDateFromWwfSpainFilename could not parse date");
+        System.out.println("    EncounterForm: getDateFromWwfSpainFilename could not parse date: ");
+        e.printStackTrace();
         return null;
     }
   }
@@ -658,6 +666,15 @@ System.out.println("enc ?= " + enc.toString());
 
                     // Here we see if we can get the StudySite name.
                     String newStuName = getTrappingStationFromWwfSpainFilename(filename);
+                    //
+                    DateTime parsedDate = getDateFromWwfSpainFilename(filename);
+                    System.out.println("	EncounterForm got date "+parsedDate);
+
+                    if (parsedDate!=null) enc.setDateInMilliseconds(parsedDate.getMillis());
+
+
+
+
                     // we take the shortest non-empty parsed name as the final study site name (there's only one per encounter after all)
                     if (stuName==null || "".equals(stuName) || (newStuName!=null && newStuName.length()<stuName.length())) {
                     	stuName = newStuName;
@@ -1069,12 +1086,14 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
 	    System.out.println("   EncounterForm: parsed study site name "+stuName);
 
+
+	    // StudySite done last so common fields (e.g. Population, Gov Area, lat/long) can be shared
 	    StudySite stu = myShepherd.getStudySiteByName(stuName);
 	    if (stu==null) {
 	    	stu = new StudySite(stuName, enc);
 	    	myShepherd.storeNewStudySite(stu);
 	    }
-	    enc.setStudySiteID(stu.getID());
+	    enc.setStudySite(stu);
 	    System.out.println("	EncounterForm: set encounter study site ID to "+ enc.getStudySiteID());
 
 
