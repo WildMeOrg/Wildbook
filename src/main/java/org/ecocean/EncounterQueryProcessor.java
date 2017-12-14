@@ -37,12 +37,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
     return (filter == SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE);
   }
 
-  // returns 'filter' but ensuring it is ready to have another
-  // condition added
-  private static String prepForCondition(String filter) {
-    if (isDefaultFilter(filter)) return filter;
-    else return (filter += " && ");
-  }
   public static final String[] SIMPLE_STRING_FIELDS = new String[]{"lifeStage"};
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
