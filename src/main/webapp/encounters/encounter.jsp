@@ -4119,23 +4119,6 @@ if(enc.getSex()!=null){sex=enc.getSex();}
  %>
  <!--  END SEX SECTION -->
 
-
-<!--  START SCARRING SECTION -->
-<p class="para"><%=encprops.getProperty("scarring") %>&nbsp;
-
-<%
-String recordedScarring="";
-if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
-%>
-<span id="displayScarring"><%=recordedScarring%></span>
-<%
- %>
-<%
-%>
-</p>
-<%
- %>
-
  <script type="text/javascript">
    $(document).ready(function() {
      $("#addScar").click(function(event) {
