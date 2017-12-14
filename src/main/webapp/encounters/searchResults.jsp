@@ -340,12 +340,13 @@ $(document).keydown(function(k) {
 
 
 var colDefn = [
+	/*
 	{
 		key: 'thumb',
 		label: 'Thumb',
 		value: _colThumb,
 		nosort: true,
-	},
+	},*/
 	{
 		key: 'individualID',
 		label: 'ID',
@@ -356,11 +357,12 @@ var colDefn = [
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
   },
+  /*
   {
     key: 'filename',
     label: 'Filename(s)',
     value: _colFileName,
-  },
+  },*/
 	{
 		key: 'date',
 		label: '<%=encprops.getProperty("date")%>',
