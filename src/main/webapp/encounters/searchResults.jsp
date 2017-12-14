@@ -20,6 +20,9 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("searchResults.jsp");
 
+String queryString = request.getQueryString();
+if (queryString==null) queryString = ""; // so .replace() methods below don't break
+
 
 
   int numResults = 0;
@@ -226,25 +229,24 @@ td.tdw:hover div {
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
 
-
 <ul id="tabmenu">
 
   <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar2.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=encprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=queryString %>"><%=encprops.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -299,6 +301,8 @@ StringBuffer prettyPrint=new StringBuffer("");
 Map<String,Object> paramMap = new HashMap<String, Object>();
 
 String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+
+
 
 %>
 
