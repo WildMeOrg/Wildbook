@@ -564,4 +564,10 @@ public class Util {
     public static boolean stringExists(String str) {
       return (str!=null && !str.equals(""));
     }
+
+    // convenience method for comparing string values
+    public static boolean shouldReplace(String val1, String val2) {
+      return (stringExists(val1) && !stringExists(val2));
+    }
+
 }
