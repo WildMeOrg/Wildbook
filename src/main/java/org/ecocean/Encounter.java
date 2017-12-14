@@ -50,7 +50,6 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 
-
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -1645,6 +1644,43 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setStudySiteID(String studySiteID) {
     this.studySiteID = studySiteID;
   }
+
+  public void setStudySiteByName(String studySiteName, Shepherd myShepherd) {
+    StudySite stu = myShepherd.getStudySite(studySiteName);
+    if (stu != null) setStudySiteID(stu.getID());
+  }
+
+  // does not overwrite
+  public void importStudySiteFields(StudySite stu) {
+    if (Util.shouldReplace(stu.getGovernmentArea(), getGovernmentArea())) {
+      setGovernmentArea(stu.getGovernmentArea());
+    }
+    if (Util.shouldReplace(stu.getPopulation(), getPopulation())) {
+      setPopulation(stu.getPopulation());
+    }
+    if (Util.shouldReplace(stu.getHuntingState(), getHuntingState())) {
+      setHuntingState(stu.getHuntingState());
+    }
+    if (getDecimalLatitude() ==null && !(stu.getLatitude() ==null)) {
+      setDecimalLatitude( stu.getLatitude());
+    }
+    if (getDecimalLongitude()==null && !(stu.getLongitude()==null)) {
+      setDecimalLongitude(stu.getLongitude());
+    }
+    if (Util.shouldReplace(stu.getLocationID(), getLocationID())) {
+      setLocationID(stu.getLocationID());
+    }
+  }
+
+  public void setStudySite(StudySite stu) {
+    // OK to import both ways because data is not overwritten
+    stu.importEncounterFields(this);
+    importStudySiteFields(stu);
+    setStudySiteID(stu.getID());
+  }
+    
+  
+
 
 /* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
 some strings and decimal (double, er Double?) values -- so i am doing my best to standardize on

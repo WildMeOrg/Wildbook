@@ -1,4 +1,4 @@
- package org.ecocean;
+package org.ecocean;
 
 import org.joda.time.DateTime;
 import org.ecocean.Util;
@@ -57,10 +57,30 @@ public class StudySite implements java.io.Serializable {
   public StudySite(String name, Encounter enc) {
     this.id = Util.generateUUID();
     this.name = name;
-    this.latitude = enc.getLatitudeAsDouble();
-    this.longitude = enc.getLongitudeAsDouble();
-    this.locationID = enc.getLocationID();
+    importEncounterFields(enc);
   }
+
+  public void importEncounterFields(Encounter enc) {
+    if (Util.shouldReplace(enc.getGovernmentArea(), getGovernmentArea())) {
+      setGovernmentArea(enc.getGovernmentArea());
+    }
+    if (Util.shouldReplace(enc.getPopulation(), getPopulation())) {
+      setPopulation(enc.getPopulation());
+    }
+    if (Util.shouldReplace(enc.getHuntingState(), getHuntingState())) {
+      setHuntingState(enc.getHuntingState());
+    }
+    if (getLatitude() ==null && !(enc.getLatitudeAsDouble() ==null)) {
+      setLatitude( enc.getLatitudeAsDouble());
+    }
+    if (getLongitude()==null && !(enc.getLongitudeAsDouble()==null)) {
+      setLongitude(enc.getLongitudeAsDouble());
+    }
+    if (Util.shouldReplace(enc.getLocationID(), getLocationID())) {
+      setLocationID(enc.getLocationID());
+    }
+  }
+
 
 
   public void setID(String id) {
