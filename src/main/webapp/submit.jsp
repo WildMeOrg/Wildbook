@@ -476,39 +476,33 @@ function showUploadBox() {
 
 </fieldset>
 
+<p class="text-center">
+	<button class="large" type="submit" onclick="return sendButtonClicked();">
+		<%=props.getProperty("submit_send") %>
+		<span class="button-icon" aria-hidden="true" />
+	</button>
+</p>
+
+<p>
+	<em><%=props.getProperty("submit_photo_only_comment")%></em>
+</p>
+
+
+
 <hr />
 
 <fieldset>
 <h3><%=props.getProperty("dateAndLocation")%></h3>
 
-<div class="form-group required">
+<div>
 
     <div class="form-group required">
-
-      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
-        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
-</div>
-
-      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <p class="help-block">
-          <%=props.getProperty("examples") %>
-          <ul>
-          	<li>15-02-2017 12:30</li>
-          	<li>30-09-2010</li>
-          	<li>12-2014</li>
-          	<li>2003</li>
-
-        <!--
-            <li>2014-01-05 12:30</li>
-            <li>2014-03-23</li>
-            <li>2013-12</li>
-            <li>2010</li>
-        -->
-          </ul>
-        </p>
-      </div>
-
+      	<div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        	<label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
+        </div>
+      	<div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        	<input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+		</div>
     </div>
 
     <!-- Herein trying out new html date input --> 
@@ -546,37 +540,17 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 <%
 }
-%>
-
-</fieldset>
-
-<hr />
-
-<fieldset>
-    <h3><%=props.getProperty("submit_location")%></h3>
-
-    <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label text-danger"><%=props.getProperty("where") %></label>
-      </div>
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <input name="location" type="text" id="location" size="40" class="form-control">
-      </div>
-    </div>
-
-
-<%
 //add locationID to fields selectable
 
 
 if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
     <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label"><%=props.getProperty("studySites") %></label>
       </div>
 
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <select name="locationID" id="locationID" class="form-control">
             <option value="" selected="selected"></option>
                   <%
@@ -635,7 +609,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
 
-<div>
+<div class="col-xs-12 col-lg-12">
     <p id="map">
     <!--
       <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
@@ -649,13 +623,13 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <div>
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
-          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
-          <input class="form-control" name="lat" type="text" id="lat"> &deg;
+          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %></label>&nbsp
+          <input class="form-control" name="lat" type="text" id="lat">
         </div>
 
         <div class="col-xs-12 col-sm-6">
-          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
-          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
+          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %></label>&nbsp
+          <input class="form-control" name="longitude" type="text" id="longitude">
         </div>
       </div>
 
@@ -678,6 +652,11 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				<div class="col-xs-12 col-sm-6">
 
 					<label class="control-label  pull-left"><%=props.getProperty("submit_epsg_proj_code") %>&nbsp;</label>
+
+				</div>
+
+				<div class="col-xs-12 col-sm-6">
+
 					<select class="form-control" name="epsgProjCode" id="epsgProjCode">
 						<%
 						System.out.println("The reference map size = " +GeocoordConverter.epsgCodeToUtmZone.size());
