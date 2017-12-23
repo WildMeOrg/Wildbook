@@ -1256,6 +1256,17 @@
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
   
+  <!--SUTime testing-->
+        <servlet>
+        <servlet-name>SUTimeServlet</servlet-name>
+        <servlet-class>org.ecocean.servlet.SUTimeServlet</servlet-class>
+  </servlet>
+  
+      <servlet-mapping>
+    <servlet-name>SUTimeServlet</servlet-name>
+    <url-pattern>/SUTimeServlet</url-pattern>
+  </servlet-mapping>
+  
   
     <servlet-mapping>
     <servlet-name>OccurrenceSearchExportGtm</servlet-name>
