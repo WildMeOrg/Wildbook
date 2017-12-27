@@ -54,10 +54,10 @@ public class SUTimeServlet extends HttpServlet {
     }
     response.setContentType("text/html; charset=UTF-8");
 
-    this.getServletContext().getRequestDispatcher("/header.jsp").
+    this.getServletContext().getRequestDispatcher("/sutime/su-header.jsp").
       include(request, response);
     addResults(request, response);
-    this.getServletContext().getRequestDispatcher("/footer.jsp").
+    this.getServletContext().getRequestDispatcher("/sutime/su-footer.jsp").
       include(request, response);
   }
 
