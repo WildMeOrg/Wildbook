@@ -25,6 +25,8 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
+import org.ecocean.movement.Path;
+import org.ecocean.movement.SurveyTrack;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -172,7 +174,7 @@ public class Shepherd {
   }
 
 
-    public void storeNewOccurrence(Occurrence enc) {
+  public void storeNewOccurrence(Occurrence enc) {
       //enc.setOccurrenceID(uniqueID);
       beginDBTransaction();
       try {
@@ -184,9 +186,55 @@ public class Shepherd {
         e.printStackTrace();
 
       }
-
   }
-
+    
+  public void storeNewSurvey(Survey svy) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(svy);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Survey in shepherd.storeNewSurvey().");
+      e.printStackTrace();
+    }
+  }
+  
+  public void storeNewSurveyTrack(SurveyTrack stk) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(stk);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new SurveyTrack in shepherd.storeNewSurveyTrack().");
+      e.printStackTrace();
+    }
+  }
+  
+  public void storeNewPath(Path pth) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(pth);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Path in shepherd.storeNewPath().");
+      e.printStackTrace();
+    }
+  }
+  
+  public void storeNewPath(PointLocation plc ) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(plc);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new PointLocation in shepherd.storeNewPointLocation().");
+      e.printStackTrace();
+    }
+  }
 
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
 
@@ -259,6 +307,8 @@ public class Shepherd {
       return false;
     }
   }
+  
+  
 
 
   /**
