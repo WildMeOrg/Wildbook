@@ -55,7 +55,7 @@ public class EncounterSetSurveyAndTrack extends HttpServlet {
     String surveyTrackID = null;
     
     try {
-      encID = request.getParameter("encounter");
+      encID = request.getParameter("encID");
       surveyID = request.getParameter("surveyID");
       surveyTrackID = request.getParameter("surveyTrackID");   
     } catch (Exception e) {
@@ -64,7 +64,7 @@ public class EncounterSetSurveyAndTrack extends HttpServlet {
     }
     
     myShepherd.beginDBTransaction();
-    if ((myShepherd.isEncounter(encID)) && (surveyID != null) && surveyTrackID != null) {
+    if ((myShepherd.isEncounter(encID)) && (surveyID != null) && (surveyTrackID != null)) {
       Encounter thisEnc = myShepherd.getEncounter(encID);
       try {
         thisEnc.setSurveyID(surveyID);
@@ -89,6 +89,7 @@ public class EncounterSetSurveyAndTrack extends HttpServlet {
     } else {
       myShepherd.rollbackDBTransaction();
       out.println("<strong>Error:</strong> I was unable to set survey information. I cannot find the encounter that you intended it for in the database.");
+      out.println("Enc ID : "+encID+" SurveyID : "+surveyID+" SurveyTrackID : "+surveyTrackID);
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
     out.close();
