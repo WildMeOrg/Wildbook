@@ -105,6 +105,7 @@ public class Occurrence implements java.io.Serializable{
   private String grassHeight;
   private String weather;
   private String wind;
+  private Long millis;
 
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
