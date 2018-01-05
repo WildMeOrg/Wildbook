@@ -3,7 +3,7 @@ package org.ecocean;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
+import org.ecocean.movement.*;
 /**
 * This is an object that contains occurrences. It also has several tracks, with specific
 * geographic points (locations) that were traversed. It is intended to be a measure of the work 
