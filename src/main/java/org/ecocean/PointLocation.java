@@ -31,7 +31,7 @@ public class PointLocation implements java.io.Serializable {
   private Double longitude = null;
   private Double bearing = null;
 
-  private Measurement elevation = null;
+  private Measurement elevation;
 
   // It's in milliseconds!
   private Long dateTime = null;

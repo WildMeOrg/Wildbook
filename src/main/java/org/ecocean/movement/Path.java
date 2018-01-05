@@ -51,7 +51,6 @@ public class Path implements java.io.Serializable {
     return pathID;
   }
   
-  
   public PointLocation getPointLocation(String id) {
     String foundId = null;
     if (id !=null && pointLocations.size() > 0) {
