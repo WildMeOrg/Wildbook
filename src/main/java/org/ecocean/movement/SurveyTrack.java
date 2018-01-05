@@ -4,8 +4,6 @@ import org.ecocean.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.ecocean.Occurrence;
-
 /** 
 *
 * @author Colin Kingen
@@ -44,13 +42,18 @@ public class SurveyTrack implements java.io.Serializable{
   
   public SurveyTrack(String surveyID){
     if (surveyID != null) {
-      this.parentSurveyID = surveyID;      
+      this.parentSurveyID = surveyID; 
+      generateUUID();
+      setDateTimeCreated();
     }
   }
   
   public SurveyTrack(Survey survey){
     if (survey != null) {
       this.parentSurveyID = survey.getID();
+      generateUUID();
+      setDateTimeCreated();
+      setDateTimeCreated();
     }
   }
   
@@ -91,6 +94,7 @@ public class SurveyTrack implements java.io.Serializable{
   public void setID(String id) {
     if (id != null && !id.equals("")) {
       surveyTrackID = id;
+      setDWCDateLastModified();
     }
   }
   
@@ -105,6 +109,7 @@ public class SurveyTrack implements java.io.Serializable{
   public void setPathID(String pid) {
     if (pid != null && !pid.equals("") ) {
       pathID = pid;
+      setDWCDateLastModified();
     }
   }
   
@@ -119,6 +124,7 @@ public class SurveyTrack implements java.io.Serializable{
   public void setParentSurveyID(String id) {
     if (id != null && !id.equals("") ) {
       parentSurveyID = id;
+      setDWCDateLastModified();
     }
   }
   
@@ -170,14 +176,14 @@ public class SurveyTrack implements java.io.Serializable{
     }
   }
   
-  public void setSurveyType(String typ) {
-    if (typ != null && !type.equals("")) {
+  public void setType(String typ) {
+    if (typ != null && !typ.equals("")) {
       type = typ;
       setDWCDateLastModified();
     }
   }
   
-  public String getSurveyType() {
+  public String getType() {
     if (type != null && !type.equals("")) {
       return type;
     } else {
@@ -186,7 +192,7 @@ public class SurveyTrack implements java.io.Serializable{
   }
   
   public void setLocationID(String loc) {
-    if (loc != null && !type.equals("")) {
+    if (loc != null && !loc.equals("")) {
       locationID = loc;
       setDWCDateLastModified();
     }
@@ -202,7 +208,7 @@ public class SurveyTrack implements java.io.Serializable{
   
   public void setVesselID(String v) {
     if (v != null && !v.equals("")) {
-      locationID = v;
+      vesselID = v;
       setDWCDateLastModified();
     }
   }
@@ -213,6 +219,10 @@ public class SurveyTrack implements java.io.Serializable{
     } else {
       return null;
     }
+  }
+  
+  private void generateUUID() {
+    this.surveyTrackID = Util.generateUUID();
   }
   
 }

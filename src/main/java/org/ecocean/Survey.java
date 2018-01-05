@@ -1,5 +1,6 @@
 package org.ecocean;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -28,8 +29,9 @@ public class Survey implements java.io.Serializable{
   //Scuba, tourism ect...
   private String type;
   
-  private long startTime;
-  private long endTime;
+  //Might need to turn these to big int so can be null.
+  private Integer startTime;
+  private Integer endTime;
   
   // This is the actual amount of effort spent to gather date. 
   // It must be given a defined Measurement object.
@@ -44,9 +46,10 @@ public class Survey implements java.io.Serializable{
   //empty constructor used by the JDO enhancer
   public Survey(){}
   
+  
   public Survey(String date){
     this.date=date;
-    
+    generateID();
     surveyTracks = new ArrayList<SurveyTrack>();
     setDateTimeCreated();
     setDWCDateLastModified();
@@ -120,6 +123,12 @@ public class Survey implements java.io.Serializable{
     setDWCDateLastModified();
   }
   
+  public void generateID() {
+    String id = Util.generateUUID().toString();  
+    System.out.println("!!! New Survey ID !!!!");
+    surveyID = id;
+  }
+  
   public ArrayList<SurveyTrack> getAllSurveyTracks() {
     if (!surveyTracks.isEmpty()) {
      return surveyTracks; 
@@ -185,7 +194,7 @@ public class Survey implements java.io.Serializable{
   }
   
   public void setProjectType(String typ) {
-    if (typ != null && !type.equals("")) {
+    if (typ != null && !typ.equals("")) {
       type = typ;
       setDWCDateLastModified();
     }
@@ -213,32 +222,72 @@ public class Survey implements java.io.Serializable{
     }
   }
   
-  public void setStartTimeMilli(long st) {
-    if (st > 0) {
-      startTime = st;
+  public void setStartTimeMilli(Integer i) {
+    if (i > 0) {
+      startTime = i;
     }
   }
   
-  public long getStartTimeMilli() {
-    if (startTime > 0) {
+  public Integer getStartTimeMilli() {
+    if (startTime > 0 && startTime != null) {
       return startTime;
     }
-    return -1;
+    return null;
   }
   
-  public void setEndTimeMilli(long et) {
+  public void setEndTimeMilli(Integer et) {
     if (et > 0) {
       startTime = et;
     }
   }
   
-  public long getEndTimeMilli() {
-    if (endTime > 0) {
+  public void setEndTimeWithDate(String date) {
+    String milli =  monthDayYearToMilli(date);
+    System.out.println("End Milli : "+milli);
+    try {
+      Integer m = Integer.valueOf(milli); 
+      endTime = m*-1;      
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Failed to Set endTime from dateString.");
+    }
+  } 
+  
+  public void setStartTimeWithDate(String date) {
+    String milli =  monthDayYearToMilli(date);
+    System.out.println("Start Milli : "+milli);
+    try {
+      Integer m = Integer.valueOf(milli);  
+      startTime = m*-1;  
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Failed to Set startTime from dateString.");
+    }
+  } 
+  
+  public Integer getEndTimeMilli() {
+    if (endTime > 0 && endTime != null) {
       return endTime;
     }
-    return -1;
+    return null;
   }
   
+  private String monthDayYearToMilli(String newDate) {
+    SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
+    String month = newDate.substring(2);
+    String day = newDate.substring(3,5);
+    String year = newDate.substring(6);
+    Date dt;
+    try {
+      dt = sdf.parse(month+"-"+day+"-"+year);
+    } catch (ParseException e) {
+      e.printStackTrace();
+      System.out.println("Failed to Parse String : "+month+"-"+day+"-"+year);
+      return null;
+    }
+    return String.valueOf(dt.getTime());
+  }
+
 }
 
 

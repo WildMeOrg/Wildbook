@@ -280,6 +280,12 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+  
+  <servlet>
+    <description>SubmitSurvey</description>
+    <servlet-name>SubmitSurvey</servlet-name>
+    <servlet-class>org.ecocean.servlet.SubmitSurvey</servlet-class>
+  </servlet>
 
   <servlet>
     <description>StripePayment</description>
@@ -1275,8 +1281,8 @@
 </servlet-mapping>
 
 <servlet-mapping>
-  <servlet-name>CRCExportReport</servlet-name>
-  <url-pattern>/CRCExportReport</url-pattern>
+  <servlet-name>SubmitSurvey</servlet-name>
+  <url-pattern>/SubmitSurvey</url-pattern>
 </servlet-mapping>
 
 <servlet-mapping>

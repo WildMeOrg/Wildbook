@@ -30,5 +30,10 @@ public class Measurement extends DataCollectionEvent {
   public String getUnits() {
     return units;
   }
+  
+  public void setUnits(String u) {
+    if(u==null){this.units=null;}
+    else{this.units = u;}
+  }
 
 }

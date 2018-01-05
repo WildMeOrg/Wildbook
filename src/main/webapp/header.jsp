@@ -83,7 +83,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
-      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
+      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
 
@@ -91,6 +91,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
   	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
   	<!-- End Open Graph Tags -->
+  	
+  	<!-- jQuery datepicker -->
+  	
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
     <style>
       ul.nav.navbar-nav {
