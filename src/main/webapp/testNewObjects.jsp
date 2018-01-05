@@ -166,7 +166,7 @@ try {
 try {
 	out.println("\n Path ID = "+pth.getID());
 	out.println("\n PointLocationID = "+pl.getID());
-	out.println("\n PointLocation ID FROM Path = "+pth.getPointLocation(pl.getID()));
+	out.println("\n PointLocation ID FROM Path = "+pth.getPointLocation(pl.getID()).getID());
 	out.println("\n Pointlocation Milli Time = "+pl.getDateTimeInMilli());
 } catch (Exception e) {
 	out.println("General Exception while trying to print Path/PointLocation attributes.");
