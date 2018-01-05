@@ -121,7 +121,7 @@ public class StartupWildbook implements ServletContextListener {
         // res -> e.g. "jndi:/localhost/fubar"
 */
         if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
-        createMatchGraph();
+        //createMatchGraph();
 
         File qdir = ScheduledQueue.setQueueDir(context);
         if (qdir == null) {
