@@ -55,9 +55,11 @@ public class Occurrence implements java.io.Serializable{
   private String socialMediaQueryCommentID;
   private String socialMediaQueryCommentReplies;
 
-  // this is helpful for sorting but isn't (for now) intended to be UI-facing
-  // rather it's set from Encounters
-  private Long millis;
+  
+  // Variables used in the Survey, SurveyTrack, Path, Location model
+  
+  private String correspondingSurveyTrackID;
+  private String correspondingSurveyID;
 
 
 	/* Rosemary meta-data for IBEIS */
@@ -651,6 +653,33 @@ public class Occurrence implements java.io.Serializable{
     }
     return null;
   }
+  
+  public void setCorrespondingSurveyTrackID(String id) {
+    if (id != null && !id.equals("")) {
+      correspondingSurveyTrackID = id;
+    }
+  }
+
+  public String getCorrespondingSurveyTrackID() {
+    if (correspondingSurveyTrackID != null) {
+      return correspondingSurveyTrackID;
+    }
+    return null;
+  }
+  
+  public void setCorrespondingSurveyID(String id) {
+    if (id != null && !id.equals("")) {
+      correspondingSurveyID = id;
+    }
+  }
+  
+  public String getCorrespondingSurveyID() {
+    if (correspondingSurveyID != null) {
+      return correspondingSurveyID;
+    }
+    return null;
+  }
+  
 
   //public void setLocationID(String newLocID){this.locationID=newLocID;}
 

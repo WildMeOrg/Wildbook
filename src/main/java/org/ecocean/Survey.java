@@ -4,8 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
-* This is an object that contains occurences. It also has several tracks, with specific
-* geographic points that were traversed. It is intended to be a measure of the work 
+* This is an object that contains occurrences. It also has several tracks, with specific
+* geographic points (locations) that were traversed. It is intended to be a measure of the work 
 * spent to collect data, and a way of relating media assets to a specific period of 
 * collection. 
 *
@@ -238,7 +238,6 @@ public class Survey implements java.io.Serializable{
     }
     return -1;
   }
-  
   
 }
 

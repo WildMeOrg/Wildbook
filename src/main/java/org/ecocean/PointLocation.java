@@ -1,11 +1,12 @@
 package org.ecocean;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.ecocean.*;
 
 /**
-* Each point is a specific spot on Earth defined by latitude, longitude
+* Each pointLocation is a specific spot on Earth defined by latitude, longitude
 * elevation above (or below) sea level and a time. 
 * 
 * The Path object is made up of an array of these, and a group over time 
@@ -15,12 +16,14 @@ import org.ecocean.*;
 *
 */
 
-public class Point implements java.io.Serializable {
+public class PointLocation implements java.io.Serializable {
   
   /**
    * 
    */
   private static final long serialVersionUID = -3758129925666366058L;
+  
+  public UUID pointLocationID = null;
   
   
   private long latitude = -1;
@@ -36,31 +39,48 @@ public class Point implements java.io.Serializable {
   private String correspondingEncounterID = null; 
   private String correspondingOccurrenceID = null; 
   
-  public Point(){};
+  public PointLocation(){};
   
-  public Point(long lat, long lon) {
+  public PointLocation(long lat, long lon) {
     if (latLonCheck(lat, lon)) {
       longitude = lon;
       latitude = lat;
     }
+    generateUUID();
   }
   
-  public Point(long lat, long lon, long date) {
+  public PointLocation(long lat, long lon, long date) {
     if (latLonCheck(lat,lon) && date > 0) {
       longitude = lon;
       latitude = lat;
       dateTime = date;
      }
+    generateUUID();
   }
   
-  public Point(long lat, long lon, long date, Measurement el) {
+  public PointLocation(long lat, long lon, long date, Measurement el) {
     if (latLonCheck(lat,lon) && date > 0 && elevation != null ) {
       longitude = lon;
       latitude = lat;
       dateTime = date;
       elevation = el;     
     }
+    generateUUID();
   }
+  
+  public UUID getID() {
+    return pointLocationID;
+  }
+  
+  public long getDateTimeInMilli() {
+    return dateTime;
+  }
+  
+  public void setDateTimeInMilli(long dt) {  
+    if (dt > 9132014) {
+      dateTime = dt;
+    }
+  } 
   
   public long getLatitude() {
     if (latitude != -1) {
@@ -76,23 +96,29 @@ public class Point implements java.io.Serializable {
   }
   
   public long getLongitude() {
-    if (latitude != -1) {
-      return latitude;
+    if (longitude != -1) {
+      return longitude;
+    }
+    return -1;
+  }
+
+  public void setBearing(long bear) {
+    if (bear >= -180 && bear <= 180) {
+      bearing = bear;
+    }
+  }
+  
+  public long getBearing() {
+    if (bearing != -1) {
+      return bearing;
     }
     return -1;
   }
 
   public void setLongitude(long lon) {
     if (lon >= -180 && lon <= 180) {
-      latitude = lon;
+      longitude = lon;
     }
-  }
-  
-  private boolean latLonCheck(long lat, long lon) {
-    if (lat >= -90 && lat <= 90 && lon > -180 && lon < 180) { 
-      return true;
-    }
-    return false;
   }
   
   public String getEncounterID() {
@@ -120,6 +146,31 @@ public class Point implements java.io.Serializable {
       correspondingOccurrenceID = id;
     }
   }
+  
+  public String getPathID() {
+    if (correspondingPathID != null) {
+      return correspondingPathID;
+    }
+    return null;
+  }
+  
+  public void setPathID(String id) {
+    if (id != null && !id.equals("")) {
+      correspondingPathID = id;
+    }
+  } 
+  
+  private void generateUUID() {
+    this.pointLocationID = UUID.randomUUID();
+  }
+  
+  private boolean latLonCheck(long lat, long lon) {
+    if (lat >= -90 && lat <= 90 && lon > -180 && lon < 180) { 
+      return true;
+    }
+    return false;
+  }
+  
 }
 
 
