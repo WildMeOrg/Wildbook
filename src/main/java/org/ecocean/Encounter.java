@@ -51,7 +51,8 @@ import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
-
+import org.ecocean.PointLocation;
+import org.ecocean.Survey;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -1596,34 +1597,35 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return null;
   }
   
-  public void setSurveyID(String id) {
-    if (id != null && !id.equals("")) {
-      correspondingSurveyID = id;
-    }
-  }
-  
-  public String getSurveyID() {
-    if (correspondingSurveyID != null) {
-      return correspondingSurveyID;
-    }
-    return null;
-  }
-  
-  
-  // New locationPoint code...
-  
   public void setPointLocation(PointLocation loc) {
     if (loc.getID() != null) {
       this.pointLocation = loc;
     }
   }
   
-  
   public PointLocation getPointLocation() {
     if (pointLocation != null) {
       return pointLocation;
     }
     return null;
+  }
+  
+  public String getSurveyID() {
+    if (correspondingSurveyID != null && !correspondingSurveyID.equals("")) {
+      return correspondingSurveyID;
+    }  
+    return null;
+  }
+  
+  public void setSurveyID(String id) {
+    if (id != null && !id.equals("")) {
+      correspondingSurveyID = id;
+    }
+  }
+  
+  
+  public void setSurvey() {
+    
   }
   
   // TODO Get all this lat lon over to Locations

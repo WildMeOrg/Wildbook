@@ -2,6 +2,58 @@
 
 <jdo>
   <package name="org.ecocean">
+ 
+ 
+    <class name="Survey" identity-type="application" table="SURVEY">
+      <field name="surveyID" primary-key="true">
+        <column length="100"/>
+      </field>
+
+      <field name="surveyTracks" persistence-modifier="persistent">
+        <collection element-type="org.ecocean.movement.SurveyTrack"/>
+        <join/>
+      </field>
+
+      <field name="project" persistence-modifier="persistent">
+        <column length="100" allows-null="true" />
+      </field>
+
+      <field name="organization" persistence-modifier="persistent">
+        <column length="256" allows-null="true"/>
+      </field>
+      
+      <field name="comments" persistence-modifier="persistent">
+        <column jdbc-type="VARCHAR" allows-null="true"/>
+      </field>
+
+      <field name="type" persistence-modifier="persistent">
+        <column length="100" allows-null="true"/>
+      </field>
+      
+      <field name="startTime" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
+      <field name="endTime" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
+      <field name="effort" persistence-modifier="persistent" element-type="org.ecocean.Measurement" />
+      
+      <field name="dateTimeCreated" persistence-modifier="persistent">
+        <column jdbc-type="String" allows-null="true"/>
+      </field>
+      
+      <field name="dateTimeModified" persistence-modifier="persistent">
+        <column jdbc-type="String" allows-null="true"/>
+      </field>
+      
+      <field name="date" persistence-modifier="persistent">
+        <column jdbc-type="String" allows-null="true"/>
+      </field>
+
+      <fetch-group name="count"/>
+    </class> 
   
     <class name="PointLocation" identity-type="application" table="POINTLOCATION">
       <field name="pointLocationID" primary-key="true">

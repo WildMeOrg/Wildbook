@@ -23,7 +23,7 @@ public class Path implements java.io.Serializable {
    */
   private static final long serialVersionUID = -8130232817853279715L;
   
-  private UUID pathID = null;
+  private String pathID = null;
   
   private ArrayList<PointLocation> pointLocations;
   
@@ -43,11 +43,11 @@ public class Path implements java.io.Serializable {
     }
   }  
   
-  public UUID getID() {
+  public String getID() {
     return pathID;
   }
   
-  public PointLocation getLocation(UUID id) {
+  public PointLocation getPointLocation(String id) {
     if (id !=null) {
       for (int i=0; i <= pointLocations.size(); i++) {
         if (pointLocations.get(i).getID() == id) {
@@ -58,16 +58,16 @@ public class Path implements java.io.Serializable {
     return null;
   }
   
-  public void addLocation(PointLocation p) {
-    if (this.getLocation(p.getID()) == null) {
+  public void addPointLocation(PointLocation p) {
+    if (this.getPointLocation(p.getID()) == null) {
       pointLocations.add(p);
     }
   }
   
-  public void addLocationsArray(ArrayList<PointLocation> pts) {
+  public void addPointLocationsArray(ArrayList<PointLocation> pts) {
     if (pts.size() >= 1) {
       for (int i=0; i<pts.size(); i++ ) {
-        if (this.getLocation(pts.get(i).getID()) == null) {
+        if (this.getPointLocation(pts.get(i).getID()) == null) {
           pointLocations.add(pts.get(i));
         }
       }
@@ -75,7 +75,7 @@ public class Path implements java.io.Serializable {
   }
   
   private void generateUUID() {
-    this.pathID = UUID.randomUUID();
+    this.pathID = Util.generateUUID();
   }
   
 }
