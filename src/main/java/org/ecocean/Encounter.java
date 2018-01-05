@@ -30,6 +30,7 @@ import java.util.Calendar;
 import java.util.StringTokenizer;
 import java.text.SimpleDateFormat;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.HashMap;
 import java.util.SortedMap;
@@ -290,6 +291,16 @@ public class Encounter implements java.io.Serializable {
   private SatelliteTag satelliteTag;
 
   private Boolean mmaCompatible = false;
+  
+  // Variables used in the Survey, SurveyTrack, Path, Location model
+  
+  private String correspondingSurveyTrackID;
+  private String correspondingSurveyID;
+  
+  
+  // This is the eventual replacement for the old decimal lat lon and other location data.
+  private PointLocation pointLocation;
+  
 
 //
 
@@ -1569,6 +1580,53 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setReleaseDate(Long releaseDate) {
     this.releaseDateLong = releaseDate;
   }
+  
+  // Survey ect associations...
+  
+  public void setSurveyTrackID(String id) {
+    if (id != null && !id.equals("")) {
+      correspondingSurveyTrackID = id;
+    }
+  }
+
+  public String getSurveyTrackID() {
+    if (correspondingSurveyTrackID != null) {
+      return correspondingSurveyTrackID;
+    }
+    return null;
+  }
+  
+  public void setSurveyID(String id) {
+    if (id != null && !id.equals("")) {
+      correspondingSurveyID = id;
+    }
+  }
+  
+  public String getSurveyID() {
+    if (correspondingSurveyID != null) {
+      return correspondingSurveyID;
+    }
+    return null;
+  }
+  
+  
+  // New locationPoint code...
+  
+  public void setPointLocation(PointLocation loc) {
+    if (loc.getID() != null) {
+      this.pointLocation = loc;
+    }
+  }
+  
+  
+  public PointLocation getPointLocation() {
+    if (pointLocation != null) {
+      return pointLocation;
+    }
+    return null;
+  }
+  
+  // TODO Get all this lat lon over to Locations
 
   public void setDWCDecimalLatitude(double lat) {
     if (lat == -9999.0) {
@@ -1577,8 +1635,6 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       decimalLatitude = (new Double(lat));
     }
   }
-
-
 
   public void setDWCDecimalLatitude(Double lat){
     if((lat!=null)&&(lat<=90)&&(lat>=-90)){
