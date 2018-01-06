@@ -521,16 +521,6 @@ public class Encounter implements java.io.Serializable {
     return size;
   }
   
-  // Gets and sets SIGHTNO for Occurance cross referencing. 
-  public void setSightNo(String sn) {
-    if(sightNo!=null){size = sightNo;}
-    else{sightNo=null;}
-  }
-
-  public String getSightNo() {
-    return sightNo;
-  }
-  
 
   /**
    * Sets the units of the recorded size and depth of the shark for this encounter.
