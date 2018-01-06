@@ -523,16 +523,13 @@
     <version>2.1.7</version>
 </dependency>
 
+<dependency>
+    <groupId>com.google.oauth-client</groupId>
+    <artifactId>google-oauth-client-jetty</artifactId>
+    <version>1.22.0</version>
+</dependency>
 
-  </dependencies>
 
-
-        <dependency>
-            <groupId>com.google.oauth-client</groupId>
-            <artifactId>google-oauth-client-jetty</artifactId>
-            <version>${project.oauth.version}</version>
-        </dependency>
-		-->
 <!--
         <dependency>
             <groupId>com.google.collections</groupId>

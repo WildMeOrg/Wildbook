@@ -137,17 +137,6 @@
 	boolean proceed = true;
 	boolean haveRendered = false;
 
-  pageContext.setAttribute("num", num);
-
-
-  Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("encounter.jsp1");
-  //Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  //Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
-//System.out.println("???? query=" + kwQuery);
-  boolean proceed = true;
-  boolean haveRendered = false;
-
   pageContext.setAttribute("set", encprops.getProperty("set"));
   
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
