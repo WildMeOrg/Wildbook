@@ -4976,34 +4976,31 @@ $(document).ready(function() {
 				<%
 				}
 				%>
-				<!--  Creating a servlet for setting survey and survey track.
-					  Don't forget to add to web.xml before trying!
-				 -->
 				
 				<div id="dialogDPAdd"
 					title="<%=encprops.getProperty("addSurveyID")%>"
-					class="editFormDynamic">
+					class="editFormSurvey">
 					<p class="editTextDynamic">
 						<strong><%=encprops.getProperty("addSurveyID")%></strong>
 					</p>
-					<form name="addDynProp" action="../EncounterSetDynamicProperty"
-						method="post" class="editFormDynamic">
-						<input name="number" type="hidden" value="<%=num%>" />
+					<form name="addDynProp" action="../EncounterSetSurveyAndTrack"
+						method="post" class="editFormSurvey">
+						<input name="encID" type="hidden" value="<%=num%>" />
 						<div class="form-group row">
 							<div class="col-sm-3">
-								<label><%=encprops.getProperty("propertyName")%>:</label>
+								<label><%=encprops.getProperty("surveyID")%>:</label>
 							</div>
 							<div class="col-sm-5">
-								<input name="name" type="text" class="form-control"
+								<input name="surveyID" type="text" class="form-control"
 									id="addDynPropInput" />
 							</div>
 						</div>
 						<div class="form-group row">
 							<div class="col-sm-3">
-								<label><%=encprops.getProperty("propertyValue")%>:</label>
+								<label><%=encprops.getProperty("surveyTrackID")%>:</label>
 							</div>
 							<div class="col-sm-5">
-								<input name="value" type="text" class="form-control"
+								<input name="surveyTrackID" type="text" class="form-control"
 									id="addDynPropInput2" />
 							</div>
 						</div>
