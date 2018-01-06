@@ -106,6 +106,10 @@ public class Encounter implements java.io.Serializable {
   private int year = 0;
   private Double decimalLatitude;
   private Double decimalLongitude;
+  
+  private Double endDecimalLatitude;
+  private Double endDecimalLongitude;
+  
   private String verbatimLocality;
   private String occurrenceRemarks = "";
   private String modified;
@@ -222,6 +226,9 @@ public class Encounter implements java.io.Serializable {
   //the globally unique identifier (GUID) for this Encounter
   private String guid;
 
+  
+  
+  private Long endDateInMilliseconds;
   private Long dateInMilliseconds;
   //describes how the shark was measured
   private String size_guess = "none provided";
@@ -513,6 +520,17 @@ public class Encounter implements java.io.Serializable {
   public Double getSizeAsDouble() {
     return size;
   }
+  
+  // Gets and sets SIGHTNO for Occurance cross referencing. 
+  public void setSightNo(String sn) {
+    if(sightNo!=null){size = sightNo;}
+    else{sightNo=null;}
+  }
+
+  public String getSightNo() {
+    return sightNo;
+  }
+  
 
   /**
    * Sets the units of the recorded size and depth of the shark for this encounter.
@@ -1750,18 +1768,31 @@ some strings and decimal (double, er Double?) values -- so i am doing my best to
 the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
   public Double getDecimalLatitudeAsDouble(){return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();}
 
-    public void setDecimalLatitude(Double lat){
-        this.decimalLatitude = lat;
-        gpsLatitude = Util.decimalLatLonToString(lat);
-     }
+  public void setDecimalLatitude(Double lat){
+      this.decimalLatitude = lat;
+      gpsLatitude = Util.decimalLatLonToString(lat);
+   }
 
   public Double getDecimalLongitudeAsDouble(){return (decimalLongitude == null) ? null : decimalLongitude.doubleValue();}
 
-    public void setDecimalLongitude(Double lon) {
-        this.decimalLongitude = lon;
-        gpsLongitude = Util.decimalLatLonToString(lon);
-    }
+  public void setDecimalLongitude(Double lon) {
+      this.decimalLongitude = lon;
+      gpsLongitude = Util.decimalLatLonToString(lon);
+  }
+  
+  public Double getEndDecimalLatitudeAsDouble(){return (endDecimalLatitude == null) ? null : endDecimalLatitude.doubleValue();}
 
+  public void setEndDecimalLatitude(Double lat){
+      this.decimalLatitude = lat;
+      gpsLatitude = Util.decimalLatLonToString(lat);
+   }
+
+  public Double getEndDecimalLongitudeAsDouble(){return (endDecimalLongitude == null) ? null : endDecimalLongitude.doubleValue();}
+
+  public void setEndDecimalLongitude(Double lon) {
+      this.decimalLongitude = lon;
+      gpsLongitude = Util.decimalLatLonToString(lon);
+  } 
 
   public String getOccurrenceRemarks() {
     return occurrenceRemarks;
@@ -2059,6 +2090,17 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (this.minutes.length() == 1) this.minutes = "0" + this.minutes;
         this.dateInMilliseconds = ms;
     }
+    
+    
+  public Long getEndDateInMilliseconds() {
+    return endDateInMilliseconds;
+  }  
+  
+  public void setEndDateInMilliseconds(long ms) {
+    this.endDateInMilliseconds = ms;
+  }
+  
+  
 
 
   public String getDecimalLatitude(){
@@ -2069,6 +2111,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
   public String getDecimalLongitude(){
     if(decimalLongitude!=null){return Double.toString(decimalLongitude);}
+    return null;
+  }
+  
+  public String getEndDecimalLongitude(){
+    if(endDecimalLongitude!=null){return Double.toString(endDecimalLongitude);}
+    return null;
+  }
+
+  public String getEndDecimalLatitude(){
+    if(endDecimalLatitude!=null){return Double.toString(endDecimalLatitude);}
     return null;
   }
 
