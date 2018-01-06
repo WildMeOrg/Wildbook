@@ -20,11 +20,14 @@ import java.util.HashMap;
 
 
 import org.json.JSONObject;
+
+import com.healthmarketscience.jackcess.Database;
+import com.healthmarketscience.jackcess.DatabaseBuilder;
+
 import org.json.JSONArray;
 
 import java.io.*;
 
-import com.healthmarketscience.jackcess.*;
 
 public class AccessImport extends HttpServlet {
   /**
@@ -50,6 +53,7 @@ public class AccessImport extends HttpServlet {
 
     Shepherd myShepherd = new Shepherd(context);
 
+    // Check if we have created and asset store yet, and if not create one.
     myShepherd.beginDBTransaction();
     myShepherd.setAction("AccessImport.class");
     if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
@@ -58,11 +62,19 @@ public class AccessImport extends HttpServlet {
     }
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
+      
+    String dbName = "master.mdb";
+    if (request.getParameter("file") != null) {
+      dbName = request.getParameter("file");
+    }
+    Database db = DatabaseBuilder.open(new File("mydb.mdb"));
     
     boolean committing = (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false"));
+    
     out.println("***** Beginning Access Database Import. *****");
     
-    Database db = DatabaseBuilder.open(new File("mydb.mdb"));
+    // Close that db so it don't leak or something.
+    db.close();
   } 
 }
   

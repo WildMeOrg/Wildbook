@@ -940,6 +940,10 @@
     <servlet-class>org.ecocean.servlet.EncounterRemoveSpots</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>AccessImport</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.AccessImport</servlet-class>
+  </servlet>
 
 
       <servlet>
@@ -1294,6 +1298,11 @@
 <servlet-name>WildbookApi</servlet-name>
 <url-pattern>/api/*</url-pattern>
 <url-pattern>/rest/*</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>AccessImport</servlet-name>
+  <url-pattern>/AccessImport</url-pattern>
 </servlet-mapping>
 
 <servlet-mapping>
