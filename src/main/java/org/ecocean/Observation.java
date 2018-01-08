@@ -16,10 +16,12 @@ public class Observation implements java.io.Serializable {
 
   private static final long serialVersionUID = -7934850478287322048L;
   
+  private String observationID;
+  
   private String name;  
   private String value;
   
-  private String parentObjectFoundationalPropertiesBaseID;
+  private String parentObjectID;
   private String parentObjectClass;
   
   private Long dateAddedMilli = null;
@@ -34,7 +36,7 @@ public class Observation implements java.io.Serializable {
     
     parentObjectClass = parentObject.getClass().toString();
      
-    parentObjectFoundationalPropertiesBaseID = parentID;
+    parentObjectID = parentID;
     
     setDateAddedMilli();
     setDateLastModifiedMilli();
@@ -44,10 +46,18 @@ public class Observation implements java.io.Serializable {
     return parentObjectClass;
   }
   
-  public String getParentObjectFoundationalPropertiesBaseID() {
-    return parentObjectFoundationalPropertiesBaseID;
+  public String getParentObjectID() {
+    return parentObjectID;
   }
 
+  public String getID() {
+    return observationID;
+  }
+
+  public void setID(String newID) {
+    observationID = newID;
+  }
+  
   public String getName() {
     return name;
   }

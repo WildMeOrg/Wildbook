@@ -187,6 +187,7 @@
     </class>
 
     <class name="Occurrence" identity-type="application" table="OCCURRENCE">
+      <inheritance strategy="new-table"/>
       <field name="occurrenceID" primary-key="true">
         <column length="100"/>
       </field>
