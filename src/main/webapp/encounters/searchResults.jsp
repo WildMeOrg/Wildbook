@@ -319,11 +319,11 @@ var searchResults = <%=encsJson%>;
 var jdoql = '<%= filter.replaceAll("'", "\\\\'") %>';
 
 var testColumns = {
-	thumb: { label: 'Thumb', val: _colThumb },
+	//thumb: { label: 'Thumb', val: _colThumb },
 	individualID: { label: 'ID', val: _colIndLink },
 	date: { label: 'Date', val: _colEncDate },
 	verbatimLocality: { label: 'Location' },
-	locationID: { label: 'Location ID' },
+	//locationID: { label: 'Location ID' },
 	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
 	submitterID: { label: 'Submitter' },
 	creationDate: { label: 'Created', val: _colCreationDate },
@@ -346,6 +346,12 @@ $(document).keydown(function(k) {
 
 
 var colDefn = [
+//	{
+//		key: 'thumb',
+//		label: 'Thumb',
+//		value: _colThumb,
+//		nosort: true,
+//	},
 	{
 		key: 'individualID',
 		label: 'ID',
@@ -367,10 +373,10 @@ var colDefn = [
 		key: 'verbatimLocality',
 		label: '<%=encprops.getProperty("location")%>',
 	},
-	{
-		key: 'locationID',
-		label: '<%=encprops.getProperty("locationID")%>',
-	},
+//	{
+//		key: 'locationID',
+// 		label: '<%=encprops.getProperty("locationID")%>',
+//	},
 	{
 		key: 'taxonomy',
 		label: '<%=encprops.getProperty("taxonomy")%>',
