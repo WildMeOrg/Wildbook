@@ -648,17 +648,20 @@ $(document).ready(function() {
 							</div>
 						</div>
 						<div class="form-group row">
-							<div class="col-sm-3">
-								<label><%=props.getProperty("propertyValue")%>:</label>
+							<div class="col-sm-12">		
+								<small><%=props.getProperty("addNewObservation")%></small>
+							</div>
+							<div class="col-sm-3">		
+								<label><%=props.getProperty("propertyValue")%></label>
 							</div>
 							<div class="col-sm-5">
 								<input name="value" type="text" class="form-control"
 									id="addDynPropInput2" />
 							</div>
+							<div class="col-sm-4">
+								<input name="Set" type="submit" id="addDynPropBtn" value="<%=props.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn" />
+							</div>
 						</div>
-						<input name="Set" type="submit" id="addDynPropBtn"
-							value="<%=props.getProperty("initCapsSet")%>"
-							class="btn btn-sm editFormBtn" />
 					</form>
 				</div>
 				
