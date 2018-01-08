@@ -540,6 +540,31 @@
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
     </class>
+    
+    <class name="Observation" identity-type="application">
+      <inheritance strategy="new-table"/>
+      <field name="observationID" primary-key="true">
+        <column length="100"/>
+      </field>
+      <field name="value">
+        <column name="VALUE"/>
+      </field>
+      <field name="name">
+        <column name="NAME"/>
+      <field name="dateAddedMilli">
+      </field>
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      <field name="dateModifiedMilli">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      <field name="parentObjectClass">
+      </field>
+        <column name="PARENTOBJECTCLASS"/>
+      </field>
+      <field name="parentObjectID">
+        <column name="PARENTOBJECTID"/>
+      </field>
+    </class>
 
     <class name="Measurement" identity-type="application">
       <inheritance strategy="new-table"/>

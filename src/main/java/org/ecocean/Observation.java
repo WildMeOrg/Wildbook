@@ -38,6 +38,8 @@ public class Observation implements java.io.Serializable {
      
     parentObjectID = parentID;
     
+    observationID = Util.generateUUID();
+    
     setDateAddedMilli();
     setDateLastModifiedMilli();
   }

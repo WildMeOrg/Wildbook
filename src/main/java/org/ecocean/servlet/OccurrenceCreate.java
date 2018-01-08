@@ -71,7 +71,7 @@ public class OccurrenceCreate extends HttpServlet {
       myOccurrenceID=ServletUtilities.cleanFileName(myOccurrenceID);
       
     }
-
+    System.out.println("Here's a new Occurrence ID "+myOccurrenceID+" that I'm creating for "+request.getParameter("number")+".");
     //Create a new Occurrence from an encounter
 
     if ((myOccurrenceID != null) && (request.getParameter("number") != null) &&  (!myOccurrenceID.trim().equals(""))) {
