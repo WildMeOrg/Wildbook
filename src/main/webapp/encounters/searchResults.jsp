@@ -759,8 +759,10 @@ function _colNumberLocations(o) {
 
 
 function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
+	var animal = 'n/a';
+	if (o.get('genus')) return o.get('genus');
+	if (o.get('specificEpithet')) return o.get('specificEpithet');
+	return 'n/a';
 }
 
 
