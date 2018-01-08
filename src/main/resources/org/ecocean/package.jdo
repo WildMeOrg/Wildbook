@@ -246,6 +246,22 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
       
+      <field name="decimalLatitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
+      <field name="decimalLongitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+      
+      <field name="endDecimalLatitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
+      <field name="endDecimalLongitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+      
       <field name="dwcDateAddedLong" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>

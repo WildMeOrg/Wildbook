@@ -234,6 +234,7 @@ public class Encounter implements java.io.Serializable {
   private String size_guess = "none provided";
   //String reported GPS values for lat and long of the encounter
   private String gpsLongitude = "", gpsLatitude = "";
+  private String gpsEndLongitude = "", gpsEndLatitude = "";
   //whether this encounter has been rejected and should be hidden from public display
   //unidentifiable encounters generally contain some data worth saving but not enough for accurate photo-identification
   //private boolean unidentifiable = false;
@@ -1772,15 +1773,15 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public Double getEndDecimalLatitudeAsDouble(){return (endDecimalLatitude == null) ? null : endDecimalLatitude.doubleValue();}
 
   public void setEndDecimalLatitude(Double lat){
-      this.decimalLatitude = lat;
-      gpsLatitude = Util.decimalLatLonToString(lat);
+      this.endDecimalLatitude = lat;
+      gpsEndLatitude = Util.decimalLatLonToString(lat);
    }
 
   public Double getEndDecimalLongitudeAsDouble(){return (endDecimalLongitude == null) ? null : endDecimalLongitude.doubleValue();}
 
   public void setEndDecimalLongitude(Double lon) {
-      this.decimalLongitude = lon;
-      gpsLongitude = Util.decimalLatLonToString(lon);
+      this.endDecimalLongitude = lon;
+      gpsEndLongitude = Util.decimalLatLonToString(lon);
   } 
 
   public String getOccurrenceRemarks() {
