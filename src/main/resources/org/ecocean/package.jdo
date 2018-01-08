@@ -15,7 +15,7 @@
       </field>
 
       <field name="project" persistence-modifier="persistent">
-        <column length="100" allows-null="true" />
+        <column length="256" allows-null="true" />
       </field>
 
       <field name="organization" persistence-modifier="persistent">
@@ -50,6 +50,11 @@
       
       <field name="date" persistence-modifier="persistent">
         <column jdbc-type="String" allows-null="true"/>
+      </field>
+      
+      <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Observation"/>
+        <join/>
       </field>
 
       <fetch-group name="count"/>

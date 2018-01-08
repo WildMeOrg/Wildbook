@@ -36,7 +36,7 @@ public class Observation implements java.io.Serializable {
     
     name = newName;
     
-    parentObjectClass = parentObject.getClass().toString();
+    parentObjectClass = parentObject.getClass().getSimpleName();
      
     parentObjectID = parentID;
     
