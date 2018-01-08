@@ -34,6 +34,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.io.File;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -2032,6 +2035,42 @@ public class Shepherd {
       samples.closeAll();
       return myArray;
     }
+  
+  public Encounter getEncounterWithDateInMillis(long millis) {
+    String milliString = String.valueOf(millis);
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds == '"+milliString+"' ";
+    Query encQuery = pm.newQuery(keywordQueryString);
+    Encounter enc = (Encounter) (encQuery.execute());
+    if (enc != null) {
+      return enc;
+    } else {
+      return null;
+    }
+  }
+  
+  public ArrayList<Encounter> getEncounterWithShortDate(String sd) {
+    sd = sd.replaceAll("/", "-");
+    sd = sd.replaceAll(".", "-");
+    sd = sd.trim();
+    DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
+    Date d = null;
+    try {
+      d = (Date)fm.parse(sd);    
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+    }
+    DateTime dt = new DateTime(d);
+    String milliString = String.valueOf(dt.getMillis());
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds == '"+milliString+"' ";
+    Query encQuery = pm.newQuery(keywordQueryString);
+    Collection col = (Collection) encQuery.execute();
+    ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
+    if (encs != null) {
+      return encs;
+    } else {
+      return null;
+    }
+  }
 
   public int getNumSinglePhotoVideosForEncounter(String encNum) {
 	    String filter = "correspondingEncounterNumber == \""+encNum+"\"";

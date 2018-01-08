@@ -309,10 +309,9 @@ public class Encounter implements java.io.Serializable {
   // This is the eventual replacement for the old decimal lat lon and other location data.
   private PointLocation pointLocation;
   
-
-//
-
-
+  // This is the number used to cross reference with dates to find occurances. (Read Lab)
+  private String sightNo = "";
+  
   //start constructors
 
   /**

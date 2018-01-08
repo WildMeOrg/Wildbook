@@ -92,6 +92,14 @@
 				 	<column jdbc-type="VARCHAR" length="256"/>
 				</field>
 				
+				<field name="permit" persistence-modifier="persistent">
+					<column jdbc-type="VARCHAR" length="512"/>
+				</field>
+				
+				<field name="state" persistence-modifier="persistent">
+					<column jdbc-type="VARCHAR" length="512"/>
+				</field>
+				
 				        
 
 		</class>
