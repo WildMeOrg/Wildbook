@@ -536,6 +536,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 <script type="text/javascript">
 $(document).ready(function() {
+  $(".editFormDynamic, .editTextDynamic, .resultMessageDiv").hide();
   var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
     buttons.toggle();
   });
@@ -639,7 +640,7 @@ $(document).ready(function() {
 						<input name="type" type="hidden" value="Occurrence" />
 						<div class="form-group row">
 							<div class="col-sm-3">
-								<label><%=props.getProperty("propertyName")%>:</label>
+								<label><%=props.getProperty("propertyName")%></label>
 							</div>
 							<div class="col-sm-5">
 								<input name="name" type="text" class="form-control"
