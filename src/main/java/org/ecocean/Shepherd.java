@@ -2036,13 +2036,30 @@ public class Shepherd {
       return myArray;
     }
   
-  public Encounter getEncounterWithDateInMillis(long millis) {
+  public ArrayList<Encounter> getEncountersArrayWithMillis(long millis) {
     String milliString = String.valueOf(millis);
-    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds == "+milliString+" ";
+    
+    String up = milliString.substring(0, milliString.length() - 6) + 999999;
+    String down = milliString.substring(0, milliString.length() - 6) + 000000;
+    
+    
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+down+" && dateInMilliseconds <= "+up+" ";
     Query encQuery = pm.newQuery(keywordQueryString);
-    Encounter enc = (Encounter) (encQuery.execute());
-    if (enc != null) {
-      return enc;
+    Collection col = null;
+    try {
+      encQuery = pm.newQuery(keywordQueryString);
+      if (encQuery.execute() != null) {
+        col = (Collection) encQuery.execute();              
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Exception on query : "+keywordQueryString);    
+      return null;
+    }
+    ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
+    encQuery.closeAll();
+    if (encs != null) {
+      return encs;
     } else {
       return null;
     }
@@ -2066,39 +2083,20 @@ public class Shepherd {
     String millisNext = String.valueOf(nextDay.getMillis());
     System.out.println("Trying to get encounter with date in Millis : "+milliString);
     String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+milliString+" && dateInMilliseconds <= "+millisNext+"";
-    Query encQuery = pm.newQuery(keywordQueryString);
-    Collection col = (Collection) encQuery.execute();
-    ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
-    System.out.println("Encounters Retrieved : "+encs.toString());
-    if (encs != null) {
-      return encs;
-    } else {
+    Collection col = null;
+    Query encQuery = null; 
+    try {
+      encQuery = pm.newQuery(keywordQueryString);
+      if (encQuery.execute() != null) {
+        col = (Collection) encQuery.execute();              
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Exception on query : "+keywordQueryString);    
       return null;
     }
-  }
-  
-  public ArrayList<Encounter> getEncounterArrayWithShortDateAndSightingID(String sd, String si) {
-    sd = sd.replace("/", "-");
-    sd = sd.replace(".", "-");
-    sd = sd.trim();
-    DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
-    Date d = null;
-    try {
-      d = (Date)fm.parse(sd);    
-    } catch (ParseException pe) {
-      pe.printStackTrace();
-    }
-    DateTime dt = new DateTime(d);
-    DateTime nextDay = dt.plusDays(1).toDateTime();
-    // Since the query involves a date but no time, we need to get the millis of the next day at 12:00AM as well and find all encounters that occurred in between.
-    String milliString = String.valueOf(dt.getMillis());
-    String millisNext = String.valueOf(nextDay.getMillis());
-    System.out.println("Trying to get encounter with date in Millis : "+milliString);
-    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+milliString+" && dateInMilliseconds <= "+millisNext+" && sightNo == '"+si+"'";
-    Query encQuery = pm.newQuery(keywordQueryString);
-    Collection col = (Collection) encQuery.execute();
     ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
-    System.out.println("Encounters Retrieved : "+encs.toString());
+    encQuery.closeAll();
     if (encs != null) {
       return encs;
     } else {
