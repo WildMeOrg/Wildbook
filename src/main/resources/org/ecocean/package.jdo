@@ -242,6 +242,10 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
 
+      <field name="endDateInMilliseconds" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
       <field name="dwcDateAddedLong" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
@@ -253,7 +257,7 @@
       <field name="maximumDepthInMeters" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
-
+      
       <field name="maximumElevationInMeters" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
@@ -267,6 +271,10 @@
       </field>
 
       <field name="country" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
+      
+      <field name="sightNo" persistence-modifier="persistent">
         <column length="512"/>
       </field>
 
