@@ -410,6 +410,8 @@
       <field name="acousticTag" persistence-modifier="persistent"></field>
 
       <field name="satelliteTag" persistence-modifier="persistent"></field>
+      
+      <field name="digitalArchiveTag" persistence-modifier="persistent"></field>
 
       <fetch-group name="allSharks_min">
         <field name="approved"/>

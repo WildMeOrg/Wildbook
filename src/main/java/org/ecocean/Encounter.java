@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;
+import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
@@ -298,6 +299,7 @@ public class Encounter implements java.io.Serializable {
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
   private SatelliteTag satelliteTag;
+  private DigitalArchiveTag digitalArchiveTag;
 
   private Boolean mmaCompatible = false;
   
@@ -2283,6 +2285,14 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
     public void setSatelliteTag(SatelliteTag satelliteTag) {
       this.satelliteTag = satelliteTag;
+    }
+    
+    public DigitalArchiveTag getDTag() {
+      return digitalArchiveTag;
+    }
+
+    public void setDTag(DigitalArchiveTag dt) {
+      this.digitalArchiveTag = dt;
     }
 
     public String getLifeStage(){return lifeStage;}
