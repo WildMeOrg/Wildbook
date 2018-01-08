@@ -438,7 +438,6 @@ public class Shepherd {
     return tempMA;
   }
 
-
   public Workspace getWorkspace(int id) {
     Workspace tempWork = null;
     try {
@@ -1293,6 +1292,24 @@ public class Shepherd {
       Extent maClass = pm.getExtent(MediaAsset.class, true);
       Iterator it = maClass.iterator();
       return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllMediaAssets. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+  
+  public ArrayList<MediaAsset> getAllMediaAssetsAsArray() {
+    try {
+      Extent maClass = pm.getExtent(MediaAsset.class, true);
+      ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+      MediaAsset ma = null;
+      Iterator it = maClass.iterator();
+      while (it.hasNext()) {
+        ma = (MediaAsset) it.next();
+        mas.add(ma);
+      }
+      return mas;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllMediaAssets. Returning a null iterator.");
       npe.printStackTrace();
