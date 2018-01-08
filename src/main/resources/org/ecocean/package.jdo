@@ -547,7 +547,7 @@
         <column length="100"/>
       </field>
       <field name="value">
-        <column name="VALUE"/>
+        <column name="VALUE" jdbc-type="VARCHAR" length="2048"/>
       </field>
       <field name="name">
         <column name="NAME"/>
