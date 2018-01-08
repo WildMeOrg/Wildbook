@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.FoundationalPropertiesBase;
 import org.ecocean.Observation;
 import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
@@ -93,14 +92,15 @@ public class BaseClassSetObservation extends HttpServlet {
       String value = request.getParameter("value");
       System.out.println("Setting Observation... Name : "+name+" ID : "+id+" Type : "+type+" Value : "+value);
       
-      FoundationalPropertiesBase changeMe = null;
+      Object changeMe = null;
       Observation obs = null;
       
-      if (type.equals("Encounter")) {
-        changeMe = (Encounter) myShepherd.getEncounter(id);
-      }
       if (type.equals("Occurrence")) {
         changeMe = (Occurrence) myShepherd.getOccurrence(id);
+      }
+      if (type.equals("Encounter")) {
+        changeMe = null;
+        changeMe = (Encounter) myShepherd.getEncounter(id);
       }
       
       String newValue = "null";
@@ -116,7 +116,6 @@ public class BaseClassSetObservation extends HttpServlet {
       }
 
       try {
-        // Comment features are relics of the Dynamic properties code some of this was borrowed from. It would be really nice to bring it back to life at some point...
         if (newValue.equals("null")) {
           changeMe.removeObservation(name);
           System.out.println("Servlet trying to remove Observation "+name);

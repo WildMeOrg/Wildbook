@@ -140,6 +140,8 @@ public class Encounter implements java.io.Serializable {
   private Boolean sampleTakenForDiet;
   private Boolean injured;
 
+  private ArrayList<Observation> observations = new ArrayList<Observation>();
+
   public String getSoil() {return soil;}
   public void setSoil(String soil) {this.soil = soil;}
 

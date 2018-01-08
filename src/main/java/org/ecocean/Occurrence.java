@@ -13,7 +13,7 @@ import org.joda.time.DateTime;
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
-import org.ecocean.media.MediaAsset;
+import org.ecocean.genetics.*;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -62,6 +62,9 @@ public class Occurrence implements java.io.Serializable {
   private String correspondingSurveyID;
 
 
+  private ArrayList<Observation> observations = new ArrayList<Observation>();
+  private ArrayList<Measurement> measurements = new ArrayList<Measurement>();
+  private ArrayList<TissueSample> tissueSamples = new ArrayList<TissueSample>();
 	/* Rosemary meta-data for IBEIS */
 /*
 	private String sun = "";
@@ -870,6 +873,143 @@ public class Occurrence implements java.io.Serializable {
     public String getSocialMediaQueryCommentRelies(){return socialMediaQueryCommentReplies;};
     public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
 
-
+    public ArrayList<Observation> getObservationArrayList() {
+      return observations;
+    }
+    public void addObservationArrayList(ArrayList<Observation> arr) {
+      if (observations.isEmpty()) {
+        observations=arr;      
+      } else {
+       observations.addAll(arr); 
+      }
+    }
+    public void addObservation(Observation obs) {
+      boolean found = false;
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(obs.getName().toLowerCase().trim())) {
+               found = true;
+               break;
+            }
+          }
+        } 
+        if (!found) {
+          observations.add(obs);        
+        }
+      } else {
+        observations.add(obs);
+      }
+    }
+    public Observation getObservationByName(String obName) {
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
+              return ob;            
+            }
+          }
+        }
+      }
+      return null;
+    }
+    public Observation getObservationByID(String obId) {
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getID() != null && ob.getID().equals(obId)) {
+            return ob;
+          }
+        }
+      }
+      return null;
+    }
+    public void removeObservation(String name) {
+      int counter = 0;
+      if (observations != null && observations.size() > 0) {
+        System.out.println("Looking for the Observation to delete...");
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(name.toLowerCase().trim())) {
+               System.out.println("Match! Trying to delete Observation "+name+" at index "+counter);
+               observations.remove(counter);
+               break;
+            }
+          }
+          counter++;
+        }
+      }  
+    } 
+    public ArrayList<Measurement> getMeasurementArrayList() {
+      return measurements;
+    }
+    public void addMeasurementArrayList(ArrayList<Measurement> arr) {
+      if (measurements.isEmpty()) {
+        measurements=arr;      
+      } else {
+        measurements.addAll(arr);
+      }
+    }
+    public void addMeasurement(Measurement ms) {
+      measurements.add(ms);
+    }
+    public Measurement getMeasurementByType(String mesName) {
+      if (measurements != null && measurements.size() > 0) {
+        for (Measurement mes : measurements) {
+          if (mes.getType() != null && mes.getType().equals(mesName)) {
+            return mes;
+          }
+        }
+      }
+      return null;
+    }
+    
+    public ArrayList<TissueSample> getTissueSampleArrayList() {
+      return tissueSamples;
+    }
+    public void addTissueSampleArrayList(ArrayList<TissueSample> arr) {
+      if (tissueSamples.isEmpty()) {
+        tissueSamples=arr;
+      } else {
+        tissueSamples.addAll(arr);
+      }
+    }
+    public void addTissueSample(TissueSample ts) {
+      tissueSamples.add(ts);
+    }
+    public TissueSample getTissueSampleByName(String tsName) {
+      if (tissueSamples != null && tissueSamples.size() > 0) {
+        for (TissueSample ts : tissueSamples) {
+          if (ts.getType() != null && ts.getType().equals(tsName)) {
+            return ts;
+          }
+        }
+      }
+      return null;
+    }
+    public TissueSample getTissueSampleByID(String tsName) {
+      if (tissueSamples != null && tissueSamples.size() > 0) {
+        for (TissueSample ts : tissueSamples) {
+          if (ts.getSampleID() != null && ts.getSampleID().equals(tsName)) {
+            return ts;
+          }
+        }
+      }
+      return null;
+    }
+    
+    public void removeTissueSample(String sampleId) {
+      ArrayList<TissueSample> newSamples = new ArrayList<TissueSample>();
+      try {
+        for (TissueSample sample : tissueSamples) {
+          if (!sample.getSampleID().equals(sampleId)) {
+            newSamples.add(sample);
+          }
+        }
+        tissueSamples = newSamples;
+      } catch (Exception e) {
+        e.printStackTrace();
+        System.out.println("Failed to remove this tissue sample: "+sampleId);
+      }
+    }
 
 }
