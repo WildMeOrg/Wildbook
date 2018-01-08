@@ -2038,7 +2038,7 @@ public class Shepherd {
   
   public Encounter getEncounterWithDateInMillis(long millis) {
     String milliString = String.valueOf(millis);
-    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds == '"+milliString+"' ";
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds == "+milliString+" ";
     Query encQuery = pm.newQuery(keywordQueryString);
     Encounter enc = (Encounter) (encQuery.execute());
     if (enc != null) {
@@ -2048,9 +2048,9 @@ public class Shepherd {
     }
   }
   
-  public ArrayList<Encounter> getEncounterWithShortDate(String sd) {
-    sd = sd.replaceAll("/", "-");
-    sd = sd.replaceAll(".", "-");
+  public ArrayList<Encounter> getEncounterArrayWithShortDate(String sd) {
+    sd = sd.replace("/", "-");
+    sd = sd.replace(".", "-");
     sd = sd.trim();
     DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
     Date d = null;
@@ -2060,11 +2060,16 @@ public class Shepherd {
       pe.printStackTrace();
     }
     DateTime dt = new DateTime(d);
+    DateTime nextDay = dt.plusDays(1).toDateTime();
+    // Since the query involves a date but no time, we need to get the millis of the next day at 12:00AM as well and find all encounters that occurred in between.
     String milliString = String.valueOf(dt.getMillis());
-    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds == '"+milliString+"' ";
+    String millisNext = String.valueOf(nextDay.getMillis());
+    System.out.println("Trying to get encounter with date in Millis : "+milliString);
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+milliString+" && dateInMilliseconds <= "+millisNext+"";
     Query encQuery = pm.newQuery(keywordQueryString);
     Collection col = (Collection) encQuery.execute();
     ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
+    System.out.println("Encounters Retrieved : "+encs.toString());
     if (encs != null) {
       return encs;
     } else {
