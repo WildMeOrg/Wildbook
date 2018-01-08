@@ -190,7 +190,7 @@ public class Shepherd {
 
       }
   }
-    
+
   public void storeNewSurvey(Survey svy) {
     beginDBTransaction();
     try {

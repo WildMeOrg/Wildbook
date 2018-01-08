@@ -317,6 +317,7 @@ public class Encounter implements java.io.Serializable {
   // This is the number used to cross reference with dates to find occurances. (Read Lab)
   private String sightNo = "";
   
+
   //start constructors
 
   /**

@@ -137,16 +137,17 @@
 	boolean proceed = true;
 	boolean haveRendered = false;
 
-  pageContext.setAttribute("set", encprops.getProperty("set"));
+	pageContext.setAttribute("set", encprops.getProperty("set"));
+
   
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
 
-
-<jsp:include page="../header.jsp" flush="true" />
+<jsp:include page="../header.jsp" flush="true"/>
 
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
+
 
 
 <style type="text/css">
@@ -7096,30 +7097,24 @@ $("a#setBioMeasure<%=thisSample.getSampleID()%>").click(function() {
 		<%=e.toString()%></p>
 
 
-	<%
-		} finally {
-				myShepherd.rollbackDBTransaction();
-				myShepherd.closeDBTransaction();
-				//kwQuery=null;
-				myShepherd = null;
-			}
+<%
+}
+finally{
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+	//kwQuery=null;
+	myShepherd=null;
+}
 
-		} //end if this is an encounter
-		else {
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
-	%>
-	<p class="para">
-		There is no encounter #<%=num%>
-		in the database. Please double-check the encounter number and try
-		again.
-	</p>
+	}  //end if this is an encounter
+    else {
+  		myShepherd.rollbackDBTransaction();
+  		myShepherd.closeDBTransaction();
+		%>
+		<p class="para">There is no corresponding encounter number in the database. Please double-check the encounter number and try again.</p>
 
-	<form action="encounter.jsp" method="post" name="encounter">
-		<strong>Go to encounter: </strong> <input name="number" type="text"
-			value="<%=num%>" size="20"> <input name="Go" type="submit"
-			value="Submit" />
-	</form>
+<form action="encounter.jsp" method="post" name="encounter"><strong>Go
+  to encounter: </strong> <input name="number" type="text" value="" size="20"> <input name="Go" type="submit" value="Submit" /></form>
 
 
 	}  //end if this is an encounter

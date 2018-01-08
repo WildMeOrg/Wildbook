@@ -177,8 +177,7 @@ public class WorkAppletHeadlessEpic {
             long allowedDiff=3*60*1000;
             
            
-            
-            
+
             //set up our thread processor for each comparison thread
             ArrayBlockingQueue abq = new ArrayBlockingQueue(500);
             threadHandler = new ThreadPoolExecutor(numProcessors, numProcessors, 0, TimeUnit.SECONDS, abq);
