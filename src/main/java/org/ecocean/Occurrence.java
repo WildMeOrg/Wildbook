@@ -31,7 +31,7 @@ import org.datanucleus.api.rest.orgjson.JSONException;
  * @author Jason Holmberg
  *
  */
-public class Occurrence implements java.io.Serializable{
+public class Occurrence extends FoundationalPropertiesBase {
 
 
 
