@@ -1,13 +1,14 @@
 
 
 /* This class is intended to stay very simple. It is the successor to the DynamicProperties  
+
  * available on the encounter. It has it's own table, and links back to the parent object
  * to allow it to be used as a searchable tag in the future.
  * 
  * 
- * 
- * 
+ *@Author Colin Kingen 
  */
+
 package org.ecocean;
 
 import org.joda.time.DateTime;
@@ -32,6 +33,7 @@ public class Observation implements java.io.Serializable {
   
   public Observation(String newName, String newValue, Object parentObject, String parentID) {
     value = newValue;
+    
     name = newName;
     
     parentObjectClass = parentObject.getClass().toString();

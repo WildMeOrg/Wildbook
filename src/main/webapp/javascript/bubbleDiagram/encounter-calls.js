@@ -103,10 +103,10 @@ var getData = function(individualID) {
         var encounterSize = thisOcc.encounters.length;
         // make encounterArray, containing the individualIDs of every encounter in thisOcc;
         for(var j=0; j < encounterSize; j++) {
-//console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
+          //console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
           var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
           //var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
-//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
+          //console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
           if (!thisEncIndID) continue;  //unknown indiv -> false
           if(encounterArray.includes(thisEncIndID)) {
           } else {
@@ -337,7 +337,8 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         } else {
           var location = "";
         }
-        var catalogNumber = jsonData.encounters[i].catalogNumber;
+        var catalogNumber = jsonData.encounters[i].primaryKeyID;
+        console.log("Here's what we are working with : "+jsonData.encounters[i]);
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
           if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
             var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
