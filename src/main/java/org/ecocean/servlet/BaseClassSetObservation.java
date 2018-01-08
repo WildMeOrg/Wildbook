@@ -90,7 +90,8 @@ public class BaseClassSetObservation extends HttpServlet {
       String name = request.getParameter("name");
       String id = request.getParameter("number");
       String type = request.getParameter("type");
-      System.out.println("Setting Observation... Name : "+name+" ID : "+id+" Type : "+type);
+      String value = request.getParameter("value");
+      System.out.println("Setting Observation... Name : "+name+" ID : "+id+" Type : "+type+" Value : "+value);
       
       FoundationalPropertiesBase changeMe = null;
       Observation obs = null;
@@ -118,12 +119,18 @@ public class BaseClassSetObservation extends HttpServlet {
         // Comment features are relics of the Dynamic properties code some of this was borrowed from. It would be really nice to bring it back to life at some point...
         if (newValue.equals("null")) {
           changeMe.removeObservation(name);
+          System.out.println("Servlet trying to remove Observation "+name);
           //changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed dynamic property <em>" + name + "</em>. The old Value was <em>" + oldValue + ".</em></p>");
         } else {
-          obs = new Observation(name, newValue, changeMe.getClass().getSimpleName(), changeMe.getPrimaryKeyID());
-          changeMe.addObservation(obs);
-          System.out.println("Success setting Observation!");
-          //changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Set dynamic property <em>" + name + "</em> from <em>" + oldValue + "</em> to <em>" + newValue + "</em>.</p>");
+          if (changeMe.getObservationByName(name) != null && value != null) {
+            Observation existing = changeMe.getObservationByName(name);
+            existing.setValue(value);
+          } else {
+            obs = new Observation(name, newValue, changeMe.getClass().getSimpleName(), changeMe.getPrimaryKeyID());
+            changeMe.addObservation(obs);
+            System.out.println("Success setting Observation!");
+            //changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Set dynamic property <em>" + name + "</em> from <em>" + oldValue + "</em> to <em>" + newValue + "</em>.</p>");            
+          }
 
         }
 
