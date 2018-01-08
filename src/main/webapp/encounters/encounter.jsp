@@ -1872,9 +1872,10 @@ $(document).ready(function() {
 
                       var occurrence = $("#createOccurrenceInput").val();
                       var number = $("#createOccurNumber").val();
-
-                      $.post("/OccurrenceCreate", {"occurrence": occurrence, "number": number},
+					  
+                      $.post("../OccurrenceCreate", {"occurrence": occurrence, "number": number},
                       function() {
+                    	  <% System.out.println("Tried to make an Occ..."); %>
                     	console.log(occurrence);
                     	console.log(number);
                         $("#createOccurErrorDiv").hide();
