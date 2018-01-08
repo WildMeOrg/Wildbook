@@ -62,6 +62,7 @@ public class Util {
   private static final String BIOLOGICALMEASUREMENTUNITS = BIOLOGICALMEASUREMENT.replaceAll("Type", "Units");
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
+  private static final String VESSEL = "vessel";
 
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
@@ -77,6 +78,18 @@ public class Util {
         String typeLabel = findLabel(type, langCode,context);
         String unitsLabel = findLabel(unit, langCode,context);
         list.add(new MeasurementDesc(type, typeLabel, unit, unitsLabel));
+      }
+    }
+    return list;
+  }
+  
+  public static ArrayList<String> findVesselNames(String langCode,String context) {
+    ArrayList<String> list = new ArrayList<String>();
+    List<String> types = CommonConfiguration.getIndexedPropertyValues(VESSEL,context);
+    if (types.size() > 0) {
+      for (int i = 0; i < types.size(); i++) {
+        String type = types.get(i);
+        list.add(type);
       }
     }
     return list;
