@@ -42,6 +42,8 @@ public class Survey implements java.io.Serializable{
   
   private String date;
   
+  private ArrayList<Observation> observations = new ArrayList<Observation>();
+  
   
   //empty constructor used by the JDO enhancer
   public Survey(){}
@@ -286,6 +288,41 @@ public class Survey implements java.io.Serializable{
       return null;
     }
     return String.valueOf(dt.getTime());
+  }
+  
+  public ArrayList<Observation> getBaseObservationArrayList() {
+    return observations;
+  }
+
+  public void addBaseObservationArrayList(ArrayList<Observation> arr) {
+    if (observations.isEmpty()) {
+      observations=arr;      
+    } else {
+     observations.addAll(arr); 
+    }
+  }
+  public void addObservation(Observation obs) {
+    observations.add(obs);
+  }
+  public Observation getObservationByName(String obName) {
+    if (observations != null && observations.size() > 0) {
+      for (Observation ob : observations) {
+        if (ob.getName() != null && ob.getName().equals(obName)) {
+          return ob;
+        }
+      }
+    }
+    return null;
+  }
+  public Observation getObservationByID(String obId) {
+    if (observations != null && observations.size() > 0) {
+      for (Observation ob : observations) {
+        if (ob.getID() != null && ob.getID().equals(obId)) {
+          return ob;
+        }
+      }
+    }
+    return null;
   }
 
 }
