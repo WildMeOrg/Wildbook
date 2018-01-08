@@ -9,6 +9,10 @@
         <class name="AbstractTag" identity-type="application">
             <inheritance strategy="subclass-table"/>
             <field name="id" primary-key="true" value-strategy="native"/>
+            <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+        		<collection element-type="org.ecocean.Observation"/>
+        		<join/>
+      		</field>
         </class>    
         
         <class name="MetalTag" table="METALTAG">
