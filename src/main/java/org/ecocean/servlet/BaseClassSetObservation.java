@@ -83,20 +83,29 @@ public class BaseClassSetObservation extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-
+    String redirectURL = null;
+    String typeLower = null;
+    String type = null;
     if ((request.getParameter("number") != null) && (request.getParameter("name") != null) && (request.getParameter("type") != null)) {
       myShepherd.beginDBTransaction();
+      type = request.getParameter("type");
       String name = request.getParameter("name");
       String id = request.getParameter("number");
-      String type = request.getParameter("type");
       String value = request.getParameter("value");
       System.out.println("Setting Observation... Name : "+name+" ID : "+id+" Type : "+type+" Value : "+value);
       
       Object changeMe = null;
       Observation obs = null;
       
+      if (type.equals("Encounter")) {
+        changeMe = (Encounter) myShepherd.getEncounter(id);
+        redirectURL = "/encounters/encounter.jsp";
+        typeLower = "encounter";
+      }
       if (type.equals("Occurrence")) {
         changeMe = (Occurrence) myShepherd.getOccurrence(id);
+        redirectURL = "/occurrence.jsp";
+        typeLower = "occurrence";
       }
       if (type.equals("Encounter")) {
         changeMe = null;
@@ -114,7 +123,8 @@ public class BaseClassSetObservation extends HttpServlet {
       if ((request.getParameter("value") != null) && (!request.getParameter("value").equals(""))) {
         newValue = request.getParameter("value");
       }
-
+      
+      
       try {
         if (newValue.equals("null")) {
           changeMe.removeObservation(name);
@@ -147,32 +157,32 @@ public class BaseClassSetObservation extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
 
         if (!newValue.equals("")) {
-          out.println("<strong>Success:</strong> Encounter dynamic property " + name + " has been updated from <i>" + oldValue + "</i> to <i>" + newValue + "</i>.");
+          out.println("<strong>Success:</strong> "+type+" Observation " + name + " has been updated from <i>" + oldValue + "</i> to <i>" + newValue + "</i>.");
         } else {
-          out.println("<strong>Success:</strong> Encounter dynamic property " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
+          out.println("<strong>Success:</strong> "+type+" Observation " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
 
         }
 
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+redirectURL+"?number="+request.getParameter("number")+"\">Return to "+type+" "+ request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
-        if(allStatesSize>0){
+        if(allStatesSize>0&&type.equals("Encounter")){
           for(int i=0;i<allStatesSize;i++){
             String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" "+type+"'s</a></font></p>");   
           }
         }
         out.println("<p><a href=\"individualSearchResults.jsp\">View all marked individuals</a></font></p>");
         out.println(ServletUtilities.getFooter(context));
-        String message = "Encounter " + request.getParameter("number") + " dynamic property " + name + " has been updated from \"" + oldValue + "\" to \"" + newValue + "\".";
+        String message = type+" " + request.getParameter("number") + " Observation " + name + " has been updated from \"" + oldValue + "\" to \"" + newValue + "\".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> Encounter dynamic property " + name + " was NOT updated because another user is currently modifying this reconrd. Please try to reset the value again in a few seconds.");
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
+        out.println("<strong>Failure:</strong> "+type+" Observation " + name + " was NOT updated because another user is currently modifying this reconrd. Please try to reset the value again in a few seconds.");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) +redirectURL+"?number=" + request.getParameter("number") + "\">Return to "+typeLower+" " + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
-        if(allStatesSize>0){
+        if(allStatesSize>0&&type.equals("Encounter")){
           for(int i=0;i<allStatesSize;i++){
             String stateName=allStates.get(i);
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
@@ -185,13 +195,13 @@ public class BaseClassSetObservation extends HttpServlet {
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+redirectURL+"?number=" + request.getParameter("number") + "\">Return to "+typeLower+" #" + request.getParameter("number") + "</a></p>\n");
       List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
       int allStatesSize=allStates.size();
       if(allStatesSize>0){
         for(int i=0;i<allStatesSize;i++){
           String stateName=allStates.get(i);
-          out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+          out.println("<p><a href=\""+redirectURL+"?state="+stateName+"\">View all "+stateName+" "+typeLower+"</a></font></p>");   
         }
       }out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
       out.println(ServletUtilities.getFooter(context));
