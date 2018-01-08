@@ -3899,7 +3899,8 @@ $(document).ready(function() {
 
 
 
-				<%-- OBSERVATION ATTRIBUTES --%>
+				<%-- ATTRIBUTES --%>
+				<%-- HEY! These are attributes, but not observations like the object. Thats below. These are concrete, Observation ojects are the new dynamic properties. --%>
 				<%
 					if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 				%>
@@ -4778,17 +4779,16 @@ $(document).ready(function() {
 
 				<%
 					}
-
-							if (enc.getDynamicProperties() != null) {
-								//let's create a TreeMap of the properties
-								StringTokenizer st = new StringTokenizer(enc.getDynamicProperties(), ";");
-								int numDynProps = 0;
-								while (st.hasMoreTokens()) {
-									String token = st.nextToken();
-									int equalPlace = token.indexOf("=");
-									String nm = token.substring(0, (equalPlace)).replaceAll(" ", "_");
-									String vl = token.substring(equalPlace + 1);
-									numDynProps++;
+							// Let's make a list of editable Observations... Dynamically!
+							if (enc.getBaseObservationArrayList() != null) {
+								ArrayList<Observation> obs = enc.getBaseObservationArrayList();
+								System.out.println("Observations ... "+obs);
+								int numObservations = enc.getBaseObservationArrayList().size();
+								for (Observation ob : obs) {
+									
+									
+									String nm = ob.getName();
+									String vl = ob.getValue();
 				%>
 				<p class="para">
 					<em><%=nm%></em>:
@@ -4797,7 +4797,8 @@ $(document).ready(function() {
 					<%
 						
 					%>
-					<!-- start dynamic form -->
+					<!-- Start dynamic (Observation) form. -->
+					<!-- REMEMBER! These observations use a lot of legacy front end html etc from the deprecated dynamic properties! -->
 				<div id="dialogDP<%=nm%>"
 					title="<%=encprops.getProperty("set")%> <%=nm%>"
 					class="editFormDynamic">
@@ -4808,10 +4809,12 @@ $(document).ready(function() {
 						<em><small><%=encprops.getProperty("setDPMessage")%></small></em>
 					</p>
 
-					<form name="addDynProp" action="../EncounterSetDynamicProperty"
+					<form name="addDynProp" action="../BaseClassSetObservation"
 						method="post" class="editFormDynamic">
-						<input name="name" type="hidden" size="10" value="<%=nm%>" /> <input
-							name="number" type="hidden" value="<%=num%>" />
+						<input name="name" type="hidden" size="10" value="<%=nm%>" /> 
+						<input name="number" type="hidden" value="<%=num%>" />
+						<!-- This servlet can handle encounters or occurrences, so you have to pass it the Type!  -->
+						<input name="type" type="hidden" value="Encounter" />
 						<div class="form-group row">
 							<div class="col-sm-3">
 								<label><%=encprops.getProperty("propertyValue")%>:</label>
@@ -4841,7 +4844,7 @@ $(document).ready(function() {
 
 				<%
 					}
-								if (numDynProps == 0) {
+								if (numObservations == 0) {
 				%>
 				<p><%=encprops.getProperty("none")%></p>
 				<%
@@ -4861,9 +4864,10 @@ $(document).ready(function() {
 					<p class="editTextDynamic">
 						<strong><%=encprops.getProperty("addDynamicProperty")%></strong>
 					</p>
-					<form name="addDynProp" action="../EncounterSetDynamicProperty"
+					<form name="addDynProp" action="../BaseClassSetObservation"
 						method="post" class="editFormDynamic">
 						<input name="number" type="hidden" value="<%=num%>" />
+						<input name="type" type="hidden" value="Encounter" />
 						<div class="form-group row">
 							<div class="col-sm-3">
 								<label><%=encprops.getProperty("propertyName")%>:</label>

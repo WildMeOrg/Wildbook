@@ -2103,11 +2103,6 @@
   </servlet-mapping>
 
       <servlet>
-      <servlet-name>UserCreateSocial</servlet-name>
-      <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
-  </servlet>
-
-      <servlet>
       	<servlet-name>LoginUserSocial</servlet-name>
       	<servlet-class>org.ecocean.servlet.LoginUserSocial</servlet-class>
    </servlet>
@@ -2117,5 +2112,9 @@
     <url-pattern>/LoginUserSocial</url-pattern>
   </servlet-mapping>
 
+ <servlet-mapping>
+    <servlet-name>BaseClassSetObservation</servlet-name>
+    <url-pattern>/BaseClassSetObservation</url-pattern>
+  </servlet-mapping>
 
 </web-app>
