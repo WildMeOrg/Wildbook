@@ -147,7 +147,7 @@ context=ServletUtilities.getContext(request);
 	if (occ.getSurvey(myShepherd)!=null) {
 		String surveyID = occ.getSurvey(myShepherd).getID();
 	%>	
-		<p><strong><%=props.getProperty("correspondingSurvey") %></strong>: <a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getPrimaryKeyID()%>"><%=surveyID%></a></p>
+		<p><strong><%=props.getProperty("correspondingSurvey") %></strong>: <a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getPrimaryKeyID()%>&surveyID=<%=surveyID%>"><%=surveyID%></a></p>
 		<br/>  				
 	<%	
 	} else {

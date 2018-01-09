@@ -17,9 +17,10 @@ Properties props = new Properties();
 myShepherd.beginDBTransaction();
 props = ShepherdProperties.getProperties("survey.properties", langCode,context);
 
-String number = request.getParameter("occID").trim();
+String occID = request.getParameter("occID").trim();
+String surveyID = request.getParameter("surveyID").trim();
 
-Survey sv = myShepherd.getSurvey(number);
+Survey sv = myShepherd.getSurvey(surveyID);
 ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
 String errors = "";
 String date = "";
@@ -54,6 +55,22 @@ if (sv!=null) {
 			<div id="errorSpan"></div>
 		
 		</div>
+		<div class="col-md-12">
+			<h4>Survey Attributes</h4>
+			<%
+			if (sv!=null) {
+			%>
+				<p>Date: <%=sv.getDate() %></p>
+				<p>Start Time: <%=sv.getStartTimeMilli()%></p>
+				<p>End Time: <%=sv.getEndTimeMilli()%></p>
+				<p>Organization: <%=organization%></p>
+				<p>Project: <%=project%></p>
+			<%	
+			} 
+			%>	
+		
+		</div>
+		
 		
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("allTracks") %></strong></p>
@@ -63,7 +80,7 @@ if (sv!=null) {
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("surveyMap") %></strong></p>
 			<jsp:include page="surveyMapEmbed.jsp" flush="true">
-         		 <jsp:param name="occID" value="<%=number%>"/>
+         		 <jsp:param name="occID" value="<%=occID%>"/>
         	</jsp:include>
 		</div>
 		

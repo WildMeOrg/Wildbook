@@ -66,21 +66,24 @@ ArrayList<Survey> svs = new ArrayList<Survey>();
 
 try {
 	trks = sv.getAllSurveyTracks();	
-	System.out.println("Current survey: "+sv.toString());
+	System.out.println("Number of svy-tracks: "+trks.size());
 } catch (Exception e) {
 	e.printStackTrace();
 }
 ArrayList<String> polyLineSets = new ArrayList<String>();
+String center = "";
 for (SurveyTrack trk : trks ) {
-	System.out.println("Current track: "+trk.getID());
 	String lineSet = "";
+	System.out.println("Current track: "+trk.getID());
 	ArrayList<Occurrence> occsWithGps = trk.getAllOccurrences();
+	System.out.println("Number of occs for this track: "+occsWithGps.size());
 	for (Occurrence trackOcc : occsWithGps) {
 		String lat = String.valueOf(trackOcc.getDecimalLatitude());
 		String lon = String.valueOf(trackOcc.getDecimalLongitude());
 		lineSet += "{lat: "+lat+", lng: "+lon+"},";
 		System.out.println(lineSet);
 	}
+	center = lineSet.split(",")[0]+","+lineSet.split(",")[1];
 	lineSet = lineSet.substring(0,lineSet.length()-1);
 	polyLineSets.add(lineSet);
 }
@@ -94,8 +97,7 @@ for (SurveyTrack trk : trks ) {
 <%
 
 for (Survey srvy : svs) {
-	if (srvy.getAllSurveyTracks()!=null) {
-		
+	if (srvy.getAllSurveyTracks()!=null) {	
 %>
 	<li>
 		<%= srvy.getID() %>
@@ -127,9 +129,10 @@ if (sv!=null) {
 alert('Here\'s The map and stuff. Mapkey:'+'<%=mapKey%>');
 $(document).ready(function() {
   function initMap() {
+	console.log("Center : "+"<%=center%>");
     var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 8,
-      center: {lat: 35.216399, lng: -75.688132},
+      zoom: 12,
+      center: <%=center%>,
       mapTypeId: 'terrain',
       gestureHandling: 'greedy'
     });
