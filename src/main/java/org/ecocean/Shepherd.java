@@ -1853,7 +1853,8 @@ public class Shepherd {
   }
   
   public Occurrence getOccurrenceForSurvey(Survey svy) {
-    String filter="SELECT FROM org.ecocean.Occurrence WHERE occ.correspondingSurveyID == \""+svy.getID()+"\"  VARIABLES org.ecocean.Occurrence occ";
+    String svyID = svy.getID();
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE correspondingSurveyID == \""+svyID+"\"";
     Query q = getPM().newQuery(filter);
     Collection c = (Collection) (q.execute());
     Iterator obArr = c.iterator();
