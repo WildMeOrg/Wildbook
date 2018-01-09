@@ -17,7 +17,7 @@ Properties props = new Properties();
 myShepherd.beginDBTransaction();
 props = ShepherdProperties.getProperties("survey.properties", langCode,context);
 
-String number = request.getParameter("number").trim();
+String number = request.getParameter("occID").trim();
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 Survey sv = myShepherd.getSurvey(number);
@@ -46,6 +46,7 @@ if (sv!=null) {
 	<div class="row">
 		<div class="col-md-12">
 			<h3><%=props.getProperty("survey") %></h3>
+			<p>The survey contains collections of occurrences and points. It allows you to look at total effort and distance.</p>
 			<hr/>
 			<div id="errorSpan"></div>
 		
@@ -59,7 +60,7 @@ if (sv!=null) {
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("surveyMap") %></strong></p>
 			<jsp:include page="surveyMapEmbed.jsp" flush="true">
-         		 <jsp:param name="number" value="<%=number%>"/>
+         		 <jsp:param name="occID" value="<%=number%>"/>
         	</jsp:include>
 		</div>
 		

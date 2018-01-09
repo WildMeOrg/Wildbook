@@ -63,7 +63,6 @@ try {
 ArrayList<Survey> svs = new ArrayList<Survey>();
 
 try {
-	svs = myShepherd.getAllSurveys();
 	trks = sv.getAllSurveyTracks();	
 	System.out.println("Current survey: "+sv.toString());
 } catch (Exception e) {
@@ -71,7 +70,7 @@ try {
 }
 ArrayList<String> polyLineSets = new ArrayList<String>();
 for (SurveyTrack trk : trks ) {
-	System.out.println("Current track: "+trk.toString());
+	System.out.println("Current track: "+trk.getID());
 	String lineSet = "";
 	ArrayList<Occurrence> occsWithGps = trk.getAllOccurrences();
 	for (Occurrence trackOcc : occsWithGps) {
@@ -114,7 +113,7 @@ for (Survey srvy : svs) {
 	}
 }
 %>
-<p><%=sv.toString() %></p>
+<p><%=sv %></p>
 </ul>
 <div id="map">
 </div>

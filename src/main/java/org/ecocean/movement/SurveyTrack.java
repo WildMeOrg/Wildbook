@@ -147,6 +147,10 @@ public class SurveyTrack implements java.io.Serializable{
   public void addOccurence(Occurrence occ) {
     if (occ != null) {
       occurrences.add(occ);
+      if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
+        double lat = occ.getDecimalLatitude();
+        double lon = occ.getDecimalLongitude();
+      }
       setDWCDateLastModified();
     }
   }
