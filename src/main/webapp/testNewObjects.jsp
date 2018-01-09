@@ -30,7 +30,11 @@ myShepherd.beginDBTransaction();
 String dateString = "dateString";
 Survey sv = new Survey(dateString);
 
-
+Iterator<Encounter> encs = myShepherd.getAllEncounters();
+while (encs.hasNext()) {	
+	Encounter enc = encs.next();
+	System.out.println(enc.toString());
+}
 // Begin Testing for Survey Object!
 try {
 	String surveyID = Util.generateUUID().toString();

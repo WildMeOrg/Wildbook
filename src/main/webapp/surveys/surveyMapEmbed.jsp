@@ -120,21 +120,33 @@ $(document).ready(function() {
 	      strokeWeight: 2
 	    });
 	    
-	    var marker, i;
+	    var marker, i;	
+	    var infWindows = {}
 
 	    for (i=0; i<markerCoordinates.length; i++) {  
 		    var marker = new google.maps.Marker({
 		    	position: new google.maps.LatLng(markerCoordinates[i][i-i], markerCoordinates[i][1]),
 		        map: map,
 		    });
-	        var infowindow = new google.maps.InfoWindow({
-	            content: 'Here is the modal for this occurrence.',
+	        infWindows["infowindow-" + i] = new google.maps.InfoWindow({
+	            content: 'Here is the infowindow for this occurrence.',
 	            maxWidth: 200
-	          });
-		    marker.addListener('click', function() {
-		          infowindow.open(map, marker);
-		          this.setState({ showModal: true });
-		    });
+	        });
+	        
+	        var infoWindowContent =  "ContentContent"
+		    //marker.addListener('click', function() {
+			//	  console.log(infWindows);
+			//	  console.log("I? "+i);
+			//	  var windowID = "infoWindow-" + i;
+		    //	  var thisWindow = infWindows[windowID];
+		    //	  console.log("This window : "+thisWindow);
+		    //      thisWindow.open(map, marker);
+		    //      this.setState({ showModal: true });
+		    //});
+		    
+            google.maps.event.addListener(marker,'click', function() {
+                (new google.maps.InfoWindow({content: infoWindowContent })).open(map, this);
+            });
 	    }
 	    	    
 		<%=currentPath%>.setMap(map);
