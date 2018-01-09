@@ -64,7 +64,15 @@ for (SurveyTrack trk : trks ) {
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="javascript/oms.min.js"></script>
 <p><strong><%=props.getProperty("surveyMap") %></strong></p>
-<p><strong><%=svs.toString()%></strong></p>
+<ul>
+<%
+for (Survey srvy : svs) {
+%>
+	<li><%= srvy.getID() %></li>
+<%
+}
+%>
+</ul>
 <div id="map">
 </div>
 <script>
