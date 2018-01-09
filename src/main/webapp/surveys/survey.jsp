@@ -50,16 +50,12 @@ if (sv!=null) {
 			<h3><%=props.getProperty("survey") %></h3>
 			<hr/>
 			<div id="errorSpan"></div>
-			
-
 		
 		</div>
 		
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("allTracks") %></strong></p>
 			
-
-		
 		</div>
 		<hr/>
 		<div class="col-md-12">

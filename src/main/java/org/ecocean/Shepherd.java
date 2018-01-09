@@ -3587,6 +3587,23 @@ public class Shepherd {
 	    q.closeAll();
     return al;
   }
+  
+  public ArrayList<Survey> getAllSurveys() {
+    ArrayList<Survey> svs = new ArrayList<Survey>();
+    Extent svyClass = pm.getExtent(Survey.class, true);
+    Iterator svsIt = svyClass.iterator();
+    Survey sv = null;
+    while (svsIt.hasNext()) {
+      sv = (Survey) svsIt.next();
+      svs.add(sv);
+    }
+    if (!svs.isEmpty()) {
+      return svs;
+    } else {
+      return null;      
+    }
+    
+  }
 
   public List<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {
     String filter = "((this.hashedSubmitterEmail.indexOf('" + hashedEmail + "') != -1)||(this.hashedPhotographerEmail.indexOf('" + hashedEmail + "') != -1)||(this.hashedInformOthers.indexOf('" + hashedEmail + "') != -1))";
