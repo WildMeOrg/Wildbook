@@ -22,7 +22,8 @@ String context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
 
-
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+String langCode=ServletUtilities.getLanguageCode(request);
 %>
 
 

@@ -13,7 +13,7 @@ import org.joda.time.DateTime;
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
-import org.ecocean.genetics.*;
+import org.ecocean.media.MediaAsset;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -39,9 +39,12 @@ public class Occurrence implements java.io.Serializable {
    *
    */
   private static final long serialVersionUID = -7545783883959073726L;
+  private String occurrenceID;
   private ArrayList<Encounter> encounters;
   private List<MediaAsset> assets;
-  private String occurrenceID;
+  private ArrayList<Observation> observations = new ArrayList<Observation>();
+  // Old ID. Getters and setters now use ID from base class.
+  //private String ID;
   private Integer individualCount;
   private String groupBehavior;
   //additional comments added by researchers
@@ -50,21 +53,20 @@ public class Occurrence implements java.io.Serializable {
   //private String locationID;
   private String dateTimeCreated;
   
+  // Variables used in the Survey, SurveyTrack, Path, Location model
+  
+  private String correspondingSurveyTrackID;
+  private String correspondingID;
   //social media registration fields for AI-created occurrences
   private String socialMediaSourceID;
   private String socialMediaQueryCommentID;
   private String socialMediaQueryCommentReplies;
 
-  
-  // Variables used in the Survey, SurveyTrack, Path, Location model
-  
-  private String correspondingSurveyTrackID;
-  private String correspondingSurveyID;
+  // this is helpful for sorting but isn't (for now) intended to be UI-facing
+  // rather it's set from Encounters
+  private Long millis;
 
 
-  private ArrayList<Observation> observations = new ArrayList<Observation>();
-  private ArrayList<Measurement> measurements = new ArrayList<Measurement>();
-  private ArrayList<TissueSample> tissueSamples = new ArrayList<TissueSample>();
 	/* Rosemary meta-data for IBEIS */
 /*
 	private String sun = "";
@@ -108,7 +110,6 @@ public class Occurrence implements java.io.Serializable {
   private String grassHeight;
   private String weather;
   private String wind;
-  private Long millis;
 
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
@@ -121,17 +122,20 @@ public class Occurrence implements java.io.Serializable {
    * @param enc The first encounter to add to this occurrence.
    */
   public Occurrence(String occurrenceID, Encounter enc){
-    this.occurrenceID=occurrenceID;
+    this.occurrenceID = occurrenceID;
     encounters=new ArrayList<Encounter>();
     encounters.add(enc);
     assets = new ArrayList<MediaAsset>();
     setDWCDateLastModified();
     setDateTimeCreated();
+    //if(encounters!=null){
+    //  updateNumberOfEncounters();
+    //}
     //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
   }
 
   public Occurrence(List<MediaAsset> assets, Shepherd myShepherd){
-    this.occurrenceID = Util.generateUUID();
+    occurrenceID = Util.generateUUID();
 
     this.encounters = new ArrayList<Encounter>();
     this.assets = assets;
@@ -155,13 +159,20 @@ public class Occurrence implements java.io.Serializable {
         isNew=false;
       }
     }
-
-    if(isNew){encounters.add(enc);}
-
+    if(isNew){
+      encounters.add(enc);
+      //updateNumberOfEncounters();
+    }
     //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     return isNew;
 
   }
+  
+  //private void updateNumberOfEncounters() {
+  //  if (individualCount!=null) {
+  //    individualCount = encounters.size();      
+  //  }
+  //}
 
   public ArrayList<Encounter> getEncounters(){
     return encounters;
@@ -197,6 +208,7 @@ public class Occurrence implements java.io.Serializable {
   public void removeEncounter(Encounter enc){
     if(encounters!=null){
       encounters.remove(enc);
+      //updateNumberOfEncounters();
     }
   }
 
@@ -257,12 +269,21 @@ public class Occurrence implements java.io.Serializable {
     return names;
   }
 
-    public void setOccurrenceID(String id) {
+    public void setID(String id) {
         occurrenceID = id;
     }
 
-  public String getOccurrenceID(){return occurrenceID;}
+  public String getID(){
+    return occurrenceID;
+  }
 
+  public String getOccurrenceID(){
+    return occurrenceID;
+  }
+
+  public void setOccurrenceID(String id){
+    occurrenceID = id;
+  }
 
   public Integer getIndividualCount(){return individualCount;}
   public void setIndividualCount(Integer count){
@@ -379,7 +400,7 @@ public class Occurrence implements java.io.Serializable {
   }
 
   public Long getMillisFromEncounterAvg() {
-    Long total = 0L;
+    Long total = 1L;
     int numAveraged = 0;
     for (Encounter enc: encounters) {
       if (enc.getDateInMilliseconds()!=null) {
@@ -671,19 +692,45 @@ public class Occurrence implements java.io.Serializable {
     return null;
   }
   
-  public void setCorrespondingSurveyID(String id) {
+  public void setCorrespondingID(String id) {
     if (id != null && !id.equals("")) {
-      correspondingSurveyID = id;
+      correspondingID = id;
     }
   }
   
-  public String getCorrespondingSurveyID() {
-    if (correspondingSurveyID != null) {
-      return correspondingSurveyID;
+  public String getCorrespondingID() {
+    if (correspondingID != null) {
+      return correspondingID;
     }
     return null;
   }
   
+  public Survey getSurvey(Shepherd myShepherd) {
+    Survey sv = null;
+    if (correspondingID!=null) {
+      try {
+        sv = myShepherd.getSurvey(correspondingID);
+        return sv;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    } else {
+      try {
+        for (Encounter enc : encounters) {
+          if (enc.getOccurrenceID()!=null) {
+            if (enc.getOccurrenceID().length()>1) {
+              correspondingID = enc.getOccurrenceID();
+              sv = myShepherd.getSurvey(enc.getOccurrenceID());
+              return sv;
+            }
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return null;
+  }
 
   //public void setLocationID(String newLocID){this.locationID=newLocID;}
 
@@ -755,7 +802,7 @@ public class Occurrence implements java.io.Serializable {
 
     JSONObject encounterInfo = new JSONObject();
     for (Encounter enc : this.encounters) {
-      encounterInfo.put(enc.getCatalogNumber(), new JSONObject("{url: "+enc.getUrl(request)+"}"));
+      encounterInfo.put(enc.getOccurrenceID(), new JSONObject("{url: "+enc.getUrl(request)+"}"));
     }
     jobj.put("encounters", encounterInfo);
     jobj.put("assets", this.assets);
@@ -772,7 +819,7 @@ public class Occurrence implements java.io.Serializable {
         }
 
   public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
-    jobj.put("occurrenceID", this.occurrenceID);
+    jobj.put("ID", this.ID);
     jobj.put("encounters", this.encounters);
     if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
         JSONArray jarr = new JSONArray();
@@ -780,7 +827,7 @@ public class Occurrence implements java.io.Serializable {
         //but for *now* (see note way above) this is all we need for gallery/image display js:
         for (Encounter enc : this.getEncounters()) {
             JSONObject je = new JSONObject();
-            je.put("id", enc.getCatalogNumber());
+            je.put("id", enc.getID());
             if (enc.hasMarkedIndividual()) je.put("individualID", enc.getIndividualID());
             if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
                 JSONArray ja = new JSONArray();
@@ -873,10 +920,10 @@ public class Occurrence implements java.io.Serializable {
     public String getSocialMediaQueryCommentRelies(){return socialMediaQueryCommentReplies;};
     public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
 
-    public ArrayList<Observation> getObservationArrayList() {
+    public ArrayList<Observation> getBaseObservationArrayList() {
       return observations;
     }
-    public void addObservationArrayList(ArrayList<Observation> arr) {
+    public void addBaseObservationArrayList(ArrayList<Observation> arr) {
       if (observations.isEmpty()) {
         observations=arr;      
       } else {
@@ -885,6 +932,7 @@ public class Occurrence implements java.io.Serializable {
     }
     public void addObservation(Observation obs) {
       boolean found = false;
+      //System.out.println("Adding Observation in Base Class... : "+obs.toString());
       if (observations != null && observations.size() > 0) {
         for (Observation ob : observations) {
           if (ob.getName() != null) {
@@ -939,77 +987,5 @@ public class Occurrence implements java.io.Serializable {
         }
       }  
     } 
-    public ArrayList<Measurement> getMeasurementArrayList() {
-      return measurements;
-    }
-    public void addMeasurementArrayList(ArrayList<Measurement> arr) {
-      if (measurements.isEmpty()) {
-        measurements=arr;      
-      } else {
-        measurements.addAll(arr);
-      }
-    }
-    public void addMeasurement(Measurement ms) {
-      measurements.add(ms);
-    }
-    public Measurement getMeasurementByType(String mesName) {
-      if (measurements != null && measurements.size() > 0) {
-        for (Measurement mes : measurements) {
-          if (mes.getType() != null && mes.getType().equals(mesName)) {
-            return mes;
-          }
-        }
-      }
-      return null;
-    }
-    
-    public ArrayList<TissueSample> getTissueSampleArrayList() {
-      return tissueSamples;
-    }
-    public void addTissueSampleArrayList(ArrayList<TissueSample> arr) {
-      if (tissueSamples.isEmpty()) {
-        tissueSamples=arr;
-      } else {
-        tissueSamples.addAll(arr);
-      }
-    }
-    public void addTissueSample(TissueSample ts) {
-      tissueSamples.add(ts);
-    }
-    public TissueSample getTissueSampleByName(String tsName) {
-      if (tissueSamples != null && tissueSamples.size() > 0) {
-        for (TissueSample ts : tissueSamples) {
-          if (ts.getType() != null && ts.getType().equals(tsName)) {
-            return ts;
-          }
-        }
-      }
-      return null;
-    }
-    public TissueSample getTissueSampleByID(String tsName) {
-      if (tissueSamples != null && tissueSamples.size() > 0) {
-        for (TissueSample ts : tissueSamples) {
-          if (ts.getSampleID() != null && ts.getSampleID().equals(tsName)) {
-            return ts;
-          }
-        }
-      }
-      return null;
-    }
-    
-    public void removeTissueSample(String sampleId) {
-      ArrayList<TissueSample> newSamples = new ArrayList<TissueSample>();
-      try {
-        for (TissueSample sample : tissueSamples) {
-          if (!sample.getSampleID().equals(sampleId)) {
-            newSamples.add(sample);
-          }
-        }
-        tissueSamples = newSamples;
-      } catch (Exception e) {
-        e.printStackTrace();
-        System.out.println("Failed to remove this tissue sample: "+sampleId);
-      }
-    }
 
 }

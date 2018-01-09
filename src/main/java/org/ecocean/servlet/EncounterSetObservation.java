@@ -35,21 +35,18 @@ import org.ecocean.Observation;
 import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
 
-public class BaseClassSetObservation extends HttpServlet {
+public class EncounterSetObservation extends HttpServlet {
 
   /**
    * 
    */
   private static final long serialVersionUID = 1L;
 
-
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
 
-
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
     doPost(request, response);
   }
   
@@ -77,8 +74,7 @@ public class BaseClassSetObservation extends HttpServlet {
     
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("BaseClassSetObservation.class");
-    System.out.println("Reached Observation setting servlet...");
+    myShepherd.setAction("EncounterSetObservation.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -94,22 +90,13 @@ public class BaseClassSetObservation extends HttpServlet {
       String value = request.getParameter("value");
       System.out.println("Setting Observation... Name : "+name+" ID : "+id+" Type : "+type+" Value : "+value);
       
-      Object changeMe = null;
+      Encounter changeMe = null;
       Observation obs = null;
       
       if (type.equals("Encounter")) {
         changeMe = (Encounter) myShepherd.getEncounter(id);
         redirectURL = "/encounters/encounter.jsp";
         typeLower = "encounter";
-      }
-      if (type.equals("Occurrence")) {
-        changeMe = (Occurrence) myShepherd.getOccurrence(id);
-        redirectURL = "/occurrence.jsp";
-        typeLower = "occurrence";
-      }
-      if (type.equals("Encounter")) {
-        changeMe = null;
-        changeMe = (Encounter) myShepherd.getEncounter(id);
       }
       
       String newValue = "null";
@@ -135,7 +122,7 @@ public class BaseClassSetObservation extends HttpServlet {
             Observation existing = changeMe.getObservationByName(name);
             existing.setValue(value);
           } else {
-            obs = new Observation(name, newValue, changeMe.getClass().getSimpleName(), changeMe.getPrimaryKeyID());
+            obs = new Observation(name, newValue, changeMe.getClass().getSimpleName(), changeMe.getCatalogNumber());
             changeMe.addObservation(obs);
             System.out.println("Success setting Observation!");
             //changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Set dynamic property <em>" + name + "</em> from <em>" + oldValue + "</em> to <em>" + newValue + "</em>.</p>");            
