@@ -283,17 +283,76 @@ public class ImportLegacyBento extends HttpServlet {
     }
     for (int i=0;i<names.length;i++) {
       // Make if val=N/A a precursor to all processing, not a check for each.
-      if (values[i]!=null&&!values[i].equals("N/A")&&!values[i].equals("")) {
-        if (names[i]!=null) {
-          if (names[i].equals("Comments")&&values[i]!=null&&!values[i].equals("")) {
-            try {
-              sv.addComments(values[i]);            
-              obsColumns.remove("Comments");
-              out.println("Comments? "+values[i]);
-            } catch (NullPointerException npe) {
-              npe.printStackTrace();
-              System.out.println(values[i]);
-            }          
+      if (values[i]!=null&&!values[i].equals("N/A")&&!values[i].equals("")&&names[i]!=null) {      
+        if (names[i].equals("Comments")&&values[i]!=null&&!values[i].equals("")) {
+          try {
+            String oldComments = occ.getComments();
+            if (!oldComments.contains(values[i])) {
+              occ.addComments(values[i]);                            
+            }
+            obsColumns.remove("Comments");
+            out.println("Comments? "+values[i]);
+          } catch (NullPointerException npe) {
+            npe.printStackTrace();
+            System.out.println(values[i]);
+          }          
+        } else {
+          obsColumns.put(names[i], values[i]);
+        }
+      } 
+    }
+    processRemainingColumnsAsObservations(occ, obsColumns);        
+    out.println(occ.getOccurrenceID());
+    
+    return occ;
+  }
+  
+  private Occurrence occurrenceInstantiate(String date, Shepherd myShepherd) {
+    Occurrence occ = null;
+    Encounter enc = null;
+    occ = new Occurrence();
+    occ.setOccurrenceID(Util.generateUUID());
+    occ.setDWCDateLastModified();
+    myShepherd.beginDBTransaction();
+    myShepherd.getPM().makePersistent(occ);
+    myShepherd.commitDBTransaction();
+    
+    enc = new Encounter();
+    myShepherd.beginDBTransaction();
+    myShepherd.getPM().makePersistent(enc);
+    myShepherd.commitDBTransaction();
+    occ.addEncounter(enc);
+    
+    if (date!=null) {
+      DateTime dt = dateStringToDateTime(date, "yyyy-MM-dd");
+      enc.setDateInMilliseconds(dt.getMillis());
+    } 
+    return occ;
+  }
+  
+  private Occurrence checkMasterArrForOccurrence(String[] names, String[] values) {
+    
+    //The only surveys available in the arr should be from the survey log table. 
+    // I guess we could match it against surveys with date constraints
+    // and try to match on vessel also there? Seems like that would be weird. 
+    String date = formatDate(values[34]);
+    String location = values[58].trim();
+    String vessel = values[19].trim();
+    out.println("Checking for matching Occ with Date: "+date+" Location: "+location+" Vessel: "+vessel);
+    for (Occurrence arrOcc : masterOccArr) {
+      ArrayList<Encounter> encs = arrOcc.getEncounters();
+      Shepherd tempCheckShepherd = new Shepherd(context);
+      Survey arrSv = arrOcc.getSurvey(tempCheckShepherd);
+      tempCheckShepherd.closeDBTransaction();
+      for (Encounter enc : encs) {
+        String encDate = enc.getDate();
+        String encLocation = enc.getLocationID();
+        out.println("Comparing these dates "+date+" ?= "+encDate+".");
+        if (date!=null&&date.equals(encDate)) {
+          out.println("Found a match on date! Checking location...");
+          if (location!=null&&location.equals(encLocation)) {
+            out.println("Matched on Location!");
+            return arrOcc;
           }
           if (names[i].equals("Project")&&values[i]!=null&&!values[i].equals("")) {    
             try {
