@@ -44,8 +44,6 @@ if (sv!=null) {
 
 <jsp:include page="../header.jsp" flush="true" />
 
-<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>	
-
 <div class="container maincontent">
 	<div class="row">
 		<div class="col-md-12">
@@ -60,6 +58,16 @@ if (sv!=null) {
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("allTracks") %></strong></p>
 			
+
+		
+		</div>
+		<hr/>
+		<div class="col-md-12">
+			<p><strong><%=props.getProperty("surveyMap") %></strong></p>
+			
+			<jsp:include page="surveyMapEmbed.jsp" flush="true">
+         		 <jsp:param name="number" value="<%=number%>"/>
+        	</jsp:include>
 
 		
 		</div>
