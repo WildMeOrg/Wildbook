@@ -144,6 +144,17 @@ public class SurveyTrack implements java.io.Serializable{
     return null;  
   }
   
+  public boolean hasOccurrence(Occurrence queryOcc) {
+    boolean hasIt = false;
+    for (Occurrence occ : occurrences) {
+      if (queryOcc.getPrimaryKeyID().equals(occ.getPrimaryKeyID())) {
+        hasIt = true;
+        break;
+      }
+    }
+    return hasIt;
+  }
+  
   public void addOccurence(Occurrence occ) {
     if (occ != null) {
       occurrences.add(occ);
