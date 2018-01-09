@@ -24,6 +24,19 @@ myShepherd.setAction("index.jsp");
 
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 String langCode=ServletUtilities.getLanguageCode(request);
+
+//check for and inject a default user 'tomcat' if none exists
+if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
+  System.out.println("WARNING: index.jsp has determined that CommonConfiguration.isWildbookInitialized()==false!");
+  %>
+    <script type="text/javascript">
+      console.log("Wildbook is not initialized!");
+    </script>
+  <%
+  StartupWildbook.initializeWildbook(request, myShepherd);
+}
+
+
 %>
 
 
