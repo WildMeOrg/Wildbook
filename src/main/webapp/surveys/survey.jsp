@@ -295,7 +295,7 @@ if (sv!=null) {
 				<p class="editFormObservation">
 					<strong><%=props.getProperty("addDynamicProperty")%></strong>
 				</p>
-				<form name="addDynProp" action="../BaseClassSetObservation"
+				<form name="addDynProp" action="../SurveySetObservation"
 					method="post" class="editFormObservation">
 					<input name="number" type="hidden" value="<%=surveyID%>" />
 					<input name="type" type="hidden" value="Occurrence" />
