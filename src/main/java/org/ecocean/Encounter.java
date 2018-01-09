@@ -1738,6 +1738,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     this.catalogNumber = newNumber;
   }
 
+  public String getID() {
+    return catalogNumber;
+  }
+
+  public void setID(String newNumber) {
+    this.catalogNumber = newNumber;
+  }
+
   public String getVerbatimLocality() {
     return verbatimLocality;
   }
@@ -3082,5 +3090,73 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                 .append("numAnnotations", ((annotations == null) ? 0 : annotations.size()))
                 .toString();
     }
+
+    public ArrayList<Observation> getBaseObservationArrayList() {
+      return observations;
+    }
+    public void addBaseObservationArrayList(ArrayList<Observation> arr) {
+      if (observations.isEmpty()) {
+        observations=arr;      
+      } else {
+       observations.addAll(arr); 
+      }
+    }
+    public void addObservation(Observation obs) {
+      boolean found = false;
+      //System.out.println("Adding Observation in Base Class... : "+obs.toString());
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(obs.getName().toLowerCase().trim())) {
+               found = true;
+               break;
+            }
+          }
+        } 
+        if (!found) {
+          observations.add(obs);        
+        }
+      } else {
+        observations.add(obs);
+      }
+    }
+    public Observation getObservationByName(String obName) {
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
+              return ob;            
+            }
+          }
+        }
+      }
+      return null;
+    }
+    public Observation getObservationByID(String obId) {
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getID() != null && ob.getID().equals(obId)) {
+            return ob;
+          }
+        }
+      }
+      return null;
+    }
+    public void removeObservation(String name) {
+      int counter = 0;
+      if (observations != null && observations.size() > 0) {
+        System.out.println("Looking for the Observation to delete...");
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(name.toLowerCase().trim())) {
+               System.out.println("Match! Trying to delete Observation "+name+" at index "+counter);
+               observations.remove(counter);
+               break;
+            }
+          }
+          counter++;
+        }
+      }  
+    } 
 
 }
