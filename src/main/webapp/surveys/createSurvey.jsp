@@ -31,15 +31,24 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 
 <div class="container maincontent">
 	<div class="row">
-		<div class="col-md-12">
+		<div class="col-md-3">
+		</div>
+	
+		<div class="col-md-6">
 			<h3><%=props.getProperty("createSurvey") %></h3>
 			<label><%=props.getProperty("addSurveyDesc") %></label>
 			<hr/>		
 				 <div title="<%=props.getProperty("addTag")%>" class="editFormSurvey">
 					 <form name="addTag" action="../SurveyCreate" method="post" class="editFormSurvey">
-					
+						
 						<label><%=props.getProperty("date")%></label>
-						<input name="date" type="text" class="form-control" id="addSurveyInput0" />
+						<div class="input-group date" data-provide="datepicker">
+						    <input name="date" type="text" class="form-control datepicker" id="addSurveyInput0"/>
+						    <div class="input-group-addon">
+						        <span class="glyphicon glyphicon-th"></span>
+						    </div>
+						</div>
+						
 						
 						<label><%=props.getProperty("project")%></label>
 						<input name="project" type="text" class="form-control" id="addSurveyInput1" />
@@ -48,19 +57,29 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 						<input name="organization" type="text" class="form-control" id="addSurveyInput2" />
 						
 						<label><%=props.getProperty("startTime")%></label>
-						<input name="startTime" class="form-control" id="addTagInput3" />
+						<div class="input-group start-clockpicker">
+						    <input name="startTime" type="text" class="form-control" value="12:00" id="addTagInput3"/>
+						    <span class="input-group-addon">
+						        <span class="glyphicon glyphicon-time"></span>
+						    </span>
+						</div>
 						
-						<label><%=props.getProperty("endTime")%>:</label>
-						<input name="endTime" class="form-control" id="addTagInput4" />
+						<label><%=props.getProperty("endTime")%></label>
+						<div class="input-group end-clockpicker">
+						    <input name="endTime" type="text" class="form-control" value="12:00" id="addTagInput4"/>
+						    <span class="input-group-addon">
+						        <span class="glyphicon glyphicon-time"></span>
+						    </span>
+						</div>
 						
 						<label><%=props.getProperty("effort")%>:</label>
 						<input name="effort" type="text" class="form-control" id="addTagInput5" />
 						
-						<label><%=props.getProperty("comments")%>:</label>
-						<input name="comments" type="text" class="form-control" id="addTagInput6" />
-						
 						<label><%=props.getProperty("type")%>:</label>
 						<input name="type" type="text" class="form-control" id="addTagInput7" />
+						
+						<label><%=props.getProperty("comments")%>:</label>
+						<input name="comments" type="text" class="form-control" id="addTagInput6" />
 						
 						
 						<input name="Create Survey" type="submit" id="addSurveyBtn" value="<%=props.getProperty("submit")%>" class="btn btn-sm editFormBtn" />
@@ -82,12 +101,17 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 <input name="time" value="" />
 <script type="text/javascript">
     $(document).ready(function(){
-        console.log("jQuery version: " + $.fn.jquery);
-        console.log("ptTimeSelect version: " + $.ptTimeSelect.version);
-        console.log("is ptTimeSelect plugin loaded? : " + ($.fn.ptTimeSelect ? "YES" : "NO"));
-        $('input[name="startTime"]').ptTimeSelect();
-        $('input[name="endTime"]').ptTimeSelect();
+        $('.start-clockpicker').clockpicker();
+        $('.end-clockpicker').clockpicker();   
+        
+        $('.datepicker').datepicker({
+            format: 'mm/dd/yyyy',
+            startDate: '-3d'
+        });
+        
     });
+    
+    
 </script>
 
 <jsp:include page="../footer.jsp" flush="true" />

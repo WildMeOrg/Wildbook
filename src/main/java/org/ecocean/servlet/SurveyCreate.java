@@ -71,11 +71,13 @@ public class SurveyCreate extends HttpServlet {
       String startTime = null;
       if (request.getParameter("startTime")!=null) {
         startTime = request.getParameter("startTime");
+        System.out.println("Endtime : "+startTime);
       }
       
       String endTime = null;
       if (request.getParameter("endTime")!=null) {
         endTime = request.getParameter("endTime");
+        System.out.println("Endtime : "+endTime);
       }
       
       String effort = null;
@@ -89,11 +91,13 @@ public class SurveyCreate extends HttpServlet {
       String comments = null;
       if (request.getParameter("comments")!=null) {
         comments = request.getParameter("comments");
+        sv.addComments(comments);
       }
       
       String type = null;
       if (request.getParameter("type")!=null) {
         type = request.getParameter("type");
+        sv.setProjectType(type);
       }      
     } catch (Exception e) {
       e.printStackTrace();
@@ -101,7 +105,6 @@ public class SurveyCreate extends HttpServlet {
     
     
     
-    System.out.println("Ping!");
   }
 }
 
