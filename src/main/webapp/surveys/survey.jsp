@@ -38,9 +38,7 @@ if (sv!=null) {
 } else {
 	errors += "<p>There was no valid Survey for this ID.</p><br/>";
 }
-
 %>
-
 
 <jsp:include page="../header.jsp" flush="true" />
 
@@ -60,15 +58,10 @@ if (sv!=null) {
 		<hr/>
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("surveyMap") %></strong></p>
-			
 			<jsp:include page="surveyMapEmbed.jsp" flush="true">
          		 <jsp:param name="number" value="<%=number%>"/>
         	</jsp:include>
-
-		
 		</div>
-		
-		
 		
 		<label class="response"></label>
 	</div>

@@ -1852,8 +1852,21 @@ public class Shepherd {
     return null;
   }
   
+  public Occurrence getOccurrenceForSurvey(Survey svy) {
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE occ.correspondingSurveyID == \""+svy.getID()+"\"  VARIABLES org.ecocean.Occurrence occ";
+    Query q = getPM().newQuery(filter);
+    Collection c = (Collection) (q.execute());
+    Iterator obArr = c.iterator();
+    q.closeAll();
+    if (obArr.hasNext()) {
+      return (Occurrence) obArr.next();      
+    }
+    return null;
+  }
+  
+  
 
-  //
+  
 
 
 
@@ -3599,10 +3612,8 @@ public class Shepherd {
     }
     if (!svs.isEmpty()) {
       return svs;
-    } else {
-      return null;      
     }
-    
+    return null;      
   }
 
   public List<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {

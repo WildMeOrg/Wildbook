@@ -36,24 +36,49 @@ myShepherd.beginDBTransaction();
 ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
 ArrayList<String> polyLines = new ArrayList<String>();
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
-String number = request.getParameter("number").trim();
-Survey sv = myShepherd.getSurvey(number);
+String occID = request.getParameter("occID").trim();
+System.out.println("Got this occ: "+occID);
+String number = null;
+Occurrence occ = null;
+Survey sv = null;
+try {
+	
+	System.out.println("Got this occID: "+occID);
+	occ = myShepherd.getOccurrence(occID);
+	System.out.println("Got this occ: "+occ.getOccurrenceID());
+	if (occ.getSurvey(myShepherd)!=null) {
+		number = occ.getSurvey(myShepherd).getID();		
+	} else {
+		System.out.println("No Survey was found for this Occurrence.");
+	}
+	System.out.println("Got this survey number: "+number);
+	sv = myShepherd.getSurvey(number);
+	System.out.println("Got this occ: "+sv.getID());
+	
+} catch (Exception e) {
+	e.printStackTrace();
+	System.out.println("Could not retreive survey and occurrence for this number.");
+}
+
 ArrayList<Survey> svs = new ArrayList<Survey>();
 
 try {
 	svs = myShepherd.getAllSurveys();
 	trks = sv.getAllSurveyTracks();	
+	System.out.println("Current survey: "+sv.toString());
 } catch (Exception e) {
 	e.printStackTrace();
 }
 ArrayList<String> polyLineSets = new ArrayList<String>();
 for (SurveyTrack trk : trks ) {
+	System.out.println("Current track: "+trk.toString());
 	String lineSet = "";
 	ArrayList<Occurrence> occsWithGps = trk.getAllOccurrences();
-	for (Occurrence occ : occsWithGps) {
-		String lat = String.valueOf(occ.getDecimalLatitude());
-		String lon = String.valueOf(occ.getDecimalLongitude());
+	for (Occurrence trackOcc : occsWithGps) {
+		String lat = String.valueOf(trackOcc.getDecimalLatitude());
+		String lon = String.valueOf(trackOcc.getDecimalLongitude());
 		lineSet += "{lat: "+lat+", lng: "+lon+"},";
+		System.out.println(lineSet);
 	}
 	lineSet = lineSet.substring(0,lineSet.length()-1);
 	polyLineSets.add(lineSet);
@@ -66,12 +91,30 @@ for (SurveyTrack trk : trks ) {
 <p><strong><%=props.getProperty("surveyMap") %></strong></p>
 <ul>
 <%
+
+
 for (Survey srvy : svs) {
+	if (srvy.getAllSurveyTracks()!=null) {
+		
 %>
-	<li><%= srvy.getID() %></li>
+	<li>
+		<%= srvy.getID() %>
+		<%
+		String svyID = "SVID : ";
+		if (myShepherd.getOccurrenceForSurvey(srvy)!=null) {
+			svyID += myShepherd.getOccurrenceForSurvey(srvy).getOccurrenceID();
+		} else {
+			svyID += "None.";
+		}
+		%>
+		
+		<%=svyID%>
+	</li>
 <%
+	}
 }
 %>
+<p><%=sv.toString() %></p>
 </ul>
 <div id="map">
 </div>
