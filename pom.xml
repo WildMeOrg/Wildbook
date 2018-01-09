@@ -163,7 +163,11 @@
       <version>2.0</version>
     </dependency>
 
-
+	<dependency>
+  	   <groupId>commons-beanutils</groupId>
+ 	   <artifactId>commons-beanutils</artifactId>
+  	   <version>1.9.3</version>
+	</dependency>
 
     <dependency>
       <groupId>commons-codec</groupId>
@@ -530,11 +534,18 @@
 </dependency>
 
 <dependency>
+	<groupId>com.opencsv</groupId>
+   	<artifactId>opencsv</artifactId>
+    <version>4.0</version>
+</dependency>
+<dependency>
     <groupId>com.google.oauth-client</groupId>
     <artifactId>google-oauth-client-jetty</artifactId>
     <version>1.22.0</version>
 </dependency>
 
+
+  </dependencies>
 
 <!--
         <dependency>

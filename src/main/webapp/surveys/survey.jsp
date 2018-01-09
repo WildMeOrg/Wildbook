@@ -83,8 +83,7 @@ if (sv!=null) {
 				<p>Project: <%=project%></p>
 				<p>Organization: <%=organization%></p>
 				<p>Date: <%=date%></p>
-				<p>[Add track/path/points]</p>
-				<p>[Make points on map clickable]</p>
+				<p>[Display total effort prominently.]</p>
 			<%
 				if (trks!= null) {
 					%>
