@@ -61,10 +61,10 @@ public class ImportLegacyBentoCsv extends HttpServlet {
     myShepherd.setAction("ImportLegacyBentoCsv.class");
     
     out.println("Grabbing all CSV files... ");
-    String dbLocation = "/opt/dukeImport/DUML Files for Colin-NEW/Raw Data Files/tables_170303/";
+    String dir = "/opt/dukeImport/DUML Files for Colin-NEW/Raw Data Files/tables_170303/";
     
     String name = null;
-    File thisFile = grabCSVFile(name);
+    File effortFile = grabCSVFile(name);
     
   }
 
@@ -73,7 +73,6 @@ public class ImportLegacyBentoCsv extends HttpServlet {
     File file = new File(name);
     return file;
   }
-  
   
 }
   
