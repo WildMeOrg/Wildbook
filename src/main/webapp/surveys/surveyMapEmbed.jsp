@@ -33,49 +33,77 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("surveyMapEmbed.jsp");
 myShepherd.beginDBTransaction();
 
-ArrayList<Occurrence> occsWithGps = new ArrayList<Occurrence>();
-ArrayList<SurveyTrack> trks = new ArrayList<>();
+ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
+ArrayList<String> polyLines = new ArrayList<String>();
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 String number = request.getParameter("number").trim();
-Survey sv = myShepherd.getSurvey(number);  
-trks = sv.getAllSurveyTracks();
+Survey sv = myShepherd.getSurvey(number);
+ArrayList<Survey> svs = new ArrayList<Survey>();
+
+try {
+	svs = myShepherd.getAllSurveys();
+	trks = sv.getAllSurveyTracks();	
+} catch (Exception e) {
+	e.printStackTrace();
+}
+ArrayList<String> polyLineSets = new ArrayList<String>();
+for (SurveyTrack trk : trks ) {
+	String lineSet = "";
+	ArrayList<Occurrence> occsWithGps = trk.getAllOccurrences();
+	for (Occurrence occ : occsWithGps) {
+		String lat = String.valueOf(occ.getDecimalLatitude());
+		String lon = String.valueOf(occ.getDecimalLongitude());
+		lineSet += "{lat: "+lat+", lng: "+lon+"},";
+	}
+	lineSet = lineSet.substring(0,lineSet.length()-1);
+	polyLineSets.add(lineSet);
+}
 %>
 
-<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="javascript/oms.min.js"></script>
 <p><strong><%=props.getProperty("surveyMap") %></strong></p>
-<div id="map"></div>
+<p><strong><%=svs.toString()%></strong></p>
+<div id="map">
+</div>
 <script>
 
-  // This example creates a 2-pixel-wide red polyline showing the path of William
-  // Kingsford Smith's first trans-Pacific flight between Oakland, CA, and
-  // Brisbane, Australia.
 
   function initMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 3,
+      zoom: 7,
       center: {lat: 35.216399, lng: -75.688132},
       mapTypeId: 'terrain'
     });
 
-    var surveyCoordinates = [
-      {lat: 37.772, lng: -122.214},
-      {lat: 21.291, lng: -157.821},
-      {lat: -18.142, lng: 178.431},
-      {lat: -27.467, lng: 153.027}
-    ];
-    var flightPath = new google.maps.Polyline({
-      path: flightPlanCoordinates,
-      geodesic: true,
-      strokeColor: '#FF0000',
-      strokeOpacity: 1.0,
-      strokeWeight: 2
-    });
-
-    flightPath.setMap(map);
+    var polyLines = [];
+    var path = null;
+    
+    <% 
+    for (String set : polyLineSets) {
+    %>
+	    var surveyCoordinates = [
+	      <%=set%>
+	    ];    	
+	    path = new google.maps.Polyline({
+	      path: surveyCoordinates,
+	      geodesic: true,
+	      strokeColor: '#FF0000',
+	      strokeOpacity: 1.0,
+	      strokeWeight: 2
+	    });
+	
+    <%
+  	}
+    %>
+	path.setMap(map);
   }
 </script>
+
+<%
+myShepherd.closeDBTransaction();
+%>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 
