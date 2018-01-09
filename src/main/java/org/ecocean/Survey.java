@@ -305,8 +305,10 @@ public class Survey implements java.io.Serializable{
   public Observation getObservationByName(String obName) {
     if (observations != null && observations.size() > 0) {
       for (Observation ob : observations) {
-        if (ob.getName() != null && ob.getName().equals(obName)) {
-          return ob;
+        if (ob.getName() != null) {
+          if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
+            return ob;            
+          }
         }
       }
     }
@@ -322,6 +324,22 @@ public class Survey implements java.io.Serializable{
     }
     return null;
   }
+  public void removeObservation(String name) {
+    int counter = 0;
+    if (observations != null && observations.size() > 0) {
+      System.out.println("Looking for the Observation to delete...");
+      for (Observation ob : observations) {
+        if (ob.getName() != null) {
+          if (ob.getName().toLowerCase().trim().equals(name.toLowerCase().trim())) {
+             System.out.println("Match! Trying to delete Observation "+name+" at index "+counter);
+             observations.remove(counter);
+             break;
+          }
+        }
+        counter++;
+      }
+    }  
+  } 
 
 }
 
