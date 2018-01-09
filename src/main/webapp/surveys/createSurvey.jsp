@@ -56,8 +56,6 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 						<label><%=props.getProperty("comments")%>:</label>
 						<input name="comments" type="text" class="form-control" id="addTagInput6" />
 						
-						
-						
 						<input name="Create Survey" type="submit" id="addSurveyBtn" value="<%=props.getProperty("submit")%>" class="btn btn-sm editFormBtn" />
 				   
 				    </form>
