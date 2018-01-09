@@ -575,6 +575,16 @@
 		<servlet-name>SurveyCreate</servlet-name>
 		<servlet-class>org.ecocean.servlet.SurveyCreate</servlet-class>
 	</servlet>
+	
+	<servlet>
+		<servlet-name>ImportLegacyBentoCsv</servlet-name>
+		<servlet-class>org.ecocean.servlet.importer.ImportLegacyBentoCsv.java</servlet-class>
+	</servlet>
+	
+	 <servlet-mapping>
+ 		<servlet-name>ImportLegacyBentoCsv</servlet-name>
+		<url-pattern>/ImportLegacyBentoCsv</url-pattern>
+	</servlet-mapping>	
 		
     <servlet-mapping>
  		<servlet-name>BaseClassAddTag</servlet-name>
