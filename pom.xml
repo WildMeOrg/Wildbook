@@ -550,9 +550,6 @@
     <version>1.22.0</version>
 </dependency>
 
-
-  </dependencies>
-
 <!--
         <dependency>
             <groupId>com.google.collections</groupId>
@@ -561,7 +558,7 @@
         </dependency>
 		-->
         <!-- dependencies for translation -->
-        <dependency>
+      <dependency>
 	      <groupId>com.google.cloud</groupId>
 	      <artifactId>google-cloud-translate</artifactId>
 	      <version>0.17.2-beta</version>

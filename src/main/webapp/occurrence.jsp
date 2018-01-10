@@ -41,10 +41,12 @@ context=ServletUtilities.getContext(request);
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
   String name = request.getParameter("number").trim();
+  String num = request.getParameter("number").replaceAll("\\+", "").trim();
+
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("occurrence.jsp");
 
-  String num = request.getParameter("number").replaceAll("\\+", "").trim();
+	Occurrence occ = myShepherd.getOccurrence(name);
 
   boolean isOwner = false;
   if (request.getUserPrincipal()!=null) {
@@ -429,15 +431,15 @@ context=ServletUtilities.getContext(request);
     if (myShepherd.isOccurrence(name)) {
 
 
-      Occurrence sharky = myShepherd.getOccurrence(name);
-      boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(sharky, request);
+      Occurrence occ = myShepherd.getOccurrence(name);
+      boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
 
 
 			List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
-			boolean visible = sharky.canUserAccess(request);
+			boolean visible = occ.canUserAccess(request);
 
 			if (!visible) {
-  			ArrayList<String> uids = sharky.getAllAssignedUsers();
+  			ArrayList<String> uids = occ.getAllAssignedUsers();
 				ArrayList<String> possible = new ArrayList<String>();
 				for (String u : uids) {
 					Collaboration c = null;
@@ -467,7 +469,7 @@ context=ServletUtilities.getContext(request);
 <table><tr>
 
 <td valign="middle">
- <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
+ <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=occ.getOccurrenceID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
  <table><tr valign="middle">  
   <td>
@@ -487,9 +489,9 @@ context=ServletUtilities.getContext(request);
 
 <p><%=props.getProperty("groupBehavior") %>: 
 <%
-if(sharky.getGroupBehavior()!=null){
+if(occ.getGroupBehavior()!=null){
 %>
-	<%=sharky.getGroupBehavior() %>
+	<%=occ.getGroupBehavior() %>
 <%
 }
 %>
@@ -565,13 +567,13 @@ $("a#groupB").click(function() {
 </script>
 
 
-<p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
+<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 
 <p><%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
 <%
-if(sharky.getIndividualCount()!=null){
+if(occ.getIndividualCount()!=null){
 %>
-	<%=sharky.getIndividualCount() %>
+	<%=occ.getIndividualCount() %>
 <%
 }
 %>
@@ -618,9 +620,9 @@ $("a#indies").click(function() {
 
 <p><%=props.getProperty("locationID") %>: 
 <%
-if(sharky.getLocationID()!=null){
+if(occ.getLocationID()!=null){
 %>
-	<%=sharky.getLocationID() %>
+	<%=occ.getLocationID() %>
 <%
 }
 %>
@@ -630,7 +632,7 @@ if(sharky.getLocationID()!=null){
 
 <td align="left" valign="top">
 
-<p><strong><%=sharky.getNumberEncounters()%>
+<p><strong><%=occ.getNumberEncounters()%>
 </strong>
   <%=props.getProperty("numencounters") %>
 </p> 
@@ -652,7 +654,7 @@ if(sharky.getLocationID()!=null){
  
   </tr>
   <%
-    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(false);
+    Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
 
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
@@ -790,7 +792,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
     <div class="slider col-sm-12 center-slider">
       <%-- Get images for slider --%>
       <%
-      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
+      ArrayList<JSONObject> photoObjectArray = occ.getExemplarImages(request);
       String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
       int numPhotos=photoObjectArray.size();
 	if(numPhotos>0){
@@ -802,7 +804,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 	        %>
 	        <div class="crop-outer">
 	          <div class="crop">
-	              <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" class="sliderimg lazyload" data-src="<%=newimgUrl%>" alt="<%=sharky.getOccurrenceID()%>" />
+	              <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" class="sliderimg lazyload" data-src="<%=newimgUrl%>" alt="<%=occ.getOccurrenceID()%>" />
 	          </div>
 	        </div>
 	        <%
@@ -864,12 +866,12 @@ $(document).ready(function() {
 				<%
 					}
 							// Let's make a list of editable Observations... Dynamically!
-							// Hey! In this page the current Occurrence is "sharky" not "occ"...
+							// Hey! In this page the current Occurrence is "occ" not "occ"...
 							
-							if (sharky.getBaseObservationArrayList() != null) {
-								ArrayList<Observation> obs = sharky.getBaseObservationArrayList();
+							if (occ.getBaseObservationArrayList() != null) {
+								ArrayList<Observation> obs = occ.getBaseObservationArrayList();
 								System.out.println("Observations ... "+obs);
-								int numObservations = sharky.getBaseObservationArrayList().size();
+								int numObservations = occ.getBaseObservationArrayList().size();
 								for (Observation ob : obs) {
 									
 									String nm = ob.getName();
@@ -1013,7 +1015,7 @@ $(document).ready(function() {
 
 <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
 
-<p><%=sharky.getComments().replaceAll("\n", "<br>")%>
+<p><%=occ.getComments().replaceAll("\n", "<br>")%>
 </p>
 </div>
 <%
@@ -1023,7 +1025,7 @@ $(document).ready(function() {
 
 <form action="OccurrenceAddComment" method="post" name="addComments">
   <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-  <input name="number" type="hidden" value="<%=sharky.getOccurrenceID()%>" id="number">
+  <input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" id="number">
   <input name="action" type="hidden" value="comments" id="action">
 
   <p><textarea name="comments" cols="60" id="comments"></textarea> <br>

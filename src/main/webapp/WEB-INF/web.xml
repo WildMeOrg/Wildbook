@@ -364,23 +364,6 @@
       <servlet-class>org.ecocean.servlet.EncounterSetVerbatimEventDate</servlet-class>
   </servlet>
 
-
-  
-  <servlet>
-    <servlet-name>BentoSort</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.BentoSort</servlet-class>
-  </servlet>
-  
-   <servlet>
-    <servlet-name>BentoSearch</servlet-name>
-    <servlet-class>org.ecocean.servlet.BentoSearch</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>BentoDownload</servlet-name>
-    <servlet-class>org.ecocean.servlet.export.BentoDownload</servlet-class>
-  </servlet>
-
   <servlet>
     <servlet-name>EncounterSetInformOthers</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetInformOthers</servlet-class>
@@ -393,14 +376,14 @@
 
 
 
-<servlet>
-<servlet-name>EncounterSetPatterningPassport</servlet-name>
-<servlet-class>org.ecocean.servlet.EncounterSetPatterningPassport</servlet-class>
-</servlet>
-<servlet>
-<servlet-name>EncounterGetPatterningPassport</servlet-name>
-<servlet-class>org.ecocean.servlet.EncounterGetPatterningPassport</servlet-class>
-</servlet>
+    <servlet>
+    <servlet-name>EncounterSetPatterningPassport</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetPatterningPassport</servlet-class>
+    </servlet>
+    <servlet>
+    <servlet-name>EncounterGetPatterningPassport</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterGetPatterningPassport</servlet-class>
+    </servlet>
 
   <servlet>
     <servlet-name>ScanAppletSupport</servlet-name>
@@ -506,11 +489,6 @@
       <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
       <servlet-class>org.ecocean.servlet.OccurrenceSetGroupBehavior</servlet-class>
   </servlet>
-  
-  <servlet>
-      <servlet-name>OccurrenceAddTissueSample</servlet-name>
-      <servlet-class>org.ecocean.servlet.OccurrenceAddTissueSample</servlet-class>
-  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetAsUnidentifiable</servlet-name>
@@ -557,44 +535,9 @@
 	</servlet>
 	
 	<servlet>
-		<servlet-name>OccurrenceRemoveTissueSample</servlet-name>
-		<servlet-class>org.ecocean.servlet.OccurrenceRemoveTissueSample</servlet-class>
-	</servlet>
-	
-	<servlet>
 		<servlet-name>SurveyCreate</servlet-name>
 		<servlet-class>org.ecocean.servlet.SurveyCreate</servlet-class>
 	</servlet>
-	
-	<servlet>
-		<servlet-name>OccurrenceRemoveTissueSample</servlet-name>
-		<servlet-class>org.ecocean.servlet.OccurrenceRemoveTissueSample</servlet-class>
-	</servlet>
-	
-	<servlet>
-		<servlet-name>SurveyCreate</servlet-name>
-		<servlet-class>org.ecocean.servlet.SurveyCreate</servlet-class>
-	</servlet>
-	
-	<servlet>
-		<servlet-name>ImportLegacyBento</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.ImportLegacyBento</servlet-class>
-	</servlet>
-	
-	 <servlet-mapping>
- 		<servlet-name>ImportLegacyBento</servlet-name>
-		<url-pattern>/ImportLegacyBento</url-pattern>
-	</servlet-mapping>	
-		
-    <servlet-mapping>
- 		<servlet-name>BaseClassAddTag</servlet-name>
-		<url-pattern>/BaseClassAddTag</url-pattern>
-	</servlet-mapping>	
-	
-	<servlet-mapping>
- 		<servlet-name>OccurrenceRemoveTissueSample</servlet-name>
-		<url-pattern>/OccurrenceRemoveTissueSample</url-pattern>
-	</servlet-mapping>
 	
 	<servlet-mapping>
  		<servlet-name>ResumableUpload</servlet-name>
@@ -619,21 +562,6 @@
     <servlet-name>IAGateway</servlet-name>
     <url-pattern>/ia</url-pattern>
   </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>ImportReadImages</servlet-name>
-    <url-pattern>/ImportReadImages</url-pattern>
-  </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>ImportBento</servlet-name>
-    <url-pattern>/ImportBento</url-pattern>
-  </servlet-mapping>
-  
-  <servlet>
-      <servlet-name>ImportReadImages</servlet-name>
-      <servlet-class>org.ecocean.servlet.importer.ImportReadImages</servlet-class>
-  </servlet>
 
     <servlet>
       <servlet-name>UserCreate</servlet-name>
@@ -943,11 +871,6 @@
   </servlet>
 
     <servlet>
-    <servlet-name>EncounterDelete</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
-  </servlet>
-
-    <servlet>
       <servlet-name>TissueSampleSetHaplotype</servlet-name>
       <servlet-class>org.ecocean.servlet.TissueSampleSetHaplotype</servlet-class>
   </servlet>
@@ -1014,15 +937,6 @@
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>AccessImport</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.AccessImport</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>ImportBento</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.ImportBento</servlet-class>
-  </servlet>
 
       <servlet>
         <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
@@ -1035,7 +949,6 @@
   </servlet>
 
   <servlet>
-
     <servlet-name>EncounterDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
@@ -1349,16 +1262,6 @@
     <servlet-class>org.ecocean.servlet.SurveySetObservation</servlet-class>
   </servlet>
   
-  <servlet>
-    <servlet-name>GenerateNOAAReport</servlet-name>
-    <servlet-class>org.ecocean.servlet.GenerateNOAAReport</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>SurveySetObservation</servlet-name>
-    <servlet-class>org.ecocean.servlet.SurveySetObservation</servlet-class>
-  </servlet>
-  
     <servlet>
     <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportMetadataExcel</servlet-class>
@@ -1378,22 +1281,11 @@
     <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
     <url-pattern>/OccurrenceSearchExportMetadataExcel</url-pattern>
   </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>GenerateNOAAReport</servlet-name>
-    <url-pattern>/GenerateNOAAReport</url-pattern>
-  </servlet-mapping>
-
 
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
 <url-pattern>/api/*</url-pattern>
 <url-pattern>/rest/*</url-pattern>
-</servlet-mapping>
-
-<servlet-mapping>
-  <servlet-name>AccessImport</servlet-name>
-  <url-pattern>/AccessImport</url-pattern>
 </servlet-mapping>
 
 <servlet-mapping>
@@ -1486,10 +1378,6 @@
         <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
   </servlet-mapping>
   
-  <servlet-mapping>
-        <servlet-name>OccurrenceAddTissueSample</servlet-name>
-        <url-pattern>/OccurrenceAddTissueSample</url-pattern>
-  </servlet-mapping>
 
 
       <servlet-mapping>
@@ -1747,21 +1635,6 @@
   <servlet-mapping>
     <servlet-name>EncounterSetAsUnidentifiable</servlet-name>
     <url-pattern>/EncounterSetAsUnidentifiable</url-pattern>
-  </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>BentoSort</servlet-name>
-    <url-pattern>/BentoSort</url-pattern>
-  </servlet-mapping>
-  
-   <servlet-mapping>
-    <servlet-name>BentoSearch</servlet-name>
-    <url-pattern>/BentoSearch</url-pattern>
-  </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>BentoDownload</servlet-name>
-    <url-pattern>/BentoDownload</url-pattern>
   </servlet-mapping>
 
     <servlet-mapping>
@@ -2237,20 +2110,10 @@
     <servlet-name>EncounterSetObservation</servlet-name>
     <url-pattern>/EncounterSetObservation</url-pattern>
   </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>SurveyCreate</servlet-name>
-    <url-pattern>/SurveyCreate</url-pattern>
-  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>OccurrenceSetObservation</servlet-name>
     <url-pattern>/OccurrenceSetObservation</url-pattern>
-  </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>SurveySetObservation</servlet-name>
-    <url-pattern>/SurveySetObservation</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
