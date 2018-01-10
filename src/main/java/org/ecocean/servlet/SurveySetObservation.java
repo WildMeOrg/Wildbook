@@ -65,7 +65,7 @@ public class SurveySetObservation extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-    String redirectURL = "/survey.jsp";
+    String redirectURL = "/surveys/survey.jsp";
     String typeLower = null;
     String type = null;
     if ((request.getParameter("number") != null) && (request.getParameter("name") != null)) {
@@ -78,7 +78,7 @@ public class SurveySetObservation extends HttpServlet {
       
       Survey sv = null;
       try {
-        myShepherd.getSurvey(id);
+        sv = myShepherd.getSurvey(id);
       } catch (Exception e) {
         System.out.println("NPE trying to retrieve survey from shepherd.");
         e.printStackTrace();
