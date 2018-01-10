@@ -78,13 +78,6 @@ for (SurveyTrack trk : trks ) {
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
 <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
-<%
-if (sv!=null) {
-%>
-	<p>Survey: <%=sv.getID()%></p>
-<%
-}
-%>
 
 <div style="height:500px;" id="map"></div>
 

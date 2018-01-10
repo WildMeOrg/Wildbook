@@ -136,11 +136,9 @@ context=ServletUtilities.getContext(request);
 	<table>
 		<tr>
 			<td valign="middle">
- 				<h1><strong><img style="align: center;" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=occ.getOccurrenceID()%></h1>
+ 				<h2><strong><img style="align: center;" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=occ.getOccurrenceID()%></h2>
 				<p class="caption"><em><%=props.getProperty("description") %></em></p>
   			</td>		
-  			
-  			
   		</tr>
   	</table>
 	<%

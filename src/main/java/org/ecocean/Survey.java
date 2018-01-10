@@ -3,10 +3,16 @@ package org.ecocean;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import org.ecocean.movement.SurveyTrack;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import org.ecocean.movement.*;
 /**
-* This is an object that contains occurrences. It also has several tracks, with specific
-* geographic points (locations) that were traversed. It is intended to be a measure of the work 
+* This is an object that contains occurrences and survey tracks, with specific
+* geographic points that were traversed. It is intended to be a measure of the work 
 * spent to collect data, and a way of relating media assets to a specific period of 
 * collection. 
 *
@@ -288,6 +294,20 @@ public class Survey implements java.io.Serializable{
     return String.valueOf(dt.getTime());
   }
   
+  private String milliToMonthDayYear(Long millis) {
+    DateTime dt = new DateTime(millis);
+    DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
+    return dtf.print(dt); 
+  }
+  
+  public String getStartDateTime() {
+    return milliToMonthDayYear(startTime);
+  }
+  
+  public String getEndDateTime() {
+    return milliToMonthDayYear(endTime);
+  }
+  
   public ArrayList<Observation> getBaseObservationArrayList() {
     return observations;
   }
@@ -303,7 +323,7 @@ public class Survey implements java.io.Serializable{
     observations.add(obs);
   }
   public Observation getObservationByName(String obName) {
-    if (observations != null && observations.size() > 0) {
+    if (observations != null && !observations.isEmpty()) {
       for (Observation ob : observations) {
         if (ob.getName() != null) {
           if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
