@@ -275,20 +275,21 @@ td.tdw:hover div {
 <script type="text/javascript">
 
 	var needIAStatus = false;
+
 /*
-
-
 
     <strong><%=encprops.getProperty("markedIndividual")%>
     <strong><%=encprops.getProperty("number")%>
-  if (CommonConfiguration.showProperty("showTaxonomy",context)) {
-    <strong><%=encprops.getProperty("taxonomy")%>
-    <strong><%=encprops.getProperty("submitterName")%>
-    <strong><%=encprops.getProperty("date")%>
-    <strong><%=encprops.getProperty("location")%>
-    <strong><%=encprops.getProperty("locationID")%>
-    <strong><%=encprops.getProperty("occurrenceID")%>
+    if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
+    	
+	    <strong><%=encprops.getProperty("taxonomy")%>
+	    <strong><%=encprops.getProperty("submitterName")%>
+	    <strong><%=encprops.getProperty("date")%>
+	    <strong><%=encprops.getProperty("location")%>
+	    <strong><%=encprops.getProperty("locationID")%>
+	    <strong><%=encprops.getProperty("occurrenceID")%>
 */
+
 
 <%
 	String encsJson = "false";
@@ -593,9 +594,9 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
-		var private = searchResults[results[i]].get('_sanitized') || false;
+		var privateResults = searchResults[results[i]].get('_sanitized') || false;
 		var title = 'Encounter ' + searchResults[results[i]].id;
-		if (private) {
+		if (privateResults) {
 			title += ' [private]';
 			$($('#results-table tbody tr')[i]).addClass('collab-private');
 		} else {
@@ -982,7 +983,7 @@ function _colIA(o) {
 
 function _colAnnIASummary(annId, sum) {
 	console.log('%s ------> %o', annId, sum);
-	var mostRecent = 0;
+		var mostRecent = 0;
 	var mostRecentTaskId = false;
 	var flav = ['success-match', 'success-miss', 'pending', 'error', 'unknown'];
 	var r = {};
@@ -1211,10 +1212,7 @@ console.log(t);
     </td>
   </tr>
 </table>
-
-
-</p>
-
+</div>
 
 <%
   }
@@ -1226,5 +1224,7 @@ console.log(t);
   //rEncounters = null;
 
 %>
-</div>
+
+
+
 <jsp:include page="../footer.jsp" flush="true"/>

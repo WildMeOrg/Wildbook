@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 //import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -293,6 +294,34 @@ public class EncounterQueryProcessor {
     }
     //end behavior filters-----------------------------------------------
     //------------------------------------------------------------------
+    
+    //begin observation filters -----------------------------------------
+    
+    int numObsSearched = 0;
+    if (request.getParameter("numSearchedObs")!=null) {
+      numObsSearched = Integer.valueOf(request.getParameter("numSearchedObs"));
+    }
+    String keyID = "observationKey";
+    String valID = "observationValue";
+    Enumeration<String> allParams = request.getParameterNames();
+    ArrayList<String> obKeys = new ArrayList<>();
+    ArrayList<String> obVals = new ArrayList<>();
+    if (allParams!=null) {
+      while (allParams.hasMoreElements()) {
+        String thisParamName = allParams.nextElement();
+        if (thisParamName.startsWith(keyID)) {
+          obKeys.add(request.getParameter(thisParamName));
+        }
+        if (thisParamName.startsWith(valID)) {
+          obVals.add(request.getParameter(thisParamName));
+        }
+      }      
+    }
+    // Now we gots an arrray of Observation Keys, and values. 
+    // This need to construct a query portion for 0-n different Obs, 
+    // and some may not have a value associated with the key.
+    
+    //-------------------------------------------------------------------
 
     //Tag Filters--------------------------------------------------------
 

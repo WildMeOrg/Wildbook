@@ -735,8 +735,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				</div>
 				<input name="numSearchedObs" type="hidden" id="numSearchedObs" value="0" >
 				<input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=encprops.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
-				<br/>
 			</td>
+			<br/>
 		</tr>	
 		<script>
 			$(document).ready(function(){
