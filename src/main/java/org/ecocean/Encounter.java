@@ -61,6 +61,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.ecocean.security.Collaboration;
@@ -2103,7 +2104,19 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     this.endDateInMilliseconds = ms;
   }
   
+  private String milliToMonthDayYear(Long millis) {
+    DateTime dt = new DateTime(millis);
+    DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
+    return dtf.print(dt); 
+  }
   
+  public String getStartDateTime() {
+    return milliToMonthDayYear(dateInMilliseconds);
+  }
+  
+  public String getEndDateTime() {
+    return milliToMonthDayYear(endDateInMilliseconds);
+  }
 
 
   public String getDecimalLatitude(){

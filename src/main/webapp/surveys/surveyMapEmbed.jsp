@@ -54,6 +54,15 @@ for (SurveyTrack trk : trks ) {
 	ArrayList<Occurrence> occsWithGps = trk.getAllOccurrences();
 	if (occsWithGps!=null) {
 		for (Occurrence trackOcc : occsWithGps) {
+			String startTime = null;
+			String endTime = null;
+			try {
+				Encounter firstEnc = trackOcc.getEncounters().get(0);
+				startTime = firstEnc.getStartDateTime();
+				endTime = firstEnc.getEndDateTime();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			String lat = String.valueOf(trackOcc.getDecimalLatitude());
 			String lon = String.valueOf(trackOcc.getDecimalLongitude());
 			lineSet += "{lat: "+lat+", lng: "+lon+"},";
@@ -62,6 +71,8 @@ for (SurveyTrack trk : trks ) {
 			infoWindowSet += "<p><small><a href='"+link+"'>"+trackOcc.getOccurrenceID()+"</a></small</p>";
 			infoWindowSet += "<p><small>Location ID: "+trackOcc.getLocationID()+"</small></p>";
 			infoWindowSet += "<p><small>Lat/Lon: ["+lat+","+lon+"]</small></p>";
+			infoWindowSet += "<p><small>Start Time: "+startTime+"</small></p>";
+			infoWindowSet += "<p><small>End Time: "+endTime+"</small></p>";
 			infoWindowSets.add(infoWindowSet);
 			infoWindowSet = "";
 			System.out.println(lineSet);
