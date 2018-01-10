@@ -944,6 +944,15 @@ public class Shepherd {
     }
     return true;
   }
+  
+  public boolean isSurveyTrack(String num) {
+    try {
+      SurveyTrack tempTrack = ((org.ecocean.movement.SurveyTrack) (pm.getObjectById(pm.newObjectIdInstance(SurveyTrack.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
 
   public boolean isEncounter(String num) {
     try {

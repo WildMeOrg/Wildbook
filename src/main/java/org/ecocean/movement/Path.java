@@ -79,13 +79,14 @@ public class Path implements java.io.Serializable {
   }
   
   public Long getStartTimeMillis() {
-    Long startLong;
     if (pointLocations!=null) {
-      startLong = Long.valueOf(pointLocations.get(0).getDateTimeInMilli());
+      Long startLong = null;
       for (PointLocation pl : pointLocations) {
-        Long tempLong = Long.valueOf(pl.getDateTimeInMilli());
-        if (tempLong<startLong) {
-          startLong = tempLong;
+        if (pl.getDateTimeInMilli()!=null) {
+          Long tempLong = Long.valueOf(pl.getDateTimeInMilli());
+          if (startLong==null||tempLong<startLong) {
+            startLong = tempLong;
+          }          
         }
       }
       return startLong;
@@ -104,12 +105,14 @@ public class Path implements java.io.Serializable {
   }
 
   public Long getEndTimeMillis() {
-    Long endLong;
-    if (pointLocations!=null) {
-      endLong = Long.valueOf(pointLocations.get(0).getDateTimeInMilli());
+    Long endLong = null;
+    if (pointLocations!=null&&!pointLocations.isEmpty()) {
+      PointLocation pnt = pointLocations.get(0);
+      System.out.println("POINT LOCATION : "+pnt.toString());
+      endLong = pnt.getDateTimeInMilli();
       for (PointLocation pl : pointLocations) {
-        Long tempLong = Long.valueOf(pl.getDateTimeInMilli());
-        if (tempLong>endLong) {
+        Long tempLong = pl.getDateTimeInMilli();
+        if (tempLong!=null&&endLong!=null&&tempLong>endLong) {
           endLong = tempLong;
         }
       }
@@ -117,7 +120,6 @@ public class Path implements java.io.Serializable {
     }
     return null;
   }
-  
   
   public void addPointLocation(PointLocation p) {
     if (this.getPointLocation(p.getID()) == null) {

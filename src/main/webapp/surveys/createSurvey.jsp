@@ -104,7 +104,8 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 				    
 				    </form>
 				</div>
-			<div id="errorSpan"></div>
+			<div id="errorSpan">
+			</div>
 		
 		</div>
 		<div class="col-md-12">
