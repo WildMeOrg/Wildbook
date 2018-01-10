@@ -173,6 +173,8 @@ if (sv!=null) {
 									<%
 									for (Occurrence occ : occs) {
 										String thisOccID = occ.getPrimaryKeyID();
+										String link = occLocation + thisOccID;
+										System.out.println("Occ ID: "+thisOccID);
 									%>
 										<p>
 											<small><a href="<%=link%>"><%=thisOccID%></a></small>
@@ -199,11 +201,16 @@ if (sv!=null) {
 						int numPoints = 0;
 						if (pth!=null&&pth.getAllPointLocations()!=null) {
 							numPoints = pth.getAllPointLocations().size();
-							if (pth.getStartTime()!=null) {
-								trkStart = pth.getStartTime();								
-							}
-							if (pth.getEndTime()!=null) {
-								trkEnd = pth.getEndTime();								
+							System.out.println("Path String: "+pth.toString());
+							try {
+								if (pth.getStartTime()!=null) {
+									trkStart = pth.getStartTime();								
+								}
+								if (pth.getEndTime()!=null) {
+									trkEnd = pth.getEndTime();								
+								}								
+							} catch (NullPointerException npe) {
+								npe.printStackTrace();
 							}
 						}
 						%>

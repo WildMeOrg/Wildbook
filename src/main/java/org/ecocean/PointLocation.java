@@ -75,18 +75,27 @@ public class PointLocation implements java.io.Serializable {
   }
 
   public String getDateTimeInMilli() {
-    return dateTime.toString();
+    if (dateTime!=null){
+      return dateTime.toString();      
+    }
+    return null;
   }
   
   public String getDateTimeAsString() {
-    DateTime dt = new DateTime(dateTime);
-    return dt.toString();
+    if (dateTime!=null){    
+      DateTime dt = new DateTime(dateTime);
+      return dt.toString();
+    }
+    return null;
   }
   
-  public String getTimeAsString() {
-    DateTime dt = new DateTime(dateTime);
-    String time = String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
-    return time;
+  public String getTimeAsString() { 
+    if (dateTime!=null){      
+      DateTime dt = new DateTime(dateTime);
+      String time = String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
+      return time;
+    }
+    return null; 
   }
 
   public void setDateTimeInMilli(Long dt) {
