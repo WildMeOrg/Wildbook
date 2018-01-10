@@ -301,11 +301,19 @@ public class Survey implements java.io.Serializable{
   }
   
   public String getStartDateTime() {
+    System.out.println("Start Time in Millis for SV: "+startTime);
+    if (startTime!=null) {
+      return milliToMonthDayYear(startTime);
+    }
     return milliToMonthDayYear(startTime);
   }
   
   public String getEndDateTime() {
-    return milliToMonthDayYear(endTime);
+    System.out.println("End Time in Millis for SV: "+endTime);
+    if (endTime!=null) {
+      return milliToMonthDayYear(endTime);      
+    }
+    return null;
   }
   
   public ArrayList<Observation> getBaseObservationArrayList() {
