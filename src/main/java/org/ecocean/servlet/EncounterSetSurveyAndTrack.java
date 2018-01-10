@@ -24,6 +24,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
 import org.ecocean.Survey;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.movement.SurveyTrack;
 
 import javax.servlet.ServletConfig;
@@ -80,28 +81,11 @@ public class EncounterSetSurveyAndTrack extends HttpServlet {
     System.out.println("Hit survey association servlet! EncID: "+encID+" surveyID: "+surveyID+" surveyTrackID: "+surveyTrackID);
     
     myShepherd.beginDBTransaction();
-    if ((encID!=null&&myShepherd.isEncounter(encID))&&((surveyID!=null&&myShepherd.isSurvey(surveyID))||surveyTrackID!=null&&myShepherd.isSurveyTrack(surveyTrackID))) {
+    if (encID!=null&&myShepherd.isEncounter(encID)) {
       Encounter thisEnc = myShepherd.getEncounter(encID);
       Survey sv = null;
-      if (surveyID!=null) {
+      if (surveyID!=null&&myShepherd.isSurvey(surveyID)) {
         sv = myShepherd.getSurvey(surveyID);        
-      }
-      
-      //Allow adding of survey track without new survey. 
-      if (surveyTrackID!=null) {
-        try {
-          SurveyTrack st = myShepherd.getSurveyTrack(surveyTrackID);
-          Occurrence occ = myShepherd.getOccurrence(thisEnc.getOccurrenceID());
-          ArrayList<Occurrence> occs = st.getAllOccurrences();
-          if (!occs.contains(occ)) {
-            st.addOccurrence(occ, myShepherd);    
-            thisEnc.setSurveyTrackID(surveyTrackID);
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-      if (sv!=null) {
         try {
           thisEnc.setSurveyID(surveyID);
         } catch (Exception le) {
@@ -110,6 +94,30 @@ public class EncounterSetSurveyAndTrack extends HttpServlet {
           myShepherd.closeDBTransaction();
           System.out.println("Failed to add survey to encounter.");
         }        
+        if (thisEnc.getMedia()!=null) {
+          ArrayList<MediaAsset> assets = thisEnc.getMedia();
+          for (MediaAsset asset : assets) {
+            asset.setCorrespondingSurveyID(surveyID);
+            if (surveyTrackID!=null) {
+              asset.setCorrespondingSurveyTrackID(surveyTrackID);              
+            }
+          }
+        }
+      }
+ 
+      if (surveyTrackID!=null&&myShepherd.isSurveyTrack(surveyTrackID)) {
+        try {
+          SurveyTrack st = myShepherd.getSurveyTrack(surveyTrackID);
+          Occurrence occ = myShepherd.getOccurrence(thisEnc.getOccurrenceID());
+          ArrayList<Occurrence> occs = st.getAllOccurrences();
+          if (!occs.contains(occ)) {
+            st.addOccurrence(occ, myShepherd);    
+          }
+          thisEnc.setSurveyTrackID(surveyTrackID);          
+          System.out.println("Do we already have this occ on the survey track? "+occs.contains(occ));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
       if (!locked) {
         myShepherd.commitDBTransaction();
