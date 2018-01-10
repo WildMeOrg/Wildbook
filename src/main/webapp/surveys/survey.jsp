@@ -6,18 +6,18 @@ org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.movement.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.util.Date, java.text.SimpleDateFormat, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+String context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Shepherd myShepherd=new Shepherd(context);
 
 Properties props = new Properties();
-
 myShepherd.beginDBTransaction();
 props = ShepherdProperties.getProperties("survey.properties", langCode,context);
 String surveyID = request.getParameter("surveyID").trim();
 Survey sv = null;
 String errors = "";
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String occLocation = urlLoc + "/occurrence.jsp?number=";
 
 boolean isOwner = false;
 if (request.getUserPrincipal()!=null) {
@@ -32,25 +32,37 @@ try {
 }
 
 String date = "";
-String organization = "";
-String project = "";
 String type = "";
 String effort = "";
 String comments = "";
 String numOccurrences = "";
+String surveyAttributes = "";
+String effortData = "";
 ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
 if (sv!=null) {
 	if (sv.getProjectName()!=null) {
-		project = sv.getProjectName();		
+		surveyAttributes += "<p>Project Name: "+sv.getProjectName()+"</p>";
+	}
+	if (sv.getProjectType()!=null) {
+		surveyAttributes += "<p>Project Name: "+sv.getProjectType()+"</p>";
 	}
 	if (sv.getOrganization()!=null) {
-		organization = sv.getOrganization();	
+		surveyAttributes += "<p>Organization: "+sv.getOrganization()+"</p>";
 	}
-	if (sv.getProjectName()!=null) {
-		date = sv.getDate();
+	if (sv.getDate()!=null) {
+		date = sv.getStartDateTime();		
+	}
+	if (sv.getStartDateTime()!=null) {
+		surveyAttributes +=  "<p>Start: "+sv.getStartDateTime()+"</p>";
+	}
+	if (sv.getEndDateTime()!=null) {
+		surveyAttributes += "<p>End: "+sv.getEndDateTime()+"</p>";
 	}
 	if (sv.getEffort()!=null) {
-		effort = String.valueOf(sv.getEffort());
+		Measurement effortMeasurement = sv.getEffort();
+		String value = String.valueOf(effortMeasurement.getValue());
+		String units = effortMeasurement.getUnits();
+		effortData += "<p>Calculated: "+value+" "+units+"</p>";
 	}
 	if (sv.getComments()!=null) {
 		comments = sv.getComments();
@@ -60,7 +72,6 @@ if (sv!=null) {
 	} else {
 		errors += "<p>Survey tracks were null or did not exist.</p><br/>";
 	}
-	
 } else {
 	errors += "<p>There was no valid Survey for this ID.</p><br/>";
 }
@@ -74,31 +85,44 @@ if (sv!=null) {
 <div class="container maincontent">
 	<div class="row">
 		<div class="col-md-12">
-			<h3><%=props.getProperty("survey") %></h3>
-			<p>The survey contains collections of occurrences and points. It allows you to look at total effort and distance.</p>
+			<h3 class="surveyHeader">
+				<img src="../images/survey_icon_boat.png" />
+				<%=props.getProperty("survey") %>: <%=surveyID %>
+			</h3>
+			<p>The survey contains collections of occurrences, survey tracks and points. It allows you to look at total effort and distance.</p>
 			<hr/>
 			<div id="errorSpan"></div>
-		</div>
-		
-		<div class="col-md-12">
+		</div>	
+		<%
+		if (sv!=null) {
+		%>
+		<div class="col-md-6">
 			<h4>Survey Attributes</h4>
+			<!-- Collected Above -->
+			<%=surveyAttributes%>
+			
 			<%
-			if (sv!=null) {
+			if (trks!= null) {
 			%>
-				<p>Project: <%=project%></p>
-				<p>Organization: <%=organization%></p>
-				<p>Date: <%=date%></p>
-				<p>[Display total effort prominently.]</p>
-			<%
-				if (trks!= null) {
-					%>
-						<p>Num survey tracks: <%=trks.size()%></p>
-					<% 
-				}
-			} 
-			%>	
+				<p>Num survey tracks: <%=trks.size()%></p>
+			<% 
+			}
+			%>
 		</div>
-		
+		<div class="col-md-6">
+			<h4>Total Effort</h4>
+			<%
+			if (trks!= null) {
+			%>
+				<%=effortData%>
+			<% 
+			}
+			%>			
+		</div>
+		<%
+		} 
+		%>	
+		<hr/>
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("allTracks") %></strong></p>
 			<table id="trackTable" style="width:100%;">
@@ -151,7 +175,7 @@ if (sv!=null) {
 										String thisOccID = occ.getPrimaryKeyID();
 									%>
 										<p>
-											<small><%=thisOccID%></small>
+											<small><a href="<%=link%>"><%=thisOccID%></a></small>
 										</p>
 									<%
 	
@@ -201,13 +225,10 @@ if (sv!=null) {
          		 <jsp:param name="surveyID" value="<%=surveyID%>"/>
         	</jsp:include>
 		</div>
-		
 		<label class="response"></label>
 	</div>
 	
-	
 <div id="surveyObservations">
-
 			  <!-- Observations Column -->
 <script type="text/javascript">
 $(document).ready(function() {
@@ -293,8 +314,6 @@ $(document).ready(function() {
 				%>
 						
 					<p><em><%=nm%></em>:<%=vl%></p>
-							<!-- Start dynamic (Observation) form. -->
-							<!-- REMEMBER! These observations use a lot of legacy front end html etc from the deprecated dynamic properties! -->
 					<div style="display:none;" id="dialogDP<%=nm%>" class="editFormObservation" title="<%=props.getProperty("set")%> <%=nm%>">
 						<p class="editFormObservation">
 							<strong><%=props.getProperty("set")%> <%=nm%></strong>
@@ -360,7 +379,6 @@ $(document).ready(function() {
 	</div>			
 </div>
 
-
 <script>
 $(document).ready(function() {
 	$('#errorSpan').html('<%=errors%>');
@@ -380,12 +398,10 @@ $(document).ready(function() {
 	});
 });
 
-
 </script>
 <%
 myShepherd.closeDBTransaction();
 %>
-
 
 <jsp:include page="../footer.jsp" flush="true" />
 
