@@ -21,7 +21,10 @@ package org.ecocean.servlet;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
+import org.ecocean.Survey;
+import org.ecocean.movement.SurveyTrack;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -31,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 public class EncounterSetSurveyAndTrack extends HttpServlet {
 
@@ -49,47 +53,69 @@ public class EncounterSetSurveyAndTrack extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-
     String encID = null;
     String surveyID = null;
     String surveyTrackID = null;
     
     try {
-      encID = request.getParameter("encID");
-      surveyID = request.getParameter("surveyID");
-      surveyTrackID = request.getParameter("surveyTrackID");   
+      if (request.getParameter("encID")!=null) {
+        encID = request.getParameter("encID");        
+      }
+      if (request.getParameter("surveyID")!=null) {
+        surveyID = request.getParameter("surveyID"); 
+      }
+      if (request.getParameter("surveyTrackID")!=null) {
+        surveyTrackID = request.getParameter("surveyTrackID"); 
+      }
     } catch (Exception e) {
       e.printStackTrace();
-      out.println("Error grabbing parameters for change in Survey or ID for this Encounter!");
+      System.out.println("Error grabbing parameters for change in Survey or ID for this Encounter!");
     }
     
+    System.out.println("Hit survey association servlet! EncID: "+encID+" surveyID: "+surveyID+" surveyTrackID: "+surveyTrackID);
+    
     myShepherd.beginDBTransaction();
-    if ((myShepherd.isEncounter(encID)) && (surveyID != null) && (surveyTrackID != null)) {
+    if ((encID!=null&&myShepherd.isEncounter(encID))&&((surveyID!=null&&myShepherd.isSurvey(surveyID))||surveyTrackID!=null&&myShepherd.isSurveyTrack(surveyTrackID))) {
       Encounter thisEnc = myShepherd.getEncounter(encID);
-      try {
-        thisEnc.setSurveyID(surveyID);
-        thisEnc.setSurveyTrackID(surveyTrackID);
-      } catch (Exception le) {
-        locked = true;
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        out.println("Failed to change surveyID and surveyTrackID");
+      Survey sv = null;
+      if (surveyID!=null) {
+        sv = myShepherd.getSurvey(surveyID);        
       }
-
+      
+      //Allow adding of survey track without new survey. 
+      if (surveyTrackID!=null) {
+        try {
+          SurveyTrack st = myShepherd.getSurveyTrack(surveyTrackID);
+          Occurrence occ = myShepherd.getOccurrence(thisEnc.getOccurrenceID());
+          ArrayList<Occurrence> occs = st.getAllOccurrences();
+          if (!occs.contains(occ)) {
+            st.addOccurrence(occ, myShepherd);    
+            thisEnc.setSurveyTrackID(surveyTrackID);
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+      if (sv!=null) {
+        try {
+          thisEnc.setSurveyID(surveyID);
+        } catch (Exception le) {
+          locked = true;
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+          System.out.println("Failed to add survey to encounter.");
+        }        
+      }
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println("The Survey/Track ID's for encounter " + encID + " are now " + surveyID + " and "+ surveyTrackID);
+        out.println("The Survey/Track ID's for encounter are now Survey: " + surveyID + " and Track: "+ surveyTrackID);
         response.setStatus(HttpServletResponse.SC_OK);
       } 
-      else {
-        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user or is inaccessible. Please wait a few seconds before trying to modify this encounter again.");
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      }
     } else {
       myShepherd.rollbackDBTransaction();
-      out.println("<strong>Error:</strong> I was unable to set survey information. I cannot find the encounter that you intended it for in the database.");
-      out.println("Enc ID : "+encID+" SurveyID : "+surveyID+" SurveyTrackID : "+surveyTrackID);
+      out.println("<strong>Error:</strong> The survey specified does not exist.");
+      System.out.println("Enc ID : "+encID+" SurveyID : "+surveyID+" SurveyTrackID : "+surveyTrackID);
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
     out.close();
