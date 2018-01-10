@@ -56,7 +56,7 @@ public class Occurrence implements java.io.Serializable {
   // Variables used in the Survey, SurveyTrack, Path, Location model
   
   private String correspondingSurveyTrackID;
-  private String correspondingID;
+  private String correspondingSurveyID;
   //social media registration fields for AI-created occurrences
   private String socialMediaSourceID;
   private String socialMediaQueryCommentID;
@@ -692,24 +692,24 @@ public class Occurrence implements java.io.Serializable {
     return null;
   }
   
-  public void setCorrespondingID(String id) {
+  public void setCorrespondingSurveyID(String id) {
     if (id != null && !id.equals("")) {
-      correspondingID = id;
+      correspondingSurveyID = id;
     }
   }
   
-  public String getCorrespondingID() {
-    if (correspondingID != null) {
-      return correspondingID;
+  public String getCorrespondingSurveyID() {
+    if (correspondingSurveyID != null) {
+      return correspondingSurveyID;
     }
     return null;
   }
   
   public Survey getSurvey(Shepherd myShepherd) {
     Survey sv = null;
-    if (correspondingID!=null) {
+    if (correspondingSurveyID!=null) {
       try {
-        sv = myShepherd.getSurvey(correspondingID);
+        sv = myShepherd.getSurvey(correspondingSurveyID);
         return sv;
       } catch (Exception e) {
         e.printStackTrace();
@@ -717,9 +717,9 @@ public class Occurrence implements java.io.Serializable {
     } else {
       try {
         for (Encounter enc : encounters) {
-          if (enc.getOccurrenceID()!=null) {
+          if (correspondingSurveyID!=null) {
             if (enc.getOccurrenceID().length()>1) {
-              correspondingID = enc.getOccurrenceID();
+              correspondingSurveyID = enc.getOccurrenceID();
               sv = myShepherd.getSurvey(enc.getOccurrenceID());
               return sv;
             }
