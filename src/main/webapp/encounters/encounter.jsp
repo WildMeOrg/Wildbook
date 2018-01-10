@@ -3829,9 +3829,6 @@ $(document).ready(function() {
 									</div>
 								</form>
 							</div>
-
-
-
 						</td>
 					</tr>
 				</table>
@@ -3846,7 +3843,6 @@ $(document).ready(function() {
 					<jsp:param name="isOwner" value="<%=isOwner%>" />
 					<jsp:param name="loggedIn" value="<%=loggedIn%>" />
 				</jsp:include>
-
 				<%
 					if (isOwner) {
 				%>
@@ -3865,12 +3861,9 @@ $(document).ready(function() {
 								accept="audio/*,video/*,image/*"
 								onChange="return filesChanged(this)" />
 							<div id="flowbuttons">
-
 								<button id="reselect-button" class="btn" style="display: none">choose
 									a different image</button>
-								<button id="upload-button" class="btn" style="display: none">begin
-									upload</button>
-
+								<button id="upload-button" class="btn" style="display: none">begin upload</button>
 							</div>
 						</div>
 					</div>
@@ -3879,8 +3872,7 @@ $(document).ready(function() {
 					}
 				%>
 				<%-- END IMAGES --%>
-
-
+				
 				<%
 					String isLoggedInValue = "true";
 							String isOwnerValue = "true";

@@ -24,6 +24,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
 import org.ecocean.Survey;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.movement.SurveyTrack;
 
 import javax.servlet.ServletConfig;
@@ -83,12 +84,11 @@ public class OccurrenceSetSurveyAndTrack extends HttpServlet {
     if ((occID!=null&&myShepherd.isOccurrence(occID))&&((surveyID!=null&&myShepherd.isSurvey(surveyID))||surveyTrackID!=null&&myShepherd.isSurveyTrack(surveyTrackID))) {
       Occurrence thisOcc = myShepherd.getOccurrence(occID);
       Survey sv = null;
-      if (surveyID!=null) {
+      if (surveyID!=null&&myShepherd.isSurvey(surveyID)) {
         sv = myShepherd.getSurvey(surveyID);        
       }
-      
-      //Allow adding of survey track without new survey. 
-      if (surveyTrackID!=null) {
+       
+      if (surveyTrackID!=null&&myShepherd.isSurveyTrack(surveyTrackID)) {
         try {
           SurveyTrack st = myShepherd.getSurveyTrack(surveyTrackID);
           ArrayList<Occurrence> occs = st.getAllOccurrences();
@@ -109,6 +109,22 @@ public class OccurrenceSetSurveyAndTrack extends HttpServlet {
           myShepherd.closeDBTransaction();
           System.out.println("Failed to add survey to occurrence.");
         }        
+        try {
+          if (thisOcc.getEncounters()!=null) {
+            ArrayList<Encounter> encs = thisOcc.getEncounters();
+            for (Encounter enc : encs) {
+              if (enc.getMedia()!=null) {
+                ArrayList<MediaAsset> assets = enc.getMedia();
+                for (MediaAsset asset : assets) {
+                  asset.setCorrespondingSurveyID(surveyID);
+                  asset.setCorrespondingSurveyTrackID(surveyTrackID);
+                }
+              }
+            }            
+          }
+        } catch (NullPointerException npe) {
+          npe.printStackTrace();
+        }
       }
       if (!locked) {
         myShepherd.commitDBTransaction();
