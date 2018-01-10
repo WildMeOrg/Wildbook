@@ -23,19 +23,16 @@ ArrayList<String> polyLines = new ArrayList<String>();
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 String number = null;
 Survey sv = null;
-try {
-	
+try {	
 	if (request.getParameter("surveyID")!=null) {
 		number = request.getParameter("surveyID");		
 	} 
 	sv = myShepherd.getSurvey(number);
 	System.out.println("Retreived this survey: "+sv.getID());
-	
 } catch (Exception e) {
 	e.printStackTrace();
 	System.out.println("Could not retreive survey and occurrence for this number.");
 }
-
 try {
 	trks = sv.getAllSurveyTracks();	
 	System.out.println("Number of svy-tracks: "+trks.size());
@@ -71,8 +68,12 @@ for (SurveyTrack trk : trks ) {
 			infoWindowSet += "<p><small><a href='"+link+"'>"+trackOcc.getOccurrenceID()+"</a></small</p>";
 			infoWindowSet += "<p><small>Location ID: "+trackOcc.getLocationID()+"</small></p>";
 			infoWindowSet += "<p><small>Lat/Lon: ["+lat+","+lon+"]</small></p>";
-			infoWindowSet += "<p><small>Start Time: "+startTime+"</small></p>";
-			infoWindowSet += "<p><small>End Time: "+endTime+"</small></p>";
+			if (startTime!=null) {
+				infoWindowSet += "<p><small>Start Time: "+startTime+"</small></p>";				
+			}
+			if (endTime!=null) {
+				infoWindowSet += "<p><small>End Time: "+endTime+"</small></p>";				
+			}
 			infoWindowSets.add(infoWindowSet);
 			infoWindowSet = "";
 			System.out.println(lineSet);

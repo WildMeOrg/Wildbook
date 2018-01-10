@@ -51,7 +51,8 @@ public class PointLocation implements java.io.Serializable {
   }
 
   public PointLocation(Double lat, Double lon, Long date) {
-    if (latLonCheck(lat, lon) && date > 0) {
+    System.out.println("Lat: "+lat+" Lon: "+lon+" Date: "+date);
+    if (latLonCheck(lat,lon)&&date!=null) {
       this.longitude = lon;
       this.latitude = lat;
       this.dateTime = date;
@@ -60,7 +61,7 @@ public class PointLocation implements java.io.Serializable {
   }
 
   public PointLocation(Double lat, Double lon, Long date, Measurement el) {
-    if (latLonCheck(lat, lon) && date > 0 && elevation != null) {
+    if (latLonCheck(lat, lon)&&date!=null&& elevation!= null) {
       this.longitude = lon;
       this.latitude = lat;
       this.dateTime = date;
@@ -177,7 +178,7 @@ public class PointLocation implements java.io.Serializable {
   }
 
   private boolean latLonCheck(Double lat, Double lon) {
-    if (lat >= -90 && lat <= 90 && lon > -180 && lon < 180) {
+    if (lat!=null&&lon!=null&&lat>=-90&&lat<=90&&lon>-180&&lon<180) {
       return true;
     }
     return false;
