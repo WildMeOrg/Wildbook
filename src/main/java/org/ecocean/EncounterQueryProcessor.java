@@ -300,26 +300,64 @@ public class EncounterQueryProcessor {
     int numObsSearched = 0;
     if (request.getParameter("numSearchedObs")!=null) {
       numObsSearched = Integer.valueOf(request.getParameter("numSearchedObs"));
+      System.out.println("Num Obs Searched? "+numObsSearched);
     }
-    String keyID = "observationKey";
-    String valID = "observationValue";
     Enumeration<String> allParams = request.getParameterNames();
-    ArrayList<String> obKeys = new ArrayList<>();
-    ArrayList<String> obVals = new ArrayList<>();
-    if (allParams!=null) {
+    if (allParams!=null&&numObsSearched>0) {
+      String keyID = "observationKey";
+      String valID = "observationValue";
+      HashMap<String,String> obKeys = new HashMap<>();
+      HashMap<String,String> obVals = new HashMap<>();
+      StringBuilder obQuery = new StringBuilder();
       while (allParams.hasMoreElements()) {
-        String thisParamName = allParams.nextElement();
-        if (thisParamName.startsWith(keyID)) {
-          obKeys.add(request.getParameter(thisParamName));
+        String thisParam = allParams.nextElement();
+        if (thisParam!=null&&thisParam.startsWith(keyID)) {
+          System.out.println("With KeyID? "+thisParam);
+          String keyParam = request.getParameter(thisParam);
+          String keyNum = thisParam.replace(keyID,"");
+          obKeys.put(keyNum,keyParam);
         }
-        if (thisParamName.startsWith(valID)) {
-          obVals.add(request.getParameter(thisParamName));
+        if (thisParam!=null&&thisParam.startsWith(valID)) {
+          System.out.println("With valID? "+thisParam);
+          String valParam = request.getParameter(thisParam);
+          String valNum = thisParam.replace(valID,"");
+          obVals.put(valNum,valParam);
         }
-      }      
+        for (int i=0;i<numObsSearched;i++) {
+          if (obKeys.get(i)!=null) {
+            obQuery.append("observation");
+            prettyPrint.append("observation ");
+            prettyPrint.append(obKeys.get(i));
+            if (obVals.get(i)!=null) {
+              prettyPrint.append(" is ");
+              prettyPrint.append(obVals.get(i));              
+            }
+            prettyPrint.append("<br/>");
+            obQuery.append("(baseObservations.contains(baseObservations"+i+") && ");
+            obQuery.append("baseObservations"+i+".name == "+Util.quote(obKeys.get(i)));
+            String jdoParam = "observationD"+i;
+            obQuery.append(" && observations"+i+".observationID == "+jdoParam+")");
+            paramMap.put(jdoParam, obKeys.get(i));
+            parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "String "+jdoParam);
+          }
+        }
+        if (obQuery.length() > 0) {
+          if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+            filter += " && ";
+          }
+          filter += obQuery.toString();
+          for (int i = 0; i < numObsSearched; i++) {
+            updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);
+          }
+        }
+      }  
     }
+    
     // Now we gots an arrray of Observation Keys, and values. 
-    // This need to construct a query portion for 0-n different Obs, 
+    // This needs to construct a query portion for 0-n different Obs, 
     // and some may not have a value associated with the key.
+    //Pseudo Query:
+    //SELECT from encounter.observations((observation WHERE observation.name==name&&observation.value=value)&&(observation WHERE observation.name==name)...
     
     //-------------------------------------------------------------------
 
