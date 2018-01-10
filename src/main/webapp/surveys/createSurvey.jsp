@@ -95,11 +95,9 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 							<label><small><%=props.getProperty("trackTypes")%></label>
 							<input name="type" title="Survey Type" type="text" class="form-control" id="addTrackInput3" />
 							
-							<input name="getsTrack" type="hidden" value="false" class="form-control" id="addTrackBool" />
-						
 						</div>
 						
-						<input name="Create Survey" type="submit" id="addSurveyBtn" value="<%=props.getProperty("submit")%>" class="btn btn-sm editFormBtn" />
+						<input name="Add Survey Track" type="submit" id="surveyTrackSubmitBtn" value="<%=props.getProperty("submit")%>" class="btn btn-sm editFormBtn" />
 				   								
 						<input name="Define Survey Track" type="button" id="addSurveyTrackBtn" value="<%=props.getProperty("defineTrack")%>" class="btn btn-sm editFormBtn" />
 				   		<input name="Hide Survey Track Options" type="button" id="hideSurveyTrackBtn" value="<%=props.getProperty("hideTrack")%>" class="btn btn-sm editFormBtn" />		    
@@ -133,15 +131,11 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
         	$('#addSurveyTrackBtn').hide();
         	$('#hideSurveyTrackBtn').show();
         	$('#trackForm').slideDown();
-        	$('#addTrackBool').val('true');
-        	var bool = $('#addTrackBool').val();
         });
         $('#hideSurveyTrackBtn').click(function(){
         	$('#addSurveyTrackBtn').show();
         	$('#hideSurveyTrackBtn').hide();
         	$('#trackForm').slideUp();
-        	$('#addTrackBool').val('false');
-        	var bool = $('#addTrackBool').val();
         });
     });    
 </script>
