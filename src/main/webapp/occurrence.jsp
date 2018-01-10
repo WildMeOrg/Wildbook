@@ -192,37 +192,37 @@ context=ServletUtilities.getContext(request);
 		%>
 			<script type="text/javascript">
                   $(document).ready(function() {
-                    $("#addEncounter").click(function(event) {
+                    $("#addOccurrence").click(function(event) {
                       event.preventDefault();
 
                       //$("#addSurvey").hide();
 
-                      var encID = $("#addEncNumber").val();
+                      var occID = $("#addOccNumber").val();
                       var surveyID = $("#surveyID").val();
                       var surveyTrackID = $("#surveyTrackID").val();
 
-                      $.post("../EncounterSetSurveyAndTrack", {"encID": encID, "surveyTrackID": surveyTrackID, "surveyID": surveyID},
+                      $.post("../OccurrenceSetSurveyAndTrack", {"occID": occID, "surveyTrackID": surveyTrackID, "surveyID": surveyID},
                       function() {
-                        $("#addEncErrorDiv").hide();
+                        $("#addOccErrorDiv").hide();
                         $("#addDiv").addClass("has-success");
-                        $("#createEncCheck").show();
-                        $("#addSurveyCheck").html("Success!");
-                        $("#displayEncID").html(encounter);
+                        $("#createOccCheck").show();
+                        $("#addSurveyCheck").html("Success! Refresh the page to see your changes.");
+                        $("#displayOccID").html(encounter);
                       })
                       .fail(function(response) {
                         console.log("<small>Failed to add to survey.</small>");
                         $("#addDiv").addClass("has-error");
-                        $("#addEncError, #addEncErrorDiv").show();
+                        $("#addOccError, #addOccErrorDiv").show();
                         $("#addSurveyError").html("<small>Failed to add survey and track! Invalid Input. Check to make sure the track/survey has not already been added, or that it exists.</small>");
-                        $("#addEncounter").show();
+                        $("#addOccurrence").show();
                       });
                     });
 
-                    $("#add2EncounterInput").click(function() {
-                      $("#addEncError, #addEncCheck, #addEncErrorDiv").hide()
+                    $("#add2OccurrenceInput").click(function() {
+                      $("#addOccError, #addOccCheck, #addOccErrorDiv").hide()
                       $("#addDiv").removeClass("has-success");
                       $("#addDiv").removeClass("has-error");
-                      $("#addEncounter").show();
+                      $("#addOccurrence").show();
                       $("#addEncErrorDiv").hide();
                     });
                   });
