@@ -44,7 +44,7 @@ if (sv!=null) {
 		surveyAttributes += "<p>Project Name: "+sv.getProjectName()+"</p>";
 	}
 	if (sv.getProjectType()!=null) {
-		surveyAttributes += "<p>Project Name: "+sv.getProjectType()+"</p>";
+		surveyAttributes += "<p>Project Type: "+sv.getProjectType()+"</p>";
 	}
 	if (sv.getOrganization()!=null) {
 		surveyAttributes += "<p>Organization: "+sv.getOrganization()+"</p>";
