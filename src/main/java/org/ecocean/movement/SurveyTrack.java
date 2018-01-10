@@ -82,11 +82,15 @@ public class SurveyTrack implements java.io.Serializable{
     dateTimeModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
   }
   
-  public String getID (){
+  public String getID(){
     if (surveyTrackID != null && !surveyTrackID.equals("")) {
       return surveyTrackID;      
     }
     return null;
+  }
+
+  public String getPrimaryKeyID(){
+    return getID();
   }
   
   public void setID(String id) {
@@ -94,6 +98,10 @@ public class SurveyTrack implements java.io.Serializable{
       surveyTrackID = id;
       setDWCDateLastModified();
     }
+  }
+
+  public void setPrimaryKeyID(String id) {
+    setID(id);
   }
   
   public String getParentSurveyID() {
@@ -147,7 +155,7 @@ public class SurveyTrack implements java.io.Serializable{
   public boolean hasOccurrence(Occurrence queryOcc) {
     boolean hasIt = false;
     for (Occurrence occ : occurrences) {
-      if (queryOcc.getPrimaryKeyID().equals(occ.getPrimaryKeyID())) {
+      if (queryOcc.getID().equals(occ.getID())) {
         hasIt = true;
         break;
       }

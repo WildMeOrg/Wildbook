@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.FoundationalPropertiesBase;
 import org.ecocean.Observation;
 import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
