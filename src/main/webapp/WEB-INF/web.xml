@@ -1304,6 +1304,11 @@
 </servlet-mapping>
 
 <servlet-mapping>
+  <servlet-name>LightRest</servlet-name>
+  <url-pattern>/LightRest/*</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
   <servlet-name>StripePayment</servlet-name>
   <url-pattern>/StripePayment</url-pattern>
 </servlet-mapping>
