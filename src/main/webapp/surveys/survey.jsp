@@ -140,9 +140,18 @@ if (sv!=null) {
 			<%
 			for (SurveyTrack trk : trks) {
 				String trkID  = trk.getID();
-				String trkLocationID = trk.getLocationID();
-				String trkVessel = trk.getVesselID();
-				String trkType = trk.getType();
+				String trkLocationID = "Unavailable";
+				if (trk.getLocationID()!=null) {
+					trkLocationID = trk.getLocationID();
+				}
+				String trkVessel = "Unavailable";
+				if (trk.getVesselID()!=null) {
+					trkVessel = trk.getVesselID();
+				}
+				String trkType = "Unavailable";
+				if (trk.getType()!=null) {
+					trkType = trk.getType();
+				}
 				String trkStart = "Unavailable";
 				String trkEnd = "Unavailable";
 				Path pth = null;
@@ -175,18 +184,18 @@ if (sv!=null) {
 										String thisOccID = occ.getPrimaryKeyID();
 										String link = occLocation + thisOccID;
 										System.out.println("Occ ID: "+thisOccID);
+										System.out.println("Occ Date/Time: "+occ.getMillis());
 									%>
-										<p>
-											<small><a href="<%=link%>"><%=thisOccID%></a></small>
-										</p>
+									<p>
+										<small><a href="<%=link%>"><%=thisOccID%></a></small>
+									</p>
 									<%
-	
 									}
 								} else {
 								%>	
-										<p>
-											<small>No occurrences.</small>	
-										</p>
+									<p>
+										<small>No occurrences.</small>	
+									</p>
 								<% 	
 								}
 								%>

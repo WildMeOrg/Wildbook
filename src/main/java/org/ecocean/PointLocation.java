@@ -74,9 +74,9 @@ public class PointLocation implements java.io.Serializable {
     return pointLocationID;
   }
 
-  public String getDateTimeInMilli() {
+  public Long getDateTimeInMilli() {
     if (dateTime!=null){
-      return dateTime.toString();      
+      return dateTime.longValue();      
     }
     return null;
   }

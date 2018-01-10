@@ -98,6 +98,11 @@ public class Path implements java.io.Serializable {
     return String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
   }
   
+  public String getEndTime() {
+    DateTime dt = new DateTime(this.getEndTimeMillis());
+    return String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
+  }
+
   public Long getEndTimeMillis() {
     Long endLong;
     if (pointLocations!=null) {
@@ -113,10 +118,6 @@ public class Path implements java.io.Serializable {
     return null;
   }
   
-  public String getEndTime() {
-    DateTime dt = new DateTime(this.getEndTimeMillis());
-    return String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
-  }
   
   public void addPointLocation(PointLocation p) {
     if (this.getPointLocation(p.getID()) == null) {
