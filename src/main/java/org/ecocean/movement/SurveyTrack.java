@@ -201,18 +201,31 @@ public class SurveyTrack implements java.io.Serializable{
 
   private void createPointLocationForPath(double lat, double lon, Long milliDate, Shepherd myShepherd) {
     PointLocation pt = new PointLocation(lat,lon,milliDate);
-    Path pth = null;
-    try {
-      pth = myShepherd.getPath(pathID);
-    } catch (NullPointerException npe) {
-      npe.printStackTrace();
-    }
+    Path pth = getOrCreatePath(pathID,myShepherd);
     if (pth!=null) {
       myShepherd.beginDBTransaction();
       myShepherd.getPM().makePersistent(pt);
       myShepherd.commitDBTransaction();
       pth.addPointLocation(pt);
     }
+  }
+  
+  private Path getOrCreatePath(String pathID, Shepherd myShepherd) {
+    Path pth = null;
+    myShepherd.beginDBTransaction();
+    try {
+      if (myShepherd.isPath(pathID)) {
+        pth = myShepherd.getPath(pathID);        
+      } else {
+        pth = new Path(this);
+        myShepherd.getPM().makePersistent(pth);
+        myShepherd.commitDBTransaction();
+      }
+    } catch (NullPointerException npe) {
+      myShepherd.rollbackDBTransaction();
+      npe.printStackTrace();
+    }
+    return pth;
   }
   
   public Measurement getDistance() {
