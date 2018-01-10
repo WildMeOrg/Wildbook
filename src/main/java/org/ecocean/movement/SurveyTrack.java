@@ -163,25 +163,55 @@ public class SurveyTrack implements java.io.Serializable{
     return hasIt;
   }
   
-  public void addOccurence(Occurrence occ) {
+  public void addOccurrence(Occurrence occ, Shepherd myShepherd) {
     if (occ != null) {
       occurrences.add(occ);
       if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
         double lat = occ.getDecimalLatitude();
         double lon = occ.getDecimalLongitude();
-        // TODO Make this automatically create a pointLocation...
+        Long milliDate = null;
+        if (occ.getMillis()!=null) {
+          milliDate = occ.getMillis();
+        }
+        createPointLocationForPath(lat,lon,milliDate, myShepherd);
       }
       setDWCDateLastModified();
     }
   }
   
-  public void addMultipleOccurences(ArrayList<Occurrence> occArray) {
+  
+  public void addMultipleOccurrences(ArrayList<Occurrence> occArray, Shepherd myShepherd) {
     if (occArray.size() >= 1) {
       for (int i=0; i<occArray.size(); i++) {
-        occurrences.add(occArray.get(i));
-     // TODO Make this automatically create pointLocation(s)...
+        Occurrence occ = occArray.get(i);
+        occurrences.add(occ);
+        if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
+          double lat = occ.getDecimalLatitude();
+          double lon = occ.getDecimalLongitude();
+          Long milliDate = null;
+          if (occ.getMillis()!=null) {
+            milliDate = occ.getMillis();
+          }
+          createPointLocationForPath(lat,lon,milliDate, myShepherd);
+        }
       }
       setDWCDateLastModified();
+    }
+  }
+
+  private void createPointLocationForPath(double lat, double lon, Long milliDate, Shepherd myShepherd) {
+    PointLocation pt = new PointLocation(lat,lon,milliDate);
+    Path pth = null;
+    try {
+      pth = myShepherd.getPath(pathID);
+    } catch (NullPointerException npe) {
+      npe.printStackTrace();
+    }
+    if (pth!=null) {
+      myShepherd.beginDBTransaction();
+      myShepherd.getPM().makePersistent(pt);
+      myShepherd.commitDBTransaction();
+      pth.addPointLocation(pt);
     }
   }
   
