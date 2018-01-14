@@ -349,7 +349,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
-                <p class="brand-primary"><i><span class="massive">5200</span> citizen scientists</i></p>
+                <p class="brand-primary"><i><span class="massive">5500</span> citizen scientists</i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
