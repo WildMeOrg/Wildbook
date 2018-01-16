@@ -76,12 +76,16 @@ public abstract class QueryProcessor {
         if (thisParam!=null&&thisParam.startsWith(keyID)) {
           String keyParam = request.getParameter(thisParam);
           String keyNum = thisParam.replace(keyID,"");
-          obKeys.put(keyNum,keyParam);
+          if (keyParam!=null&&!keyParam.equals("")) {
+            obKeys.put(keyNum,keyParam);            
+          }
         }
         if (thisParam!=null&&thisParam.startsWith(valID)) {
           String valParam = request.getParameter(thisParam);
           String valNum = thisParam.replace(valID,"");
-          obVals.put(valNum,valParam);
+          if (valParam!=null&&!valParam.equals("")) {
+            obVals.put(valNum,valParam);            
+          }
         }
       }  
       for (int i=1;i<=numObsSearched;i++) {
@@ -100,6 +104,9 @@ public abstract class QueryProcessor {
             obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim())); 
           }
           obQuery.append(")");
+          if (1<=numObsSearched) {
+            obQuery.append(" && ");
+          }
         }
       }
       System.out.println("Actual ObQuery: "+obQuery);
