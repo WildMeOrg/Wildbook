@@ -128,9 +128,9 @@ public class Occurrence implements java.io.Serializable {
     assets = new ArrayList<MediaAsset>();
     setDWCDateLastModified();
     setDateTimeCreated();
-    //if(encounters!=null){
-    //  updateNumberOfEncounters();
-    //}
+    if(encounters!=null){
+      updateNumberOfEncounters();
+    }
     //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
   }
 
@@ -161,18 +161,18 @@ public class Occurrence implements java.io.Serializable {
     }
     if(isNew){
       encounters.add(enc);
-      //updateNumberOfEncounters();
+      updateNumberOfEncounters();
     }
     //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     return isNew;
 
   }
   
-  //private void updateNumberOfEncounters() {
-  //  if (individualCount!=null) {
-  //    individualCount = encounters.size();      
-  //  }
-  //}
+  private void updateNumberOfEncounters() {
+    if (individualCount!=null) {
+      individualCount = encounters.size();      
+    }
+  }
 
   public ArrayList<Encounter> getEncounters(){
     return encounters;
@@ -208,7 +208,7 @@ public class Occurrence implements java.io.Serializable {
   public void removeEncounter(Encounter enc){
     if(encounters!=null){
       encounters.remove(enc);
-      //updateNumberOfEncounters();
+      updateNumberOfEncounters();
     }
   }
 

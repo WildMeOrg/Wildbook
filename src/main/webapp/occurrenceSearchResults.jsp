@@ -236,13 +236,14 @@ $(document).keydown(function(k) {
 
 // functor!
 function _notUndefined(fieldName) {
-  function _helperFunc(o) {
+  function _helperFunc(o) {	
     if (o[fieldName] == undefined) return '';
     return o[fieldName];
   }
   return _helperFunc;
 }
 
+// Split up some collections before we try to display them. 
 
 var colDefn = [
 /*
@@ -256,21 +257,23 @@ var colDefn = [
     key: 'imageSet',
     label: '<%=occProps.getProperty("imageSet")%>',
     value: _notUndefined('imageSet'),
-  },*/
+  },
+  
+*/
+ 
   {
     key: 'ID',
     label: 'ID',
     value: _notUndefined('occurrenceID'),
   },
   {
-    key: 'groupSize',
-    label: 'group size',
-    value: _notUndefined('groupSize'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
-  },
+	    key: 'correspondingSurveyID',
+	    label: 'Corresponding Survey',
+	    value: _notUndefined('correspondingSurveyID'),
+  }, 	
   {
     key: 'individualCount',
-    label: 'num Id\'d individuals',
+    label: 'Encounters',
     value: _notUndefined('individualCount'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },

@@ -116,7 +116,7 @@
 
 		 <ul id="tabmenu">
 
-		   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+		   <li><a href="occurrenceSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
 		   </a></li>
        <li><a class="active"
       href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
