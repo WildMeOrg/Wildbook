@@ -726,8 +726,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 					<label><%=encprops.getProperty("name")%></label><label><%=encprops.getProperty("value")%></label>
 				</p>
 				<p>
-					<input name="observationKey0" type="text" id="observationKey0" value="" placeholder="Observation Name">
-					<input name="observationValue0" type="text" id="observationValue0" value="" placeholder="Observation Value">
+					<input name="observationKey1" type="text" id="observationKey1" value="" placeholder="Observation Name">
+					<input name="observationValue1" type="text" id="observationValue1" value="" placeholder="Observation Value">
 				</p>
 				<div id="additionalObsFields">
 				
@@ -740,9 +740,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 		</tr>	
 		<script>
 			$(document).ready(function(){
-				var num = 0;
+				var num = 2;
 				$('#addAnotherObBtn').click(function(){
-					var obField = '<p><input name="observationKey"'+num+' type="text" id="observationKey'+num+'" value=""><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value=""></p>';	
+					var obField = '<p><input name="observationKey'+num+'" type="text" id="observationKey'+num+'" value="" placeholder="Observation Name"><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value="" placeholder="Observation Value"></p>';	
 					$('#additionalObsFields').append(obField);	
 					$('#numSearchedObs').val(num); 
 					num++;		

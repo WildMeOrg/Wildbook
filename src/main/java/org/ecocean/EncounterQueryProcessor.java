@@ -316,28 +316,33 @@ public class EncounterQueryProcessor {
           String keyParam = request.getParameter(thisParam);
           String keyNum = thisParam.replace(keyID,"");
           obKeys.put(keyNum,keyParam);
+          System.out.println("The param: "+keyParam);
         }
         if (thisParam!=null&&thisParam.startsWith(valID)) {
           System.out.println("With valID? "+thisParam);
           String valParam = request.getParameter(thisParam);
           String valNum = thisParam.replace(valID,"");
           obVals.put(valNum,valParam);
+          System.out.println("The param: "+valParam);
         }
         for (int i=1;i<=numObsSearched;i++) {
-          if (obKeys.get(i)!=null) {
+          String num = String.valueOf(i);
+          System.out.println(obKeys.toString());
+          System.out.println(obVals.toString());
+          if (obKeys.get(num)!=null) {
             obQuery.append("observation");
             prettyPrint.append("observation ");
-            prettyPrint.append(obKeys.get(i));
-            if (obVals.get(i)!=null) {
+            prettyPrint.append(obKeys.get(num));
+            if (obVals.get(num)!=null) {
               prettyPrint.append(" is ");
-              prettyPrint.append(obVals.get(i));              
+              prettyPrint.append(obVals.get(num));              
             }
             prettyPrint.append("<br/>");
-            obQuery.append("(baseObservations.contains(baseObservations"+i+") && ");
-            obQuery.append("baseObservations"+i+".name == "+Util.quote(obKeys.get(i)));
-            String jdoParam = "observationD"+i;
-            obQuery.append(" && observations"+i+".observationID == "+jdoParam+")");
-            paramMap.put(jdoParam, obKeys.get(i));
+            obQuery.append("(baseObservations.contains(baseObservations"+num+") && ");
+            obQuery.append("baseObservations"+num+".name == "+Util.quote(obKeys.get(num)));
+            String jdoParam = "observationD"+num;
+            obQuery.append(" && observations"+num+".observationID == "+jdoParam+")");
+            paramMap.put(jdoParam, obKeys.get(num));
             parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "String "+jdoParam);
           }
         }
@@ -349,6 +354,8 @@ public class EncounterQueryProcessor {
           for (int i = 0; i < numObsSearched; i++) {
             updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);
           }
+          System.out.println("ObQuery: "+obQuery);
+          System.out.println("Filter? "+filter);
         }
       }  
     }
