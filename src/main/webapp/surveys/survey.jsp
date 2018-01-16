@@ -210,7 +210,13 @@ if (sv!=null) {
 						int numPoints = 0;
 						if (pth!=null&&pth.getAllPointLocations()!=null) {
 							numPoints = pth.getAllPointLocations().size();
+							ArrayList<PointLocation> pts = pth.getAllPointLocations();
+							System.out.println("----------------------------------------");
 							System.out.println("Path String: "+pth.toString());
+							for (PointLocation pt : pts) {
+								System.out.println("Point: "+pt.getID());
+							}
+							System.out.println("----------------------------------------");
 							try {
 								if (pth.getStartTime()!=null) {
 									trkStart = pth.getStartTime();								

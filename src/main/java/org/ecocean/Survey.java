@@ -280,9 +280,9 @@ public class Survey implements java.io.Serializable{
   
   private String monthDayYearToMilli(String newDate) {
     SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
-    String month = newDate.substring(2);
+    String month = newDate.substring(0,2);
     String day = newDate.substring(3,5);
-    String year = newDate.substring(6);
+    String year = newDate.substring(6,10);
     Date dt;
     try {
       dt = sdf.parse(month+"-"+day+"-"+year);

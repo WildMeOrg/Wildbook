@@ -107,9 +107,6 @@ public class Path implements java.io.Serializable {
   public Long getEndTimeMillis() {
     Long endLong = null;
     if (pointLocations!=null&&!pointLocations.isEmpty()) {
-      PointLocation pnt = pointLocations.get(0);
-      System.out.println("POINT LOCATION : "+pnt.toString());
-      endLong = pnt.getDateTimeInMilli();
       for (PointLocation pl : pointLocations) {
         Long tempLong = pl.getDateTimeInMilli();
         if (tempLong!=null&&endLong!=null&&tempLong>endLong) {
