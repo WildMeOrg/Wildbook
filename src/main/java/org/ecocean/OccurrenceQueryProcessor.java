@@ -20,7 +20,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
   private static final String BASE_FILTER = "SELECT FROM org.ecocean.Occurrence WHERE \"OCCURRENCEID\" != null && ";
 
-  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"soil","rain","activity","habitatOpenness","grassGreenness","grassHeight","weather","wind"};
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"ID","distance","groupBehavior"};
 
 
 
@@ -46,6 +46,8 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
       filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
     }
 
+    filter = QueryProcessor.filterDateRanges(request, filter, prettyPrint);
+    
     // GPS box
     filter = QueryProcessor.filterWithGpsBox(filter, request, prettyPrint);
     

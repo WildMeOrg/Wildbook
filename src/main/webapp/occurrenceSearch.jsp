@@ -452,55 +452,6 @@ function FSControl(controlDiv, map) {
 
 </tr>
 
-
-<tr>
-  <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-      color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
-  </td>
-</tr>
-
-<tr>
-  <td>
-    <div id="date" style="display:none;">
-      <p><%=props.getProperty("dateInstructions") %></p>
-
-<!--  date of birth and death -->
-      <p><strong><%=occProps.getProperty("dateStart")+" "+occProps.getProperty("range")%>:</strong></p>
-      <table>
-      	<tr>
-      		<td><%=occProps.getProperty("start") %> <input type="text" id="eventStartDate-From" name="startTimeFrom" class="addDatePicker"/></td>
-      		<td><%=occProps.getProperty("end") %> <input type="text" id="eventStartDate-To" name="startTimeTo" class="addDatePicker"/></td>
-      	</tr>
-      </table>
-
-      <p><strong><%=occProps.getProperty("dateEnd")+" "+occProps.getProperty("range")%>:</strong></p>
-      <table>
-      	<tr>
-      		<td><%=occProps.getProperty("start") %> <input type="text" id="endTimeFrom" name="eventEndDate-From" class="addDatePicker"/></td>
-      		<td><%=occProps.getProperty("end") %> <input type="text" id="endTimeTo" name="eventEndDate-To" class="addDatePicker"/></td>
-      	</tr>
-      </table>
-
-      <script>
-      $(function() {
-        $('.addDatePicker').datepicker();
-        console.log("Done setting datepickers!");
-      });
-      </script>
-
-    </div>
-  </td>
-</tr>
-
-
-
-
-
-
-
 <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
