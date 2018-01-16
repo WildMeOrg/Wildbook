@@ -296,7 +296,7 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     
     //begin observation filters -----------------------------------------
-    
+    boolean hasValue = false;
     int numObsSearched = 0;
     if (request.getParameter("numSearchedObs")!=null) {
       numObsSearched = Integer.valueOf(request.getParameter("numSearchedObs"));
@@ -351,8 +351,8 @@ public class EncounterQueryProcessor {
             filter += " && ";
           }
           filter += obQuery.toString();
-          for (int i = 0; i < numObsSearched; i++) {
-            updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);
+          for (int j = 0; j < numObsSearched; j++) {
+            updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + j);
           }
           System.out.println("ObQuery: "+obQuery);
           System.out.println("Filter? "+filter);
