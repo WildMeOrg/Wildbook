@@ -34,7 +34,9 @@ try {
 	System.out.println("Could not retreive survey and occurrence for this number.");
 }
 try {
-	trks = sv.getAllSurveyTracks();	
+	if (sv.getAllSurveyTracks()!=null) {
+		trks = sv.getAllSurveyTracks();	
+	}
 	System.out.println("Number of svy-tracks: "+trks.size());
 } catch (Exception e) {
 	e.printStackTrace();
@@ -120,7 +122,7 @@ $(document).ready(function() {
 	    var markerCoordinates = [
 	    		<%=markerSet%>
 	    ];
-    	console.log('Another coord set...'+'<%=set%>');
+    	//console.log('Another coord set...'+'<%=set%>');
     	
     	var newColor = generateColor();
 	    console.log(newColor);
