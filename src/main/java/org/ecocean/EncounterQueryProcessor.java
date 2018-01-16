@@ -336,7 +336,7 @@ public class EncounterQueryProcessor {
           prettyPrint.append("observation ");
           prettyPrint.append(thisKey);
           prettyPrint.append("<br/>");
-          obQuery.append("(baseObservations.contains(observation"+num+") && ");
+          obQuery.append("(observations.contains(observation"+num+") && ");
           obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
           if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
             String thisVal = Util.basicSanitize(obVals.get(num));
