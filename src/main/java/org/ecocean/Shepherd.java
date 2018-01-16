@@ -2009,6 +2009,15 @@ public class Shepherd {
     samples.closeAll();
     return (al);
   }
+  
+  public ArrayList<TissueSample> getAllTissueSamplesnoQuery() {
+    Extent tsClass = pm.getExtent(TissueSample.class, true);
+    Query tsQuery = pm.newQuery(tsClass, "");
+    
+    Collection col = (Collection) (tsQuery.execute());
+    ArrayList<TissueSample> samples = new ArrayList<>(col);
+    return samples;
+  }
 
   public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
     ArrayList<TissueSample> al = new ArrayList<TissueSample>();
