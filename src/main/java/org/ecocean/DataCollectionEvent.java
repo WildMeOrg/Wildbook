@@ -20,7 +20,8 @@
 package org.ecocean;
 
 import javax.servlet.http.HttpServletRequest;
-
+import java.util.ArrayList;
+import java.util.List;
 /**
  *
  *
@@ -61,7 +62,7 @@ private String institutionCode;
 private String collectionCode;
 private String datasetName;
 
-
+private List<Observation> observations = new ArrayList<>();
 /*
  * Empty constructor required for JDO persistence
  *
