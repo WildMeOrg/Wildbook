@@ -9,6 +9,13 @@ java.io.*,java.util.*, java.io.FileInputStream, java.util.Date, java.text.Simple
 String context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("survey.jsp");
+
+response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+
 
 Properties props = new Properties();
 myShepherd.beginDBTransaction();
@@ -76,11 +83,11 @@ if (sv!=null) {
 	errors += "<p>There was no valid Survey for this ID.</p><br/>";
 }
 %>
-<jsp:include page="../header.jsp" flush="true" />
 <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="../javascript/oms.min.js"></script>
 <link rel="stylesheet" href="../css/ecocean.css" type="text/css" media="all"/>
+<jsp:include page="../header.jsp" flush="true" />
 
 <div class="container maincontent">
 	<div class="row">
