@@ -1999,7 +1999,6 @@ public class Shepherd {
       return as;
   }
 
-
   public List<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(TissueSample.class, true);
@@ -2010,7 +2009,7 @@ public class Shepherd {
     return (al);
   }
   
-  public ArrayList<TissueSample> getAllTissueSamplesnoQuery() {
+  public ArrayList<TissueSample> getAllTissueSamplesNoQuery() {
     Extent tsClass = pm.getExtent(TissueSample.class, true);
     Query tsQuery = pm.newQuery(tsClass, "");
     
