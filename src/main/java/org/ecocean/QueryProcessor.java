@@ -97,14 +97,14 @@ public abstract class QueryProcessor {
           prettyPrint.append("<br/>");
           obQuery.append("(baseObservations.contains(observation"+num+") && ");
           obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
-          if (Util.basicSanitize(obVals.get(num))!=null&&!obVals.get(num).trim().equals("")) {
+          if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
             String thisVal = Util.basicSanitize(obVals.get(num));
             prettyPrint.append(" is ");
             prettyPrint.append(thisVal);              
             obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim())); 
           }
           obQuery.append(")");
-          if (1<=numObsSearched) {
+          if (1<numObsSearched) {
             obQuery.append(" && ");
           }
         }

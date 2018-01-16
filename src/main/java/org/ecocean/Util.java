@@ -628,14 +628,18 @@ public class Util {
     }
     
     public static String basicSanitize(String input) {
-      String sanitized = input.replace(":", "");
-      sanitized = input.replace(";", "");
-      sanitized = sanitized.replace("\"", "");
-      sanitized = sanitized.replace("'", "");
-      sanitized = sanitized.replace("(", "");
-      sanitized = sanitized.replace(")", "");
-      sanitized = sanitized.replace("*", "");
-      sanitized = sanitized.replace("%", "");
+      String sanitized = null;
+      if (input!=null) {
+        sanitized = input;
+        sanitized = input.replace(":", "");
+        sanitized = input.replace(";", "");
+        sanitized = sanitized.replace("\"", "");
+        sanitized = sanitized.replace("'", "");
+        sanitized = sanitized.replace("(", "");
+        sanitized = sanitized.replace(")", "");
+        sanitized = sanitized.replace("*", "");
+        sanitized = sanitized.replace("%", "");        
+      }
       return sanitized;
     }
 }
