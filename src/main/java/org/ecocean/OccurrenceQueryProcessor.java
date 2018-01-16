@@ -48,7 +48,15 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
     // GPS box
     filter = QueryProcessor.filterWithGpsBox(filter, request, prettyPrint);
-
+    
+    
+    //Observations
+    filter = QueryProcessor.filterObservations(filter, request, prettyPrint, "Occurrence");
+    int numObs = QueryProcessor.getNumberOfObservationsInQuery(request);
+    for (int i = 1;i<=numObs;i++) {
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);      
+    }
+    
     // make sure no trailing ampersands
     filter = QueryProcessor.removeTrailingAmpersands(filter);
     filter += jdoqlVariableDeclaration;
@@ -93,4 +101,5 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     System.out.println("about to return OccurrenceQueryResult with filter "+filter+" and nOccs="+rOccurrences.size());
     return (new OccurrenceQueryResult(rOccurrences,filter,prettyPrint.toString()));
   }
+  
 }

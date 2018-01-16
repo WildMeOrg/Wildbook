@@ -507,41 +507,49 @@ function FSControl(controlDiv, map) {
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 %>
 
-
-
   <tr id="FieldsTitleRow">
     <td>
       <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
         href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
         src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-        color="#000000"><%=occProps.getProperty("fieldsTitle") %></font></a></h4>
+        color="#000000"><%=occProps.getProperty("observations") %></font></a></h4>
     </td>
   </tr>
-
-  <tr id="fieldsContentRow">
-    <td>
-        <div id="tags" style="display:none;">
-            <p><%=occProps.getProperty("fieldsInstructions") %></p>
-
-
-            <%
-            // here we'll programatically create divs that allow for searching through metadata fields
-
-            %>
-
-              <h5>Zebra Group Fields</h5>
-              <table>
-
-              <%
-              for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
-                printStringFieldSearchRow(fieldName, out, occProps);
-              }
-              %>
-              </table>
-              </table>
-           </div>
-           </td>
-           </tr>
+          <!-- Begin search code for Observations --> 
+	<tr>
+		<td>
+			<br/>
+			<!-- Allow a key and value for each observation, allow user to add additional fields. -->
+			<p>
+				<label><%=props.getProperty("obSearchHeader")%></label>
+				<label><small><%=props.getProperty("obSearchDesc")%></small></label>
+				<label><%=props.getProperty("propertyName")%></label><label><%=props.getProperty("propertyValue")%></label>
+			</p>
+			<p>
+				<input name="observationKey1" type="text" id="observationKey1" value="" placeholder="Observation Name">
+				<input name="observationValue1" type="text" id="observationValue1" value="" placeholder="Observation Value">
+			</p>
+			<div id="additionalObsFields">
+			
+			
+			</div>
+			<input name="numSearchedObs" type="hidden" id="numSearchedObs" value="1" >
+			<input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=props.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
+		</td>
+		<br/>
+	</tr>	
+	<script>
+		$(document).ready(function(){
+			// Set to 2 because the first Observation is #1, and this variable will not be used until another is made.
+			var num = 2;
+			$('#addAnotherObBtn').click(function(){
+				var obField = '<p><input name="observationKey'+num+'" type="text" id="observationKey'+num+'" value="" placeholder="Observation Name"><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value="" placeholder="Observation Value"></p>';	
+				$('#additionalObsFields').append(obField);	
+				$('#numSearchedObs').val(num); 
+				num++;		
+			});
+		});
+	</script>
 
 <tr>
   <td>

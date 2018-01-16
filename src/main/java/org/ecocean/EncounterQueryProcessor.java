@@ -327,16 +327,18 @@ public class EncounterQueryProcessor {
       }  
       for (int i=1;i<=numObsSearched;i++) {
         String num = String.valueOf(i);
-        if (obKeys.get(num)!=null) {
+        if (Util.basicSanitize(obKeys.get(num))!=null) {
+          String thisKey = Util.basicSanitize(obKeys.get(num));
           prettyPrint.append("observation ");
-          prettyPrint.append(obKeys.get(num));
+          prettyPrint.append(thisKey);
           prettyPrint.append("<br/>");
           obQuery.append("(baseObservations.contains(observation"+num+") && ");
-          obQuery.append("observation"+num+".name == "+Util.quote(obKeys.get(num).trim()));        
-          if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
+          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
+          if (Util.basicSanitize(obVals.get(num))!=null&&!obVals.get(num).trim().equals("")) {
+            String thisVal = Util.basicSanitize(obVals.get(num));
             prettyPrint.append(" is ");
-            prettyPrint.append(obVals.get(num));              
-            obQuery.append(" && observation"+num+".value == "+Util.quote(obVals.get(num).trim())); 
+            prettyPrint.append(thisVal);              
+            obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim())); 
           }
           obQuery.append(")");
         }
