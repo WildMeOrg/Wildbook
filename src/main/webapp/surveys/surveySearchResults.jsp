@@ -266,15 +266,10 @@ var colDefn = [
     value: _notUndefined('dateTimeCreated'),
   },
   {
-	    key: 'startTime',
-	    label: 'Start Time',
-	    value: _notUndefined('startTime'),
+	    key: 'date',
+	    label: 'Event Date',
+	    value: _notUndefined('date'),
   },
-  {
-	    key: 'endTime',
-	    label: 'End Time',
-	    value: _notUndefined('endTime'),
-},
   {
 	    key: 'project',
 	    label: 'Project',
