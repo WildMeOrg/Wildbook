@@ -179,19 +179,19 @@ String formAction="surveySearchResults.jsp";
       <p><strong><%=occProps.getProperty("dateStart")+" "+occProps.getProperty("range")%>:</strong></p>
       <table>
       	<tr>
-      		<td><%=occProps.getProperty("start") %> <input type="text" id="eventStartDate-From" name="sartTimeFrom" class="addDatePicker"/></td>
-      		<td><%=occProps.getProperty("end") %> <input type="text" id="eventStartDate-To" name="startTimeTo" class="addDatePicker"/></td>
+      		<td><%=occProps.getProperty("start") %> <input type="text" id="startTimeFrom" name="startTimeFrom" class="addDatePicker"/></td>
+      		<td><%=occProps.getProperty("end") %> <input type="text" id="startTimeTo" name="startTimeTo" class="addDatePicker"/></td>
       	</tr>
       </table>
 
       <p><strong><%=occProps.getProperty("dateEnd")+" "+occProps.getProperty("range")%>:</strong></p>
       <table>
       	<tr>
-      		<td><%=occProps.getProperty("start") %> <input type="text" id="eventEndDate-From" name="endTimeFrom" class="addDatePicker"/></td>
-      		<td><%=occProps.getProperty("end") %> <input type="text" id="eventEndDate-To" name="endTimeTo" class="addDatePicker"/></td>
+      		<td><%=occProps.getProperty("start") %> <input type="text" id="endTimeFrom" name="endTimeFrom" class="addDatePicker"/></td>
+      		<td><%=occProps.getProperty("end") %> <input type="text" id="endTimeTo" name="endTimeTo" class="addDatePicker"/></td>
       	</tr>
       </table>
-
+      
       <script>
       $(function() {
         $('.addDatePicker').datepicker();
