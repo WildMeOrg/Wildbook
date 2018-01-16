@@ -51,7 +51,9 @@ public class SurveyQueryProcessor extends QueryProcessor {
     
     
     //Observations
-    filter = QueryProcessor.filterObservations(filter, request, prettyPrint, "Survey");
+    
+    // Filter method takes a relative package argument as a means of making is adaptable for other classes.
+    filter = QueryProcessor.filterObservations(filter, request, prettyPrint, "movement.Survey");
     int numObs = QueryProcessor.getNumberOfObservationsInQuery(request);
     for (int i = 1;i<=numObs;i++) {
       jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);      
@@ -102,4 +104,43 @@ public class SurveyQueryProcessor extends QueryProcessor {
     return (new SurveyQueryResult(rSurveys,filter,prettyPrint.toString()));
   }
   
+  public static String filterDateRanges(HttpServletRequest request, String filter) {
+    String filterAddition = "";
+    String endTimeFrom = null;
+    String endTimeTo = null;
+    String startTimeFrom = null;
+    String startTimeTo = null;
+    filter = prepForNext(filter);
+    if (request.getParameter("startTimeFrom")!=null) {
+      startTimeFrom = request.getParameter("startTimeFrom");
+      filter += " 'startTime' >=  "+startTimeFrom+" ";
+    }
+    filter = prepForNext(filter);
+    if (request.getParameter("startTimeTo")!=null) {
+      startTimeTo = request.getParameter("startTimeTo");
+      filter += " 'startTime' <=  "+startTimeFrom+" ";
+    }
+    filter = prepForNext(filter);
+    if (request.getParameter("endTimeFrom")!=null) {
+      endTimeFrom = request.getParameter("endTimeFrom");
+      filter += " 'endTime' >=  "+endTimeFrom+" ";
+    }
+    filter = prepForNext(filter);
+    if (request.getParameter("endTimeTo")!=null) {
+      endTimeTo = request.getParameter("endTimeTo");
+      filter += " 'endTime' >=  "+endTimeFrom+" ";
+    }
+    filter = prepForNext(filter);
+    return filter;
+  }
+  
+ public static String prepForNext(String filter) {
+   if (!QueryProcessor.endsWithAmpersands(filter)) {
+     QueryProcessor.prepForCondition(filter);
+   }
+   return filter;
+ }
 }
+
+
+
