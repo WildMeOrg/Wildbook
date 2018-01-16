@@ -63,6 +63,7 @@ public class Util {
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
   private static final String VESSEL = "vessel";
+  private static final String GENUS_SPECIES = "genusSpecies";
 
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
@@ -94,6 +95,17 @@ public class Util {
     }
     return list;
   }
+  
+  public static ArrayList<String> findSpeciesNames(String langCode, String context) {
+    ArrayList<String> nameArr = new ArrayList<>();
+    List<String> nameList = CommonConfiguration.getIndexedPropertyValues(GENUS_SPECIES,context);
+    if (nameList.size() > 0) {
+      for  (String name : nameList) {
+        nameArr.add(name);
+      }  
+    }
+    return nameArr;
+  } 
 
   public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();

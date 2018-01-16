@@ -5,11 +5,14 @@ org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.movement.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.util.Date, java.text.SimpleDateFormat, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+
+<jsp:include page="../header.jsp" flush="true" />
+
 <%
 String context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Shepherd myShepherd=new Shepherd(context);
-myShepherd.setAction("survey.jsp");
+myShepherd.setAction("survey.jsp1");
 
 response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -86,8 +89,8 @@ if (sv!=null) {
 <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="../javascript/oms.min.js"></script>
+
 <link rel="stylesheet" href="../css/ecocean.css" type="text/css" media="all"/>
-<jsp:include page="../header.jsp" flush="true" />
 
 <div class="container maincontent">
 	<div class="row">
@@ -218,8 +221,8 @@ if (sv!=null) {
 						if (pth!=null&&pth.getAllPointLocations()!=null) {
 							numPoints = pth.getAllPointLocations().size();
 							ArrayList<PointLocation> pts = pth.getAllPointLocations();
-							System.out.println("----------------------------------------");
-							System.out.println("Path String: "+pth.toString());
+							//System.out.println("----------------------------------------");
+							//System.out.println("Path String: "+pth.toString());
 							for (PointLocation pt : pts) {
 								System.out.println("Point: "+pt.getID());
 							}
@@ -334,7 +337,7 @@ $(document).ready(function() {
 						
 				if (sv!=null&&sv.getBaseObservationArrayList()!=null) {
 					ArrayList<Observation> obs = sv.getBaseObservationArrayList();
-					System.out.println("Observations ... "+obs);
+					//System.out.println("Observations ... "+obs);
 					int numObservations = sv.getBaseObservationArrayList().size();
 					for (Observation ob : obs) {
 						
