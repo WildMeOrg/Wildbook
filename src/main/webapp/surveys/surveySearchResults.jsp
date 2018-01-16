@@ -187,11 +187,23 @@
 %>
 
 <style>
-.ptcol-maxYearsBetweenResightings {
+.ptcol-surveyID {
+	width: 400px;
+}
+
+.ptcol-date {
 	width: 100px;
 }
-.ptcol-numberLocations {
-	width: 100px;
+.ptcol-dateTimeCreated {
+	width: 200px;
+}
+
+.ptcol-project {
+	width: 250px;
+}
+
+.ptcol-type {
+	width: 250px;
 }
 
 .searchResultsRow {
@@ -261,14 +273,14 @@ var colDefn = [
     value: _notUndefined('ID'),
   },
   {
-    key: 'dateTimeCreated',
-    label: 'Date Created',
-    value: _notUndefined('dateTimeCreated'),
-  },
-  {
 	    key: 'date',
 	    label: 'Event Date',
 	    value: _notUndefined('date'),
+  },
+  {
+    key: 'dateTimeCreated',
+    label: 'Record Created',
+    value: _notUndefined('dateTimeCreated'),
   },
   {
 	    key: 'project',
