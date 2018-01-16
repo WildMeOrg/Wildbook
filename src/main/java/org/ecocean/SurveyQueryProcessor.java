@@ -20,7 +20,7 @@ public class SurveyQueryProcessor extends QueryProcessor {
 
   private static final String BASE_FILTER = "SELECT FROM org.ecocean.Survey WHERE \"ID\" != null && ";
 
-  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"soil","rain","activity","habitatOpenness","grassGreenness","grassHeight","weather","wind"};
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"project","organization","type","effort"};
 
   
 
