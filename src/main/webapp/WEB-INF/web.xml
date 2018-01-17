@@ -122,7 +122,7 @@
                 #only let authenticated users
                 #with the appropriate role
                 #view the web pages in the secure
-                #and admin areas
+                #and admin 
                 [urls]
 
                 /rest/** = authcBasicWildbook,roles[rest]
@@ -1296,11 +1296,6 @@
 <servlet-mapping> 
   <servlet-name>CRCExportReport</servlet-name>
   <url-pattern>/CRCExportReport</url-pattern>
-</servlet-mapping>
-
-<servlet-mapping>
-  <servlet-name>LightRest</servlet-name>
-  <url-pattern>/LightRest/*</url-pattern>
 </servlet-mapping>
 
 <servlet-mapping>
