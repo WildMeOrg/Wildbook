@@ -21,9 +21,9 @@ import org.joda.time.DateTime;
 
 public class SurveyQueryProcessor extends QueryProcessor {
 
-  private static final String BASE_FILTER = "SELECT FROM org.ecocean.Survey WHERE \"ID\" != null && ";
+  private static final String BASE_FILTER = "SELECT FROM org.ecocean.Survey WHERE \"surveyID\" != null && ";
 
-  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"ID","project","organization","type"};
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"surveyID","project","organization","type"};
 
   
 
@@ -39,7 +39,7 @@ public class SurveyQueryProcessor extends QueryProcessor {
     //myShepherd.setAction("SurveyQueryProcessor.class");
     
     ArrayList<Survey> svys = myShepherd.getAllSurveys();
-    if (!svys.isEmpty()) {
+    if (svys!=null&&!svys.isEmpty()) {
       for (int i=0;i<20;i++) {
         System.out.println("Sample #"+i+" startTime "+svys.get(i).getStartTimeMilli());
       }      

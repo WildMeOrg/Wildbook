@@ -148,7 +148,7 @@ context=ServletUtilities.getContext(request);
 		String surveyID = occ.getSurvey(myShepherd).getID();
 	%>	
 		<p><strong><%=props.getProperty("correspondingSurvey") %>:</strong> 
-			<a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getPrimaryKeyID()%>&surveyID=<%=surveyID%>"><%=surveyID%>
+			<a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getOccurrenceID()%>&surveyID=<%=surveyID%>"><%=surveyID%>
 			</a>
 		</p>			
 	<%	
@@ -232,7 +232,7 @@ context=ServletUtilities.getContext(request);
 				<div class="highlight resultMessageDiv" id="addSurveyErrorDiv"></div>
 
 				<form name="addSurveyToEncounter" class="editFormSurvey">
-					<input name="number" type="hidden" value="<%=number%>" id="addEncNumber" /> <input name="action" type="hidden" value="add" id="addSurveyAction" />
+					<input name="number" type="hidden" value="<%=num%>" id="addEncNumber" /> <input name="action" type="hidden" value="add" id="addSurveyAction" />
 					<div class="form-group row">
 
 						<div class="col-sm-8" id="addDiv">
