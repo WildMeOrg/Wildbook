@@ -140,30 +140,16 @@
 
 
       <h1 class="intro">
-        <%=svyProps.getProperty("OccurrenceSearchResults")%>
+        <%=svyProps.getProperty("surveySearchResults")%>
       </h1>
 
-      <ul id="tabmenu">
-
-        <li><a class="active"><%=svyProps.getProperty("table")%>
-        </a></li>
-            <li><a
-           href="surveyExportSearchResults.jsp?<%=request.getQueryString() %>"><%=svyProps.getProperty("export")%>
-         </a></li>
-
-      </ul>
-
-
-<table width="810" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td>
-
-
-      <!--<p><%=svyProps.getProperty("searchResultsInstructions")%>-->
-      </p>
-    </td>
-  </tr>
-</table>
+	<table width="810" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td>
+					<p><%=svyProps.getProperty("searchResultsInstructions")%></p>
+			</td>
+		</tr>
+	</table>
 
 
   <%
