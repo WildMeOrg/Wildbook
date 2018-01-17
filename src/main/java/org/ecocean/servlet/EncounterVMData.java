@@ -24,6 +24,7 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.media.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -42,6 +43,7 @@ import com.google.gson.Gson;
 
 public class EncounterVMData extends HttpServlet {
 
+    public static int MAX_MATCH = 5000;  //most we should send back as matching candidates
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -76,14 +78,29 @@ public class EncounterVMData extends HttpServlet {
 
 			} else if (request.getParameter("matchID") != null) {
 				wantJson = false;
+
+                            //we may also be assigning the candidate encounter (if we are allowed)
+                            Encounter candEnc = null;
+                            if (request.getParameter("candidate_number") != null) {
+			        candEnc = myShepherd.getEncounter(request.getParameter("candidate_number"));
+                            }
+
       	if (ServletUtilities.isUserAuthorizedForEncounter(enc, request)) {
 					String matchID = ServletUtilities.cleanFileName(request.getParameter("matchID"));
 					//System.out.println("setting indiv id = " + matchID + " on enc id = " + enc.getCatalogNumber());
-          MarkedIndividual indiv = myShepherd.getMarkedIndividual(matchID);
+          MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(matchID);
 					if (indiv == null) {  //must have sent a new one
 						indiv = new MarkedIndividual(matchID, enc);
 						indiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + matchID + ".</p>");
 						indiv.setDateTimeCreated(ServletUtilities.getDate());
+
+                                                //candEnc should only ever get assigned for *new indiv* hence this code here
+      	                                        if ((candEnc != null) && ServletUtilities.isUserAuthorizedForEncounter(candEnc, request)) {
+					            candEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
+					            candEnc.setMatchedBy("Visual Matcher");
+                                                    indiv.addEncounter(candEnc, context);
+                                                }
+
 						myShepherd.addMarkedIndividual(indiv);
           } 
 
@@ -102,6 +119,8 @@ public class EncounterVMData extends HttpServlet {
 				rtn.put("_wantCandidates", true);
 				ArrayList candidates = new ArrayList();
 				String filter = "this.catalogNumber != \"" + enc.getCatalogNumber() + "\"";
+                                filter += " && this.genus == \"" + enc.getGenus() + "\"";
+                                filter += " && this.specificEpithet == \"" + enc.getSpecificEpithet() + "\"";
 				String[] fields = {"locationID", "sex", "patterningCode"};
 				for (String f : fields) {
 					String val = request.getParameter(f);
@@ -115,10 +134,10 @@ public class EncounterVMData extends HttpServlet {
 						filter += " && (this.mmaCompatible == false || this.mmaCompatible == null)";
 					}
 				}
-//System.out.println("candidate filter => " + filter);
+System.out.println("candidate filter => " + filter);
 
 				Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
-				while (all.hasNext()) {
+				while (all.hasNext() && (candidates.size() < MAX_MATCH)) {
 					Encounter cand = all.next();
 					HashMap e = new HashMap();
 					e.put("id", cand.getCatalogNumber());
@@ -129,6 +148,7 @@ public class EncounterVMData extends HttpServlet {
 					e.put("sex", cand.getSex());
 					e.put("mmaCompatible", cand.getMmaCompatible());
 
+/*
 					List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
 					ArrayList images = new ArrayList();
 					String dataDir = CommonConfiguration.getDataDirectoryName(context);
@@ -144,11 +164,15 @@ public class EncounterVMData extends HttpServlet {
 						}
 					}
 					if (!images.isEmpty()) e.put("images", images);
+*/
+                                        addImages(cand, e, myShepherd, request);
 					candidates.add(e);
 				}
+                                rtn.put("maximumCandidatesReached", all.hasNext());
 				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
 
 			} else {
+/*
 				List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 				String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
@@ -164,7 +188,8 @@ public class EncounterVMData extends HttpServlet {
 						images.add(i);
 					}
 				}
-		
+*/
+                                addImages(enc, rtn, myShepherd, request);
 				rtn.put("id", enc.getCatalogNumber());
 				rtn.put("patterningCode", enc.getPatterningCode());
 				rtn.put("sex", enc.getSex());
@@ -172,7 +197,7 @@ public class EncounterVMData extends HttpServlet {
 				rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividualID()));
 				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
 				rtn.put("mmaCompatible", enc.getMmaCompatible());
-				if (!images.isEmpty()) rtn.put("images", images);
+				//if (!images.isEmpty()) rtn.put("images", images);
 			}
 
 
@@ -205,4 +230,21 @@ public class EncounterVMData extends HttpServlet {
     out.close();
   }
 
+    private void addImages(Encounter enc, HashMap m, Shepherd myShepherd, HttpServletRequest request) {
+        if (enc == null) return;
+        ArrayList mas = new ArrayList();
+        for (MediaAsset ma : enc.getMedia()) {
+            HashMap i = new HashMap();
+            i.put("id", ma.getId());
+            i.put("url", ma.safeURL(myShepherd, request));
+            i.put("thumbUrl", ma.safeURL(myShepherd, request));
+/*
+            i.put("url", ma.webURL());
+            i.put("thumbUrl", ma.webURL());
+*/
+            i.put("keywords", ma.getKeywords());
+            mas.add(i);
+        }
+        if (mas.size() > 0) m.put("images", mas);
+    }
 }
