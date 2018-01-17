@@ -48,6 +48,8 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
+import org.ecocean.MarkedIndividual;
+import org.ecocean.Keyword;
 import org.ecocean.Encounter;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
@@ -667,6 +669,42 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       if (fv.get("lifeStage") != null && fv.get("lifeStage").toString().length() > 0) {
               enc.setLifeStage(fv.get("lifeStage").toString());
           }
+
+
+      if (fv.get("flukeType") != null && fv.get("flukeType").toString().length() > 0) {
+                    System.out.println("        ENCOUNTERFORM:");
+                    System.out.println("        ENCOUNTERFORM:");
+                    System.out.println("        ENCOUNTERFORM:");
+            String kwName = fv.get("flukeType").toString();
+            Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+            for (Annotation ann: enc.getAnnotations()) {
+                MediaAsset ma = ann.getMediaAsset();
+                if (ma!=null) {
+                    ma.addKeyword(kw);
+
+                    System.out.println("ENCOUNTERFORM: added flukeType keyword to encounter: "+kwName);
+                }
+            }
+                                System.out.println("        ENCOUNTERFORM:");
+                    System.out.println("        ENCOUNTERFORM:");
+
+        }
+
+
+      if (fv.get("manualID") != null && fv.get("manualID").toString().length() > 0) {
+            String indID = fv.get("manualID").toString();
+            enc.setIndividualID(indID);
+            MarkedIndividual ind = myShepherd.getMarkedIndividualQuiet(indID);
+            if (ind==null) {
+                ind = new MarkedIndividual(indID, enc);
+                myShepherd.storeNewMarkedIndividual(ind);
+                System.out.println("        ENCOUNTERFORM: created new individual "+indID);
+            } else {
+                ind.addEncounter(enc, myShepherd.getContext());
+                System.out.println("        ENCOUNTERFORM: added enc to individual "+indID);
+
+            }
+        }
 
 
 
