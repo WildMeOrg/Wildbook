@@ -320,6 +320,19 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                           
                       <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
 
+
+                      <!-- submit encounter, survey -->
+
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+							              <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
+                        </ul>
+                      </li>
+
+                      <!-- end submit -->
+
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -331,7 +344,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
-							<li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
                         	<li class="divider"></li>
                         </ul>
                       </li>
