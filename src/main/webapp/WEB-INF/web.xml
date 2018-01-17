@@ -1629,6 +1629,11 @@
     <url-pattern>/EncounterSetTags</url-pattern>
   </servlet-mapping>
 
+  <servlet-mapping>
+    <servlet-name>EncounterVMData</servlet-name>
+    <url-pattern>/EncounterVMData</url-pattern>
+  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>EncounterResetDate</servlet-name>
