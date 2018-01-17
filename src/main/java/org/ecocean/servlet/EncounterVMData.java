@@ -235,6 +235,7 @@ System.out.println("candidate filter => " + filter);
         ArrayList mas = new ArrayList();
         for (MediaAsset ma : enc.getMedia()) {
             HashMap i = new HashMap();
+            i.put("id", ma.getId());
             i.put("url", ma.safeURL(myShepherd, request));
             i.put("thumbUrl", ma.safeURL(myShepherd, request));
 /*

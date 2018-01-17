@@ -25,8 +25,8 @@ function closeFullZoom() {
 	$('#candidate-full-zoom').hide();
 }
 
-function loadTarget(data) {
-	setTargetImg(data);
+function loadTarget(data, imgNum) {
+	setTargetImg(data, imgNum);
 }
 
 
@@ -61,6 +61,7 @@ function gotTarget(d) {
 		return;
 	}
 
+        var imgNum = 0;
 	encData = d;
 	encounterNumber = d.id;
 	candidateCriteria.locationID = d.locationID;
@@ -68,8 +69,12 @@ function gotTarget(d) {
 	candidateCriteria.patterningCode = d.patterningCode;
 	//candidateCriteria.mmaCompatible = d.mmaCompatible;
 
+        for (var i = 0 ; i < encData.images.length ; i++) {
+            if (encData.images[i].id == mediaAssetId) imgNum = i;
+        }
+
 	createControls();
-	loadTarget(d);
+	loadTarget(d, imgNum);
 	findCandidates();
 }
 

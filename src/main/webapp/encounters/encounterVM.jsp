@@ -88,6 +88,7 @@
 
   // Get encounter number
   String num = request.getParameter("number").replaceAll("\\+", "").trim();
+  String mediaAssetId = request.getParameter("mediaAssetId");
 
   // Set up references to our file system components
   String rootWebappPath = getServletContext().getRealPath("/");
@@ -138,6 +139,7 @@
 
 
 <script>
+        var mediaAssetId = <%=((mediaAssetId == null) ? "false" : mediaAssetId)%>;
 	var patterningCodes = [
 <%
     List<String> pcodes = myShepherd.getAllPatterningCodes();
