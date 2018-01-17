@@ -465,7 +465,7 @@ function doImageEnhancer(sel) {
 
         opt.menu.push(['use visual matcher', function(enh) {
       	    if (!isGenusSpeciesSet()) {
-                imageEnhancer.popup("You need full taxonomic classification to start identification!");
+                imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
                 return;
             }
             var mid = enh.imgEl.data('enh-mediaassetid');
