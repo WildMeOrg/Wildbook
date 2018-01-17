@@ -11,18 +11,22 @@ console.log('got encID='+encID);
 	var wrapper = $('<div id="vm-wrapper" />');
 	wrapper.append('<input id="match-button" type="button" value="' + wildbookGlobals.properties.lang.visualMatcher.matchButton + '" onClick="event.stopPropagation(); candidateUse()" />');
 	wrapper.append('<div id="vm-target-wrapper"><div class="title">' + wildbookGlobals.properties.lang.visualMatcher.targetTitle + '</div><div id="vm-target-main" class="img-wrapper" /><div id="vm-target-small" /><div id="small-note">' + wildbookGlobals.properties.lang.visualMatcher.targetOtherImages + '</div></div>');
-	wrapper.append('<div id="vm-candidates-wrapper"><div class="title">' + wildbookGlobals.properties.lang.visualMatcher.candidatesTitle + '</div><div id="vm-candidates-imgs" /><div id="vm-candidates-controls" /></div>');
+	wrapper.append('<div id="vm-candidates-wrapper"><div class="title">' + wildbookGlobals.properties.lang.visualMatcher.candidatesTitle + '<span id="cand-count"></span></div><div id="vm-candidates-imgs" /><div id="vm-candidates-controls" /></div>');
 	el.append(wrapper);
 	fetchTarget(encID);
 	$('body').keydown(function(ev) { if (ev.which == 90) candidateFullZoom(); });
 	$('body').keyup(function(ev) {
-		if ((ev.which == 90) || (ev.which == 27)) $('#candidate-full-zoom').hide();
+		if ((ev.which == 90) || (ev.which == 27)) closeFullZoom();
 	});
 }
 
+function closeFullZoom() {
+        $('#vm-wrapper').css('opacity', 1);
+	$('#candidate-full-zoom').hide();
+}
 
-function loadTarget(data) {
-	setTargetImg(data);
+function loadTarget(data, imgNum) {
+	setTargetImg(data, imgNum);
 }
 
 
@@ -57,6 +61,7 @@ function gotTarget(d) {
 		return;
 	}
 
+        var imgNum = 0;
 	encData = d;
 	encounterNumber = d.id;
 	candidateCriteria.locationID = d.locationID;
@@ -64,14 +69,19 @@ function gotTarget(d) {
 	candidateCriteria.patterningCode = d.patterningCode;
 	//candidateCriteria.mmaCompatible = d.mmaCompatible;
 
+        for (var i = 0 ; i < encData.images.length ; i++) {
+            if (encData.images[i].id == mediaAssetId) imgNum = i;
+        }
+
 	createControls();
-	loadTarget(d);
+	loadTarget(d, imgNum);
 	findCandidates();
 }
 
 
 function findCandidates() {
 	var url = '../EncounterVMData?';
+        $('#cand-count').html('');
 	$('#vm-candidates-imgs').html('<p><i>' + wildbookGlobals.properties.lang.visualMatcher.searching + '</i></p>');
 	$.each(candidateCriteria, function(key, val) {
 		if ((candidateCriteria[key] != '') && (candidateCriteria[key] != 'undefined') && (candidateCriteria[key] != 'None') && (candidateCriteria[key] != undefined)) url += key + '=' + candidateCriteria[key] + '&';
@@ -100,6 +110,11 @@ function gotCandidates(data) {
 		return;
 	}
 
+        if (data.maximumCandidatesReached) {
+            $('#cand-count').html(' (' + data.candidates.length + '+) <i>MAX reached</i>');
+        } else {
+            $('#cand-count').html(' (' + data.candidates.length + ')');
+        }
 	data.candidates = candidatesOrder(data.candidates, 'mmaCompatible');
 	$('#vm-candidates-imgs').html('');
 	for (var c = 0 ; c < data.candidates.length ; c++) {
@@ -159,8 +174,9 @@ function candidateHover(el) {
 
 function candidateFullZoom() {
 	if (!currentCandidate.src) return;
-	$('#candidate-full-zoom').html('<img src="' + $('#vm-target-main img').attr('src') + '" /><img src="' + currentCandidate.src + '" /><div class="close-button" onClick="$(\'#candidate-full-zoom\').hide()">close</div><div class="use-button" onClick="candidateUse()">use match</div>').show();
+	$('#candidate-full-zoom').html('<img src="' + $('#vm-target-main img').attr('src') + '" /><img src="' + currentCandidate.src + '" /><div class="close-button" onClick="closeFullZoom()">close</div><div class="use-button" onClick="candidateUse()">use match</div>').show();
 	candidateMakeActive(currentCandidate.id);
+        $('#vm-wrapper').css('opacity', 0.2);
 }
 
 
@@ -168,8 +184,9 @@ function candidateUse() {
 	if (!currentCandidate) return;
 	var h = '<div><form action="../EncounterVMData" method="post">';
 	if (nullIndividual(encData.individualID) && nullIndividual(currentCandidate.individualID)) {
-		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchNew + '</p><div><input name="matchID" /><input type="submit" value="OK" />';
+		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchNew + '</p><div><input name="matchID" style="margin-right: 15px;" /><input type="submit" value="OK" />';
 		h += '<input type="hidden" name="number" value="' + encounterNumber + '" />';
+		h += '<input type="hidden" name="candidate_number" value="' + currentCandidate.id + '" />';
 	} else if (nullIndividual(encData.individualID)) {
 		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchCandidate.replace('%s', currentCandidate.individualID) + '<p><div><input name="matchID" type="hidden" value="' + currentCandidate.individualID + '" /><input type="submit" value="OK" />';
 		h += '<input type="hidden" name="number" value="' + encounterNumber + '" />';
@@ -234,6 +251,7 @@ function createControls() {
 	}
 	h += '</select>';
 
+/*  MMA is mantamatcher specific, so disabling here
 	var mmaSelTrue = '';
 	var mmaSelFalse = '';
 	if (candidateCriteria.mmaCompatible) {
@@ -243,8 +261,9 @@ function createControls() {
 	}
 
 	h += '<select name="mmaCompatible"><option value="">' + wildbookGlobals.properties.lang.visualMatcher.anyMma + '</option><option ' + mmaSelTrue + ' value="true">' + wildbookGlobals.properties.lang.visualMatcher.mmaCompat + '</option><option ' + mmaSelFalse + ' value="false">' + wildbookGlobals.properties.lang.visualMatcher.mmaIncompat + '</option></select>';
+*/
 
-	h += '<input type="button" value="' + wildbookGlobals.properties.lang.visualMatcher.searchButton + '" onClick="candidateSearch()" />';
+	h += '<input type="button" style="padding: 2px 5px; margin: 0 10px;" value="' + wildbookGlobals.properties.lang.visualMatcher.searchButton + '" onClick="candidateSearch()" />';
 
 	$('#vm-candidates-controls').html(h);
 }
