@@ -1073,6 +1073,9 @@ public class Shepherd {
     }
     return true;
   }
+  public boolean isMarkedIndividual(MarkedIndividual mark) {
+    return (mark!=null && isMarkedIndividual(mark.getIndividualID()));
+  }
 
   public boolean isOccurrence(String name) {
     try {
@@ -1082,6 +1085,11 @@ public class Shepherd {
     }
     return true;
   }
+
+  public boolean isOccurrence(Occurrence occ) {
+    return (occ!=null && isOccurrence(occ.getOccurrenceID()));
+  }
+
 
   public boolean isRelationship(String type, String markedIndividualName1, String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, boolean checkBidirectional) {
     try {
@@ -2130,6 +2138,14 @@ public class Shepherd {
       return null;
     }
     return tempShark;
+  }
+
+  public Occurrence getOrCreateOccurrence(String id) {
+      if (id==null) return new Occurrence(Util.generateUUID());
+      Occurrence occ = getOccurrence(id);
+      if (occ != null) return occ;
+      occ = new Occurrence(id);
+      return occ;
   }
 
 
