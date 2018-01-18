@@ -655,6 +655,7 @@ public class MediaAsset implements java.io.Serializable {
     public URL safeURL(Shepherd myShepherd) {
         return safeURL(myShepherd, null);
     }
+
     public URL safeURL(HttpServletRequest request) {
         String context = "context0";
         if (request != null) context = ServletUtilities.getContext(request);  //kinda rough, but....
@@ -679,7 +680,11 @@ public class MediaAsset implements java.io.Serializable {
         if (AccessControl.isAnonymous(request)) bestType = "mid";
         if (store instanceof URLAssetStore) bestType = "original";  //this is cuz it is assumed to be a "public" url
 
-        //gotta consider that we are the best!
+        // hack for flukebook
+        bestType = "master";
+        //System.out.println("bestSafeAsset: ma #"+getId()+" has bestType "+bestType);
+
+        //gotta consider that wre are the best!
         if (this.hasLabel("_" + bestType)) return this;
 
         //if we are a child asset, we need to find our parent then find best from there!
@@ -696,12 +701,18 @@ public class MediaAsset implements java.io.Serializable {
         boolean gotBest = false;
         List<String> types = store.allChildTypes();  //note: do we need to care that top may have changed stores????
         for (String t : types) {
+
             if (t.equals(bestType)) gotBest = true;
+            else gotBest = false;
             if (!gotBest) continue;  //skip over any "better" types until we get to best we can use
 //System.out.println("   ....  ??? do we have a " + t);
             //now try to see if we have one!
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
-            if ((kids != null) && (kids.size() > 0)) return kids.get(0); ///not sure how to pick if we have more than one!  "probably rare" case anyway....
+            if ((kids != null) && (kids.size() > 0)) {
+                MediaAsset kid = kids.get(0);
+                return kid; 
+
+            } ///not sure how to pick if we have more than one!  "probably rare" case anyway....
         }
         return null;  //got nothing!  :(
     }

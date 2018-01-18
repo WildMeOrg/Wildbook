@@ -354,103 +354,6 @@ if(occ.getIndividualCount()!=null){
 </p>
 
 
-<div class="row">
-<div class="col-sm-12">
-<form method="post" action="occurrence.jsp?number=<%=occ.getOccurrenceID()%>" id="occform">
-<input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
-
-<style type="text/css">
-  tr.padding-below td {
-    padding-bottom: 20px;
-  }
-
-  table.occurrence-field-edit td:first-child {
-    padding-right: 3em;
-  }
-  table.occurrence-field-edit td {
-    padding-right: 0px;
-    padding-top: 2px;
-    padding-bottom: 3px;
-  }
-
-  table.occurrence-field-edit td.undo-container {
-    display: none;
-  }
-  table.occurrence-field-edit tr.changed-row td.undo-container {
-    display: unset;
-    padding: 0px;
-    margin: 0px;
-  }
-  table.occurrence-field-edit tr.changed-row td.undo-container div {
-    color: #000;
-    background: inherit;
-    border:none;
-    margin:0px;
-    padding: 6px;
-    padding-bottom:6px;
-    padding-top:5px;
-    font: inherit;
-    /*border is optional*/
-    cursor: pointer;
-  }
-
-  table.occurrence-field-edit tr.changed-row td.undo-container div.undo-button:hover {
-    cursor: pointer;
-    font-weight: bold;
-    background: #ddd;
-  }
-
-  table.occurrence-field-edit tr.padding-below td {
-    padding-bottom: 10px;
-  }
-
-
-  table.occurrence-field-edit tr.changed-row {
-    background: #ebebeb;
-    border-radius: 5px;
-  }
-
-
-
-</style>
-
-<table  class="occurrence-field-edit">
-
-  <tr><td><h3>Location</h3></td></tr>
-  <%
-  String[] locationFields = {"fieldStudySite", "fieldSurveyCode", "sightingPlatform", "decimalLatitude", "decimalLongitude", "transectName", "transectBearing","distance","bearing"};
-  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, locationFields, out);
-  %>
-  <tr class="padding-below"><td></td></tr>
-  <tr><td><h3>Observation</h3></td></tr>
-  <%
-  String[] danFields = {"groupComposition", "groupBehavior", "humanActivityNearby","initialCue","seaState","observer","comments"};
-  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, danFields, out, props);
-
-  %>
-  <tr class="padding-below"><td></td></tr>
-  <tr><td><h3>Counts</h3></td></tr><%
-  String[] groupFields = {"minGroupSizeEstimate", "maxGroupSizeEstimate", "bestGroupSizeEstimate", "numAdults", "numJuveniles", "numCalves"};
-  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, groupFields, out);
-  %>
-
-  <tr class="padding-below"><td></td></tr>
-
-  <tr class="padding-below"><td></td></tr>
-
-</table>
-
-
-<div class="submit" style="position:relative">
-<input type="submit" name="save" value="Save" />
-<span class="note" style="position:absolute;bottom:9"></span>
-</div>
-
-</form>
-</div>
-</div> <!--row -->
-
-
 
 
 
@@ -743,6 +646,109 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
   } //if isOwner
 %>
+
+<style type="text/css">
+  tr.padding-below td {
+    padding-bottom: 20px;
+  }
+
+  table.occurrence-field-edit td:first-child {
+    padding-right: 3em;
+  }
+  table.occurrence-field-edit td {
+    padding-right: 0px;
+    padding-top: 2px;
+    padding-bottom: 3px;
+  }
+
+  table.occurrence-field-edit td.undo-container {
+    display: none;
+  }
+  table.occurrence-field-edit tr.changed-row td.undo-container {
+    display: unset;
+    padding: 0px;
+    margin: 0px;
+  }
+  table.occurrence-field-edit tr.changed-row td.undo-container div {
+    color: #000;
+    background: inherit;
+    border:none;
+    margin:0px;
+    padding: 6px;
+    padding-bottom:6px;
+    padding-top:5px;
+    font: inherit;
+    /*border is optional*/
+    cursor: pointer;
+  }
+
+  table.occurrence-field-edit tr.changed-row td.undo-container div.undo-button:hover {
+    cursor: pointer;
+    font-weight: bold;
+    background: #ddd;
+  }
+
+  table.occurrence-field-edit tr.padding-below td {
+    padding-bottom: 10px;
+  }
+
+
+  table.occurrence-field-edit tr.changed-row {
+    background: #ebebeb;
+    border-radius: 5px;
+  }
+
+
+
+</style>
+
+<div class="row">
+<form method="post" action="occurrence.jsp?number=<%=occ.getOccurrenceID()%>" id="occform">
+<input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
+
+
+<h2>Data Fields</h2>
+<div class="col-lg-4 col-md-6 col-sm-12">
+<table  class="occurrence-field-edit">
+
+  <tr><td><h3>Location</h3></td></tr>
+  <%
+  String[] locationFields = {"fieldStudySite", "fieldSurveyCode", "sightingPlatform", "decimalLatitude", "decimalLongitude", "transectName", "transectBearing","distance","bearing"};
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, locationFields, out);
+  %>
+
+</table>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+<table  class="occurrence-field-edit">
+
+  <tr><td><h3>Observation</h3></td></tr>
+  <%
+  String[] danFields = {"groupComposition", "groupBehavior", "humanActivityNearby","initialCue","seaState","observer","comments"};
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, danFields, out, props);
+
+  %>
+</table>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+<table  class="occurrence-field-edit">
+  <tr><td><h3>Counts</h3></td></tr><%
+  String[] groupFields = {"minGroupSizeEstimate", "maxGroupSizeEstimate", "bestGroupSizeEstimate", "numAdults", "numJuveniles", "numCalves"};
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, groupFields, out);
+  %>
+
+</table>
+</div>
+
+<div class="submit" style="position:relative">
+<input type="submit" name="save" value="Save" />
+<span class="note" style="position:absolute;bottom:9"></span>
+</div>
+
+</form>
+</div> <!--row -->
+
+
 
 
 <br />
