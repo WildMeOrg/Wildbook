@@ -514,6 +514,7 @@ public class Encounter implements java.io.Serializable {
    */
 
 	public boolean getMmaCompatible() {
+                if (mmaCompatible == null) return false;
 		return mmaCompatible;
 	}
 	public void setMmaCompatible(boolean b) {
