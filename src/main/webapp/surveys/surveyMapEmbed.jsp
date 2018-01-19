@@ -150,8 +150,15 @@ $(document).ready(function() {
 		%>
 	    
 	    for (i=0; i<markerCoordinates.length; i++) {  
+
+			var iconColor = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+			if (i===0) {
+				iconColor = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+			}
+
 		    var marker = new google.maps.Marker({
 		    	position: new google.maps.LatLng(markerCoordinates[i][i-i], markerCoordinates[i][1]),
+				icon: iconColor,
 		        map: map,
 		    });
 	        
