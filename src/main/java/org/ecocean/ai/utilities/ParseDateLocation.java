@@ -1,24 +1,25 @@
-package org.ecocean.ParseDateLocation;
+package org.ecocean.ai.utilities;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Properties;
 import java.util.regex.*;
-
 import javax.servlet.http.HttpServletRequest;
-
-import org.ecocean.Encounter;
-import org.ecocean.Occurrence;
-import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
-import org.ecocean.YouTube;
-import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.translate.DetectTranslate;
-import org.joda.time.LocalDateTime;
+import org.ecocean.ai.nmt.google.DetectTranslate;
+
+import java.util.*;
+import edu.stanford.nlp.pipeline.*;
+import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
+
 
 import twitter4j.Status;
+
 
 public class ParseDateLocation {
 
@@ -38,7 +39,7 @@ public class ParseDateLocation {
     }
 
     try{
-      ArrayList<String> nlpLocations = ServletUtilities.nlpLocationParse(text);
+      ArrayList<String> nlpLocations = nlpLocationParse(text);
       for (int i = 0; i<nlpLocations.size(); i++){
         locations.add(nlpLocations.get(i));
       }
@@ -125,7 +126,7 @@ public class ParseDateLocation {
 
 
   //NOTE: overloaded parseDate method for tweet4j status objects specifically. There is another parseDate method!
-  public static String parseDate(String textInput, String context, Status tweet){
+  public static String parseDate(HttpServletRequest request, String textInput, String context, Status tweet){
 
     //int year=-1;
     //int month=-1;
@@ -146,78 +147,22 @@ public class ParseDateLocation {
     try{
       System.out.println(">>>>>> looking for date with NLP");
       //call Stanford NLP function to find and select a date from ytRemarks
-      myDate= ServletUtilities.nlpDateParse(textInput, tweet);
+      myDate= org.ecocean.ai.nlp.SUTime.parseDateStringForBestDate(request, textInput, tweet);
       //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
       System.out.println(">>>>>> NLP found date: "+myDate);
       
-      /*
-      if (myDate!=null) {
-          
-          int numCharact= myDate.length();
-
-          if(numCharact>=4){
-
-            try{
-              year=(new Integer(myDate.substring(0, 4))).intValue();
-              NLPsuccess=true;
-
-              if(numCharact>=7){
-                try {
-                  month=(new Integer(myDate.substring(5, 7))).intValue();
-                  if(numCharact>=10){
-                    try {
-                      day=(new Integer(myDate.substring(8, 10))).intValue();
-                      }
-                    catch (Exception e) { day=-1; }
-                  }
-                else{day=-1;}
-                }
-                catch (Exception e) { month=-1;}
-              }
-              else{month=-1;}
-
-            }
-            catch(Exception e){
-              e.printStackTrace();
-            }
-        }
-
-      }
-      */
-
     }
     catch(Exception e){
       System.out.println("Exception in NLP in IBEISIA.class");
       e.printStackTrace();
     }
 
-    //NLP failure? let's try brute force detection across all languages supported by this Wildbook
-    /*
-    if(!NLPsuccess){
-      System.out.println(">>>>>> looking for date with brute force");
-      //next parse for year
-      LocalDateTime dt = new LocalDateTime();
-      int nowYear=dt.getYear();
-      int oldestYear=nowYear-20;
-      for(int i=nowYear;i>oldestYear;i--){
-        String yearCheck=(new Integer(i)).toString();
-        if (textInput.indexOf(yearCheck) != -1) {
-          year=i;
-          System.out.println("...detected a year in comments!");
-        }
-      }
-    }
-    */
-
-    //end brute force date detection if NLP failed
-
-      //String result = (year > 0 ? Integer.toString(year) : "") + (month > 0 ? Integer.toString(month) : "") + (day > 0 ? Integer.toString(day) : "");
 
       return myDate;
   }
 
   //NOTE: parseDate method WITHOUT tweet4j status object as a parameter. There is another parseDate method!
-  public static String parseDate(String textInput, String context){
+  public static String parseDate(HttpServletRequest request, String textInput, String context){
 
     //int year=-1;
     //int month=-1;
@@ -240,46 +185,9 @@ public class ParseDateLocation {
     try{
       System.out.println(">>>>>> looking for date with NLP");
       //call Stanford NLP function to find and select a date from ytRemarks
-      myDate= ServletUtilities.nlpDateParse(textInput);
+      myDate= org.ecocean.ai.nlp.SUTime.parseDateStringForBestDate(request, textInput);
       System.out.println(">>>>>> NLP found date: "+myDate);
-      //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
-      /*
-      if (myDate!=null) {
-          
-          //int numCharact= myDate.length();
 
-          
-          if(numCharact>=4){
-
-            try{
-              year=(new Integer(myDate.substring(0, 4))).intValue();
-              NLPsuccess=true;
-
-              if(numCharact>=7){
-                try {
-                  month=(new Integer(myDate.substring(5, 7))).intValue();
-                  if(numCharact>=10){
-                    try {
-                      day=(new Integer(myDate.substring(8, 10))).intValue();
-                      }
-                    catch (Exception e) { day=-1; }
-                  }
-                else{day=-1;}
-                }
-                catch (Exception e) { month=-1;}
-              }
-              else{month=-1;}
-
-            }
-            catch(Exception e){
-              e.printStackTrace();
-            }
-        }
-          
-          
-
-      }
-      */
 
     }
     catch(Exception e){
@@ -287,31 +195,11 @@ public class ParseDateLocation {
       e.printStackTrace();
     }
 
-    /*
-    //NLP failure? let's try brute force detection across all languages supported by this Wildbook
-    if(!NLPsuccess){
-      System.out.println(">>>>>> looking for date with brute force");
-      //next parse for year
-      LocalDateTime dt = new LocalDateTime();
-      int nowYear=dt.getYear();
-      int oldestYear=nowYear-20;
-      for(int i=nowYear;i>oldestYear;i--){
-        String yearCheck=(new Integer(i)).toString();
-        if (textInput.indexOf(yearCheck) != -1) {
-          year=i;
-          System.out.println("...detected a year in comments!");
-        }
-      }
-    }
-    */
-
-    //end brute force date detection if NLP failed
-
-      //String result = (year > 0 ? Integer.toString(year) : "") + (month > 0 ? Integer.toString(month) : "") + (day > 0 ? Integer.toString(day) : "");
 
       return myDate;
   }
 
+  /*
   // Same as above method, but this will return an arraylist instead of a string
   public static ArrayList<String> parseDateToArrayList(String inputText, String context){
     ArrayList<String> parsedDates = new ArrayList<String>();
@@ -331,7 +219,7 @@ public class ParseDateLocation {
       System.out.println(">>>>> looking for date with NLP");
       // Call NLP function to find and select a date from input
       // This will return an arraylist of date strings
-      parsedDates = ServletUtilities.nlpDateParseToArrayList(inputText);
+      parsedDates = org.ecocean.ai.nlp.SUTime.
     } catch (Exception e){
       System.out.println("Exception in NLP");
       e.printStackTrace();
@@ -339,6 +227,7 @@ public class ParseDateLocation {
 
     return parsedDates;
   }
+  */
 
   
   /*
@@ -535,5 +424,34 @@ public class ParseDateLocation {
 //    }
   }
   */
+  
+  
+  public static ArrayList<String> nlpLocationParse(String text) throws RuntimeException {
+    ArrayList<String> locations = new ArrayList<>();
+    Properties props = new Properties();
+    props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner"); //TODO adding truecase before ner doesn't seem to be making a difference here. If this doesn't change with some tweaking, you may want to remove the stanford-corenlp class:model-english dependency. Update: the stanford-corenlp class:model-english dependency seems essential even when truecase is excluded. Very weird.
+    StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+    edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text);
+    pipeline.annotate(document);
+    List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+    for(CoreMap sentence: sentences) {
+      for (CoreLabel token: sentence.get(TokensAnnotation.class)) {
+        String ne = token.get(NamedEntityTagAnnotation.class);
+        if(ne.equals("LOCATION")){
+          String word = token.get(TextAnnotation.class);
+          System.out.println("Location captured: " + word);
+          locations.add(word);
+        }
+      }
+    }
+
+    if (locations.size() > 0){
+      return locations;
+    } else{
+      throw new RuntimeException("no locations found");
+    }
+
+  }
+  
 
 }

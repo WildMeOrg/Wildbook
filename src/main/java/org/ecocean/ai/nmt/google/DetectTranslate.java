@@ -1,4 +1,4 @@
-package org.ecocean.translate;
+package org.ecocean.ai.nmt.google;
 
 import org.ecocean.CommonConfiguration;
 
