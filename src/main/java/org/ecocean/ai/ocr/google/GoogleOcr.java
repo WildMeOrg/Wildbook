@@ -1,4 +1,4 @@
-package org.ecocean.ocr;
+package org.ecocean.ai.ocr.google;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
