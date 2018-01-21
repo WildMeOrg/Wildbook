@@ -243,11 +243,10 @@ public class SUTime {
   public static String parseDateStringForBestDate(HttpServletRequest request, String text) {
 
           ArrayList<String> arrayListDates=parseStringForDates(request, text);
-          String[] arrayDates = (String[])arrayListDates.toArray();
           String selectedDate = "";
 
           try{
-            selectedDate = selectBestDateFromCandidates(arrayDates);
+            selectedDate = selectBestDateFromCandidates(arrayListDates);
           } 
           catch(Exception e){
             e.printStackTrace();
@@ -261,12 +260,12 @@ public class SUTime {
       
   }
   
-public static String selectBestDateFromCandidates(String[] candidates) throws Exception{
+public static String selectBestDateFromCandidates(ArrayList<String> candidates) throws Exception{
   String selectedDate = "";
 
-  if(candidates.length <1){
+  if(candidates.size() <1){
     throw new Exception("list of candidate dates was empty");
-  } else if (candidates.length >= 1) {
+  } else if (candidates.size() >= 1) {
 
     //filter by options that are valid dates
     ArrayList<String> validDates = new ArrayList<String>();
@@ -348,15 +347,15 @@ public static String selectBestDateFromCandidates(String[] candidates) throws Ex
   }
 }
 
-public static ArrayList<String> removeInvalidDates(String[] candidates) throws Exception{
+public static ArrayList<String> removeInvalidDates(ArrayList<String> candidates) throws Exception{
   ArrayList<String> validDates = new ArrayList<String>();
   DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
   DateFormat df2 = new SimpleDateFormat("yyyy-MM");
   DateFormat df3 = new SimpleDateFormat("yyyy");
   String newDateString = null;
   java.util.Date candiDate;
-  for(int i =0; i<candidates.length; i++){
-    String candidateString = candidates[i];
+  for(int i =0; i<candidates.size(); i++){
+    String candidateString = candidates.get(i);
     try {
       candiDate = df.parse(candidateString);
       newDateString = df.format(candiDate);
