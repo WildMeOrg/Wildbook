@@ -179,7 +179,11 @@ public class SUTime {
 
   }
   
-  public static String parseDateStringForBestDate(HttpServletRequest request, String text) {
+  
+  public static ArrayList<String> parseStringForDates(HttpServletRequest request, String text) {
+    
+    ArrayList<String> arrayListDates = new ArrayList<String>();
+    
     SUTimePipeline pipeline; // = null;
     String dataDir = request.getSession().getServletContext().getRealPath("/WEB-INF/data");
     String taggerFilename = dataDir + "/english-left3words-distsim.tagger";
@@ -195,11 +199,10 @@ public class SUTime {
     
     text = text.replaceAll("[,.!?;:]", "$0 ");
     System.out.println("text: " + text);
-    String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", " ").toLowerCase()
-      .split("\\s+"); //TODO I think this does a better version of what the above (text = text.replaceAll("[,.!?;:]", "$0 ");) does?? -Mark Fisher
-    String text2 = String.join(" ", text1);
+    //String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", " ").toLowerCase().split("\\s+"); //TODO I think this does a better version of what the above (text = text.replaceAll("[,.!?;:]", "$0 ");) does?? -Mark Fisher
+    //String text2 = String.join(" ", text1);
 
-    System.out.println("Cleaned up text to text2: " + text2);
+    //System.out.println("Cleaned up text to text2: " + text2);
     
     
 
@@ -211,12 +214,10 @@ public class SUTime {
       catch(Exception e) {
         e.printStackTrace();
       }
-        
-        //TBD-switch from request-based to String-based static method
-        //TBD - migrate from JSP to static method off Java class
+
       try {
-        ArrayList<String> arrayListDates = new ArrayList<String>();
-        List<CoreMap> timexAnnsAll=getDates(text2,request, pipeline);
+        
+        List<CoreMap> timexAnnsAll=getDates(text,request, pipeline);
         
         for (CoreMap cm : timexAnnsAll) {
           Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
@@ -227,31 +228,36 @@ public class SUTime {
         }
         System.out.println("NLP dates found+:" + arrayListDates);
 
-        if (!arrayListDates.isEmpty()) {
+        //if (!arrayListDates.isEmpty()) {
           //turn arrayList into an array to be able to use the old For loop and compare dates.
-          String[] arrayDates = new String[arrayListDates.size()];
-          arrayDates = arrayListDates.toArray(arrayDates);
+          
+          //return arrayListDates;
+        //}
+      }
+      catch(Exception ioe) {
+        ioe.printStackTrace();
+      }
+      return arrayListDates;
+  }  
+  
+  public static String parseDateStringForBestDate(HttpServletRequest request, String text) {
+
+          ArrayList<String> arrayListDates=parseStringForDates(request, text);
+          String[] arrayDates = (String[])arrayListDates.toArray();
           String selectedDate = "";
 
           try{
             selectedDate = selectBestDateFromCandidates(arrayDates);
-          } catch(Exception e){
+          } 
+          catch(Exception e){
             e.printStackTrace();
           }
           if(selectedDate == null | selectedDate.equals("")){
-            throw new Exception("selectedDate was empty or null in the nlpDateParse method");
-          } else{
+            return null;
+          } 
+          else{
             return selectedDate;
           }
-        } else{
-          throw new Exception("No candidate dates found in nlpDateParse method");
-        }
-      }
-      
-      catch(Exception ioe) {
-        ioe.printStackTrace();
-      }
-      return null;
       
   }
   
