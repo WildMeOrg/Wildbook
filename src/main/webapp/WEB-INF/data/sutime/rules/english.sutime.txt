@@ -296,7 +296,7 @@
   { (/novembers?/) => NOVEMBER }
   { (/decembers?/) => DECEMBER }
   { (/jan\.?/) => JANUARY }
-  { (/feb\.?/) => FEBRUARY }
+  { (/feb?/) => FEBRUARY }
   { (/mar\.?/) => MARCH }
   { (/apr\.?/) => APRIL }
   { (/jun\.?/) => JUNE }
@@ -370,6 +370,9 @@
   { ruleType: "time", pattern: /MM?-dd?-(yyyy|yy)/ }
   { ruleType: "time", pattern: /HH?:mm(:ss)?(Z)?/ }
   { ruleType: "time", pattern: /yyyy-MM/ }
+  
+  #WildMe added
+  { ruleType: "time", pattern: /yyyy\.MM\.dd/ }
 
   # Euro - Ambiguous pattern - interpret as dd.MM.yy(yy)
   { ruleType: "time", pattern: /dd?\.MM?\.(yyyy|yy)/ }

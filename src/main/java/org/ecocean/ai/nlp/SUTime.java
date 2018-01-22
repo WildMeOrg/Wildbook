@@ -4,7 +4,7 @@ package org.ecocean.ai.nlp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*; 
+import java.util.*;
 import org.ecocean.servlet.*;
 import java.io.IOException;
 import javax.servlet.http.*;
@@ -42,13 +42,23 @@ public class SUTime {
 
 
   private static String getRuleFilepaths(HttpServletRequest request,String... files) {
-    String rulesDir = request.getSession().getServletContext().getRealPath("/WEB-INF/data/sutime/rules");
+    String rulesDir="";
+    try {
+      rulesDir = request.getSession().getServletContext().getRealPath("/WEB-INF/data/sutime/rules");
+    }
+    catch(NullPointerException npe) {
+      //OK, we couldn't find a servlet context, so let's try to get the files from a hardcoded override directory
+      rulesDir="/data/wildbook_data_dir/WEB-INF/data/sutime/rules";
+      
+    }
+    
     StringBuilder sb = new StringBuilder();
     for (String file:files) {
       if (sb.length() > 0) {
         sb.append(",");
       }
       sb.append(rulesDir + "/" + file);
+      System.out.println("Loading SUTime rules file: "+rulesDir + "/" + file);
     }
     return sb.toString();
   }
@@ -56,13 +66,16 @@ public class SUTime {
  
   private static Properties getTimeAnnotatorProperties(HttpServletRequest request) {
     // Parses request and set up properties for time annotators
+    
+    System.out.println("Entering "+"SUTime.getTimeAnnotatorProperties");
+    
     boolean markTimeRanges =
             parseBoolean(request.getParameter("markTimeRanges"));
     boolean includeNested =
             parseBoolean(request.getParameter("includeNested"));
     boolean includeRange =
             parseBoolean(request.getParameter("includeRange"));
-    boolean readRules = true;
+    //boolean readRules = true;
 
     String heuristicLevel = request.getParameter("relativeHeuristicLevel");
     Options.RelativeHeuristicLevel relativeHeuristicLevel =
@@ -71,12 +84,13 @@ public class SUTime {
       relativeHeuristicLevel = Options.RelativeHeuristicLevel.valueOf(heuristicLevel);
     }
     String ruleFile = null;
-    if (readRules) {
-      String rules = request.getParameter("rules");
-      if ("English".equalsIgnoreCase(rules)) {
-        ruleFile = getRuleFilepaths(request, "defs.sutime.txt", "english.sutime.txt", "english.holidays.sutime.txt");
-      }
-    }
+    ruleFile = getRuleFilepaths(request, "defs.sutime.txt", "english.sutime.txt", "english.holidays.sutime.txt");
+    
+   // if (readRules) {
+      //String rules = request.getParameter("rules");
+      //if ("English".equalsIgnoreCase(rules)) {
+     //}
+   // }
 
     // Create properties
     Properties props = new Properties();
@@ -98,7 +112,7 @@ public class SUTime {
     }
     props.setProperty("sutime.teRelHeurLevel",
             relativeHeuristicLevel.toString());
-//    props.setProperty("sutime.verbose", "true");
+    props.setProperty("sutime.verbose", "true");
 
 //    props.setProperty("heideltime.path", getServletContext().getRealPath("/packages/heideltime"));
 //    props.setProperty("gutime.path", getServletContext().getRealPath("/packages/gutime"));
@@ -151,9 +165,12 @@ public class SUTime {
                           SUTimePipeline pipeline, String dateString)
     throws IOException {
 
+    System.out.println("Entering SUTime.getDates!");
+    
     boolean includeOffsets = parseBoolean(request.getParameter("includeOffsets"));
     if ( ! StringUtils.isNullOrEmpty(query)) {
       Properties props = getTimeAnnotatorProperties(request);
+      System.out.println(("Found props: "+props.toString()));
       String annotatorType = request.getParameter("annotator");
       if (annotatorType == null) {
         annotatorType = "sutime";
@@ -180,25 +197,44 @@ public class SUTime {
   }
   
   
+  public static SUTimePipeline createPipeline(HttpServletRequest request) {
+    
+    System.out.println("Creating the SUTimePipeline!");
+    SUTimePipeline pipeline; // = null;
+    String dataDir = "";
+    
+    //check if we're calling this from a servlet context, which we should be
+    try{
+      dataDir=request.getSession().getServletContext().getRealPath("/WEB-INF/data");
+      System.setProperty("de.jollyday.config", request.getSession().getServletContext().getRealPath("/WEB-INF/classes/holidays/jollyday.properties"));
+    }
+    catch(NullPointerException npe) {
+      
+      //OK, we couldn't find a servlet context, so let's try to get the files from a hardcoded override directory
+      dataDir="/data/wildbook_data_dir/WEB-INF/data";
+      System.setProperty("de.jollyday.config", ("/data/wildbook_data_dir/WEB-INF/classes/holidays/jollyday.properties"));
+      
+    }
+    String taggerFilename = dataDir + "/english-left3words-distsim.tagger";
+    Properties pipelineProps = new Properties();
+    System.out.println("pos.model set to "+taggerFilename);
+    pipelineProps.setProperty("pos.model", taggerFilename);
+    pipeline = new SUTimePipeline(pipelineProps);
+    return pipeline;
+    
+  }
+  
   public static ArrayList<String> parseStringForDates(HttpServletRequest request, String text) {
     
     ArrayList<String> arrayListDates = new ArrayList<String>();
     
-    SUTimePipeline pipeline; // = null;
-    String dataDir = request.getSession().getServletContext().getRealPath("/WEB-INF/data");
-    String taggerFilename = dataDir + "/english-left3words-distsim.tagger";
-    Properties pipelineProps = new Properties();
-    pipelineProps.setProperty("pos.model", taggerFilename);
-    pipeline = new SUTimePipeline(pipelineProps);
-    System.setProperty("de.jollyday.config",
-        request.getSession().getServletContext().getRealPath("/WEB-INF/classes/holidays/jollyday.properties"));
- 
+    SUTimePipeline pipeline=createPipeline(request);
     
     //clean up the text
     System.out.println("parseDates with text " + text);
     
-    text = text.replaceAll("[,.!?;:]", "$0 ");
-    System.out.println("text: " + text);
+    //text = text.replaceAll("[,.!?;:]", "$0 ");
+    //System.out.println("text: " + text);
     //String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", " ").toLowerCase().split("\\s+"); //TODO I think this does a better version of what the above (text = text.replaceAll("[,.!?;:]", "$0 ");) does?? -Mark Fisher
     //String text2 = String.join(" ", text1);
 
