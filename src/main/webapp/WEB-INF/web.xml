@@ -249,6 +249,8 @@
 					
 				/OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
                  /OccurrenceSearchExportGtm = authc, roles[researcher]
+				 
+				 /SUTimeServlet = authc, roles[admin]
 				
 
             </param-value>
