@@ -75,7 +75,6 @@ public class SUTime {
             parseBoolean(request.getParameter("includeNested"));
     boolean includeRange =
             parseBoolean(request.getParameter("includeRange"));
-    //boolean readRules = true;
 
     String heuristicLevel = request.getParameter("relativeHeuristicLevel");
     Options.RelativeHeuristicLevel relativeHeuristicLevel =
@@ -85,12 +84,7 @@ public class SUTime {
     }
     String ruleFile = null;
     ruleFile = getRuleFilepaths(request, "defs.sutime.txt", "english.sutime.txt", "english.holidays.sutime.txt");
-    
-   // if (readRules) {
-      //String rules = request.getParameter("rules");
-      //if ("English".equalsIgnoreCase(rules)) {
-     //}
-   // }
+
 
     // Create properties
     Properties props = new Properties();
@@ -107,7 +101,15 @@ public class SUTime {
       props.setProperty("sutime.rules", ruleFile);
       props.setProperty("sutime.binders", "1");
       props.setProperty("sutime.binder.1", "edu.stanford.nlp.time.JollyDayHolidays");
-      props.setProperty("sutime.binder.1.xml", request.getSession().getServletContext().getRealPath("/WEB-INF/data/holidays/Holidays_sutime.xml"));
+      
+      try {
+        props.setProperty("sutime.binder.1.xml", request.getSession().getServletContext().getRealPath("/WEB-INF/data/holidays/Holidays_sutime.xml"));
+      }
+      catch(NullPointerException npe) {
+        props.setProperty("sutime.binder.1.xml", "/data/wildbook_data_dir/WEB-INF/data/holidays/Holidays_sutime.xml");
+        
+      }
+      
       props.setProperty("sutime.binder.1.pathtype", "file");
     }
     props.setProperty("sutime.teRelHeurLevel",
