@@ -239,6 +239,18 @@ public class Shepherd {
     }
   }
 
+  public void storeNewObservation(Observation ob ) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(ob);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Observation in shepherd.storeNewPointLocation().");
+      e.printStackTrace();
+    }
+  }
+
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
 
     beginDBTransaction();
