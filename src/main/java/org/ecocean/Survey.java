@@ -295,10 +295,10 @@ public class Survey implements java.io.Serializable{
   }
   
   private String milliToMonthDayYear(Long millis) {
-    //System.out.println("Millis from Survey Object? "+millis.toString());
+    System.out.println("Millis from Survey Object? "+millis.toString());
     if (millis!=null) {
       try {
-        DateTime dt = new DateTime();
+        DateTime dt = new DateTime(millis);
         DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
         System.out.print("What the formatter makes: "+dtf.print(dt));
         return dtf.print(dt);       

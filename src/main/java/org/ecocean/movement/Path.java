@@ -15,7 +15,7 @@ import org.joda.time.DateTime;
 * a specific pointLocation in time. 
 *
 *This is a very simple object that keeps track of those points, the SurveyTrack
-*being the data layer above it. 
+*being the object above it. 
 */
 
 public class Path implements java.io.Serializable {
@@ -79,7 +79,7 @@ public class Path implements java.io.Serializable {
   }
   
   public Long getStartTimeMillis() {
-    if (pointLocations!=null) {
+    if (pointLocations!=null&&!pointLocations.isEmpty()) {
       Long startLong = null;
       for (PointLocation pl : pointLocations) {
         if (pl.getDateTimeInMilli()!=null) {
@@ -105,12 +105,14 @@ public class Path implements java.io.Serializable {
   }
 
   public Long getEndTimeMillis() {
-    Long endLong = null;
     if (pointLocations!=null&&!pointLocations.isEmpty()) {
+      Long endLong = null;
       for (PointLocation pl : pointLocations) {
-        Long tempLong = pl.getDateTimeInMilli();
-        if (tempLong!=null&&endLong!=null&&tempLong>endLong) {
-          endLong = tempLong;
+        if (pl.getDateTimeInMilli()!=null) {
+          Long tempLong = Long.valueOf(pl.getDateTimeInMilli());
+          if (endLong==null||tempLong>endLong) {
+            endLong = tempLong;
+          }
         }
       }
       return endLong;
