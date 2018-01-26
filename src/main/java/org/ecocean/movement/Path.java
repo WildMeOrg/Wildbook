@@ -1,10 +1,11 @@
 package org.ecocean.movement;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
 import org.ecocean.*;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 /**
 * @author Colin Kingen
@@ -96,13 +97,17 @@ public class Path implements java.io.Serializable {
   
   public String getStartTime() {
     DateTime dt = new DateTime(this.getStartTimeMillis());
-    return String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
+    DateTimeFormatter out = DateTimeFormat.forPattern("HHmm");
+    String startTime = out.print(dt.getMillis());
+    return startTime;
   }
-  
+
   public String getEndTime() {
     DateTime dt = new DateTime(this.getEndTimeMillis());
-    return String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
-  }
+    DateTimeFormatter out = DateTimeFormat.forPattern("HHmm");
+    String endTime = out.print(dt.getMillis());
+    return endTime;
+  } 
 
   public Long getEndTimeMillis() {
     if (pointLocations!=null&&!pointLocations.isEmpty()) {

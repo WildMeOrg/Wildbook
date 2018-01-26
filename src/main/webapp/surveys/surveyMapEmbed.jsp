@@ -62,7 +62,7 @@ for (SurveyTrack trk : trks ) {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			//MAKE SURE YOU ARE ADDING IN ORDER OF CREATION TIME! 
+
 			String lat = String.valueOf(trackOcc.getDecimalLatitude());
 			String lon = String.valueOf(trackOcc.getDecimalLongitude());
 			lineSet += "{lat: "+lat+", lng: "+lon+"},";
