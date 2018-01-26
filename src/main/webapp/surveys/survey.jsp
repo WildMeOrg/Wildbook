@@ -5,19 +5,17 @@ org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.movement.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.util.Date, java.text.SimpleDateFormat, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
-
-<jsp:include page="../header.jsp" flush="true" />
-
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
 String context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Shepherd myShepherd=new Shepherd(context);
-myShepherd.setAction("survey.jsp1");
+//myShepherd.setAction("survey.jsp");
 
-response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+//response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+//response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+//response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+//response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
 
 Properties props = new Properties();
@@ -26,8 +24,8 @@ props = ShepherdProperties.getProperties("survey.properties", langCode,context);
 String surveyID = request.getParameter("surveyID").trim();
 Survey sv = null;
 String errors = "";
-String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-String occLocation = urlLoc + "/occurrence.jsp?number=";
+String urlLocation = "//" + CommonConfiguration.getURLLocation(request);
+String occLocation = urlLocation + "/occurrence.jsp?number=";
 
 boolean isOwner = false;
 if (request.getUserPrincipal()!=null) {
@@ -90,7 +88,8 @@ if (sv!=null) {
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="../javascript/oms.min.js"></script>
 
-<link rel="stylesheet" href="../css/ecocean.css" type="text/css" media="all"/>
+<!-- <link rel="stylesheet" href="../css/ecocean.css" type="text/css" media="all"/> -->
+<jsp:include page="../header.jsp" flush="true" />
 
 <div class="container maincontent">
 	<div class="row">
