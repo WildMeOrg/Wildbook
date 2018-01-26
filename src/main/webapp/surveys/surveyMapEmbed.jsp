@@ -12,8 +12,8 @@ props = ShepherdProperties.getProperties("survey.properties", langCode, context)
 Properties locationProps = new Properties();
 locationProps = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
 
-String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-String occLocation = urlLoc + "/occurrence.jsp?number=";
+String mapUrlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String occLocation = mapUrlLoc + "/occurrence.jsp?number=";
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("surveyMapEmbed.jsp");
 myShepherd.beginDBTransaction();
@@ -90,8 +90,7 @@ for (SurveyTrack trk : trks ) {
 }
 %>
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
-<script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
-<script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
+
 
 <div style="height:500px;" id="map"></div>
 
