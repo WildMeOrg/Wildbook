@@ -173,7 +173,7 @@ public class SurveyTrack implements java.io.Serializable{
         if (occ.getMillis()!=null) {
           milliDate = occ.getMillis();
         }
-        createPointLocationForPath(lat,lon,milliDate, myShepherd);
+       // createPointLocationForPath(lat,lon,milliDate, myShepherd);
       }
       setDWCDateLastModified();
     }
@@ -191,7 +191,7 @@ public class SurveyTrack implements java.io.Serializable{
           if (occ.getMillis()!=null) {
             milliDate = occ.getMillis();
           }
-          createPointLocationForPath(lat,lon,milliDate, myShepherd);
+         // createPointLocationForPath(lat,lon,milliDate, myShepherd);
         }
       }
       setDWCDateLastModified();

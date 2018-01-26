@@ -24,8 +24,8 @@ props = ShepherdProperties.getProperties("survey.properties", langCode,context);
 String surveyID = request.getParameter("surveyID").trim();
 Survey sv = null;
 String errors = "";
-String urlLocation = "//" + CommonConfiguration.getURLLocation(request);
-String occLocation = urlLocation + "/occurrence.jsp?number=";
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String occLocation = urlLoc + "/occurrence.jsp?number=";
 
 boolean isOwner = false;
 if (request.getUserPrincipal()!=null) {
@@ -39,13 +39,14 @@ try {
 	errors += "<p>This survey ID does not belong to an existing survey.</p><br/>";
 }
 
-String date = "";
 String type = "";
 String effort = "";
 String comments = "";
 String numOccurrences = "";
 String surveyAttributes = "";
 String effortData = "";
+String surveyStart = "";
+String surveyEnd = "";
 ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
 if (sv!=null) {
 	if (sv.getProjectName()!=null) {
@@ -57,14 +58,14 @@ if (sv!=null) {
 	if (sv.getOrganization()!=null) {
 		surveyAttributes += "<p>Organization: "+sv.getOrganization()+"</p>";
 	}
-	if (sv.getStartDateTime()!=null) {
-		date = sv.getStartDateTime();		
+	surveyStart = sv.getStartDateTime();
+	surveyEnd = sv.getStartDateTime();
+	System.out.println("Survey Start? "+surveyStart+" SurveyEnd? "+surveyEnd);
+	if (surveyStart!=null) {
+		surveyAttributes +=  "<p>Start: "+surveyStart+"</p>";
 	}
-	if (sv.getStartDateTime()!=null) {
-		surveyAttributes +=  "<p>Start: "+sv.getStartDateTime()+"</p>";
-	}
-	if (sv.getEndDateTime()!=null) {
-		surveyAttributes += "<p>End: "+sv.getEndDateTime()+"</p>";
+	if (surveyEnd!=null) {
+		surveyAttributes += "<p>End: "+surveyEnd+"</p>";
 	}
 	if (sv.getEffort()!=null) {
 		Measurement effortMeasurement = sv.getEffort();
@@ -192,8 +193,8 @@ if (sv!=null) {
 									for (Occurrence occ : occs) {
 										String thisOccID = occ.getPrimaryKeyID();
 										String link = occLocation + thisOccID;
-										System.out.println("Occ ID: "+thisOccID);
-										System.out.println("Occ Date/Time: "+occ.getMillis());
+										//System.out.println("Occ ID: "+thisOccID);
+										//System.out.println("Occ Date/Time: "+occ.getMillis());
 									%>
 									<p>
 										<small><a href="<%=link%>"><%=thisOccID%></a></small>
@@ -215,17 +216,15 @@ if (sv!=null) {
 					<td class="lineitem"><%=trkType%></td>
 					<td class="lineitem"><%=numOccs%></td>	
 					<td class="lineitem">
-						<%
+						<% 
 						int numPoints = 0;
 						if (pth!=null&&pth.getAllPointLocations()!=null) {
 							numPoints = pth.getAllPointLocations().size();
 							ArrayList<PointLocation> pts = pth.getAllPointLocations();
 							//System.out.println("----------------------------------------");
 							//System.out.println("Path String: "+pth.toString());
-							for (PointLocation pt : pts) {
-								System.out.println("Point: "+pt.getID());
-							}
-							System.out.println("----------------------------------------");
+
+							// Lets get a time range from the occs instead. Because it's better.
 							try {
 								if (pth.getStartTime()!=null) {
 									trkStart = pth.getStartTime();								
@@ -260,20 +259,22 @@ if (sv!=null) {
 	</div>
 	
 <div id="surveyObservations">
-			  <!-- Observations Column -->
+
+<!-- Observations Column -->
+
 <script type="text/javascript">
-$(document).ready(function() {
-  $(".editFormObservation").hide();
-  var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
-    buttons.toggle();
-  });
-  $("#editDynamic").click(function() {
-    $("#editInstructions, .editFormObservation").show();
-  });
-  $("#closeEditDynamic").click(function() {
-    $("#editInstructions, .editFormObservation").hide();
-  });
-});
+	$(document).ready(function(){	
+	  $(".editFormObservation").hide();
+	  var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
+	    buttons.toggle();
+	  });
+	  $("#editDynamic").click(function() {
+	    $("#editInstructions, .editFormObservation").show();
+	  });
+	  $("#closeEditDynamic").click(function() {
+	    $("#editInstructions, .editFormObservation").hide();
+	  });
+	});
 </script>
 					<%
 				if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
