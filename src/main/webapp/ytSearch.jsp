@@ -78,6 +78,11 @@ phrasesToIgnoreVideo.add("deer");
 phrasesToIgnoreVideo.add("shark week");
 phrasesToIgnoreVideo.add("kids");
 phrasesToIgnoreVideo.add("children");
+phrasesToIgnoreVideo.add("digital code generator");
+phrasesToIgnoreVideo.add("blue whale game");
+phrasesToIgnoreVideo.add("deeeep.io");
+
+
 
 int numPhrases=phrasesToIgnoreVideo.size();
 
