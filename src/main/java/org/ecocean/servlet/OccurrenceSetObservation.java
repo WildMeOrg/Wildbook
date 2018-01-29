@@ -109,17 +109,14 @@ public class OccurrenceSetObservation extends HttpServlet {
         oldValue = changeMe.getObservationByName(name).getValue();
       } 
 
-
       if ((request.getParameter("value") != null) && (!request.getParameter("value").equals(""))) {
         newValue = request.getParameter("value");
       }
-      
-      
+            
       try {
         if (newValue.equals("null")) {
           changeMe.removeObservation(name);
           System.out.println("Servlet trying to remove Observation "+name);
-          //changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed dynamic property <em>" + name + "</em>. The old Value was <em>" + oldValue + ".</em></p>");
         } else {
           if (changeMe.getObservationByName(name) != null && value != null) {
             Observation existing = changeMe.getObservationByName(name);
@@ -127,18 +124,14 @@ public class OccurrenceSetObservation extends HttpServlet {
           } else {
             obs = new Observation(name, newValue, changeMe.getClass().getSimpleName(), changeMe.getID());
             changeMe.addObservation(obs);
-            System.out.println("Success setting Observation!");
-            //changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Set dynamic property <em>" + name + "</em> from <em>" + oldValue + "</em> to <em>" + newValue + "</em>.</p>");            
+            System.out.println("Success setting Observation!");       
           }
-
         }
-
       } catch (Exception le) {
         System.out.println("Hit locked exception.");
         locked = true;
         le.printStackTrace();
         myShepherd.rollbackDBTransaction();
-
       }
 
       if (!locked) {
@@ -150,7 +143,6 @@ public class OccurrenceSetObservation extends HttpServlet {
           out.println("<strong>Success:</strong> "+type+" Observation " + name + " has been updated from <i>" + oldValue + "</i> to <i>" + newValue + "</i>.");
         } else {
           out.println("<strong>Success:</strong> "+type+" Observation " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
-
         }
 
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+redirectURL+"?number="+request.getParameter("number")+"\">Return to "+type+" "+ request.getParameter("number") + "</a></p>\n");
@@ -168,7 +160,7 @@ public class OccurrenceSetObservation extends HttpServlet {
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> "+type+" Observation " + name + " was NOT updated because another user is currently modifying this reconrd. Please try to reset the value again in a few seconds.");
+        out.println("<strong>Failure:</strong> "+type+" Observation " + name + " was NOT updated because another user is currently modifying this record. Please try to reset the value again in a few seconds.");
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) +redirectURL+"?number=" + request.getParameter("number") + "\">Return to "+typeLower+" " + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
