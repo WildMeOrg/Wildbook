@@ -337,7 +337,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         } else {
           var location = "";
         }
-        var catalogNumber = jsonData.encounters[i].primaryKeyID;
+        var catalogNumber = jsonData.encounters[i].catalogNumber;
         console.log("Here's what we are working with : "+jsonData.encounters[i]);
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
           if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {

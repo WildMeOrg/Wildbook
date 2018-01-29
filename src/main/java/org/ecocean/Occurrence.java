@@ -932,12 +932,14 @@ public class Occurrence implements java.io.Serializable {
     }
     public void addObservation(Observation obs) {
       boolean found = false;
-      //System.out.println("Adding Observation in Base Class... : "+obs.toString());
+      System.out.println("Adding Observation in Base Class... : "+obs.toString());
       if (observations != null && observations.size() > 0) {
         for (Observation ob : observations) {
           if (ob.getName() != null) {
             if (ob.getName().toLowerCase().trim().equals(obs.getName().toLowerCase().trim())) {
                found = true;
+               this.removeObservation(obs.getName());
+               observations.add(obs);
                break;
             }
           }

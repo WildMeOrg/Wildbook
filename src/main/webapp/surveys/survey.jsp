@@ -191,7 +191,7 @@ if (sv!=null) {
 									<label><small>Occurrence ID's:</small></label>
 									<%
 									for (Occurrence occ : occs) {
-										String thisOccID = occ.getPrimaryKeyID();
+										String thisOccID = occ.getID();
 										String link = occLocation + thisOccID;
 										//System.out.println("Occ ID: "+thisOccID);
 										//System.out.println("Occ Date/Time: "+occ.getMillis());
@@ -269,70 +269,27 @@ if (sv!=null) {
 	    buttons.toggle();
 	  });
 	  $("#editDynamic").click(function() {
-	    $("#editInstructions, .editFormObservation").show();
+	    $("#editInstructions, .editFormObservation, #addObservationForm").show();
 	  });
 	  $("#closeEditDynamic").click(function() {
-	    $("#editInstructions, .editFormObservation").hide();
+	    $("#editInstructions, .editFormObservation, #addObservationForm").hide();
 	  });
 	});
 </script>
-					<%
+				<%
 				if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 				%>
 					<h2>
 						<img src="../images/lightning_dynamic_props.gif" />
 						<%=props.getProperty("dynamicProperties")%></h2>
-					<%
-					}
-							// Let's make a list of editable Observations... Dynamically!
-							
-					if (sv!=null&&sv.getBaseObservationArrayList()!=null) {
-						ArrayList<Observation> obs = sv.getBaseObservationArrayList();
-						System.out.println("Observations ... "+obs);
-						int numObservations = sv.getBaseObservationArrayList().size();
-						for (Observation ob : obs) {
-							
-							String nm = ob.getName();
-							String vl = ob.getValue();
-					%>
-							
-							<p><em><%=nm%></em>:<%=vl%></p>
-									<!-- Start dynamic (Observation) form. -->
-									<!-- REMEMBER! These observations use a lot of legacy front end html etc from the deprecated dynamic properties! -->
-							<div style="display:none;" id="dialogDP<%=nm%>" class="editFormObservation" title="<%=props.getProperty("set")%> <%=nm%>">
-								<p class="editFormObservation">
-									<strong><%=props.getProperty("set")%> <%=nm%></strong>
-								</p>
-								<form name="editFormObservation" action="../BaseClassSetObservation" method="post" class="editFormDynamic">
-									<input name="name" type="hidden" value="<%=nm%>" /> 
-									<input name="number" type="hidden" value="<%=surveyID%>" />
-									<!-- This servlet can handle encounters or occurrences, so you have to pass it the Type!  -->
-									<input name="type" type="hidden" value="Occurrence" />
-									<div class="form-group row">
-										<div class="col-sm-3">
-											<label><%=props.getProperty("propertyValue")%></label>
-										</div>
-										<div class="col-sm-5">
-											<input name="value" type="text" class="form-control" id="dynInput" value="<%=vl%>"/>
-										</div>
-										<div class="col-sm-4">
-											<input name="Set" type="submit" id="dynEdit" value="<%=props.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn" />
-										</div>
-									</div>
-								</form>
-							</div>
-							
-				<%} // Enc
-						if (numObservations == 0) {%>
-							<p><%=props.getProperty("none")%></p>
-				<%}
-				} else {
-				%>
-				<h2>
-					<img src="../images/lightning_dynamic_props.gif" />
-					<%=props.getProperty("dynamicProperties")%></h2>
+							<button class="btn btn-md" type="button" name="button"
+								id="editDynamic">Edit</button>
+							<button class="btn btn-md" type="button" name="button"
+								id="closeEditDynamic" style="display: none;">Close Edit</button>
+					</h2>
+					<p id="editInstructions" style="display:none;"><small>Set any value to zero (0) to remove.</small></p>
+
 				<%
-				}
 						// Let's make a list of editable Observations... Dynamically!
 						
 				if (sv!=null&&sv.getBaseObservationArrayList()!=null) {
@@ -343,17 +300,16 @@ if (sv!=null) {
 						
 						String nm = ob.getName();
 						String vl = ob.getValue();
-				%>
-						
+				%>		
+				
 					<p><em><%=nm%></em>:<%=vl%></p>
 					<div style="display:none;" id="dialogDP<%=nm%>" class="editFormObservation" title="<%=props.getProperty("set")%> <%=nm%>">
 						<p class="editFormObservation">
 							<strong><%=props.getProperty("set")%> <%=nm%></strong>
 						</p>
-						<form name="editFormObservation" action="../BaseClassSetObservation" method="post" class="editFormDynamic">
+						<form name="editFormObservation" action="../SurveySetObservation" method="post" class="editFormDynamic">
 							<input name="name" type="hidden" value="<%=nm%>" /> 
 							<input name="number" type="hidden" value="<%=surveyID%>" />
-							<!-- This servlet can handle encounters or occurrences, so you have to pass it the Type!  -->
 							<input name="type" type="hidden" value="Occurrence" />
 							<div class="form-group row">
 								<div class="col-sm-3">
@@ -368,48 +324,54 @@ if (sv!=null) {
 							</div>
 						</form>
 					</div>
-						
+
 			<%} 
-			if (numObservations == 0) {%>
-				<p><%=props.getProperty("none")%></p>
-			<%}
-			} else {
+				if (numObservations==0) {%>
+					<br/>
+					<p><%=props.getProperty("none")%></p>
+					
+			<%
+				}
+			} 
 			%>
-			<p><%=props.getProperty("none")%></p>
-			<%}%>
-		<div style="display: none;" id="dialogDPAdd"
-			title="<%=props.getProperty("addDynamicProperty")%>"
-			class="editFormObservation">
-			<p class="editFormObservation">
-				<strong><%=props.getProperty("addDynamicProperty")%></strong>
-			</p>
-			<form name="addDynProp" action="../SurveySetObservation"
-				method="post" class="editFormObservation">
-				<input name="number" type="hidden" value="<%=surveyID%>" />
-				<input name="type" type="hidden" value="Occurrence" />
-				<div class="form-group row">
-					<div class="col-sm-3">
-						<label><%=props.getProperty("propertyName")%></label>
+			<div style="display: none;" id="addObservationForm"
+				title="<%=props.getProperty("addDynamicProperty")%>"
+				class="editFormObservation">
+				<p class="editFormObservation">
+					<strong><%=props.getProperty("addDynamicProperty")%></strong>
+				</p>
+				<form name="addDynProp" action="../SurveySetObservation"
+					method="post" class="editFormObservation">
+					<input name="number" type="hidden" value="<%=surveyID%>" />
+					<input name="type" type="hidden" value="Occurrence" />
+					<div class="form-group row">
+						<div class="col-sm-3">
+							<label><%=props.getProperty("propertyName")%></label>
+						</div>
+						<div class="col-sm-5">
+							<input name="name" type="text" class="form-control" id="addDynPropInput" />
+						</div>
 					</div>
-					<div class="col-sm-5">
-						<input name="name" type="text" class="form-control" id="addDynPropInput" />
+					<div class="form-group row">
+						<div class="col-sm-3">		
+							<label><%=props.getProperty("propertyValue")%></label>
+						</div>
+						<div class="col-sm-5">
+							<input name="value" type="text" class="form-control" id="addDynPropInput2" />
+						</div>
+						<div class="col-sm-4">
+							<input name="Set" type="submit" id="addDynPropBtn" value="<%=props.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn" />
+						</div>
 					</div>
-				</div>
-				<div class="form-group row">
-					<div class="col-sm-3">		
-						<label><%=props.getProperty("propertyValue")%></label>
-					</div>
-					<div class="col-sm-5">
-						<input name="value" type="text" class="form-control" id="addDynPropInput2" />
-					</div>
-					<div class="col-sm-4">
-						<input name="Set" type="submit" id="addDynPropBtn" value="<%=props.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn" />
-					</div>
-				</div>
-			</form>
-		</div>		
+				</form>
+			</div>		
+		<%
+		}
+		%>
 	</div>			
+	<br/>
 </div>
+<hr/>
 
 <script>
 $(document).ready(function() {
