@@ -2980,7 +2980,7 @@ return Util.generateUUID();
             if(questionToPost!=null){
             String videoId = enc.getEventID().replaceAll("youtube:","");
               try{
-                YouTube.postQuestion(questionToPost,videoId, occ);
+                YouTube.postQuestion(questionToPost,videoId, occ, context);
               }
               catch(Exception e){e.printStackTrace();}
             }
