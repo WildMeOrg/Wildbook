@@ -35,20 +35,19 @@ int numFixes=0;
 
 try{
 
-	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
+	//Iterator allEncs=myShepherd.getAllMarkedIndividuals();
 	
 
 
-	while(allEncs.hasNext()){
+	//while(allEncs.hasNext()){
 		
-		MarkedIndividual enc=(MarkedIndividual)allEncs.next();
-		enc.refreshDependentProperties(context);
-		myShepherd.commitDBTransaction();
-		myShepherd.beginDBTransaction();
-
-	}
-	myShepherd.rollbackDBTransaction();
-	
+		//MarkedIndividual enc=(MarkedIndividual)allEncs.next();
+		//enc.refreshDependentProperties(context);
+		//myShepherd.commitDBTransaction();
+		//myShepherd.beginDBTransaction();
+	Observation ob = new Observation("Name","Value","Survey","123123");
+	myShepherd.storeNewObservation(ob);
+	System.out.println(ob.toString());
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();

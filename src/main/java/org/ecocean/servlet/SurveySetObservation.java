@@ -65,11 +65,7 @@ public class SurveySetObservation extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
     String redirectURL = "/surveys/survey.jsp";
-    String typeLower = null;
-    String type = null;
     if ((request.getParameter("number") != null) && (request.getParameter("name") != null)) {
-      myShepherd.beginDBTransaction();
-      type = request.getParameter("type");
       String name = request.getParameter("name");
       String id = request.getParameter("number");
       String value = request.getParameter("value");
@@ -86,25 +82,27 @@ public class SurveySetObservation extends HttpServlet {
       
       String newValue = "null";
       String oldValue = "null";
-
+      
       if (sv.getObservationByName(name) != null) {
         oldValue = sv.getObservationByName(name).getValue();
       } 
-
+      
       if ((request.getParameter("value") != null) && (!request.getParameter("value").equals(""))) {
-        newValue = request.getParameter("value");
+        newValue = value;
       }
       
+      myShepherd.beginDBTransaction();
       try {
         if (newValue.equals("null")) {
           sv.removeObservation(name);
           System.out.println("Servlet trying to remove Observation "+name);
         } else {
-          if (sv.getObservationByName(name) != null && value != null) {
+          if (sv.getObservationByName(name)!=null&&value!=null) {
             Observation existing = sv.getObservationByName(name);
             existing.setValue(value);
           } else {
-            obs = new Observation(name, newValue, sv.getClass().getSimpleName(), sv.getID());
+            obs = new Observation(name, newValue, "Survey", sv.getID());
+            myShepherd.storeNewObservation(obs);
             sv.addObservation(obs);
             System.out.println("Success setting Observation!");         
           }
@@ -114,7 +112,6 @@ public class SurveySetObservation extends HttpServlet {
         locked = true;
         le.printStackTrace();
         myShepherd.rollbackDBTransaction();
-
       }
 
       if (!locked) {
@@ -122,25 +119,27 @@ public class SurveySetObservation extends HttpServlet {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         if (!newValue.equals("")) {
-          out.println("<strong>Success:</strong> "+type+" Observation " + name + " has been updated from <i>" + oldValue + "</i> to <i>" + newValue + "</i>.");
+          out.println("<strong>Success:</strong> Survey Observation " + name + " has been updated from <i>" + oldValue + "</i> to <i>" + newValue + "</i>.");
         } else {
-          out.println("<strong>Success:</strong> "+type+" Observation " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
+          out.println("<strong>Success:</strong> Survey Observation " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
         }
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+redirectURL+"?surveyID="+request.getParameter("number")+"\">Return to "+type+" "+ request.getParameter("number") + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+redirectURL+"?surveyID="+request.getParameter("number")+"\">Return to Survey "+ request.getParameter("number") + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-        String message = type+" " + request.getParameter("number") + " Observation " + name + " has been updated from \"" + oldValue + "\" to \"" + newValue + "\".";
+        String message = "Survey " + request.getParameter("number") + " Observation " + name + " has been updated from \"" + oldValue + "\" to \"" + newValue + "\".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
+        myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> "+type+" Observation " + name + " was NOT updated because another user is currently modifying this reconrd. Please try to reset the value again in a few seconds.");
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) +redirectURL+"?surveyID=" + request.getParameter("number") + "\">Return to "+typeLower+" " + request.getParameter("number") + "</a></p>\n");
+        out.println("<strong>Failure:</strong> Survey Observation " + name + " was NOT updated because another user is currently modifying this reconrd. Please try to reset the value again in a few seconds.");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) +redirectURL+"?surveyID=" + request.getParameter("number") + "\">Return to survey " + request.getParameter("number") + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
       }
     } else {
+      myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+redirectURL+"?surveyID=" + request.getParameter("number") + "\">Return to "+typeLower+" #" + request.getParameter("number") + "</a></p>\n");
+      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+redirectURL+"?surveyID=" + request.getParameter("number") + "\">Return to survey #" + request.getParameter("number") + "</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
     }
     out.close();
