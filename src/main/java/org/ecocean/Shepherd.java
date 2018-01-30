@@ -246,7 +246,7 @@ public class Shepherd {
       commitDBTransaction();
     } catch (Exception e) {
       rollbackDBTransaction();
-      System.out.println("I failed to create a new Observation in shepherd.storeNewPointLocation().");
+      System.out.println("I failed to create a new Observation in shepherd.storeNewObservation().");
       e.printStackTrace();
     }
   }

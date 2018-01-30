@@ -53,7 +53,7 @@
       </field>
       
       <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Observation"/>
+        <collection element-type="org.ecocean.Observation" dependent-element="true" />
         <join/>
       </field>
 
@@ -222,6 +222,11 @@
 
       <field name="individualCount" persistence-modifier="persistent">
         <column jdbc-type="INTEGER" allows-null="true"/>
+      </field>
+
+      <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Observation" dependent-element="true" />
+        <join/>
       </field>
 
       <field name="assets" persistence-modifier="persistent" default-fetch-group="false" mapped-by="occurrence" >
@@ -412,6 +417,11 @@
         <join/>
       </field>
 
+      <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Observation" dependent-element="true" />
+        <join/>
+      </field>
+
       <field name="acousticTag" persistence-modifier="persistent"></field>
 
       <field name="satelliteTag" persistence-modifier="persistent"></field>
@@ -548,7 +558,7 @@
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
     </class>
     
-    <class name="Observation" identity-type="application">
+    <class name="Observation" identity-type="data-store">
       <inheritance strategy="new-table"/>
       <field name="observationID" primary-key="true">
         <column length="100"/>

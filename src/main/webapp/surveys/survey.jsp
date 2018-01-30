@@ -343,7 +343,6 @@ if (sv!=null) {
 				<form name="addDynProp" action="../SurveySetObservation"
 					method="post" class="editFormObservation">
 					<input name="number" type="hidden" value="<%=surveyID%>" />
-					<input name="type" type="hidden" value="Occurrence" />
 					<div class="form-group row">
 						<div class="col-sm-3">
 							<label><%=props.getProperty("propertyName")%></label>
