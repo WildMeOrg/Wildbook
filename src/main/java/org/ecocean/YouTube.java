@@ -52,11 +52,12 @@ public class YouTube {
     public static void init(String context) {
         //String context = ServletUtilities.getContext(request);
         apiKey = CommonConfiguration.getProperty("youtube_api_key", context);
+        /*
         youtube = new com.google.api.services.youtube.YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
           public void initialize(com.google.api.client.http.HttpRequest request) throws IOException {
           }
         }).setApplicationName("wildbook-youtube").build();
-        
+        */
         String CLIENT_ID= CommonConfiguration.getProperty("youtube_client_id", context);
         String CLIENT_SECRET= CommonConfiguration.getProperty("youtube_client_secret", context);;
         System.out.println("CLIENT_ID: "+CLIENT_ID);
@@ -73,12 +74,12 @@ public class YouTube {
             .build();
         credential.setRefreshToken(refreshToken);
       
-        /*
-        youtube2 = new com.google.api.services.youtube.YouTube.Builder(
+        
+        youtube = new com.google.api.services.youtube.YouTube.Builder(
             HTTP_TRANSPORT, JSON_FACTORY, credential)
                 .setApplicationName("wildbook-youtube")
                 .build();
-        */
+        
       }
 
     public static boolean isActive() {
