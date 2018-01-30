@@ -251,6 +251,10 @@
                  /OccurrenceSearchExportGtm = authc, roles[researcher]
 				 
 				 /SUTimeServlet = authc, roles[admin]
+				 
+				 #lockdown Keyword handling
+				 /appadmin/kwAdmin.jsp = authc, roles[admin]
+				 /KeywordHandler = authc, roles[admin]
 				
 
             </param-value>
