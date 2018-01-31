@@ -328,8 +328,8 @@ if (sv!=null) {
 			<%} 
 				if (numObservations==0) {%>
 					<br/>
-					<p><%=props.getProperty("none")%></p>
-					
+					<p style="margin-top:1em;"><%=props.getProperty("none")%></p>	
+					<br/>
 			<%
 				}
 			} 
@@ -369,8 +369,8 @@ if (sv!=null) {
 		%>
 	</div>			
 	<br/>
+	<hr/>
 </div>
-<hr/>
 
 <script>
 $(document).ready(function() {

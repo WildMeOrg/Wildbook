@@ -125,15 +125,15 @@
 
 <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="javascript/underscore-min.js"></script>
-<script src="javascript/backbone-min.js"></script>
-<script src="javascript/core.js"></script>
-<script src="javascript/classes/Base.js"></script>
+<script src="../javascript/underscore-min.js"></script>
+<script src="../javascript/backbone-min.js"></script>
+<script src="../javascript/core.js"></script>
+<script src="../javascript/classes/Base.js"></script>
 
-<link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 
-<link rel="stylesheet" href="css/pageableTable.css" />
-<script src="javascript/tsrt.js"></script>
+<link rel="stylesheet" href="../css/pageableTable.css" />
+<script src="../javascript/tsrt.js"></script>
 
 
 <div class="container maincontent">
@@ -402,7 +402,7 @@ function doTable() {
 
 function rowClick(el) {
 	console.log(el);
-	var w = window.open('occurrence.jsp?number=' + el.getAttribute('data-id'), '_blank');
+	var w = window.open('survey.jsp?surveyID=' + el.getAttribute('data-id'), '_blank');
 	w.focus();
 	return false;
 }
@@ -435,7 +435,7 @@ function xxxshow() {
 	$('#results-table td').html('');
 	for (var i = 0 ; i < results.length ; i++) {
 		//$('#results-table tbody tr')[i].title = searchResults[results[i]].individualID;
-		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].ID);
+		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].surveyID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
 		}
@@ -460,7 +460,7 @@ function show() {
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
 		//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
-		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].ID);
+		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].surveyID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
 		}
@@ -747,7 +747,7 @@ function applyFilter() {
 <table width="810" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td align="left">
-      <p><strong><%=svyProps.getProperty("matchingOccurrences")%>
+      <p><strong><%=svyProps.getProperty("matchingSurveys")%>
       </strong>: <span id="count-total"></span>
       </p>
       <%myShepherd.beginDBTransaction();%>

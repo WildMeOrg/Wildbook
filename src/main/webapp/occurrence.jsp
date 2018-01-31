@@ -557,10 +557,9 @@ context=ServletUtilities.getContext(request);
 								<p class="editFormObservation">
 									<strong><%=props.getProperty("set")%> <%=nm%></strong>
 								</p>
-								<form name="editFormObservation" action="../BaseClassSetObservation" method="post" class="editFormDynamic">
+								<form name="editFormObservation" action="../OccurrenceSetObservation" method="post" class="editFormDynamic">
 									<input name="name" type="hidden" value="<%=nm%>" /> 
 									<input name="number" type="hidden" value="<%=number%>" />
-									<input name="type" type="hidden" value="Occurrence" />
 									<div class="form-group row">
 										<div class="col-sm-3">
 											<label><%=props.getProperty("propertyValue")%></label>
