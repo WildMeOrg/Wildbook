@@ -262,7 +262,7 @@ String formAction="surveySearchResults.jsp";
 
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
   </td>
 </tr>
@@ -310,7 +310,7 @@ inShepherd.closeDBTransaction();
    <td>
      <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
        color="#000000"><%=occProps.getProperty("fieldsTitle") %></font></a></h4>
    </td>
  </tr>

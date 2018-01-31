@@ -39,11 +39,6 @@ public class SurveyQueryProcessor extends QueryProcessor {
     //myShepherd.setAction("SurveyQueryProcessor.class");
     
     ArrayList<Survey> svys = myShepherd.getAllSurveys();
-    if (svys!=null&&!svys.isEmpty()) {
-      for (int i=0;i<20;i++) {
-        System.out.println("Sample #"+i+" startTime "+svys.get(i).getStartTimeMilli());
-      }      
-    }
 
     //filter for id------------------------------------------
     filter = QueryProcessor.filterWithBasicStringField(filter, "id", request, prettyPrint);
