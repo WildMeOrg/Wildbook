@@ -5,6 +5,10 @@ import org.ecocean.ShepherdProperties;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Envelope;
 
 /*
 
@@ -71,5 +75,24 @@ System.out.println("[INFO] RabbitMQQueue.init() complete");
 System.out.println("[INFO] published to {" + this.queueName + "}: " + msg);
     }
 
-    //public abstract void consume();
+    //i think this never returns?
+    public void consume() throws java.io.IOException {
+        //boolean is auto-ack.  false means we manually ack
+        channel.basicConsume(this.queueName, false, "myConsumerTag",
+            new DefaultConsumer(channel) {
+                @Override
+                public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] bodyB) throws java.io.IOException {
+                    String body = new String(bodyB);
+                    String routingKey = envelope.getRoutingKey();
+                    String contentType = properties.getContentType();
+                    long deliveryTag = envelope.getDeliveryTag();
+                    // (process the message components here ...)
+System.out.println("CONSUMED! " + deliveryTag + "; " + contentType + "; " + routingKey + " = {" + body + "}");
+                    channel.basicAck(deliveryTag, false);
+                }
+            }
+        );
+    }
+
+
 }
