@@ -1446,7 +1446,7 @@ System.out.println("*****************\nhey i think we are happy with these annot
 
     //scores < these will require human review (otherwise they carry on automatically)
     public static double getDetectionCutoffValue() {
-        return 0.25;
+        return 0.35;
     }
     public static double getIdentificationCutoffValue() {
         return 0.8;
