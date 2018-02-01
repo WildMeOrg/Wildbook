@@ -86,7 +86,7 @@ public class Encounter implements java.io.Serializable {
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
     //at least one frame/image (e.g. from YouTube detection) must have this confidence or encounter will be ignored
-    public static final double ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF = 0.65;
+    public static final double ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF = 0.6;
     public static final String STATE_AUTO_SOURCED = "auto_sourced";
 
   /**
