@@ -15,7 +15,7 @@ public class DetectTranslate {
     Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
     Translation translation = translate.translate(text,
     TranslateOption.targetLanguage("en"));
-    System.out.println(translation.getTranslatedText());
+    //System.out.println(translation.getTranslatedText());
     text=translation.getTranslatedText();
     return text;
   }
@@ -28,33 +28,27 @@ public class DetectTranslate {
     System.out.println("Detected language "+detectedLanguage+" from text: "+text);
     return detectedLanguage;
   }
+  
+  public static String translateToLanguage(String text, String language, String context){
+    String apiKey= CommonConfiguration.getProperty("translate_key", context);
+    Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
+    Translation translation = translate.translate(text, TranslateOption.targetLanguage(language));
+    //System.out.println(translation.getTranslatedText());
+    text=translation.getTranslatedText();
+    return text;
+  }
 
+  
+  
   //Legacy Methods from Stella
-
+  /*
   public static String translate(String ytRemarks, String context){
-    String apiKey= CommonConfiguration.getProperty("translate_key", context);
-    Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
-
-
-//    TranslateOptions.newBuilder().setApiKey(apiKey);
-
-//    Translate translate = TranslateOptions.getDefaultInstance().getService();
-    Translation translation = translate.translate(ytRemarks,
-    TranslateOption.targetLanguage("en"));
-    System.out.println(translation.getTranslatedText());
-    ytRemarks=translation.getTranslatedText();
-
-    return ytRemarks;
-
+    return translateToEnglish(ytRemarks, context);
   }
+
   public static String detect(String ytRemarks, String context){
-    String apiKey= CommonConfiguration.getProperty("translate_key", context);
-    Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
-
-    Detection detection = translate.detect(ytRemarks);
-    String detectedLanguage = detection.getLanguage();
-    return detectedLanguage;
-
+    return detectLanguage(ytRemarks, context);
   }
+  */
 
 }

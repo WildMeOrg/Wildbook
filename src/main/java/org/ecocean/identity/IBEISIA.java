@@ -2738,10 +2738,11 @@ return Util.generateUUID();
           String detectedLanguage="en";
           try{
             
-            detectedLanguage= DetectTranslate.detect(ytRemarks, context);
+            detectedLanguage= DetectTranslate.detectLanguage(ytRemarks, context);
+            System.out.println("Video description suggests language: "+detectedLanguage);
 
             if(!detectedLanguage.toLowerCase().startsWith("en")){
-              ytRemarks= DetectTranslate.translate(ytRemarks, context);
+              ytRemarks= DetectTranslate.translateToEnglish(ytRemarks, context);
             }
           }
           catch(Exception e){
@@ -2758,7 +2759,9 @@ return Util.generateUUID();
           
           try{
             String titleLanguage="en";
-            titleLanguage= DetectTranslate.detect(titleLanguage, context);
+            titleLanguage= DetectTranslate.detectLanguage(videoTitle, context);
+            System.out.println("Video title "+videoTitle+" suggests language: "+titleLanguage);
+
             
             //use the title language if there were no comments
             if(ytRemarks.equals("")) {
@@ -2766,13 +2769,15 @@ return Util.generateUUID();
             }
 
             if(!titleLanguage.toLowerCase().startsWith("en")){
-              videoTitle= DetectTranslate.translate(videoTitle, context);
+              videoTitle= DetectTranslate.translateToEnglish(videoTitle, context);
             }
           }
           catch(Exception e){
             System.out.println("I hit an exception trying to detect language in the video title.");
             e.printStackTrace();
           }
+          
+          System.out.println("Final detectedLanguage: "+detectedLanguage);
           
           
           //GET AND TRANSLATE OCR TEXT EMBEDDED IN VIDEO FRAMES
@@ -2811,10 +2816,13 @@ return Util.generateUUID();
           
           try{
             String ocrDetectedLanguage="en";
-            ocrDetectedLanguage= DetectTranslate.detect(ocrRemarks, context);
+            ocrDetectedLanguage= DetectTranslate.detectLanguage(ocrRemarks, context);
+            
+            System.out.println("OCR suggests language: "+ocrDetectedLanguage);
+
 
             if(!ocrDetectedLanguage.toLowerCase().startsWith("en")){
-              ocrRemarks= DetectTranslate.translate(ocrRemarks, context);
+              ocrRemarks= DetectTranslate.translateToEnglish(ocrRemarks, context);
             }
           }
           catch(Exception e){
@@ -2960,6 +2968,7 @@ return Util.generateUUID();
             //Properties questEs = new Properties();
 
             //TBD-simplify to one set of files
+            System.out.println("Getting quest.properties for language code: "+detectedLanguage);
             quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
             //questEs= ShepherdProperties.getProperties("questEs.properties");
 
