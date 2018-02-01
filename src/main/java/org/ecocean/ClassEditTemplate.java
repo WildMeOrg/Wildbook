@@ -334,10 +334,14 @@ public class ClassEditTemplate {
     while (en.hasMoreElements()) {
 
       String pname = (String) en.nextElement();
+      System.out.println("  "+pname);
+
       if (pname.indexOf(relevantParamPrefix) == 0) {
         String setterName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
         String value = request.getParameter(pname);
+        System.out.print(" = "+value);
         invokeObjectMethod(obj, setterName, value);
+        System.out.println("  (successfully invoked object method)");
       }
 
     }
