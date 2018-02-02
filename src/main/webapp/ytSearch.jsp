@@ -11,6 +11,7 @@ org.json.JSONObject,
 org.json.JSONArray,
 com.google.api.services.youtube.model.SearchResult,
 org.ecocean.media.*,
+org.ecocean.servlet.ServletUtilities,
 java.util.ArrayList
               "
 %>
@@ -20,7 +21,8 @@ java.util.ArrayList
 
 <%
 
-YouTube.init(request);
+String context = ServletUtilities.getContext(request);
+YouTube.init(context);
 
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
@@ -93,7 +95,7 @@ if (keyword == null) {
 } else {
 	List<SearchResult> vids;
 	try {
-		vids = YouTube.searchByKeyword(keyword, sinceMS);
+		vids = YouTube.searchByKeyword(keyword, sinceMS, context);
 	} catch (Exception ex) {
 		rtn.put("error", "exception thrown: " + ex.toString());
 		out.println(rtn);
