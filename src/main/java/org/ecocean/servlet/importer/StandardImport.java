@@ -80,7 +80,7 @@ StandardImport extends HttpServlet {
     astore = getAssetStore(myShepherd);
 
     photoDirectory = "/data/indocet/";
-    String filename = "/data/oman_import/ASWN_firstExport.xlsx";
+    String filename = "/data/aswn-workshop/standard_import_template-suaad.xlsx";
     //String filename = "/data/oman_import/ASWN_firstExport.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
     File dataFile = new File(filename);
@@ -126,7 +126,7 @@ StandardImport extends HttpServlet {
     for (String heading: colIndexMap.keySet()) out.println("<li>"+colIndexMap.get(heading)+": "+heading+"</li>");
     out.println("</ul>");
 
-    int printPeriod = 50;
+    int printPeriod = 1;
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Beginning row loop:</h2>");
     out.println("<ul>");
@@ -142,6 +142,7 @@ StandardImport extends HttpServlet {
 
         if (committing) myShepherd.beginDBTransaction();
         Row row = sheet.getRow(i);
+        if (isRowEmpty(row)) continue;
 
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
@@ -158,7 +159,7 @@ StandardImport extends HttpServlet {
 
         if (verbose) {
           out.println("<li>Parsed row ("+i+")<ul>"
-          +"<li> Enc "+enc.getEncounterNumber()+"</li>"
+          +"<li> Enc "+getEncounterDisplayString(enc)+"</li>"
           +"<li> individual "+mark+"</li>"
           +"<li> occurrence "+occ+"</li>"
           +"<li> dateInMillis "+enc.getDateInMilliseconds()+"</li>"
@@ -783,6 +784,35 @@ StandardImport extends HttpServlet {
   	}
     return getDateTime(row, colIndexMap.get(colName));
   }
+
+
+  // Apache POI, shame on you for making me write this. Shame! Shame! Shame! SHAME!
+  // (as if I actually wrote this. thanks stackoverflow!)
+  public static boolean isRowEmpty(Row row) {
+    for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
+        Cell cell = row.getCell(c);
+        if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)
+            return false;
+    }
+    return true;
+	}
+
+
+	// This would be cool to put in Encounter or something.
+	// tho I'm not immediately sure how we'd get the url context, or determine if we want to include /encounters/ or not
+	public static String getEncounterURL(Encounter enc) {
+		if (enc==null || enc.getCatalogNumber()==null) return null;
+		return "/encounters/encounter.jsp?number="+enc.getCatalogNumber();
+	}
+
+	// gives us a nice link if we're
+	public String getEncounterDisplayString(Encounter enc) {
+		if (enc==null) return null;
+		if (committing) {
+			return "<a href=\""+getEncounterURL(enc)+"\" >"+enc.getCatalogNumber()+"</a>";
+		}
+		return enc.getCatalogNumber();
+	}
 
 
   private AssetStore  getAssetStore(Shepherd myShepherd) {
