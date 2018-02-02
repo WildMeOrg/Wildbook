@@ -1,33 +1,27 @@
 package org.ecocean.ai.ocr.google;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.vision.v1.Vision;
-import com.google.api.services.vision.v1.VisionScopes;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
 
 import com.google.api.services.vision.v1.model.AnnotateImageRequest;
-import com.google.api.services.vision.v1.model.AnnotateImageResponse;
 //import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
-import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
 import com.google.common.collect.ImmutableList;
-
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
-import org.ecocean.CommonConfiguration;
+
+import org.ecocean.ShepherdProperties;
 import org.ecocean.media.MediaAsset;
 
 public class GoogleOcr {
@@ -52,9 +46,12 @@ public class GoogleOcr {
   }
   public static String getTextFrames(List<byte[]> bytesFrames, String context) {
     // Instantiates Stella's credentials
-    String CLIENT_ID= CommonConfiguration.getProperty("clientIDVision", context);
-    String CLIENT_SECRET= CommonConfiguration.getProperty("clientSecretVision", context);
-    String refreshToken = CommonConfiguration.getProperty("refreshTokenVision", context);
+    Properties googleProps = ShepherdProperties.getProperties("googleKeys.properties","");
+    
+    
+    String CLIENT_ID= googleProps.getProperty("clientIDVision");
+    String CLIENT_SECRET= googleProps.getProperty("clientSecretVision");
+    String refreshToken = googleProps.getProperty("refreshTokenVision");
     System.out.println("Trying Google creds ID: " +CLIENT_ID+" secret:"+CLIENT_SECRET+" refreshoken:"+refreshToken);
     Vision vision = null;
 
