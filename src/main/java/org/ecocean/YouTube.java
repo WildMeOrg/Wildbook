@@ -10,6 +10,7 @@ import org.ecocean.media.AssetStoreType;
 
 import java.io.File;
 import java.util.List;
+import java.util.Properties;
 //import java.util.Properties;
 //import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,8 +43,8 @@ import java.util.ArrayList;
 public class YouTube {
     private static String apiKey = null;
     private static String refreshToken = null;
-    private static com.google.api.services.youtube.YouTube youtube;
-    //private static com.google.api.services.youtube.YouTube youtube2;
+    private static com.google.api.services.youtube.YouTube youtubeOauthCreds;
+    private static com.google.api.services.youtube.YouTube youtubeAPIKey;
     public static final double EXTRACT_FPS = 0.5;  //note: this *must* be synced with value in config/youtube_extract.sh
 
   //private String storyMediaURL;
@@ -51,18 +52,20 @@ public class YouTube {
 
     public static void init(String context) {
         //String context = ServletUtilities.getContext(request);
-        apiKey = CommonConfiguration.getProperty("youtube_api_key", context);
-        /*
-        youtube = new com.google.api.services.youtube.YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
+        Properties googleProps = ShepherdProperties.getProperties("googleKeys.properties","");
+      
+        apiKey = googleProps.getProperty("youtube_api_key");
+        
+        youtubeAPIKey = new com.google.api.services.youtube.YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
           public void initialize(com.google.api.client.http.HttpRequest request) throws IOException {
           }
         }).setApplicationName("wildbook-youtube").build();
-        */
-        String CLIENT_ID= CommonConfiguration.getProperty("youtube_client_id", context);
-        String CLIENT_SECRET= CommonConfiguration.getProperty("youtube_client_secret", context);;
+        
+        String CLIENT_ID= googleProps.getProperty("youtube_client_id");
+        String CLIENT_SECRET= googleProps.getProperty("youtube_client_secret");;
         System.out.println("CLIENT_ID: "+CLIENT_ID);
         System.out.println("CLIENT_SECRET: "+CLIENT_SECRET);
-        refreshToken = CommonConfiguration.getProperty("refresh_token", context);
+        refreshToken = googleProps.getProperty("refresh_token");
         System.out.println("refreshToke: "+refreshToken);
         HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
         JsonFactory JSON_FACTORY = new JacksonFactory();
@@ -75,7 +78,7 @@ public class YouTube {
         credential.setRefreshToken(refreshToken);
       
         
-        youtube = new com.google.api.services.youtube.YouTube.Builder(
+        youtubeOauthCreds = new com.google.api.services.youtube.YouTube.Builder(
             HTTP_TRANSPORT, JSON_FACTORY, credential)
                 .setApplicationName("wildbook-youtube")
                 .build();
@@ -165,10 +168,10 @@ System.out.println("]=== done with .extractFrames()");
     }
     public static List<SearchResult> searchByKeyword(String keyword, long pubAfter, String context) {  //pubAfter is ms since epoch
         //if (!isActive()) throw new RuntimeException("YouTube API not active (invalid api key?)");
-        if (youtube == null) init(context);
+        if (youtubeAPIKey == null) init(context);
         try {
             // Define the API request for retrieving search results.
-            com.google.api.services.youtube.YouTube.Search.List search = youtube.search().list("id,snippet");
+            com.google.api.services.youtube.YouTube.Search.List search = youtubeAPIKey.search().list("id,snippet");
             search.setKey(apiKey);
             search.setQ(keyword);
             if (pubAfter > 0) search.setPublishedAfter(new com.google.api.client.util.DateTime(pubAfter));
@@ -202,7 +205,7 @@ System.out.println("]=== done with .extractFrames()");
       if(!isActive()) init(context);
       
       //if (youtube == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
-      if (youtube == null) init(context);
+      if (youtubeOauthCreds == null) init(context);
       
       try {
         
@@ -224,7 +227,7 @@ System.out.println("]=== done with .extractFrames()");
         snippet.setTopLevelComment(topLevelComment);
         commentThread.setSnippet(snippet);
 
-        com.google.api.services.youtube.YouTube.CommentThreads.Insert commentThreadsInsertRequest = youtube.commentThreads().insert(parameters.get("part").toString(), commentThread);
+        com.google.api.services.youtube.YouTube.CommentThreads.Insert commentThreadsInsertRequest = youtubeOauthCreds.commentThreads().insert(parameters.get("part").toString(), commentThread);
         commentThreadsInsertRequest.setKey(apiKey);
         CommentThread response = commentThreadsInsertRequest.execute();
           
@@ -245,10 +248,10 @@ System.out.println("]=== done with .extractFrames()");
     public static String getReplies(Occurrence occur, String context) {  //pubAfter is ms since epoch
       //if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       //if (youtube == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
-      if (youtube == null) init(context);
+      if (youtubeOauthCreds == null) init(context);
       try {
         String commentId=occur.getSocialMediaQueryCommentID();
-        CommentListResponse commentsListResponse = youtube.comments().list("snippet")
+        CommentListResponse commentsListResponse = youtubeOauthCreds.comments().list("snippet")
             .setParentId(commentId).setTextFormat("plainText").setKey(apiKey).execute();
         List<Comment> comments = commentsListResponse.getItems();
         String replies = "";
@@ -356,14 +359,14 @@ System.out.println("]=== done with .extractFrames()");
     public static String getVideoComments(Occurrence occur, String context) {  //pubAfter is ms since epoch
       //if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
       //if (youtube == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
-      if (youtube == null) init(context);
+      if (youtubeOauthCreds == null) init(context);
       try {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put("part", "snippet,replies");
         String videoID=occur.getSocialMediaSourceID().replaceFirst("youtube:", "");
         parameters.put("videoId", videoID);
 
-        CommentThreads.List commentThreadsListByVideoIdRequest = youtube.commentThreads().list(parameters.get("part").toString());
+        CommentThreads.List commentThreadsListByVideoIdRequest = youtubeOauthCreds.commentThreads().list(parameters.get("part").toString());
         if (parameters.containsKey("videoId") && parameters.get("videoId") != "") {
             commentThreadsListByVideoIdRequest.setVideoId(parameters.get("videoId").toString());
         }
