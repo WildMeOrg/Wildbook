@@ -451,7 +451,7 @@
     <dependency>
       <groupId>com.google.apis</groupId>
       <artifactId>google-api-services-youtube</artifactId>
-      <version>v3-rev182-1.22.0</version>
+      <version>v3-rev191-1.23.0</version>
     </dependency>
 
 <dependency>
@@ -533,7 +533,7 @@
 		<dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-translate</artifactId>
-  <version>1.14.0</version>
+  <version>1.15.0</version>
 </dependency>
 		
 	    
@@ -547,7 +547,7 @@
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-vision</artifactId>
-  <version>1.14.0</version>
+  <version>1.15.0</version>
 </dependency>
     
      <dependency>
@@ -568,6 +568,15 @@
 	    <groupId>edu.stanford.nlp</groupId>
 	    <artifactId>stanford-corenlp</artifactId>
 	    <version>3.8.0</version>
+		
+		 <exclusions>
+			<exclusion>  
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-java</artifactId>
+			</exclusion>
+		</exclusions> 
+		
+		
 		</dependency>
 		<!--
 		<dependency>
