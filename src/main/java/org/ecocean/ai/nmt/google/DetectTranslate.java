@@ -1,7 +1,5 @@
 package org.ecocean.ai.nmt.google;
 
-//import org.ecocean.CommonConfiguration;
-import org.ecocean.ShepherdProperties;
 
 import com.google.cloud.translate.Detection;
 import com.google.cloud.translate.Translate;
@@ -11,10 +9,16 @@ import com.google.cloud.translate.Translate.TranslateOption;
 
 public class DetectTranslate {
 
-  public static String translateToEnglish(String text, String context){
-    //String apiKey= CommonConfiguration.getProperty("translate_key", context);
-    String apiKey= ShepherdProperties.getProperties("googleKeys.properties","").getProperty("translate_key");
-    Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
+  
+//Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
+  
+  public static String translateToEnglish(String text){
+    
+    //String apiKey= ShepherdProperties.getProperties("googleKeys.properties","").getProperty("translate_key");
+    //Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
+    
+    Translate translate = TranslateOptions.getDefaultInstance().getService();
+    
     Translation translation = translate.translate(text,
     TranslateOption.targetLanguage("en"));
     //System.out.println(translation.getTranslatedText());
@@ -22,18 +26,31 @@ public class DetectTranslate {
     return text;
   }
 
-  public static String detectLanguage(String text, String context){
-    String apiKey= ShepherdProperties.getProperties("googleKeys.properties","").getProperty("translate_key");
-    Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
+//Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
+  
+  public static String detectLanguage(String text){
+    //String apiKey= ShepherdProperties.getProperties("googleKeys.properties","").getProperty("translate_key");
+    //Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
+    
+    Translate translate = TranslateOptions.getDefaultInstance().getService();
+    
+    
     Detection detection = translate.detect(text);
     String detectedLanguage = detection.getLanguage();
     System.out.println("Detected language "+detectedLanguage+" from text: "+text);
     return detectedLanguage;
   }
   
+//Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
+  
   public static String translateToLanguage(String text, String language, String context){
-    String apiKey= ShepherdProperties.getProperties("googleKeys.properties","").getProperty("translate_key");
-    Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
+    //String apiKey= ShepherdProperties.getProperties("googleKeys.properties","").getProperty("translate_key");
+    //Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
+    
+    //Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
+    Translate translate = TranslateOptions.getDefaultInstance().getService();
+    
+    
     Translation translation = translate.translate(text, TranslateOption.targetLanguage(language));
     //System.out.println(translation.getTranslatedText());
     text=translation.getTranslatedText();

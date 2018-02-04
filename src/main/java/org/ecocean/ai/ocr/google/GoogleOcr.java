@@ -1,30 +1,25 @@
 package org.ecocean.ai.ocr.google;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.services.vision.v1.Vision;
-import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
 
-import com.google.api.services.vision.v1.model.AnnotateImageRequest;
-//import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
-import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
-import com.google.api.services.vision.v1.model.Feature;
-import com.google.api.services.vision.v1.model.Image;
-import com.google.common.collect.ImmutableList;
-import java.io.File;
-import java.nio.file.Files;
+import com.google.cloud.vision.v1.AnnotateImageRequest;
+import com.google.cloud.vision.v1.AnnotateImageResponse;
+import com.google.cloud.vision.v1.BatchAnnotateImagesResponse;
+import com.google.cloud.vision.v1.EntityAnnotation;
+import com.google.cloud.vision.v1.Feature;
+import com.google.cloud.vision.v1.Feature.Type;
+import com.google.cloud.vision.v1.Image;
+import com.google.cloud.vision.v1.ImageAnnotatorClient;
+import com.google.protobuf.ByteString;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import java.io.File;
+import java.nio.file.Files;
 
-
-import org.ecocean.ShepherdProperties;
 import org.ecocean.media.MediaAsset;
 
 public class GoogleOcr {
+  
+  
   public static List<byte[]> makeBytesFrames(ArrayList<MediaAsset> frames){
     if (frames == null) throw new RuntimeException("Not media assets for this video?!");
     try {
@@ -44,6 +39,8 @@ public class GoogleOcr {
     return null;
     
   }
+  
+  /*
   public static String getTextFrames(List<byte[]> bytesFrames, String context) {
     // Instantiates Stella's credentials
     Properties googleProps = ShepherdProperties.getProperties("googleKeys.properties","");
@@ -128,7 +125,53 @@ public class GoogleOcr {
     }    
    return null; 
 }
+*/
+  
+//Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
+  
+  public static String detectText(List<byte[]> byteFrames) throws Exception, IOException {
+    List<AnnotateImageRequest> requests = new ArrayList<>();
+    StringBuffer framesTexts= new StringBuffer("");
+    
+    for (byte[] byteFrame : byteFrames) {
+      ByteString imgBytes = ByteString.copyFrom(byteFrame);
+  
+      Image img = Image.newBuilder().setContent(imgBytes).build();
+      Feature feat = Feature.newBuilder().setType(Type.TEXT_DETECTION).build();
+      AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
+      requests.add(request);
+    }
+  
+    try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
+        BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
+        List<AnnotateImageResponse> responses = response.getResponsesList();
+  
+        for (AnnotateImageResponse res : responses) {
+          if (res.hasError()) {
+            //out.printf("Error: %s\n", res.getError().getMessage());
+            //return;
+          }
+  
+          System.out.println("Google OCR output: ");
+          for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
+            
+            if (!(framesTexts.toString()).contains(annotation.getDescription())) { 
+              System.out.println(annotation.getDescription());
+              framesTexts.append(annotation.getDescription()+ " ");
+            }
 
+          }
+        }
+     }
+     catch(Exception e) {
+       System.out.println("GoogleOcr: couldn't instantiate a client!");
+       e.printStackTrace();
+     }
+     return framesTexts.toString();
+
+    
+    
+  }
   
 
 }

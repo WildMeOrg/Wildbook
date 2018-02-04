@@ -138,10 +138,10 @@ public class IndividualCreate extends HttpServlet {
                   
                   String detectedLanguage="en";
                   try{
-                    detectedLanguage= DetectTranslate.detectLanguage(ytRemarks, context);
+                    detectedLanguage= DetectTranslate.detectLanguage(ytRemarks);
 
                     if(!detectedLanguage.toLowerCase().startsWith("en")){
-                      ytRemarks= DetectTranslate.translateToEnglish(ytRemarks, context);
+                      ytRemarks= DetectTranslate.translateToEnglish(ytRemarks);
                     }
                     if(detectedLanguage.startsWith("es")){detectedLanguage="es";}
                     else{detectedLanguage="en";}

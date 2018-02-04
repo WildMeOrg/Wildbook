@@ -2738,11 +2738,11 @@ return Util.generateUUID();
           String detectedLanguage="en";
           try{
             
-            detectedLanguage= DetectTranslate.detectLanguage(ytRemarks, context);
+            detectedLanguage= DetectTranslate.detectLanguage(ytRemarks);
             System.out.println("Video description suggests language: "+detectedLanguage);
 
             if(!detectedLanguage.toLowerCase().startsWith("en")){
-              ytRemarks= DetectTranslate.translateToEnglish(ytRemarks, context);
+              ytRemarks= DetectTranslate.translateToEnglish(ytRemarks);
             }
           }
           catch(Exception e){
@@ -2759,7 +2759,7 @@ return Util.generateUUID();
           
           try{
             String titleLanguage="en";
-            titleLanguage= DetectTranslate.detectLanguage(videoTitle, context);
+            titleLanguage= DetectTranslate.detectLanguage(videoTitle);
             System.out.println("Video title "+videoTitle+" suggests language: "+titleLanguage);
 
             
@@ -2769,7 +2769,7 @@ return Util.generateUUID();
             }
 
             if(!titleLanguage.toLowerCase().startsWith("en")){
-              videoTitle= DetectTranslate.translateToEnglish(videoTitle, context);
+              videoTitle= DetectTranslate.translateToEnglish(videoTitle);
             }
           }
           catch(Exception e){
@@ -2796,7 +2796,7 @@ return Util.generateUUID();
                       
                       //Google OCR
                       ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
-                      ocrRemarks = GoogleOcr.getTextFrames(bytesFrames, context);
+                      ocrRemarks = GoogleOcr.detectText(bytesFrames);
                       if(ocrRemarks==null)ocrRemarks="";
                         System.out.println("I found OCR remarks: "+ocrRemarks);
                     }
@@ -2816,13 +2816,13 @@ return Util.generateUUID();
           
           try{
             String ocrDetectedLanguage="en";
-            ocrDetectedLanguage= DetectTranslate.detectLanguage(ocrRemarks, context);
+            ocrDetectedLanguage= DetectTranslate.detectLanguage(ocrRemarks);
             
             System.out.println("OCR suggests language: "+ocrDetectedLanguage);
 
 
             if(!ocrDetectedLanguage.toLowerCase().startsWith("en")){
-              ocrRemarks= DetectTranslate.translateToEnglish(ocrRemarks, context);
+              ocrRemarks= DetectTranslate.translateToEnglish(ocrRemarks);
             }
           }
           catch(Exception e){
