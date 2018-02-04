@@ -59,9 +59,9 @@ public class ParseDateLocation {
   }
 
   public static String detectLanguageAndTranslateToEnglish(String text, String context) throws RuntimeException{
-    String detectedLanguage = DetectTranslate.detectLanguage(text, context);
+    String detectedLanguage = DetectTranslate.detectLanguage(text);
     if(!detectedLanguage.toLowerCase().startsWith("en")){
-      text= DetectTranslate.translateToEnglish(text, context);
+      text= DetectTranslate.translateToEnglish(text);
     }
     if(text !=null && !text.equals("")){
       return text;
@@ -133,9 +133,9 @@ public class ParseDateLocation {
     //int day=-1;
 
     try{
-      String detectedLanguage = DetectTranslate.detectLanguage(textInput, context);
+      String detectedLanguage = DetectTranslate.detectLanguage(textInput);
       if(!detectedLanguage.toLowerCase().startsWith("en")){
-        textInput= DetectTranslate.translateToEnglish(textInput, context);
+        textInput= DetectTranslate.translateToEnglish(textInput);
         System.out.println("Translated text for parseLocation is " + textInput);
       }
     } catch(Exception e){
@@ -169,9 +169,9 @@ public class ParseDateLocation {
     //int day=-1;
 
     try{
-      String detectedLanguage = DetectTranslate.detectLanguage(textInput, context);
+      String detectedLanguage = DetectTranslate.detectLanguage(textInput);
       if(!detectedLanguage.toLowerCase().startsWith("en")){
-        textInput= DetectTranslate.translateToEnglish(textInput, context);
+        textInput= DetectTranslate.translateToEnglish(textInput);
         System.out.println("Translated text for parseLocation is " + textInput);
       }
     } catch(Exception e){
