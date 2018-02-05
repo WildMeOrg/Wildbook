@@ -10,24 +10,12 @@ import com.google.cloud.translate.Translate.TranslateOption;
 public class DetectTranslate {
 
   
-//Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
-  
+  //Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication  
   public static String translateToEnglish(String text){
-    
-    //String apiKey= ShepherdProperties.getProperties("googleKeys.properties","").getProperty("translate_key");
-    //Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
-    
-    Translate translate = TranslateOptions.getDefaultInstance().getService();
-    
-    Translation translation = translate.translate(text,
-    TranslateOption.targetLanguage("en"));
-    //System.out.println(translation.getTranslatedText());
-    text=translation.getTranslatedText();
-    return text;
+    return translateToLanguage(text, "en");
   }
 
-//Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
-  
+  //Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
   public static String detectLanguage(String text){
     //String apiKey= ShepherdProperties.getProperties("googleKeys.properties","").getProperty("translate_key");
     //Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
@@ -41,33 +29,20 @@ public class DetectTranslate {
     return detectedLanguage;
   }
   
-//Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
-  
-  public static String translateToLanguage(String text, String language, String context){
+  //Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
+  //Language codes are two-letter, lowercase combinations supported by Google Translator
+  public static String translateToLanguage(String text, String twoLetterLanguageCode){
     //String apiKey= ShepherdProperties.getProperties("googleKeys.properties","").getProperty("translate_key");
     //Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
     
     //Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
-    Translate translate = TranslateOptions.getDefaultInstance().getService();
-    
-    
-    Translation translation = translate.translate(text, TranslateOption.targetLanguage(language));
+    Translate translate = TranslateOptions.getDefaultInstance().getService();   
+    Translation translation = translate.translate(text, TranslateOption.targetLanguage(twoLetterLanguageCode));
     //System.out.println(translation.getTranslatedText());
     text=translation.getTranslatedText();
     return text;
   }
 
-  
-  
-  //Legacy Methods from Stella
-  /*
-  public static String translate(String ytRemarks, String context){
-    return translateToEnglish(ytRemarks, context);
-  }
 
-  public static String detect(String ytRemarks, String context){
-    return detectLanguage(ytRemarks, context);
-  }
-  */
 
 }

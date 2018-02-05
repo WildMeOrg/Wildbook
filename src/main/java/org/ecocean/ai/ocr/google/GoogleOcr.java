@@ -127,12 +127,10 @@ public class GoogleOcr {
 }
 */
   
-//Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
-  
+  //Depends on the system variable GOOGLE_APPLICATION_CREDENTIALS to get JSON key for service account authentication
   public static String detectText(List<byte[]> byteFrames) throws Exception, IOException {
-    List<AnnotateImageRequest> requests = new ArrayList<>();
+    List<AnnotateImageRequest> requests = new ArrayList<AnnotateImageRequest>();
     StringBuffer framesTexts= new StringBuffer("");
-    
     for (byte[] byteFrame : byteFrames) {
       ByteString imgBytes = ByteString.copyFrom(byteFrame);
   
@@ -141,17 +139,35 @@ public class GoogleOcr {
       AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
       requests.add(request);
     }
+    
+    //with requests now populated, send batches of 5 to ensure we don't send massive packets.
+    int numRequests = requests.size();
   
+    List<AnnotateImageRequest> requestBatch = new ArrayList<AnnotateImageRequest>();
+    for(int i=0;i<numRequests;i++) {
+      
+      if((requestBatch.size()==5)||(i==(numRequests-1))) {
+        framesTexts.append(getTextForBatch(requestBatch));
+        requestBatch = new ArrayList<>();
+      }
+      else {
+        requestBatch.add(requests.get(i));
+      }
+    }
+    return framesTexts.toString();
+  }
+  
+  private static String getTextForBatch(List<AnnotateImageRequest> requestBatch) {
+    StringBuffer framesTexts= new StringBuffer("");
     try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
-        BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
-        List<AnnotateImageResponse> responses = response.getResponsesList();
-  
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            //out.printf("Error: %s\n", res.getError().getMessage());
-            //return;
-          }
-  
+      BatchAnnotateImagesResponse response = client.batchAnnotateImages(requestBatch);
+      List<AnnotateImageResponse> responses = response.getResponsesList();
+
+      for (AnnotateImageResponse res : responses) {
+        if (res.hasError()) {
+          System.out.println("Error: %s\n"+ res.getError().getMessage());
+        }
+        else {
           System.out.println("Google OCR output: ");
           for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
             
@@ -159,18 +175,16 @@ public class GoogleOcr {
               System.out.println(annotation.getDescription());
               framesTexts.append(annotation.getDescription()+ " ");
             }
-
           }
         }
-     }
-     catch(Exception e) {
-       System.out.println("GoogleOcr: couldn't instantiate a client!");
-       e.printStackTrace();
-     }
-     return framesTexts.toString();
-
-    
-    
+        
+      }
+   }
+   catch(Exception e) {
+     System.out.println("GoogleOcr: couldn't instantiate a client!");
+     e.printStackTrace();
+   }
+    return framesTexts.toString();
   }
   
 
