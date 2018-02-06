@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.ArrayList;
 import org.joda.time.DateTime;
 import org.ecocean.datacollection.*;
+import org.ecocean.media.Feature;
 
 public class SpotterConserveIO {
 
@@ -37,9 +38,16 @@ public class SpotterConserveIO {
     public static Object ciToSurveyTrack(JSONObject jin) {
         if (jin.optJSONArray("sightings") != null) {
             List<Occurrence> occs = new ArrayList<Occurrence>();
+
+            /* the way this apparently works is the "sightings" array is actually *two* sets of data:
+               (1) a list of json objs in one format, then (2) a second list (same length) in another.
+               thus, this JSONArray is 2N in length.  so we pass in the i and i+N json objs and hope for the best
+            */
             JSONArray jocc = jin.getJSONArray("sightings");
-            for (int i = 0 ; i < jocc.length() ; i++) {
-                Occurrence occ = ciToOccurrence(jocc.optJSONObject(i));
+            if (jocc.length() % 2 == 1) throw new RuntimeException("sightings JSONArray is odd length=" + jocc.length());
+            int halfSize = (int) jocc.length() / 2;
+            for (int i = 0 ; i < halfSize ; i++) {
+                Occurrence occ = ciToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize));
                 if (occ != null) occs.add(occ);
             }
             /////// now do something with occs!
@@ -50,8 +58,8 @@ public class SpotterConserveIO {
             List<Observation> wths = new ArrayList<Observation>();
             JSONArray jw = jin.getJSONArray("weather");
             for (int i = 0 ; i < jw.length() ; i++) {
-                Observation wth = ciToWeather(jw.optJSONObject(i));
-                if (wth != null) wths.add(wth);
+                //Observation wth = ciToWeather(jw.optJSONObject(i));
+                //if (wth != null) wths.add(wth);
             }
             //.setWeather(wths);
         }
@@ -59,29 +67,33 @@ public class SpotterConserveIO {
     }
 
 
-    public static Occurrence ciToOccurrence(JSONObject jin) {
+    public static Occurrence ciToOccurrence(JSONObject jin, JSONObject jin2) {
         Occurrence occ = new Occurrence();
         occ.setOccurrenceID(Util.generateUUID());
-        occ.setDateTimeCreated(toDateTime(jin.optString("create_date", null)));
+        occ.addComments(jin.optString("Comments", null));
+        occ.setDateTimeCreated(jin.optString("create_date", null));
         occ.setBearing(findDouble(jin, "device_bearing"));
-        occ.decimalLatitude(resolveLatLon(jin, "device_latitude", "latitude"));
-        occ.decimalLongitude(resolveLatLon(jin, "device_longitude", "longitude"));
+        occ.setDecimalLatitude(resolveLatLon(jin, "device_latitude", "latitude"));
+        occ.setDecimalLongitude(resolveLatLon(jin, "device_longitude", "longitude"));
+
+        //it actually appears the jin2 array contains WhaleAlert type sightings data, fwiw; but we only care about these 2:
+        occ.addComments("<p class=\"import-source\">conserve.io source: <a href=\"" + jin2.optString("url") + "\"><b>" + jin2.optString("id") + "</b></a></p>");
 
         if (jin.optJSONArray("CINMS Behavior") != null) {
             List<Instant> bhvs = new ArrayList<Instant>();
             JSONArray jb = jin.getJSONArray("CINMS Behavior");
             for (int i = 0 ; i < jb.length() ; i++) {
-                Observation bhv = ciToBehavior(jb.optJSONObject(i));
+                Instant bhv = ciToBehavior(jb.optJSONObject(i));
                 if (bhv != null) bhvs.add(bhv);
             }
-            occ.behaviors(bhvs);
+            occ.setBehaviors(bhvs);
         }
 
         if (jin.optJSONArray("CINMS Photo Log") != null) {
             ArrayList<Encounter> encs = new ArrayList<Encounter>();
             JSONArray je = jin.getJSONArray("CINMS Photo Log");
             for (int i = 0 ; i < je.length() ; i++) {
-                Encounter enc = ciToEncounter(je.optJSONObject(i));
+                Encounter enc = ciToEncounter(je.optJSONObject(i), jin, occ.getOccurrenceID());
                 if (enc != null) encs.add(enc);
             }
             occ.setEncounters(encs);
@@ -100,19 +112,21 @@ public class SpotterConserveIO {
         Animals Identified: 1
 }
 */
-    public static Encounter ciToEncounter(JSONObject jin) {
+    public static Encounter ciToEncounter(JSONObject jin, JSONObject occJson, String occId) {  //occJson we need for species (if not more)
         Encounter enc = new Encounter();
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(findInteger(jin, "Animals Identified"));
         enc.setDynamicProperty("CINMS PID Code", jin.optString("PID Code", null));
         enc.setDynamicProperty("CINMS Card Number", jin.optString("Card Number", null));
+        enc.setOccurrenceID(occId);
+
         String dc = jin.optString("create_date", null);
         if (dc != null) {
             enc.setDWCDateAdded(dc);
             DateTime dt = toDateTime(dc);
             if (dt != null) enc.setDWCDateAdded(dt.getMillis());  //sets the millis version on enc.  SIGH!!!!!!!!!!!
         }
-        String tax[] = ciSpeciesSplit(jin.optString("CINMS Species", null));
+        String tax[] = ciSpeciesSplit(occJson.optString("CINMS Species", null));
         if ((tax != null) && (tax.length > 1)) {
             enc.setGenus(tax[0]);
             enc.setSpecificEpithet(tax[1]);
@@ -130,9 +144,9 @@ public class SpotterConserveIO {
                 params.put("PID Code", jin.optString("PID Code", null));
                 params.put("Card Number", jin.optString("Card Number", null));
                 params.put("Image Number", i);
-                params.put("description", "Image number " + i + " Card Number " + jin.optString("Card Number", "Unknown") + ", PID Code " + jin.optString("PID Code", "Unknown"));
+                params.put("description", "Image number " + i + " (" + imageStart + "-" + imageEnd + "); Card Number " + jin.optString("Card Number", "Unknown") + ", PID Code " + jin.optString("PID Code", "Unknown"));
                 Feature ft = new Feature("org.ecocean.MediaAssetPlaceholder", params);
-                Annotation ann = new Annotation(ciSpeciesSplit(jin.optString("CINMS Species", null)), ft);
+                Annotation ann = new Annotation(ciSpecies(occJson.optString("CINMS Species", null)), ft);
 System.out.println(enc + ": just made " + ann);
                 anns.add(ann);
             }
@@ -160,7 +174,7 @@ System.out.println("MADE " + enc);
     }
 
 
-    private static Double resolveLatLon(JSONObject jin, devKey, userKey) {
+    private static Double resolveLatLon(JSONObject jin, String devKey, String userKey) {
         Double devVal = findDouble(jin, devKey);
         Double userVal = findDouble(jin, userKey);
         //how we decide is a bit sketchy for now.  seems like even when the "same" the values vary by precision. :(
