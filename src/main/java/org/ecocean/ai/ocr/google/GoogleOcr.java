@@ -154,7 +154,10 @@ public class GoogleOcr {
         requestBatch.add(requests.get(i));
       }
     }
-    return framesTexts.toString();
+    //wrap it up
+    String returnText=framesTexts.toString();
+    System.out.println("Google OCR output: "+returnText);
+    return returnText;
   }
   
   private static String getTextForBatch(List<AnnotateImageRequest> requestBatch) {
@@ -168,11 +171,11 @@ public class GoogleOcr {
           System.out.println("Error: %s\n"+ res.getError().getMessage());
         }
         else {
-          System.out.println("Google OCR output: ");
+          
           for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
             
             if (!(framesTexts.toString()).contains(annotation.getDescription())) { 
-              System.out.println(annotation.getDescription());
+              //System.out.println(annotation.getDescription());
               framesTexts.append(annotation.getDescription()+ " ");
             }
           }
@@ -184,7 +187,11 @@ public class GoogleOcr {
      System.out.println("GoogleOcr: couldn't instantiate a client!");
      e.printStackTrace();
    }
-    return framesTexts.toString();
+    
+    //wrap it up
+    String returnText=framesTexts.toString();
+    //System.out.println("Google OCR output: "+returnText);
+    return returnText;
   }
   
 
