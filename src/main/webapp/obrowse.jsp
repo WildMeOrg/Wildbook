@@ -73,7 +73,7 @@ java.util.Properties" %>
 		if (f == null) return "<b>[none]</b>";
 		if (shown.contains(f)) return "<div class=\"feature shown\">Feature <b>" + f.getId() + "</b></div>";
 		shown.add(f);
-		String h = "<div class=\"feature\">Feature <b>" + f.getId() + "</b><ul>";
+		String h = "<div class=\"feature\"><a href=\"obrowse.jsp?type=Feature&id=" + f.getId() + "\">Feature <b>" + f.getId() + "</b></a><ul>";
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
 		h += "<li>" + showMediaAsset(f.getMediaAsset()) + "</li>";
 		h += "<li>" + showAnnotation(f.getAnnotation()) + "</li>";
