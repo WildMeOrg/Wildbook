@@ -144,7 +144,9 @@ public class SpotterConserveIO {
                 params.put("PID Code", jin.optString("PID Code", null));
                 params.put("Card Number", jin.optString("Card Number", null));
                 params.put("Image Number", i);
-                params.put("description", "Image number " + i + " (" + imageStart + "-" + imageEnd + "); Card Number " + jin.optString("Card Number", "Unknown") + ", PID Code " + jin.optString("PID Code", "Unknown"));
+                params.put("Image Start", imageStart);
+                params.put("Image End", imageEnd);
+                params.put("description", "Image number " + i + " (in " + imageStart + "-" + imageEnd + "); Card Number " + jin.optString("Card Number", "Unknown") + ", PID Code " + jin.optString("PID Code", "Unknown"));
                 Feature ft = new Feature("org.ecocean.MediaAssetPlaceholder", params);
                 Annotation ann = new Annotation(ciSpecies(occJson.optString("CINMS Species", null)), ft);
 System.out.println(enc + ": just made " + ann);
