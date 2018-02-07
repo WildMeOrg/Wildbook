@@ -299,7 +299,9 @@ int numDataContributors=0;
 
     <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
+<!--
     <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true"><%=props.getProperty("adoptableSharks") %></a></button>
+-->
 
   </div>
 </nav>
