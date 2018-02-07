@@ -841,8 +841,14 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
                            if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+				String commonValue = CommonConfiguration.getProperty("genusSpeciesCommon" + q, context);
+				if (commonValue == null) {
+					commonValue = "";
+				} else {
+					commonValue = " (" + commonValue + ")";
+				}
                                %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%><%=commonValue%></option>
                                <%
 
                         }
@@ -892,7 +898,18 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
+		<select class="form-control" name="behavior">
+			<option value="">NONE</option>
+			<option>standing</option>
+			<option>standing alert</option>
+			<option>ruminating</option>
+			<option>walking</option>
+			<option>running</option>
+			<option>feeding</option>
+			<option>laying</option>
+			<option>drinking</option>
+			<option>necking</option>
+		</select>
           </div>
         </div>
 
@@ -919,7 +936,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             <label class="control-label"><%=props.getProperty("lifeStage") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-  <select name="lifeStage" id="lifeStage">
+  <select class="form-control" name="lifeStage" id="lifeStage">
       <option value="" selected="selected"></option>
   <%
                      boolean hasMoreStages=true;
