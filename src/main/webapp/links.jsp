@@ -18,7 +18,9 @@
 			
 <p>
 	<ul>
-		<li>(links can go here)</li>
+		<li><a target="_new" href="http://www.giraffeconservation.org">Giraffe Conservation Foundation</a></li>
+		<li><a target="_new" href="http://www.girafferesourcecentre.org">Giraffe Resource Centre</a></li>
+		<li><a target="_new" href="http://www.sandiegozooglobal.org/">San Diego Zoo Global</a></li>
 	</ul>
 </p>
 		

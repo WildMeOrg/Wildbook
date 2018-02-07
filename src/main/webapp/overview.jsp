@@ -21,9 +21,9 @@ GiraffeSpotter uses photographs of the pattern of giraffe on both sides of their
 <h2 title="logos still pending">Contributors</h2>
 
 <ul>
-	<li>Giraffe Conservation Foundation</li>
-	<li>San Diego Zoo Global</li>
-	<li>Wild Me</li>
+	<li><a target="_new" href="https://giraffeconservation.org">Giraffe Conservation Foundation</a></li>
+	<li><a target="_new" href="http://www.sandiegozooglobal.org/">San Diego Zoo Global</a></li>
+	<li><a target="_new" href="http://wildme.org">Wild Me</a></li>
 </ul>
 
 <h2>Sponsors &amp; Partners</h2>

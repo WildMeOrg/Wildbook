@@ -24,7 +24,16 @@
         <p>The team welcomes your comments and questions.</p>
 
 <p>Please email us, and one of us will respond as quickly as possible.</p>
-   
+
+
+<h2>Technical Support</h2>
+
+<p>
+Questions about GiraffeSpotter accounts, techincal problems, or generally about the
+open source <a target="_new" href="http://wildbook.org/">Wildbook software</a>, please contact
+<i>jon AT wildme.org</i>
+</p>
+
       <!-- end maintext -->
       </div>
 
