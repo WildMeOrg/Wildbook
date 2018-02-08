@@ -12,7 +12,7 @@ String context="context0";
 
 
 
-<sharks>						
+<sharks greeting="hello!">						
 
 <%
 
@@ -27,8 +27,7 @@ try{
 while(allSharks.hasNext()){
 
 	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
-	
-	//if(sharky.wasSightedInLocationCode("1a2")){
+	//MarkedIndividual sharky=myShepherd.getMarkedIndividual("A-001");
 
 		%>
 		
@@ -42,9 +41,14 @@ while(allSharks.hasNext()){
 		for(int j=0;j<numEncs;j++){
 		
 			Encounter enc=(Encounter)encounters.get(j);
+			
+				String user="";
+				if((enc.getAssignedUsername()!=null)&&(!enc.getAssignedUsername().equals(""))){
+					user=" user=\""+enc.getAssignedUsername()+"\" ";
+				}
 			%>
 
-			<encounter number="<%=enc.getCatalogNumber()%>" href="https://www.whaleshark.org/encounters/encounter.jsp?number=<%=enc.getCatalogNumber()%>">
+			<encounter <%=user %> number="<%=enc.getCatalogNumber()%>" href="https://www.whaleshark.org/encounters/encounter.jsp?number=<%=enc.getCatalogNumber()%>">
 
 			<%			
 			
@@ -142,7 +146,7 @@ while(allSharks.hasNext()){
 		</shark>
 		<%
 	
-	//}
+
 	
 }
 
