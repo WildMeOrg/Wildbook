@@ -4,7 +4,12 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,
-java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.*,java.util.*, java.io.FileInputStream, 
+java.io.File, java.io.FileNotFoundException, org.ecocean.*,
+org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, 
+java.lang.StringBuffer, java.util.Vector, java.util.Iterator, 
+java.lang.NumberFormatException,
+org.ecocean.ai.nlp.*"%>
 
 <%
 
@@ -31,18 +36,17 @@ Shepherd myShepherd=new Shepherd(context);
 try{
 	myShepherd.beginDBTransaction();
 
-	String text2parse="We saw this shark on July 27th of 2017.";
+	String text2parse="We saw this shark on 2017-12-24.";
 	%>
 	<p>String to parse: <%=text2parse %></p>
 	<p>Found dates: </p>
 	<%
-	ArrayList<String> dates=ServletUtilities.nlpDateParseToArrayList(text2parse);
-	int numDates=dates.size();
-	for(int i=0;i<numDates;i++){
+	String dates=SUTime.parseDateStringForBestDate(request, text2parse);
+
 		%>
-		...found: <%=dates.get(i) %>
+		...found: <%=dates %>
 		<%
-	}
+	
 }
 catch(Exception e){
 

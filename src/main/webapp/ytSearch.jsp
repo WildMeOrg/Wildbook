@@ -11,6 +11,7 @@ org.json.JSONObject,
 org.json.JSONArray,
 com.google.api.services.youtube.model.SearchResult,
 org.ecocean.media.*,
+org.ecocean.servlet.ServletUtilities,
 java.util.ArrayList
               "
 %>
@@ -20,7 +21,8 @@ java.util.ArrayList
 
 <%
 
-YouTube.init(request);
+String context = ServletUtilities.getContext(request);
+YouTube.init(context);
 
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
@@ -42,12 +44,15 @@ phrasesToIgnoreVideo.add("documentary");
 phrasesToIgnoreVideo.add("documental");
 phrasesToIgnoreVideo.add("hungry shark world");
 phrasesToIgnoreVideo.add("hungry shark game");
+phrasesToIgnoreVideo.add("hungry shark evolution");
 phrasesToIgnoreVideo.add("dory");
 phrasesToIgnoreVideo.add("nemo");
 phrasesToIgnoreVideo.add("abyssrium");
 phrasesToIgnoreVideo.add("whale shark card");
-phrasesToIgnoreVideo.add("octonauts");
+phrasesToIgnoreVideo.add("tarjeta tiburón ballena");
+phrasesToIgnoreVideo.add("octonaut");
 phrasesToIgnoreVideo.add("gta");
+phrasesToIgnoreVideo.add("grand theft auto");
 phrasesToIgnoreVideo.add("megalodon");
 phrasesToIgnoreVideo.add("abzu");
 phrasesToIgnoreVideo.add("bbc");
@@ -71,6 +76,15 @@ phrasesToIgnoreVideo.add("shark simulator");
 phrasesToIgnoreVideo.add("ultimate shark simulator");
 phrasesToIgnoreVideo.add("ultimatesharksimulator");
 phrasesToIgnoreVideo.add("animal planet");
+phrasesToIgnoreVideo.add("deer");
+phrasesToIgnoreVideo.add("shark week");
+phrasesToIgnoreVideo.add("kids");
+phrasesToIgnoreVideo.add("children");
+phrasesToIgnoreVideo.add("digital code generator");
+phrasesToIgnoreVideo.add("blue whale game");
+phrasesToIgnoreVideo.add("deeeep.io");
+
+
 
 int numPhrases=phrasesToIgnoreVideo.size();
 
@@ -81,7 +95,7 @@ if (keyword == null) {
 } else {
 	List<SearchResult> vids;
 	try {
-		vids = YouTube.searchByKeyword(keyword, sinceMS);
+		vids = YouTube.searchByKeyword(keyword, sinceMS, context);
 	} catch (Exception ex) {
 		rtn.put("error", "exception thrown: " + ex.toString());
 		out.println(rtn);
@@ -100,7 +114,7 @@ if (keyword == null) {
 			String consolidatedRemarks=vid.toString().toLowerCase();
 			for(int i=0;i<numPhrases;i++){
 				String filterString=phrasesToIgnoreVideo.get(i);
-				if(consolidatedRemarks.indexOf(filterString)!=-1)filterMe=true;
+				if((consolidatedRemarks.indexOf(filterString)!=-1)||(consolidatedRemarks.indexOf(filterString.replaceAll(" ",""))!=-1))filterMe=true;
 			}
 			
 			if(!filterMe)varr.put(new JSONObject(vid.toString()));

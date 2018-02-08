@@ -85,6 +85,8 @@ public class Encounter implements java.io.Serializable {
   static final long serialVersionUID = -146404246317385604L;
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
+    //at least one frame/image (e.g. from YouTube detection) must have this confidence or encounter will be ignored
+    public static final double ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF = 0.6;
     public static final String STATE_AUTO_SOURCED = "auto_sourced";
 
   /**
@@ -1434,11 +1436,13 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
 
   public ArrayList<SuperSpot> getLeftReferenceSpots() {
-    return HACKgetAnyReferenceSpots();
+    //return HACKgetAnyReferenceSpots();
+    return leftReferenceSpots;
   }
 
   public ArrayList<SuperSpot> getRightReferenceSpots() {
-    return HACKgetAnyReferenceSpots();
+    //return HACKgetAnyReferenceSpots();
+    return rightReferenceSpots;
   }
 
 /*  gone! no more setting spots on encounters!  ... whoa there, yes there is for whaleshark.org */
@@ -2309,11 +2313,13 @@ System.out.println("   -->>> offset = " + offset);
         for (Integer i : ordered.keySet()) {
             if ((prevOffset > -1) && ((i - prevOffset) >= minGapSize)) {
                 Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
-                newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
-                newEncs.add(newEnc);
+                if (newEnc != null) {  //null means none of the frames met minimum detection confidence
+                    newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                    newEncs.add(newEnc);
 System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
-                groupsMade++;
-                tmpAnns = new ArrayList<Annotation>();
+                    groupsMade++;
+                    tmpAnns = new ArrayList<Annotation>();
+                }
             }
             prevOffset = i;
             tmpAnns.add(ordered.get(i));
@@ -2321,11 +2327,13 @@ System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
         //deal with dangling tmpAnns content
         if (tmpAnns.size() > 0) {
             Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
-            newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
-            //newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
-            newEncs.add(newEnc);
+            if (newEnc != null) {
+                newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                //newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+                newEncs.add(newEnc);
 System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
-            groupsMade++;
+                groupsMade++;
+            }
         }
         return newEncs;
     }
@@ -2333,9 +2341,23 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
     //this is really only for above method
     private static Encounter __encForCollate(ArrayList<Annotation> tmpAnns, MediaAsset parentRoot) {
         if ((tmpAnns == null) || (tmpAnns.size() < 1)) return null;
+
+        //make sure we even can use these annots first
+        double bestConfidence = 0.0;
+        for (Annotation ann : tmpAnns) {
+            if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1) || (ann.getFeatures().get(0).getParameters() == null)) continue;
+            double conf = ann.getFeatures().get(0).getParameters().optDouble("detectionConfidence", -1.0);
+            if (conf > bestConfidence) bestConfidence = conf;
+        }
+        if (bestConfidence < ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF) {
+            System.out.println("[INFO] bestConfidence=" + bestConfidence + " below threshold; rejecting 1 enc from " + parentRoot);
+            return null;
+        }
+
         Encounter newEnc = new Encounter(tmpAnns);
         newEnc.setState(STATE_AUTO_SOURCED);
         newEnc.zeroOutDate();  //do *not* want it using the video source date
+        newEnc.setDynamicProperty("bestDetectionConfidence", Double.toString(bestConfidence));
         if (parentRoot == null) {
             newEnc.setSubmitterName("Unknown video source");
             newEnc.addComments("<i>unable to determine video source - possibly YouTube error?</i>");
@@ -2969,6 +2991,28 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                 .append("shortDate", getShortDate())
                 .append("numAnnotations", ((annotations == null) ? 0 : annotations.size()))
                 .toString();
+    }
+    
+    public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
+      System.out.println("Entering Encounter.hasMediaFromAssetStoreType");
+      if(getMediaAssetsOfType(aType).size()>0){return true;}
+      return false;
+    }
+    
+    public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
+      System.out.println("Entering Encounter.getMediaAssetsOfType");
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      try{
+        ArrayList<MediaAsset> assets=getMedia();
+        int numAssets=assets.size();
+        for(int i=0;i<numAssets;i++){
+          MediaAsset ma=assets.get(i);
+          if(ma.getStore().getType()==aType){results.add(ma);}
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      System.out.println("Exiting Encounter.getMediaAssetsOfType with this num results: "+results.size());
+      return results;
     }
 
 }
