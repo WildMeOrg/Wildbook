@@ -9,22 +9,42 @@ import java.util.List;
 import java.util.ArrayList;
 import org.joda.time.DateTime;
 import org.ecocean.datacollection.*;
+import org.ecocean.movement.*;
 import org.ecocean.media.Feature;
+import java.net.URL;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.security.NoSuchAlgorithmException;
+import java.security.InvalidKeyException;
+import java.io.UnsupportedEncodingException;
 
 public class SpotterConserveIO {
 
-    public static String AUTH_USERNAME = null;
-    public static String AUTH_PASSWORD = null;
+    public static int PROJECT_ID_CI = 2;
+    public static int PROJECT_ID_WA = 7;
+    public static String apiUsername = null;
+    public static String apiPassword = null;
+    public static String apiUrlPrefix = null;
 
     public static void init(HttpServletRequest request) {
         init(ServletUtilities.getContext(request));
     }
 
+    //should be called once -- sets up credentials for REST calls
     public static void init(String context) {
         Properties props = ShepherdProperties.getProperties("spotter-conserve-io.properties", "", context);
         if (props == null) throw new RuntimeException("no spotter-conserve-io.properties");
-        String debug = props.getProperty("debug");
-        String consumerKey = props.getProperty("consumerKey");
+        apiUsername = props.getProperty("apiUsername");
+        apiPassword = props.getProperty("apiPassword");
+        apiUrlPrefix = props.getProperty("apiUrlPrefix");
+    }
+
+    public static boolean hasBeenInitialized() {
+        return !(apiUrlPrefix == null);
+    }
+    public static void checkInit() throws IOException {
+        if (!hasBeenInitialized()) throw new IOException("Looks like SpotterConserveIO.init(context) has not been called yet.");
     }
 
 
@@ -175,6 +195,93 @@ System.out.println("MADE " + enc);
         return species.split(" +");
     }
 
+    /*
+       note: seems gpx has a trk made up of trkseg, which are made of trkpts...
+       i suppose we really should have trkseg -> path, then have surveytrack made of multiple paths...
+       TODO discuss with colin et al
+
+       also: really should we be able to pass in entire "track" structure (find .gpx, save schema, etc)?  probably!
+       something like: trackToSurveyTrackPaths(surveyTrack)
+
+       NOTE!  trkpt can be JSONArray or JSONObject single pt!!  not sure if same is true of trkseg!!! TODO
+
+        track: {
+            gpx: {
+                @xsi:schemaLocation: "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd",
+                @creator: "TrailBehind",
+                @xmlns:xsi: "http://www.w3.org/2001/XMLSchema-instance",
+                @xmlns: "http://www.topografix.com/GPX/1/1",
+                @version: "1.1",
+                trk: {
+                    trkseg: [
+                        {
+                            trkpt: [{....}, ...., {....}]  // ARRAY
+                        },
+                        {
+                            trkpt: {                       // SINGLE POINT
+                                @lat: "34.321975",
+                                @lon: "-119.691129",
+                                time: "2017-06-01T20:57:49Z",
+                                ele: "-3.248924"
+                .......
+
+    */
+
+    public static Path trkToPath(JSONObject trk) {
+        if (trk == null) return null;
+        JSONArray segs = trk.optJSONArray("trkseg");  //see note above about single-element trkseg TODO
+        if (segs == null) return null;
+        ArrayList<PointLocation> pts = new ArrayList<PointLocation>();
+        for (int i = 0 ; i < segs.length() ; i++) {
+            JSONObject seg = segs.optJSONObject(i);
+System.out.println(i + " seg = " + seg);
+            if (seg == null) continue;
+            JSONObject single = seg.optJSONObject("trkpt");
+            JSONArray segPts = seg.optJSONArray("trkpt");
+            if (single != null) {  //only one point in this segment
+System.out.println("SINGLE " + single);
+                PointLocation pl = trkptToPointLocation(single);
+                if (pl != null) pts.add(pl);
+            } else if (segPts != null) {
+System.out.println("SEGPTS " + segPts);
+                for (int j = 0 ; j < segPts.length() ; j++) {
+                    PointLocation pl = trkptToPointLocation(segPts.optJSONObject(j));
+                    if (pl != null) pts.add(pl);
+                }
+            }
+        }
+        return new Path(pts);
+    }
+
+    public static Path trackToPath(JSONObject track) {  //for now (see comments above) this is just convenience method
+        if ((track == null) || (track.optJSONObject("gpx") == null) || (track.getJSONObject("gpx").optJSONObject("trk") == null)) return null;
+        return trkToPath(track.getJSONObject("gpx").optJSONObject("trk"));
+    }
+
+
+    public static PointLocation trkptToPointLocation(JSONObject trkpt) {
+        if (trkpt == null) return null;
+        Long dt = null;  //long, so good luck with timezones?  :/
+        String tt = trkpt.optString("time", null);
+        try {
+            if (tt != null) dt = new DateTime(tt).getMillis();  //tt should already be in right ISO format
+        } catch (Exception ex) {
+            System.out.println("WARNING: trkptToPointLocation() could not convert '" + tt + "' to DateTime");
+        }
+        Double lat = trkpt.optDouble("@lat", Util.INVALID_LAT_LON);
+        Double lon = trkpt.optDouble("@lon", Util.INVALID_LAT_LON);
+        if (!Util.isValidDecimalLatitude(lat)) lat = null;
+        if (!Util.isValidDecimalLongitude(lon)) lon = null;
+        Measurement elevMeas = null;
+        double elev = trkpt.optDouble("ele", Double.MAX_VALUE);
+        if (elev < Double.MAX_VALUE) elevMeas = new Measurement(null, "elevation", elev, "m", null);  //FIXME Measurement() seems wrong here
+System.out.println(lat + "," + lon + " [" + dt + "]:" + elev);
+System.out.println("elevMeas -> " + elevMeas);
+        PointLocation ploc = new PointLocation(lat, lon, dt, elevMeas);
+System.out.println(ploc);
+        return ploc;
+        //return new PointLocation(lat, lon, dt, elevMeas);
+    }
 
     private static Double resolveLatLon(JSONObject jin, String devKey, String userKey) {
         Double devVal = findDouble(jin, devKey);
@@ -202,4 +309,28 @@ System.out.println("MADE " + enc);
         return new DateTime(dt.replaceAll(" ", "T"));
     }
 
+    //note: since is seconds (int), NOT millis (long) !!!
+    public static JSONObject ciGetTripListSince(int since) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return apiGet("/project/" + PROJECT_ID_CI + "/trip_data/" + since + "/0");
+    }
+    public static JSONObject waGetTripListSince(int since) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return apiGet("/project/" + PROJECT_ID_WA + "/trip_data/" + since + "/0");
+    }
+
+    //CI & WA trips use same call
+    public static JSONObject getTrip(int tripId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return apiGet("/trip/" + tripId + "/data");
+    }
+
+    //init() must be called once before this
+    //  note, apiUrl is a relative url (String), like "/trip/NNNN/data"
+    public static JSONObject apiGet(String apiUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        checkInit();
+        URL getUrl = new URL(apiUrlPrefix + apiUrl);
+        String res = RestClient.get(getUrl, apiUsername, apiPassword);
+        if (res == null) return null;
+        return new JSONObject(res);
+    }
+
 }
+
