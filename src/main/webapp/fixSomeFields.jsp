@@ -1,9 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ef<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
-org.ecocean.grid.*,org.ecocean.media.*,
+org.ecocean.grid.*,org.ecocean.media.*,org.ecocean.Util,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.datanucleus.api.rest.orgjson.JSONObject, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 
@@ -75,9 +75,8 @@ int numFixes=0;
 int numAnnots=0;
 boolean committing=true;
 
-int numUnknown = 0;
-int numFemale  = 0;
-int numMale    = 0;
+int numHuntingStateFixes = 0;
+int numTrappingStationFixes = 0;
 
 int numMas = 0;
 int maxMas = 0;
@@ -92,18 +91,36 @@ try {
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
 
-	Iterator allAnns=myShepherd.getAllAnnotationsNoQuery();
+	Iterator allEncs=myShepherd.getAllEncountersNoQuery();
 
   int count = 0;
   int maxCount = 100;
 
 
-	while(allAnns.hasNext()){
+	while(allEncs.hasNext()){
 
     count++;
 
-		Annotation ann = (Annotation) allAnns.next();
-    ann.setIsExemplar(true);
+		Encounter enc = (Encounter) allEncs.next();
+
+
+		// try to get newHuntState 2 diff ways
+		String newHuntState=enc.getLocation(); // this appears as "description" on an encounter's page
+		if (!Util.stringExists(newHuntState)) newHuntState = enc.getCountry();
+		if (Util.stringExists(newHuntState)) {
+			String oldHuntState=enc.getHuntingState();
+			String oldLocation = enc.getLocation();
+			String oldCountry = enc.getCountry();
+			enc.setHuntingState(newHuntState);
+			enc.setLocation(null);
+			enc.setCountry(null); // these previously duplicated the huntingState values
+			boolean huntChanged = !Util.stringsEqual(oldHuntState, enc.getHuntingState());
+			boolean locaChanged = !Util.stringsEqual(oldLocation,  enc.getLocation());
+			boolean counChanged = !Util.stringsEqual(oldCountry, enc.getCountry());
+			if (huntChanged || locaChanged || counChanged) numHuntingStatesFixed++;
+		}
+
+		String newTrappingStation = enc.getLocationID();
 
     numFixes++;
     if (committing) {
@@ -111,7 +128,6 @@ try {
       myShepherd.beginDBTransaction();
     }
     %></ul><%
-
 
 	}
 
