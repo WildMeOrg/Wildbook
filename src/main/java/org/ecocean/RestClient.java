@@ -288,10 +288,10 @@ System.out.println("TRYING anyMethodGeneric(" + method + ") url -> " + url);
         ////conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");  TODO should this be here for GET ???
 
         if ((authUsername != null) && (authPassword != null)) {
-            String encodedAuth = Base64.encodeBase64String(new String(authUsername + ":" + authPassword).getBytes());
-            conn.setRequestProperty("Authorization", "Basic " + encodedAuth);
+            byte[] authBytes = (authUsername + ":" + authPassword).getBytes("UTF-8");
+            String authEncoded = javax.xml.bind.DatatypeConverter.printBase64Binary(authBytes);
+            conn.setRequestProperty("Authorization", "Basic " + authEncoded);
         }
-        //conn.setRequestProperty("Authorization", getAuthorizationHeader(url.toString()));
 
         if (data != null) {
             OutputStream os = conn.getOutputStream();
