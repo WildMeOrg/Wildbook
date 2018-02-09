@@ -50,6 +50,8 @@ public class Util {
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
 
+    public static final double INVALID_LAT_LON = 999.0;  //sometimes you need a bad coordinate!
+
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
 
@@ -581,5 +583,13 @@ public class Util {
       return (f.exists() && !f.isDirectory());
     }
 
+    public static boolean isValidDecimalLatitude(Double lat) {
+        if (lat == null) return false;
+        return ((lat >= -90.0) && (lat <= 90.0));
+    }
+    public static boolean isValidDecimalLongitude(Double lon) {
+        if (lon == null) return false;
+        return ((lon >= -180.0) && (lon <= 180.0));
+    }
 
 }
