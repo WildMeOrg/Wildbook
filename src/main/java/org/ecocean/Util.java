@@ -565,6 +565,11 @@ public class Util {
       return (str!=null && !str.equals(""));
     }
 
+    public static boolean stringsEqual(String str1 String str2) {
+      if (str1==null) return (str2==null);
+      return str1.equals(str2);
+    }
+
     // convenience method for comparing string values
     public static boolean shouldReplace(String val1, String val2) {
       return (stringExists(val1) && !stringExists(val2));
