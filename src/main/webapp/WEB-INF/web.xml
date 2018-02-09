@@ -226,7 +226,7 @@
 		             /EncounterSetBehavior = authc, roles[researcher]
 		      /CJS = authc, roles[researcher]
 		      /software.jsp = authc, roles[researcher]
-      			/DeleteAllDataPermanently = authc, roles[destroyer]
+      			
       			/encounters/searchExport = authc, roles[researcher]
       			/welcome.jsp = authc
       			/EncounterSetSubmitterID = authc, roles[researcher]
@@ -877,10 +877,6 @@
       <servlet-class>org.ecocean.servlet.OccurrenceSetIndividualCount</servlet-class>
   </servlet>
 
-      <servlet>
-        <servlet-name>DeleteAllDataPermanently</servlet-name>
-        <servlet-class>org.ecocean.servlet.DeleteAllDataPermanently</servlet-class>
-  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetMaximumElevation</servlet-name>
@@ -1365,11 +1361,6 @@
       <url-pattern>/TissueSampleSetHaplotype</url-pattern>
   </servlet-mapping>
 
-
-      <servlet-mapping>
-        <servlet-name>DeleteAllDataPermanently</servlet-name>
-        <url-pattern>/DeleteAllDataPermanently</url-pattern>
-  </servlet-mapping>
 
       <servlet-mapping>
         <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
