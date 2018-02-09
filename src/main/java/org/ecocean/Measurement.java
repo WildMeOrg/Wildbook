@@ -1,5 +1,7 @@
 package org.ecocean;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public class Measurement extends DataCollectionEvent {
 
   private static final long serialVersionUID = -7934850478287322048L;
@@ -31,4 +33,11 @@ public class Measurement extends DataCollectionEvent {
     return units;
   }
 
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("type", getType())
+            .append("value", value)
+            .append("units", units)
+            .toString();
+    }
 }
