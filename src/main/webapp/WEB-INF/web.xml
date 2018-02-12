@@ -193,6 +193,16 @@
 		   /RelationshipCreate  = authc, roles[researcher]
 		   /RelationshipDelete  = authc, roles[researcher]
 
+       /surveys/survey.jsp = authc, roles[researcher]
+       /surveys/createSurvey.jsp = authc, roles[researcher]
+       /surveys/surveySearch.jsp = authc, roles[researcher]
+       /surveys/surveySearchResults.jsp = authc, roles[researcher]
+       
+       /SurveyCreate = authc, roles[researcher]
+       /SubmitSurvey = authc, roles[researcher]
+       /SurveySetObservation = authc, roles[researcher]
+       /AddSurveyTrackToSurvey = authc, roles[researcher]
+
 		   /ImportSRGD = authc, roles[admin]
 		        /IndividualCreate = authc, roles[researcher]
 		        /OccurrenceCreate = authc, roles[researcher]
@@ -537,6 +547,11 @@
 	<servlet>
 		<servlet-name>SurveyCreate</servlet-name>
 		<servlet-class>org.ecocean.servlet.SurveyCreate</servlet-class>
+	</servlet>
+
+  <servlet>
+		<servlet-name>AddOccToTrack</servlet-name>
+		<servlet-class>org.ecocean.servlet.AddOccToTrack</servlet-class>
 	</servlet>
 	
 	<servlet-mapping>
@@ -2124,6 +2139,11 @@
   <servlet-mapping>
     <servlet-name>SurveyCreate</servlet-name>
     <url-pattern>/SurveyCreate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>AddOccToTrack</servlet-name>
+    <url-pattern>/AddOccToTrack</url-pattern>
   </servlet-mapping>
 
 </web-app>
