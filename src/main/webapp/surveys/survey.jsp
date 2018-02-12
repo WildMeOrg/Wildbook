@@ -206,8 +206,27 @@ if (sv!=null) {
 								<% 	
 								}
 								%>
+								<!-- Add another occ to the selected track here... -->
+								<form name="addOcc" action="../AddOccToTrack" method="post" class="addOccToTrack">
+									<input name="trackID" value="<%=trkID%>" type="hidden"  id="addOccInput2" />
+									<div class="input-group">
+									</div>
+										<div class="row"> 
+											<div class="input-group">
+												<div class="col-sm-8">
+													<input name="occID" title="addOccID" type="text" class="form-control" id="addOccInput1" />
+												</div>
+												<div class="col-sm-4">
+													<span class="input-group-btn">
+														<input name="Add Occurrence" style="margin-bottom:13px;margin-top:2px;" type="submit" id="addOccToTrackButton" value="<%=props.getProperty("addOcc")%>" class="btn btn-sm addOccButton" />
+													</span>
+												</div>
+											</div>
+										</div>
+										<span><small>Enter an existing Occurrence ID to add it to the selected survey track.</small></span>
+								</form>
 						</div>
-					</td>
+					</td>	
 					<td class="lineitem"><%=trkVessel%></td>	
 					<td class="lineitem"><%=trkLocationID%></td>	
 					<td class="lineitem"><%=trkType%></td>
