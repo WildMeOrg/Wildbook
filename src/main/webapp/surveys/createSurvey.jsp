@@ -20,7 +20,6 @@ myShepherd.beginDBTransaction();
 props = ShepherdProperties.getProperties("createSurvey.properties", langCode,context);
 surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCode,context);
 
-
 %>
 
 <jsp:include page="../header.jsp" flush="true" />
@@ -93,8 +92,9 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
 							
 							<label><%=props.getProperty("type")%>:</label>
 							<label><small><%=props.getProperty("trackTypes")%></label>
-							<input name="type" title="Survey Type" type="text" class="form-control" id="addTrackInput3" />
-							
+							<input name="type" title="Survey Type" type="text" class="form-control" id="addTrackInput3" />	
+
+							<input name="getsTrack" value="false" type="hidden"  id="addTrackInput4" />
 						</div>
 						
 						<input name="Add Survey Track" type="submit" id="surveyTrackSubmitBtn" value="<%=props.getProperty("submit")%>" class="btn btn-sm editFormBtn" />
@@ -132,11 +132,13 @@ surveyProps = ShepherdProperties.getProperties("createSurvey.properties", langCo
         	$('#addSurveyTrackBtn').hide();
         	$('#hideSurveyTrackBtn').show();
         	$('#trackForm').slideDown();
+			$('#addTrackInput4').val('true');
         });
         $('#hideSurveyTrackBtn').click(function(){
         	$('#addSurveyTrackBtn').show();
         	$('#hideSurveyTrackBtn').hide();
         	$('#trackForm').slideUp();
+			$('#addTrackInput4').val('false');
         });
     });    
 </script>

@@ -96,17 +96,23 @@ public class Path implements java.io.Serializable {
   }
   
   public String getStartTime() {
-    DateTime dt = new DateTime(this.getStartTimeMillis());
-    DateTimeFormatter out = DateTimeFormat.forPattern("HHmm");
-    String startTime = out.print(dt.getMillis());
-    return startTime;
+    if (this.getStartTimeMillis()!=null) {
+      DateTime dt = new DateTime(this.getStartTimeMillis());
+      DateTimeFormatter out = DateTimeFormat.forPattern("HH:mm");
+      String startTime = out.print(dt.getMillis());
+      return startTime;
+    }
+    return null;
   }
 
   public String getEndTime() {
-    DateTime dt = new DateTime(this.getEndTimeMillis());
-    DateTimeFormatter out = DateTimeFormat.forPattern("HHmm");
-    String endTime = out.print(dt.getMillis());
-    return endTime;
+    if (this.getEndTimeMillis()!=null) {
+      DateTime dt = new DateTime(this.getEndTimeMillis());
+      DateTimeFormatter out = DateTimeFormat.forPattern("HH:mm");
+      String endTime = out.print(dt.getMillis());
+      return endTime;
+    }
+    return null;
   } 
 
   public Long getEndTimeMillis() {
