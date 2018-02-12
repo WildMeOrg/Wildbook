@@ -60,7 +60,7 @@ if (sv!=null) {
 	}
 	surveyStart = sv.getStartDateTime();
 	surveyEnd = sv.getStartDateTime();
-	System.out.println("Survey Start? "+surveyStart+" SurveyEnd? "+surveyEnd);
+	//System.out.println("Survey Start? "+surveyStart+" SurveyEnd? "+surveyEnd);
 	if (surveyStart!=null) {
 		surveyAttributes +=  "<p>Start: "+surveyStart+"</p>";
 	}
@@ -70,8 +70,7 @@ if (sv!=null) {
 	if (sv.getEffort()!=null) {
 		Measurement effortMeasurement = sv.getEffort();
 		String value = String.valueOf(effortMeasurement.getValue());
-		String units = effortMeasurement.getUnits();
-		effortData += "<p>Calculated: "+value+" "+units+"</p>";
+		effortData += "<p>Calculated: "+value+" Hrs</p>";
 	}
 	if (sv.getComments()!=null) {
 		comments = sv.getComments();
@@ -89,7 +88,7 @@ if (sv!=null) {
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="../javascript/oms.min.js"></script>
 
-<!-- <link rel="stylesheet" href="../css/ecocean.css" type="text/css" media="all"/> -->
+<link rel="stylesheet" href="../css/ecocean.css" type="text/css" media="all"/>
 <jsp:include page="../header.jsp" flush="true" />
 
 <div class="container maincontent">
@@ -193,8 +192,6 @@ if (sv!=null) {
 									for (Occurrence occ : occs) {
 										String thisOccID = occ.getID();
 										String link = occLocation + thisOccID;
-										//System.out.println("Occ ID: "+thisOccID);
-										//System.out.println("Occ Date/Time: "+occ.getMillis());
 									%>
 									<p>
 										<small><a href="<%=link%>"><%=thisOccID%></a></small>
@@ -221,13 +218,11 @@ if (sv!=null) {
 						if (pth!=null&&pth.getAllPointLocations()!=null) {
 							numPoints = pth.getAllPointLocations().size();
 							ArrayList<PointLocation> pts = pth.getAllPointLocations();
-							//System.out.println("----------------------------------------");
-							//System.out.println("Path String: "+pth.toString());
 
 							// Lets get a time range from the occs instead. Because it's better.
 							try {
 								if (pth.getStartTime()!=null) {
-									trkStart = pth.getStartTime();								
+									trkStart = pth.getStartTime();					
 								}
 								if (pth.getEndTime()!=null) {
 									trkEnd = pth.getEndTime();								

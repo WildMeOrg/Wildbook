@@ -117,40 +117,42 @@ public class SurveyCreate extends HttpServlet {
           surveyType = request.getParameter("surveyType");
           sv.setProjectType(surveyType);
         }
+
+        String getsTrack = null;
+        if (request.getParameter("getsTrack")!=null) {
+          getsTrack = request.getParameter("getsTrack");
+        }
      
         myShepherd.getPM().makePersistent(sv);
         myShepherd.commitDBTransaction();
         
-        if (request.getParameter("getsTrack")!=null) {
-          System.out.println("getsTrack says: "+request.getParameter("getsTrack"));
-          if (request.getParameter("getsTrack").equals("true")) {
-            SurveyTrack st = null;
-            try {
-              myShepherd.beginDBTransaction();
-              st = createSurveyTrack(request, sv);
-              myShepherd.commitDBTransaction();
-              st.setParentSurveyID(sv.getID());
-              sv.addSurveyTrack(st);
-              System.out.println("Created Survey Track : "+st.getID());
-              System.out.println("Did the survey get it? "+sv.getAllSurveyTracks().toString());
-            } catch (Exception e) {
-              myShepherd.rollbackDBTransaction();
-              e.printStackTrace();
-            }
-            try {
-              myShepherd.beginDBTransaction();
-              Path pth = createPath(request, st);
-              myShepherd.getPM().makePersistent(pth);
-              myShepherd.commitDBTransaction();
-              System.out.println("Persisted Path "+pth.getID());
-            } catch (Exception e) {
-              myShepherd.rollbackDBTransaction();
-              System.out.println("Failed to persist a Path for this survey.");
-              e.printStackTrace();
-              
-            }
+        System.out.println("getsTrack says: "+request.getParameter("getsTrack"));
+        if (getsTrack.equals("true")) {
+          SurveyTrack st = null;
+          try {
+            myShepherd.beginDBTransaction();
+            st = createSurveyTrack(request, sv);
+            myShepherd.commitDBTransaction();
+            st.setParentSurveyID(sv.getID());
+            sv.addSurveyTrack(st);
+            System.out.println("Created Survey Track : "+st.getID());
+            System.out.println("Did the survey get it? "+sv.getAllSurveyTracks().toString());
+          } catch (Exception e) {
+            myShepherd.rollbackDBTransaction();
+            e.printStackTrace();
           }
-          
+          try {
+            myShepherd.beginDBTransaction();
+            Path pth = createPath(request, st);
+            myShepherd.getPM().makePersistent(pth);
+            myShepherd.commitDBTransaction();
+            System.out.println("Persisted Path "+pth.getID());
+          } catch (Exception e) {
+            myShepherd.rollbackDBTransaction();
+            System.out.println("Failed to persist a Path for this survey.");
+            e.printStackTrace();
+            
+          }
         }
         
         message += "<p><strong>Success: </strong> A new survey on "+date+" was created.</p>";
