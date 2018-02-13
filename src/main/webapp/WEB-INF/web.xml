@@ -183,6 +183,11 @@
 		  /EncounterSetLifeStage = authc, roles[researcher]
 		  /EncounterSetCountry = authc, roles[researcher]
 		  /EncounterSetTissueSample = authc, roles[researcher]
+
+      /occurrenceSearch.jsp = authc, roles[researcher]
+      /occurrence.jsp = authc, roles[researcher]
+      /occurrenceSearchResults.jsp = authc, roles[researcher]
+
 		   /TissueSampleSetHaplotype = authc, roles[researcher]
 		   /TissueSampleSetMeasurement = authc, roles[researcher]
 		  /TissueSampleRemoveHaplotype = authc, roles[researcher]
