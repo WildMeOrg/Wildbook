@@ -74,7 +74,6 @@ try{
 		List<MediaAsset> photos=new ArrayList<MediaAsset>(c);
 		
 		
-		//List<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
 		int numPhotos=photos.size();
 		JSONArray all = new JSONArray();
 		for(int i=0;((i<numPhotos)&&(i<maxSize));i++){
