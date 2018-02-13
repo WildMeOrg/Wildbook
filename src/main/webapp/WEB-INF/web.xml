@@ -106,7 +106,7 @@
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
                 roles.unauthorizedUrl = /accessDenied.jsp
-				authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
+				        authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
 
 
                 authc.loginUrl = /login.jsp
@@ -126,7 +126,7 @@
                 [urls]
 
                 /rest/** = authcBasicWildbook,roles[rest]
-				#/api/** = authcBasicWildbook,roles[rest-readonly]
+				      #/api/** = authcBasicWildbook,roles[rest-readonly]
                 /LightRest/** = authcBasicWildbook,roles[rest]
 
 
