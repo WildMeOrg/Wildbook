@@ -1,8 +1,6 @@
 f<%@ page contentType="text/html; charset=utf-8"
 		language="java"
  		import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration, java.io.FileInputStream, javax.jdo.Extent" %>
-
-
   <%
 
   String context="context0";
@@ -56,8 +54,6 @@ f<%@ page contentType="text/html; charset=utf-8"
   	StringBuffer prettyPrint=new StringBuffer("");
   	Map<String,Object> paramMap = new HashMap<String, Object>();
 
-
-
     String[] keywords = request.getParameterValues("keyword");
     if (keywords == null) {
       keywords = new String[0];
@@ -65,13 +61,9 @@ f<%@ page contentType="text/html; charset=utf-8"
 
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
-
     //if (request.getParameter("noQuery") == null) {
 
-
-    	String queryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
-
-
+    String queryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
 
   %>
  <jsp:include page="../header.jsp" flush="true"/>
@@ -279,8 +271,6 @@ f<%@ page contentType="text/html; charset=utf-8"
   </tr>
 </table>
 
-
-
         <jsp:include page="encounterMediaGallery2.jsp" flush="true">
 					<jsp:param name="grid" value="true" />
         	<jsp:param name="queryString" value="<%=queryString %>" />
@@ -290,7 +280,6 @@ f<%@ page contentType="text/html; charset=utf-8"
         </jsp:include>
 
 <%
-
 
   startNum = startNum + encounterIncrementer;
   endNum = endNum + encounterIncrementer;
