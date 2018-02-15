@@ -111,7 +111,7 @@ public class EncounterSetSurveyAndTrack extends HttpServlet {
           Occurrence occ = myShepherd.getOccurrence(thisEnc.getOccurrenceID());
           ArrayList<Occurrence> occs = st.getAllOccurrences();
           if (!occs.contains(occ)) {
-            st.addOccurrence(occ, myShepherd);    
+            st.addOccurrence(occ);    
           }
           thisEnc.setSurveyTrackID(surveyTrackID);          
           System.out.println("Do we already have this occ on the survey track? "+occs.contains(occ));

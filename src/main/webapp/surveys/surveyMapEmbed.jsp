@@ -50,8 +50,15 @@ for (SurveyTrack trk : trks ) {
 	String markerSet = "";
 	String infoWindowSet = "";
 	System.out.println("Current track: "+trk.getID());
-	ArrayList<Occurrence> occsWithGps = trk.getAllOccurrences();
-	if (occsWithGps!=null) {
+	ArrayList<Occurrence> tempOccs = trk.getAllOccurrences();
+	ArrayList<Occurrence> occsWithGps = new ArrayList<>();
+	for (Occurrence occ : tempOccs) {
+		if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
+			occsWithGps.add(occ);
+		}
+	}
+	if (occsWithGps.size()>0) {
+		int noGPSOccs = 0;
 		for (Occurrence trackOcc : occsWithGps) {
 			String startTime = null;
 			String endTime = null;
@@ -65,31 +72,36 @@ for (SurveyTrack trk : trks ) {
 
 			String lat = String.valueOf(trackOcc.getDecimalLatitude());
 			String lon = String.valueOf(trackOcc.getDecimalLongitude());
-			lineSet += "{lat: "+lat+", lng: "+lon+"},";
-			markerSet += "["+lat+","+lon+"],";
-			String link =  occLocation + trackOcc.getOccurrenceID();
-			infoWindowSet += "<p><small><a href='"+link+"'>"+trackOcc.getOccurrenceID()+"</a></small</p>";
-			infoWindowSet += "<p><small>Location ID: "+trackOcc.getLocationID()+"</small></p>";
-			infoWindowSet += "<p><small>Lat/Lon: ["+lat+","+lon+"]</small></p>";
-			if (startTime!=null&&endTime!=null) {
-				if (startTime.equals(endTime)) {
-					infoWindowSet += "<p><small>Start Time: "+startTime+"</small></p>";		
-					infoWindowSet += "<p><small>End Time: None Recorded</small></p>";				
-				} else {
-					infoWindowSet += "<p><small>Start Time: "+startTime+"</small></p>";		
-					infoWindowSet += "<p><small>End Time: "+endTime+"</small></p>";	
+			if (lat!=null&&lon!=null) {
+				lineSet += "{lat: "+lat+", lng: "+lon+"},";
+				markerSet += "["+lat+","+lon+"],";
+				String link =  occLocation + trackOcc.getOccurrenceID();
+				infoWindowSet += "<p><small><a href='"+link+"'>"+trackOcc.getOccurrenceID()+"</a></small</p>";
+				infoWindowSet += "<p><small>Location ID: "+trackOcc.getLocationID()+"</small></p>";
+				infoWindowSet += "<p><small>Lat/Lon: ["+lat+","+lon+"]</small></p>";
+				if (startTime!=null&&endTime!=null) {
+					if (startTime.equals(endTime)) {
+						infoWindowSet += "<p><small>Start Time: "+startTime+"</small></p>";		
+						infoWindowSet += "<p><small>End Time: None Recorded</small></p>";				
+					} else {
+						infoWindowSet += "<p><small>Start Time: "+startTime+"</small></p>";		
+						infoWindowSet += "<p><small>End Time: "+endTime+"</small></p>";	
+					}
 				}
+				infoWindowSets.add(infoWindowSet);
+				infoWindowSet = "";
+				System.out.println(lineSet);
+				System.out.println(markerSet);
+			} else {
+				noGPSOccs++;
 			}
-			infoWindowSets.add(infoWindowSet);
-			infoWindowSet = "";
-			System.out.println(lineSet);
-			System.out.println(markerSet);
-		}		
+		}
 		center = lineSet.split(",")[0]+","+lineSet.split(",")[1];
 		lineSet = lineSet.substring(0,lineSet.length()-1);
 		markerSet = markerSet.substring(0,markerSet.length()-1);
 		polyLineSets.add(lineSet);
 		allMarkerSets.add(markerSet);
+		System.out.println("No GPS Occs : "+noGPSOccs);
 	} 
 }
 %>
@@ -128,7 +140,7 @@ $(document).ready(function() {
     	//console.log('Another coord set...'+'<%=set%>');
     	
     	var newColor = generateColor();
-	    console.log(newColor);
+	    //console.log(newColor);
 	    
 	    var <%=currentPath%> = new google.maps.Polyline({
 	      path: surveyCoordinates,
@@ -186,12 +198,12 @@ $(document).ready(function() {
  initMap();	
  
  function generateColor() {
-	 console.log("Generating...");
+	 //console.log("Generating...");
 	 var randomColor = "#";
-	 var hexArr = ['1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+	 var hexArr = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
 	 for (i=0;i<6;i++) {
-		 var index = Math.floor(Math.random()*15);
-		 console.log("Index... : "+index);
+		 var index = Math.floor(Math.random()*16);
+		 //console.log("Index... : "+index);
 		 randomColor+= hexArr[index];
 	 }
 	 return randomColor;

@@ -93,7 +93,7 @@ public class OccurrenceSetSurveyAndTrack extends HttpServlet {
           SurveyTrack st = myShepherd.getSurveyTrack(surveyTrackID);
           ArrayList<Occurrence> occs = st.getAllOccurrences();
           if (!occs.contains(thisOcc)) {
-            st.addOccurrence(thisOcc, myShepherd);    
+            st.addOccurrence(thisOcc);    
           }
           thisOcc.setCorrespondingSurveyTrackID(surveyTrackID);
         } catch (Exception e) {

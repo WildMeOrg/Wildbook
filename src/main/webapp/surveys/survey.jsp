@@ -342,6 +342,7 @@ if (sv!=null) {
 
 			<%} 
 				if (numObservations==0) {%>
+				
 					<br/>
 					<p style="margin-top:1em;"><%=props.getProperty("none")%></p>	
 					<br/>
