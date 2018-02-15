@@ -502,6 +502,19 @@
     <version>2.1.7</version>
 </dependency>
 
+<dependency>
+	<groupId>com.opencsv</groupId>
+   	<artifactId>opencsv</artifactId>
+    <version>4.0</version>
+</dependency>
+
+<dependency>
+    <groupId>com.google.oauth-client</groupId>
+    <artifactId>google-oauth-client-jetty</artifactId>
+    <version>1.23.0</version>
+</dependency>
+
+
 		<!--
         <dependency>
             <groupId>com.google.http-client</groupId>
@@ -515,11 +528,6 @@
     <version>4.0</version>
 </dependency>
 
-        <dependency>
-            <groupId>com.google.oauth-client</groupId>
-            <artifactId>google-oauth-client-jetty</artifactId>
-            <version>${project.oauth.version}</version>
-        </dependency>
 		-->
 <!--
         <dependency>
@@ -530,7 +538,7 @@
 		-->
         <!-- dependencies for translation -->
 
-		<dependency>
+<dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-translate</artifactId>
   <version>1.15.0</version>
