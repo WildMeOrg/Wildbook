@@ -271,7 +271,9 @@ f<%@ page contentType="text/html; charset=utf-8"
   </tr>
 </table>
 
-        <jsp:include page="encounterMediaGallery2.jsp" flush="true">
+
+
+        <jsp:include page="encounterMediaGallery.jsp" flush="true">
 					<jsp:param name="grid" value="true" />
         	<jsp:param name="queryString" value="<%=queryString %>" />
         	<jsp:param name="rangeStart" value="<%=startNum %>" />
