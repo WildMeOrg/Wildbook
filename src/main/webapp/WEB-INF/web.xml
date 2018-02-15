@@ -1075,10 +1075,12 @@
     <servlet-class>org.ecocean.servlet.EncounterSetLivingStatus</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>EncounterAddImage</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddImage</servlet-class>
   </servlet>
+  -->
 <!--
   <servlet>
     <servlet-name>CalendarXMLServer2</servlet-name>
@@ -2049,10 +2051,12 @@
       <url-pattern>/MITFeed</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>EncounterAddImage</servlet-name>
     <url-pattern>/EncounterAddImage</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>EncounterSetSubmitterID</servlet-name>
