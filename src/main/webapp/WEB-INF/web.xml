@@ -241,7 +241,7 @@
 		             /EncounterSetBehavior = authc, roles[researcher]
 		      /CJS = authc, roles[researcher]
 		      /software.jsp = authc, roles[researcher]
-      			/DeleteAllDataPermanently = authc, roles[destroyer]
+      			
       			/encounters/searchExport = authc, roles[researcher]
       			/welcome.jsp = authc
       			/EncounterSetSubmitterID = authc, roles[researcher]
@@ -264,6 +264,12 @@
 					
 				/OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
                  /OccurrenceSearchExportGtm = authc, roles[researcher]
+				 
+				 /SUTimeServlet = authc, roles[admin]
+				 
+				 #lockdown Keyword handling
+				 /appadmin/kwAdmin.jsp = authc, roles[admin]
+				 /KeywordHandler = authc, roles[admin]
 				
 
             </param-value>
@@ -905,10 +911,6 @@
       <servlet-class>org.ecocean.servlet.OccurrenceSetIndividualCount</servlet-class>
   </servlet>
 
-      <servlet>
-        <servlet-name>DeleteAllDataPermanently</servlet-name>
-        <servlet-class>org.ecocean.servlet.DeleteAllDataPermanently</servlet-class>
-  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetMaximumElevation</servlet-name>
@@ -1291,6 +1293,17 @@
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
   
+  <!--SUTime testing-->
+        <servlet>
+        <servlet-name>SUTimeServlet</servlet-name>
+        <servlet-class>org.ecocean.servlet.SUTimeServlet</servlet-class>
+  </servlet>
+  
+      <servlet-mapping>
+    <servlet-name>SUTimeServlet</servlet-name>
+    <url-pattern>/SUTimeServlet</url-pattern>
+  </servlet-mapping>
+  
   
     <servlet-mapping>
     <servlet-name>OccurrenceSearchExportGtm</servlet-name>
@@ -1387,11 +1400,6 @@
       <url-pattern>/TissueSampleSetHaplotype</url-pattern>
   </servlet-mapping>
 
-
-      <servlet-mapping>
-        <servlet-name>DeleteAllDataPermanently</servlet-name>
-        <url-pattern>/DeleteAllDataPermanently</url-pattern>
-  </servlet-mapping>
 
       <servlet-mapping>
         <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
@@ -2126,10 +2134,20 @@
     <url-pattern>/LoginUserSocial</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>EncounterVMData</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterVMData</servlet-class>
+  </servlet>
   <servlet-mapping>
     <servlet-name>EncounterSetObservation</servlet-name>
     <url-pattern>/EncounterSetObservation</url-pattern>
   </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterVMData</servlet-name>
+    <url-pattern>/EncounterVMData</url-pattern>
+  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>OccurrenceSetObservation</servlet-name>
