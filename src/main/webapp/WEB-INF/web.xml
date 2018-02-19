@@ -136,7 +136,7 @@
 
 
                 /appadmin/** = authc, roles[admin]
-                /MassSetInformOthers = authc, roles[admin]
+                #/MassSetInformOthers = authc, roles[admin]
                 /MassExposeGBIF = authc, roles[admin]
                 /MassSetLocationCodeFromLocationString = authc, roles[admin]
                 /MassSwapLocationCode = authc, roles[admin]
@@ -1035,10 +1035,11 @@
   </servlet>
 
   <servlet>
+  <!--
     <servlet-name>MassSetInformOthers</servlet-name>
     <servlet-class>org.ecocean.servlet.MassSetInformOthers</servlet-class>
   </servlet>
-
+-->
   <servlet>
     <servlet-name>ScanTaskHandler</servlet-name>
     <servlet-class>org.ecocean.servlet.ScanTaskHandlerAWS</servlet-class>
@@ -1967,12 +1968,12 @@
     <servlet-name>IndividualSetAlternateID</servlet-name>
     <url-pattern>/IndividualSetAlternateID</url-pattern>
   </servlet-mapping>
-
+<!--
   <servlet-mapping>
     <servlet-name>MassSetInformOthers</servlet-name>
     <url-pattern>/MassSetInformOthers</url-pattern>
   </servlet-mapping>
-
+-->
   <servlet-mapping>
     <servlet-name>EncounterSetAlternateID</servlet-name>
     <url-pattern>/EncounterSetAlternateID</url-pattern>
