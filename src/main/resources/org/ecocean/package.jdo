@@ -212,6 +212,11 @@
         <column length="256"/>
       </field>
 
+      <field name="groupRole" persistence-modifier="persistent">
+        <column length="256"/>
+      </field>
+
+
       <field name="livingStatus" persistence-modifier="persistent">
         <column length="256"/>
       </field>

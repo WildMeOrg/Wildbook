@@ -259,6 +259,10 @@ public class Encounter implements java.io.Serializable {
   // This is a standard 1-5 color scale used by cetacean researchers
   private Integer flukeType;
 
+  // added by request for ASWN, this is the role an individual served in its occurrence
+  // (from a standard list like Escort Male)
+  private String groupRole;
+
   //start constructors
 
   /**
@@ -729,6 +733,12 @@ public class Encounter implements java.io.Serializable {
     this.fieldID = fieldID;
   }
 
+  public String getGroupRole() {
+    return this.groupRole;
+  }
+  public void setGroupRole(String role) {
+    this.groupRole = role;
+  }
 
   /**
    * Adds another image to the collection of images for this encounter.
