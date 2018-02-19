@@ -40,7 +40,14 @@ public class Annotation implements java.io.Serializable {
     private float[] transformMatrix;
     private double theta;
 
+    // quality indicates the fidelity of the annotation, e.g. the overall image quality of a picture.
+    // This is useful e.g. for researchers who want to account for a bias where "better" images are 
+    // more likely to produce matches.
     private Double quality;
+    // distinctiveness indicates the real-wold distinctiveness of the feature *being recorded*, independent
+    // of the recording medium. Useful e.g. for researchers who want to account for a bias where more distinct
+    // animals like one with a large scar are easier to re-sight (match).
+    private Double distinctiveness;
     //*'annot_yaw': 'REAL',
     //~'annot_detect_confidence': 'REAL',
     //~'annot_exemplar_flag': 'INTEGER',
