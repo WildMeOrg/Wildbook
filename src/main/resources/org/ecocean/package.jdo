@@ -329,6 +329,15 @@
             	</field>
 
       <field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" recursion-depth="3"/>
+
+      <field name="quality" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
+      <field name="distinctiveness" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
       <!--
 		<field name="annot_xtl" />
 		<field name="annot_ytl" />
