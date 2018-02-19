@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!--
+<!--M
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
   ~
@@ -1033,9 +1033,9 @@
     <servlet-name>MassSwapLocationCode</servlet-name>
     <servlet-class>org.ecocean.servlet.MassSwapLocationCode</servlet-class>
   </servlet>
-
-  <servlet>
   <!--
+  <servlet>
+
     <servlet-name>MassSetInformOthers</servlet-name>
     <servlet-class>org.ecocean.servlet.MassSetInformOthers</servlet-class>
   </servlet>
