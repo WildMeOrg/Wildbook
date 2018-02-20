@@ -415,6 +415,7 @@ function doImageEnhancer(sel) {
 */
 	];
 
+/*
 	if (wildbook.iaEnabled()) {  //TODO (the usual) needs to be genericized for IA plugin support (which doesnt yet exist)
 		opt.menu.push(['start new matching scan', function(enh) {
       		if (!isGenusSpeciesSet()) {
@@ -428,7 +429,7 @@ function doImageEnhancer(sel) {
 			startIdentify(assetById(mid), enh.imgEl);
 		}]);
 	}
-
+*/
 /*   we dont really like the old tasks showing up in menu. so there.
 	var ct = 1;
 	for (var annId in iaTasks) {
