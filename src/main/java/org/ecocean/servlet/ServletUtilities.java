@@ -802,6 +802,15 @@ public static boolean captchaIsValid(String context, String uresp, String remote
 }
 
 
+//this takes into account that we might be going thru nginx (etc?) as well
+public static String getRemoteHost(HttpServletRequest request) {
+    if (request == null) return null;
+    //these all seem to be *possible* headers from nginx (or other proxies?) but we standardize on "x-real-ip"
+    //   x-real-ip, x-forwarded-for, x-forwarded-host
+    if (request.getHeader("x-real-ip") != null) return request.getHeader("x-real-ip");
+    return request.getRemoteHost();
+}
+
 
 
 
