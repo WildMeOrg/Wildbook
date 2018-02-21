@@ -33,11 +33,16 @@ public class Keyword {
   //a Vector of String relative paths to the photo file that the keyword applies to
   public Vector photos;
 
+  // hackey! used to remove zombie Keywords. Probs not worth merging to master but we will need to do this cleanup
+  // on Flukebook.
+  private boolean isUsed=false;
+
   /**
    * empty constructor required by JDO Enhancer
    */
   public Keyword() {
   }
+
 
 
   //use this constructor for new keywords
@@ -57,6 +62,9 @@ public class Keyword {
     }
   }
 */
+  public boolean getIsUsed() {return isUsed;}
+  public void setIsUsed(boolean isUsed) {this.isUsed=isUsed;}
+
   public String getReadableName() {
     return readableName;
   }

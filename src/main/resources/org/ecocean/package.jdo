@@ -305,6 +305,15 @@
         <collection element-type="java.lang.String"/>
       </field>
 
+      <field name="isUsed">
+        <column default-value="false" />
+
+<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here:
+      <column default-value="0" />
+-->
+      </field>
+
+
       <fetch-group name="count"/>
     </class>
 
