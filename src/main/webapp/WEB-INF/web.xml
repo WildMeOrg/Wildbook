@@ -933,6 +933,12 @@
     <servlet-class>org.ecocean.servlet.EncounterSetSex</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>EncounterSetString</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetString</servlet-class>
+  </servlet>
+
+
     <servlet>
     <servlet-name>EncounterDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
@@ -1835,6 +1841,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSetSex</servlet-name>
     <url-pattern>/EncounterSetSex</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterSetString</servlet-name>
+    <url-pattern>/EncounterSetString</url-pattern>
   </servlet-mapping>
 
 
