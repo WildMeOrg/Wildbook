@@ -283,6 +283,9 @@ StandardImport extends HttpServlet {
   	String locationID = getString(row, "Encounter.locationID");
   	if (locationID!=null) enc.setLocationID(locationID);
 
+    String country = getString(row, "Encounter.country");
+    if (country!=null) enc.setCountry(country);
+
   	// String fields
   	String otherCatalogNumbers = getString(row, "Encounter.otherCatalogNumbers");
   	if (otherCatalogNumbers!=null) enc.setOtherCatalogNumbers(otherCatalogNumbers);
