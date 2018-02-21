@@ -32,7 +32,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
   private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
 
-  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"lifeStage"};
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"lifeStage","groupRole"};
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
