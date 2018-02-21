@@ -25,11 +25,6 @@ Shepherd myShepherd=new Shepherd(context);
 
 
 <body>
-<<<<<<< HEAD
-<p>Removing all workspaces.</p>
-=======
-
->>>>>>> origin/crc
 <ul>
 <%
 
@@ -62,24 +57,6 @@ try {
   		myShepherd.beginDBTransaction();
     }
   }
-=======
-try{
-
-	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
-	
-
-
-	while(allEncs.hasNext()){
-		
-		MarkedIndividual enc=(MarkedIndividual)allEncs.next();
-		enc.refreshDependentProperties(context);
-		myShepherd.commitDBTransaction();
-		myShepherd.beginDBTransaction();
-
-	}
-	myShepherd.rollbackDBTransaction();
-	
->>>>>>> origin/crc
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
