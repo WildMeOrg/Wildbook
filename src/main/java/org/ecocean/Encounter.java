@@ -492,6 +492,25 @@ public class Encounter implements java.io.Serializable {
     this.verbatimLocality = location;
   }
 
+  public void setLocationIDFromStudySiteName(Shepherd myShepherd, boolean overwrite) {
+    if (overwrite) setLocationIDFromStudySiteNameForce(myShepherd);
+    else setLocationIDFromStudySiteName(myShepherd);
+  }
+  public void setLocationIDFromStudySiteName(Shepherd myShepherd) {
+    if (Util.stringExists(getLocationID()) && !"None".equals(getLocationID())) return;
+    setLocationIDFromStudySiteNameForce(myShepherd);
+  }
+  public void setLocationIDFromStudySiteNameForce(Shepherd myShepherd) {
+    if (getStudySiteID()==null) return;
+    StudySite stu = myShepherd.getStudySite(getStudySiteID());
+    String name = stu.getName();
+    if (Util.stringExists(name)) setLocationID(name);
+  }
+
+
+
+
+
   /**
    * Sets the recorded sex of the shark in this encounter.
    * Acceptable values are "Male" or "Female"
@@ -1676,9 +1695,8 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     if (getDecimalLongitude()==null && !(stu.getLongitude()==null)) {
       setDecimalLongitude(stu.getLongitude());
     }
-    if (Util.shouldReplace(stu.getLocationID(), getLocationID())) {
-      setLocationID(stu.getLocationID());
-    }
+    // lynx-specific
+    setLocationID(stu.getName());
   }
 
   public void setStudySite(StudySite stu) {
