@@ -421,6 +421,11 @@ public class Shepherd {
     return tempEnc;
   }
 
+  public StudySite getStudySite(Encounter enc) {
+    if (enc.getStudySiteID()==null) return null;
+    return getStudySite(enc.getStudySiteID());
+  }
+
   public StudySite getStudySiteByName(String name) {
     try {
       String filter = "SELECT FROM org.ecocean.StudySite WHERE name == '"+name+"'";
