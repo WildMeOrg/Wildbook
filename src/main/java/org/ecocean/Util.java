@@ -565,7 +565,7 @@ public class Util {
       return (str!=null && !str.equals("") && !str.equals("None"));
     }
 
-    public static boolean stringsEqual(String str1 String str2) {
+    public static boolean stringsEqual(String str1, String str2) {
       if (str1==null) return (str2==null);
       return str1.equals(str2);
     }
