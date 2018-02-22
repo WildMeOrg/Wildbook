@@ -82,11 +82,11 @@
     studySiteID = sitey.getID();
   }
 
-  String[] studySiteFieldGetters1 = new String[]{"getName", "getTypeOfSite", "getUtmX", "getUtmY"};
+  String[] studySiteFieldGetters1 = new String[]{"getName", "getHuntingState", "getTypeOfSite", "getUtmX", "getUtmY"};
 
   String[] epsgCodes = GeocoordConverter.epsgCodes();
 
-  String[] studySiteFieldGetters2 = new String[]{"getGovernmentArea", "getPopulation", "getHuntingState", "getDaysNotWorking", "getLure", "getReward", "getTypeOfCamera", "getTrapsPerNight", "getComments"};
+  String[] studySiteFieldGetters2 = new String[]{"getGovernmentArea", "getPopulation", "getDaysNotWorking", "getLure", "getReward", "getTypeOfCamera", "getTrapsPerNight", "getComments"};
 
 
 
