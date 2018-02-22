@@ -353,11 +353,12 @@ var colDefn = [
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
 	},
+	/*
   {
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
   },
-  /*
+  
   {
     key: 'filename',
     label: 'Filename(s)',
@@ -371,12 +372,14 @@ var colDefn = [
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
-		key: 'verbatimLocality',
-		label: '<%=encprops.getProperty("location")%>',
+		key: 'huntingState',
+		label: '<%=encprops.getProperty("huntingState")%>',
+		value: _huntingState,
 	},
 	{
 		key: 'locationID',
-		label: '<%=encprops.getProperty("locationID")%>',
+		label: '<%=encprops.getProperty("studySite")%>', /* as a hack we're storing study site name on locationID bc they don't use locationID on this project */
+		value: _locID,
 	},
 	{
 		key: 'taxonomy',
@@ -384,7 +387,7 @@ var colDefn = [
 		value: _colTaxonomy,
 	},
 	{
-		key: 'submitterID',
+		key: 'submitterName',
 		label: '<%=encprops.getProperty("submitterName")%>',
 	},
 	{
@@ -765,8 +768,18 @@ function _colNumberLocations(o) {
 
 
 function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
+	if (!o.get('genus') || !o.get('specificEpithet')) return '';
 	return o.get('genus') + ' ' + o.get('specificEpithet');
+}
+
+function _locID(o) {
+	if (o.get('locationID') == 'None') return '';
+	return o.get('locationID');
+}
+
+function _huntingState(o) {
+	//console.log("Hunting state "+o.get("huntingState")+" for object "+JSON.Stringify(o));
+	return o.get("huntingState");
 }
 
 
