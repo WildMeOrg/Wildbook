@@ -117,6 +117,7 @@ public class StudySite implements java.io.Serializable {
 
   public void setLatitude(Double latitude) {
     this.latitude = latitude;
+    setUtmFromGps(false); //non-overwrite; sets UTM if possible
   }
 
   public Double getLatitude() {
@@ -125,6 +126,7 @@ public class StudySite implements java.io.Serializable {
 
   public void setLongitude(Double longitude) {
     this.longitude = longitude;
+    setUtmFromGps(false); //non-overwrite; sets UTM if possible
   }
 
   public Double getLongitude() {
@@ -211,18 +213,34 @@ public class StudySite implements java.io.Serializable {
   public String getEpsgProjCode() {
     return this.epsgProjCode;
   }
-  private boolean hasUtmValues() {
+  public boolean hasUtm() {
     return (this.epsgProjCode!=null && this.utmY!=null && this.utmX!=null);
   }
-  private void setGpsFromUtm() {
-    if (this.hasUtmValues()) {
+  public boolean hasGps() {
+    return (getLatitude()!=null && getLongitude()!=null);
+  }
+  public void setGpsFromUtm() {
+    if (this.hasUtm()) {
       double[] latLon = GeocoordConverter.utmToGps(utmX, utmY, epsgProjCode);
       this.setLatitude(latLon[0]);
       this.setLongitude(latLon[1]);
     }
   }
 
-
+  public void setUtmFromGps(boolean overwrite) {
+    if (overwrite) setUtmFromGpsForce();
+    else setUtmFromGps();
+  }
+  public void setUtmFromGps() { // does not overwrite
+    if (!hasUtm()) setUtmFromGpsForce();
+  }
+  public void setUtmFromGpsForce() {
+    if (hasGps()) {
+      double[] doubleUTMs = GeocoordConverter.gpsToUtm(getLatitude(), getLongitude());
+      setUtmX(doubleUTMs[0]);
+      setUtmY(doubleUTMs[1]);
+    }
+  }
 
   public void setComments(String comments) {
     this.comments = comments;
