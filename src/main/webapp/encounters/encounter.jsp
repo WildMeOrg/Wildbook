@@ -407,6 +407,12 @@ var encounterNumber = '<%=num%>';
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
+
+            // lynx hack to keep these consistent
+            StudySite stu = myShepherd.getStudySite(en);
+            if (stu!=null) enc.importStudySiteFields(stu);
+
+
             String encNum = enc.getCatalogNumber();
 						boolean visible = enc.canUserAccess(request);
 
@@ -1858,15 +1864,6 @@ else {
  <%}%>
 
 
-
-<%
-if(enc.getLocation()!=null){
-%>
-
-<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
-<br>
-
-
 <!-- Create hyperlink to study site page -->
 <%
 String stuID = enc.getStudySiteID();
@@ -1898,12 +1895,6 @@ if (huntingStateStr == null) huntingStateStr = "";
 <em><%=encprops.getProperty("huntingState")%>: <span id="displayHuntingState"><%=huntingStateStr%></span></em>
 
 
-
-
-<%
-}
-%>
-
 <br>
 
 <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
@@ -1915,14 +1906,27 @@ if (huntingStateStr == null) huntingStateStr = "";
 
   <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
-  <em><%=encprops.getProperty("country") %></em>
+  <em><%=encprops.getProperty("country") %>:</em>
   <%
+
   if(enc.getCountry()!=null){
   %>
-  <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
+  <span> <span id="displayCountry"><%=enc.getCountry()%></span></span>
   <%
   }
     %>
+
+
+<br>
+<%
+String locationStr = enc.getLocation();
+if (locationStr == null) locationStr = "";
+%>
+<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=locationStr%></span></em>
+<br>
+
+
+
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
     <%
@@ -2347,8 +2351,8 @@ if (huntingStateStr2 == null) huntingStateStr2 = "";
           if (locID.equals("")) locID = null;
           List<StudySite> studySites = myShepherd.getStudySitesAtLocation(locID);
 
-          for (StudySite stu : studySites){
-            String stuName = stu.getName();
+          for (StudySite stu2 : studySites){
+            String stuName = stu2.getName();
             %><option value="<%=stuName %>"><%=stuName%></option><%
           }
           %>
