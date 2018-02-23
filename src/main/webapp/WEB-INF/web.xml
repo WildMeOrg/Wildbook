@@ -204,8 +204,8 @@
 		        /TissueSampleRemoveSexAnalysis = authc, roles[researcher]
 		         /EncounterRemoveTissueSample = authc, roles[researcher]
 		         /EncounterRemoveImage = authc, roles[researcher]
-		         /SinglePhotoVideoRemoveKeyword = authc, roles[researcher]
-		         /SinglePhotoVideoAddKeyword = authc, roles[researcher]
+		        # /SinglePhotoVideoRemoveKeyword = authc, roles[researcher]
+		        # /SinglePhotoVideoAddKeyword = authc, roles[researcher]
 		         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 		         /EncounterSearchExportKML = authc, roles[researcher]
 		         /UserCreate = authc, roles[admin]
@@ -368,7 +368,7 @@
   </servlet>
 
 
-
+<!--
 <servlet>
 <servlet-name>EncounterSetPatterningPassport</servlet-name>
 <servlet-class>org.ecocean.servlet.EncounterSetPatterningPassport</servlet-class>
@@ -377,6 +377,8 @@
 <servlet-name>EncounterGetPatterningPassport</servlet-name>
 <servlet-class>org.ecocean.servlet.EncounterGetPatterningPassport</servlet-class>
 </servlet>
+-->
+
 
   <servlet>
     <servlet-name>ScanAppletSupport</servlet-name>
@@ -483,11 +485,13 @@
       <servlet-class>org.ecocean.servlet.OccurrenceSetGroupBehavior</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>EncounterSetAsUnidentifiable</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetAsUnidentifiable</servlet-class>
   </servlet>
-
+-->
+  
   <servlet>
     <servlet-name>DontTrack</servlet-name>
     <servlet-class>org.ecocean.servlet.DontTrack</servlet-class>
@@ -505,11 +509,12 @@
     <servlet-class>org.ecocean.servlet.RemoveEmailAddress</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>TrackIt</servlet-name>
     <servlet-class>org.ecocean.servlet.TrackIt</servlet-class>
   </servlet>
-
+-->
 
   <servlet>
     <servlet-name>EncounterAddSpotFile</servlet-name>
@@ -1018,6 +1023,7 @@
   </servlet>
   -->
 
+  <!--
   <servlet>
     <servlet-name>SinglePhotoVideoAddKeyword</servlet-name>
     <servlet-class>org.ecocean.servlet.SinglePhotoVideoAddKeyword</servlet-class>
@@ -1027,7 +1033,7 @@
       <servlet-name>SinglePhotoVideoRemoveKeyword</servlet-name>
       <servlet-class>org.ecocean.servlet.SinglePhotoVideoRemoveKeyword</servlet-class>
     </servlet>
-
+-->
 
   <servlet>
     <servlet-name>MassSwapLocationCode</servlet-name>
@@ -1613,11 +1619,14 @@
       <url-pattern>/OccurrenceAddComment</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>EncounterSetAsUnidentifiable</servlet-name>
     <url-pattern>/EncounterSetAsUnidentifiable</url-pattern>
   </servlet-mapping>
-
+-->
+  
+  
     <servlet-mapping>
       <servlet-name>EncounterSearchExportGeneGISFormat</servlet-name>
       <url-pattern>/EncounterSearchExportGeneGISFormat</url-pattern>
@@ -1677,6 +1686,8 @@
     <url-pattern>/EncounterSetSubmitterPhotographerContactInfo</url-pattern>
   </servlet-mapping>
 
+<!--  
+  
    <servlet-mapping>
       <servlet-name>SinglePhotoVideoRemoveKeyword</servlet-name>
       <url-pattern>/SinglePhotoVideoRemoveKeyword</url-pattern>
@@ -1687,6 +1698,7 @@
         <url-pattern>/SinglePhotoVideoAddKeyword</url-pattern>
   </servlet-mapping>
 
+  -->
 
   <servlet-mapping>
     <servlet-name>EncounterSetLocationID</servlet-name>
@@ -1774,6 +1786,8 @@
       <url-pattern>/OccurrenceAddEncounter</url-pattern>
   </servlet-mapping>
 
+  
+  <!--
 	<servlet-mapping>
 		<servlet-name>EncounterSetPatterningPassport</servlet-name>
 		<url-pattern>/EncounterSetPatterningPassport</url-pattern>
@@ -1782,6 +1796,7 @@
 		<servlet-name>EncounterGetPatterningPassport</servlet-name>
 		<url-pattern>/EncounterGetPatterningPassport</url-pattern>
 	</servlet-mapping>
+	-->
 
   <servlet-mapping>
     <servlet-name>EncounterSetSex</servlet-name>
@@ -1935,12 +1950,12 @@
     <url-pattern>/AdoptionAction</url-pattern>
   </servlet-mapping>
 
-
+<!--
   <servlet-mapping>
     <servlet-name>TrackIt</servlet-name>
     <url-pattern>/trackIt</url-pattern>
   </servlet-mapping>
-
+-->
 
 
   <servlet-mapping>
