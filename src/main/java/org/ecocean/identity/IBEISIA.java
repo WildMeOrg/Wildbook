@@ -5,10 +5,10 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
+import org.ecocean.ai.nmt.google.DetectTranslate;
+import org.ecocean.ai.ocr.google.GoogleOcr;
+import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.media.YouTubeAssetStore;
-import org.ecocean.ocr.ocr;
-//import org.ecocean.youtube.PostQuestion;
-import org.ecocean.translate.DetectTranslate;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Encounter;
@@ -52,15 +52,9 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-import java.text.DateFormatSymbols;
-import java.util.Locale;
-//natural language processing for date/time
-//import com.joestelmach.natty.*;
-import java.util.Date;
-import org.joda.time.Instant;
-
-import twitter4j.Status;
 import twitter4j.*;
+
+
 
 
 public class IBEISIA {
@@ -1248,10 +1242,11 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
-                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue() || !jann.optString("species", "unkown").equals("whale_fluke")) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
+                        //if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue() || !jann.optString("species", "unkown").equals("whale_fluke")) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
+                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
 
                             needsReview = true;
-                            System.out.println("Detection didn't find a whale fluke");
+                            System.out.println("Detection didn't find a whale shark");
                             // TwitterUtil.sendDetectionAndIdentificationTweet(screenName, imageId, twitterInst, whaleId, false, false, ""); //TODO find a way to get screenName, imageId, etc. over here
                             continue;
                         }
@@ -1267,8 +1262,10 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         newAnns.put(ann.getId());
                         try {
                             //TODO how to know *if* we should start identification
-                            if(jann.optDouble("confidence", -1.0) >= getDetectionCutoffValue() && jann.optString("species", "unkown").equals("whale_fluke")){
-                              System.out.println("Detection found a whale fluke; sending to identification");
+                            //if(jann.optDouble("confidence", -1.0) >= getDetectionCutoffValue() && jann.optString("species", "unkown").equals("whale_fluke")){
+                            if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
+
+                              System.out.println("Detection found a whale shark; sending to identification");
                               ident.put(ann.getId(), IAIntake(ann, myShepherd, request));
                             }
                         } catch (Exception ex) {
@@ -1449,7 +1446,7 @@ System.out.println("*****************\nhey i think we are happy with these annot
 
     //scores < these will require human review (otherwise they carry on automatically)
     public static double getDetectionCutoffValue() {
-        return 0.25;
+        return 0.35;
     }
     public static double getIdentificationCutoffValue() {
         return 0.8;
@@ -2730,20 +2727,60 @@ return Util.generateUUID();
           List<Encounter> encounters=occ.getEncounters();
           int numEncounters=encounters.size();
           Encounter enc=encounters.get(0);
-          String ytRemarks=enc.getOccurrenceRemarks().trim().toLowerCase();
-
+          String ytRemarks="";
+          
+          
+          //GET AND TRANSLATE VIDEO COMMENTS
+          if(YouTube.getVideoDescription(occ, myShepherd)!=null) {
+            ytRemarks=YouTube.getVideoDescription(occ, myShepherd);
+          }
+          
           String detectedLanguage="en";
           try{
-            detectedLanguage= DetectTranslate.detect(ytRemarks, context);
+            
+            detectedLanguage= DetectTranslate.detectLanguage(ytRemarks);
+            System.out.println("Video description suggests language: "+detectedLanguage);
 
             if(!detectedLanguage.toLowerCase().startsWith("en")){
-              ytRemarks= DetectTranslate.translate(ytRemarks, context);
+              ytRemarks= DetectTranslate.translateToEnglish(ytRemarks);
             }
           }
           catch(Exception e){
             System.out.println("I hit an exception trying to detect language.");
             e.printStackTrace();
           }
+          
+          //GET AND TRANSLATE VIDEO TITLE
+          String videoTitle="";
+          if(YouTube.getVideoTitle(occ, myShepherd)!=null) {
+            videoTitle=YouTube.getVideoTitle(occ, myShepherd);
+          }
+          
+          
+          try{
+            String titleLanguage="en";
+            titleLanguage= DetectTranslate.detectLanguage(videoTitle);
+            System.out.println("Video title "+videoTitle+" suggests language: "+titleLanguage);
+
+            
+            //use the title language if there were no comments
+            if(ytRemarks.equals("")) {
+              detectedLanguage=titleLanguage;
+            }
+
+            if(!titleLanguage.toLowerCase().startsWith("en")){
+              videoTitle= DetectTranslate.translateToEnglish(videoTitle);
+            }
+          }
+          catch(Exception e){
+            System.out.println("I hit an exception trying to detect language in the video title.");
+            e.printStackTrace();
+          }
+          
+          System.out.println("Final detectedLanguage: "+detectedLanguage);
+          
+          
+          //GET AND TRANSLATE OCR TEXT EMBEDDED IN VIDEO FRAMES
           //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
           String ocrRemarks="";
           try {
@@ -2756,15 +2793,12 @@ return Util.generateUUID();
                 if(parent!=null){
                   ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
                   if((frames!=null)&&(frames.size()>0)){
-                      ArrayList<File>filesFrames= ocr.makeFilesFrames(frames);
-                      //if (ocr.getTextFrames(filesFrames)!=null) {
-                        ocrRemarks = ocr.getTextFrames(filesFrames, context);
-                        if(ocrRemarks==null)ocrRemarks="";
+                      
+                      //Google OCR
+                      ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
+                      ocrRemarks = GoogleOcr.detectText(bytesFrames);
+                      if(ocrRemarks==null)ocrRemarks="";
                         System.out.println("I found OCR remarks: "+ocrRemarks);
-                      //}
-                      //else {
-                      //  ocrRemarks= "";
-                      //}
                     }
                   }
                   else{
@@ -2777,10 +2811,27 @@ return Util.generateUUID();
               e.printStackTrace();
               System.out.println("I hit an exception trying to find ocrRemarks.");
             }
+          
+          
+          
+          try{
+            String ocrDetectedLanguage="en";
+            ocrDetectedLanguage= DetectTranslate.detectLanguage(ocrRemarks);
+            
+            System.out.println("OCR suggests language: "+ocrDetectedLanguage);
 
-          if(enc.getOccurrenceRemarks()!=null){
 
-            String remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase()+" "+ ocrRemarks.toLowerCase();
+            if(!ocrDetectedLanguage.toLowerCase().startsWith("en")){
+              ocrRemarks= DetectTranslate.translateToEnglish(ocrRemarks);
+            }
+          }
+          catch(Exception e){
+            System.out.println("I hit an exception trying to detect language for OCR comments.");
+            e.printStackTrace();
+          }
+
+
+            String remarks=ytRemarks+" "+ ocrRemarks + " "+videoTitle;
 
             System.out.println("Let's parse these remarks for date and location: "+remarks);
 
@@ -2791,13 +2842,14 @@ return Util.generateUUID();
 
 
             //first parse for location and locationID
+              String lowercaseRemarks=remarks.toLowerCase();
               try{
                 props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
                 Enumeration m_enum = props.propertyNames();
                 while (m_enum.hasMoreElements()) {
                   String aLocationSnippet = ((String) m_enum.nextElement()).trim();
                   System.out.println("     Looking for: "+aLocationSnippet);
-                  if (remarks.indexOf(aLocationSnippet) != -1) {
+                  if (lowercaseRemarks.indexOf(aLocationSnippet) != -1) {
                     locCode = props.getProperty(aLocationSnippet);
                     location+=(aLocationSnippet+" ");
                     System.out.println(".....Building an idea of location: "+location);
@@ -2809,57 +2861,21 @@ return Util.generateUUID();
                 e.printStackTrace();
               }
 
-
-              //reset date to exclude OCR, which can currently confuse NLP
-              //remarks=ytRemarks+" "+enc.getRComments().trim().toLowerCase();
-
-
-
-              //reset remarks to avoid dates embedded in researcher comments
-//              remarks=enc.getOccurrenceRemarks().trim().toLowerCase();
-              //if no one has set the date already, use NLP to try to figure it out
               boolean setDate=true;
               if(enc.getDateInMilliseconds()!=null){setDate=false;}
               //next use natural language processing for date
               if(setDate){
-                boolean NLPsuccess=false;
+                //boolean NLPsuccess=false;
                 try{
                     System.out.println(">>>>>> looking for date with NLP");
                     //call Stanford NLP function to find and select a date from ytRemarks
-                    String myDate= ServletUtilities.nlpDateParse(remarks);
-                    System.out.println("Finished nlpPrseDate");;
+                    //String myDate= ServletUtilities.nlpDateParse(remarks);
+                    String myDate=ParseDateLocation.parseDate(request,remarks, context);
+                    System.out.println("Finished ParseDateLocation.parseDate");;
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
                         System.out.println(">>>>>> NLP found date: "+myDate);
-                        //int numCharact= myDate.length();
-
-                        /*if(numCharact>=4){
-
-                          try{
-                            year=(new Integer(myDate.substring(0, 4))).intValue();
-                            NLPsuccess=true;
-
-                            if(numCharact>=7){
-                              try {
-                                month=(new Integer(myDate.substring(5, 7))).intValue();
-                                if(numCharact>=10){
-                                  try {
-                                    day=(new Integer(myDate.substring(8, 10))).intValue();
-                                    }
-                                  catch (Exception e) { day=-1; }
-                                }
-                              else{day=-1;}
-                              }
-                              catch (Exception e) { month=-1;}
-                            }
-                            else{month=-1;}
-
-                          }
-                          catch(Exception e){
-                            e.printStackTrace();
-                          }
-                      }
-                        */
+     
 
                         //current datetime just for quality comparison
                         LocalDateTime dt = new LocalDateTime();
@@ -2872,22 +2888,18 @@ return Util.generateUUID();
                         System.out.println("     StringTokenizer for date has "+numTokens+" tokens for String input "+str.toString());
 
                         if(numTokens>=1){
-                          //try {
+                         
                           year=reportedDateTime.getYear();
-                            if(year>(dt.getYear()+1)){
-                              //badDate=true;
+                            if(year>(dt.getYear()+1)){ 
                               year=-1;
-                              //throw new Exception("    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format: "+year+" > "+dt.getYear());
                             }
-
-                         //} catch (Exception e) { year=-1;}
                         }
                         if(numTokens>=2){
                           try { month=reportedDateTime.getMonthOfYear(); } catch (Exception e) { month=-1;}
                         }
                         else{month=-1;}
                         //see if we can get a day, because we do want to support only yyy-MM too
-                        if(str.countTokens()>=3){
+                        if(numTokens>=3){
                           try { day=reportedDateTime.getDayOfMonth(); } catch (Exception e) { day=0; }
                         }
                         else{day=-1;}
@@ -2895,83 +2907,11 @@ return Util.generateUUID();
 
                     }
 
-//                      Parser parser = new Parser();
-//                      List groups = parser.parse(ytRemarks);
-//                      int numGroups=groups.size();
-//                      //just grab the first group
-//                      if(numGroups>0){
-//                          List<Date> dates = ((DateGroup)groups.get(0)).getDates();
-//                          int numDates=dates.size();
-//                          if(numDates>0){
-//                            Date myDate=dates.get(0);
-//                            LocalDateTime dt = LocalDateTime.fromDateFields(myDate);
-//                            String detectedDate=dt.toString().replaceAll("T", "-");
-//                            System.out.println(">>>>>> NLP found date: "+detectedDate);
-//                            StringTokenizer str=new StringTokenizer(detectedDate,"-");
-//                            int numTokens=str.countTokens();
-//                            if(numTokens>=1){
-//                              NLPsuccess=true;
-//                              year=(new Integer(str.nextToken())).intValue();
-//                            }
-//                            if(numTokens>=2){
-//                              try { month=(new Integer(str.nextToken())).intValue();
-//                              } catch (Exception e) { month=-1;}
-//                            }
-//                            else{month=-1;}
-//                            if(numTokens>=3){
-//                              try {
-//                                String myToken=str.nextToken();
-//                                day=(new Integer(myToken.replaceFirst("^0+(?!$)", ""))).intValue(); } catch (Exception e) { day=-1; }
-//                            }
-//                            else{day=-1;}
-//                        }
-//                    }
                 }
                 catch(Exception e){
                     System.out.println("Exception in NLP in IBEISIA.class");
                     e.printStackTrace();
                 }
-
-                  //NLP failure? let's try brute force detection across all languages supported by this Wildbook
-                  if(!NLPsuccess){
-                    System.out.println(">>>>>> looking for date with brute force");
-                    //next parse for year
-                    LocalDateTime dt = new LocalDateTime();
-                    int nowYear=dt.getYear();
-                    int oldestYear=nowYear-20;
-                    for(int i=nowYear;i>oldestYear;i--){
-                      String yearCheck=(new Integer(i)).toString();
-                      if (ytRemarks.indexOf(yearCheck) != -1) {
-                        year=i;
-                        System.out.println("...detected a year in comments!");
-
-                        /**
-                        //check for month
-                        List<String> langs=CommonConfiguration.getIndexedPropertyValues("language", context);
-                        int numLangs=langs.size();
-                        for(int k=0;k<numLangs;k++){
-                            try{
-                              Locale locale=new Locale(langs.get(k));
-                              DateFormatSymbols sym=new DateFormatSymbols(locale);
-                              String[] months=sym.getMonths();
-                              int numMonths=months.length;
-                              for(int m=0;m<numMonths;m++){
-                                String thisMonth=months[m];
-                                if (remarks.indexOf(thisMonth) != -1) {
-                                  month=m;
-                                  System.out.println("...detected a month in comments!");
-                                }
-                              }
-                            }
-                            catch(Exception e){e.printStackTrace();}
-                          } //end for
-                        */
-                        }
-
-                      }
-                }
-
-                //end brute force date detection if NLP failed
 
 
                   //if we found a date via NLP or brute force, let's use it here
@@ -2981,7 +2921,7 @@ return Util.generateUUID();
                       enctemp.setYear(year);
                       if(month>-1){
                         enctemp.setMonth(month);
-                        if(day>-1){enc.setDay(day);}
+                        if(day>-1){enctemp.setDay(day);}
                       }
                     }
 
@@ -2995,7 +2935,7 @@ return Util.generateUUID();
             catch (Exception props_e) {
               props_e.printStackTrace();
             }
-          }
+
 
           //if we found a locationID, iterate and set it on every Encounter
           if(locCode!=null){
@@ -3028,6 +2968,7 @@ return Util.generateUUID();
             //Properties questEs = new Properties();
 
             //TBD-simplify to one set of files
+            System.out.println("Getting quest.properties for language code: "+detectedLanguage);
             quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
             //questEs= ShepherdProperties.getProperties("questEs.properties");
 
@@ -3047,9 +2988,8 @@ return Util.generateUUID();
 
             if(questionToPost!=null){
             String videoId = enc.getEventID().replaceAll("youtube:","");
-              //String videoId = "JhIcP4K-M6c"; //using Jason's yt account for testing, instead of calling enc.getEventID() to get real videoId
               try{
-                YouTube.postQuestion(questionToPost,videoId, occ);
+                YouTube.postQuestion(questionToPost,videoId, occ, context);
               }
               catch(Exception e){e.printStackTrace();}
             }
