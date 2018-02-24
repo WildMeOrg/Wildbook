@@ -135,23 +135,32 @@ oh, and incidentally GPS block often has time in it too.  :( :( :(   @@
         HashMap<DateTime,Integer> count = new HashMap<DateTime,Integer>();
         SimpleDateFormat dateParser = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");  //note: exif doesnt carry tz :(
         // TODO maybe?  we could also try just yyyy:MM:dd which sometimes exists.  sigh.  (etc x infinity)
-        for (String val : matches.values()) {
+        for (String key : matches.keySet()) {
+            String val = matches.get(key);
             DateTime dt = null;
             try {
                 dt = new DateTime(dateParser.parse(val));
             } catch (java.text.ParseException ex) { }
+//System.out.println("* MediaAssetMetadata.getDateTime(): " + key + "[" + val + "] -> " + dt);
             if (dt == null) continue;
             if (count.get(dt) == null) {
                 count.put(dt, 1);
             } else {
                 count.put(dt, count.get(dt) + 1);
             }
+            //now we do a little quasi-weighting based on key (e.g. "original" is best, "digitized" is kinda good; otherwise sketchy
+            if (key.toLowerCase().indexOf("original") > -1) count.put(dt, count.get(dt) + 2);
+            if (key.toLowerCase().indexOf("digitized") > -1) count.put(dt, count.get(dt) + 1);
         }
+//System.out.println("* MediaAssetMetadata.getDateTime(): summary => " + count);
         if (count.size() < 1) return null;  //no such luck!
         DateTime bestest = null;
         int bestestCount = 0;
         for (DateTime dt : count.keySet()) {
-            if (count.get(dt) > bestestCount) bestest = dt;
+            if (count.get(dt) > bestestCount) {
+                bestest = dt;
+                bestestCount = count.get(dt);
+            }
         }
         return bestest;
     }

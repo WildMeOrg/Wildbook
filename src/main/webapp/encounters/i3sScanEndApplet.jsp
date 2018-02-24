@@ -27,8 +27,19 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-  session.setMaxInactiveInterval(6000);
-  String num = request.getParameter("number");
+  //session.setMaxInactiveInterval(6000);
+  String num="";
+  if(request.getParameter("number")!=null){
+	Shepherd myShepherd=new Shepherd(context);
+	myShepherd.setAction("scanEndApplet.jsp");
+	myShepherd.beginDBTransaction();
+	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
+  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+	}
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+  }	
+  String encSubdir = Encounter.subdir(num);
   //Shepherd myShepherd = new Shepherd(context);
   //if (request.getParameter("writeThis") == null) {
   //  myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
@@ -48,7 +59,7 @@ context=ServletUtilities.getContext(request);
   //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
-	String encSubdir = Encounter.subdir(num);
+	//String encSubdir = Encounter.subdir(num);
   //File thisEncounterDir = new File(encountersDir, encSubdir);   //never used??
  
 %>
@@ -118,8 +129,8 @@ td, th {
 
 <ul id="tabmenu">
   <li><a
-    href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-    <%=request.getParameter("number")%>
+    href="encounter.jsp?number=<%=num%>">xxEncounter
+    <%=num%>
   </a></li>
   <%
     String fileSider = "";
@@ -136,7 +147,7 @@ td, th {
     if (finalXMLFile.exists()) {
   %>
   <li><a
-    href="scanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%><%=fileSider%>">Modified
+    href="scanEndApplet.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Modified
     Groth</a></li>
 
   <%

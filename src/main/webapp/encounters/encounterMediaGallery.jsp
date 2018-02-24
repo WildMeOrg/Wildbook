@@ -176,7 +176,7 @@ function forceLink(el) {
 		  }
 		  else {
 		  	for (Annotation ann: anns) {
-		      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
 		      MediaAsset ma = ann.getMediaAsset();
 		      String filename = ma.getFilename();
 		      
@@ -232,7 +232,9 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 						all.put(j);
 					}
 		  		}
-		  	}
+		  	} //end loop on each annotation
+		  	
+		  	
 		  	// out.println("var assets = " + all.toString() + ";");
 		    //System.out.println("All media assets as an array: "+all.toString());
 
@@ -426,6 +428,16 @@ function doImageEnhancer(sel) {
 			startIdentify(assetById(mid), enh.imgEl);
 		}]);
 	}
+
+
+        opt.menu.push(['use visual matcher', function(enh) {
+      	    if (!isGenusSpeciesSet()) {
+                imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
+                return;
+            }
+            var mid = enh.imgEl.data('enh-mediaassetid');
+            window.location.href = 'encounterVM.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
+        }]);
 
 /*   we dont really like the old tasks showing up in menu. so there.
 	var ct = 1;

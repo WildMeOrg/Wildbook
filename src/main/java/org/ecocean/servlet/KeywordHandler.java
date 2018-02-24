@@ -22,7 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Keyword;
 import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
+import org.ecocean.media.MediaAsset;
 
 import javax.jdo.Query;
 import javax.servlet.ServletConfig;
@@ -96,10 +96,10 @@ public class KeywordHandler extends HttpServlet {
         String desc = word.getReadableName();
         
         //need to first delete the keyword from all SinglePhotoVIdeos it is assigned to
-        List<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
+        List<MediaAsset> photos=myShepherd.getAllMediAssetsWithKeyword(word);
         int numPhotos=photos.size();
         for(int i=0;i<numPhotos;i++){
-        	SinglePhotoVideo spv=photos.get(i);
+        	MediaAsset spv=photos.get(i);
         	spv.removeKeyword(word);
         	myShepherd.commitDBTransaction();
         	myShepherd.beginDBTransaction();

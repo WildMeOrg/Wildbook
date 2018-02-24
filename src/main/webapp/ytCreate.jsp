@@ -45,29 +45,38 @@ rtn.put("youtubeId", id);
 
 JSONObject p = new JSONObject();
 p.put("id", id);
-MediaAsset ma = yts.find(p, myShepherd);
 
-if (ma != null) {
-	rtn.put("info", "MediaAsset already exists; not creating");
-
-} else {
-	ma = yts.create(id);
-	ma.updateMetadata();
-	MediaAssetFactory.save(ma, myShepherd);
-	boolean ok = yts.grabAndParse(myShepherd, ma, false);
-
-	rtn.put("grabAndParse", ok);
+try{
+	MediaAsset ma = yts.find(p, myShepherd);
+	
+	if (ma != null) {
+		rtn.put("info", "MediaAsset already exists; not creating");
+	
+	} else {
+		ma = yts.create(id);
+		ma.updateMetadata();
+		MediaAssetFactory.save(ma, myShepherd);
+		boolean ok = yts.grabAndParse(myShepherd, ma, false);
+	
+		rtn.put("grabAndParse", ok);
+	}
+	//myShepherd.closeDBTransaction();
+	
+	rtn.put("success", true);
+	rtn.put("assetId", ma.getId());
+	rtn.put("metadata", ma.getMetadata().getData());
+	
+	out.println(rtn);
+	myShepherd.commitDBTransaction();
 }
-myShepherd.closeDBTransaction();
-
-rtn.put("success", true);
-rtn.put("assetId", ma.getId());
-rtn.put("metadata", ma.getMetadata().getData());
-
-out.println(rtn);
-
-myShepherd.commitDBTransaction();
-myShepherd.closeDBTransaction();
+catch(Exception e){
+	myShepherd.rollbackDBTransaction();
+	e.printStackTrace();
+}
+finally{
+	
+	myShepherd.closeDBTransaction();
+}
 
 
 %>
