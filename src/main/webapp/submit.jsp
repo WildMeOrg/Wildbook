@@ -227,7 +227,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(10.8, 160.8);
+var center = new google.maps.LatLng(34.38, -76.64);
 
 var map;
 
@@ -251,12 +251,12 @@ function placeMarker(location) {
     }
 
   function initialize() {
-    var mapZoom = 3;
+    var mapZoom = 6;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(10.8, 160.8);
+        center = new google.maps.LatLng(34.38, -76.64);
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {
