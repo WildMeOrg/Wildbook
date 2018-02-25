@@ -242,7 +242,7 @@ function placeMarker(location) {
 
       //map.setCenter(location);
 
-        var ne_lat_element = document.getElementById('lat');
+        var ne_lat_element = document.getElementById('latitude');
         var ne_long_element = document.getElementById('longitude');
 
 
