@@ -733,7 +733,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				<input class="form-control" name="measurement(temperature)" type="text" id="temperature">
 					
 					<input type="hidden" name="measurement(temperatureunits)" value="celsius">
-					&nbsp;Celsius <br>
+					&nbsp;Fahrenheit <br>
 			</div>
 		</div>
 		<!-- depth -->
@@ -1058,44 +1058,68 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 <c:if test="${showMeasurements}">
 <hr>
- <fieldset>
-<%
-    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
-    pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
-%>
+<fieldset>
+
 
  <div class="form-group">
-           <h3><%=props.getProperty("measurements") %></h3>
+           <h3>Measurements</h3>
 
 
 <div class="col-xs-12 col-lg-8">
   <table class="measurements">
   <tr>
-  <th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
+  <th>Type</th><th>Size</th><th>Units</th><th>Sampling Protocol</th>
   </tr>
-  <c:forEach items="${items}" var="item">
+  
   <!--the below line makes it so that temp is not listed here (temp is listed above)-->
-	<c:if test="${item.label!='Temp.'}">
+	
     <tr>
-    <td>${item.label}</td>
-    <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
-    <td><c:out value="${item.unitsLabel}"/></td>
-    <c:if test="${!empty samplingProtocols}">
+    <td>Pre-caudal Length</td>
+    <td><input name="measurement(precaudallength)" id="precaudallength"/><input type="hidden" name="measurement(precaudallengthunits)" value="centimeters"/></td>
+    <td>feet</td>
+    
       <td>
-        <select name="measurement(${item.type}samplingProtocol)">
-        <c:forEach items="${samplingProtocols}" var="optionDesc">
-          <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
-        </c:forEach>
+        <select name="measurement(precaudallengthsamplingProtocol)">
+        
+          <option value="samplingProtocol0">Laser measured</option>
+        
+          <option value="samplingProtocol1">Tape measured length qualifiers</option>
+        
         </select>
       </td>
-    </c:if>
+    
     </tr>
-    	</c:if>
-  </c:forEach>
+    	
+  
+  <!--the below line makes it so that temp is not listed here (temp is listed above)-->
+	
+    <tr>
+    <td>Length</td>
+    <td><input name="measurement(length)" id="length"/><input type="hidden" name="measurement(lengthunits)" value="centimeters"/></td>
+    <td>feet</td>
+    
+      <td>
+        <select name="measurement(lengthsamplingProtocol)">
+        
+          <option value="samplingProtocol0">Laser measured</option>
+        
+          <option value="samplingProtocol1">Tape measured length qualifiers</option>
+        
+        </select>
+      </td>
+    
+    </tr>
+    	
+  
+  <!--the below line makes it so that temp is not listed here (temp is listed above)-->
+	
+  
   </table>
    </div>
         </div>
          </fieldset>
+
+
 </c:if>
 
 
