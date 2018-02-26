@@ -109,7 +109,7 @@ if(request.getParameter("adoptableSharks")!=null){
 	//get current time minus two years
 	Long twoYears=new Long("63072000000");
 	long currentDate=System.currentTimeMillis()-twoYears.longValue();
-    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (enc.dateInMilliseconds >= "+currentDate+") && ((nickName == null)||(nickName == '') && (guid.startsWith('NCAquariums'))) VARIABLES org.ecocean.Encounter enc";
+    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (enc.dateInMilliseconds >= "+currentDate+") && ((nickName == null)||(nickName == '') && (enc.guid.startsWith('NCAquariums'))) VARIABLES org.ecocean.Encounter enc";
     Query query=myShepherd.getPM().newQuery(filter);
     query.setOrdering("numberEncounters descending");
     query.setRange(startNum, endNum);

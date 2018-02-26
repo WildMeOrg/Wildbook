@@ -314,7 +314,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Individuals <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
-                          <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
+                          <li><a href="<%=urlLoc %>/individualSearchResults.jsp?guid=NCAquariums"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
                       </li>
                       <li class="dropdown">

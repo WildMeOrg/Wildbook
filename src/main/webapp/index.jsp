@@ -534,7 +534,7 @@ finally{
 
                        <%
                        try {
-                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDateNCAquariums(3);
                        int numResults=latestIndividuals.size();
                        myShepherd.beginDBTransaction();
                        for(int i=0;i<numResults;i++){
@@ -568,7 +568,7 @@ finally{
                         %>
 
                     </ul>
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta">See more encounters</a>
+                    <a href="encounters/searchResults.jsp?state=approved&guid=NCAquariums" title="" class="cta">See more encounters</a>
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
@@ -581,7 +581,7 @@ finally{
                     //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                     long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
 
-                    System.out.println("  I think my startTime is: "+startTime);
+                    //System.out.println("  I think my startTime is: "+startTime);
 
                     Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
                     int numUsersToDisplay=3;

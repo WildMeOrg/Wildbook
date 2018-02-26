@@ -3692,6 +3692,28 @@ public class Shepherd {
     q.closeAll();
     return matchingEncounters;
   }
+  
+  public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDateNCAquariums(int numToReturn){
+    ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
+    String filter = "individualID != null && guid.startsWith('NCAquariums')";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    q.setOrdering("dwcDateAddedLong descending");
+    Collection c = (Collection) (q.execute());
+    if ((c != null) && (c.size() > 0)) {
+      int max = (numToReturn > c.size()) ? c.size() : numToReturn;
+      int numAdded=0;
+      while(numAdded<max){
+        ArrayList<Encounter> results=new ArrayList<Encounter>(c);
+        matchingEncounters.add(results.get(numAdded));
+        numAdded++;
+      }
+
+    }
+
+    q.closeAll();
+    return matchingEncounters;
+  }
 
   public Map<String,Integer> getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(long startTime){
 
