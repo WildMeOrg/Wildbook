@@ -568,8 +568,7 @@ function createEncounters() {
 	});
 }
 
-var encIds = [];
-var taskIds = [];
+var encIds = {};
 function createEncounter(data, id) {
 	waitOn('Saving data...');
 	$.ajax({
@@ -597,16 +596,13 @@ function createEncounter(data, id) {
 
 // .annotations .assets .encounterId
 function processEncounter(data, id) {
-	encIds.push(data.encounterId);
+	encIds[id] = data.encounterId;
 	$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>created <b><a target="_new" title="' + data.encounterId +
 		'" href="encounters/encounter.jsp?number=' + data.encounterId + '&accessKey=' + accessKey + '">new encounter</a></b>.</div>');
-	var iaData = {
-		enqueue: true,
-		identify: {
-			annotationIds: data.annotations
-		}
-	};
 	waitOn('Starting identification...');
+	startIdentify(data.annotations, id);
+return;
+//////////////////////////// the rest is historic cruft (now in _identCallback() )
 	$.ajax({
 		url: 'ia',
 		data: JSON.stringify(iaData),
@@ -647,6 +643,53 @@ function processEncounter(data, id) {
 }
 
 
+var identTasks = {};
+function startIdentify(annotIds, id) {
+	//TODO this is tailored for flukebook basically.  see: Great Future Where Multiple IA Plugins Are Seemlessly Supported
+	_identAjax(id, annotIds);  //default; pattern-match
+	_identAjax(id, annotIds, { OC_WDTW: true });  //will do trailing edge match
+}
+
+function _identAjax(id, annotIds, opt) {
+	if (!annotIds) return _identCallback(id, { success: false, error: '_identAjax called without annotation IDs' });
+	var jdata = { identify: { annotationIds: annotIds }, enqueue: true };
+	//var jdata = { identify: { annotationIds: annotIds, limitTargetSize: 10 }, enqueue: true };  //debugging (small set to compare against)
+	if (opt) jdata.identify.opt = opt;
+	jQuery.ajax({
+		url: 'ia',
+		type: 'POST',
+		dataType: 'json',
+		contentType: 'application/javascript',
+		success: function(d) { _identCallback(id, d); },
+		error: function(x,y,z) {
+			console.warn('_identAjax error on %o: %o %o %o', annotIds, x, y, z);
+			_identCallback(id, { success: false, error: 'error ' + x});
+		},
+		data: JSON.stringify(jdata)
+	});
+}
+
+function _identCallback(id, res) {
+console.log("====> _identCallback id=%s got %o", id, res);
+	if (!identTasks[id]) identTasks[id] = [];
+	identTasks[id].push(res);
+	if (identTasks[id].length > 1) {
+console.info('completed _identAjax calls with %o', identTasks[id]);
+		waitOff();
+		var successful = [];
+		for (var i = 0 ; i < identTasks[id].length ; i++) {
+			if (identTasks[id][i].success) successful.push(identTasks[id][i].taskId);
+		}
+		if (successful.length > 0) {
+			$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>created <a target="_new" href="encounters/matchResultsMulti.jsp?taskId=' + successful.join('&taskId=') + '"><b>ident tasks</b></a></div>');
+		}
+		numIdentsLeft--;
+		console.warn('[%d] response: %o', numIdentsLeft, res);
+		if (numIdentsLeft < 1) wrapThingsUp();
+	}
+}
+
+
 function gaveUp() {
 	console.warn('oops, timer gave up on waiting for createEncounters()');
 	wrapThingsUp();
@@ -664,14 +707,24 @@ function wrapThingsUp() {
 
 function sendEmail() {
 	waitOn('Finishing...');
+	var data = {
+		accessKey: accessKey,
+		created: {}
+	};
+	for (var id in identTasks) {
+		if (!encIds[id]) continue;
+		data.created[encIds[id]] = [];
+		if (!identTasks[id].length) continue;
+		for (var i = 0 ; i < identTasks[id].length ; i++) {
+			if (!identTasks[id][i].success) continue;
+			data.created[encIds[id]].push(identTasks[id][i].taskId);
+		}
+	}
+console.warn('sendEmail() data = %o', data);
 	$.ajax({
 		url: 'EncounterCreate',
 		contentType: 'application/javascript',
-		data: JSON.stringify({
-			encounters: encIds,
-			tasks: taskIds,
-			accessKey: accessKey
-		}),
+		data: JSON.stringify(data),
 		dataType: 'json',
 		complete: function(x) {
 			console.info('sendEmail() -> %o', x);

@@ -19,6 +19,7 @@ org.ecocean.media.*
 
 
 <%
+/* note this is kinda experimental... not really production.  you probably want instead to look at other tweet*jsp for now */
 String baseUrl = null;
 try {
     baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -104,31 +105,13 @@ if (detectMAs.size() < 1) {
 	return;
 }
 
-boolean success = true;
-String taskId = Util.generateUUID();
-JSONObject res = new JSONObject();
-res.put("taskId", taskId);
-try {
-    res.put("sendMediaAssets", IBEISIA.sendMediaAssets(detectMAs));
-    JSONObject sent = IBEISIA.sendDetect(detectMAs, baseUrl);
-    res.put("sendDetect", sent);
-    String jobId = null;
-    if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false)) jobId = sent.optString("response", null);
-    res.put("jobId", jobId);
-    //IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new JSONObject("{\"_action\": \"initDetect\"}"), context);
-} catch (Exception ex) {
-    success = false;
-    throw new IOException(ex.toString());
-}
-/*
-if (!success) {
-    for (MediaAsset ma : mas) {
-        ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
-    }
-}
-*/
 
-out.println(res);
+out.println("<ul>");
+for (MediaAsset ma : detectMAs) {
+	String taskId = IBEISIA.IAIntake(ma, myShepherd, request);
+	out.println("<li>" + ma + " -> " + taskId + "</li>");
+}
+out.println("</ul>");
 
 %>
 

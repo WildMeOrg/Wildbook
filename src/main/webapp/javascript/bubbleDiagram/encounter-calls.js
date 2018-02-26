@@ -175,7 +175,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     .enter().append("th").text(function(d){
       if(d === "text") {
         return dict['occurringWith'];
-      } if (d === "count"){
+      } if (d === "occurrenceNumber"){
         return dict['occurrenceNumber'];
       } if (d === "behavior") {
         return dict['behavior'];

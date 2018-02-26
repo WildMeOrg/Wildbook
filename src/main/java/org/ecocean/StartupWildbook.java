@@ -13,11 +13,13 @@ import java.net.URL;
 
 import org.ecocean.*;
 import org.ecocean.grid.MatchGraphCreationThread;
-import org.ecocean.grid.ScanTaskCleanupThread;
+//import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -35,6 +37,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class StartupWildbook implements ServletContextListener {
 
+  ScheduledExecutorService schedExec = null;
+  ScheduledFuture schedFuture = null;
   // this function is automatically run on webapp init
   // it is attached via web.xml's <listener></listener>
   public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
@@ -124,8 +128,8 @@ public class StartupWildbook implements ServletContextListener {
             System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
         } else {
             System.out.println("+ queue service starting; dir = " + qdir.toString());
-            final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
-            ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+            schedExec = Executors.newScheduledThreadPool(5);
+            schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
                 int count = 0;
                 public void run() {
                     ++count;
@@ -159,6 +163,8 @@ public class StartupWildbook implements ServletContextListener {
 
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("* StartupWildbook destroyed called");
+        schedExec.shutdown();
+        schedFuture.cancel(true);
     }
 
 
@@ -174,5 +180,26 @@ public class StartupWildbook implements ServletContextListener {
         System.out.println("++ StartupWildbook.skipInit() test on " + extra + " [" + fname + "] --> " + skip);
         return skip;
     }
+
+/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem... 
+    //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
+    private static boolean properStartupResource(ServletContextEvent sce) {
+        if (sce == null) return false;
+        ServletContext context = sce.getServletContext(); 
+        if (context == null) return false;
+        URL res = null;
+        try {
+            res = context.getResource("/");
+        } catch (Exception ex) {
+            System.out.println("  ERROR: StartupWildbook.properStartupResource() .getResource() threw exception: " + ex);
+            return false;
+        }
+System.out.println("  StartupWildbook.properStartupResource() res = " + res);
+        if (res == null) return false;
+        return res.toString().equals("jndi:/localhost/uptest/");
+    }
+*/
+
+
 }
 

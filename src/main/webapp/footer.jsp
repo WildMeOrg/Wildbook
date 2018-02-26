@@ -1,18 +1,10 @@
 <%@ page
 		contentType="text/html; charset=utf-8"
 		language="java"
-     	import="org.ecocean.ShepherdProperties,org.ecocean.CommonConfiguration,org.ecocean.ContextConfiguration,java.util.Properties,org.ecocean.servlet.ServletUtilities"
+     	import="org.ecocean.CommonConfiguration,org.ecocean.ContextConfiguration"
 %>
         <%
         String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-				String context="context0";
-				context=ServletUtilities.getContext(request);
-				// Make a properties object for lang support.
-				Properties props = new Properties();
-				// Find what language we are in.
-				String langCode = ServletUtilities.getLanguageCode(request);
-				// Grab the properties file with the correct language strings.
-				props = ShepherdProperties.getProperties("footer.properties", langCode,context);
         %>
 
         <!-- footer -->
@@ -23,7 +15,7 @@
 
                 <div class="row">
                   <p class="col-sm-8" style="margin-top:40px;">
-                    <small><%=props.getProperty("licenceInfo")%>
+                    <small>This software is distributed under the GPL v2 license and is intended to support mark-recapture field studies.
                   <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                   </p>
                   <a href="http://www.wildbook.org" class="col-sm-4" title="This site is Powered by Wildbook">

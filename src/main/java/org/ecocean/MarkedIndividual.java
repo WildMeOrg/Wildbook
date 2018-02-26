@@ -230,7 +230,7 @@ public class MarkedIndividual implements java.io.Serializable {
 	}
 	
 	 public String refreshDateLastestSighting() {
-	    Encounter[] sorted = this.getDateSortedEncounters(true);
+	    Encounter[] sorted = this.getDateSortedEncounters();
 	    if (sorted.length < 1) return null;
 	    Encounter last = sorted[0];
 	    if (last.getYear() < 1) return null;

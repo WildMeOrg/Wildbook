@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.HashMap;
+import java.util.SortedMap;
 import java.util.GregorianCalendar;
 import java.lang.Math;
 import java.io.*;
@@ -84,6 +85,9 @@ public class Encounter implements java.io.Serializable {
   static final long serialVersionUID = -146404246317385604L;
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
+    //at least one frame/image (e.g. from YouTube detection) must have this confidence or encounter will be ignored
+    public static final double ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF = 0.7;
+    public static final String STATE_AUTO_SOURCED = "auto_sourced";
 
   /**
    * The following attributes are described in the Darwin Core quick reference at:
@@ -118,8 +122,50 @@ public class Encounter implements java.io.Serializable {
   public String specificEpithet;
   public String lifeStage;
   public String country;
+  public String zebraClass ="";  //via lewa: lactating female, territorial male, etc etc
+
+  // fields from Dan's sample csv
+  private String imageSet;
+  private String soil;
+
+  private String reproductiveStage;
+  private Double bodyCondition;
+  private Double parasiteLoad;
+  private Double immunoglobin;
+  private Boolean sampleTakenForDiet;
+  private Boolean injured;
+
+  public String getSoil() {return soil;}
+  public void setSoil(String soil) {this.soil = soil;}
+
+  public String getReproductiveStage() {return reproductiveStage;}
+  public void setReproductiveStage(String reproductiveStage) {this.reproductiveStage = reproductiveStage;}
+
+  public Double getBodyCondition() {return bodyCondition;}
+  public void setBodyCondition(Double bodyCondition) {this.bodyCondition = bodyCondition;}
+
+  public Double getParasiteLoad() {return parasiteLoad;}
+  public void setParasiteLoad(Double parasiteLoad) {this.parasiteLoad = parasiteLoad;}
+
+  public Double getImmunoglobin() {return immunoglobin;}
+  public void setImmunoglobin(Double immunoglobin) {this.immunoglobin = immunoglobin;}
+
+  public Boolean getSampleTakenForDiet() {return sampleTakenForDiet;}
+  public void setSampleTakenForDiet(Boolean sampleTakenForDiet) {this.sampleTakenForDiet = sampleTakenForDiet;}
+
+  public Boolean getInjured() {return injured;}
+  public void setInjured(Boolean injured) {this.injured = injured;}
+
+
+
+
+
+  // for searchability
+  private String imageNames;
+
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
+
 
   /*
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
@@ -247,6 +293,9 @@ public class Encounter implements java.io.Serializable {
 
   private Boolean mmaCompatible = false;
 
+//
+
+
   //start constructors
 
   /**
@@ -291,12 +340,47 @@ public class Encounter implements java.io.Serializable {
         this.catalogNumber = Util.generateUUID();
         this.annotations = anns;
         this.setDateFromAssets();
-        this.setSpeciesFromAssets();
+        this.setSpeciesFromAnnotations();
         this.setLatLonFromAssets();
         this.setDWCDateAdded();
         this.setDWCDateLastModified();
         this.resetDateInMilliseconds();
     }
+
+
+    public String getZebraClass() {
+        return zebraClass;
+    }
+    public void setZebraClass(String c) {
+        zebraClass = c;
+    }
+
+    public String getImageNames() {
+        return imageNames;
+    }
+    public void addImageName(String name) {
+      if  (imageNames==null) imageNames = name;
+      else if (name != null) imageNames += (", "+name);
+    }
+    public String addAllImageNamesFromAnnots(boolean overwrite) {
+      if (overwrite) imageNames = null;
+      return addAllImageNamesFromAnnots();
+    }
+    public String addAllImageNamesFromAnnots() {
+      for (Annotation ann : getAnnotations()) {
+        for (Feature feat : ann.getFeatures()) {
+          try {
+            MediaAsset ma = feat.getMediaAsset();
+            addImageName(ma.getFilename());
+          }
+          catch (Exception e) {
+            System.out.println("exception parsing image name from feature "+feat);
+          }
+        }
+      }
+      return imageNames;
+    }
+
 
 
   /**
@@ -479,6 +563,7 @@ public class Encounter implements java.io.Serializable {
    */
 
 	public boolean getMmaCompatible() {
+                if (mmaCompatible == null) return false;
 		return mmaCompatible;
 	}
 	public void setMmaCompatible(boolean b) {
@@ -684,6 +769,12 @@ public class Encounter implements java.io.Serializable {
       }
     }
     return imageNamesOnly;
+  }
+
+  public String getImageOriginalName() {
+    MediaAsset ma = getPrimaryMediaAsset();
+    if (ma == null) return null;
+    return ma.getFilename();
   }
 
   /**
@@ -1345,11 +1436,13 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
 
   public ArrayList<SuperSpot> getLeftReferenceSpots() {
-    return HACKgetAnyReferenceSpots();
+    //return HACKgetAnyReferenceSpots();
+    return leftReferenceSpots;
   }
 
   public ArrayList<SuperSpot> getRightReferenceSpots() {
-    return HACKgetAnyReferenceSpots();
+    //return HACKgetAnyReferenceSpots();
+    return rightReferenceSpots;
   }
 
 /*  gone! no more setting spots on encounters!  ... whoa there, yes there is for whaleshark.org */
@@ -1415,7 +1508,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setDWCImageURL(String link) {
     dwcImageURL = link;
   }
-
+  // lmao, we have this capitalization of the getter for reflexivity purposes
+  public String getModified() {
+    return modified;
+  }
   public String getDWCDateLastModified() {
     return modified;
   }
@@ -1431,6 +1527,12 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return dwcDateAdded;
   }
 
+  // lmao, we have this capitalization of the getter for reflexivity purposes
+  public String getDwcDateAdded() {
+    return dwcDateAdded;
+  }
+
+
   public Long getDWCDateAddedLong(){
     return dwcDateAddedLong;
   }
@@ -1439,7 +1541,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     dwcDateAdded = m_dateAdded;
   }
     public void setDWCDateAdded() {
-        dwcDateAdded = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        Date myDate=new Date();
+        dwcDateAddedLong=new Long(myDate.getTime());
+        dwcDateAdded = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(myDate);
     }
 
 
@@ -1591,14 +1695,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 /* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
 some strings and decimal (double, er Double?) values -- so i am doing my best to standardize on
 the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
-  public double getDecimalLatitudeAsDouble(){return decimalLatitude.doubleValue();}
+  public Double getDecimalLatitudeAsDouble(){return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();}
 
     public void setDecimalLatitude(Double lat){
         this.decimalLatitude = lat;
         gpsLatitude = Util.decimalLatLonToString(lat);
      }
 
-  public double getDecimalLongitudeAsDouble(){return decimalLongitude.doubleValue();}
+  public Double getDecimalLongitudeAsDouble(){return (decimalLongitude == null) ? null : decimalLongitude.doubleValue();}
 
     public void setDecimalLongitude(Double lon) {
         this.decimalLongitude = lon;
@@ -1769,6 +1873,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   }
 
   public static String getHashOfEmailString(String hashMe) {
+    if (hashMe == null) return null;
     String returnString = "";
     StringTokenizer tokenizer = new StringTokenizer(hashMe, ",");
     while (tokenizer.hasMoreTokens()) {
@@ -1834,9 +1939,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (dt != null) setDateInMilliseconds(dt.getMillis());
     }
 
-    public void setSpeciesFromAssets() {
+    public void setSpeciesFromAnnotations() {
         if ((annotations == null) || (annotations.size() < 1)) return;
         String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
+        this.setGenus(null);  //we reset these no matter what, so only parts get set as available
+        this.setSpecificEpithet(null);
+        if (sp == null) return;
         if (sp.length > 0) this.setGenus(sp[0]);
         if (sp.length > 1) this.setSpecificEpithet(sp[1]);
     }
@@ -1857,6 +1965,15 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (lon != null) this.setDecimalLongitude(lon);
     }
 
+    //sets date to the closes we have to "not set" :)
+    public void zeroOutDate() {
+        year = 0;
+        month = 0;
+        day = 0;
+        hour = -1;
+        minutes = "00";
+        resetDateInMilliseconds();  //should set that to null as well
+    }
 
   public void resetDateInMilliseconds(){
     if(year>0){
@@ -2147,6 +2264,131 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (annotations == null) annotations = new ArrayList<Annotation>();
         annotations.add(ann);
     }
+
+    public void addAnnotationReplacingUnityFeature(Annotation ann) {
+        int unityAnnotIndex = -1;
+        if (annotations == null) annotations = new ArrayList<Annotation>();
+        System.out.println("n annotations = "+annotations.size());
+
+        for (int i=0; i<annotations.size(); i++) {
+          if (annotations.get(i).isTrivial()) {
+            System.out.println("annotation "+i+" is unity!");
+            unityAnnotIndex = i;
+            break;
+          }
+        }
+        System.out.println("unityAnnotIndex = "+unityAnnotIndex);
+        if (unityAnnotIndex > -1) { // there is a unity annot; replace it
+          annotations.set(unityAnnotIndex, ann);
+        } else {
+          annotations.add(ann);
+        }
+    }
+
+    //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
+    public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
+        if ((anns == null) || (anns.size() < 1)) return null;
+        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
+        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+        MediaAsset parentRoot = null;
+        for (Annotation ann : anns) {
+System.out.println("========================== >>>>>> " + ann);
+            if (ann.getFeatures().get(0).isUnity()) continue; //makes big assumption there is one-and-only-one feature btw (detection should have bbox)
+            MediaAsset ma = ann.getMediaAsset();
+            if (parentRoot == null) parentRoot = ma.getParentRoot(myShepherd);
+System.out.println("   -->>> ma = " + ma);
+            if (!ma.hasLabel("_frame") || (ma.getParentId() == null)) continue;  //nope thx
+            int offset = ma.getParameters().optInt("extractOffset", -1);
+System.out.println("   -->>> offset = " + offset);
+            if (offset < 0) continue;
+            ordered.put(offset, ann);
+        }
+        if (ordered.size() < 1) return null;  //none used!
+
+        //now construct Encounters based upon spacing of frame-clusters
+        List<Encounter> newEncs = new ArrayList<Encounter>();
+        int prevOffset = -1;
+        int groupsMade = 1;
+        ArrayList<Annotation> tmpAnns = new ArrayList<Annotation>();
+        for (Integer i : ordered.keySet()) {
+            if ((prevOffset > -1) && ((i - prevOffset) >= minGapSize)) {
+                Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
+                if (newEnc != null) {  //null means none of the frames met minimum detection confidence
+                    newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                    newEncs.add(newEnc);
+System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
+                    groupsMade++;
+                    tmpAnns = new ArrayList<Annotation>();
+                }
+            }
+            prevOffset = i;
+            tmpAnns.add(ordered.get(i));
+        }
+        //deal with dangling tmpAnns content
+        if (tmpAnns.size() > 0) {
+            Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
+            if (newEnc != null) {
+                newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                //newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+                newEncs.add(newEnc);
+System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
+                groupsMade++;
+            }
+        }
+        return newEncs;
+    }
+
+    //this is really only for above method
+    private static Encounter __encForCollate(ArrayList<Annotation> tmpAnns, MediaAsset parentRoot) {
+        if ((tmpAnns == null) || (tmpAnns.size() < 1)) return null;
+
+        //make sure we even can use these annots first
+        double bestConfidence = 0.0;
+        for (Annotation ann : tmpAnns) {
+            if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1) || (ann.getFeatures().get(0).getParameters() == null)) continue;
+            double conf = ann.getFeatures().get(0).getParameters().optDouble("detectionConfidence", -1.0);
+            if (conf > bestConfidence) bestConfidence = conf;
+        }
+        if (bestConfidence < ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF) {
+            System.out.println("[INFO] bestConfidence=" + bestConfidence + " below threshold; rejecting 1 enc from " + parentRoot);
+            return null;
+        }
+
+        Encounter newEnc = new Encounter(tmpAnns);
+        newEnc.setState(STATE_AUTO_SOURCED);
+        newEnc.zeroOutDate();  //do *not* want it using the video source date
+        newEnc.setDynamicProperty("bestDetectionConfidence", Double.toString(bestConfidence));
+        if (parentRoot == null) {
+            newEnc.setSubmitterName("Unknown video source");
+            newEnc.addComments("<i>unable to determine video source - possibly YouTube error?</i>");
+        } else {
+            newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
+            String consolidatedRemarks="<p>Auto-sourced from YouTube Parent Video: <a href=\"https://www.youtube.com/watch?v="+parentRoot.getParameters().optString("id")+"\">"+parentRoot.getParameters().optString("id")+"</a></p>";
+            //set the video ID as the EventID for distinct access later
+            newEnc.setEventID("youtube:"+parentRoot.getParameters().optString("id"));
+            if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                
+                if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
+                    newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
+                    consolidatedRemarks+="<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>";
+                    newEnc.addComments(consolidatedRemarks);
+                    
+                    //add a dynamic property to make a quick link to the video
+                }
+                if (parentRoot.getMetadata().getData().optJSONObject("detailed") != null) {
+                    String desc = "<p>" + parentRoot.getMetadata().getData().getJSONObject("detailed").optString("description", "[no description]") + "</p>";
+                    if (parentRoot.getMetadata().getData().getJSONObject("detailed").optJSONArray("tags") != null) {
+                        desc += "<p><b>tags:</b> " + parentRoot.getMetadata().getData().getJSONObject("detailed").getJSONArray("tags").toString() + "</p>";
+                    }
+                    consolidatedRemarks+=desc;
+                    
+                }
+            }
+            newEnc.setOccurrenceRemarks(consolidatedRemarks);
+        }
+        return newEnc;
+    }
+
 
     //convenience method
     public ArrayList<MediaAsset> getMedia() {
@@ -2701,9 +2943,14 @@ throw new Exception();
     }
 
 
+    //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
         enc.setCatalogNumber(Util.generateUUID());
+        enc.setGenus(this.getGenus());
+        enc.setSpecificEpithet(this.getSpecificEpithet());
+        enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
+        enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
         return enc;
     }
 
@@ -2713,6 +2960,11 @@ throw new Exception();
         this.setState(STATE_MATCHING_ONLY);
     }
 
+    //ann is the Annotation that was created after IA detection.  mostly this is just to notify... someone
+    //  note: this is for singly-made encounters; see also Occurrence.fromDetection()
+    public void detectedAnnotation(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
+System.out.println(">>>>> detectedAnnotation() on " + this);
+    }
 
     /*
        note: these are baby steps into proper ownership of Encounters.  a similar (but cleaner) attempt is done in MediaAssets... however, really
@@ -2739,6 +2991,28 @@ throw new Exception();
                 .append("shortDate", getShortDate())
                 .append("numAnnotations", ((annotations == null) ? 0 : annotations.size()))
                 .toString();
+    }
+    
+    public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
+      System.out.println("Entering Encounter.hasMediaFromAssetStoreType");
+      if(getMediaAssetsOfType(aType).size()>0){return true;}
+      return false;
+    }
+    
+    public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
+      System.out.println("Entering Encounter.getMediaAssetsOfType");
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      try{
+        ArrayList<MediaAsset> assets=getMedia();
+        int numAssets=assets.size();
+        for(int i=0;i<numAssets;i++){
+          MediaAsset ma=assets.get(i);
+          if(ma.getStore().getType()==aType){results.add(ma);}
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      System.out.println("Exiting Encounter.getMediaAssetsOfType with this num results: "+results.size());
+      return results;
     }
 
 }

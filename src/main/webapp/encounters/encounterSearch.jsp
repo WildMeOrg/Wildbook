@@ -10,7 +10,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 String langCode=ServletUtilities.getLanguageCode(request);
-
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 %>
 
@@ -41,7 +41,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="../javascript/geoxml3.js"></script>
 <script type="text/javascript" src="../javascript/ProjectedOverlay.js"></script>
