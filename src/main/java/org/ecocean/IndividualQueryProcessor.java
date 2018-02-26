@@ -1021,7 +1021,7 @@ public class IndividualQueryProcessor {
     if((request.getParameter("identificationRemarksField")!=null)&&(!request.getParameter("identificationRemarksField").equals(""))) {
       String idRemarks=request.getParameter("identificationRemarksField").trim();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc98) && enc98.identificationRemarks.startsWith('"+idRemarks+"')";}
-      else{filter+=" && encounters.contains(enc98) && enc.identificationRemarks.startsWith('"+idRemarks+"')";}
+      else{filter+=" && encounters.contains(enc98) && enc98.identificationRemarks.startsWith('"+idRemarks+"')";}
       if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc98")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc98";}
       prettyPrint.append("identificationRemarks starts with \""+idRemarks+"\".<br />");
     }
@@ -1030,7 +1030,14 @@ public class IndividualQueryProcessor {
     if((request.getParameter("guid")!=null)&&(!request.getParameter("guid").equals(""))) {
       String guid=request.getParameter("guid").trim();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc908) && enc908.guid.startsWith('"+guid+"')";}
-      else{filter+=" && encounters.contains(enc908) && enc.guid.startsWith('"+guid+"')";}
+      else{filter+=" && encounters.contains(enc908) && enc908.guid.startsWith('"+guid+"')";}
+      if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc908")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc908";}
+      prettyPrint.append("guid starts with \""+guid+"\".<br />");
+    }
+    else if((request.getAttribute("guid")!=null)&&(!request.getAttribute("guid").equals(""))) {
+      String guid=request.getAttribute("guid").toString().trim();
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc908) && enc908.guid.startsWith('"+guid+"')";}
+      else{filter+=" && encounters.contains(enc908) && enc908.guid.startsWith('"+guid+"')";}
       if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc908")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc908";}
       prettyPrint.append("guid starts with \""+guid+"\".<br />");
     }
