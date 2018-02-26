@@ -106,42 +106,6 @@ public class EncounterQueryProcessor {
 
 
 
-/**
-  //filter for unidentifiable encounters------------------------------------------
-    if(request.getParameter("unidentifiable")==null) {
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!unidentifiable";}
-      else{filter+=" && !unidentifiable";}
-      prettyPrint.append("Not identifiable.<br />");
-    }
-    //-----------------------------------------------------
-
-    //---filter out approved
-    if((request.getParameter("approved")==null)&&(request.getParameter("unapproved")!=null)) {
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!approved";}
-      else{filter+=" && !approved";}
-      prettyPrint.append("Not approved.<br />");
-    }
-    //----------------------------
-
-    //---filter out unapproved
-    if((request.getParameter("unapproved")==null)&&(request.getParameter("approved")!=null)) {
-
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="approved";}
-      else{filter+=" && approved";}
-      prettyPrint.append("Not unapproved.<br />");
-    }
-    //----------------------------
-
-    //---filter out unapproved and unapproved, leaving only unidentifiable
-    if((request.getParameter("unapproved")==null)&&(request.getParameter("approved")==null)&&(request.getParameter("unidentifiable")!=null)) {
-
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="unidentifiable";}
-      else{filter+=" && unidentifiable";}
-      prettyPrint.append("Not unapproved.<br />");
-    }
-    //----------------------------
-
-*/
 
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
@@ -977,6 +941,15 @@ public class EncounterQueryProcessor {
 
     }
     //end identification remarks filter
+    
+    //filter for guid------------------------------------------
+    if((request.getParameter("guid")!=null)&&(!request.getParameter("guid").equals(""))) {
+      String guid=request.getParameter("guid").trim();
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="guid.startsWith('"+guid+"')";}
+      else{filter+=" && guid.startsWith('"+guid+"')";}
+      prettyPrint.append("guid starts with \""+guid+"\".<br />");
+    }
+    //end guid filter
 
 
     //filter gpsOnly - return only Encounters with a defined location. This is mostly used for mapping JSP pages
@@ -1039,34 +1012,7 @@ public class EncounterQueryProcessor {
 
 
 
-/*
-This code is no longer necessary with Charles Overbeck's new multi-measurement feature.
 
-    //filter for length------------------------------------------
-    if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)&&(!request.getParameter("lengthField").equals("skip"))&&(!request.getParameter("selectLength").equals(""))) {
-
-      String size=request.getParameter("lengthField").trim();
-
-      if(request.getParameter("selectLength").equals("gt")) {
-        String filterString="size > "+size;
-        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
-        else{filter+=(" && "+filterString);}
-        prettyPrint.append("selectLength is > "+size+".<br />");
-      }
-      else if(request.getParameter("selectLength").equals("lt")) {
-        String filterString="size < "+size;
-        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
-        else{filter+=(" && "+filterString);}
-        prettyPrint.append("selectLength is < "+size+".<br />");
-      }
-      else if(request.getParameter("selectLength").equals("eq")) {
-        String filterString="size == "+size;
-        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
-        else{filter+=(" && "+filterString);}
-        prettyPrint.append("selectLength is = "+size+".<br />");
-      }
-    }
-*/
 
 
     //start date filter----------------------------
@@ -1315,65 +1261,6 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     }
 
 
-
-
-
-
-
-    /**
-  //filter for vessel------------------------------------------
-  if((request.getParameter("vesselField")!=null)&&(!request.getParameter("vesselField").equals(""))) {
-    String vesString=request.getParameter("vesselField");
-    for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if((rEnc.getDynamicPropertyValue("Vessel")==null)||(rEnc.getDynamicPropertyValue("Vessel").toLowerCase().indexOf(vesString.toLowerCase())==-1)){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-      prettyPrint.append("vesselField is "+vesString+".<br />");
-  }
-  //end vessel filter--------------------------------------------------------------------------------------
-*/
-
-
-/*
-  //keyword filters-------------------------------------------------
-  String[] keywords=request.getParameterValues("keyword");
-  if((keywords!=null)&&(!keywords[0].equals("None"))){
-
-      prettyPrint.append("Keywords: ");
-      int kwLength=keywords.length;
-      for(int y=0;y<kwLength;y++){
-        String kwParam=keywords[y];
-        prettyPrint.append(kwParam+" ");
-      }
-
-      for(int q=0;q<rEncounters.size();q++) {
-          Encounter tShark=(Encounter)rEncounters.get(q);
-          boolean hasNeededKeyword=false;
-          for(int kwIter=0;kwIter<kwLength;kwIter++) {
-            String kwParam=keywords[kwIter];
-            if(myShepherd.isKeyword(kwParam)) {
-              Keyword word=myShepherd.getKeyword(kwParam);
-              //if(word.isMemberOf(tShark)) {
-                hasNeededKeyword=true;
-
-              }
-            } //end if isKeyword
-          }
-          if(!hasNeededKeyword){
-            rEncounters.remove(q);
-            q--;
-          }
-
-
-      } //end for
-      prettyPrint.append("<br />");
-
-  }
-  //end keyword filters-----------------------------------------------
-*/
 
 
 

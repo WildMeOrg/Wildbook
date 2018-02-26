@@ -109,7 +109,7 @@ if(request.getParameter("adoptableSharks")!=null){
 	//get current time minus two years
 	Long twoYears=new Long("63072000000");
 	long currentDate=System.currentTimeMillis()-twoYears.longValue();
-    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (enc.dateInMilliseconds >= "+currentDate+") && ((nickName == null)||(nickName == '')) VARIABLES org.ecocean.Encounter enc";
+    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (enc.dateInMilliseconds >= "+currentDate+") && ((nickName == null)||(nickName == '') && (guid.startsWith('NCAquariums'))) VARIABLES org.ecocean.Encounter enc";
     Query query=myShepherd.getPM().newQuery(filter);
     query.setOrdering("numberEncounters descending");
     query.setRange(startNum, endNum);
@@ -123,6 +123,7 @@ else{
 
 	request.setAttribute("rangeStart", startNum);
 	request.setAttribute("rangeEnd", endNum);
+	request.setAttribute("guid", "NCAquariums");
 	MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
 
 	rIndividuals = result.getResult();
@@ -326,17 +327,7 @@ int numDataContributors=0;
 
       <div class="row" id="location-header">
       <%
-      String locCode=request.getParameter("locationCodeField")
-       		.replaceAll("PS","Pohjois-Saimaa")
-  	   		.replaceAll("HV","Haukivesi")
-            .replaceAll("JV","Joutenvesi")
-         	.replaceAll("PEV","Pyyvesi - Enonvesi")
-			.replaceAll("KV","Kolovesi")
-			.replaceAll("PV","Pihlajavesi")
-			.replaceAll("PUV","Puruvesi")
-			.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
-			.replaceAll("LL","Luonteri – Lietvesi")
-			.replaceAll("ES","Etel&auml;-Saimaa");
+      String locCode=request.getParameter("locationCodeField");
       %>
 
         <h2><%=locCode %></h2>
