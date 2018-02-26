@@ -73,6 +73,8 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.User;
 */
 
+import java.text.DecimalFormat;
+
 
 import org.apache.shiro.web.util.WebUtils;
 //import org.ecocean.*;
@@ -206,10 +208,13 @@ private final String UPLOAD_DIRECTORY = "/tmp";
                 try {
                     Double doubleVal = Double.valueOf(value);
                     //English units for NC aquarium
-                    if(key.equals("length")) {doubleVal=doubleVal*30.48;}
-                    else if(key.equals("precaudallength")) {doubleVal=doubleVal*30.48;}
+                    DecimalFormat df2 = new DecimalFormat(".##");
+                    if(key.equals("length")) {
+                      doubleVal=new Double(df2.format(doubleVal*30.48));}
+                    else if(key.equals("precaudallength")) {
+                      doubleVal=new Double(df2.format(doubleVal*30.48));}
                     else if(key.equals("temperature")) {
-                      doubleVal=(doubleVal-32)*5/9;
+                      doubleVal=new Double(df2.format((doubleVal-32)*5/9));
                     }
                     //
                     list.add(new Measurement(encID, key, doubleVal, units, samplingProtocol));
