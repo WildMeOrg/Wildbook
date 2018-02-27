@@ -33,6 +33,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.concurrent.ThreadPoolExecutor;
+import org.ecocean.MailThreadExecutorService;
+import org.ecocean.NotificationMailer;
+
 
 
 public class EncounterSetState extends HttpServlet {
@@ -96,6 +103,7 @@ public class EncounterSetState extends HttpServlet {
         
         String message = "Encounter " + request.getParameter("number") + " state has been updated from " + oldScar + " to " + state + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
+        notifyEmail(request, context, changeMe);  //does beyond enc.interestedResearchers
       } 
       else {
         //out.println(ServletUtilities.getHeader(request));
@@ -117,6 +125,39 @@ public class EncounterSetState extends HttpServlet {
     out.close();
     myShepherd.closeDBTransaction();
   }
+
+
+
+    private void notifyEmail(HttpServletRequest request, String context, Encounter enc) {
+        if ((enc == null) || (request == null) || (context == null)) return;
+        String langCode = null;
+        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+        Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+
+        String message = "Encounter " + enc.getCatalogNumber() + " state has been marked as '" + enc.getState() + "'.\n";
+        tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, message);
+
+/*
+        //notify new submission?  for now: no?
+        String mailTo = CommonConfiguration.getNewSubmissionEmail(context);
+        NotificationMailer mailer = new NotificationMailer(context, null, enc.getSubmitterEmail(), "encounterDataUpdate", tagMap);
+        es.execute(mailer);
+*/
+
+        //"others"
+        tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc.getCatalogNumber());
+        String submitter = enc.getSubmitterEmail();
+        String informers = enc.getInformOthers();
+System.out.println("INFO: EncounterSetState.notifyEmail() -> " + submitter + ", " + informers);
+        Set<String> cSubmitters = new HashSet<>();
+        if (submitter != null) cSubmitters.addAll(NotificationMailer.splitEmails(submitter));
+        if (informers != null) cSubmitters.addAll(NotificationMailer.splitEmails(informers));
+        for (String emailTo : cSubmitters) {
+            tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+            es.execute(new NotificationMailer(context, langCode, emailTo, "encounterDataUpdate", tagMap));
+        }
+        es.shutdown();
+    }
 }
   
   
