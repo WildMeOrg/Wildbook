@@ -1,7 +1,10 @@
 package org.ecocean.queue;
 
 import java.util.Properties;
+import java.util.function.Function;
 import org.ecocean.ShepherdProperties;
+import org.ecocean.servlet.ServletUtilities;
+import javax.servlet.http.HttpServletRequest;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Channel;
@@ -17,13 +20,13 @@ A light wrapper to RabbitMQ libs.  possibly(?) allow for exansion later to suppo
 
 */
 
-public class RabbitMQQueue {
+public class RabbitMQQueue extends Queue {
     private static ConnectionFactory factory = null;
     private static Connection connection = null;
     private static String EXCHANGE_NAME = "";  //default... i think this is kosher?
 
     private Channel channel = null;
-    private String queueName = null;
+    //private String queueName = null;
 
 /*
     private static Logger logger = LoggerFactory.getLogger(AssetStore.class);
@@ -34,26 +37,36 @@ public class RabbitMQQueue {
     protected String name;
 */
 
-    public RabbitMQQueue(final String qName) throws java.io.IOException, java.util.concurrent.TimeoutException {
+    public RabbitMQQueue(final String name) throws java.io.IOException {
+        super(name);
         if (factory == null) throw new java.io.IOException("RabbitMQQueue.init() has not yet been called!");
-        queueName = qName;
-        channel = getChannel();
-        //channel.exchangeDeclare(EXCHANGE_NAME, "direct", true); //lets use "default" exchange?
-        channel.queueDeclare(queueName, true, false, false, null);
-        //channel.queueBind(queueName, EXCHANGE_NAME, ROUTING_KEY);
+        //queueName = name;
+        try {
+            channel = getChannel();
+            //channel.exchangeDeclare(EXCHANGE_NAME, "direct", true); //lets use "default" exchange?
+            channel.queueDeclare(name, true, false, false, null);
+            //channel.queueBind(queueName, EXCHANGE_NAME, ROUTING_KEY);
+        } catch (java.util.concurrent.TimeoutException toex) {
+            throw new java.io.IOException("RabbitMQQueue(" + name + ") TimeoutException: " + toex.toString());
+        }
     }
 
-    public static synchronized void init(String context) throws java.io.IOException, java.util.concurrent.TimeoutException {
+    public static synchronized void init(HttpServletRequest request) throws java.io.IOException {
+        String context = ServletUtilities.getContext(request);
         if (factory != null) return;
         Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
         if (props == null) throw new java.io.IOException("no queue.properties");
-        factory = new ConnectionFactory();
-        factory.setUsername(props.getProperty("rabbitmq_username", "guest"));
-        factory.setPassword(props.getProperty("rabbitmq_password", "guest"));
-        factory.setVirtualHost(props.getProperty("rabbitmq_virtualhost", "/"));
-        factory.setHost(props.getProperty("rabbitmq_host", "localhost"));
-        factory.setPort(Integer.parseInt(props.getProperty("rabbitmq_port", "5672")));
-        checkConnection();
+        try {
+            factory = new ConnectionFactory();
+            factory.setUsername(props.getProperty("rabbitmq_username", "guest"));
+            factory.setPassword(props.getProperty("rabbitmq_password", "guest"));
+            factory.setVirtualHost(props.getProperty("rabbitmq_virtualhost", "/"));
+            factory.setHost(props.getProperty("rabbitmq_host", "localhost"));
+            factory.setPort(Integer.parseInt(props.getProperty("rabbitmq_port", "5672")));
+            checkConnection();
+        } catch (java.util.concurrent.TimeoutException toex) {
+            throw new java.io.IOException("RabbitMQ.init() TimeoutException: " + toex.toString());
+        }
 System.out.println("[INFO] RabbitMQQueue.init() complete");
     }
 
@@ -76,7 +89,7 @@ System.out.println("[INFO] published to {" + this.queueName + "}: " + msg);
     }
 
     //i think this never returns?
-    public void consume() throws java.io.IOException {
+    public void consume(final QueueMessageHandler msgHandler) throws java.io.IOException {
         //boolean is auto-ack.  false means we manually ack
         channel.basicConsume(this.queueName, false, "myConsumerTag",
             new DefaultConsumer(channel) {
@@ -87,8 +100,9 @@ System.out.println("[INFO] published to {" + this.queueName + "}: " + msg);
                     String contentType = properties.getContentType();
                     long deliveryTag = envelope.getDeliveryTag();
                     // (process the message components here ...)
-System.out.println("CONSUMED! " + deliveryTag + "; " + contentType + "; " + routingKey + " = {" + body + "}");
-                    channel.basicAck(deliveryTag, false);
+                    boolean success = msgHandler.handler(body);
+System.out.println("RabbitMQQueue.consume(): " + deliveryTag + "; " + contentType + "; " + routingKey + " = {" + body + "} => " + success);
+                    if (success) channel.basicAck(deliveryTag, false);
                 }
             }
         );
