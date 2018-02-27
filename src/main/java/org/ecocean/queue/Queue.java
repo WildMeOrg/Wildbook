@@ -1,5 +1,7 @@
 package org.ecocean.queue;
 
+import javax.servlet.http.HttpServletRequest;
+
 /*
 
 this is just a silly placeholder for now... the idea that we could abstract Queue to allow
@@ -15,14 +17,21 @@ public abstract class Queue {
     private static Map<Integer, AssetStore> stores;
 
     protected Integer id;
-    protected String name;
 */
+    protected String type = null;
+    protected String queueName = null;
 
-    protected Queue(final String type, final String name) {
+    protected Queue(final String name) {
+        queueName = name;
     }
 
-    public static synchronized void init() {}
+    public static synchronized void init(HttpServletRequest request) throws java.io.IOException {} //override in base class
 
-    public abstract void publish();
-    public abstract void consume();
+    public abstract void publish(String msg) throws java.io.IOException;
+
+    public abstract void consume(QueueMessageHandler msgHandler) throws java.io.IOException;  //assumed to "run in background" and just return
+
+
 }
+
+
