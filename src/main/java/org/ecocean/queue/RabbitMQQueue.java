@@ -3,6 +3,7 @@ package org.ecocean.queue;
 import java.util.Properties;
 import java.util.function.Function;
 import org.ecocean.ShepherdProperties;
+import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
 import com.rabbitmq.client.Connection;
@@ -24,23 +25,13 @@ public class RabbitMQQueue extends Queue {
     private static ConnectionFactory factory = null;
     private static Connection connection = null;
     private static String EXCHANGE_NAME = "";  //default... i think this is kosher?
-
+    private String consumerTag = null;
     private Channel channel = null;
-    //private String queueName = null;
-
-/*
-    private static Logger logger = LoggerFactory.getLogger(AssetStore.class);
-
-    private static Map<Integer, AssetStore> stores;
-
-    protected Integer id;
-    protected String name;
-*/
 
     public RabbitMQQueue(final String name) throws java.io.IOException {
         super(name);
         if (factory == null) throw new java.io.IOException("RabbitMQQueue.init() has not yet been called!");
-        //queueName = name;
+        consumerTag = name + "-" + Util.generateUUID();
         try {
             channel = getChannel();
             //channel.exchangeDeclare(EXCHANGE_NAME, "direct", true); //lets use "default" exchange?
@@ -90,11 +81,12 @@ System.out.println("[INFO] published to {" + this.queueName + "}: " + msg);
 
     //i think this never returns?
     public void consume(final QueueMessageHandler msgHandler) throws java.io.IOException {
+System.out.println("RabbitMQQueue.consume() started with consumerTag=" + consumerTag);
         //boolean is auto-ack.  false means we manually ack
-        channel.basicConsume(this.queueName, false, "myConsumerTag",
+        channel.basicConsume(this.queueName, false, consumerTag,
             new DefaultConsumer(channel) {
                 @Override
-                public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] bodyB) throws java.io.IOException {
+                public void handleDelivery(String conTag, Envelope envelope, AMQP.BasicProperties properties, byte[] bodyB) throws java.io.IOException {
                     String body = new String(bodyB);
                     String routingKey = envelope.getRoutingKey();
                     String contentType = properties.getContentType();
@@ -103,6 +95,10 @@ System.out.println("[INFO] published to {" + this.queueName + "}: " + msg);
                     boolean success = msgHandler.handler(body);
 System.out.println("RabbitMQQueue.consume(): " + deliveryTag + "; " + contentType + "; " + routingKey + " = {" + body + "} => " + success);
                     if (success) channel.basicAck(deliveryTag, false);
+                    if (isConsumerShutdownMessage(body)) {
+                        System.out.println(">>> RabbitMQQueue shutdown message received on " + conTag);
+                        channel.basicCancel(conTag);
+                    }
                 }
             }
         );

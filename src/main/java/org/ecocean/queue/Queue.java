@@ -11,13 +11,6 @@ for both (say) RabbitMQ and a simple directory/file-based queue if the install d
 */
 
 public abstract class Queue {
-/*
-    private static Logger logger = LoggerFactory.getLogger(AssetStore.class);
-
-    private static Map<Integer, AssetStore> stores;
-
-    protected Integer id;
-*/
     protected String type = null;
     protected String queueName = null;
 
@@ -32,6 +25,9 @@ public abstract class Queue {
     public abstract void consume(QueueMessageHandler msgHandler) throws java.io.IOException;  //assumed to "run in background" and just return
 
 
+    public boolean isConsumerShutdownMessage(String msg) {
+        return "SHUTDOWN".equals(msg);
+    }
 }
 
 
