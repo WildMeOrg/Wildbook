@@ -22,15 +22,35 @@ A light wrapper to RabbitMQ libs.  possibly(?) allow for exansion later to suppo
 */
 
 public class RabbitMQQueue extends Queue {
+    private static String TYPE_NAME = "RabbitMQ";
     private static ConnectionFactory factory = null;
     private static Connection connection = null;
     private static String EXCHANGE_NAME = "";  //default... i think this is kosher?
     private String consumerTag = null;
     private Channel channel = null;
 
+    public static boolean isAvailable(HttpServletRequest request) {
+        String context = ServletUtilities.getContext(request);
+        Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
+        if (props == null) return false;
+        /*
+            the "rabbitmq_enabled" is *optional* for general use but provided in the event all other rabbitmq_* 
+            properties are unnecessary because the defaults are sufficient
+        */
+        if ("true".equals(props.getProperty("rabbitmq_enabled"))) return true;
+        //otherwise, i guess we will assume we need one of these??
+        return (
+            (props.getProperty("rabbitmq_virtualhost") != null) ||
+            (props.getProperty("rabbitmq_host") != null) ||
+            (props.getProperty("rabbitmq_username") != null) ||
+            (props.getProperty("rabbitmq_password") != null)
+        );
+    }
+
     public RabbitMQQueue(final String name) throws java.io.IOException {
         super(name);
         if (factory == null) throw new java.io.IOException("RabbitMQQueue.init() has not yet been called!");
+        this.type = TYPE_NAME;
         consumerTag = name + "-" + Util.generateUUID();
         try {
             channel = getChannel();
@@ -104,5 +124,10 @@ System.out.println("RabbitMQQueue.consume(): " + deliveryTag + "; " + contentTyp
         );
     }
 
+
+    @Override
+    public String toString() {
+        return super.toString() + " [TAG " + consumerTag + "]";
+    }
 
 }

@@ -24,9 +24,19 @@ public abstract class Queue {
 
     public abstract void consume(QueueMessageHandler msgHandler) throws java.io.IOException;  //assumed to "run in background" and just return
 
+    //this is static and should be overridden
+    public static boolean isAvailable(HttpServletRequest request) { return false; }
 
     public boolean isConsumerShutdownMessage(String msg) {
         return "SHUTDOWN".equals(msg);
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String toString() {
+        return "[" + ((type == null) ? "unknown type" : type) + "] " + ((queueName == null) ? "UNNAMED_QUEUE" : queueName);
     }
 }
 
