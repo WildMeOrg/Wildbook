@@ -77,4 +77,18 @@ System.out.println("INFO: FileQueue.publish() added " + queueDir + " -> " + qid)
         return super.toString() + " -> " + queueDir;
     }
 
+
+    //kinda hacky but since we can put static methods on Queue.java, this is going here.  :/
+    //  get us "the best" queue we have available
+    public static Queue getBestType(HttpServletRequest request, String name) throws IOException {
+        if (RabbitMQQueue.isAvailable(request)) {
+            RabbitMQQueue.init(request);
+            return new RabbitMQQueue(name);
+        }
+        //fallback to FileQueue
+        if (!isAvailable(request)) return null;
+        init(request);
+        return new FileQueue(name);
+    }
+
 }
