@@ -1,7 +1,6 @@
 package org.ecocean.queue;
 
 import java.util.Properties;
-import java.util.function.Function;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
@@ -78,7 +77,7 @@ public class RabbitMQQueue extends Queue {
         } catch (java.util.concurrent.TimeoutException toex) {
             throw new java.io.IOException("RabbitMQ.init() TimeoutException: " + toex.toString());
         }
-System.out.println("[INFO] RabbitMQQueue.init() complete");
+        System.out.println("[INFO] RabbitMQQueue.init() complete");
     }
 
     public static void checkConnection() throws java.io.IOException, java.util.concurrent.TimeoutException {
