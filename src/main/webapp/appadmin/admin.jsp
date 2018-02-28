@@ -124,31 +124,7 @@ context=ServletUtilities.getContext(request);
         </tr>
       </table>
 
-      <p>&nbsp;</p>
-      <table width="600" border="1">
-        <tr>
-          <td>
-            <p><font size="+1">Set Inform Others for all encounters
-              matching a string</font></p>
 
-            <p><font size="+1">Matches are made on submitter and
-              photographer names and email addresses </font></p>
-
-            <form name="massSetInformOthers" method="post"
-                  action="../MassSetInformOthers">
-              <p>Text string to match (case insensitive): <input
-                name="matchString" type="text" id="matchString" size="50"
-                maxlength="100"/>
-
-              <p>Inform others email addresses to assign: <input
-                name="informEmail" type="text" id="informEmail" size="50"
-                maxlength="999"> <br/>
-                <br /> <input name="Update" type="submit" id="Update"
-                            value="Update"></p>
-            </form>
-          </td>
-        </tr>
-      </table>
 
       
 </div>
