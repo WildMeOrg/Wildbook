@@ -1084,6 +1084,12 @@ System.out.println(">> updateStandardChildren(): type = " + type);
       }
       return false;
     }
+    
+    public void removeKeyword(Keyword k) {
+      if (keywords != null) {
+        if (keywords.contains(k)) keywords.remove(k);
+      }
+    }
 
 
     //if we dont have the Annotation... which kinda sucks but okay

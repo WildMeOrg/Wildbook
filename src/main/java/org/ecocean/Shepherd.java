@@ -2085,6 +2085,7 @@ public class Shepherd {
     return myArray;
   }
 
+/*  
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
 	  String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE keywords.contains(word0) && ( word0.indexname == \""+word.getIndexname()+"\" ) VARIABLES org.ecocean.Keyword word0";
       Query samples = pm.newQuery(keywordQueryString);
@@ -2093,7 +2094,16 @@ public class Shepherd {
 	    samples.closeAll();
 	    return myArray;
 	  }
-
+*/
+  
+  public ArrayList<MediaAsset> getAllMediAssetsWithKeyword(Keyword word0){
+    String keywordQueryString="SELECT FROM org.ecocean.media.MediaAsset WHERE ( this.keywords.contains(word0) && ( word0.indexname == \""+word0.getIndexname()+"\" ) ) VARIABLES org.ecocean.Keyword word0";
+    Query samples = pm.newQuery(keywordQueryString);
+    Collection c = (Collection) (samples.execute());
+    ArrayList<MediaAsset> myArray=new ArrayList<MediaAsset>(c);
+    samples.closeAll();
+    return myArray;
+  } 
 
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(String locationID){
     ArrayList<MarkedIndividual> myArray=new ArrayList<MarkedIndividual>();
