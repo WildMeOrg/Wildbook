@@ -52,9 +52,11 @@ for (SurveyTrack trk : trks ) {
 	System.out.println("Current track: "+trk.getID());
 	ArrayList<Occurrence> tempOccs = trk.getAllOccurrences();
 	ArrayList<Occurrence> occsWithGps = new ArrayList<>();
-	for (Occurrence occ : tempOccs) {
-		if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
-			occsWithGps.add(occ);
+	if (tempOccs!=null) {
+		for (Occurrence occ : tempOccs) {
+			if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
+				occsWithGps.add(occ);
+			}
 		}
 	}
 	if (occsWithGps.size()>0) {
