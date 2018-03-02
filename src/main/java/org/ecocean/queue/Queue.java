@@ -1,7 +1,5 @@
 package org.ecocean.queue;
 
-import javax.servlet.http.HttpServletRequest;
-
 /*
 
 this is just a silly placeholder for now... the idea that we could abstract Queue to allow
@@ -18,14 +16,14 @@ public abstract class Queue {
         queueName = name;
     }
 
-    public static synchronized void init(HttpServletRequest request) throws java.io.IOException {} //override in base class
+    public static synchronized void init(String context) throws java.io.IOException {} //override in base class
 
     public abstract void publish(String msg) throws java.io.IOException;
 
     public abstract void consume(QueueMessageHandler msgHandler) throws java.io.IOException;  //assumed to "run in background" and just return
 
     //this is static and should be overridden
-    public static boolean isAvailable(HttpServletRequest request) { return false; }
+    public static boolean isAvailable(String context) { return false; }
 
     public boolean isConsumerShutdownMessage(String msg) {
         return "SHUTDOWN".equals(msg);
