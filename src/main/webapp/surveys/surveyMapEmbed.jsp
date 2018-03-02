@@ -21,6 +21,7 @@ myShepherd.beginDBTransaction();
 ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
 ArrayList<String> polyLines = new ArrayList<String>();
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+String center = CommonConfiguration.getDefaultGoogleMapsCenter(context);
 String number = null;
 Survey sv = null;
 try {	
@@ -43,8 +44,7 @@ try {
 }
 ArrayList<String> polyLineSets = new ArrayList<String>();
 ArrayList<String> allMarkerSets = new ArrayList<String>();
-ArrayList<String> infoWindowSets = new ArrayList<String>();
-String center = "{lat: 35.2195, lng: -75.6903}";
+ArrayList<String> infoWindowSets = new ArrayList<String>();	
 for (SurveyTrack trk : trks ) {
 	String lineSet = "";
 	String markerSet = "";
