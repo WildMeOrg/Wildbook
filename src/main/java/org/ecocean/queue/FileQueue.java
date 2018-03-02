@@ -30,7 +30,10 @@ public class FileQueue extends Queue {
         if (queueBaseDir == null) throw new IOException("FileQueue.init() has not yet been called!");
         this.type = TYPE_NAME;
         queueDir = new File(queueBaseDir, name);  //TODO scrub name of invalid chars
-        if (!queueDir.isDirectory()) System.out.println("WARNING: FileQueue needs accessible dir " + queueDir);
+        if (!queueDir.isDirectory()) {
+            boolean ok = queueDir.mkdirs();
+            if (!ok) throw new IOException("FileQueue failed to create " + queueDir.toString());
+        }
     }
 
     public static synchronized void init(HttpServletRequest request) throws IOException {
@@ -51,6 +54,7 @@ public class FileQueue extends Queue {
         if (qd == null) qd = CommonConfiguration.getProperty("ScheduledQueueDir", "context0");  //legacy
         if (qd == null) qd = "/tmp/WildbookFileQueue";
             ///Files.createTempDirectory(.......).toFile();  maybe use this instead as fallback???
+            /// or maybe a dir under _data_dir ???
         if (qd == null) return null;
         queueBaseDir = new File(qd);
         return queueBaseDir;
