@@ -7,7 +7,6 @@ import org.ecocean.CommonConfiguration;
 import java.io.File;
 import org.ecocean.servlet.ServletUtilities;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
 
 /*
@@ -21,7 +20,7 @@ public class FileQueue extends Queue {
     private static File queueBaseDir = null;
     private File queueDir = null;
 
-    public static boolean isAvailable(HttpServletRequest request) {
+    public static boolean isAvailable(String context) {
         return true;  //TODO until we come up with a scenario where it wont work?
     }
 
@@ -36,8 +35,7 @@ public class FileQueue extends Queue {
         }
     }
 
-    public static synchronized void init(HttpServletRequest request) throws IOException {
-        String context = ServletUtilities.getContext(request);
+    public static synchronized void init(String context) throws IOException {
 /*  these are actually optional for FileQueue
         Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
         if (props == null) throw new IOException("no queue.properties");
@@ -84,14 +82,14 @@ System.out.println("INFO: FileQueue.publish() added " + queueDir + " -> " + qid)
 
     //kinda hacky but since we can put static methods on Queue.java, this is going here.  :/
     //  get us "the best" queue we have available
-    public static Queue getBestType(HttpServletRequest request, String name) throws IOException {
-        if (RabbitMQQueue.isAvailable(request)) {
-            RabbitMQQueue.init(request);
+    public static Queue getBestType(String context, String name) throws IOException {
+        if (RabbitMQQueue.isAvailable(context)) {
+            RabbitMQQueue.init(context);
             return new RabbitMQQueue(name);
         }
         //fallback to FileQueue
-        if (!isAvailable(request)) return null;
-        init(request);
+        if (!isAvailable(context)) return null;
+        init(context);
         return new FileQueue(name);
     }
 

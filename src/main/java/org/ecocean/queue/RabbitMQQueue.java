@@ -4,7 +4,6 @@ import java.util.Properties;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
-import javax.servlet.http.HttpServletRequest;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Channel;
@@ -28,8 +27,7 @@ public class RabbitMQQueue extends Queue {
     private String consumerTag = null;
     private Channel channel = null;
 
-    public static boolean isAvailable(HttpServletRequest request) {
-        String context = ServletUtilities.getContext(request);
+    public static boolean isAvailable(String context) {
         Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
         if (props == null) return false;
         /*
@@ -61,8 +59,7 @@ public class RabbitMQQueue extends Queue {
         }
     }
 
-    public static synchronized void init(HttpServletRequest request) throws java.io.IOException {
-        String context = ServletUtilities.getContext(request);
+    public static synchronized void init(String context) throws java.io.IOException {
         if (factory != null) return;
         Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
         if (props == null) throw new java.io.IOException("no queue.properties");
