@@ -105,8 +105,21 @@ System.out.println("INFO: FileQueue.publish() added " + queueDir + " -> " + qid)
         try {
             fcontents = StringUtils.join(Files.readAllLines(activeFile.toPath(), java.nio.charset.Charset.defaultCharset()), "");
         } catch (Exception ex) {
-            throw new IOException("ERROR: " + this.toString() + " could not read or parse json for " + nextFile + ": " + ex.toString());
+            throw new IOException("ERROR: " + this.toString() + " could not read " + nextFile + ": " + ex.toString());
         }
+
+        File completedFile = new File(nextFile.toString() + ".complete");
+        if (completedFile.exists()) {
+            System.out.println("WARNING: " + this.toString() + " wanted to create " + completedFile.toString() + " but it exists; skipping");
+            //TODO ditto
+            return null;
+        }
+        if (!activeFile.renameTo(completedFile)) {
+            System.out.println("WARNING: " + this.toString() + " wanted to create " + completedFile.toString() + " but rename failed; skipping");
+            //TODO ditto
+            return null;
+        }
+
         if (this.isConsumerShutdownMessage(fcontents)) throw new IOException("SHUTDOWN message received");
         return fcontents;
     }
