@@ -67,8 +67,8 @@ System.out.println("count=" + count + "; handled-ok=" + ok + "; cont=" + cont + 
         10,  //initial delay  ... TODO these could be configurable, obvs
         10,  //period delay *after* execution finishes
         TimeUnit.SECONDS);
-        //runningSES.add(schedExec);
-        //runningSF.add(schedFuture);
+        runningSES.add(schedExec);
+        runningSF.add(schedFuture);
 
         System.out.println("---- about to awaitTermination() ----");
         try {
@@ -79,12 +79,16 @@ System.out.println("count=" + count + "; handled-ok=" + ok + "; cont=" + cont + 
         System.out.println("==== schedExec.shutdown() called, apparently");
     }
 
-/*
-    public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("* StartupWildbook destroyed called");
-        schedExec.shutdown();
-        schedFuture.cancel(true);
+    // mostly for ContextDestroyed in StartupWildbook..... i think?
+    public static void cleanup() {
+        for (ScheduledExecutorService ses : runningSES) {
+            ses.shutdown();
+        }
+        for (ScheduledFuture sf : runningSF) {
+            sf.cancel(true);
+        }
+        System.out.println("QueueUtil.cleanup() finished.");
     }
-*/
+
 
 }
