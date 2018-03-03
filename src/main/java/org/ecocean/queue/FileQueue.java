@@ -9,6 +9,13 @@ import org.ecocean.servlet.ServletUtilities;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+//import javax.servlet.ServletContext;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.nio.file.Files;
+import org.apache.commons.lang3.StringUtils;
+import java.io.PrintWriter;
+
 /*
 
 File-based queue... not as nice as RabbitMQ but should(!?) work on "most" systems?
@@ -69,28 +76,96 @@ public class FileQueue extends Queue {
 System.out.println("INFO: FileQueue.publish() added " + queueDir + " -> " + qid);
     }
 
-    //i think this never returns?
     public void consume(final QueueMessageHandler msgHandler) throws IOException {
+        this.messageHandler = msgHandler;
+        QueueUtil.background(this);
     }
 
+    public String getNext() throws IOException {
+        if (queueDir == null) throw new IOException(this.toString() + " FileQueue.getNext() queueDir is null");
+        File nextFile = getNextFile();
+        if (nextFile == null) return null;  //wait and try again...
+
+        File activeFile = new File(nextFile.toString() + ".active");
+        if (activeFile.exists()) {
+            System.out.println("WARNING: " + this.toString() + " wanted to create " + activeFile.toString() + " but it exists; skipping");
+            //TODO keep a count maybe then skip over for real after N tries?  something like that....
+            return null;
+        }
+        if (!nextFile.renameTo(activeFile)) {
+            System.out.println("WARNING: " + this.toString() + " wanted to create " + activeFile.toString() + " but rename failed; skipping");
+            //TODO ditto above comment
+            return null;
+        }
+
+        System.out.println("INFO: " + this.toString() + " successfully engaged file " + nextFile.toString() + "; made .active");
+
+        // for now we assume we *only* support json content... fix if you need to, future
+        String fcontents = null;
+        try {
+            fcontents = StringUtils.join(Files.readAllLines(activeFile.toPath(), java.nio.charset.Charset.defaultCharset()), "");
+        } catch (Exception ex) {
+            throw new IOException("ERROR: " + this.toString() + " could not read or parse json for " + nextFile + ": " + ex.toString());
+        }
+        if (this.isConsumerShutdownMessage(fcontents)) throw new IOException("SHUTDOWN message received");
+        return fcontents;
+    }
+
+
+    //current algorithm is "oldest" (FIFO); filename simply must be a valid uuid (with no extension)
+    public File getNextFile() throws IOException {
+        if (queueDir == null) return null;
+        if (!queueDir.exists() || !queueDir.isDirectory()) {
+            System.out.println("WARNING: " + queueDir + " does not exist or is not a directory; skipping");
+            return null;
+        }
+        FileTime oldestTime = null;
+        File oldestFile = null;
+System.out.println(">>>>>>>>>>>>>>>>>>>>>>> attempting to read from " + queueDir);
+        File[] dfiles = null;
+        try {
+            dfiles = queueDir.listFiles();
+        } catch (Exception ex) {
+            System.out.println("WARNING: could not read directory " + queueDir + ": " + ex.toString());
+            return null;
+        }
+        if (dfiles == null) {
+            System.out.println("WARNING: " + queueDir + " had trouble reading directory contents; skipping");
+            return null;
+        }
+
+        for (File f : dfiles) {
+//System.out.println("queueDir file=" + f);
+            //this always wins... so we can just grind everything to a halt
+            if (isStopFile(f)) throw new IOException(this.toString() + " FileQueue STOP FILE found");
+            if (f.isDirectory() || !Util.isUUID(f.getName())) continue;  //ignore!
+            BasicFileAttributes attr = null;
+            try {
+                attr = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
+            } catch (java.io.IOException ioe) {
+                System.out.println("WARNING: could not read file attributes for " + f + ": " + ioe.toString());
+            }
+            if (attr == null) continue;
+//System.out.println(f.toString() + " time = " + attr.creationTime());
+            if ((oldestTime == null) || (oldestTime.compareTo(attr.creationTime()) > 0)) {
+                oldestTime = attr.creationTime();
+                oldestFile = f;
+            }
+        }
+        return oldestFile;
+    }
+
+    private static boolean isStopFile(File file) {
+        if (file == null) return false;
+        return file.getName().equals("STOP");
+    }
+
+    public void shutdown() {
+    }
 
     @Override
     public String toString() {
         return super.toString() + " -> " + queueDir;
-    }
-
-
-    //kinda hacky but since we can put static methods on Queue.java, this is going here.  :/
-    //  get us "the best" queue we have available
-    public static Queue getBestType(String context, String name) throws IOException {
-        if (RabbitMQQueue.isAvailable(context)) {
-            RabbitMQQueue.init(context);
-            return new RabbitMQQueue(name);
-        }
-        //fallback to FileQueue
-        if (!isAvailable(context)) return null;
-        init(context);
-        return new FileQueue(name);
     }
 
 }

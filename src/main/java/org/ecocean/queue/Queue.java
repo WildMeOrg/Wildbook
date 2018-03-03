@@ -11,6 +11,7 @@ for both (say) RabbitMQ and a simple directory/file-based queue if the install d
 public abstract class Queue {
     protected String type = null;
     protected String queueName = null;
+    protected QueueMessageHandler messageHandler = null;
 
     protected Queue(final String name) {
         queueName = name;
@@ -20,10 +21,17 @@ public abstract class Queue {
 
     public abstract void publish(String msg) throws java.io.IOException;
 
-    public abstract void consume(QueueMessageHandler msgHandler) throws java.io.IOException;  //assumed to "run in background" and just return
+    //assumed to detach into background
+    public abstract void consume(QueueMessageHandler msgHandler) throws java.io.IOException;
+
+    //this is "internal" and is mostly used for manually backgrounded needs (like FileQueue)
+    //  NOTE: when used, return of null means messageHandler will NOT be called!
+    public abstract String getNext() throws java.io.IOException;
 
     //this is static and should be overridden
     public static boolean isAvailable(String context) { return false; }
+
+    public abstract void shutdown();
 
     public boolean isConsumerShutdownMessage(String msg) {
         return "SHUTDOWN".equals(msg);

@@ -26,6 +26,7 @@ public class RabbitMQQueue extends Queue {
     private static String EXCHANGE_NAME = "";  //default... i think this is kosher?
     private String consumerTag = null;
     private Channel channel = null;
+    private boolean wantsShutdown = false;
 
     public static boolean isAvailable(String context) {
         Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
@@ -99,6 +100,7 @@ System.out.println("[INFO] published to {" + this.queueName + "}: " + msg);
     public void consume(final QueueMessageHandler msgHandler) throws java.io.IOException {
 System.out.println("RabbitMQQueue.consume() started with consumerTag=" + consumerTag);
         //boolean is auto-ack.  false means we manually ack
+        messageHandler = msgHandler;
         channel.basicConsume(this.queueName, false, consumerTag,
             new DefaultConsumer(channel) {
                 @Override
@@ -111,7 +113,7 @@ System.out.println("RabbitMQQueue.consume() started with consumerTag=" + consume
                     boolean success = msgHandler.handler(body);
 System.out.println("RabbitMQQueue.consume(): " + deliveryTag + "; " + contentType + "; " + routingKey + " = {" + body + "} => " + success);
                     if (success) channel.basicAck(deliveryTag, false);
-                    if (isConsumerShutdownMessage(body)) {
+                    if (wantsShutdown || isConsumerShutdownMessage(body)) {
                         System.out.println(">>> RabbitMQQueue shutdown message received on " + conTag);
                         channel.basicCancel(conTag);
                     }
@@ -121,9 +123,16 @@ System.out.println("RabbitMQQueue.consume(): " + deliveryTag + "; " + contentTyp
     }
 
 
+    public void shutdown() {
+        wantsShutdown = true;
+    }
+
     @Override
     public String toString() {
         return super.toString() + " [TAG " + consumerTag + "]";
     }
+
+
+    public String getNext() throws java.io.IOException { return null; }  //NOOP
 
 }
