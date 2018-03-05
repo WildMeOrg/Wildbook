@@ -83,7 +83,8 @@ phrasesToIgnoreVideo.add("children");
 phrasesToIgnoreVideo.add("digital code generator");
 phrasesToIgnoreVideo.add("blue whale game");
 phrasesToIgnoreVideo.add("deeeep.io");
-
+phrasesToIgnoreVideo.add("subnautica");
+phrasesToIgnoreVideo.add("gift card");
 
 
 int numPhrases=phrasesToIgnoreVideo.size();
