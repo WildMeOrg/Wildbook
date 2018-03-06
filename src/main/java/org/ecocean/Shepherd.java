@@ -316,6 +316,10 @@ public class Shepherd {
     pm.deletePersistent(ad);
   }
 
+  public void throwAwayAnnotation(Annotation ad) {
+    pm.deletePersistent(ad);
+  }
+
   public void throwAwayKeyword(Keyword word) {
     String indexname = word.getIndexname();
     pm.deletePersistent(word);
@@ -692,10 +696,23 @@ public class Shepherd {
       user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, username.trim()), true)));
     }
     catch (Exception nsoe) {
+      System.out.println("Shepherd.getUser(String) called for nonexistent user "+username);
       return null;
     }
     return user;
   }
+
+  public User getUser(HttpServletRequest request) {
+    String username=null;
+    try {
+      username = request.getUserPrincipal().toString();
+    } catch (Exception e) {
+      System.out.println("Shepherd.getUser(HttpServletRequest) called with no user logged in");
+      return null;
+    }
+    return getUser(username);
+  }
+
 
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
@@ -2118,6 +2135,13 @@ public class Shepherd {
     }
     return indiv;
   }
+
+  public MarkedIndividual getMarkedIndividual(Encounter enc) {
+    if (enc==null) return null;
+    return (getMarkedIndividual(enc.getIndividualID()));
+  }
+
+
  
     //note, new indiv is *not* made persistent here!  so do that yourself if you want to. (shouldnt matter if not-new)
     public MarkedIndividual getOrCreateMarkedIndividual(String name, Encounter enc) {
@@ -2139,6 +2163,12 @@ public class Shepherd {
     }
     return tempShark;
   }
+
+  public Occurrence getOccurrence(Encounter enc) {
+    if (enc==null) return null;
+    return (getOccurrence(enc.getOccurrenceID()));
+  }
+
 
   public Occurrence getOrCreateOccurrence(String id) {
       if (id==null) return new Occurrence(Util.generateUUID());
