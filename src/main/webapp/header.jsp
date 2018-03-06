@@ -40,9 +40,37 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-
 String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("header.jsp");
+
+System.out.println("");
+System.out.println("    HeaderJsp is starting and this is a G. D. headache");
+System.out.println("");
+
+
+
+String username = null;
+User user = null;
+boolean indocetUser = false;
+
+if(request.getUserPrincipal()!=null){
+
+  user = myShepherd.getUser(request);
+  username = (user!=null) ? user.getUsername() : null;
+  System.out.println("    HeaderJsp has user "+username);
+  indocetUser = (user!=null && user.hasAffiliation("indocet"));
+
+  //finally{
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+  //}
+}
+System.out.println("");
+System.out.println("    HeaderJsp done, user "+username+" is indocetUser="+indocetUser);
+System.out.println("");
 %>
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -59,6 +87,15 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
+
+      <%
+      if (indocetUser) {
+        System.out.println("    header.jsp found indocetuser!!! including custom style");
+        %><link rel="stylesheet" href="<%=urlLoc %>/cust/indocet/overwrite.css" /><%
+      }
+      %>
+
+
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
@@ -109,16 +146,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                       <%
 
-	                      if(request.getUserPrincipal()!=null){
-	                    	  Shepherd myShepherd = new Shepherd(context);
-
-	                          try{
-	                        	  myShepherd.beginDBTransaction();
-		                    	  String username = request.getUserPrincipal().toString();
-		                    	  User user = myShepherd.getUser(username);
-		                    	  String fullname=username;
-		                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
-		                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+	                      if(user != null){
+	                          try {
+  		                    	  String fullname=request.getUserPrincipal().toString();
+                              if (user.getFullName()!=null) fullname=user.getFullName();
+                              String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
 		                          if(user.getUserImage()!=null){
 		                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
 		                          }
@@ -131,10 +163,6 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 		                      		<%
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
-	                          finally{
-	                        	  myShepherd.rollbackDBTransaction();
-	                        	  myShepherd.closeDBTransaction();
-	                          }
 	                      }
 	                      else{
 	                      %>
@@ -269,7 +297,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
+
                 </div>
               </div>
 
@@ -289,6 +319,12 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     <ul class="nav navbar-nav">
                                   <!--                -->
                       <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
+                      <li><!-- Use the following if you want to use class selectors-->
+<span class="icon-phone"></span>
+ 
+<!-- Use the following if you want to use data attributes.-->
+<span data-icon="&#xe004"></span></li>
+
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
                       <!-- temporarily commented out: experiment w streamlining header UI
