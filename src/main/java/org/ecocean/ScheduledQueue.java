@@ -80,7 +80,7 @@ System.out.println("post-json: " + jobj.toString());
             myShepherd.beginDBTransaction();
             String baseUrl = jobj.optString("__baseUrl", null);
             try {
-                JSONObject rtn = IAGateway._doDetect(jobj, res, myShepherd, context, baseUrl);
+                JSONObject rtn = IAGateway._doDetect(jobj, res, myShepherd, baseUrl);
                 System.out.println("INFO: ScheduledQueue 'detect' from " + nextFile + " successful --> " + rtn.toString());
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {

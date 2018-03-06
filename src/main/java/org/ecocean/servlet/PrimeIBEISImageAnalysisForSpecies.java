@@ -39,37 +39,37 @@ public class PrimeIBEISImageAnalysisForSpecies extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-    
-   
+
+
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    
+
     String context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
     myShepherd.setAction("PrimeIBEISImageAnalysisForSpecies.class");
     String baseUrl="";
     myShepherd.beginDBTransaction();
     try{
-      
+
       try {
         baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-      } 
+      }
       catch (URISyntaxException ex) {
         System.out.println("ScanWorkItemCreationThread() failed to obtain baseUrl: " + ex.toString());
         ex.printStackTrace();
       }
       System.out.println("baseUrl --> " + baseUrl);
-      
+
       //figure out which species to send annotations and media assets for
       StringTokenizer str=new StringTokenizer(request.getParameter("genusSpecies")," ");
       String genus=str.nextToken();
       String species=str.nextToken();
-      
-      
+
+
       ArrayList<Encounter> encs=myShepherd.getAllEncountersForSpecies(genus, species);
-      
-      JSONObject results=IBEISIA.primeImageAnalysisForSpecies(encs, myShepherd, Util.taxonomyString(genus, species), baseUrl, context);
+
+      JSONObject results=IBEISIA.primeImageAnalysisForSpecies(encs, myShepherd, Util.taxonomyString(genus, species), baseUrl);
 
       //now that we have a result from priming the system
       if(results.getBoolean("success")){
@@ -86,22 +86,21 @@ public class PrimeIBEISImageAnalysisForSpecies extends HttpServlet {
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp" + "\">Return to Grid Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
-      
-    
+
+
     }
     catch(Exception e){
       e.printStackTrace();
-      
+
     }
     finally{
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
-      
+
       myShepherd=null;
       out.flush();
       out.close();
     }
 
 }
-
