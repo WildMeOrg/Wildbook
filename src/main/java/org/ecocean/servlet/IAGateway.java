@@ -31,7 +31,6 @@ import org.ecocean.Cluster;
 import org.ecocean.Resolver;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
-import org.ecocean.ScheduledQueue;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -478,6 +477,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     } catch (java.net.URISyntaxException ex) {}
 
     if (j.optBoolean("enqueue", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
+        //TODO if queue is not active/okay, fallback to synchronous???
         //TODO could probably add other stuff (e.g. security/user etc)
         j.put("__context", context);
         j.put("__baseUrl", baseUrl);
@@ -489,10 +489,15 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         } else {
             j.put("taskId", taskId);
         }
-        String qid = ScheduledQueue.addToQueue(j.toString());
-        System.out.println("INFO: taskId=" + taskId + " enqueued to " + qid);
-        res.remove("error");
-        res.put("success", "true");
+        boolean ok = addToQueue(j.toString());
+        if (ok) {
+            System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
+            res.remove("error");
+        } else {
+            System.out.println("ERROR: taskId=" + taskId + " was NOT enqueued successfully");
+            res.put("error", "addToQueue() returned false");
+        }
+        res.put("success", ok);
 
     } else if (j.optJSONObject("detect") != null) {
         res = _doDetect(j, res, myShepherd, baseUrl);
@@ -1089,6 +1094,12 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
         c = (Collection) (query.execute());
         cts.put("identification", c.size());
         return cts;
+    }
+
+    public static boolean addToQueue(String content) throws IOException {
+        //TODO find IA QUEUE!!!!   queue.publish(content);
+System.out.println("FAKE ADD TO QUEUE: " + content);
+        return true;
     }
 
 }
