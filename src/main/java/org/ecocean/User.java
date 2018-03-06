@@ -143,6 +143,9 @@ public class User implements Serializable {
     else{this.affiliation=null;}
     RefreshDate();
   }
+  public boolean hasAffiliation (String affiliation) {
+    return (this.affiliation!=null && affiliation!=null && this.affiliation.toLowerCase().indexOf(affiliation.toLowerCase())>=0);
+  }
 
   public String getNotes ()
   {
