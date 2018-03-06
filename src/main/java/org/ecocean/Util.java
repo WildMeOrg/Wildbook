@@ -573,7 +573,7 @@ public class Util {
 
     // replaces wrong-slashes with right-slashes
     public static String windowsFileStringToLinux(String windowsFileString) {
-      return windowsFileString.replace("\\","/");
+      return windowsFileString.replaceAll("\\\\","/");
     }
 
     public static boolean fileExists(String filepath) {
