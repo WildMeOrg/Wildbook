@@ -87,6 +87,9 @@ public class Occurrence implements java.io.Serializable{
 
   // do we have these?
 
+  // this is helpful for sorting but isn't (for now) intended to be UI-facing
+  // rather it's set from Encounters
+  private Long millis;
 
 
   private Long dateTimeLong; // this is for searching
@@ -807,6 +810,46 @@ public class Occurrence implements java.io.Serializable{
       return false;
     }
 
+
+    public void setMillis(Long millis) {this.millis = millis;}
+    public Long getMillis() {return this.millis;}
+
+    public void setMillisFromEncounters() {
+      this.millis = getMillisFromEncounters();
+    }
+
+    public Long getMillisFromEncounters() {
+      for (Encounter enc: encounters) {
+        if (enc.getDateInMilliseconds()!=null) {
+          return enc.getDateInMilliseconds();
+        }
+      }
+      return null;
+    }
+
+
+    public void setMillisFromEncounterAvg() {
+      this.millis = getMillisFromEncounterAvg();
+    }
+
+    public Long getMillisFromEncounterAvg() {
+      Long total = 0L;
+      int numAveraged = 0;
+      for (Encounter enc: encounters) {
+        if (enc.getDateInMilliseconds()!=null) {
+          total += enc.getDateInMilliseconds();
+          numAveraged++;
+        }
+      }
+      if (numAveraged == 0) return null;
+      return (total / numAveraged);
+    }
+    public Long getMillisRobust() {
+      if (this.millis!=null) return this.millis;
+      if (getMillisFromEncounterAvg()!=null) return getMillisFromEncounterAvg();
+      if (getMillisFromEncounters()!=null) return getMillisFromEncounters();
+      return null;
+    }
 
 
 
