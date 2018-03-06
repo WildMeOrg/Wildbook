@@ -49,10 +49,11 @@ StandardImport extends HttpServlet {
 	Shepherd myShepherd;
 	Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
 	Set<String> unusedColumns;
+	Set<String> missingColumns; // columns we look for but don't find
 	List<String> missingPhotos = new ArrayList<String>();
 	List<String> foundPhotos = new ArrayList<String>();
 	int numFolderRows = 0;
-	boolean committing = true;
+	boolean committing = false;
 	PrintWriter out;
 	// verbose variable can be switched on/off throughout the import for debugging
 	boolean verbose = false;
@@ -80,7 +81,7 @@ StandardImport extends HttpServlet {
     astore = getAssetStore(myShepherd);
 
     photoDirectory = "/data/indocet/";
-    String filename = "/data/aswn-workshop/standard_import_template-suaad.xlsx";
+    String filename = "/data/indocet/indocet_blended.xlsx";
     //String filename = "/data/oman_import/ASWN_firstExport.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
     File dataFile = new File(filename);
@@ -126,7 +127,7 @@ StandardImport extends HttpServlet {
     for (String heading: colIndexMap.keySet()) out.println("<li>"+colIndexMap.get(heading)+": "+heading+"</li>");
     out.println("</ul>");
 
-    int printPeriod = 1;
+    int printPeriod = 100;
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Beginning row loop:</h2>");
     out.println("<ul>");
@@ -333,8 +334,6 @@ StandardImport extends HttpServlet {
   	String nickname = getString(row, "MarkedIndividual.nickname");
   	if (nickname!=null) enc.setAlternateID(nickname);
 
-
-
   	Double length = getDouble(row, "Encounter.measurement.length");
   	if (length!=null) {
   		Measurement lengthMeas = new Measurement(encID, "length", length, "m", "");
@@ -400,10 +399,10 @@ StandardImport extends HttpServlet {
   		Annotation ann = new Annotation(species, ma);
   		ann.setIsExemplar(true);
   		annots.add(ann);
+  		if (ma!=null && ma.localPath()!=null) foundPhotos.add(ma.localPath().toString());
   	}
   	if (annots.size()>0) {
 	  	String localPath = getString(row, "Encounter.mediaAsset0");
-	  	if (localPath!=null) localPath = localPath.substring(0,localPath.length()-1); // removes trailing asterisk
 	  	String fullPath = photoDirectory+localPath;
 	  	foundPhotos.add(fullPath);
   	}
