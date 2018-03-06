@@ -1236,17 +1236,7 @@ public class Shepherd {
     }
   }
 
-  public Iterator<Occurrence> getAllOccurrencesNoQuery() {
-    try {
-      Extent encClass = pm.getExtent(Occurrence.class, true);
-      Iterator it = encClass.iterator();
-      return it;
-    } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllOccurrencesNoQuery. Returning a null iterator.");
-      npe.printStackTrace();
-      return null;
-    }
-  }
+
 
 
 

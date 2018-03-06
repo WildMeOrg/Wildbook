@@ -700,7 +700,7 @@ System.out.println("+ starting ident task " + annTaskId);
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
-                                                               myShepherd, species, annTaskId, baseUrl, context);
+                                                               myShepherd, species, annTaskId, baseUrl);
 System.out.println("- mark D");
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);

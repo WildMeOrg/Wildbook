@@ -807,11 +807,12 @@
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportEmailAddresses</servlet-class>
   </servlet>
-
+<!--
         <servlet>
         <servlet-name>ningalooPradel</servlet-name>
         <servlet-class>org.ecocean.servlet.NingalooPradel</servlet-class>
   </servlet>
+  -->
 
      <servlet>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
@@ -1002,11 +1003,13 @@
       <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
       <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
   </servlet>
+  <!--
 
   <servlet>
        <servlet-name>ningalooRobustByMonths</servlet-name>
 	<servlet-class>org.ecocean.servlet.NingalooRobustByMonths</servlet-class>
   </servlet>
+  -->
 
    <servlet>
     <servlet-name>EncounterSetScarring</servlet-name>
@@ -1024,12 +1027,12 @@
   </servlet>
 
 
-
+<!--
       <servlet>
            <servlet-name>MozPradel</servlet-name>
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet>
-
+-->
 
 
   <servlet>
@@ -1058,11 +1061,13 @@
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
 
+  <!--
     <servlet>
       <servlet-name>NingalooByMonthsSonification</servlet-name>
       <servlet-class>org.ecocean.servlet.NingalooByMonthsSonification</servlet-class>
   </servlet>
-
+-->
+  
   <servlet>
     <servlet-name>EncounterAddComment</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddComment</servlet-class>
@@ -1210,11 +1215,12 @@
   </servlet>
 
 
-
+<!--
       <servlet>
            <servlet-name>MozRobustByMonths</servlet-name>
     	<servlet-class>org.ecocean.servlet.MozRobustByMonths</servlet-class>
   </servlet>
+  -->
 
   <servlet>
     <servlet-name>ScanWorkItemResultsHandler</servlet-name>
@@ -1622,7 +1628,7 @@
     <servlet-name>ScanTaskHandler</servlet-name>
     <url-pattern>/ScanTaskHandler</url-pattern>
   </servlet-mapping>
-
+<!--
  <servlet-mapping>
        <servlet-name>ningalooRobustByMonths</servlet-name>
        <url-pattern>/ningalooRobustByMonths</url-pattern>
@@ -1632,6 +1638,7 @@
          <servlet-name>ningalooPradel</servlet-name>
          <url-pattern>/CJS</url-pattern>
   </servlet-mapping>
+  -->
 
   <!--
   <servlet-mapping>
