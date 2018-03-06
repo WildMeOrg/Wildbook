@@ -817,7 +817,8 @@ public class Encounter implements java.io.Serializable {
   }
   public void setGroupRole(String role) {
     this.groupRole = role;
-
+  }
+  
   public String getImageOriginalName() {
     MediaAsset ma = getPrimaryMediaAsset();
     if (ma == null) return null;
