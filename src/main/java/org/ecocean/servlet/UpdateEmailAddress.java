@@ -93,13 +93,13 @@ public class UpdateEmailAddress extends HttpServlet {
       while (it.hasNext()) {
 
         Encounter tempEnc = it.next();
-        if (tempEnc.getSubmitterEmail().indexOf(findEmail) != -1) {
+        if ((tempEnc.getSubmitterEmail()!=null)&&(tempEnc.getSubmitterEmail().indexOf(findEmail) != -1)) {
           String newSubmitterEmail = tempEnc.getSubmitterEmail().replaceAll(findEmail, replaceEmail);
           tempEnc.setSubmitterEmail(newSubmitterEmail);
           madeChanges = true;
           numChanges++;
         }
-        if (tempEnc.getPhotographerEmail().indexOf(findEmail) != -1) {
+        if ((tempEnc.getPhotographerEmail()!=null)&&(tempEnc.getPhotographerEmail().indexOf(findEmail) != -1)) {
           String newPhotographerEmail = tempEnc.getPhotographerEmail().replaceAll(findEmail, replaceEmail);
           tempEnc.setPhotographerEmail(newPhotographerEmail);
           madeChanges = true;
