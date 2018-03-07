@@ -36,7 +36,7 @@ public class FileQueue extends Queue {
         if (queueBaseDir == null) throw new IOException("FileQueue.init() has not yet been called!");
         this.type = TYPE_NAME;
         queueDir = new File(queueBaseDir, name);  //TODO scrub name of invalid chars
-        if (!queueDir.isDirectory()) {
+        if (!queueDir.exists() || !queueDir.isDirectory()) {
             boolean ok = queueDir.mkdirs();
             if (!ok) throw new IOException("FileQueue failed to create " + queueDir.toString());
         }
@@ -52,16 +52,18 @@ public class FileQueue extends Queue {
         System.out.println("[INFO] FileQueue.init() complete");
     }
 
-    public static File setQueueDir(String context) {
+    public static File setQueueDir(String context) throws IOException {
         String qd = null;
         Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
         if (props != null) qd = props.getProperty("filequeue_basedir");
         if (qd == null) qd = CommonConfiguration.getProperty("ScheduledQueueDir", "context0");  //legacy
-        if (qd == null) qd = "/tmp/WildbookFileQueue";
-            ///Files.createTempDirectory(.......).toFile();  maybe use this instead as fallback???
-            /// or maybe a dir under _data_dir ???
-        if (qd == null) return null;
-        queueBaseDir = new File(qd);
+
+        if (qd == null) {  //lets try to make one *somewhere*
+            queueBaseDir = Files.createTempDirectory("WildbookFileQueue").toFile();
+            System.out.println("INFO: default (temporary) queueBaseDir being used: " + queueBaseDir);
+        } else {
+            queueBaseDir = new File(qd);
+        }
         return queueBaseDir;
     }
 
@@ -134,7 +136,6 @@ System.out.println("INFO: FileQueue.publish() added " + queueDir + " -> " + qid)
         }
         FileTime oldestTime = null;
         File oldestFile = null;
-System.out.println(">>>>>>>>>>>>>>>>>>>>>>> attempting to read from " + queueDir);
         File[] dfiles = null;
         try {
             dfiles = queueDir.listFiles();
