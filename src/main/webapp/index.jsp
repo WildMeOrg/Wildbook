@@ -22,6 +22,16 @@ String context=ServletUtilities.getContext(request);
 Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
 
+//check for and inject a default user 'tomcat' if none exists
+if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
+  System.out.println("WARNING: index.jsp has determined that CommonConfiguration.isWildbookInitialized()==false!");
+  %>
+    <script type="text/javascript">
+      console.log("Wildbook is not initialized!");
+    </script>
+  <%
+  StartupWildbook.initializeWildbook(request, myShepherd);
+}
 
 //check for and inject a default user 'tomcat' if none exists
 
