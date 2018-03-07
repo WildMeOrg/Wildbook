@@ -25,6 +25,9 @@ Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
 StartupWildbook.ensureAssetStoreExists(request, myShepherd);
 
+StartupWildbook.ensureProfilePhotoKeywordExists(myShepherd);
+StartupWildbook.ensureTomcatUserExists(myShepherd);
+
 
 %>
 <!--  
