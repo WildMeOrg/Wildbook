@@ -207,7 +207,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 							st=new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
 							
-							st.setNumComparisons(numComparisons-1);
+							//st.setNumComparisons(numComparisons-1);
 							
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 							System.out.println("scanTaskHandler: About to create a scanTask...");
@@ -229,7 +229,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 								
 								//let the GridManager know the size
 								System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
-								gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
+								//gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
 								
 							}
 						}
@@ -260,14 +260,14 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					                    numComparisons=gm.getNumLeftPatterns();
 					                  }
 					                  st.setFinished(false);
-					                  st.setNumComparisons(numComparisons-1);
+					                  //st.setNumComparisons(numComparisons-1);
 					                  es.execute(new ScanTaskCleanupThread(taskIdentifier));
 					                  successfulStore=true;
 					                  System.out.println("I have kicked off the cleanup thread.");
 
 					                //let the GridManager know the size
 					                  System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
-					                  gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
+					                  //gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
 					                  
 					                  
 					                }

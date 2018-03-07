@@ -11,23 +11,27 @@ tr.header-tr td {
   padding-top: 20px;
 }
 
-table.edit-table td:first-child {
-  padding-right: 3em;
+table.edit-table td.fieldName {
+  width: 10em;
+  padding-right: 1em;
 }
+
+table.edit-table {
+  padding-right: 2em;
+}
+
 table.occurrence-field-table tr td {
   padding-right: 0px;
   padding-top: 2px !important;
   padding-bottom: 3px !important;
 }
 table.edit-table td.undo-container {
-  display: none;
-}
-table.edit-table tr.changed-row td.undo-container {
-  display: unset;
+  visibility: hidden;
   padding: 0px;
   margin: 0px;
 }
-table.edit-table tr.changed-row td.undo-container div {
+
+table.edit-table td.undo-container div {
   color: #000;
   background: inherit;
   border:none;
@@ -38,6 +42,14 @@ table.edit-table tr.changed-row td.undo-container div {
   font: inherit;
   /*border is optional*/
   cursor: pointer;
+}
+
+table.edit-table tr.changed-row td.undo-container {
+  visibility: visible;
+  /*
+  padding: 0px;
+  margin: 0px;*/
+
 }
 
 table.edit-table tr.changed-row td.undo-container div.undo-button:hover {

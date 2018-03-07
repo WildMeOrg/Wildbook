@@ -21,6 +21,8 @@ import org.datanucleus.api.rest.orgjson.JSONException;
 
 import org.joda.time.DateTime;
 
+import org.ecocean.media.AssetStoreType;
+
 /**
  * Whereas an Encounter is meant to represent one MarkedIndividual at one point in time and space, an Occurrence
  * is meant to represent several Encounters that occur in a natural grouping (e.g., a pod of dolphins). Ultimately
@@ -58,6 +60,11 @@ public class Occurrence implements java.io.Serializable{
   private Double seaSurfaceTemp;
   private Double swellHeight;
   private Double visibilityIndex; // 1-5 with 5 indicating horizon visible
+  
+  //social media registration fields for AI-created occurrences
+  private String socialMediaSourceID;
+  private String socialMediaQueryCommentID;
+  private String socialMediaQueryCommentReplies;
 
   private Double effortCode; // 1-5;
 
@@ -80,6 +87,9 @@ public class Occurrence implements java.io.Serializable{
 
   // do we have these?
 
+  // this is helpful for sorting but isn't (for now) intended to be UI-facing
+  // rather it's set from Encounters
+  private Long millis;
 
 
   private Long dateTimeLong; // this is for searching
@@ -452,10 +462,10 @@ public class Occurrence implements java.io.Serializable{
      return allIDs;
    }
 
-	//convenience function to Collaboration permissions
-	public boolean canUserAccess(HttpServletRequest request) {
-		return Collaboration.canUserAccessOccurrence(this, request);
-	}
+  //convenience function to Collaboration permissions
+  public boolean canUserAccess(HttpServletRequest request) {
+    return Collaboration.canUserAccessOccurrence(this, request);
+  }
 
   public JSONObject uiJson(HttpServletRequest request) throws JSONException {
     JSONObject jobj = new JSONObject();
@@ -484,7 +494,7 @@ public class Occurrence implements java.io.Serializable{
     jobj.put("encounters", this.encounters);
     if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
         JSONArray jarr = new JSONArray();
-	///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+  ///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
         //but for *now* (see note way above) this is all we need for gallery/image display js:
         for (Encounter enc : this.getEncounters()) {
             JSONObject je = new JSONObject();
@@ -745,7 +755,101 @@ public class Occurrence implements java.io.Serializable{
       if (dt == null) dateTimeLong = null;
       else dateTimeLong = dt.getMillis();
     }
+    
+    //social media registration fields for AI-created occurrences
+    public String getSocialMediaSourceID(){return socialMediaSourceID;};
+    public void setSocialMediaSourceID(String id){socialMediaSourceID=id;};
+    
+    
+    public String getSocialMediaQueryCommentID(){return socialMediaQueryCommentID;};
+    public void setSocialMediaQueryCommentID(String id){socialMediaQueryCommentID=id;};
+    //each night we look for one occurrence that has commentid but not commentresponseid.
+    
+    public String getSocialMediaQueryCommentReplies(){return socialMediaQueryCommentReplies;};
+    public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
 
+
+    public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
+      if(getMediaAssetsOfType(aType).size()>0){return true;}
+      return false;
+    }
+    
+    public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      try{
+        int numEncs=encounters.size();
+        for(int k=0;k<numEncs;k++){
+          
+          ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
+          int numAssets=assets.size();
+          for(int i=0;i<numAssets;i++){
+            MediaAsset ma=assets.get(i);
+            if(ma.getStore().getType()==aType){results.add(ma);}
+          }
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      return results;
+    }
+    
+    public boolean hasMediaAssetFromRootStoreType(Shepherd myShepherd, AssetStoreType aType){
+      try{
+        int numEncs=encounters.size();
+        for(int k=0;k<numEncs;k++){
+          
+          ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
+          int numAssets=assets.size();
+          for(int i=0;i<numAssets;i++){
+            MediaAsset ma=assets.get(i);
+            if(ma.getStore().getType()==aType){return true;}
+            if(ma.getParentRoot(myShepherd).getStore().getType()==aType){return true;}
+          }
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      return false;
+    }
+
+
+    public void setMillis(Long millis) {this.millis = millis;}
+    public Long getMillis() {return this.millis;}
+
+    public void setMillisFromEncounters() {
+      this.millis = getMillisFromEncounters();
+    }
+
+    public Long getMillisFromEncounters() {
+      for (Encounter enc: encounters) {
+        if (enc.getDateInMilliseconds()!=null) {
+          return enc.getDateInMilliseconds();
+        }
+      }
+      return null;
+    }
+
+
+    public void setMillisFromEncounterAvg() {
+      this.millis = getMillisFromEncounterAvg();
+    }
+
+    public Long getMillisFromEncounterAvg() {
+      Long total = 0L;
+      int numAveraged = 0;
+      for (Encounter enc: encounters) {
+        if (enc.getDateInMilliseconds()!=null) {
+          total += enc.getDateInMilliseconds();
+          numAveraged++;
+        }
+      }
+      if (numAveraged == 0) return null;
+      return (total / numAveraged);
+    }
+    public Long getMillisRobust() {
+      if (this.millis!=null) return this.millis;
+      if (getMillisFromEncounterAvg()!=null) return getMillisFromEncounterAvg();
+      if (getMillisFromEncounters()!=null) return getMillisFromEncounters();
+      return null;
+    }
 
 
 
