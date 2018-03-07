@@ -389,8 +389,8 @@ finally{
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h1 class="hidden">Spotashark</h1>
-            <h2>Your photos will help identify and protect the critically endangered grey nurse shark.</h2>
+            <h1 class="hidden">Wildbook for Zebra Sharks</h1>
+            <h2>Your photos will help identify and protect the endangered zebra sharks!</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -403,12 +403,8 @@ finally{
         </div>
 
 	</div>
-	 <div class="video-wrapper">
-		<div class="embed-container">
-			<iframe id="herovideo" src="http://player.vimeo.com/video/123083341?api=1&amp;player_id=herovideo" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-		</div>
-	</div>
-    <p id="image-credit"><i>photo credit Jayne Jenkins</i></p>
+
+
 </section>
 
 <section class="container text-center main-section">
