@@ -151,7 +151,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
   
-  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+  String mapKey = ShepherdProperties.getProperties("googleKeys.properties", "").getProperty("googleMapsKey");
 %>
 
 

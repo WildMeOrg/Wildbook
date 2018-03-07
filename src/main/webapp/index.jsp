@@ -17,10 +17,13 @@
 <%
 String context=ServletUtilities.getContext(request);
 
+
+
 //set up our Shepherd
 
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
+StartupWildbook.ensureAssetStoreExists(request, myShepherd);
 
 
 %>

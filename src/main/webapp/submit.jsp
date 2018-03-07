@@ -28,7 +28,7 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+String mapKey = ShepherdProperties.getProperties("googleKeys.properties", "").getProperty("googleMapsKey");
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -186,7 +186,7 @@ function isEmpty(str) {
 
 $(function() {
   function resetMap() {
-      var ne_lat_element = document.getElementById('latitude');
+      var ne_lat_element = document.getElementById('lat');
       var ne_long_element = document.getElementById('longitude');
 
 
@@ -207,7 +207,7 @@ $(function() {
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
       changeYear: true,
-      dateFormat: 'yyMdd',
+      dateFormat: 'yy-mm-dd',
       maxDate: '+1d',
       controlType: 'select',
       alwaysSetTime: false,
@@ -221,7 +221,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker({
         changeMonth: true,
         changeYear: true,
-        dateFormat: 'yy-M-dd'
+        dateFormat: 'yy-mm-dd'
     });
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
@@ -242,7 +242,7 @@ function placeMarker(location) {
 
       //map.setCenter(location);
 
-        var ne_lat_element = document.getElementById('latitude');
+        var ne_lat_element = document.getElementById('lat');
         var ne_long_element = document.getElementById('longitude');
 
 
@@ -271,7 +271,7 @@ function placeMarker(location) {
 
       //adding the fullscreen control to exit fullscreen
       var fsControlDiv = document.createElement('DIV');
-      //addFullscreenButton(fsControlDiv, map);
+      addFullscreenButton(fsControlDiv, map);
       fsControlDiv.index = 1;
       map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
@@ -483,11 +483,9 @@ function showUploadBox() {
 <hr />
 
 <fieldset>
-
+<h3><%=props.getProperty("dateAndLocation")%></h3>
 
 <div class="form-group required">
-
-<h3><%=props.getProperty("dateAndLocation")%></h3>
 
     <div class="form-group required">
 
@@ -500,10 +498,10 @@ function showUploadBox() {
         <p class="help-block">
           <%=props.getProperty("examples") %>
           <ul>
-            <li>2014Jan05 12:30</li>
-            <li>2014MAR23</li>
-            <li>2013AUG</li>
-            <li>2010sep</li>
+            <li>2014-01-05 12:30</li>
+            <li>2014-03-23</li>
+            <li>2013-12</li>
+            <li>2010</li>
           </ul>
         </p>
       </div>
@@ -518,7 +516,6 @@ if(CommonConfiguration.showReleaseDate(context)){
         <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
         <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
       </div>
-      </div>
 
 <%
 }
@@ -530,10 +527,10 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
-<p class="help-block"><%=props.getProperty("where") %></p>
+
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label text-danger">Location description:</label>
+        <label class="control-label text-danger"><%=props.getProperty("where") %></label>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <input name="location" type="text" id="location" size="40" class="form-control">
@@ -578,83 +575,6 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
       </select>
       </div>
     </div>
-    
-    <script type="text/javascript">
-		// This script updates the lat/lang fields when the dropdown is changed
-		// I love JS objects!
-		function setLatLong(locationKey) {
-			var latLongRaw = {BI:["32 37 30 S", 	"152 20 20 E"],
-				BS:		["32 28 00 S", 	"152 33 00 E"],
-				CH:		["30 14 50 S"	, "153 21 60 E"],
-				F0:   ["", ""],
-				FR:		["30 56 25 S", 	"153 05 45 E"],
-				GS:   ["", ""],
-				JR:		["28 36 50 S", 	"153 37 35 E"],
-				LR:		["32 12 32 S", 	"152 34 05 E"],
-				LS:		["32 28 35 S", 	"152 32 50 E"],
-				MI:		["36 14 30 S", 	"150 13 35 E"],
-				MP:		["33 57 45 S", 	"151 15 50 E"],
-				PF:		["32 14 25 S", 	"152 36 05 E"],
-				SR:		["32 28 00 S", 	"152 33 00 E"],
-				SS:		["30 12 30 S", 	"153 17 00 E"],
-				TB:		["32 09 10 S", 	"152 32 20 E"],
-				WR:		["25 54 40 S", 	"153 12 20 E"],
-				TG:		["35 45 20 S", 	"150 15 15 E"],
-				BT:		["32 10 75 S",	"152 31 31 E"],
-				FC:		["33 24 128 S", "151 32 18 E"],
-				FL:		["26 59 00 S", 	"153 29 05 E"],
-				GI:		["30 54 45 S", 	"153 05 10 E"],
-				SK:		["32 24 30 S", 	"152 32 20 E"],
-				SF:   ["", ""],
-				NB:		["33 54 05 S", 	"151 16 20 E"],
-				CG:		["31 40 55 S", 	"152 54 35 E"],
-				DP:		["36 10 00 S",	"150 08 00 E"],
-				FT:		["27 08 00 S", 	"153 33 30 E"],
-				ST:		["32 26 41 S", 	"152 32 20 E"],
-				CC:		["27 07 00 S", 	"153 28 30 E"],
-				HE:   ["", ""],
-				HU:   ["", ""],
-				NM:   ["", ""],
-				LF:		["33 44 10 S", 	"151 19 30 E"],
-				NS:		["29 55 05 S", 	"153 23 00 E"],
-				BH:   ["", ""],
-				DD:		["35 02 50 S",	"150 50 43 E"],
-				MR:		["31 46 05 S",  "152 48 25 E"],
-				FB:		["33 47 96 S",	"151 17 91 E"]
-			}
-			// a very brittle single-use function, only for parsing the S coords above
-			function dmsSToDec(dmsSString) {
-				var vals = dmsSS.split(" ");
-				var total = parseInt(dmsSString.substring(0,2)) + parseInt(dmsSString.substring(4,6))/60.0 + parseInt(dmsSString.substring(8,10))/3600.0;
-				return total
-			}
-			function dmsEToDec(dmsEString) {
-				var total = parseInt(dmsEString.substring(0,3)) + parseInt(dmsEString.substring(5,7))/60.0 + parseInt(dmsEString.subString(9,11))/3600.0;
-			}
-			function dmsToDec(dmsString) {
-				var subs = dmsString.split(" ");
-				var sign = 1.0;
-				if (subs[3]=="S" || subs[3]=="W") sign = -1.0;
-				var total = parseInt(subs[0]) + parseInt(subs[1])/60.0 + parseInt(subs[2])/3600.0;
-				return total*sign;
-			}
-			// if locationKey is in the latLongRaw data
-			if (latLongRaw.hasOwnProperty(locationKey)) {
-			 	if (latLongRaw[locationKey][0]!="") {
-					// set default value on 'latitude' text field in html
-					$("#latitude").val(dmsToDec(latLongRaw[locationKey][0]));
-					$("#longitude").val(dmsToDec(latLongRaw[locationKey][1]));
-			}
-
-		}
-	}
-		$("#locationID").change( function() {
-			var locationKey = this.value.substring(0,2);
-			setLatLong(locationKey);
-		});
-
-	</script>
-    
 <%
 }
 
@@ -688,7 +608,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
 
-<div style="text-align:center;">
+<div>
     <p id="map">
     <!--
       <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
@@ -699,58 +619,45 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <p id="map_overlay_buttons"></p>
 </div>
 
-<div class="row">
-	<div class="col-xs-12 col-lg-6">
-		<h3>GPS Coordinates</h3>
-		<div class="form-group form-inline">
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label">Latitude</label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="lat" type="text" id="latitude" size="24">
-			</div>
-		</div>
-		<div class="form-group form-inline">
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label">Longitude<br></label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="longitude" type="text" id="longitude" size="24">
-			</div>
-		</div>
-		<p class="help-block">We ask that you upload GPS coordinates in the decimal degrees format. Do you have coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a></p>
-	</div>
+    <div>
+      <div class=" form-group form-inline">
+        <div class="col-xs-12 col-sm-6">
+          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
+          <input class="form-control" name="lat" type="text" id="lat"> &deg;
+        </div>
 
-	<div class="col-xs-12 col-lg-6">
-		<h3>Water Info</h3>
-		<p class="help-block">
-		</p>
-		<div class="form-group form-inline">
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label pull-left" style="text-align:left;">Water Temperature</label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="measurement(temperature)" type="text" id="temperature">
-					
-					<input type="hidden" name="measurement(temperatureunits)" value="celsius">
-					&nbsp;Celsius <br>
-			</div>
-		</div>
-		<!-- depth -->
-		
-		<div class="form-group form-inline">
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label"  style="text-align:left;">Sea floor depth at site</label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="depth" type="text" id="depth">
-					&nbsp;meters
-			</div>
-		</div>
-		
-	</div>
-</div>
+        <div class="col-xs-12 col-sm-6">
+          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
+          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
+        </div>
+      </div>
 
+      <p class="help-block">
+        <%=props.getProperty("gpsConverter") %></p>
+    </div>
+
+
+<%
+if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
+%>
+ <div class="form-inline">
+      <label class="control-label"><%=props.getProperty("submit_depth")%></label>
+      <input class="form-control" name="depth" type="text" id="depth">
+      &nbsp;<%=props.getProperty("submit_meters")%> <br>
+    </div>
+<%
+}
+
+if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
+%>
+ <div class="form-inline">
+      <label class="control-label"><%=props.getProperty("submit_elevation")%></label>
+      <input class="form-control" name="elevation" type="text" id="elevation">
+      &nbsp;<%=props.getProperty("submit_meters")%> <br>
+    </div>
+<%
+}
+%>
 
 </fieldset>
 <hr />
@@ -830,70 +737,6 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
     </div>
   </fielset>
-  
-  <hr/>
-		<!-- shark flank side section -->
-		<fieldset>
-			<div class="row">
-				<div class="form-group">
-				<div class="col-xs-12 col-lg-12">
-					<h3>Flank side</h3>
-					<p class="text-danger">What side of the shark is shown in your photo?</p>
-				</div>
-				<div class="col-xs-12 col-lg-6">
-					<figure>
-						<img src="images/spotashark/Good-Left-Flank-DonSilcock.jpg" alt="" width=80% style="display: block;margin: 0 auto;"/>
-						<figcaption>Example left flank, credit Don Silcock</figcaption>
-					</figure>
-				</div>
-				<div class="col-xs-12 col-lg-6">
-					<figure>
-						<img src="images/spotashark/Good-Right-Flank-JayneJenkins.jpg" alt="" width=80% style="display: block;margin: 0 auto;"/>
-						<figcaption>Example right flank, credit Jayne Jenkins</figcaption>
-					</figure>
-				</div>
-			</div>
-		</div>
-		<div class="row">
-		<div class="col-xs-12 col-lg-12">
-			<label class="text-danger control-label">Flank</label>:
-			<div class='wrapper text-center'>
-				<div class="btn-group" data-toggle="buttons">
-					<label class="btn btn-secondary flank-btn active">
-						<input type="radio" name="flank" value="L" id="L" checked="checked"> Left
-					</label>
-					<label class="btn btn-secondary flank-btn">
-						<input type="radio" name="flank" value="R" id="R"> Right
-					</label>
-				</div>
-			</div>
-		</div>
-		</div>
-	<div class="row">
-	</br><br>
-		<div class="form-group">
-			<div class="col-xs-12 col-lg-12">
-				<h3>Hookmark</h3>
-				<p class="text-danger">Is a hookmark or scar noticable in your photo?</p>
-			</div>
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label">Scarring/hookmark:</label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<select class="form-control" name="hookmark" id="hookmark">
-					<option value="N" selected="selected">None</option>
-					<option value="H">Hooked</option>
-					<option value="O">Marked</option>
-				</select>
-			</div>
-		</div>
-	</div>
-	</fieldset>
-
-
-
-		
-  
 
   <hr/>
 
@@ -961,7 +804,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
           </div>
         </div>
         </fieldset>
- 
+        <hr>
         <fieldset>
 <%
 
@@ -1043,6 +886,15 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         </div>
 
 
+           <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_scars") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="scars" type="text" id="scars" size="75">
+          </div>
+        </div>
 
 <%
 
@@ -1109,8 +961,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
   </tr>
   <c:forEach items="${items}" var="item">
-  <!--the below line makes it so that temp is not listed here (temp is listed above)-->
-	<c:if test="${item.label!='Temp.'}">
     <tr>
     <td>${item.label}</td>
     <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
@@ -1125,7 +975,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </td>
     </c:if>
     </tr>
-    	</c:if>
   </c:forEach>
   </table>
    </div>
@@ -1134,15 +983,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:if>
 
 
-	<hr/>
-
-		<fieldset>
-			<div class="col-xs-12 col-lg-8">
-				<h3>Number of sharks at cave</h3>
-				<p class="help-block">If photographed near the cave, about how many sharks did you see there? Leave blank if not applicable.</p>
-				<input name="nsharks" type="text" id="nsharks" size="40" class="form-control">
-			</div>
-		</fieldset>
 
 
       <hr/>
