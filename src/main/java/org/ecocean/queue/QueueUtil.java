@@ -56,7 +56,7 @@ public class QueueUtil {
                         System.out.println("WARNING: swallowed IOException from message handler: " + ioex.toString());
                     }
                 }
-System.out.println("count=" + count + "; handled-ok=" + ok + "; cont=" + cont + "; msg=" + message);
+//////System.out.println("count=" + count + "; handled-ok=" + ok + "; cont=" + cont + "; msg=" + message);
                 ////TODO what does !ok mean for us here????  we dont really have ACK like rabbitmq.... so... ????
                 if (!cont) {
                     System.out.println(":::: " + queue.toString() + " shutdown via discontinue signal ::::");
