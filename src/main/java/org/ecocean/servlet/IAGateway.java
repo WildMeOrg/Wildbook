@@ -1111,4 +1111,65 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
         return IAQueue;
     }
 
+
+
+    //TODO clean this up!  now that this is moved here, there is probably lots of redundancy with above no?
+    public static void processQueueMessage(String message) {
+        if (message == null) return;
+        JSONObject jobj = null;
+        try {
+            jobj = new JSONObject(message);
+        } catch (org.json.JSONException jex) {
+            System.out.println("WARNING: IAGateway.processQueueMessage() failed to parse json from '" + message + "' - " + jex.toString());
+            return;
+        }
+        if (jobj == null) return;  //would this ever happen? #bsts
+
+        //this must have a taskId coming in, cuz otherwise how would (detached, async) caller know what it is!
+        // __context and __baseUrl should be set -- this is done automatically in IAGateway, but if getting here by some other method, do the work!
+        if ((jobj.optJSONObject("detect") != null) && (jobj.optString("taskId", null) != null)) {
+            JSONObject res = new JSONObject("{\"success\": false}");
+            res.put("taskId", jobj.getString("taskId"));
+            String context = jobj.optString("__context", "context0");
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("IAGateway.processQueueMessage.detect");
+            myShepherd.beginDBTransaction();
+            String baseUrl = jobj.optString("__baseUrl", null);
+            try {
+                JSONObject rtn = IAGateway._doDetect(jobj, res, myShepherd, baseUrl);
+                System.out.println("INFO: IAGateway.processQueueMessage() 'detect' successful --> " + rtn.toString());
+                myShepherd.commitDBTransaction();
+            } catch (Exception ex) {
+                System.out.println("ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " + ex.toString());
+                myShepherd.rollbackDBTransaction();
+            }
+            myShepherd.closeDBTransaction();
+
+        } else if ((jobj.optJSONObject("identify") != null) && (jobj.optString("taskId", null) != null)) {  //ditto about taskId
+System.out.println("identify TOP!");
+            JSONObject res = new JSONObject("{\"success\": false}");
+            res.put("taskId", jobj.getString("taskId"));
+            String context = jobj.optString("__context", "context0");
+System.out.println(" > context = " + context);
+System.out.println(" > taskId = " + jobj.getString("taskId"));
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("IAGateway.processQueueMessage.identify");
+            myShepherd.beginDBTransaction();
+            String baseUrl = jobj.optString("__baseUrl", null);
+System.out.println("--- BEFORE _doIdentify() ---");
+            try {
+                JSONObject rtn = IAGateway._doIdentify(jobj, res, myShepherd, context, baseUrl);
+                System.out.println("INFO: IAGateway.processQueueMessage() 'identify' from successful --> " + rtn.toString());
+                myShepherd.commitDBTransaction();
+            } catch (Exception ex) {
+                System.out.println("ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " + ex.toString());
+                myShepherd.rollbackDBTransaction();
+            }
+            myShepherd.closeDBTransaction();
+
+        } else {
+            System.out.println("WARNING: IAGateway.processQueueMessage() unable to use json data in '" + message + "'; ignoring");
+        }
+    }
+
 }

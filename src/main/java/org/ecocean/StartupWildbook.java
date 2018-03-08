@@ -130,7 +130,7 @@ public class StartupWildbook implements ServletContextListener {
     private void startIAQueue(String context) {
         class IAMessageHandler extends QueueMessageHandler {
             public boolean handler(String msg) {
-                System.out.println("FAKE IAMESSAGEHANDLER ************************[" + msg + "]*********************");
+                org.ecocean.servlet.IAGateway.processQueueMessage(msg);  //yeah we need to move this somewhere else...
                 return true;
             }
         }
