@@ -31,6 +31,7 @@ import org.ecocean.Cluster;
 import org.ecocean.Resolver;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
+import org.ecocean.queue.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -62,6 +63,8 @@ public class IAGateway extends HttpServlet {
     private static final int ERROR_CODE_NO_REVIEWS = 410;
 
     private static final int IDENTIFICATION_REVIEWS_BEFORE_SEND = 2;
+
+    private static Queue IAQueue = null;
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -489,7 +492,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         } else {
             j.put("taskId", taskId);
         }
-        boolean ok = addToQueue(j.toString());
+        boolean ok = addToQueue(context, j.toString());
         if (ok) {
             System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
             res.remove("error");
@@ -1096,10 +1099,16 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
         return cts;
     }
 
-    public static boolean addToQueue(String content) throws IOException {
-        //TODO find IA QUEUE!!!!   queue.publish(content);
-System.out.println("FAKE ADD TO QUEUE: " + content);
+    public static boolean addToQueue(String context, String content) throws IOException {
+System.out.println("IAGateway.addToQueue() publishing: " + content);
+        getIAQueue(context).publish(content);
         return true;
+    }
+
+    public static Queue getIAQueue(String context) throws IOException {
+        if (IAQueue != null) return IAQueue;
+        IAQueue = QueueUtil.getBest(context, "IA");
+        return IAQueue;
     }
 
 }
