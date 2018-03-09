@@ -1,7 +1,5 @@
 package org.ecocean.queue;
 
-import java.util.Properties;
-import org.ecocean.ShepherdProperties;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 import com.rabbitmq.client.Connection;
@@ -29,19 +27,17 @@ public class RabbitMQQueue extends Queue {
     private boolean wantsShutdown = false;
 
     public static boolean isAvailable(String context) {
-        Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
-        if (props == null) return false;
         /*
             the "rabbitmq_enabled" is *optional* for general use but provided in the event all other rabbitmq_* 
             properties are unnecessary because the defaults are sufficient
         */
-        if ("true".equals(props.getProperty("rabbitmq_enabled"))) return true;
+        if ("true".equals(Queue.getProperty(context, "rabbitmq_enabled"))) return true;
         //otherwise, i guess we will assume we need one of these??
         return (
-            (props.getProperty("rabbitmq_virtualhost") != null) ||
-            (props.getProperty("rabbitmq_host") != null) ||
-            (props.getProperty("rabbitmq_username") != null) ||
-            (props.getProperty("rabbitmq_password") != null)
+            (getVirtualHost(context, null) != null) ||
+            (getHost(context, null) != null) ||
+            (getUsername(context, null) != null) ||
+            (getPassword(context, null) != null)
         );
     }
 
@@ -62,15 +58,13 @@ public class RabbitMQQueue extends Queue {
 
     public static synchronized void init(String context) throws java.io.IOException {
         if (factory != null) return;
-        Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
-        if (props == null) throw new java.io.IOException("no queue.properties");
         try {
             factory = new ConnectionFactory();
-            factory.setUsername(props.getProperty("rabbitmq_username", "guest"));
-            factory.setPassword(props.getProperty("rabbitmq_password", "guest"));
-            factory.setVirtualHost(props.getProperty("rabbitmq_virtualhost", "/"));
-            factory.setHost(props.getProperty("rabbitmq_host", "localhost"));
-            factory.setPort(Integer.parseInt(props.getProperty("rabbitmq_port", "5672")));
+            factory.setUsername(getUsername(context, "guest"));
+            factory.setPassword(getPassword(context, "guest"));
+            factory.setVirtualHost(getVirtualHost(context, "/"));
+            factory.setHost(getHost(context, "localhost"));
+            factory.setPort(getPort(context, "5672"));
             checkConnection();
         } catch (java.util.concurrent.TimeoutException toex) {
             throw new java.io.IOException("RabbitMQ.init() TimeoutException: " + toex.toString());
@@ -134,5 +128,25 @@ System.out.println("RabbitMQQueue.consume(): " + deliveryTag + "; " + contentTyp
 
 
     public String getNext() throws java.io.IOException { return null; }  //NOOP
+
+
+    private static String getVirtualHost(String context, String def) {
+        return Queue.getProperty(context, "rabbitmq_virtualhost", def);
+    }
+    private static String getHost(String context, String def) {
+        return Queue.getProperty(context, "rabbitmq_host", def);
+    }
+    private static String getUsername(String context, String def) {
+        return Queue.getProperty(context, "rabbitmq_username", def);
+    }
+    private static String getPassword(String context, String def) {
+        return Queue.getProperty(context, "rabbitmq_password", def);
+    }
+    private static int getPort(String context, String def) {
+        try {
+            return Integer.parseInt(Queue.getProperty(context, "rabbitmq_port", def));
+        } catch (Exception ex) { }
+        return -1;
+    }
 
 }

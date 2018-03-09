@@ -1,4 +1,6 @@
 package org.ecocean.queue;
+import java.util.Properties;
+import org.ecocean.ShepherdProperties;
 
 /*
 
@@ -35,6 +37,29 @@ public abstract class Queue {
 
     public boolean isConsumerShutdownMessage(String msg) {
         return "SHUTDOWN".equals(msg);
+    }
+
+    public static String getProperty(String context, String label) {  //no-default flavor
+        return getProperty(context, label, null);
+    }
+
+    public static String getProperty(String context, String label, String def) {
+        Properties qp = getProperties(context);
+        if (qp == null) {
+            System.out.println("Queue.getProperty(" + label + ") has no properties; queue.properties unavailable?");
+            return null;
+        }
+        return qp.getProperty(label, def);
+    }
+    //note, we could cache this in static hashmap (based on context) but that would lose ability to alter without reloading tomcat
+    //  tho changing *without restarting tomcat* is probably bad anyway!  since the listeners would already be running etc... :/
+    private static Properties getProperties(String context) {
+        try {
+            return ShepherdProperties.getProperties("queue.properties", "", context);
+        } catch (Exception ex) {
+            //System.out.println("Queue.getProperties() failed: " + ex.toString());  //NPE seems to mean no queue.properties file exists
+            return null;
+        }
     }
 
     public String getType() {

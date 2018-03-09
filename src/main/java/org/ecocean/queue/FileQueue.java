@@ -1,7 +1,5 @@
 package org.ecocean.queue;
 
-import java.util.Properties;
-import org.ecocean.ShepherdProperties;
 import org.ecocean.Util;
 import org.ecocean.CommonConfiguration;
 import java.io.File;
@@ -9,7 +7,6 @@ import org.ecocean.servlet.ServletUtilities;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-//import javax.servlet.ServletContext;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.Files;
@@ -43,19 +40,13 @@ public class FileQueue extends Queue {
     }
 
     public static synchronized void init(String context) throws IOException {
-/*  these are actually optional for FileQueue
-        Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
-        if (props == null) throw new IOException("no queue.properties");
-*/
         File qd = setQueueDir(context);
         if (qd == null) throw new IOException("ERROR: unable to FileQueue.setQueueDir()");
         System.out.println("[INFO] FileQueue.init() complete");
     }
 
     public static File setQueueDir(String context) throws IOException {
-        String qd = null;
-        Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
-        if (props != null) qd = props.getProperty("filequeue_basedir");
+        String qd = Queue.getProperty(context, "filequeue_basedir");
         if (qd == null) qd = CommonConfiguration.getProperty("ScheduledQueueDir", "context0");  //legacy
 
         if (qd == null) {  //lets try to make one *somewhere*
