@@ -88,12 +88,16 @@ public class WorkAppletHeadlessEpic {
   public static void main(String args[]) {
 
     urlArray.add("https://www.whaleshark.org");
-    urlArray.add("http://www.spotashark.com");
+    
+    //addresses for spotashark-related wildbooks
+    //urlArray.add("http://www.spotashark.com");
+    //urlArray.add("http://ncaquariums.wildbook.org");
+    
     // IP for Bass Server
-    urlArray.add("http://34.209.17.78");
+    //urlArray.add("http://34.209.17.78");
 
     WorkAppletHeadlessEpic a = new WorkAppletHeadlessEpic();
-    if(args[0]!=null)urlArray.add(args[0]);
+    //if(args[0]!=null)urlArray.add(args[0]);
     a.getGoing();
   }
 
@@ -169,7 +173,8 @@ public class WorkAppletHeadlessEpic {
             long sleepTime=30000;
             
             //allow 55 minutes
-            long allowedDiff=55*60*1000;
+            //update 2017-11-08 AWS now allows per-second billing, so limit this way down to maximum 180 seconds (two polling intervals)
+            long allowedDiff=3*60*1000;
             
            
             
