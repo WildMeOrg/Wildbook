@@ -2245,10 +2245,7 @@
     <servlet-class>org.ecocean.servlet.EncounterVMData</servlet-class>
   </servlet>
 
-  <servlet-mapping>
-    <servlet-name>EncounterVMData</servlet-name>
-    <url-pattern>/EncounterVMData</url-pattern>
-  </servlet-mapping>
+
 
 
 </web-app>
