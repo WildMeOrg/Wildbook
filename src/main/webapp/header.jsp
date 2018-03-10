@@ -40,7 +40,7 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 
@@ -85,7 +85,7 @@ System.out.println("");
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-      <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
+      <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
 
       <%
@@ -251,7 +251,7 @@ System.out.println("");
             						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
             						String myLang=supportedLanguages.get(h);
             					%>
-            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="//<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
             						<script type="text/javascript">
 
             							$( "#flag_<%=myLang%>" ).click(function() {
