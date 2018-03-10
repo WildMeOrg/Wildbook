@@ -580,6 +580,11 @@ public class Util {
       File f = new File(filepath);
       return (f.exists() && !f.isDirectory());
     }
+    
+    // convenience method for comparing string values
+    public static boolean shouldReplace(String val1, String val2) {
+      return (stringExists(val1) && !stringExists(val2));
+    }
 
 
 }
