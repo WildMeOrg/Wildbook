@@ -9,6 +9,7 @@ java.io.InputStreamReader,
 java.io.File,
 org.json.JSONObject,
 org.json.JSONArray,
+org.json.JSONException,
 java.net.URL,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.identity.IBEISIA,
@@ -56,7 +57,11 @@ System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. .
 
 	Runnable r = new Runnable() {
 		public void run() {
-			tryToGet(jobID, context, request);
+			try {
+				tryToGet(jobID, context, request);
+			} catch (Exception ex) {
+				System.out.println("tryToGet(" + jobID + ") got exception " + ex);
+			}
 //myShepherd.rollbackDBTransaction();
 //myShepherd.closeDBTransaction();
 		}
@@ -66,13 +71,13 @@ System.out.println("((( done runIt() )))");
 	return;
 }
  
-private void tryToGet(String jobID, String context, HttpServletRequest request) {
+private void tryToGet(String jobID, String context, HttpServletRequest request) throws JSONException {
 System.out.println("<<<<<<<<<< tryToGet(" + jobID + ")----");
 	JSONObject statusResponse = new JSONObject();
 //if (jobID != null) return;
 
 	try {
-		statusResponse = IBEISIA.getJobStatus(jobID);
+		statusResponse = IBEISIA.getJobStatus(jobID, context);
 	} catch (Exception ex) {
 System.out.println("except? " + ex.toString());
 		statusResponse.put("_error", ex.toString());
@@ -111,7 +116,7 @@ try {
             "completed".equals(statusResponse.getJSONObject("response").getString("jobstatus")) &&
             "ok".equals(statusResponse.getJSONObject("response").getString("exec_status"))) {
 System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
-		JSONObject resultResponse = IBEISIA.getJobResult(jobID);
+		JSONObject resultResponse = IBEISIA.getJobResult(jobID, context);
 		JSONObject rlog = new JSONObject();
 		rlog.put("jobID", jobID);
 		rlog.put("_action", "getJobResult");
