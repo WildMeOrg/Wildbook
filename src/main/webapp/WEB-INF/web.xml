@@ -220,6 +220,7 @@
 				   /ImportSRGD = authc, roles[admin]
           /ImportAccess = authc, roles[admin]
           /StandardImport = authc, roles[admin]
+          /FixStandardImport = authc, roles[admin]
 
 
 				   /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
@@ -509,6 +510,10 @@
   <servlet>
     <servlet-name>StandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>FixStandardImport</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
   </servlet>
 
 
@@ -1611,6 +1616,11 @@
   <servlet-mapping>
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+      <servlet-name>FixStandardImport</servlet-name>
+      <url-pattern>/FixStandardImport</url-pattern>
   </servlet-mapping>
 
 
