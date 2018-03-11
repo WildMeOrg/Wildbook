@@ -44,12 +44,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 
-System.out.println("");
-System.out.println("    HeaderJsp is starting and this is a G. D. headache");
-System.out.println("");
-
-
-
 String username = null;
 User user = null;
 boolean indocetUser = false;
@@ -58,7 +52,6 @@ if(request.getUserPrincipal()!=null){
 
   user = myShepherd.getUser(request);
   username = (user!=null) ? user.getUsername() : null;
-  System.out.println("    HeaderJsp has user "+username);
   indocetUser = (user!=null && user.hasAffiliation("indocet"));
 
   //finally{
@@ -66,9 +59,6 @@ if(request.getUserPrincipal()!=null){
     myShepherd.closeDBTransaction();
   //}
 }
-System.out.println("");
-System.out.println("    HeaderJsp done, user "+username+" is indocetUser="+indocetUser);
-System.out.println("");
 %>
 
 
@@ -90,7 +80,6 @@ System.out.println("");
 
       <%
       if (indocetUser) {
-        System.out.println("    header.jsp found indocetuser!!! including custom style");
         %><link rel="stylesheet" href="<%=urlLoc %>/cust/indocet/overwrite.css" /><%
       }
       %>
