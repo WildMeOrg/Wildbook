@@ -325,11 +325,11 @@ public class Survey implements java.io.Serializable{
     return null;
   }
   
-  public ArrayList<Observation> getBaseObservationArrayList() {
+  public ArrayList<Observation> getObservationArrayList() {
     return observations;
   }
 
-  public void addBaseObservationArrayList(ArrayList<Observation> arr) {
+  public void addObservationArrayList(ArrayList<Observation> arr) {
     if (observations.isEmpty()) {
       observations=arr;      
     } else {

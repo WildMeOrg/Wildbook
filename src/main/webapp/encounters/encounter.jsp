@@ -4737,64 +4737,46 @@ $(document).ready(function() {
 
 <script type="text/javascript">
 $(document).ready(function() {
-  var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
-    buttons.toggle();
-  });
-  $("#editDynamic").click(function() {
-    $(".editFormDynamic").show();
+	
+  	var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
+    	buttons.toggle();
+ 	});
+	
+  	$("#editDynamic").click(function() {
+		$(".editFormObservation, #addObservationForm, #observationAdd").show();
+  	});
 
-  });
-
-  $("#closeEditDynamic").click(function() {
-    $(".editFormDynamic, .editTextDynamic, .resultMessageDiv").hide();
-  });
+  	$("#closeEditDynamic").click(function() {
+		$(".editFromObservation, #observationAdd, #addObservationForm").hide();
+  	});
 });
 </script>
-
-
 				<%
 					} else {
 				%>
 				<h2>
 					<img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
 					<%=encprops.getProperty("dynamicProperties")%></h2>
-
-				<%
-					}
-				%>
-
-
-
-
-				<%
-					if (isOwner) {
-				%>
-
 				<%
 					}
 							// Let's make a list of editable Observations... Dynamically!
-							if (enc.getBaseObservationArrayList() != null) {
-								ArrayList<Observation> obs = enc.getBaseObservationArrayList();
+							if (enc.getObservationArrayList() != null) {
+								ArrayList<Observation> obs = enc.getObservationArrayList();
 								System.out.println("Observations ... "+obs);
-								int numObservations = enc.getBaseObservationArrayList().size();
+								int numObservations = enc.getObservationArrayList().size();
 								for (Observation ob : obs) {
-									
-									
+																
 									String nm = ob.getName();
 									String vl = ob.getValue();
 				%>
 				<p class="para">
 					<em><%=nm%></em>:
 					<%=vl%>
-
-					<%
-						
-					%>
 					<!-- Start dynamic (Observation) form. -->
 					<!-- REMEMBER! These observations use a lot of legacy front end html etc from the deprecated dynamic properties! -->
 				<div id="dialogDP<%=nm%>"
 					title="<%=encprops.getProperty("set")%> <%=nm%>"
-					class="editFormDynamic">
+					class="editFormObservation">
 					<p class="editTextDynamic">
 						<strong><%=encprops.getProperty("set")%> <%=nm%></strong>
 					</p>
@@ -4802,7 +4784,7 @@ $(document).ready(function() {
 						<em><small><%=encprops.getProperty("setDPMessage")%></small></em>
 					</p>
 
-					<form name="addDynProp" action="../BaseClassSetObservation"
+					<form name="addDynProp" action="../EncounterSetObservation"
 						method="post" class="editFormDynamic">
 						<input name="name" type="hidden" value="<%=nm%>" /> 
 						<input name="number" type="hidden" value="<%=num%>" />
@@ -4816,7 +4798,7 @@ $(document).ready(function() {
 								<input name="value" type="text" class="form-control"
 									id="dynInput" value="<%=vl%>" />
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-4">	
 								<input name="Set" type="submit" id="dynEdit"
 									value="<%=encprops.getProperty("initCapsSet")%>"
 									class="btn btn-sm editFormBtn" />
@@ -4851,7 +4833,7 @@ $(document).ready(function() {
 				<%
 					}
 				%>
-				<div id="dialogDPAdd"
+				<div id="observationEdit"
 					title="<%=encprops.getProperty("addDynamicProperty")%>"
 					class="editFormDynamic">
 					<p class="editTextDynamic">
