@@ -307,10 +307,10 @@ if (sv!=null) {
 				<%
 						// Let's make a list of editable Observations... Dynamically!
 						
-				if (sv!=null&&sv.getBaseObservationArrayList()!=null) {
-					ArrayList<Observation> obs = sv.getBaseObservationArrayList();
+				if (sv!=null&&sv.getObservationArrayList()!=null) {
+					ArrayList<Observation> obs = sv.getObservationArrayList();
 					//System.out.println("Observations ... "+obs);
-					int numObservations = sv.getBaseObservationArrayList().size();
+					int numObservations = sv.getObservationArrayList().size();
 					for (Observation ob : obs) {
 						
 						String nm = ob.getName();

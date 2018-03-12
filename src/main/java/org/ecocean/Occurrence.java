@@ -969,10 +969,10 @@ public class Occurrence implements java.io.Serializable {
       catch(Exception e){e.printStackTrace();}
       return false;
     }
-    public ArrayList<Observation> getBaseObservationArrayList() {
+    public ArrayList<Observation> getObservationArrayList() {
       return observations;
     }
-    public void addBaseObservationArrayList(ArrayList<Observation> arr) {
+    public void addObservationArrayList(ArrayList<Observation> arr) {
       if (observations.isEmpty()) {
         observations=arr;      
       } else {

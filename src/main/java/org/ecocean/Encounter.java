@@ -3149,10 +3149,10 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return results;
     }
 
-    public ArrayList<Observation> getBaseObservationArrayList() {
+    public ArrayList<Observation> getObservationArrayList() {
       return observations;
     }
-    public void addBaseObservationArrayList(ArrayList<Observation> arr) {
+    public void addObservationArrayList(ArrayList<Observation> arr) {
       if (observations.isEmpty()) {
         observations=arr;      
       } else {

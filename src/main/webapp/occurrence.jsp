@@ -541,10 +541,10 @@ context=ServletUtilities.getContext(request);
 					}
 							// Let's make a list of editable Observations... Dynamically!
 							
-					if (occ.getBaseObservationArrayList() != null) {
-						ArrayList<Observation> obs = occ.getBaseObservationArrayList();
+					if (occ.getObservationArrayList() != null) {
+						ArrayList<Observation> obs = occ.getObservationArrayList();
 						System.out.println("Observations ... "+obs);
-						int numObservations = occ.getBaseObservationArrayList().size();
+						int numObservations = occ.getObservationArrayList().size();
 						for (Observation ob : obs) {
 							
 							String nm = ob.getName();

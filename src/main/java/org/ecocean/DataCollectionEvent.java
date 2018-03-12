@@ -110,7 +110,7 @@ public void setCorrespondingOccurrenceNumber(String occurrenceNumber){
   setCorrespondingEncounterNumber(occurrenceNumber);
 }
 
-public void addBaseObservationArrayList(ArrayList<Observation> arr) {
+public void addObservationArrayList(ArrayList<Observation> arr) {
   if (observations.isEmpty()) {
     observations=arr;      
   } else {
