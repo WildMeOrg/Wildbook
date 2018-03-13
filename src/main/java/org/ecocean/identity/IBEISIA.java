@@ -296,7 +296,7 @@ System.out.println("     free ride :)");
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + baseUrl + "/IBEISIAGetJobStatus.jsp");
 System.out.println("tlist.size()=" + tlist.size());
-System.out.println(map);
+//System.out.println(map);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
         return RestClient.post(url, hashMapToJSONObject2(map));
@@ -1145,7 +1145,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
     }
 
     public static JSONObject processCallback(String taskID, JSONObject resp, HttpServletRequest request) {
-System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
+if (resp != null) System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp.toString().substring(0,200));
         JSONObject rtn = new JSONObject("{\"success\": false}");
         rtn.put("taskId", taskID);
         if (taskID == null) return rtn;
