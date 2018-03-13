@@ -2468,6 +2468,48 @@ public class Shepherd {
     }
   }
 
+  public int getNumEncountersWithSpotDataBySide(String side) {
+    pm.getFetchPlan().setGroup("count");
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    String filter = "";
+    if (side.toLowerCase().equals("left")) {
+      filter = "this.spots != null";
+    } else {
+      filter = "this.rightSpots != null";
+    }
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    int num = 0;
+    try {
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+
+      num = c.size();
+      acceptedEncounters.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedEncounters.closeAll();
+      return 0;
+    }
+  }
+
+  public int getNumIndividualsWithSpotDataBySide(String side) {
+    int num = 0;
+    Iterator<MarkedIndividual> indys = this.getAllMarkedIndividuals();
+    while (indys.hasNext()) {
+      MarkedIndividual indy = indys.next();
+      if (side.toLowerCase().equals("left")) {
+        if (indy.getNumberTrainableEncounters()>0) {
+          num++;
+        }
+      } else if (side.toLowerCase().equals("right")) {
+        if (indy.getNumberRightTrainableEncounters()>0) {
+          num++;
+        }
+      }
+    }
+    return num;
+  }
 
   public int getNumRejectedEncounters() {
     Extent allEncounters = null;

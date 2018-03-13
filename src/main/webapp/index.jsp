@@ -381,8 +381,13 @@ $(window).scroll(function(){
 
 
 //let's quickly get the data we need from Shepherd
-
+System.out.println("--(((((***** The New Variables *****)))))-- ");
 int numMarkedIndividuals=0;
+int numIndyLeftID = 0;
+int numIndyRightID = 0;
+int numEncLeftID = 0;
+int numEncRightID = 0;
+
 int numEncounters=0;
 int numDataContributors=0;
 
@@ -397,10 +402,27 @@ myShepherd.beginDBTransaction();
 
 
 try{
-
-
+	System.out.println("Looking for Enc and Indys's with spots...");
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+
     numEncounters=myShepherd.getNumEncounters();
+	
+	try {
+		System.out.println("-- Checking Encs -- ");
+		numEncLeftID = myShepherd.getNumEncountersWithSpotDataBySide("left");
+		numEncLeftID = myShepherd.getNumEncountersWithSpotDataBySide("right");
+	} catch (NullPointerException npe) {
+		npe.printStackTrace();
+	}
+
+	try {
+		System.out.println("-- Checking Indy's -- ");
+		numIndyLeftID = myShepherd.getNumIndividualsWithSpotDataBySide("left");
+		numIndyLeftID = myShepherd.getNumIndividualsWithSpotDataBySide("right");
+	} catch (NullPointerException npe) {
+		npe.printStackTrace();
+	}
+
     numDataContributors=myShepherd.getNumUsers();
     
     //This should get the number of unique emails from encounter submissions for a ROUGH estimate of contributing individuals. 
@@ -679,7 +701,6 @@ finally{
                     finally{myShepherd.rollbackDBTransaction();}
 
                    %>
-
                     </ul>
                     <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
                 </div>
@@ -694,15 +715,39 @@ finally{
 <div class="container-fluid">
     <section class="container text-center  main-section">
         <div class="row">
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+
+
+			<!-- add left and right side ID for encounters and Individuals - GSB branch -->
+
+            <section class="hidden-xs col-sm-1 col-md-1 col-lg-1 padding">
+            </section>
+
+            <section class="col-xs-12 col-sm-2 col-md-2 col-lg-2 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedInd") %></i></p>
             </section>
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+
+			<section class="col-xs-6 col-sm-2 col-md-2 col-lg-2 padding">
+                <p class="brand-primary"><i><span class="numSpotted"><%=numIndyLeftID%></span><strong> <%=props.getProperty("leftIDIndNum") %></strong></i></p>
+                <p class="brand-primary"><i><span class="numSpotted"><%=numIndyRightID%></span><strong> <%=props.getProperty("rightIDIndNum") %></strong></i></p>
+            </section>
+
+
+
+            <section class="col-xs-6 col-sm-2 col-md-2 col-lg-2 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedEncs") %></i></p>
             </section>
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
 
+			<section class="col-xs-6 col-sm-2 col-md-2 col-lg-2 padding">
+                <p class="brand-primary"><i><span class="numSpotted"><%=numEncLeftID %></span><strong> <%=props.getProperty("leftIDEncNum") %></strong></i></p>
+                <p class="brand-primary"><i><span class="numSpotted"><%=numEncRightID %></span><strong> <%=props.getProperty("rightIDEncNum") %></strong></i></p>
+            </section>
+
+
+            <section class="col-xs-12 col-sm-2 col-md-2 col-lg-2 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numCitScientists%></span> <%=props.getProperty("citScientists") %></i></p>
+            </section>
+
+			<section class="hidden-xs col-sm-1 col-md-1 col-lg-1 padding">
             </section>
         </div>
 
