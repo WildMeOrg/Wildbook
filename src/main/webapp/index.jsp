@@ -732,13 +732,13 @@ finally{
 			</section>
 
 			<section class="hidden-xs col-sm-6 col-md-6 col-lg-6 padding">
-                <p class="brand-primary"><i><span class="numSpotted"><%=numIndyLeftID%></span><strong> <%=props.getProperty("leftIDIndNum") %></strong></i></p>
-                <p class="brand-primary"><i><span class="numSpotted"><%=numIndyRightID%></span><strong> <%=props.getProperty("rightIDIndNum") %></strong></i></p>
+                <p class="brand-primary"><i><span class="numSpotted"><%=numIndyLeftID%></span>&nbsp;&nbsp;<%=props.getProperty("leftIDIndNum") %></i></p>
+                <p class="brand-primary"><i><span class="numSpotted"><%=numIndyRightID%></span>&nbsp;&nbsp;<%=props.getProperty("rightIDIndNum") %></i></p>
             </section>
 
 			<section class="hidden-xs col-sm-6 col-md-6 col-lg-6 padding">
-                <p class="brand-primary"><i><span class="numSpotted"><%=numEncLeftID %></span><strong> <%=props.getProperty("leftIDEncNum") %></strong></i></p>
-                <p class="brand-primary"><i><span class="numSpotted"><%=numEncRightID %></span><strong> <%=props.getProperty("rightIDEncNum") %></strong></i></p>
+                <p class="brand-primary"><i><span class="numSpotted"><%=numEncLeftID %></span>&nbsp;&nbsp;<%=props.getProperty("leftIDEncNum") %></i></p>
+                <p class="brand-primary"><i><span class="numSpotted"><%=numEncRightID %></span>&nbsp;&nbsp;<%=props.getProperty("rightIDEncNum") %></i></p>
             </section>
 
         </div>
@@ -765,7 +765,8 @@ finally{
 </div>
 
 <div class="container main-section">
-    <h2 class="section-header"><%= props.getProperty("gMapHeader") %></h2>
+	<h2 class="section-header"><%= props.getProperty("gMapHeader") %></h2>
+	<p class="gMapNote"><small><%= props.getProperty("gMapNote") %></small></p>
 
       <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
 
