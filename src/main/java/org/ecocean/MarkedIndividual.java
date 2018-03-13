@@ -652,6 +652,14 @@ public class MarkedIndividual implements java.io.Serializable {
     Arrays.sort(encs2, dc);
     return encs2;
   }
+  public Encounter[] getDateSortedEncounters(int limit) {
+    return (getDateSortedEncounters(false, limit));
+  }
+
+  public Encounter[] getDateSortedEncounters(boolean reverse, int limit) {
+    Encounter[] allEncs = getDateSortedEncounters(reverse);
+    return (Arrays.copyOfRange(allEncs, 0, Math.max(limit,allEncs.size()));
+  }
 
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters() {return getDateSortedEncounters(false);}
