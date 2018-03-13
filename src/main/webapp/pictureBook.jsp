@@ -102,12 +102,17 @@ s
 			display: none;
 		}
 	}
+	.pictureBook-table {
+		white-space: nowrap; /*prevents cells from being 2 rows of text tall*/
+	}
 	.pictureBook-table, .pictureBook-table th, .pictureBook-table td {
 		border: 1px solid black;
 	}
-	.pictureBook-table th {
-		padding-left: 1em;
-		padding-right: 1em;
+	.pictureBook-table th, .pictureBook-table td {
+		padding-left: 0.8em;
+		padding-right: 0.8em;
+		padding-top: 0.1em;
+		padding-bottom: 0.1em;
 	}
 	td.checkboxInput {
 		text-align: center; /* center checkbox horizontally */
