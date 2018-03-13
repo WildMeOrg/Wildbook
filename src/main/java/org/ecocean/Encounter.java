@@ -1880,6 +1880,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
     return null;
   }
+  public boolean hasDynamicProperty(String name) {
+    return ( this.getDynamicPropertyValue(name) != null );
+  }
 
   public void removeDynamicProperty(String name) {
     name = name.replaceAll(";", "_").trim().replaceAll("%20", " ");
