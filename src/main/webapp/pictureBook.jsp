@@ -11,6 +11,14 @@ org.datanucleus.api.rest.RESTUtils,
 org.datanucleus.api.jdo.JDOPersistenceManager,
 org.datanucleus.api.rest.orgjson.JSONObject" %>
 
+<%!
+// basically imageDisplayTools.mkImg(maJson).
+// defining this func in javaland makes the server call take longer but the client has less work to do
+
+
+
+%>
+
 
 
   <%
@@ -45,13 +53,22 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   %>
 	
 	<jsp:include page="header.jsp" flush="true"/>
-	
-	<script src="javascript/core.js"></script>
-	<script src="javascript/classes/Base.js"></script>
-s
+
+	<!-- not sure why we need backbone or underscore but we get errors without 'em -->
+	<script src="javascript/imageDisplayTools.js"></script>
+
 	<div class="container maincontent">
 
-		<h1 class="intro"> <%=props.getProperty("title")%> </h1>
+	<h1 class="intro"> <%=props.getProperty("title")%> </h1>
+
+
+	<p class="disclaimer"><em>Picturebook is under construction:<ul>
+		<li>Only 10 results shown</li>
+		<li>Please wait for the page to completely load</li>
+		<li>Scroll to the bottom of the page before printing, or some images will not render in pdf</li>
+	</ul></em></p>
+
+	<p class="instructions"> Your Flukebook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
 	
 	<p class="resultSummary">
 	<table width="810" border="0" cellspacing="0" cellpadding="0">
@@ -59,7 +76,7 @@ s
 	    <td align="left">
 
 	      <p><strong><%=props.getProperty("matchingMarkedIndividuals")%>
-	      </strong>: <span id="count-total"> <%=numResults%> </span>
+	      </strong>: <span id="count-total"> <%=numResults%> </span> (Displaying only <%=endNum%> for now)
 	      </p>
 	      <%myShepherd.beginDBTransaction();%>
 	      <p><strong><%=props.getProperty("totalMarkedIndividuals")%>
@@ -101,6 +118,17 @@ s
 		hr.pictureBook-pagebreak {
 			display: none;
 		}
+		body {
+			padding-top: 1cm;
+			padding-bottom: 1cm;
+			height: auto;
+  	}
+  	div.pictureBook-page {
+  		height: auto;
+  	}
+  	div.pictureBook-images {
+  		height: 40%;
+  	}
 	}
 	.pictureBook-table {
 		white-space: nowrap; /*prevents cells from being 2 rows of text tall*/
@@ -118,6 +146,9 @@ s
 		text-align: center; /* center checkbox horizontally */
     vertical-align: middle; /* center checkbox vertically */
 	}
+	span.pictureBook-MA {
+		display: none;
+	}
 </style>
 
 <div class="pictureBook-container">
@@ -130,6 +161,8 @@ s
 
 		String id = mark.getIndividualID();
 		String altID = mark.getAlternateID();
+		if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
+		String altIDStr = (Util.stringExists(altID)) ? ("<em>("+altID+")</em>") : "";
 
 		List<String> desiredKeywords = new ArrayList<String>();
 		desiredKeywords.add("Tail Fluke");
@@ -139,16 +172,85 @@ s
 
 		// commented out so that things are still fast while programmings---but this is tested and works
 		// this call is pretty slow
-		//ArrayList<JSONObject> exemplarImages = mark.getExemplarImagesWithKeywords(request, desiredKeywords);
+		ArrayList<JSONObject> exemplarImages = mark.getExemplarImagesWithKeywords(request, desiredKeywords);
+		boolean hasHeader = exemplarImages.size()>0;
+		String ma0Str = exemplarImages.get(0).toString();
+		boolean haspic2 = exemplarImages.size()>1;
+		boolean haspic3 = exemplarImages.size()>2;
 
 		%>
+		<style>
+		html, body {
+   		height: 100%;
+		}
+			div.pictureBook-page {
+			}
+			div.pictureBook-images {
+				max-height: 50%;
+				position: relative;
+			}
+			div.pictureBook-headerImage {
+				max-height: 25%;
+				position: relative;
+			}
+			div.pictureBook-headerImage img{
+		    display: block;
+		    margin-left: auto;
+		    margin-right: auto;
+			}
+			div.pictureBook-subImage {
+				max-height: 12.5%;
+				position: relative;
+			}
+			tr.pictureBook-subImages td {
+				width: 50%;
+			}
+			table.pictureBook-table {
+		    margin-left: auto;
+		    margin-right: auto;
+			}
+		</style>
+
+
 		<hr class="pictureBook-pagebreak">
 		<div class="pictureBook-page">
-			<h3>Individual ID: <%=id%></h3>
+			<h3>Individual ID: <%=id%> <%=altIDStr %></h3>
 
+			<div class="pictureBook-images">
+				<table>
+					<tr>
+						<td colspan="2">
+							<div class="pictureBook-headerImage">
+								<% if (hasHeader){
+								%><span class="pictureBook-headerMA pictureBook-MA" ><%=ma0Str%>
+								</span><%
+								} %>
+							</div>
+						</td>
+					</tr>
+					<tr class="pictureBook-subImages">
+						<td>
+							<div class="pictureBook-subImage">
+								<% if (haspic2){
+								%><span class="pictureBook-headerMA pictureBook-MA" ><%=exemplarImages.get(1).toString()%>
+								</span><%
+								} %>
+							</div>
+						</td>
+						<td>
+						<div class="pictureBook-subImage">
+							<% if (haspic3){
+							%><span class="pictureBook-headerMA pictureBook-MA" ><%=exemplarImages.get(2).toString()%>
+							</span><%
+							} %>
+						</div>
+					</td>
+					</tr>
+				</table>
+			</div>
 
 			<%
-			int encsPerTableLimit=10;
+			int encsPerTableLimit=8;
 			Encounter[] encs = mark.getDateSortedEncounters(encsPerTableLimit);
 			int numEncs = encs.length;
 			%>
@@ -224,4 +326,21 @@ s
 
 </div>
 
-<jsp:include page="footer.jsp" flush="true"/>
+<script>
+
+	var displayImages = function() {
+		$("span.pictureBook-headerMA").each(function() {
+			var jsonString = $(this).text();
+			var maJson = JSON.parse(jsonString);
+			console.log("pictureBook is displaying images for ma"+maJson.id);
+			var imgDisplay = maLib.mkImg(maJson);
+			$(this).parent().append(imgDisplay);
+		});
+	}
+
+	$( document ).ready(function() {
+		displayImages();
+	});
+</script>
+
+<jsp:include page="footer.jsp" flush="true"/> 
