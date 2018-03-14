@@ -303,7 +303,12 @@ console.log('%d -> (%d,%d)', i, xy[0], xy[1]);
 					this.lCtx.stroke();
 					this.lCtx.fillStyle = this.styles.spotFill;
 					this.lCtx.font = 'bold ' + (wscale * 15) + 'px Arial';
-					this.lCtx.fillText((this.spots[i].label || this.spots[i].type), (xy[0] + 8) * wscale, (xy[1] + 15) * wscale);
+					if(this.spots[i].label==="5th gill top"){
+						this.lCtx.fillText((this.spots[i].label || this.spots[i].type), (xy[0] + 8) * wscale, (xy[1] - 15) * wscale);
+					}
+					else{
+						this.lCtx.fillText((this.spots[i].label || this.spots[i].type), (xy[0] + 8) * wscale, (xy[1] + 15) * wscale);
+					}
 				}
 			}
 		};
