@@ -347,6 +347,8 @@ tr.clickable:hover .link-button {
 
 <script>
 var taskIds = [];
+var jobIdMap = {};
+
 function init2() {   //called from wildbook.init() when finished
 	parseTaskIds();
 	for (var i = 0 ; i < taskIds.length ; i++) {
@@ -373,6 +375,9 @@ console.warn('------------------- %s', tid);
 		dataType: 'json',
 		success: function(d) {
 			for (var i = 0 ; i < d.length ; i++) {
+				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
+					jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId };
+				}
 				//console.log('d[i].status._action --> %o', d[i].status._action);
 				if (d[i].status && d[i].status._action == 'getJobResult') {
 					showTaskResult(d[i]);
@@ -382,7 +387,7 @@ console.warn('------------------- %s', tid);
 					if (!mostRecent && d[i].status && d[i].status._action) mostRecent = d[i].status._action;
 				}
 			}
-			if (!gotResult) $('#task-' + tid).append('<p title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
+			if (!gotResult) $('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</></p>');
 console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on tid=%s', d, tid);
 		},
 		error: function(a,b,c) {
@@ -391,6 +396,33 @@ console.info('!!>> got %o', d);
 			$('#task-' + tid).append('<p class="error">there was an error with task ' + tid + '</p>');
 		}
 	});
+}
+
+
+function manualCallback(tid) {
+	var m = jobIdMap[tid];
+	if (!m || !m.jobId) return alert('Could not find jobid for ' + tid);
+	$('#wait-message-' + tid).html('<i>attempting to manually query IA</i>');
+	console.log(m);
+
+	$.ajax({
+		url: '../IBEISIAGetJobStatus.jsp?jobid=' + m.jobId,
+		type: 'GET',
+		dataType: 'json',
+		complete: function(x, stat) {
+			console.log('status = %o; xhr=%o', stat, x);
+			var msg = '<i>unknown results</i>';
+			if (x.responseJSON && x.responseJSON.continue) {
+				msg = '<b>tried to get results (<i>reload</i> to check)</b>';
+			} else if (x.responseJSON && !x.responseJSON.continue) {
+				msg = '<b>disallowed getting results (already tried and failed)</b>';
+			}
+			$('#wait-message-' + tid).html(msg + ' [returned status=<i title="' + x.responseText + '">' + stat + '</i>]');
+		}
+	});
+
+	$('#wait-message-' + tid).html(m.jobId);
+	//alert(m.jobId);
 }
 
 var RESMAX = 12;

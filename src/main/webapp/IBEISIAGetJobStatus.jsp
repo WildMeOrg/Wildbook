@@ -43,14 +43,53 @@ if ((jobID == null) || jobID.equals("")) {
 
 } else {
 
+	//this checks if we *already* have process this job (manually?) to prevent duplication (minus race conditions, sigh)
+	JSONObject rtn = checkJob(jobID, context, myShepherd);
+	if (!rtn.optBoolean("continue", false)) {
+		System.out.println("checkJob(" + jobID + ") claimed we should not continue; bailing");
+		out.println(rtn.toString());
+		return;
+	}
+
 	runIt(jobID, context, request);
-	out.println("{\"success\": true}");
+	out.println(rtn.toString());
 System.out.println("((((all done with main thread))))");
 }
 
 %>
 
 <%!
+
+private JSONObject checkJob(String jobID, String context, Shepherd myShepherd) {
+	JSONObject rtn = new JSONObject();
+	String taskId = IBEISIA.findTaskIDFromJobID(jobID, context);
+	if (taskId == null) {
+		rtn.put("success", false);
+		rtn.put("error", "unable to find taskId for jobId=" + jobID);
+		return rtn;
+	}
+	rtn.put("taskId", taskId);
+
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd);
+	boolean cont = true;
+	if (logs == null) {
+		rtn.put("message", "logs = null");
+	} else {
+		JSONArray arr = new JSONArray();
+		for (IdentityServiceLog l : logs) {
+			rtn.put("logTimestamp", l.getTimestamp());
+			JSONObject status = l.getStatusJson();
+			if ((status != null) && (status.optString("_action") != null)) {
+				if (status.getString("_action").equals("getJobStatus")) cont = false;
+				arr.put(status.getString("_action"));
+			}
+		}
+		rtn.put("actions", arr);
+	}
+	rtn.put("success", true);
+	rtn.put("continue", cont);
+	return rtn;
+}
 
 private void runIt(final String jobID, final String context, final HttpServletRequest request) {
 System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. . .................................");
