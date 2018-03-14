@@ -556,7 +556,7 @@ public class Util {
     }
 
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals(""));
+      return (str!=null && !str.equals("") && !str.equals("None"));
     }
     
     public static boolean hasProperty(String key, Properties props) {
