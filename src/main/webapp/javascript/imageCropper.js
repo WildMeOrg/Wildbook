@@ -2,11 +2,11 @@ var imageCropper = {};
 
 imageCropper.cropPics = function(selector, ratio) {
   var $parent = $( selector ).first().parent();
-  console.log("parent class = "+$parent.attr("class"));
+  //console.log("parent class = "+$parent.attr("class"));
   var image_width = $parent.width();
-  console.log("image_width = "+image_width);
+  //console.log("image_width = "+image_width);
   var desired_height = image_width * 1.0/ratio;
-  console.log("desired_height = "+desired_height);
+  //console.log("desired_height = "+desired_height);
   $( selector ).height(desired_height);
   $( selector+' img').css('min-height', desired_height.toString()+'px');
 

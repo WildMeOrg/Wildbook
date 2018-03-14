@@ -41,9 +41,12 @@ props = ShepherdProperties.getProperties("individuals.properties", langCode,cont
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 //some sorting and filtering work
-String sortString="";
+String sortParam = "";
+String sortString = "";
+
 if(request.getParameter("sort")!=null){
-	sortString="&sort="+request.getParameter("sort");
+  sortParam = request.getParameter("sort"); 
+	sortString = "&sort="+sortParam;
 }
 //locationCodeField
 String locationCodeFieldString="";
@@ -294,16 +297,53 @@ int numDataContributors=0;
 <h1><%=props.getProperty("gallery") %></h1>
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
-    <button type="button" class="btn-link"><a href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
+    <button type="button" class="btn-link recentSightings"><a class="recentSightings" href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
 
-    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
+    <button type="button" class="btn-link mostTraveled"><a class="mostTraveled" href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
 
-    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
+    <button type="button" class="btn-link mostSightings"><a class="mostSightings  " href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
     <!--  Placement for adoptable sharks button, in same format as above. -->
 
   </div>
 </nav>
+
+<script> 
+  $(document).ready(function() {
+    console.log("----- SortString? "+"<%=sortParam%>");
+
+    if ("dateTimeLatestSighting"==="<%=sortParam%>") {
+      $('.recentSightings').addClass('gallerySortActive');
+      $('.mostTraveled').removeClass('gallerySortActive');
+      $('.mostSightings').removeClass('gallerySortActive');
+    }
+
+    if ("numberLocations"==="<%=sortParam%>") {
+      $('.mostTraveled').addClass('gallerySortActive');
+      $('.recentSightings').removeClass('gallerySortActive');
+      $('.mostSightings').removeClass('gallerySortActive');
+    }
+
+    if ("numberEncounters"==="<%=sortParam%>"||""==="<%=sortParam%>") {
+      $('.mostSightings').addClass('gallerySortActive');
+      $('.mostTraveled').removeClass('gallerySortActive');
+      $('.recentSightings').removeClass('gallerySortActive');
+    }
+
+    $('.recentSightings').click(function() {
+      console.log("Clicked RecentSightings!");
+    });
+
+    $('.mostTraveled').click(function(){
+      console.log("Clicked MostTraveled!");
+    });
+
+    $('.mostSightings').click(function(){
+      console.log("Clicked MostSightings!");
+    });
+
+  }); 
+</script>
 
 <div class="container-fluid">
   <section class="container-fluid main-section front-gallery galleria">
