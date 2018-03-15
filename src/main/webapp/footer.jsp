@@ -22,24 +22,36 @@
               <div class="container main-section">
 
                  <div class="row">        
-                    <div class="col-xs-12 col-sm-6 col-md-3 foot-logo img-responsive" style="margin-top:10px;">
+                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
                       <a href="http://www.boi.ucsb.edu">                                             
-	                    <img class="img-responsive" alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg" style="max-width:200px;max-height:auto;" />
+	                      <img class="img-responsive" alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg"/>
                       </a>
                     </div>
-                    <div class="col-xs-12 col-sm-6 col-md-3 foot-logo img-responsive" style="margin-top:10px;">
+                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
                       <a href="http://www.lovelab.id.ucsb.edu">                      
-                        <img class="img-responsive" alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png" />
+                        <img class="img-responsive" alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/little_love_logo.png"/>
                       </a>
                     </div>
-                  	<div class="col-xs-12 col-sm-6 col-md-3 foot-logo img-responsive" style="margin-top:10px;">
-                  	  <a href="http://msi.ucsb.edu/">
-                        <img class="img-responsive" alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_small.png"/>
+                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
+                  	  <a href="">
+                        <img class="img-responsive" alt="aop logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/Aop_logo.svg"/>
                       </a>
-                    </div> 	   
-                    <a href="http://www.wildbook.org" class="foot-logo" title="This site is Powered by Wildbook">
-                      <img class="img-responsive col-xs-12 col-sm-6 col-md-3" src="<%=urlLoc%>/images/WildBook_logo_72dpi-01.png" alt="wildbook logo" style="height:150px;width:auto;margin-top:10px;"/>
-                    </a> 
+                    </div>
+                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
+                  	  <a href="http://sbc.marinebon.org/">
+                        <img class="img-responsive" alt="mbon logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/mbon-logo.png"/>
+                      </a>
+                    </div>
+                  	<div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
+                  	  <a href="http://msi.ucsb.edu/">
+                        <img class="img-responsive" alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo.png"/>
+                      </a>
+                    </div>
+                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
+                      <a href="http://www.wildbook.org" title="This site is Powered by Wildbook">
+                        <img class="img-responsive" src="<%=urlLoc%>/images/WildBook_logo_footer.png" alt="wildbook logo"/>
+                      </a> 
+                    </div>
                  </div>
                  
                  <div class="row">
