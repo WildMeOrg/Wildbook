@@ -100,7 +100,8 @@ context=ServletUtilities.getContext(request);
 
 <%
 if (request.getParameter("number")!=null) {
-	name=request.getParameter("number").trim();
+	name=Util.sanitizeURLParameter(request.getParameter("number"));
+
 	myShepherd.beginDBTransaction();
 	try{
 
@@ -465,7 +466,7 @@ $(document).ready(function() {
                 <p id="checkIndividualValue"></p>
                 <div class="highlight" id="nicknameErrorDiv"></div>
                   <form name="nameShark" class="editForm">
-                    <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
+                    <input name="individual" type="hidden" value="<%=name%>">
                       <div class="form-group has-feedback row" id="nameDiv">
                         <div class="col-sm-4">
                           <label><%=nickname %>:</label>
@@ -558,7 +559,7 @@ $(document).ready(function() {
             <%-- Start alt id form --%>
             <div class="highlight" id="altIdErrorDiv"></div>
             <form name="set_alternateid" class="editForm">
-              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+              <input name="individual" type="hidden" value="<%=name%>" />
               <div class="form-group has-feedback row" id="altIdDiv">
                 <div class="col-sm-4">
                   <label><%=alternateID %>:</label>
@@ -646,7 +647,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       %>
       <font size="-1"><a
-      href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
+      href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=name%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
       <%
       }
       %>

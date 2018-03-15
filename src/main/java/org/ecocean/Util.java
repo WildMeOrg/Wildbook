@@ -487,4 +487,16 @@ public class Util {
         return matcher.matches();
     }
 
+    public static String sanitizeURLParameter(String param) {
+      String sanitized = "";
+      sanitized = param.replace("alert", "");
+      sanitized = sanitized.replace("script", "");
+      sanitized = sanitized.replace("<", "");
+      sanitized = sanitized.replace(">", "");
+      sanitized = sanitized.replace(")", "");
+      sanitized = sanitized.replace("(", "");
+
+      return sanitized;
+    }
+
 }
