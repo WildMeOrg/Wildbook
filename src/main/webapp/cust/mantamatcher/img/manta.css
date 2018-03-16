@@ -7740,7 +7740,7 @@ h5 {
   text-decoration: underline;
 }
 .massive {
-  font-size: 6em;
+  font-size: 5em;
   line-height: 1.2em;
   font-weight: 700;
   display: block;
@@ -7752,10 +7752,10 @@ h5 {
   color: #005589;
 }
 .page-content hr {
-  border: 3px solid #005589;
-  width: 80%;
-  margin-top: 60px;
-  margin-bottom: 60px;
+  border: 1px solid #005589;
+  width: 90%;
+  margin-top: 30px;
+  margin-bottom: 30px;
 }
 .page-content a {
   text-decoration: underline;

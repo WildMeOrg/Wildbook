@@ -415,26 +415,32 @@ function gpsLiveUpdate() {
 
 <div class="container maincontent">
 
-  <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
-      <h1 class="intro"><%=props.getProperty("submit_report") %></h1>
+  <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+      <div class="row">
+      
+        <div class="col-xs-12">
+          <h1 class="intro"><%=props.getProperty("submit_report") %></h1>
+          <p><%=props.getProperty("submit_overview") %></p>
+          <p class="bg-danger text-danger">
+            <%=props.getProperty("submit_note_red") %>
+          </p>
+        </div>
 
-      <p><%=props.getProperty("submit_overview") %></p>
+        <div class="col-xs-6 col-sm-6 col-md-12 col-lg-12">
+          <img class="img-responsive" src="cust/mantamatcher/img/bass/katieDavisLeftFlank.jpg" />
+          <p><label><%=props.getProperty("leftFlank") %></label></p>
+        </div>
 
-      <p class="bg-danger text-danger">
-        <%=props.getProperty("submit_note_red") %>
-      </p>
-      <div>
-    	<img class="bass_image" src="cust/mantamatcher/img/bass/katieDavisLeftFlank.jpg" />
-	    <label class="image_label"><%=props.getProperty("leftFlank") %></label>
-      </div>
-      <div>
-    	<img class="bass_image" src="cust/mantamatcher/img/bass/MerryPassagePhilGarner_rightside.jpg" />
-	    <label class="image_label"><%=props.getProperty("rightFlank") %></label>
+        <div class="col-xs-6 col-sm-6 col-md-12 col-lg-12">
+          <img class="img-responsive" src="cust/mantamatcher/img/bass/MerryPassagePhilGarner_rightside.jpg" />
+          <p><label><%=props.getProperty("rightFlank") %></label></p>
+        </div>
+
       </div>
   </div>
 
 
-  <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
+  <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
 <form id="encounterForm"
 	  action="spambot.jsp"
@@ -475,17 +481,10 @@ $('#social_files_iframe').on('load', function(ev) {
 	submitForm();
 });
 
-
 //this is a simple wrapper to this, as it is called from 2 places (so far)
 function submitForm() {
 	document.forms['encounterForm'].submit();
 }
-
-
-
-
-
-
 
 function updateList(inp) {
     var f = '';
@@ -512,19 +511,16 @@ function showUploadBox() {
 
 </script>
 
-
 <fieldset>
-<h3><%=props.getProperty("submit_image")%></h3>
+<h4><%=props.getProperty("submit_image")%></h4>
 <p><%=props.getProperty("submit_pleaseadd")%></p>
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
-        
           <!--  This is the default active computer button for uploading images. If you want other uploads, this will need to have the hidden class removed. -->
           <li class="active hidden">
               <button class="zocial icon" data-toggle="tooltip" title="<%=props.getProperty("computerUploadTooltip")%>" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
               </button>
           </li>
-
         </ul>
     </div>
 
@@ -548,77 +544,50 @@ function showUploadBox() {
     </div>
 
 </fieldset>
-
-<hr />
-
+<hr/>
 <fieldset>
-<h3><%=props.getProperty("dateAndLocation")%></h3>
 
-<div class="form-group required">
-
-    <div class="form-group required">
-
-      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
-        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" data-toggle="tooltip" title="<%=props.getProperty("dateTooltip")%>"/>
-</div>
-
-      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <p class="help-block">
-          <%=props.getProperty("examples") %>
-          <ul>
-            <li>2017-07-13 14:30</li>
-            <li>2016-03-23</li>
-            <li>2013-12</li>
-            <li>2010</li>
-          </ul>
-        </p>
-      </div>
-
+  <div class="form-group">
+    <div class="form-inline required col-xs-12 col-sm-12 col-md-6 col-lg-6">
+      <h4><%=props.getProperty("dateAndLocation")%></h4>
+      <p><label class="text-danger"><%=props.getProperty("submit_date") %></label></p>
+      <input class="form-control" type="text" id="datepicker" name="datepicker" size="20" data-toggle="tooltip" placeholder="2017-07-13 14:30" title="<%=props.getProperty("dateTooltip")%>"/>
+      <p><label class="control-label"><small><%=props.getProperty("submit_date_guide")%></small></label></p>
     </div>
-
-<%
-if(CommonConfiguration.showReleaseDate(context)){
-%>
-
-    <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
-        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
+    <%
+    if(CommonConfiguration.showReleaseDate(context)){
+    %>
+      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+          <label class="text-danger"><%=props.getProperty("submit_releasedate") %></label>
+          <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
       </div>
-
-<%
-}
-%>
+    <%
+    }
+    %>
+  </div>
 
 </fieldset>
 
-<hr />
+<hr/>
 
 <fieldset>
-    <h3><%=props.getProperty("submit_location")%></h3>
 
-    <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label text-danger"><%=props.getProperty("where") %></label>
-      </div>
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <input name="location" type="text" id="location" size="40" class="form-control" data-toggle="tooltip" title="<%=props.getProperty("locationTooltip")%>">
-      </div>
+  <div class="form-group required">
+    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+      <h4><%=props.getProperty("submit_location")%></h4>
+      <p><label class="text-danger"><%=props.getProperty("where") %></label></p>
+      <input name="location" type="text" id="location" size="40" class="form-control" data-toggle="tooltip" title="<%=props.getProperty("locationTooltip")%>">
     </div>
-
+  </div>
 
 <%
 //add locationID to fields selectable
 
-
 if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
     <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("studySites") %></label>
-      </div>
-
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <p><label class=""><%=props.getProperty("studySites") %></label></p>
         <select name="locationID" id="locationID" class="form-control" data-toggle="tooltip" title="<%=props.getProperty("studySiteTooltip")%>">
             <option value="" selected="selected"></option>
                   <%
@@ -667,7 +636,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 			<option value="<%=currentCountry %>"><%=currentCountry%></option>
             <%
             }
-			%>
+			      %>
    		</select>
       </div>
     </div>
@@ -693,46 +662,46 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
     <div id="gpsInputs">
       <div class=" form-group form-inline">
-        <div class="col-xs-12 col-sm-6">
-          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
+        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+          <p><label class="control-label"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label></p>
           <input class="form-control" name="lat" type="number" value="90.00000" step="any" id="lat" oninput="gpsLiveUpdate()" max="90.00000" min="-90.00000" data-toggle="tooltip" title="<%=props.getProperty("latitudeTooltip")%>">
         </div>
 
-        <div class="col-xs-12 col-sm-6">
-          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
+        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+          <p><label class="control-label"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label></p>
           <input class="form-control" name="longitude" type="number" value="180.00000" step="any" id="longitude" oninput="gpsLiveUpdate()" max="180.00000" min="-180.00000" data-toggle="tooltip" title="<%=props.getProperty("longitudeTooltip")%>">
         </div>
       </div>
 
-      <p class="help-block">
-        <%=props.getProperty("gpsConverter") %></p>
+      <p class="help-block"><%=props.getProperty("gpsConverter") %></p>
     </div>
-
 
 <%
 if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
- <div class="form-inline">
-      <label class="control-label"><%=props.getProperty("submit_depth")%></label>
-      <input class="form-control" name="depth" type="text" id="depth" data-toggle="tooltip" title="<%=props.getProperty("seaDepthTooltip")%>">
-      &nbsp;<%=props.getProperty("submit_feet")%> <br>
+  <div class="form-inline">
+    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+      <p><label class=""><%=props.getProperty("submit_depth")%></label></p>
+      <input id="submitDepth" class="form-control" name="depth" type="text" id="depth" data-toggle="tooltip" placeholder="Distance in Feet" title="<%=props.getProperty("seaDepthTooltip")%>">
     </div>
+  </div>
+  <br/>
 <%
 }
 
 if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
- <div class="form-inline">
-      <label class="control-label"><%=props.getProperty("submit_elevation")%></label>
-      <input class="form-control" name="elevation" type="text" id="elevation">
-      &nbsp;<%=props.getProperty("submit_feet")%> <br>
+  <div class="form-inline">
+    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+      <p><label class=""><%=props.getProperty("submit_elevation")%></label></p>
+      <input id="submitElevation" class="form-control" name="elevation" type="text" placeholder="Distance in Feet" id="elevation">
     </div>
-	
-	
+  </div>
+	<br/>	
 <%
 }
 %>
-    <div>
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
       <p class="help-block">
         <%=props.getProperty("ftConverter") %></p>
     </div>
@@ -768,7 +737,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   <fieldset>
     <div class="row">
       <div class="col-xs-12 col-lg-6">
-	      <h3><%=props.getProperty("aboutYou") %></br></h3>
+	      <h4><%=props.getProperty("aboutYou") %></br></h4>
         <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
@@ -791,7 +760,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       </div>
 
       <div class="col-xs-12 col-lg-6">
-        <h3><%=props.getProperty("aboutPhotographer") %></h3>
+        <h4><%=props.getProperty("aboutPhotographer") %></h4>
  		<p class="help-block"><%=props.getProperty("submit_ifyou")%></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
@@ -816,7 +785,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     <hr>
     <div class="form-group">
       <div class="col-xs-12 col-md-12 col-lg-12">
-	    <h3><%=props.getProperty("commentsHeader") %></h3>
+	    <h4><%=props.getProperty("commentsHeader") %></h4>
         <label class="control-label"><%=props.getProperty("submit_comments") %></label>
         <br>
       </div>
@@ -841,7 +810,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
     <div id="advancedInformation" fade="1" style="display: none;">
   	    
-      <h3><%=props.getProperty("aboutAnimal") %></h3>
+      <h4><%=props.getProperty("aboutAnimal") %></h4>
         <hr>
         <fieldset>
 <%
@@ -1003,7 +972,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 
  <div class="form-group">
-           <h3><%=props.getProperty("measurements") %></h3>
+           <h4><%=props.getProperty("measurements") %></h4>
 
 
 <div class="col-xs-12 col-lg-8">
@@ -1045,7 +1014,7 @@ boolean tagSwitch = false;
 if (tagSwitch == true) {
 %>
        <fieldset>
-        <h3><%=props.getProperty("tags") %></h3>
+        <h4><%=props.getProperty("tags") %></h4>
       <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
