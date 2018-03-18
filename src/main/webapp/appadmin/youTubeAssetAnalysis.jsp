@@ -4,7 +4,7 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,
-java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.*,org.json.JSONObject,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%
 
@@ -58,17 +58,58 @@ try{
 		}
 		*/
 		
-		ArrayList
-		
+		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
+		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
 		
 		for(int i=0;i<numResults;i++){
 			
+			//YouTubeAsset itself
 			MediaAsset ma=results.get(i);
-			ma.getO
 			
+			
+			
+            //JSONObject data=md.getData();
+            if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
+              if (ma.getMetadata().getData().optJSONObject("detailed") != null) {
+            	  String videoID=ma.getMetadata().getData().getJSONObject("detailed").optString("id");
+               
+    			
+    			String qFilter="SELECT FROM org.ecocean.Encounter WHERE (occurrenceRemarks.indexOf('"+videoID+"') != -1) && ( state=='approved' || state=='unidentifiable')";
+    			Query newQ=myShepherd.getPM().newQuery(qFilter);
+    			Collection d=(Collection)newQ.execute();
+    			ArrayList<Encounter> encresults=new ArrayList<Encounter>(d);
+    			newQ.closeAll();
+    			int numEncs=encresults.size();
+    			if(numEncs>0){goodDataVideos.add(ma);}
+    			else{
+    				
+    				
+        			String pFilter="SELECT FROM org.ecocean.Encounter WHERE (occurrenceRemarks.indexOf('"+videoID+"') != -1) && ( state=='auto_sourced')";
+        			Query newP=myShepherd.getPM().newQuery(pFilter);
+        			Collection e=(Collection)newP.execute();
+        			ArrayList<Encounter> encresults2=new ArrayList<Encounter>(e);
+        			newP.closeAll();
+    				if(encresults2.size()==0){
+    					poorDataVideos.add(ma);
+    				}
+    			}
+              
+              
+              }
+            }
+
+			
+			
+
+			
+		
 		}
 		
+	%>
+	<li>Num discard assets (negative training data): <%=poorDataVideos.size() %></li>
+   <li>Num approved assets (positive training data): <%=goodDataVideos.size() %></li>
 	
+	<%
 	
 
 
