@@ -464,10 +464,7 @@ function gpsLiveUpdate() {
 
 
 $('#social_files_iframe').on('load', function(ev) {
-	console.log('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-
 	if (!ev || !ev.target) return;
-	console.log('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
 	console.warn('doc is %o', doc);
 	if (doc === null) return;
@@ -486,6 +483,11 @@ function submitForm() {
 	document.forms['encounterForm'].submit();
 }
 
+function removeFile(fileData) {
+ //Remove file from input-file-list, and file data from being uploaded.
+ console.log("Removing this: "+fileData);
+}
+
 function updateList(inp) {
     var f = '';
     if (inp.files && inp.files.length) {
@@ -494,7 +496,9 @@ function updateList(inp) {
             if (inp.files[i].size > <%=maxSizeBytes%>) {
                 all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
             } else {
-                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                var eachFile = inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)';
+                //eachFile += ' <small onclick="removeFile(this)"><a>Remove</a></small>';
+                all.push(eachFile);
             }
         }
         f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
@@ -511,7 +515,7 @@ function showUploadBox() {
 
 </script>
 
-<fieldset>
+<fieldset class="field-indent">
 <h4><%=props.getProperty("submit_image")%></h4>
 <p><%=props.getProperty("submit_pleaseadd")%></p>
 	<div class="center-block">
@@ -545,14 +549,14 @@ function showUploadBox() {
 
 </fieldset>
 <hr/>
-<fieldset>
+<fieldset class="field-indent">
 
   <div class="form-group">
     <div class="form-inline required col-xs-12 col-sm-12 col-md-6 col-lg-6">
       <h4><%=props.getProperty("dateAndLocation")%></h4>
       <p><label class="text-danger"><%=props.getProperty("submit_date") %></label></p>
       <input class="form-control" type="text" id="datepicker" name="datepicker" size="20" data-toggle="tooltip" placeholder="2017-07-13 14:30" title="<%=props.getProperty("dateTooltip")%>"/>
-      <p><label class="control-label"><small><%=props.getProperty("submit_date_guide")%></small></label></p>
+      <p><label><small><%=props.getProperty("submit_date_guide")%></small></label></p>
     </div>
     <%
     if(CommonConfiguration.showReleaseDate(context)){
@@ -570,7 +574,7 @@ function showUploadBox() {
 
 <hr/>
 
-<fieldset>
+<fieldset class="field-indent">
 
   <div class="form-group required">
     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -621,7 +625,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 %>
           <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("country") %></label>
+        <label><%=props.getProperty("country") %></label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
@@ -661,14 +665,14 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 </div>
 
     <div id="gpsInputs">
-      <div class=" form-group form-inline">
+      <div class="form-group form-inline">
         <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <p><label class="control-label"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label></p>
+          <p><label class=""><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label></p>
           <input class="form-control" name="lat" type="number" value="90.00000" step="any" id="lat" oninput="gpsLiveUpdate()" max="90.00000" min="-90.00000" data-toggle="tooltip" title="<%=props.getProperty("latitudeTooltip")%>">
         </div>
 
         <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <p><label class="control-label"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label></p>
+          <p><label class=""><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label></p>
           <input class="form-control" name="longitude" type="number" value="180.00000" step="any" id="longitude" oninput="gpsLiveUpdate()" max="180.00000" min="-180.00000" data-toggle="tooltip" title="<%=props.getProperty("longitudeTooltip")%>">
         </div>
       </div>
@@ -679,7 +683,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <%
 if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
-  <div class="form-inline">
+  <div class="form-group form-inline">
     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
       <p><label class=""><%=props.getProperty("submit_depth")%></label></p>
       <input id="submitDepth" class="form-control" name="depth" type="text" id="depth" data-toggle="tooltip" placeholder="Distance in Feet" title="<%=props.getProperty("seaDepthTooltip")%>">
@@ -691,7 +695,7 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 
 if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
-  <div class="form-inline">
+  <div class="form-group form-inline">
     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
       <p><label class=""><%=props.getProperty("submit_elevation")%></label></p>
       <input id="submitElevation" class="form-control" name="elevation" type="text" placeholder="Distance in Feet" id="elevation">
@@ -702,12 +706,11 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 }
 %>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-      <p class="help-block">
-        <%=props.getProperty("ftConverter") %></p>
+      <p class="help-block"><%=props.getProperty("ftConverter") %></p>
     </div>
 </fieldset>
-<hr />
 
+<hr/>
 
     <%
     //let's pre-populate important info for logged in users
@@ -734,7 +737,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 
 
-  <fieldset>
+  <fieldset class="field-indent">
     <div class="row">
       <div class="col-xs-12 col-lg-6">
 	      <h4><%=props.getProperty("aboutYou") %></br></h4>
@@ -812,7 +815,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   	    
       <h4><%=props.getProperty("aboutAnimal") %></h4>
         <hr>
-        <fieldset>
+        <fieldset class="field-indent">
 <%
 
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
@@ -965,7 +968,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 <c:if test="${showMeasurements}">
 <hr>
- <fieldset>
+ <fieldset class="field-indent">
 <%
     pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
     pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
@@ -1013,7 +1016,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 boolean tagSwitch = false;
 if (tagSwitch == true) {
 %>
-       <fieldset>
+       <fieldset class="field-indent">
         <h4><%=props.getProperty("tags") %></h4>
       <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
