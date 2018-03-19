@@ -16,7 +16,7 @@ Shepherd myShepherd=new Shepherd(context);
 
 <html>
 <head>
-<title>Fix Some Fields</title>
+<title>YouTube Details</title>
 
 </head>
 
@@ -60,27 +60,40 @@ try{
 		
 		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
 		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
+		StringBuffer sb=new StringBuffer("@RELATION YouTubeWhaleShark\n\n@ATTRIBUTE title String\n@ATTRIBUTE description String\n@ATTRIBUTE tags String\n@ATTRIBUTE class {good,poor}\n\n@data\n");
 		
 		for(int i=0;i<numResults;i++){
 			
 			//YouTubeAsset itself
 			MediaAsset ma=results.get(i);
-			
-			
-			
+
             //JSONObject data=md.getData();
-            if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
-              if (ma.getMetadata().getData().optJSONObject("detailed") != null) {
-            	  String videoID=ma.getMetadata().getData().getJSONObject("detailed").optString("id");
-               
-    			
+            if ((ma.getMetadata() != null)) {
+              MediaAssetMetadata md = ma.getMetadata();	
+              if (md.getData() != null) {
+            	
+            	String videoID=ma.getMetadata().getData().getJSONObject("detailed").optString("id");
+				String videoTitle="[unknown]";
+				if(md.getData().optJSONObject("basic") != null){
+					videoTitle=md.getData().getJSONObject("basic").optString("title").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "");
+				}
+				String videoDescription="[no description]";
+				String videoTags="[no tags]";
+				if(md.getData().getJSONObject("detailed")!=null){
+					videoDescription=md.getData().getJSONObject("detailed").optString("description").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "");
+					videoTags=md.getData().getJSONObject("detailed").getJSONArray("tags").toString().replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "");
+	                   
+				}
     			String qFilter="SELECT FROM org.ecocean.Encounter WHERE (occurrenceRemarks.indexOf('"+videoID+"') != -1) && ( state=='approved' || state=='unidentifiable')";
     			Query newQ=myShepherd.getPM().newQuery(qFilter);
     			Collection d=(Collection)newQ.execute();
     			ArrayList<Encounter> encresults=new ArrayList<Encounter>(d);
     			newQ.closeAll();
     			int numEncs=encresults.size();
-    			if(numEncs>0){goodDataVideos.add(ma);}
+    			if(numEncs>0){
+    				goodDataVideos.add(ma);
+    				sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',good\n");
+    			}
     			else{
     				
     				
@@ -91,8 +104,11 @@ try{
         			newP.closeAll();
     				if(encresults2.size()==0){
     					poorDataVideos.add(ma);
+    					sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',poor\n");
     				}
     			}
+    			
+    			
               
               
               }
@@ -108,7 +124,9 @@ try{
 	%>
 	<li>Num discard assets (negative training data): <%=poorDataVideos.size() %></li>
    <li>Num approved assets (positive training data): <%=goodDataVideos.size() %></li>
+	</ul>
 	
+	<pre><%=sb.toString() %></pre>
 	<%
 	
 
@@ -128,8 +146,8 @@ finally{
 }
 
 %>
-<%=numFixes %>
-</ul>
+
+
 
 </body>
 </html>
