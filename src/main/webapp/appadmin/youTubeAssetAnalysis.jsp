@@ -3,8 +3,24 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
-org.ecocean.grid.*,
+org.ecocean.grid.*,org.ecocean.ai.nmt.google.*,
 java.io.*,org.json.JSONObject,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+
+<%!
+private String translateIfNotEnglish(String text){
+	String shortForm=text;
+	if(shortForm.length()>500){shortForm=shortForm.substring(0,499);}
+	String langCode=DetectTranslate.detectLanguage(shortForm);
+	if((!langCode.toLowerCase().equals("en"))&&(!langCode.toLowerCase().equals("und"))){
+		System.out.println("Translating: "+text);
+		text=DetectTranslate.translateToEnglish(text).replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();
+		System.out.println("Translated to: "+text);
+	}
+	return text;
+}
+
+%>
+
 
 <%
 
@@ -23,7 +39,7 @@ Shepherd myShepherd=new Shepherd(context);
 
 <body>
 
-<ul>
+
 <%
 
 myShepherd.beginDBTransaction();
@@ -34,7 +50,6 @@ try{
 	
 		String filter="SELECT FROM org.ecocean.media.MediaAsset WHERE store instanceof org.ecocean.media.YouTubeAssetStore";
 		
-		//String filter="SELECT count(this) FROM org.ecocean.media.MediaAsset WHERE store instanceof org.ecocean.media.YouTubeAssetStore";
 		
 		Query query = myShepherd.getPM().newQuery(filter);
 		Collection c = (Collection) (query.execute());
@@ -45,18 +60,11 @@ try{
 		int numResults=results.size();
 		
 		%>
-		<li>Num YouTube MediaAssets (videos) catalogged: <%=numResults %></li>
+%		
+%Num YouTube MediaAssets (videos) cataloged: <%=numResults %><br>
 		<%
 		
-		
-		/*
-		YouTubeAssetStore ytas=YouTubeAssetStore.find(myShepherd);
-		Iterator it=myShepherd.getAllMediaAssets();
-		while(it.hasNext()){
-			MediaAsset ma=(MediaAsset)it.next();
-			if(ma.getStore()==ytas){numFixes++;}
-		}
-		*/
+
 		
 		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
 		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
@@ -74,15 +82,22 @@ try{
             	
             	String videoID=ma.getMetadata().getData().getJSONObject("detailed").optString("id");
 				String videoTitle="[unknown]";
+				String videoTitleShort=videoTitle;
+				if(videoTitle.length()>1000){videoTitleShort=videoTitle.substring(0,1000);}
 				if(md.getData().optJSONObject("basic") != null){
-					videoTitle=md.getData().getJSONObject("basic").optString("title").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").toLowerCase();
+					videoTitle=md.getData().getJSONObject("basic").optString("title").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();
+					
+					
 				}
 				String videoDescription="[no description]";
+				String videoDescriptionShort=videoDescription;
+				if(videoDescription.length()>1000){videoDescriptionShort=videoDescription.substring(0,1000);}
 				String videoTags="[no tags]";
+				String videoTagsShort=videoTags;
+				if(videoTags.length()>1000){videoTagsShort=videoTags.substring(0,1000);}
 				if(md.getData().getJSONObject("detailed")!=null){
-					videoDescription=md.getData().getJSONObject("detailed").optString("description").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").toLowerCase();
-					videoTags=md.getData().getJSONObject("detailed").getJSONArray("tags").toString().replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").toLowerCase();
-	                   
+					videoDescription=md.getData().getJSONObject("detailed").optString("description").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase();
+					videoTags=md.getData().getJSONObject("detailed").getJSONArray("tags").toString().replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();	                   
 				}
     			String qFilter="SELECT FROM org.ecocean.Encounter WHERE (occurrenceRemarks.indexOf('"+videoID+"') != -1) && ( state=='approved' || state=='unidentifiable')";
     			Query newQ=myShepherd.getPM().newQuery(qFilter);
@@ -92,6 +107,13 @@ try{
     			int numEncs=encresults.size();
     			if(numEncs>0){
     				goodDataVideos.add(ma);
+    				
+    				//detect and translate
+    				videoTitle=translateIfNotEnglish(videoTitle);
+    				videoTags=translateIfNotEnglish(videoTags);
+    				videoDescription=translateIfNotEnglish(videoDescription);		
+    				
+    				
     				sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',good\n");
     			}
     			else{
@@ -104,6 +126,13 @@ try{
         			newP.closeAll();
     				if(encresults2.size()==0){
     					poorDataVideos.add(ma);
+    					
+        				//detect and translate
+        				//detect and translate
+    				videoTitle=translateIfNotEnglish(videoTitle);
+    				videoTags=translateIfNotEnglish(videoTags);
+    				videoDescription=translateIfNotEnglish(videoDescription);	
+    					
     					sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',poor\n");
     				}
     			}
@@ -122,10 +151,9 @@ try{
 		}
 		
 	%>
-	<li>Num discard assets (negative training data): <%=poorDataVideos.size() %></li>
-   <li>Num approved assets (positive training data): <%=goodDataVideos.size() %></li>
-	</ul>
-	
+%Num discard assets (negative training data): <%=poorDataVideos.size() %><br>
+%Num approved assets (positive training data): <%=goodDataVideos.size() %><br />
+%<br>
 	<pre><%=sb.toString() %></pre>
 	<%
 	
