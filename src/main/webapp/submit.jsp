@@ -828,7 +828,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
           <div class="col-xs-6 col-lg-8">
             <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<!-- <option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option> -->
+             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
   <%
 
   					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
