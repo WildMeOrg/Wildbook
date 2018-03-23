@@ -409,16 +409,16 @@ try{
 	
 	try {
 		System.out.println("-- Checking Encs -- ");
-		numEncLeftID = myShepherd.getNumEncountersWithSpotDataBySide("left");
-		numEncLeftID = myShepherd.getNumEncountersWithSpotDataBySide("right");
+		numEncLeftID = myShepherd.getNumEncountersWithSpotData(false);
+		numEncLeftID = myShepherd.getNumEncountersWithSpotData(true);
 	} catch (NullPointerException npe) {
 		npe.printStackTrace();
 	}
 
 	try {
 		System.out.println("-- Checking Indy's -- ");
-		numIndyLeftID = myShepherd.getNumIndividualsWithSpotDataBySide("left");
-		numIndyLeftID = myShepherd.getNumIndividualsWithSpotDataBySide("right");
+		numIndyLeftID = myShepherd.getNumIndividualsWithSpotData(false);
+		numIndyLeftID = myShepherd.getNumIndividualsWithSpotData(true);
 	} catch (NullPointerException npe) {
 		npe.printStackTrace();
 	}

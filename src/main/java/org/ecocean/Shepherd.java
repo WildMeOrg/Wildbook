@@ -2468,44 +2468,34 @@ public class Shepherd {
     }
   }
 
-  public int getNumEncountersWithSpotDataBySide(String side) {
-    pm.getFetchPlan().setGroup("count");
+  public Iterator<Encounter> getEncountersWithSpotData(boolean rightSide) {
     Extent encClass = pm.getExtent(Encounter.class, true);
     String filter = "";
-    if (side.toLowerCase().equals("left")) {
-      filter = "this.spots != null";
-    } else {
+    if (rightSide) {
       filter = "this.rightSpots != null";
+    } else {
+      filter = "this.spots != null";
     }
     Query acceptedEncounters = pm.newQuery(encClass, filter);
-    int num = 0;
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
-      Iterator it = c.iterator();
-
-      num = c.size();
+      Iterator<Encounter> encs =  c.iterator();
       acceptedEncounters.closeAll();
-      return num;
+      return encs;
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       acceptedEncounters.closeAll();
-      return 0;
+      return null;
     }
   }
 
-  public int getNumIndividualsWithSpotDataBySide(String side) {
+  public int getNumIndividualsWithSpotData(boolean rightSide) {
+    Iterator encs = getEncountersWithSpotData(rightSide);
     int num = 0;
-    Iterator<MarkedIndividual> indys = this.getAllMarkedIndividuals();
-    while (indys.hasNext()) {
-      MarkedIndividual indy = indys.next();
-      if (side.toLowerCase().equals("left")) {
-        if (indy.getNumberTrainableEncounters()>0) {
-          num++;
-        }
-      } else if (side.toLowerCase().equals("right")) {
-        if (indy.getNumberRightTrainableEncounters()>0) {
-          num++;
-        }
+    while (encs.hasNext()) {
+      Encounter enc = (Encounter) encs.next();
+      if (enc!=null&&!"".equals(enc.getIndividualID())) {
+        num++;
       }
     }
     return num;

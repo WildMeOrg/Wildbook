@@ -466,10 +466,10 @@ function gpsLiveUpdate() {
 $('#social_files_iframe').on('load', function(ev) {
 	if (!ev || !ev.target) return;
 	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
-	console.warn('doc is %o', doc);
+	//console.warn('doc is %o', doc);
 	if (doc === null) return;
 	var x = $(doc).find('body').text();
-	console.log('body %o', x);
+	//console.log('body %o', x);
 	var j = JSON.parse($(doc).find('body').text());
 	console.log('iframe returned %o', j);
 	console.log("social_files_id : "+j.id);
@@ -483,34 +483,47 @@ function submitForm() {
 	document.forms['encounterForm'].submit();
 }
 
-function removeFile(fileData) {
- //Remove file from input-file-list, and file data from being uploaded.
- console.log("Removing this: "+fileData);
-}
 
+var fileListGlobal = [];
 function updateList(inp) {
+
     var f = '';
+    document.getElementById('input-file-list').innerHTML = "";
+    document.getElementById('uploadList').innerHTML = "";
+
     if (inp.files && inp.files.length) {
-        var all = [];
+        //var all = [];
         for (var i = 0 ; i < inp.files.length ; i++) {
             if (inp.files[i].size > <%=maxSizeBytes%>) {
-                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
+                fileListGlobal.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
             } else {
                 var eachFile = inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)';
-                //eachFile += ' <small onclick="removeFile(this)"><a>Remove</a></small>';
-                all.push(eachFile);
+                var fileIndex = i;
+                //eachFile += ' <small class="removeFile" onclick="removeFile('+fileIndex+')"><a>Remove</a></small>';
+                fileListGlobal.push(eachFile);
             }
         }
-        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
+        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + fileListGlobal.join(', ');
     } else {
         f = inp.value;
     }
     document.getElementById('input-file-list').innerHTML = f;
+    document.getElementById('uploadList').innerHTML = f;
 }
 
 function showUploadBox() {
     $("#submitsocialmedia").addClass("hidden");
     $("#submitupload").removeClass("hidden");
+}
+
+function removeFile(index) {
+  //Remove file from input-file-list, and file data from being uploaded.
+  console.log("Removing this object: ");
+  var files = document.getElementById('multifile');
+  console.log(JSON.stringify(files));
+  if (index > -1) {
+    fileListGlobal.splice(index, 1);
+  }
 }
 
 </script>
@@ -537,7 +550,7 @@ function showUploadBox() {
             <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
             <div><%=props.getProperty("dragInstructions")%></div>
             <% } %>
-            <div id="input-file-list"></div>
+            <div style="display:none;" id="input-file-list"></div>
         </div>
         <div id="submitsocialmedia" class="container-fluid hidden" style="height:300px;">
             <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
@@ -545,6 +558,12 @@ function showUploadBox() {
             <div id="socialphotos" class="col-md-8" style="height:100%;overflow-y:auto;">
             </div>
         </div>
+    </div>
+
+    <div>
+      <ul id="uploadList" style="list-style:none;"> 
+      
+      </ul>
     </div>
 
 </fieldset>
@@ -740,7 +759,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   <fieldset class="field-indent">
     <div class="row">
       <div class="col-xs-12 col-lg-6">
-	      <h4><%=props.getProperty("aboutYou") %></br></h4>
+	      <h4><%=props.getProperty("aboutYou") %></h4>
         <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
@@ -763,8 +782,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       </div>
 
       <div class="col-xs-12 col-lg-6">
-        <h4><%=props.getProperty("aboutPhotographer") %></h4>
- 		<p class="help-block"><%=props.getProperty("submit_ifyou")%></p>
+        <h4><%=props.getProperty("aboutPhotographer") %></br></h4>
+ 		    <p class="help-block"><%=props.getProperty("submit_ifyou")%></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("photographer_name") %></label>

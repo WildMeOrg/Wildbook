@@ -5973,7 +5973,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 <tr>
 <td>
-
+f
     <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
     <%
     BiologicalMeasurement mtDNA=new BiologicalMeasurement();
