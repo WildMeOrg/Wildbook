@@ -401,46 +401,38 @@ myShepherd.beginDBTransaction();
 //dispatcher.forward(request, response);
 
 
-try{
+try {
 	System.out.println("Looking for Enc and Indys's with spots...");
+
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-
     numEncounters=myShepherd.getNumEncounters();
-	
-	try {
-		System.out.println("-- Checking Encs -- ");
-		numEncLeftID = myShepherd.getNumEncountersWithSpotData(false);
-		numEncLeftID = myShepherd.getNumEncountersWithSpotData(true);
-	} catch (NullPointerException npe) {
-		npe.printStackTrace();
-	}
 
-	try {
-		System.out.println("-- Checking Indy's -- ");
-		numIndyLeftID = myShepherd.getNumIndividualsWithSpotData(false);
-		numIndyLeftID = myShepherd.getNumIndividualsWithSpotData(true);
-	} catch (NullPointerException npe) {
-		npe.printStackTrace();
+	Iterator<Encounter> encs = myShepherd.getAllEncountersNoQuery();
+	while (encs.hasNext()) {
+		Encounter enc = encs.next();
+		if (enc.getSpots()!=null&&!enc.getSpots().isEmpty()) {
+			numEncLeftID++;
+			if (enc.getIndividualID()!=null) {
+				numIndyLeftID++;
+			}
+		}
+		if (enc.getRightSpots()!=null&&!enc.getRightSpots().isEmpty()) {
+			numEncRightID++;
+			if (enc.getIndividualID()!=null) {
+				numIndyRightID++;
+			}
+		}
 	}
 
     numDataContributors=myShepherd.getNumUsers();
     
     //This should get the number of unique emails from encounter submissions for a ROUGH estimate of contributing individuals. 
-    try {
-	    numCitScientists=myShepherd.getNumberUniqueSubmissionEmails(); 	
-    } catch (Exception e) {
-    	e.printStackTrace();
-    	System.out.println("Could not get number of unique emails for index counter.");
-    }
-    
-    
+	numCitScientists=myShepherd.getNumberUniqueSubmissionEmails(); 	
 
-
-}
-catch(Exception e){
+} catch (Exception e){
+	System.out.println("################# Exception retrieving numbers for index.jsp counters.");
     e.printStackTrace();
-}
-finally{
+} finally {
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
 }

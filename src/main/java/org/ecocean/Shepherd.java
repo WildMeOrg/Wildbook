@@ -2476,10 +2476,11 @@ public class Shepherd {
     } else {
       filter = "this.spots != null";
     }
+    System.out.println("### Encounter spot number filter: "+filter);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
-      Iterator<Encounter> encs =  c.iterator();
+      Iterator encs =  c.iterator();
       acceptedEncounters.closeAll();
       return encs;
     } catch (javax.jdo.JDOException x) {
@@ -2494,10 +2495,12 @@ public class Shepherd {
     int num = 0;
     while (encs.hasNext()) {
       Encounter enc = (Encounter) encs.next();
-      if (enc!=null&&!"".equals(enc.getIndividualID())) {
+      System.out.println("##### This enc contains: "+enc.getIndividualID());
+      if (enc.getIndividualID()!=null) {
         num++;
       }
     }
+    System.out.println("######## Number of encs with indyID"+num);
     return num;
   }
 
