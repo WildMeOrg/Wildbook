@@ -50,14 +50,13 @@
 
     for (User thisUser : allUsers) {
 
-      String profilePhotoURL="images/empty_profile.jpg";
+      String profilePhotoURL="//"+CommonConfiguration.getURLLocation(request)+"/images/empty_profile.jpg";
 		    
     		if(thisUser.getUserImage()!=null){
     			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
     		}
     		%>
-    		<li>
-                <a>
+    		<li class="userInfoText">
                     <div class="img-container">
                         <img class="pull-left" src="<%=profilePhotoURL%>"  />
                     </div>
@@ -75,7 +74,6 @@
                     <% 
                     }
                     %>
-                </a>
             </li>
 
     	

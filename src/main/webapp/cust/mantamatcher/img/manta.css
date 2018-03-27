@@ -7850,7 +7850,7 @@ figcaption {
 }
 .block-list a:hover,
 .block-list a:focus {
-  background-color: rgba(0, 85, 137, 0.5);
+  background-color: white;
   cursor: pointer;
 }
 .volunteer-list li {

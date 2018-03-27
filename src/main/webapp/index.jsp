@@ -381,7 +381,6 @@ $(window).scroll(function(){
 
 
 //let's quickly get the data we need from Shepherd
-System.out.println("--(((((***** The New Variables *****)))))-- ");
 int numMarkedIndividuals=0;
 int numIndyLeftID = 0;
 int numIndyRightID = 0;
@@ -402,8 +401,6 @@ myShepherd.beginDBTransaction();
 
 
 try {
-	System.out.println("Looking for Enc and Indys's with spots...");
-
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
 
@@ -423,9 +420,7 @@ try {
 			}
 		}
 	}
-
     numDataContributors=myShepherd.getNumUsers();
-    
     //This should get the number of unique emails from encounter submissions for a ROUGH estimate of contributing individuals. 
 	numCitScientists=myShepherd.getNumberUniqueSubmissionEmails(); 	
 
