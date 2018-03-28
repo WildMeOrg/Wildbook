@@ -75,6 +75,11 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 <style type="text/css">
 
+
+.throbbing {
+	background: url(../images/throbber.gif) no-repeat left top !important;
+}
+
 .task-title {
 	background-color: #FAA;
 	margin: 10px 0;
@@ -346,8 +351,11 @@ tr.clickable:hover .link-button {
 
 
 <script>
+var serverTimestamp = <%= System.currentTimeMillis() %>;
+var pageStartTimestamp = new Date().getTime();
 var taskIds = [];
 var jobIdMap = {};
+var timers = {};
 
 function init2() {   //called from wildbook.init() when finished
 	parseTaskIds();
@@ -365,7 +373,9 @@ function parseTaskIds() {
 }
 
 function grabTaskResult(tid) {
-	$('.maincontent').append('<div class="task-content" id="task-' + tid + '"><div class="task-title"><span class="task-title-id"><b>Task ' + tid + '</b></span></div><div class="task-summary"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div></div>');
+	if (!$('#task-' + tid).length) {
+		$('.maincontent').append('<div class="task-content" id="task-' + tid + '"><div class="task-title"><span class="task-title-id"><b>Task ' + tid + '</b></span></div><div class="task-summary"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div></div>');
+	}
 	var mostRecent = false;
 	var gotResult = false;
 console.warn('------------------- %s', tid);
@@ -374,9 +384,10 @@ console.warn('------------------- %s', tid);
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
+			$('#wait-message-' + tid).remove();  //in case it already exists from previous
 			for (var i = 0 ; i < d.length ; i++) {
 				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
-					jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId };
+					jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
 				}
 				//console.log('d[i].status._action --> %o', d[i].status._action);
 				if (d[i].status && d[i].status._action == 'getJobResult') {
@@ -387,7 +398,35 @@ console.warn('------------------- %s', tid);
 					if (!mostRecent && d[i].status && d[i].status._action) mostRecent = d[i].status._action;
 				}
 			}
-			if (!gotResult) $('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</></p>');
+			if (!gotResult) {
+				//$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</span></p>');
+				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
+				if (jobIdMap[tid]) {
+					var tooLong = 15 * 60 * 1000;
+					var elapsed = approxServerTime() - jobIdMap[tid].timestamp;
+					console.warn("elapsed = %.1f min", elapsed / 60000);
+					if (elapsed > tooLong) {
+						if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+						$('#wait-message-' + tid).removeClass('throbbing').html('attempting to fetch results');
+						manualCallback(tid);
+					} else {
+						if (!timers[tid]) timers[tid] = { attempts: 0 };
+						if (timers[tid].attempts > 1000) {
+							if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+							$('#wait-message-' + tid).html('gave up trying to obtain results').removeClass('throbbing');;
+						} else {
+							timers[tid].attempts++;
+							timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+						}
+					}
+				} else {
+					if (!timers[tid]) timers[tid] = { attempts: 0 };
+					timers[tid].attempts++;
+					timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+				}
+			} else {
+				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+			}
 console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on tid=%s', d, tid);
 		},
 		error: function(a,b,c) {
@@ -399,10 +438,19 @@ console.info('!!>> got %o', d);
 }
 
 
+function approxServerTime() {
+	return serverTimestamp + (new Date().getTime() - pageStartTimestamp);
+}
+
 function manualCallback(tid) {
 	var m = jobIdMap[tid];
 	if (!m || !m.jobId) return alert('Could not find jobid for ' + tid);
-	$('#wait-message-' + tid).html('<i>attempting to manually query IA</i>');
+	if (m.manualAttempts > 3) {
+		$('#wait-message-' + tid).html('failed to obtain results').removeClass('throbbing');;
+		return;
+	}
+	jobIdMap[tid].manualAttempts++;
+	$('#wait-message-' + tid).html('<i>attempting to manually query IA</i>').removeClass('throbbing');;
 	console.log(m);
 
 	$.ajax({
@@ -411,6 +459,7 @@ function manualCallback(tid) {
 		dataType: 'json',
 		complete: function(x, stat) {
 			console.log('status = %o; xhr=%o', stat, x);
+/*
 			var msg = '<i>unknown results</i>';
 			if (x.responseJSON && x.responseJSON.continue) {
 				msg = '<b>tried to get results (<i>reload</i> to check)</b>';
@@ -418,10 +467,13 @@ function manualCallback(tid) {
 				msg = '<b>disallowed getting results (already tried and failed)</b>';
 			}
 			$('#wait-message-' + tid).html(msg + ' [returned status=<i title="' + x.responseText + '">' + stat + '</i>]');
+*/
 		}
 	});
+	$('#wait-message-' + tid).remove();
+	grabTaskResult(tid);
 
-	$('#wait-message-' + tid).html(m.jobId);
+	//$('#wait-message-' + tid).html(m.jobId);
 	//alert(m.jobId);
 }
 
