@@ -17,16 +17,8 @@
               javax.jdo.*
               "
 %>
-
-
-
 <jsp:include page="header.jsp" flush="true"/>
-
-
-
 <%
-
-
 
 // All this fuss before the html is from individualSearchResults
 String context="context0";
@@ -121,8 +113,7 @@ if(request.getParameter("adoptableSharks")!=null){
 	rIndividuals=new Vector<MarkedIndividual>(c);
     query.closeAll();
     if(rIndividuals==null){rIndividuals=new Vector<MarkedIndividual>();}
-}
-else{
+} else {
 	String order ="nickName ASC NULLS LAST";
 
 	request.setAttribute("rangeStart", startNum);
@@ -133,7 +124,6 @@ else{
 
 	//handle any null errors better
 	if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
-
 }
 
 
@@ -222,7 +212,6 @@ if (rIndividuals.size() < listNum) {
     }
   }
 
-
   .galleryh2 {
     color: #16696d !important;
     font-weight: 700 !important;
@@ -231,7 +220,6 @@ if (rIndividuals.size() < listNum) {
     font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif !important;
     padding: 27px;
   }
-
 
   .gallery-inner {
     background: #fff;
@@ -278,17 +266,11 @@ if (rIndividuals.size() < listNum) {
 
 </style>
 
-
-
 <%
-
-
 //let's quickly get the data we need from Shepherd
-
 int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
-
 //myShepherd.beginDBTransaction();
 
 %>
@@ -309,7 +291,6 @@ int numDataContributors=0;
 
   </div>
 </nav>
-
 
 <script> 
   $(document).ready(function() {
@@ -332,18 +313,6 @@ int numDataContributors=0;
       $('.mostTraveled').removeClass('gallerySortActive');
       $('.recentSightings').removeClass('gallerySortActive');
     }
-
-    $('.recentSightings').click(function() {
-      console.log("Clicked RecentSightings!");
-    });
-
-    $('.mostTraveled').click(function(){
-      console.log("Clicked MostTraveled!");
-    });
-
-    $('.mostSightings').click(function(){
-      console.log("Clicked MostSightings!");
-    });
 
     var pageNum = "Page: "+String(parseInt(<%=endNum%>)/parseInt(<%=numIndividualsOnPage%>));
     $('#pageCounter b').html(pageNum);

@@ -39,7 +39,7 @@
                     </div>
                     <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
                   	  <a href="http://sbc.marinebon.org/">
-                        <img class="img-responsive" alt="mbon logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/sbc_mbon_logo.jpg"/>
+                        <img class="img-responsive" alt="mbon logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/MBON-Logo-Color.svg"/>
                       </a>
                     </div>
                   	<div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">

@@ -1412,7 +1412,14 @@ public class IndividualQueryProcessor {
           if(request.getParameter("sort").equals("sex")){allSharks=myShepherd.getAllMarkedIndividuals(query, "sex ascending", paramMap);}
           else if(request.getParameter("sort").equals("name")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);}
           else if(request.getParameter("sort").equals("numberEncounters")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberEncounters descending", paramMap);}
-          else if(request.getParameter("sort").equals("numberLocations")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberLocations descending", paramMap);}
+          else if(request.getParameter("sort").equals("numberLocations")) {
+            Iterator<MarkedIndividual> indys = myShepherd.getAllMarkedIndividuals();
+            while (indys.hasNext()) {
+              MarkedIndividual indy = indys.next();
+              indy.refreshNumberLocations();
+            }
+            allSharks=myShepherd.getAllMarkedIndividuals(query, "numberLocations descending", paramMap);
+          }
           else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
           // Added to show adoptable sharks in gallery.
           else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
