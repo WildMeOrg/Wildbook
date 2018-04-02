@@ -66,7 +66,7 @@
 					%>
                     <div class="name"><%= StringEscapeUtils.escapeHtml4(displayName) %></div>
                     <%
-					}`
+					}
                     
                     if(thisUser.getAffiliation()!=null){
     				%>
