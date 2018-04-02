@@ -61,6 +61,7 @@ int numIndividualsOnPage=18;
 
 int startNum = 0;
 int endNum = numIndividualsOnPage;
+int pageNum = (endNum/numIndividualsOnPage);
 try {
   if (request.getParameter("startNum") != null) {
     startNum = (new Integer(request.getParameter("startNum"))).intValue();
@@ -305,12 +306,15 @@ int numDataContributors=0;
 
     <!--  Placement for adoptable sharks button, in same format as above. -->
 
+    <p class="pull-right galleryCounter"><b>Page  <%=pageNum%></b></p>
+
   </div>
 </nav>
 
+
 <script> 
   $(document).ready(function() {
-    console.log("----- SortString? "+"<%=sortParam%>");
+    //console.log("----- SortString? "+"<%=sortParam%>");
 
     if ("dateTimeLatestSighting"==="<%=sortParam%>") {
       $('.recentSightings').addClass('gallerySortActive');
