@@ -485,45 +485,57 @@ function submitForm() {
 
 
 var fileListGlobal = [];
+var fileNameListGlobal = [];
 function updateList(inp) {
 
-    var f = '';
-    document.getElementById('input-file-list').innerHTML = "";
+    //document.getElementById('input-file-list').innerHTML = "";
     document.getElementById('uploadList').innerHTML = "";
-
+    var name = "";
+    var fileListHTML = '';
     if (inp.files && inp.files.length) {
         //var all = [];
         for (var i = 0 ; i < inp.files.length ; i++) {
             if (inp.files[i].size > <%=maxSizeBytes%>) {
                 fileListGlobal.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
             } else {
-                var eachFile = inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)';
-                var fileIndex = i;
-                //eachFile += ' <small class="removeFile" onclick="removeFile('+fileIndex+')"><a>Remove</a></small>';
+                name = String(inp.files[i].name);
+                var eachFile = "<li class='fileLink' id=\"filenameListItem"+i+"\"><small>";
+                eachFile += '<div>'+inp.files[i].name+' ('+Math.round(inp.files[i].size / 1024)+'k) <a onclick="removeFile(this.id)" id="filenameLink'+i+'">Remove</a></div>';
+                eachFile += '<input type="hidden" id="filename'+i+'" value="'+name+'"></input>';
+                eachFile += "</small></li>";
                 fileListGlobal.push(eachFile);
+                fileNameListGlobal.push(name);
             }
         }
-        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + fileListGlobal.join(', ');
+        fileListHTML = '<b id="fileCounter">' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's:') + '</b> ' + fileListGlobal.join('');
     } else {
-        f = inp.value;
+        fileListHTML = inp.value;
     }
-    document.getElementById('input-file-list').innerHTML = f;
-    document.getElementById('uploadList').innerHTML = f;
+    //document.getElementById('input-file-list').innerHTML = fileListHTML;
+    document.getElementById('uploadList').innerHTML = fileListHTML;
+    // For every file in the length of the final list, add an event listener based on it's index. This listener modifies the array of toRemove files on the backend. 
 }
 
 function showUploadBox() {
-    $("#submitsocialmedia").addClass("hidden");
-    $("#submitupload").removeClass("hidden");
+  $("#submitsocialmedia").addClass("hidden");
+  $("#submitupload").removeClass("hidden");
 }
 
-function removeFile(index) {
-  //Remove file from input-file-list, and file data from being uploaded.
-  console.log("Removing this object: ");
-  var files = document.getElementById('multifile');
-  console.log(JSON.stringify(files));
-  if (index > -1) {
-    fileListGlobal.splice(index, 1);
+var toRemove = [];
+function removeFile(id) {
+  var num = id.substring("fileNameLink".length);
+  var name = $("#filename"+num).val();
+  $("#filenameListItem"+num).addClass("hidden");
+  toRemove.push(name);
+  var numFiles = (fileListGlobal.length - toRemove.length);
+  var count = "";
+  if (numFiles > 1) {
+    count = String(numFiles) + " files:";
+  } else {
+    count = String(numFiles) + " file:";
   }
+  $('#fileCounter').html(count);
+  $("#toRemove").val(toRemove.join(";"));
 }
 
 </script>
@@ -545,13 +557,18 @@ function removeFile(index) {
         <div id="submitupload" class="input-file-drop">
             <% if (isIE) { %>
             <div><%=props.getProperty("dragInstructionsIE")%></div>
-            <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            
+              <input class="ie fileInput0" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            
             <% } else { %>
-            <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            
+             <input class="nonIE fileInput0" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            
             <div><%=props.getProperty("dragInstructions")%></div>
             <% } %>
-            <div style="display:none;" id="input-file-list"></div>
+            <!-- <div style="display:none;" id="input-file-list"></div> -->
         </div>
+
         <div id="submitsocialmedia" class="container-fluid hidden" style="height:300px;">
             <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
             </div>
@@ -564,6 +581,7 @@ function removeFile(index) {
       <ul id="uploadList" style="list-style:none;"> 
       
       </ul>
+      <input type="hidden" id="toRemove" name="toRemove" value=""></input>
     </div>
 
 </fieldset>

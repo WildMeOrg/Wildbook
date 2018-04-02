@@ -332,13 +332,25 @@ System.out.println("*** trying redirect?");
         long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
         long maxSizeBytes = maxSizeMB * 1048576;
 
+
         if (ServletFileUpload.isMultipartContent(request)) {
             try {
                 ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
                 upload.setHeaderEncoding("UTF-8");
                 List<FileItem> multiparts = upload.parseRequest(request);
-                //List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
 
+                ArrayList<String> filesToSkip = new ArrayList<>();
+                String[] skipArr = {};
+                for(FileItem item : multiparts) { 
+                  if (item.isFormField()&&item.getFieldName().equals("toRemove")) {
+                    skipArr = item.getString().split(";");
+                    filesToSkip = new ArrayList<>(Arrays.asList(skipArr));
+                    System.out.println("Got some removed files??? "+filesToSkip.toString());
+                    break;
+                  }
+                }
+
+                //List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
                 for(FileItem item : multiparts){
                     if (item.isFormField()) {  //plain field
                         fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
@@ -350,8 +362,10 @@ System.out.println("*** trying redirect?");
                         if (item.getSize() > maxSizeBytes) {
                             filesBad.put(item.getName(), "file is larger than " + maxSizeMB + "MB");
                         } else if (myShepherd.isAcceptableImageFile(item.getName()) || myShepherd.isAcceptableVideoFile(item.getName()) ) {
-                            formFiles.add(item);
-                            filesOK.add(item.getName());
+                            if (!filesToSkip.contains(item.getName())) {
+                              formFiles.add(item);
+                              filesOK.add(item.getName());
+                            }
                         } else {
                             filesBad.put(item.getName(), "invalid type of file");
                         }

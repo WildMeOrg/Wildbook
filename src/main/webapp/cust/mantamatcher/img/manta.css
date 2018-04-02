@@ -8391,6 +8391,9 @@ tr.no-access:hover td {
 .error {
   color: #820;
 }
+.fileLink {
+	cursor: pointer;
+}
 .scroll {
   overflow-y: auto;
 }

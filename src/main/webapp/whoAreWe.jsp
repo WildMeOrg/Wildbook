@@ -20,16 +20,6 @@
 
 <div class="container maincontent">
 
-<style type="text/css">
-.img-container img {
-	overflow: hidden;
-	margin-bottom: 5px;
-	width: 100%;
-	height: 187px;
-	object-fit: cover;
-}
-</style>
-
    <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
         <h1><%=props.getProperty("title") %></h1>
         <p class="lead">
@@ -76,7 +66,7 @@
 					%>
                     <div class="name"><%= StringEscapeUtils.escapeHtml4(displayName) %></div>
                     <%
-					}
+					}`
                     
                     if(thisUser.getAffiliation()!=null){
     				%>
