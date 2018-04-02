@@ -2059,6 +2059,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         this.dateInMilliseconds = ms;
     }
 
+    // this does not reset year/month/etc
+    public void setDateInMillisOnly(long ms) {
+        this.dateInMilliseconds = ms;
+    }
+
 
   public String getDecimalLatitude(){
     if(decimalLatitude!=null){return Double.toString(decimalLatitude);}
@@ -2502,7 +2507,17 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
     public void removeAnnotation(int index) {
       annotations.remove(index);
     }
-
+    public void removeAnnotation(Annotation ann) {
+      int annNum = indexOfAnnotation(ann);
+      if (annNum>=0) removeAnnotation(annNum);
+    }
+    public int indexOfAnnotation(Annotation ann) {
+      for (int i=0; i<annotations.size(); i++) {
+        Annotation myAnn = annotations.get(i);
+        if (myAnn.getId().equals(ann.getId())) return i;
+      }
+      return -1;
+    }
     public void removeMediaAsset(MediaAsset ma) {
       removeAnnotation(indexOfMediaAsset(ma.getId()));
     }
@@ -3062,6 +3077,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         return new ToStringBuilder(this)
                 .append("catalogNumber", catalogNumber)
                 .append("individualID", (hasMarkedIndividual() ? individualID : null))
+                .append("occurrenceID", getOccurrenceID())
                 .append("species", getTaxonomyString())
                 .append("sex", getSex())
                 .append("shortDate", getShortDate())
