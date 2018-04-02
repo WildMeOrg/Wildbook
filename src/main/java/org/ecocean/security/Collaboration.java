@@ -202,29 +202,26 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 
-	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
+	public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
 		String context = ServletUtilities.getContext(request);
 		if (!securityEnabled(context)) return true;
 		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
-
 		if (request.getUserPrincipal() == null) return false;
 		String username = request.getUserPrincipal().getName();
 //System.out.println("username->"+username);
-		String owner = enc.getAssignedUsername();
-		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
+		if (User.isUsernameAnonymous(ownerName)) return true;  //anon-owned is "fair game" to anyone
 //System.out.println("owner->" + owner);
 //System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
-		return canCollaborate(context, owner, username);
+		return canCollaborate(context, ownerName, username);
+
 	}
 
+	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
+		return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
+	}
 
 	public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
-  	ArrayList<Encounter> all = occ.getEncounters();
-		if ((all == null) || (all.size() < 1)) return true;
-		for (Encounter enc : all) {
-			if (canUserAccessEncounter(enc, request)) return true;  //one is good enough (either owner or in collab or no security etc)
-		}
-		return false;
+		return canUserAccessOwnedObject(occ.getSubmitterID(), request);
 	}
 
 

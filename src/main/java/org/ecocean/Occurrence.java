@@ -83,6 +83,8 @@ public class Occurrence implements java.io.Serializable{
   private Integer numCalves;
   private String observer;
 
+  private String submitterID;
+
 
 
   // do we have these?
@@ -188,6 +190,21 @@ public class Occurrence implements java.io.Serializable{
     //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     return isNew;
 
+  }
+
+  public void setSubmitterIDFromEncs(){
+    for (Encounter enc: encounters) {
+      if (Util.stringExists(enc.getSubmitterID())) {
+        setSubmitterID(enc.getSubmitterID());
+        return;
+      }
+    }
+  }
+  public void setSubmitterID(String submitterID) {
+    this.submitterID = submitterID;
+  }
+  public String getSubmitterID() {
+    return submitterID;
   }
 
   public void setAssets(List<MediaAsset> assets) {
