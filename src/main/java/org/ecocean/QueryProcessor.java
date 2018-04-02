@@ -40,6 +40,14 @@ public abstract class QueryProcessor {
     return Util.jdoStringContainsConstraint(fieldName, val, true);
   }
 
+  protected static String stringFieldExactSubFilter(HttpServletRequest request, String fieldName) {
+    String val = request.getParameter(fieldName);
+    if ( !Util.stringExists(val) ) return "";
+    val = Util.undoUrlEncoding(val);
+    return jdoStringEqualsConstraint(fieldName, val);
+  }
+
+
   protected static String filterWithBasicStringField(String filter, String fieldName, HttpServletRequest request) {
     String subFilter = stringFieldSubFilter(request, fieldName);
     System.out.println("filterWithBasicStringField: field "+fieldName+" made subFilter "+subFilter);
@@ -54,10 +62,30 @@ public abstract class QueryProcessor {
     return filterWithBasicStringField(filter, fieldName, request);
   }
 
+  protected static String filterWithExactStringField(String filter, String fieldName, HttpServletRequest request) {
+    String subFilter = stringFieldExactSubFilter(request, fieldName);
+    System.out.println("filterWithExactStringField: field "+fieldName+" made subFilter "+subFilter);
+    if (!Util.stringExists(subFilter)) return filter;
+    filter = prepForCondition(filter);
+    filter+= subFilter;
+    return filter;
+  }
+  // same as above, but also does bad practice of modifying inpnut variable prettyPrint (this makes for nice 'n' readable code!)
+  protected static String filterWithExactStringField(String filter, String fieldName, HttpServletRequest request, StringBuffer prettyPrint) {
+    prettyPrint.append(prettyPrintUpdateForExactString(fieldName, request));
+    return filterWithExactStringField(filter, fieldName, request);
+  }
+
+
 
   protected static String prettyPrintUpdateForBasicString(String fieldName, HttpServletRequest request) {
     if (!Util.stringExists(request.getParameter(fieldName))) return "";
     return (fieldName+" contains \""+request.getParameter(fieldName)+"\".<br />");
+  }
+
+  protected static String prettyPrintUpdateForExactString(String fieldName, HttpServletRequest request) {
+    if (!Util.stringExists(request.getParameter(fieldName))) return "";
+    return (fieldName+" equals \""+request.getParameter(fieldName)+"\".<br />");
   }
 
 
@@ -170,5 +198,11 @@ public abstract class QueryProcessor {
     sb.append(typeAndVariable);
     return sb.toString();
   }
+
+
+  public static String jdoStringEqualsConstraint(String fieldName, String equalsThis) {
+    return "("+fieldName+" == '"+equalsThis+"')";
+  }
+
 
 }
