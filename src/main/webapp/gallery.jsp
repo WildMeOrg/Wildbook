@@ -287,7 +287,7 @@ int numDataContributors=0;
 
     <!--  Placement for adoptable sharks button, in same format as above. -->
 
-    <p id="pageCounter" class="pull-right galleryCounter"><b>Page: 1</b></p>
+    <p class="pull-right galleryCounter pageCounter"><b>Page: 1</b></p>
 
   </div>
 </nav>
@@ -315,7 +315,7 @@ int numDataContributors=0;
     }
 
     var pageNum = "Page: "+String(parseInt(<%=endNum%>)/parseInt(<%=numIndividualsOnPage%>));
-    $('#pageCounter b').html(pageNum);
+    $('.pageCounter b').html(pageNum);
 
   }); 
 </script>
@@ -593,7 +593,7 @@ int numDataContributors=0;
 
 
         </p>
-        
+        <p class="pull-right galleryCounter pageCounter"><b>Page: 1</b></p>
 
 	 </div>
   </section>
