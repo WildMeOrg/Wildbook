@@ -61,7 +61,6 @@ int numIndividualsOnPage=18;
 
 int startNum = 0;
 int endNum = numIndividualsOnPage;
-int pageNum = (endNum/numIndividualsOnPage);
 try {
   if (request.getParameter("startNum") != null) {
     startNum = (new Integer(request.getParameter("startNum"))).intValue();
@@ -306,7 +305,7 @@ int numDataContributors=0;
 
     <!--  Placement for adoptable sharks button, in same format as above. -->
 
-    <p class="pull-right galleryCounter"><b>Page  <%=pageNum%></b></p>
+    <p id="pageCounter" class="pull-right galleryCounter"><b>Page: 1</b></p>
 
   </div>
 </nav>
@@ -345,6 +344,9 @@ int numDataContributors=0;
     $('.mostSightings').click(function(){
       console.log("Clicked MostSightings!");
     });
+
+    var pageNum = "Page: "+String(parseInt(<%=endNum%>)/parseInt(<%=numIndividualsOnPage%>));
+    $('#pageCounter b').html(pageNum);
 
   }); 
 </script>
@@ -657,12 +659,12 @@ myShepherd=null;
   var lastIndiv = nIndividuals-1;
 
   imageCropper.testCrop = function() {
-    console.log("LAST IMAGE LOADED");
+    //console.log("LAST IMAGE LOADED");
     imageCropper.cropPicsGalleryPage();
     $(window).trigger('resize');
     $(window).trigger('resize');
     imageCropper.cropPicsGalleryPage();
-    console.log("I'm not sure this will print");
+    //console.log("I'm not sure this will print");
   }
 
   $( "img:eq("+lastIndiv+")").load( imageCropper.testCrop() );
