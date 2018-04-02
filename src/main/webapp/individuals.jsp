@@ -597,18 +597,20 @@ $(document).ready(function() {
       <%-- Get images for slider --%>
       <%
 ///note this is very hacky... as jon about it
+int numPhotos = 0;
 for (Encounter enJ : sharky.getDateSortedEncounters()) {
 	for (org.ecocean.media.MediaAsset maJ : enJ.getMedia()) {
 		if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
 	}
 }
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
+      numPhotos = photoObjectArray.size();
       String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
-      for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
+      for (int extraImgNo=0; (extraImgNo<numPhotos&&extraImgNo<5); extraImgNo++) {
         JSONObject newMaJson = new JSONObject();
         newMaJson = photoObjectArray.get(extraImgNo);
-	String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+	      String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
 
         %>
         <div class="crop-outer">
@@ -1522,6 +1524,13 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
    $( window ).resize(function(){
      cropDesktopPics(maxHeight);
    });
+
+$(document).ready(function(){
+  var photos = parseInt("<%=numPhotos%>");
+  if (photos<2) {
+    $('.sssprev, .sssnext').hide();
+  }
+});
    </script>
 
 
