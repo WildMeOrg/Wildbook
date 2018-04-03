@@ -388,7 +388,9 @@ int numDataContributors=0;
           MarkedIndividual indie = pair[j];
           for (Encounter enJ : indie.getDateSortedEncounters()) {
             for (MediaAsset maJ : enJ.getMedia()) {
-              if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+              if (maJ.getMetadata() != null) {
+                maJ.getMetadata().getDataAsString();
+              }
             }
           }
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
@@ -474,11 +476,15 @@ int numDataContributors=0;
                 </div>
                 <%
               }
+              if (al.size()>1) {
+              %>
+                <img class="seal-scroll scroll-back" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"/>
+                <img class="seal-scroll scroll-fwd" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/>
+              <%
+              } 
               %>
 
-              <img class="seal-scroll scroll-back" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"/>
 
-              <img class="seal-scroll scroll-fwd" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/>
 
 
 
