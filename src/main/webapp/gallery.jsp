@@ -582,7 +582,11 @@ int numDataContributors=0;
             <a class="gallery-arrows btn btn-default" href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"><span class="arrow-span"> Previous </span></a> &nbsp;&nbsp;
             <%
           }
-          if (endNum<rIndividuals.size()) {
+          System.out.println("End Num: "+endNum);
+          System.out.println("AllSharks: "+allSharks);
+          System.out.println("Indys on page: "+numIndividualsOnPage);
+
+          if (endNum<allSharks) {
             %>
             &nbsp;&nbsp;<a class="gallery-arrows btn btn-default" href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"><span class="arrow-span">&nbsp;&nbsp; Next &nbsp;&nbsp;&nbsp;</span><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
             <%  
