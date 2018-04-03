@@ -38,9 +38,9 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 <h2>Spotting Giant Sea Bass</h2>
 
-**Localization files (most copy)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
+**Property files (most copy, and translations/localizations)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
 
-**Image files** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
+**Images** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
 
 **Emails** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
 
