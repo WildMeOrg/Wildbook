@@ -280,10 +280,11 @@ int numDataContributors=0;
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
     <button type="button" class="btn-link recentSightings"><a class="recentSightings" href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
+    
+    <button type="button" class="btn-link mostSightings"><a class="mostSightings  " href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
     <button type="button" class="btn-link mostTraveled"><a class="mostTraveled" href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
 
-    <button type="button" class="btn-link mostSightings"><a class="mostSightings  " href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
     <!--  Placement for adoptable sharks button, in same format as above. -->
 

@@ -352,7 +352,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       
                       <!--  added link directly to gallery for not logged in users, hide if logged in  -->
                       <% if (request.getUserPrincipal() == null) { %>
-					  	<li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
+					  	<li><a href="<%=urlLoc %>/gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("gallery")%></a></li>
 					  <%}%>
                       <li>
                         <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
