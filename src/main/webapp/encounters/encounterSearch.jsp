@@ -722,17 +722,16 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				<!-- Allow a key and value for each observation, allow user to add additional fields. -->
 				<p>
 					<label><%=encprops.getProperty("obSearchHeader")%></label>
-					<label><small><%=encprops.getProperty("obSearchDesc")%></small></label>
-					<label><%=encprops.getProperty("name")%></label><label><%=encprops.getProperty("value")%></label>
 				</p>
+        </br>
+        
 				<p>
 					<input name="observationKey1" type="text" id="observationKey1" value="" placeholder="Observation Name">
 					<input name="observationValue1" type="text" id="observationValue1" value="" placeholder="Observation Value">
 				</p>
-				<div id="additionalObsFields">
-				
-				
-				</div>
+      
+				<div id="additionalObsFields"></div>
+        </br>
 				<input name="numSearchedObs" type="hidden" id="numSearchedObs" value="0" >
 				<input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=encprops.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
 			</td>
