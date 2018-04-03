@@ -103,7 +103,7 @@ props = ShepherdProperties.getProperties("aboutBass.properties", langCode, conte
     <div class="row">
       <div class="col-xs-6">
     		<img class="bass_image range_map" src="cust/mantamatcher/img/bass/GSB_final_long-01_1900x2596.png" />
-	    	<label><%=props.getProperty("rangeMapImage") %></label>
+	    	<label class="image_label"><%=props.getProperty("rangeMapImage") %></label>
       </div>	
       <div class="col-xs-6">
 	    	<img class="bass_image bass_caught" src="cust/mantamatcher/img/bass/bass_caught.png" />
