@@ -57,6 +57,7 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.MarkedIndividual;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -686,7 +687,6 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       enc.setSex(getVal(fv, "sex"));
       enc.setLivingStatus(getVal(fv, "livingStatus"));
 
-
       if(fv.get("scars")!=null){
         enc.setDistinguishingScar(fv.get("scars").toString());
       }
@@ -942,6 +942,9 @@ System.out.println("depth --> " + fv.get("depth").toString());
       //System.out.println("I set the date as a LONG to: "+enc.getDWCDateAddedLong());
       enc.setDWCDateLastModified(strOutputDateTime);
 
+        MarkedIndividual indiv = assignMarkedIndividual(myShepherd, enc, getVal(fv, "indiv-id"));
+        System.out.println("assignMarkedIndividual(" + enc + ") ==> " + indiv);
+
 
         //this will try to set from MediaAssetMetadata -- ymmv
         if (!llSet) enc.setLatLonFromAssets();
@@ -952,6 +955,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
                 newnum = myShepherd.storeNewEncounter(enc, encID);
                 //enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
                 enc.refreshAssetFormats(myShepherd);
+                if (indiv != null) myShepherd.getPM().makePersistent(indiv);
 
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
@@ -982,5 +986,17 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
     //return null;
   }
 
+
+    private MarkedIndividual assignMarkedIndividual(Shepherd myShepherd, Encounter enc, String indivId) {
+        if (indivId == null) return null;
+        MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(indivId);
+        if (indiv == null) {
+            indiv = new MarkedIndividual(indivId, enc);
+        } else {
+            indiv.addEncounter(enc, myShepherd.getContext());
+        }
+        enc.setIndividualID(indivId);
+        return indiv;
+    }
 
 }
