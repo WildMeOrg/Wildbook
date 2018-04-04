@@ -275,11 +275,11 @@ public class CommonConfiguration {
   }
 
   public static String getGoogleMapsKey(String context) {
-    return getProperty("googleMapsKey",context);
+    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleMapsKey");
   }
 
   public static String getGoogleSearchKey(String context) {
-    return getProperty("googleSearchKey",context);
+    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleSearchKey");
   }
 
   public static String getDefaultGoogleMapsCenter(String context) {
