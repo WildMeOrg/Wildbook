@@ -56,6 +56,7 @@ HTML entity encoder/decoder: https://mothereff.in/html-entities
 
 <h2>Color palette notes</h2>
 <ul>
- <li>header: <a href="https://www.colorhexa.com/0b718e">#0b718e</a>  </li>
+ <li>header background color and navbar text: <a href="https://www.colorhexa.com/0b718e">#0b718e</a>  </li>
+ <li>h2: <a href="https://www.colorhexa.com/005589">#005589</a>  </li>
  
  </ul>
