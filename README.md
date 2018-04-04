@@ -63,15 +63,20 @@ Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass
 
 Colors get changed in this .less file: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_colours.less
 
-and here: https://github.com/WildbookOrg/Wildbook/blob/48358e0f59cb3209990da65417c868fabb7d6a1f/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
-
 <ul>
  <li>header background color and navbar text: <a href="https://www.colorhexa.com/0b718e">#0b718e</a>  </li>
  <li>latest encounter links on homepage: <a href="https://www.colorhexa.com/0BC0F7"># 0BC0F7</a>  </li>
 <li>h1 and h2, Advanced Info button: <a href="https://www.colorhexa.com/005589">#005589</a>  </li>
-<li>red text for mandatory fields: <a href="https://www.colorhexa.com/a94442">#a94442</a>  </li>
  <li>body text color: <a href="https://www.colorhexa.com/">#</a>  </li>
-<li>bright blue next arrows on gallery page: <a href="https://www.colorhexa.com/00AFCE">#00AFCE</a>  </li>
+ <li>Report Encounter button on homepage (aka whaleSharkblue: <a href="https://www.colorhexa.com/5d8cc1">#5d8cc1</a>  </li>
  
-
  </ul>
+
+and here: https://github.com/WildbookOrg/Wildbook/blob/48358e0f59cb3209990da65417c868fabb7d6a1f/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
+
+<ul>
+<li>red text for mandatory fields: <a href="https://www.colorhexa.com/a94442">#a94442</a>  </li>
+<li>bright blue next arrows on gallery page: <a href="https://www.colorhexa.com/00AFCE">#00AFCE</a>  </li>
+  
+ </ul>
+
