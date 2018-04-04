@@ -1876,7 +1876,6 @@ $(document).ready(function() {
 					  
                       $.post("../OccurrenceCreate", {"occurrence": occurrence, "number": number},
                       function() {
-                    	  <% System.out.println("Tried to make an Occ..."); %>
                     	console.log(occurrence);
                     	console.log(number);
                         $("#createOccurErrorDiv").hide();

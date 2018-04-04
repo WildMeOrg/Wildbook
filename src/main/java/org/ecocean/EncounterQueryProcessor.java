@@ -16,8 +16,7 @@ import java.util.Vector;
 import java.io.*;
 
 import javax.jdo.Query;
-
-
+import javax.measure.quantity.Length;
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -297,24 +296,24 @@ public class EncounterQueryProcessor {
     
     //begin observation filters -----------------------------------------
     boolean hasValue = false;
-    int numObsSearched = 0;
     if (request.getParameter("numSearchedObs")!=null) {
-      numObsSearched = Integer.valueOf(request.getParameter("numSearchedObs"));
-      System.out.println("Num Obs Searched? "+numObsSearched);
       if (request.getParameter("observationKey1")!=null&&!request.getParameter("observationKey1").equals("")) {
         hasValue = true;
       }
     }  
     Enumeration<String> allParams = request.getParameterNames();
-    if (allParams!=null&&numObsSearched>0) {
+    if (allParams!=null&&hasValue) {
       String keyID = "observationKey";
       String valID = "observationValue";
       HashMap<String,String> obKeys = new HashMap<>();
       HashMap<String,String> obVals = new HashMap<>();
       StringBuilder obQuery = new StringBuilder();
+      int numObsSearched = 0;
       while (allParams.hasMoreElements()) {
         String thisParam = allParams.nextElement();
         if (thisParam!=null&&thisParam.startsWith(keyID)) {
+          numObsSearched++;
+          System.out.println("Num Obs Searched? "+numObsSearched);
           String keyParam = request.getParameter(thisParam);
           String keyNum = thisParam.replace(keyID,"");
           if (keyParam!=null&&!keyParam.equals("")) {
@@ -336,6 +335,11 @@ public class EncounterQueryProcessor {
           prettyPrint.append("observation ");
           prettyPrint.append(thisKey);
           prettyPrint.append("<br/>");
+          String qAsString = obQuery.toString().trim();
+          System.out.println("Query As String"+qAsString);
+          if (qAsString.length()>=2&&!qAsString.substring(qAsString.length()-2).equals("&&")) {
+            obQuery.append("&&");
+          }
           obQuery.append("(observations.contains(observation"+num+") && ");
           obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
           if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
