@@ -36,7 +36,9 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 <p><img style="float: right;" align="middle" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> http://www.wildme.org
 
-<h2>Spotting Giant Sea Bass</h2>
+<h1>Spotting Giant Sea Bass</h1>
+
+<h2>Editing content</h2>
 
 **Property files (most copy, and translations/localizations)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
 
@@ -48,10 +50,14 @@ Actual pages (**jsp files**) are here: https://github.com/WildbookOrg/Wildbook/t
 
 **Styling (less files)**: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/styles
 
-Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
+
+<h2>Configuration changes</h2>
 
 **commonConfiguration.properties** here (for reference only, gets overridden): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
 
+Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
+
+<h2> Quick reference </h2>
 HTML entity encoder/decoder: https://mothereff.in/html-entities
 
 <h2>Color palette notes</h2>
@@ -62,7 +68,6 @@ HTML entity encoder/decoder: https://mothereff.in/html-entities
 <li>red text for mandatory fields: <a href="https://www.colorhexa.com/">#</a>  </li>
  <li>body text color: <a href="https://www.colorhexa.com/">#</a>  </li>
 <li>bright blue next arrows on gallery page: <a href="https://www.colorhexa.com/00AFCE">#00AFCE</a>  </li>
- 
  
 
  </ul>
