@@ -65,11 +65,14 @@ Colors get changed in this .less file: https://github.com/WildbookOrg/Wildbook/b
 
 <ul>
  <li>header background color and navbar text: <a href="https://www.colorhexa.com/0b718e">#0b718e</a>  </li>
- <li>latest encounter links on homepage (aka @brand-secondary): <a href="https://www.colorhexa.com/00c0f7"># 00c0f7</a>  </li>
-<li>h1 and h2, Advanced Info button: <a href="https://www.colorhexa.com/005589">#005589</a>  </li>
+ <li>footer background gray (aka @brand-light): <a href="https://www.colorhexa.com/dfdfdf">#dfdfdf</a>  </li>
+ <li>latest encounter links on homepage (aka @brand-secondary): <a href="https://www.colorhexa.com/00c0f7">#00c0f7</a>  </li>
+ <li>h1 and h2, Advanced Info button: <a href="https://www.colorhexa.com/005589">#005589</a>  </li>
  <li>body text color: <a href="https://www.colorhexa.com/">#</a>  </li>
  <li>Report Encounter button on homepage (aka whaleSharkblue): <a href="https://www.colorhexa.com/5d8cc1">#5d8cc1</a>  </li>
  
+ 
+ @brand-light: #dfdfdf; /* light gray */
  </ul>
 
 and here: https://github.com/WildbookOrg/Wildbook/blob/48358e0f59cb3209990da65417c868fabb7d6a1f/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
