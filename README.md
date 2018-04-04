@@ -60,6 +60,9 @@ HTML entity encoder/decoder: https://mothereff.in/html-entities
 Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
 
 <h2>Color palette notes</h2>
+
+Colors get changed in this .less file: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_colours.less
+
 <ul>
  <li>header background color and navbar text: <a href="https://www.colorhexa.com/0b718e">#0b718e</a>  </li>
  <li>latest encounter links on homepage: <a href="https://www.colorhexa.com/0BC0F7"># 0BC0F7</a>  </li>
