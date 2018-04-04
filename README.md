@@ -76,7 +76,8 @@ Colors get changed in this .less file: https://github.com/WildbookOrg/Wildbook/b
 and here: https://github.com/WildbookOrg/Wildbook/blob/48358e0f59cb3209990da65417c868fabb7d6a1f/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
 
 <ul>
-<li>red text for mandatory fields: <a href="https://www.colorhexa.com/a94442">#a94442</a>  </li>
+<li>red text for mandatory fields (.text-danger): <a href="https://www.colorhexa.com/a94442">#a94442</a>  </li>
+
 <li>bright blue next arrows on gallery page: <a href="https://www.colorhexa.com/00AFCE">#00AFCE</a>  </li>
   
  </ul>
