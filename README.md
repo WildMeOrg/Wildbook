@@ -46,6 +46,8 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 Actual pages (**jsp files**) are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
 
+**Styling**: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/styles
+
 Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
 
 **commonConfiguration.properties** here (for reference only, gets overridden): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
@@ -54,6 +56,6 @@ HTML entity encoder/decoder: https://mothereff.in/html-entities
 
 <h2>Color palette notes</h2>
 <ul>
- <li>header #0b718e </li>
+ <li><a href="https://www.colorhexa.com/0b718e">#0b718e</a>header  </li>
  
- 
+ </ul>
