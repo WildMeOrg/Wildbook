@@ -579,15 +579,18 @@
 		<url-pattern>/upload</url-pattern>
 	</servlet-mapping>
 
+	<!--
     <servlet>
     <servlet-name>BatchUpload</servlet-name>
     <servlet-class>org.ecocean.servlet.BatchUpload</servlet-class>
   </servlet>
 
+
    <servlet-mapping>
     <servlet-name>BatchUpload</servlet-name>
     <url-pattern>/BatchUpload/*</url-pattern>
   </servlet-mapping>
+    -->
 
     <servlet-mapping>
     <servlet-name>IAGateway</servlet-name>
@@ -755,11 +758,13 @@
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportEmailAddresses</servlet-class>
   </servlet>
 
+  <!--
+  
         <servlet>
         <servlet-name>ningalooPradel</servlet-name>
         <servlet-class>org.ecocean.servlet.NingalooPradel</servlet-class>
   </servlet>
-
+-->
      <servlet>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportShapefile</servlet-class>
@@ -864,21 +869,24 @@
     <servlet-class>org.ecocean.servlet.TrackerFeed</servlet-class>
   </servlet>
 
+  <!--
     <servlet>
     <servlet-name>SideFeed</servlet-name>
     <servlet-class>org.ecocean.servlet.SideFeed</servlet-class>
   </servlet>
-
+-->
+  
   <servlet>
     <servlet-name>EncounterRemoveImage</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveImage</servlet-class>
   </servlet>
 
+  <!--
     <servlet>
          <servlet-name>mitFeed</servlet-name>
   	<servlet-class>org.ecocean.servlet.MitFeed</servlet-class>
   </servlet>
-
+-->
 
   <servlet>
     <servlet-name>DeleteAdoption</servlet-name>
@@ -938,12 +946,12 @@
       <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
       <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
   </servlet>
-
+<!--
   <servlet>
        <servlet-name>ningalooRobustByMonths</servlet-name>
 	<servlet-class>org.ecocean.servlet.NingalooRobustByMonths</servlet-class>
   </servlet>
-
+-->
    <servlet>
     <servlet-name>EncounterSetScarring</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetScarring</servlet-class>
@@ -959,9 +967,23 @@
     <servlet-class>org.ecocean.servlet.EncounterRemoveSpots</servlet-class>
   </servlet>
 
+<!--
+
       <servlet>
            <servlet-name>MozPradel</servlet-name>
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
+  </servlet>
+
+-->
+
+  <servlet>
+    <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
+    <servlet-class>org.ecocean.servlet.TissueSampleSetMicrosatelliteMarkers</servlet-class>
+  </servlet>
+
+    <servlet>
+      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
+      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
   </servlet>
 
 
@@ -980,11 +1002,12 @@
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
 
+  <!--
     <servlet>
       <servlet-name>NingalooByMonthsSonification</servlet-name>
       <servlet-class>org.ecocean.servlet.NingalooByMonthsSonification</servlet-class>
   </servlet>
-
+-->
   <servlet>
     <servlet-name>EncounterAddComment</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddComment</servlet-class>
@@ -1124,13 +1147,15 @@
     <servlet-class>org.ecocean.servlet.ResurrectDeletedEncounter</servlet-class>
   </servlet>
 
-
+<!--
 
       <servlet>
            <servlet-name>MozRobustByMonths</servlet-name>
     	<servlet-class>org.ecocean.servlet.MozRobustByMonths</servlet-class>
   </servlet>
-
+-->
+  
+  
   <servlet>
     <servlet-name>ScanWorkItemResultsHandler</servlet-name>
     <servlet-class>org.ecocean.servlet.ScanWorkItemResultsHandler</servlet-class>
@@ -1229,10 +1254,12 @@
     <url-pattern>/ImgSyncServlet1</url-pattern>
   </servlet-mapping>
 
+  <!--
     <servlet-mapping>
       <servlet-name>SideFeed</servlet-name>
       <url-pattern>/SideFeed</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet>
     <servlet-name>WorkspaceServer</servlet-name>
@@ -1568,6 +1595,8 @@
     <url-pattern>/ScanTaskHandler</url-pattern>
   </servlet-mapping>
 
+  <!--
+  
  <servlet-mapping>
        <servlet-name>ningalooRobustByMonths</servlet-name>
        <url-pattern>/ningalooRobustByMonths</url-pattern>
@@ -1577,7 +1606,7 @@
          <servlet-name>ningalooPradel</servlet-name>
          <url-pattern>/CJS</url-pattern>
   </servlet-mapping>
-
+-->
   <!--
   <servlet-mapping>
     <servlet-name>EncounterSetIdentifiable</servlet-name>
@@ -1893,11 +1922,12 @@
     <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
 
+  <!--
       <servlet-mapping>
            <servlet-name>MozPradel</servlet-name>
            <url-pattern>/MozPradel</url-pattern>
   </servlet-mapping>
-
+-->
   <servlet-mapping>
     <servlet-name>EncounterSetLocation</servlet-name>
     <url-pattern>/EncounterSetLocation</url-pattern>
@@ -1930,12 +1960,12 @@
     <servlet-name>EncounterSetOccurrenceRemarks</servlet-name>
     <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
   </servlet-mapping>
-
+<!--
    <servlet-mapping>
          <servlet-name>MozRobustByMonths</servlet-name>
          <url-pattern>/MozRobustByMonths</url-pattern>
   </servlet-mapping>
-
+-->
   <servlet-mapping>
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
     <url-pattern>/MassSetLocationCodeFromLocationString</url-pattern>
@@ -1946,11 +1976,12 @@
     <url-pattern>/MassSwapLocationCode</url-pattern>
   </servlet-mapping>
 
+  <!--
     <servlet-mapping>
       <servlet-name>NingalooByMonthsSonification</servlet-name>
       <url-pattern>/NingalooByMonthsSonification</url-pattern>
   </servlet-mapping>
-
+-->
   <servlet-mapping>
     <servlet-name>MassExposeGBIF</servlet-name>
     <url-pattern>/MassExposeGBIF</url-pattern>
@@ -2059,12 +2090,12 @@
     <servlet-name>IndividualAddFile</servlet-name>
     <url-pattern>/IndividualAddFile</url-pattern>
   </servlet-mapping>
-
+<!--
   <servlet-mapping>
     <servlet-name>TrackerFeed</servlet-name>
     <url-pattern>/TrackerFeed</url-pattern>
   </servlet-mapping>
-
+-->
   <servlet-mapping>
     <servlet-name>EncounterAddSpotFile</servlet-name>
     <url-pattern>/EncounterAddSpotFile</url-pattern>
@@ -2112,11 +2143,12 @@
     <url-pattern>/ScanResultsServlet</url-pattern>
   </servlet-mapping>
 
+ <!-- 
     <servlet-mapping>
       <servlet-name>mitFeed</servlet-name>
       <url-pattern>/MITFeed</url-pattern>
   </servlet-mapping>
-
+-->
   <!--
   <servlet-mapping>
     <servlet-name>EncounterAddImage</servlet-name>
