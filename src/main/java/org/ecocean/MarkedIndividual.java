@@ -2021,6 +2021,29 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   }
 
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImagesWithKeywordsFast(HttpServletRequest req, List<String> kwNames) throws JSONException {
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+    Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    myShepherd.setAction("MarkedIndividual.getExemplarImagesFast");
+
+    for (String kwName: kwNames) {
+      MediaAsset ma = myShepherd.getExemplarKeywordForIndividual(this, kwName);
+      if (ma==null) continue;
+      JSONObject j = ma.sanitizeJson(req, new JSONObject());
+      ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+      URL midURL = null;
+      if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+      if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+      if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+        al.add(j);
+      }
+    }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+
+    return al;
+  }
+
 
   
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
