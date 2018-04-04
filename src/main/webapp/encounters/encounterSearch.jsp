@@ -732,7 +732,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       
 				<div id="additionalObsFields"></div>
         </br>
-				<input name="numSearchedObs" type="hidden" id="numSearchedObs" value="0" >
+				<input name="numSearchedObs" type="hidden" id="numSearchedObs" value="1" >
 				<input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=encprops.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
 			</td>
 			<br/>
