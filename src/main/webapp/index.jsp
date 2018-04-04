@@ -161,7 +161,7 @@ margin-bottom: 8px !important;
 
 
 	var center = new google.maps.LatLng(0.6811362994451233, 36.551513671875);
-        var mapZoom = 6;
+        var mapZoom = 4;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
