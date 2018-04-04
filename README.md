@@ -54,7 +54,9 @@ HTML entity encoder/decoder: https://mothereff.in/html-entities
 <h2>Configuration changes</h2>
 
 **commonConfiguration.properties** here (for reference only, gets overridden): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
+
 **Styling (less files)**: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/styles
+
 Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
 
 <h2>Color palette notes</h2>
