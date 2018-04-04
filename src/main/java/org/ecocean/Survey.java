@@ -300,7 +300,7 @@ public class Survey implements java.io.Serializable{
       try {
         DateTime dt = new DateTime(millis);
         DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
-        System.out.print("What the formatter makes: "+dtf.print(dt));
+        //System.out.print("What the formatter makes: "+dtf.print(dt));
         return dtf.print(dt);       
       } catch (Exception e) {
         e.printStackTrace();
