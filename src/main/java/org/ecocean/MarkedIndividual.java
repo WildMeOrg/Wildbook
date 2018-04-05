@@ -660,6 +660,10 @@ public class MarkedIndividual implements java.io.Serializable {
     Encounter[] allEncs = getDateSortedEncounters(reverse);
     return (Arrays.copyOfRange(allEncs, 0, Math.min(limit,allEncs.length)));
   }
+  
+  public String getWebUrl(HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/individuals.jsp?number="+getIndividualID());
+  }
 
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters() {return getDateSortedEncounters(false);}

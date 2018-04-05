@@ -738,6 +738,10 @@ public class Encounter implements java.io.Serializable {
     return photographerPhone;
   }
 
+  public String getWebUrl(HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/encounters/encounter.jsp?number="+getCatalogNumber());
+  }
+
   /**
    * Sets the phone number of the person who took the primaryImage this encounter.
    */
