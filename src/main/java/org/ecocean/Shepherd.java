@@ -156,7 +156,7 @@ public class Shepherd {
       return "fail";
     }
     return (enc.getId());
-}
+  }
 
   public String storeNewWorkspace(Workspace wSpace) {
     beginDBTransaction();
@@ -786,6 +786,31 @@ public class Shepherd {
 
 
 
+  public SexAnalysis getSexAnalysis(String analysisID) {
+    try {
+      SexAnalysis mtDNA = (SexAnalysis)getGeneticAnalysis(analysisID, "SexAnalysis");
+      return mtDNA;
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+  }
+
+
+  public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String analysisID) {
+    try {
+      MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(analysisID, "MicrosatelliteMarkers");
+      return msDNA;
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+  }
+
+
+
 
 
   public Adoption getAdoption(String num) {
@@ -997,8 +1022,11 @@ public class Shepherd {
     return false;
   }
 
-  public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
-    String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+  public boolean isGeneticAnalysis(String analysisID) {
+    return (getGeneticAnalysis(analysisID)!=null);
+  }
+  public GeneticAnalysis getGeneticAnalysis(String analysisID) {
+    String filter = "this.analysisID == \""+analysisID+"\"";
 
     Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
       Query acceptedEncounters = pm.newQuery(encClass, filter);
@@ -1032,6 +1060,28 @@ public class Shepherd {
       while(it.hasNext()){
 		  GeneticAnalysis gen=(GeneticAnalysis)it.next();
 		  acceptedEncounters.closeAll();
+        return gen;
+      }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      acceptedEncounters.closeAll();
+      return null;
+    }
+    acceptedEncounters.closeAll();
+    return null;
+  }
+  public GeneticAnalysis getGeneticAnalysis(String analysisID, String type) {
+    String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\"";
+        Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+    try {
+
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+      GeneticAnalysis gen=(GeneticAnalysis)it.next();
+      acceptedEncounters.closeAll();
         return gen;
       }
     }
@@ -1988,7 +2038,7 @@ public class Shepherd {
     ArrayList<MediaAsset> myArray=new ArrayList<MediaAsset>(c);
     samples.closeAll();
     return myArray;
-  } 
+  }
 
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(String locationID){
     ArrayList<MarkedIndividual> myArray=new ArrayList<MarkedIndividual>();
@@ -2006,7 +2056,7 @@ public class Shepherd {
     return getAllMarkedIndividualsSightedAtLocationID(locationID).size();
   }
 
-  public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) {
+  public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) { 
     String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"'";
       Query samples = pm.newQuery(keywordQueryString);
     Collection c = (Collection) (samples.execute());
@@ -2150,6 +2200,34 @@ public class Shepherd {
     }
     return indiv;
   }
+
+  public Keyword getKeywordById(String indexname) {
+    Keyword indiv = null;
+    try {
+      indiv = ((org.ecocean.Keyword) (pm.getObjectById(pm.newObjectIdInstance(Keyword.class, indexname.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return indiv;
+  }
+
+  public Keyword getKeywordByNameFast(String readableName) {
+    ArrayList al = new ArrayList();
+    try{
+      String filter = "this.readableName.toLowerCase() == \"" + readableName.toLowerCase() + "\"";
+      Extent keyClass = pm.getExtent(Keyword.class, true);
+      Query acceptedKeywords = pm.newQuery(keyClass, filter);
+      Collection c = (Collection) (acceptedKeywords.execute());
+      al = new ArrayList(c);
+      try {
+        acceptedKeywords.closeAll();
+      } catch (NullPointerException npe) {}
+    }
+    catch(Exception e){e.printStackTrace();}
+    return ((al.size()>0) ? ((Keyword) al.get(0)) : null);
+  }
+
+
 
   public MarkedIndividual getMarkedIndividual(Encounter enc) {
     if (enc==null) return null;
