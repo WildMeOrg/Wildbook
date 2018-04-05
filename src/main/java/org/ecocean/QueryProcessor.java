@@ -145,6 +145,11 @@ public abstract class QueryProcessor {
     filter = prepForCondition(filter);
     return (filter + subFilter);
   }
+  protected static String filterWithGpsBox(String latQueryStr, String lonQueryStr, String filter, HttpServletRequest request, StringBuffer prettyPrint) {
+    prettyPrint.append(prettyPrintGpsBox(request));
+    return (filterWithGpsBox(latQueryStr, lonQueryStr, filter, request));
+  }
+
 
 
   protected static String prettyPrintGpsBox(HttpServletRequest request) {
