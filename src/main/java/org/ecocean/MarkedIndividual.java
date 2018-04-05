@@ -2021,13 +2021,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   }
 
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImagesWithKeywordsFast(HttpServletRequest req, List<String> kwNames) throws JSONException {
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
-    myShepherd.setAction("MarkedIndividual.getExemplarImagesFast");
+    myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
 
     for (String kwName: kwNames) {
-      MediaAsset ma = myShepherd.getExemplarKeywordForIndividual(this, kwName);
+      MediaAsset ma = myShepherd.getBestKeywordPhoto(this, kwName);
       if (ma==null) continue;
       JSONObject j = ma.sanitizeJson(req, new JSONObject());
       ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
