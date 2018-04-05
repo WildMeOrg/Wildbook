@@ -31,12 +31,13 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int endNum = 10;
+  int endNum = 100;
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
 
   int numResults = 0;
+	int count=0;
 
   Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
   myShepherd.beginDBTransaction();
@@ -62,8 +63,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	<h1 class="intro"> <%=props.getProperty("title")%> </h1>
 
 
-	<p class="disclaimer"><em>Picturebook is under construction:<ul>
-		<li>Only 10 results shown</li>
+	<p class="disclaimer"><em>Warnings:<ul>
 		<li>Please wait for the page to completely load</li>
 		<li>Scroll to the bottom of the page before printing, or some images will not render in pdf</li>
 	</ul></em></p>
@@ -76,7 +76,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	    <td align="left">
 
 	      <p><strong><%=props.getProperty("matchingMarkedIndividuals")%>
-	      </strong>: <span id="count-total"> <%=numResults%> </span> (Displaying only <%=endNum%> for now)
+	      </strong>: <span id="count-total"> <%=numResults%> </span> (Showing only the <span id="image-count-total"></span> individuals with tagged exemplar images)
 	      </p>
 	      <%myShepherd.beginDBTransaction();%>
 	      <p><strong><%=props.getProperty("totalMarkedIndividuals")%>
@@ -130,6 +130,9 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   		height: 40%;
   	}
 	}
+	.clickable-row:hover {
+		cursor: pointer;
+	}
 	.pictureBook-table {
 		white-space: nowrap; /*prevents cells from being 2 rows of text tall*/
 	}
@@ -153,8 +156,22 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 <div class="pictureBook-container">
 	<%
-	int count=0;
+
+		List<String> desiredKeywords = new ArrayList<String>();
+		desiredKeywords.add("Tail Fluke");
+		desiredKeywords.add("Right Dorsal Fin");
+		desiredKeywords.add("Left Dorsal Fin");
+
 	for (MarkedIndividual mark: rIndividuals) {
+
+		ArrayList<JSONObject> exemplarImages = mark.getBestKeywordPhotos(request, desiredKeywords);
+		
+		boolean hasHeader = exemplarImages.size()>0;
+		boolean haspic2 = exemplarImages.size()>1;
+		boolean haspic3 = exemplarImages.size()>2;
+
+
+		if (!hasHeader) continue; // skip individuals without any images
 
 		count++;
 		if (count>endNum) break;
@@ -164,19 +181,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
 		String altIDStr = (Util.stringExists(altID)) ? ("<em>("+altID+")</em>") : "";
 
-		List<String> desiredKeywords = new ArrayList<String>();
-		desiredKeywords.add("Tail Fluke");
-		desiredKeywords.add("Right Dorsal Fin");
-		desiredKeywords.add("Left Dorsal Fin");
-
-
-		// commented out so that things are still fast while programmings---but this is tested and works
-		// this call is pretty slow
-		ArrayList<JSONObject> exemplarImages = mark.getExemplarImagesWithKeywords(request, desiredKeywords);
-		boolean hasHeader = exemplarImages.size()>0;
-		String ma0Str = exemplarImages.get(0).toString();
-		boolean haspic2 = exemplarImages.size()>1;
-		boolean haspic3 = exemplarImages.size()>2;
 
 		%>
 		<style>
@@ -214,7 +218,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 		<hr class="pictureBook-pagebreak">
 		<div class="pictureBook-page">
-			<h3>Individual ID: <%=id%> <%=altIDStr %></h3>
+			<h3>Individual ID: <a href=<%=mark.getWebUrl(request) %> ><%=id%></a> <%=altIDStr %></h3>
 
 			<div class="pictureBook-images">
 				<table>
@@ -222,7 +226,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 						<td colspan="2">
 							<div class="pictureBook-headerImage">
 								<% if (hasHeader){
-								%><span class="pictureBook-headerMA pictureBook-MA" ><%=ma0Str%>
+								%><span class="pictureBook-headerMA pictureBook-MA" ><%=exemplarImages.get(0).toString()%>
 								</span><%
 								} %>
 							</div>
@@ -261,7 +265,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 					<th>Biopsy</th>
 					<th>S. skin</th>
 					<th>Location</th>
-					<th>Fluke photo</th>
+					<!--<th>Fluke photo</th>-->
 					<th>Nickname</th>
 					<th>Sex</th>
 					<th>Satellite Tag</th>
@@ -283,12 +287,12 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 					boolean satelliteTag = enc.hasDynamicProperty("satelliteTag");
 
 					%>
-					<tr class="pictureBook-tr">
+					<tr class="pictureBook-tr clickable-row" data-href='<%=enc.getWebUrl(request) %>'>
 						<td><%=dateStr%></td>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= biopsy ? "checked" : ""%> /></td>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= sloughedSkin ? "checked" : ""%> /></td>
 						<td><%=location%></td>
-						<td><%=flukePhoto%></td>
+						<!--<td><%=flukePhoto%></td>-->
 						<td><%=nickname%></td>
 						<td><%=sex%></td>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= satelliteTag ? "checked" : ""%> /></td>
@@ -340,6 +344,12 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 	$( document ).ready(function() {
 		displayImages();
+		// count is calculated in java but displayed by JS
+		$('#image-count-total').html('<%=count%>');
+
+		$(".clickable-row").click(function() {
+        window.location = $(this).data("href");
+    });
 	});
 </script>
 
