@@ -39,12 +39,12 @@
                     </div>
                     <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
                   	  <a target="_blank" href="http://sbc.marinebon.org/">
-                        <img class="img-responsive" alt="mbon logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/MBON-Logo-Color.svg"/>
+                        <img class="img-responsive" alt="mbon logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/MBON-Logo-Color_tight.svg"/>
                       </a>
                     </div>
                   	<div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
                   	  <a target="_blank" href="http://msi.ucsb.edu/">
-                        <img class="img-responsive" alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo.png"/>
+                        <img class="img-responsive" alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_centered.png"/>
                       </a>
                     </div>
                     <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
