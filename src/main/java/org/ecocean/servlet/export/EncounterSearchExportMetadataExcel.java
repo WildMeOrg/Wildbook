@@ -116,22 +116,31 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet{
 
         String[] colHeaders = new String[]{
           "catalog number",
+          "individual ID",
+          "occurrence ID",
           "year",
           "month",
           "day",
-          "individual ID",
-          "occurrence ID",
-          "sex",
+          "hour",
+          "minutes",
+          "milliseconds (definitive datetime)",
           "latitude",
           "longitude",
-          "species",
-          "soil",
-          "reproductive stage",
-          "body condition",
-          "parasite load",
-          "immunoglobin",
-          "sample taken for diet",
-          "injured"
+          "locationID",
+          "country",
+          "other catalog numbers",
+          "submitter name",
+          "submitter organization",
+          "sex",
+          "behavior",
+          "life stage",
+          "group role",
+          "researcher comments",
+          "verbatim locality",
+          "alternate ID",
+          "web URL",
+          "individual web URL",
+          "occurrence web URL"
         };
 
         for (int i=0; i<colHeaders.length; i++) {
@@ -149,23 +158,35 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet{
             List<Label> rowLabels = new ArrayList<Label>();
 
             rowLabels.add(new Label(0, count, enc.getCatalogNumber()));
-            rowLabels.add(new Label(1, count, String.valueOf(enc.getYear())));
-            rowLabels.add(new Label(2, count, String.valueOf(enc.getMonth())));
-            rowLabels.add(new Label(3, count, String.valueOf(enc.getDay())));
-            rowLabels.add(new Label(4, count, enc.getIndividualID()));
-            rowLabels.add(new Label(5, count, enc.getOccurrenceID()));
-            rowLabels.add(new Label(6, count, enc.getSex()));
-            rowLabels.add(new Label(7, count, enc.getDecimalLatitude()));
-            rowLabels.add(new Label(8, count, enc.getDecimalLongitude()));
-            rowLabels.add(new Label(9, count, enc.getTaxonomyString()));
-            rowLabels.add(new Label(10, count, enc.getSoil()));
-            rowLabels.add(new Label(11, count, enc.getReproductiveStage()));
-            rowLabels.add(new Label(12, count, cleanToString(enc.getBodyCondition())));
-            rowLabels.add(new Label(13, count, cleanToString(enc.getParasiteLoad())));
-            rowLabels.add(new Label(14, count, cleanToString(enc.getSampleTakenForDiet())));
-            rowLabels.add(new Label(15, count, cleanToString(enc.getImmunoglobin())));
-            rowLabels.add(new Label(16, count, cleanToString(enc.getSampleTakenForDiet())));
-            rowLabels.add(new Label(17, count, cleanToString(enc.getInjured())));
+            rowLabels.add(new Label(1, count, enc.getIndividualID()));
+            rowLabels.add(new Label(2, count, enc.getOccurrenceID()));
+            rowLabels.add(new Label(3, count, String.valueOf(enc.getYear())));
+            rowLabels.add(new Label(4, count, String.valueOf(enc.getMonth())));
+            rowLabels.add(new Label(5, count, String.valueOf(enc.getDay())));
+            rowLabels.add(new Label(6, count, String.valueOf(enc.getHour())));
+            rowLabels.add(new Label(7, count, enc.getMinutes()));
+            rowLabels.add(new Label(8, count, String.valueOf(enc.getDateInMilliseconds())));
+            rowLabels.add(new Label(9, count, enc.getDecimalLatitude()));
+            rowLabels.add(new Label(10, count, enc.getDecimalLongitude()));
+
+            rowLabels.add(new Label(11, count, enc.getLocationID()));
+            rowLabels.add(new Label(12, count, enc.getCountry()));
+            rowLabels.add(new Label(13, count, enc.getOtherCatalogNumbers()));
+            rowLabels.add(new Label(14, count, enc.getSubmitterName()));
+            rowLabels.add(new Label(15, count, enc.getSubmitterOrganization()));
+
+            rowLabels.add(new Label(16, count, enc.getSex()));
+            rowLabels.add(new Label(17, count, enc.getBehavior()));
+            rowLabels.add(new Label(18, count, enc.getLifeStage()));
+            rowLabels.add(new Label(19, count, enc.getGroupRole()));
+            rowLabels.add(new Label(20, count, enc.getRComments()));
+            rowLabels.add(new Label(21, count, enc.getVerbatimLocality()));
+            rowLabels.add(new Label(22, count, enc.getAlternateID()));
+
+            rowLabels.add(new Label(23, count, ServletUtilities.getEncounterUrl(enc.getCatalogNumber(),request)));
+            rowLabels.add(new Label(24, count, ServletUtilities.getIndividualUrl(enc.getIndividualID(),request)));
+            rowLabels.add(new Label(25, count, ServletUtilities.getOccurrenceUrl(enc.getOccurrenceID(),request)));
+
 
             for(Label lab: rowLabels) {
               sheet.addCell(lab);

@@ -47,7 +47,7 @@ public class ImportAccess extends HttpServlet {
   // Hack. TODO: remove?
   private static boolean runOncePercompile = false;
 
-  private static boolean committing = false; // for developing w/o mucking up database
+  private static boolean committing = true; // for developing w/o mucking up database
   
   // Okay, we might need to build a hashmap out of every line in this table, so we can create multiple encounters 
   // for the date/sighting number pairs that occure multiple times. 
@@ -61,6 +61,9 @@ public class ImportAccess extends HttpServlet {
 
 
   private String photoLocation;
+
+  private final String profileKwName = "ProfilePhoto"; // sadly a soft-standard used on wildbook
+  private Keyword profilePicKeyword;
 
   private AssetStore astore;
   public static final String DEFAULT_ASSETSTORE_NAME = "Oman-Asset-Store";
@@ -185,6 +188,8 @@ public class ImportAccess extends HttpServlet {
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
     myShepherd.beginDBTransaction();
+
+    profilePicKeyword = myShepherd.getOrCreateKeyword("ProfilePhoto");
 
     String dbName = "omanData2017.07.04.mdb";
     if (request.getParameter("file") != null) dbName = request.getParameter("file");
@@ -626,12 +631,11 @@ public class ImportAccess extends HttpServlet {
     return Util.generateUUID();
   }
 
-
   private Annotation getAnnotationForIDPhotoRow(Row thisRow, AssetStore astore, Shepherd myShepherd) {
     MediaAsset ma = getMediaAssetForIDPhotoRow(thisRow, astore, myShepherd);
     if (ma==null) return null;
     Annotation ann = new Annotation("Megaptera novaeangliae", ma);
-    if (isIDPhotoRowExemplar(thisRow)) ann.setIsExemplar(true);
+    ann.setIsExemplar(true);
     return ann;
   }
 
@@ -714,6 +718,12 @@ public class ImportAccess extends HttpServlet {
 
       // MA processing
       ma.setUserDateTime(getDateTimeForIDPhotoRow(thisRow));
+      if (committing) {
+        ma.setMetadata();
+        ma.updateStandardChildren(myShepherd);
+      }
+
+      if (isIDPhotoRowExemplar(thisRow)) ma.addKeyword(profilePicKeyword);
 
       String keywordName = thisRow.getString("Photo_category");
       Keyword keyword;
@@ -744,8 +754,9 @@ public class ImportAccess extends HttpServlet {
       if (filmTypeKeyword != null) {
         ma.addToMetadata("Film type", filmTypeKeyword);
         System.out.println("    PROCIDPHOTOS: added metadata to mediaAsset: (Film type: "+filmTypeKeyword+")");
-
       }
+
+      if (ma!=null) System.out.println("MEDIA ASSET height parsed at "+ma.getHeight());
 
       return ma;
     } catch (Exception e) {
