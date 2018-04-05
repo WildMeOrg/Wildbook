@@ -22,6 +22,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
   public static final String[] SIMPLE_STRING_FIELDS = new String[]{"fieldStudySite", "fieldSurveyCode", "sightingPlatform", "groupComposition", "groupBehavior", "humanActivityNearby","initialCue","seaState","observer","comments"};
 
+  public static final String[] CATEGORICAL_STRING_FIELDS = new String[]{"submitterID"};
 
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
@@ -46,8 +47,16 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
       filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
     }
 
+    // filter for exact string fields
+    for (String fieldName : CATEGORICAL_STRING_FIELDS) {
+      System.out.println("   parsing occurrence query for field "+fieldName);
+      System.out.println("           current filter = "+filter);
+      filter = QueryProcessor.filterWithExactStringField(filter, fieldName, request, prettyPrint);
+    }
+
+
     // GPS box
-    filter = QueryProcessor.filterWithGpsBox(filter, request, prettyPrint);
+    filter = QueryProcessor.filterWithGpsBox("decimalLatitude", "decimalLongitude", filter, request, prettyPrint);
 
     // make sure no trailing ampersands
     filter = QueryProcessor.removeTrailingAmpersands(filter);
