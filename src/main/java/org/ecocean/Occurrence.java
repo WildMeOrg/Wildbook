@@ -285,6 +285,9 @@ public class Occurrence implements java.io.Serializable{
 
   public String getOccurrenceID(){return occurrenceID;}
 
+  public String getWebUrl(HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+getOccurrenceID());
+  }
 
   public Integer getIndividualCount(){return individualCount;}
   public void setIndividualCount(Integer count){
