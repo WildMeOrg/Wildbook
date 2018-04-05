@@ -19,7 +19,7 @@ import java.lang.NumberFormatException;
 import org.ecocean.*;
 import org.ecocean.servlet.*;
 import org.ecocean.media.*;
-import org.ecocean.genetics.TissueSample;
+import org.ecocean.genetics.*;
 import org.ecocean.tag.SatelliteTag;
 
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -53,7 +53,7 @@ StandardImport extends HttpServlet {
 	List<String> missingPhotos = new ArrayList<String>();
 	List<String> foundPhotos = new ArrayList<String>();
 	int numFolderRows = 0;
-	boolean committing = false;
+	boolean committing = true;
 	PrintWriter out;
 	// verbose variable can be switched on/off throughout the import for debugging
 	boolean verbose = false;
@@ -80,13 +80,15 @@ StandardImport extends HttpServlet {
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
 
-    photoDirectory = "/data/indocet/";
-    String filename = "/data/indocet/indocet_blended.xlsx";
-    //String filename = "/data/oman_import/ASWN_firstExport.xlsx";
+    photoDirectory = "/data/oman_import/photos/";
+    String filename = "/data/oman_import/ASWN_firstExport.xlsx";
+    // photoDirectory = "/data/indocet/";
+    // String filename = "/data/indocet/indocet_blended.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
     File dataFile = new File(filename);
     boolean dataFound = dataFile.exists();
 
+    missingColumns = new HashSet<String>();
     missingPhotos = new ArrayList<String>();
 		foundPhotos = new ArrayList<String>();
 		numFolderRows = 0;
@@ -129,7 +131,7 @@ StandardImport extends HttpServlet {
 
     int printPeriod = 100;
     if (committing) myShepherd.beginDBTransaction();
-    out.println("<h2>Beginning row loop:</h2>");
+    out.println("<h2>Beginning row loop:</h2>"); 
     out.println("<ul>");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
@@ -167,6 +169,7 @@ StandardImport extends HttpServlet {
           +"<li> sex "+enc.getSex()+"</li>"
           +"<li> lifeStage "+enc.getLifeStage()+"</li>"
           +"</ul></li>");
+
         }
         
       }
@@ -182,6 +185,17 @@ StandardImport extends HttpServlet {
     out.println("<h2><em>UNUSED</em> Column headings ("+unusedColumns.size()+"):</h2><ul>");
     for (String heading: unusedColumns) {
     	out.println("<li>"+heading+"</li>");
+    }
+    out.println("</ul>");
+
+
+    List<String> usedColumns = new ArrayList<String>();
+    for (String colName: colIndexMap.keySet()) {
+      if (!unusedColumns.contains(colName)) usedColumns.add(colName);
+    }
+    out.println("<h2><em>USED</em> Column headings ("+unusedColumns.size()+"):</h2><ul>");
+    for (String heading: unusedColumns) {
+      out.println("<li>"+heading+"</li>");
     }
     out.println("</ul>");
 
@@ -234,15 +248,20 @@ StandardImport extends HttpServlet {
   	if (groupComposition!=null) occ.setGroupComposition(groupComposition);
 
   	String fieldSurveyCode = getString(row, "Survey.id");
+    if (fieldSurveyCode==null) fieldSurveyCode = getString(row, "Occurrence.fieldSurveyCode");
   	if (fieldSurveyCode!=null) occ.setFieldSurveyCode(fieldSurveyCode);
 
   	String sightingPlatform = getString(row, "Survey.vessel");
   	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatform);
+    String surveyComments = getString(row, "Survey.comments");
+    if (surveyComments!=null) occ.addComments(surveyComments);
 
   	String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
   	if (surveyTrackVessel!=null) occ.setSightingPlatform(surveyTrackVessel);
 
   	Long millis = getLong(row, "Encounter.dateInMilliseconds");
+    if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
+    if (millis==null) millis = getLong(row, "Occurrence.millis");
   	if (millis!=null) occ.setDateTimeLong(millis);
 
   	if (enc!=null) occ.addEncounter(enc);
@@ -260,25 +279,47 @@ StandardImport extends HttpServlet {
 
   	// Time
   	Integer year = getInteger(row, "Encounter.year");
+    if (year==null) year = getInteger(row, "Occurrence.year");
   	if (year!=null) enc.setYear(year);
 
   	Integer month = getInteger(row, "Encounter.month");
+    if (month==null) month = getInteger(row, "Occurrence.month");
   	if (month!=null) enc.setMonth(month);
 
   	Integer day = getInteger(row, "Encounter.day");
+    if (day==null) day = getInteger(row, "Occurrence.day");
   	if (day!=null) enc.setDay(day);
 
   	Integer hour = getInteger(row, "Encounter.hour");
+    if (hour==null) hour = getInteger(row, "Occurrence.hour");
   	if (hour!=null) enc.setHour(hour);
 
   	String minutes = getIntAsString(row,"Encounter.minutes");
+    if (minutes==null) minutes = getIntAsString(row, "Occurrence.minutes");
   	if (minutes!=null) enc.setMinutes(minutes);
+
+
+    // setting milliseconds last means that (if provided) the exif/millis data will always take precedence
+    // if we set it before, enc.setMinutes & others would reset millis
+    Long millis = getLong(row, "Encounter.dateInMilliseconds");
+    if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
+    if (millis==null) millis = getLong(row, "Occurrence.millis");
+    boolean hasTimeCategories = (year!=null || month!=null || day!=null || hour!=null || minutes!=null);
+    if (millis!=null) {
+      if (hasTimeCategories) enc.setDateInMillisOnly(millis); // does not overwrite day/month/etc
+      else enc.setDateInMilliseconds(millis);
+    } 
+
 
   	// Location
   	Double latitude = getDouble(row,"Encounter.latitude");
+    if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitude");
+    if (latitude==null) latitude = getDouble(row,"Occurrence.decimalLatitude");
   	if (latitude!=null) enc.setDecimalLatitude(latitude);
 
   	Double longitude = getDouble(row, "Encounter.longitude");
+    if (longitude==null) longitude = getDouble(row,"Encounter.decimalLongitude");
+    if (longitude==null) longitude = getDouble(row,"Occurrence.decimalLongitude");
   	if (longitude!=null) enc.setDecimalLongitude(longitude);
 
   	String locationID = getString(row, "Encounter.locationID");
@@ -288,7 +329,7 @@ StandardImport extends HttpServlet {
     if (country!=null) enc.setCountry(country);
 
   	// String fields
-  	String otherCatalogNumbers = getString(row, "Encounter.otherCatalogNumbers");
+  	String otherCatalogNumbers = getStringOrInt(row, "Encounter.otherCatalogNumbers");
   	if (otherCatalogNumbers!=null) enc.setOtherCatalogNumbers(otherCatalogNumbers);
 
   	String sex = getString(row, "Encounter.sex");
@@ -328,11 +369,22 @@ StandardImport extends HttpServlet {
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);
 
+    String groupRole = getString(row, "Encounter.groupRole");
+    if (groupRole!=null) enc.setGroupRole(groupRole);
+
+    String researcherComments = getString(row, "Encounter.researcherComments");
+    if (researcherComments!=null) enc.addComments(researcherComments);
+
+
   	String verbatimLocality = getString(row, "Encounter.verbatimLocality");
   	if (verbatimLocality!=null) enc.setVerbatimLocality(verbatimLocality);
 
   	String nickname = getString(row, "MarkedIndividual.nickname");
+    if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
   	if (nickname!=null) enc.setAlternateID(nickname);
+
+    String alternateID = getString(row, "Encounter.alternateID");
+    if (alternateID!=null) enc.setAlternateID(alternateID);
 
   	Double length = getDouble(row, "Encounter.measurement.length");
   	if (length!=null) {
@@ -353,16 +405,50 @@ StandardImport extends HttpServlet {
   	if (scar!=null) enc.setDistinguishingScar(scar);
 
 
-  	// special logic fields
-  	String tissueSampleID = getString(row, "TissueSample.sampleID");
+  	// SAMPLES
+    TissueSample sample = null;
+  	String tissueSampleID = getStringOrInt(row, "TissueSample.sampleID");
+    // we need to make sure we have a sampleID whenever we have a microsat marker
+    if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
+    // same for sex analysis
+    if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "SexAnalysis.processingLabTaskID");
   	if (tissueSampleID!=null) {
-  		TissueSample sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
-  		enc.addTissueSample(sample);
+      sample = myShepherd.getTissueSample(tissueSampleID, encID);
+  		if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
   	}
-  	String caudalType = getIntAsString(row, "Type caudale Mn");
-  	if (caudalType!=null) {
-  		enc.setDynamicProperty("caudal type",caudalType);
-  	}
+
+    String markerAnalysisID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
+    // we need to add uniqueness to the parsed string bc it's a primary key
+    // but adding full encID is too long of a string.
+    if (markerAnalysisID!=null) markerAnalysisID = markerAnalysisID+"-enc-"+encID.substring(0,Math.min(8,encID.length()));
+    if (markerAnalysisID!=null && !myShepherd.isGeneticAnalysis(markerAnalysisID)) {
+      markerAnalysisID = markerAnalysisID.replaceAll("_","-");
+      MicrosatelliteMarkersAnalysis microMark = myShepherd.getMicrosatelliteMarkersAnalysis(markerAnalysisID);
+      if (microMark==null) {
+        microMark = new MicrosatelliteMarkersAnalysis(markerAnalysisID, tissueSampleID, encID);
+        if (sample!=null) sample.addGeneticAnalysis(microMark);
+      } // if microMark was grabbed from Shepherd correctly there is no further data to store.
+    }
+
+    String sexAnalID = getStringOrInt(row, "SexAnalysis.processingLabTaskID");
+    String sexAnalSex = getString(row, "SexAnalysis.sex");
+    if (sexAnalID!=null) {
+      // we need to add uniqueness to the parsed string bc it's a primary key
+      // but adding full encID is too long of a string.
+      sexAnalID = sexAnalID+"-enc-"+encID.substring(0,Math.min(8,encID.length()));
+      sexAnalID = sexAnalID.replaceAll("_","-");
+    }
+    if (sexAnalID!=null && sexAnalSex!=null && !myShepherd.isGeneticAnalysis(sexAnalID)) {
+      SexAnalysis sexAnal = myShepherd.getSexAnalysis(sexAnalID);
+      if (sexAnal==null) {
+        sexAnal = new SexAnalysis(sexAnalID, sexAnalSex, encID, tissueSampleID);
+        if (sample!=null) sample.addGeneticAnalysis(sexAnal);
+      } else sexAnal.setSex(sexAnalSex);
+    }
+
+    if (sample!=null) enc.addTissueSample(sample);
+    // END SAMPLES
+
 
   	String satelliteTag = getString(row, "SatelliteTag.serialNumber");
   	if (satelliteTag!=null) {
@@ -370,6 +456,10 @@ StandardImport extends HttpServlet {
   		enc.setSatelliteTag(tag);
   	}
 
+    String caudalType = getIntAsString(row, "Type caudale Mn");
+    if (caudalType!=null) {
+      enc.setDynamicProperty("caudal type",caudalType);
+    }
 
   	enc.setState("approved");
   	return enc;
@@ -395,16 +485,19 @@ StandardImport extends HttpServlet {
   	for (int i=0; i<getNumMediaAssets(); i++) {
   		MediaAsset ma = getMediaAsset(row, i);
   		if (ma==null) continue;
+
   		String species = getSpeciesString(row);
   		Annotation ann = new Annotation(species, ma);
   		ann.setIsExemplar(true);
   		annots.add(ann);
-  		if (ma!=null && ma.localPath()!=null) foundPhotos.add(ma.localPath().toString());
+  		//if (ma!=null && ma.localPath()!=null) foundPhotos.add(ma.localPath().toString());
   	}
   	if (annots.size()>0) {
-	  	String localPath = getString(row, "Encounter.mediaAsset0");
-	  	String fullPath = photoDirectory+localPath;
-	  	foundPhotos.add(fullPath);
+      for (int i=0; i<annots.size(); i++) {
+        String maName = "Encounter.mediaAsset"+i;
+        String localPath = getString(row, maName);
+        if (localPath!=null) foundPhotos.add(photoDirectory+localPath);
+      }
   	}
   	return annots;
   }
@@ -432,6 +525,7 @@ StandardImport extends HttpServlet {
       missingPhotos.add(localPath);
       return annots;
     }
+
 
 	  // if there are keywords we apply to all photos in encounter
 	  String keyword0 = getString(row, "Encounter.keyword00");
@@ -503,6 +597,7 @@ StandardImport extends HttpServlet {
 
   public String getIndividualID(Row row) {
   	String indID = getString(row, "Encounter.individualID");
+    if (indID==null) indID = getString(row, "MarkedIndividual.individualID");
   	// Cetamada uses single letter names like A
   	if (indID!=null && indID.length()==1) return "Cetamada-"+indID;
   	return indID;
@@ -513,23 +608,50 @@ StandardImport extends HttpServlet {
   	if (localPath==null) return null;
   	localPath = Util.windowsFileStringToLinux(localPath);
   	String fullPath = photoDirectory+localPath;
-    boolean fileExists = Util.fileExists(fullPath);
+    String resolvedPath = resolveHumanEnteredFilename(fullPath);
+    // boolean fileExists = Util.fileExists(fullPath);
 
-    if (!fileExists) {
-    	fullPath = lowercaseJpg(fullPath);
-    	fileExists = Util.fileExists(fullPath);
-    }
+    // String candidatePath;
+    // if (!fileExists) {
+    // 	candidatePath = lowercaseJpg(fullPath);
+    // 	fileExists = Util.fileExists(candidatePath);
+    //   if (fileExists) fullPath = candidatePath;
+    // }
 
-    if (!fileExists) {
-    	fullPath = removeTailingSpace(fullPath);
-    	fileExists = Util.fileExists(fullPath);
-    }
+    // if (!fileExists) {
+    //   candidatePath = uppercaseJpg(fullPath);
+    //   fileExists = Util.fileExists(candidatePath);
+    //   if (fileExists) fullPath = candidatePath;
+    // }
 
-    if (!fileExists) {
+    // if (!fileExists) {
+    // 	candidatePath = removeTailingSpace(fullPath);
+    //   fileExists = Util.fileExists(candidatePath);
+    //   if (fileExists) fullPath = candidatePath;
+    // }
+
+    // if (!fileExists) {
+    //   candidatePath = fixSpaceBeforeJpg(fullPath);
+    //   fileExists = Util.fileExists(candidatePath);
+    //   if (fileExists) fullPath = candidatePath;
+    // }
+    // if (!fileExists) {
+    //   candidatePath = fixSpaceBeforeDotJpg(fullPath);
+    //   fileExists = Util.fileExists(candidatePath);
+    //   if (fileExists) fullPath = candidatePath;
+    // }
+    // if (!fileExists) {
+    //   candidatePath = fixSpaceBeforeDotJpg(lowercaseJpg(fullPath));
+    //   fileExists = Util.fileExists(candidatePath);
+    //   if (fileExists) fullPath = candidatePath;
+    // }
+
+    // if (!fileExists) {
+    if (resolvedPath==null) {
       missingPhotos.add(fullPath);
       return null;
     }
-	  File f = new File(fullPath);
+	  File f = new File(resolvedPath);
 
 	  // create MediaAsset and return it
 	  JSONObject assetParams = astore.createParameters(f);
@@ -543,30 +665,100 @@ StandardImport extends HttpServlet {
 	  }
 
 	  // keywording
-	  Keyword keyword = null;
-	  String keywordI = getString(row, "Encounter.keyword"+i);
-	  if (keywordI!=null) keyword = myShepherd.getOrCreateKeyword(keywordI);
-	  String keywordOIKey = "Encounter.keyword0"+i;
-	  System.out.println("GETMEDIAASSET got keywordOI key "+keywordOIKey);
-	  String keywordOI = getString(row, keywordOIKey);
-	  if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
-	  if (keyword!=null) ma.addKeyword(keyword);
+
+    ArrayList<Keyword> kws = getKeywordsForAsset(row, i);
+    ma.setKeywords(kws);
+
+	  // Keyword keyword = null;
+	  // String keywordI = getString(row, "Encounter.keyword"+i);
+	  // if (keywordI!=null) keyword = myShepherd.getOrCreateKeyword(keywordI);
+	  // String keywordOIKey = "Encounter.keyword0"+i;
+	  // String keywordOI = getString(row, keywordOIKey);
+	  // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
+	  // if (keyword!=null) ma.addKeyword(keyword);
+
+    try {
+      if (ma!=null && committing) {
+        ma.setMetadata();
+        ma.updateStandardChildren(myShepherd);
+      }
+    } catch (IOException e) {
+      System.out.println("StandardImport: IOException on MediaAsset.setMetadata");
+    }
 
 	  return ma;
+  }
+
+  private ArrayList<Keyword> getKeywordsForAsset(Row row, int n) {
+    ArrayList<Keyword> ans = new ArrayList<Keyword>();
+    int maxAssets = getNumAssets(row);
+    int maxKeywords=2;
+    int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; // 
+    // we have up to two keywords per row.
+    for (int i=n; i<stopAtKeyword; i++) {
+      String kwColName = "Encounter.keyword0"+i;
+      String kwName = getString(row, kwColName);
+      if (kwName==null) continue;
+      Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+      if (kw!=null) ans.add(kw);
+    }
+    return ans;
+  }
+
+  private int getNumAssets(Row row) {
+    int n=0;
+    while(getString(row,"Encounter.mediaAsset"+n)!=null) {n++;}
+    return n;
+  }
+
+  // Checks common human errors in inputing filenames
+  // and returns the most similar filename that actually exists on the server
+  // returns null if it cannot find a good string
+  private String resolveHumanEnteredFilename(String fullPath) {
+    if (Util.fileExists(fullPath))      return fullPath;
+
+    String candidatePath = uppercaseJpg(fullPath);
+    if (Util.fileExists(candidatePath)) return candidatePath;
+
+    candidatePath = lowercaseJpg(fullPath);
+    if (Util.fileExists(candidatePath)) return candidatePath;
+
+    candidatePath = fixSpaceBeforeJpg(candidatePath);
+    if (Util.fileExists(candidatePath)) return candidatePath;
+
+    candidatePath = fixSpaceBeforeDotJpg(candidatePath);
+    if (Util.fileExists(candidatePath)) return candidatePath;
+
+    candidatePath = removeSpaceDashSpaceBeforeDot(candidatePath);
+    if (Util.fileExists(candidatePath)) return candidatePath;
+
+    return null;
   }
 
   private String lowercaseJpg(String filename) {
   	if (filename==null) return null;
   	return (filename.replace(".JPG",".jpg"));
   }
-
+  private String uppercaseJpg(String filename) {
+    if (filename==null) return null;
+    return (filename.replace(".jpg",".JPG"));
+  }
+  private String fixSpaceBeforeJpg(String filename) {
+    if (filename==null) return null;
+    return (filename.replace(" jpg",".jpg"));
+  }
+  private String fixSpaceBeforeDotJpg(String filename) {
+    if (filename==null) return null;
+    return (filename.replace(" .jpg",".jpg"));
+  }
   private String removeTailingSpace(String filename) {
   	if (filename==null) return null;
   	return (filename.replace(" .jpg", ".jpg"));
   }
-
-
-
+  private String removeSpaceDashSpaceBeforeDot(String filename) {
+    if (filename==null) return null;
+    return (filename.replace(" - .", "."));
+  }
 
 	private int getNumMediaAssets() {
 		if (numMediaAssets==null) setNumMediaAssets();
@@ -594,11 +786,18 @@ StandardImport extends HttpServlet {
 	    mark = new MarkedIndividual(individualID, enc);
 	    newIndividual = true;
 	  }
-	  if (mark==null) return mark;
+	  if (mark==null) {
+      System.out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
+      return mark;
+    }
 
 	  if (!newIndividual) mark.addEncounterNoCommit(enc);
 
+    String alternateID = getString(row, "Encounter.alternateID");
+    if (alternateID!=null) mark.setAlternateID(alternateID);
+
   	String nickname = getString(row, "MarkedIndividual.nickname");
+    if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
   	if (nickname!=null) mark.setNickName(nickname);
 
   	return mark;
@@ -610,7 +809,6 @@ StandardImport extends HttpServlet {
   // if so, return oldOcc. If not, return parseOccurrence(row)
   public Occurrence getCurrentOccurrence(Occurrence oldOcc, Row row) {
   	String occID = getOccurrenceID(row);
-  	System.out.println("		getCurrentOccurrence got occID: "+occID);
   	if (oldOcc!=null && oldOcc.getOccurrenceID()!=null && oldOcc.getOccurrenceID().equals(occID)) return oldOcc;
   	Occurrence occ = myShepherd.getOrCreateOccurrence(occID);
 
@@ -658,7 +856,24 @@ StandardImport extends HttpServlet {
       double val = row.getCell(i).getNumericCellValue();
       return new Integer( (int) val );
     }
-    catch (Exception e){}
+    catch (Exception e){
+      // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
+      try {
+        String str = getString(row, i);
+        if (str==null) return null;
+        try {
+          Integer ans = Integer.parseInt(str);
+          return ans;
+        } catch (Exception badParse) {
+          str = str.substring(1);
+          Integer ans2 = Integer.parseInt(str);
+          System.out.println("      getInteger SUBSTRINGED and got ans "+ans2);
+          return ans2;
+        }
+      }
+      catch (Exception ex) {}
+
+    }
     return null;
   }
 
@@ -667,7 +882,22 @@ StandardImport extends HttpServlet {
       double val = row.getCell(i).getNumericCellValue();
       return new Long( (long) val );
     }
-    catch (Exception e){}
+    catch (Exception e){      
+      try {
+        String str = getString(row, i);
+        if (str==null) return null;
+        try {
+          Long ans = Long.parseLong(str);
+          return ans;
+        } catch (Exception badParse) {
+          str = str.substring(1);
+          Long ans2 = Long.parseLong(str);
+          System.out.println("      getLong SUBSTRINGED and got ans "+ans2);
+          return ans2;
+        }
+      }
+      catch (Exception ex) {}
+}
     return null;
   }
   public static Double getDouble(Row row, int i) {
@@ -675,7 +905,25 @@ StandardImport extends HttpServlet {
       double val = row.getCell(i).getNumericCellValue();
       return new Double( val );
     }
-    catch (Exception e){}
+    catch (Exception e){
+      // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
+      try {
+        String str = getString(row, i);
+        if (str==null) return null;
+        System.out.println("EXCEL getDouble string conversion case reached with string "+str);
+        try {
+          Double ans = Double.parseDouble(str);
+          System.out.println("      getDouble string conversion got ans "+ans);
+          return ans;
+        } catch (Exception badParse) {
+          str = str.substring(1);
+          Double ans2 = Double.parseDouble(str);
+          System.out.println("      getDouble SUBSTRINGED and got ans "+ans2);
+          return ans2;
+        }
+      }
+      catch (Exception ex) {}
+    }
     return null;
   }
 
@@ -689,19 +937,6 @@ StandardImport extends HttpServlet {
     return null;
   }
 
-  public static String getStringOrIntString(Row row, int i) {
-    try {
-      String str = row.getCell(i).getStringCellValue();
-      if (str.equals("")) return null;
-      return str;
-    }
-    catch (Exception e) { try {
-      return getInteger(row, i).toString();
-    }
-    catch (Exception e2) {} }
-
-    return null;
-  }
 
 
   public static Boolean getBooleanFromString(Row row, int i) {
@@ -733,58 +968,83 @@ StandardImport extends HttpServlet {
   // Below methods are *not* static and work from column names rather than column numbers
   // IMPORTANT: ONLY WORKS IF colIndexMap HAS BEEN INITIALIZED
   public String getString(Row row, String colName) {
-  	if (unusedColumns!=null) unusedColumns.remove(colName);
-  	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) System.out.println("StandardImport ERROR: getString failed for column name "+colName+": column not found");
-  		return null;
-  	}
-    return getString(row, colIndexMap.get(colName));
+    if (!colIndexMap.containsKey(colName)) {
+      if (verbose) missingColumns.add(colName);
+      return null;
+    }
+    String ans = getString(row, colIndexMap.get(colName));
+    if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
+    return ans;
   }
   public String getIntAsString(Row row, String colName) {
   	Integer i = getInteger(row,colName);
   	if (i==null) return null;
   	return i.toString();
   }
+  public String getStringOrInt(Row row, String colName) {
+    if (!colIndexMap.containsKey(colName)) {
+      if (verbose) missingColumns.add(colName);
+      return null;
+    }
+    String ans = getStringOrInt(row, colIndexMap.get(colName));
+    if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
+    return ans;
+  }
+  public static String getStringOrInt(Row row, int i) {
+    String ans = getString(row, i);
+    if (ans==null) {
+      Integer inty = getInteger(row,i);
+      if (inty!=null) ans = inty.toString();
+    }
+    return ans;
+  }
+
+
 
   public Integer getInteger(Row row, String colName) {
-  	if (unusedColumns!=null) unusedColumns.remove(colName);
   	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) System.out.println("StandardImport ERROR: getString failed for column name "+colName+": column not found");
+  		if (verbose) missingColumns.add(colName);
   		return null;
   	}
-    return getInteger(row, colIndexMap.get(colName));
+    Integer ans = getInteger(row, colIndexMap.get(colName));
+    if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
+    return ans;
   }
   public Long getLong(Row row, String colName) {
-  	if (unusedColumns!=null) unusedColumns.remove(colName);
   	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) System.out.println("StandardImport ERROR: getString failed for column name "+colName+": column not found");
+  		if (verbose) missingColumns.add(colName);
   		return null;
   	}
-    return getLong(row, colIndexMap.get(colName));
+    Long ans = getLong(row, colIndexMap.get(colName));
+    if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
+    return ans;
   }
   public Double getDouble(Row row, String colName) {
-  	if (unusedColumns!=null) unusedColumns.remove(colName);
   	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) System.out.println("StandardImport ERROR: getString failed for column name "+colName+": column not found");
+  		if (verbose) missingColumns.add(colName);
   		return null;
   	}
-    return getDouble(row, colIndexMap.get(colName));
+    Double ans = getDouble(row, colIndexMap.get(colName));
+    if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
+    return ans;
   }
   public Date getDate(Row row, String colName) {
-  	if (unusedColumns!=null) unusedColumns.remove(colName);
   	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) System.out.println("StandardImport ERROR: getString failed for column name "+colName+": column not found");
+  		if (verbose) missingColumns.add(colName);
   		return null;
   	}
-    return getDate(row, colIndexMap.get(colName));
+    Date ans = getDate(row, colIndexMap.get(colName));
+    if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
+    return ans;
   }
   public DateTime getDateTime(Row row, String colName) {
-  	if (unusedColumns!=null) unusedColumns.remove(colName);
   	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) System.out.println("StandardImport ERROR: getString failed for column name "+colName+": column not found");
+  		if (verbose) missingColumns.add(colName);
   		return null;
   	}
-    return getDateTime(row, colIndexMap.get(colName));
+    DateTime ans = getDateTime(row, colIndexMap.get(colName));
+    if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
+    return ans;
   }
 
 
