@@ -40,17 +40,21 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 <h2>Editing content</h2>
 
+**Actual pages (jsp files)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
+
 **Property files (most copy, and translations/localizations)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
-
-**Images** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
-
-**Homepage background image ("hero image)**: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/img/hero_manta.jpg  
 
 **Emails** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
 
-Actual pages (**jsp files**) are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
+**Images** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
+
+<ul>
+ <li>**Homepage background image ("hero image)**: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/img/hero_manta.jpg </li>
+
+ </ul>
 
 <h2> Quick reference </h2>
+
 HTML entity encoder/decoder: https://mothereff.in/html-entities
 
 <h2>Configuration changes</h2>
