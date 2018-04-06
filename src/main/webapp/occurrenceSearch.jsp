@@ -564,7 +564,7 @@ function FSControl(controlDiv, map) {
 
       %>
 
-      <select multiple size="5" name="username" id="username">
+      <select multiple size="5" name="submitterID" id="submitterID">
         <option value="None"></option>
         <%
           for (int n = 0; n < numUsers; n++) {
@@ -614,19 +614,7 @@ inShepherd.closeDBTransaction();
 <br>
 </div>
 
-<script>
-/* the below function removes any blank-valued params from the form just before submitting, making the searchResults.jsp url MUCH cleaner and more readable */
-$('#submitSearch').submit(function() {
-  $(this)
-    .find('input[name]')
-    .filter(function () {
-        return !this.value;
-    })
-    .prop('name', '');
-  });
-</script>
-
-
+<script type="text/javascript" src="javascript/formNullRemover.js"></script>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
