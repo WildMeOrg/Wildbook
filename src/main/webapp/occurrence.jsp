@@ -158,12 +158,10 @@ context=ServletUtilities.getContext(request);
 	  $("#editSurvey").click(function() {
 	    //$(".editFormSurvey, .editTextSurvey, .allEditSurvey").toggle();
 	    $("#addSurveyForm").slideDown();
-	    $("#addSurveyForm").show();
 	  });
 	  $("#closeEditSurvey").click(function() {
 	    //$(".editFormSurvey, .editTextSurvey, .resultMessageDiv, .allEditSurvey").toggle();
 	    $("#addSurveyForm").slideUp();
-	    $("#addSurveyForm").hide();
 	  });
 	});
 </script>								
@@ -530,13 +528,15 @@ context=ServletUtilities.getContext(request);
 							<button class="btn btn-md" type="button" name="button"
 								id="closeEditDynamic" style="display: none;">Close Edit</button>
 						</h2>
-						<p id="editInstructions" style="display:none;"><small>Set any value to zero to remove.</small></p>
+						<p id="editInstructions" style="display:none;"><small>Set an empty value field to remove an observation.</small></p>
 					<%
 					} else {
 					%>
 					<h2>
 						<img src="../images/lightning_dynamic_props.gif" />
-						<%=props.getProperty("dynamicProperties")%></h2>
+						<%=props.getProperty("dynamicProperties")%>
+					</h2>
+					<br/>
 					<%
 					}
 							// Let's make a list of editable Observations... Dynamically!
@@ -551,7 +551,7 @@ context=ServletUtilities.getContext(request);
 							String vl = ob.getValue();
 					%>
 							
-							<p><em><%=nm%></em>:<%=vl%></p>
+							<p><em><%=nm%></em>:&nbsp<%=vl%></p>
 							<!-- Start dynamic (Observation) form. -->
 							<div style="display:none;" id="dialogDP<%=nm%>" class="editFormObservation" title="<%=props.getProperty("set")%> <%=nm%>">
 								<p class="editFormObservation">
