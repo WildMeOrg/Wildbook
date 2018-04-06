@@ -242,6 +242,14 @@ function _notUndefined(fieldName) {
   return _helperFunc;
 }
 
+function _notZero(fieldName) {
+  function _helperFunc(o) {
+    if (o[fieldName] == undefined || o[fieldName] == 0) return '';
+    return o[fieldName];
+  }
+  return _helperFunc;
+}
+
 
 var colDefn = [
 /*
@@ -262,6 +270,16 @@ var colDefn = [
     value: _notUndefined('occurrenceID'),
   },
   {
+    key: 'fieldStudySite',
+    label: 'Field Study Site',
+    value: _notUndefined('fieldStudySite'),
+  },
+  {
+    key: 'sightingPlatform',
+    label: 'Sighting Platform',
+    value: _notUndefined('sightingPlatform'),
+  },
+  {
     key: 'bestGroupSizeEstimate',
     label: 'group size estimate',
     value: _notUndefined('bestGroupSizeEstimate'),
@@ -276,13 +294,13 @@ var colDefn = [
   {
 		key: 'decimalLatitude',
 		label: 'latitude',
-    value: _notUndefined('decimalLatitude'),
+    value: _notZero('decimalLatitude'),
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   {
 		key: 'decimalLongitude',
 		label: 'longitude',
-    value: _notUndefined('decimalLongitude'),
+    value: _notZero('decimalLongitude'),
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   {
