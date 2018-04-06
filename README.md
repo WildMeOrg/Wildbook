@@ -40,28 +40,38 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 <h2>Editing content</h2>
 
+**Actual pages (jsp files)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
+
 **Property files (most copy, and translations/localizations)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
-
-**Images** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
-
-**Homepage background image ("hero image)**: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/img/hero_manta.jpg  
 
 **Emails** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
 
-Actual pages (**jsp files**) are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
+**Images** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
+
+<ul>
+ <li>Homepage background image ("hero image): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/img/hero_manta.jpg </li>
+
+ </ul>
 
 <h2> Quick reference </h2>
+
 HTML entity encoder/decoder: https://mothereff.in/html-entities
 
 <h2>Configuration changes</h2>
 
 **commonConfiguration.properties** here (for reference only, gets overridden): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
 
-**Styling (less files)**: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/styles
-
-**A lot of specific styles are defined here**: https://github.com/WildbookOrg/Wildbook/blob/dc8469b827535e0d9866e123154fc41a856c27ee/src/main/webapp/cust/mantamatcher/styles/config.json
-
 Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
+
+<h2>Styling</h2>
+
+**less files used to compile css)**: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/styles
+
+**A lot of specific styles are defined here**: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/config.json
+
+<ul>
+ <li>body text color (@gray-dark): <a href="https://www.colorhexa.com/333333">#333333</a>  </li>
+ </ul>
 
 <h2>Color palette notes</h2>
 
@@ -73,11 +83,9 @@ Colors get changed in this .less file: https://github.com/WildbookOrg/Wildbook/b
  <li>latest encounter links on homepage (aka @brand-secondary): <a href="https://www.colorhexa.com/00c0f7">#00c0f7</a>  </li>
  <li>h1 and h2, Advanced Info button: <a href="https://www.colorhexa.com/005589">#005589</a>  </li>
  <li>Report Encounter button on homepage (aka whaleSharkblue): <a href="https://www.colorhexa.com/5d8cc1">#5d8cc1</a>  </li>
- <li>body text color: <a href="https://www.colorhexa.com/">#</a>  </li>
-
  </ul>
 
-and here: https://github.com/WildbookOrg/Wildbook/blob/48358e0f59cb3209990da65417c868fabb7d6a1f/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
+and here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
 
 <ul>
 <li>red text for mandatory fields (.text-danger): <a href="https://www.colorhexa.com/a94442">#a94442</a>  </li>
