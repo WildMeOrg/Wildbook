@@ -75,13 +75,31 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 <style type="text/css">
 
+#encounter-info {
+	padding: 2px 10px;
+	background-color: rgba(255,255,0,0.7);
+}
+
+#encounter-info .enc-title {
+	color: #333;
+	font-size: 1.5em;
+}
+
+#encounter-info .enc-link {
+	color: #777;
+}
+
+.throbbing {
+	background: url(../images/throbber.gif) no-repeat left top !important;
+}
+
 .task-title {
 	background-color: #FAA;
 	margin: 10px 0;
 	padding: 8px;
 }
 .task-title-id {
-	font-size: 0.8em;
+	color: #555;
 }
 
 .task-content {
@@ -95,6 +113,11 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	display: inline-block;
 	width: 32%;
 	vertical-align: top;
+}
+
+
+.annot-summary-checked {
+	background-color: #FE8;
 }
 
 .annot-summary {
@@ -113,14 +136,35 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	width: 100%;
 }
 
+.annot-action-checkbox-active, .annot-action-checkbox-inactive {
+	margin-right: 10px !important;
+	float: right;
+	transform: scale(1.2);
+}
+
+.annot-action-checkbox-inactive {
+	display: none;
+}
+
+.annot-summary:hover .annot-action-checkbox-inactive {
+	cursor: pointer;
+	display: inline-block;
+}
+
 .annot-wrapper .img-info {
 	position: absolute;
-	bottom: 2px;
-	left: 2px;
+	top: 4px;
+	left: 4px;
 	font-size: 0.8em;
 	background-color: rgba(255,255,255,0.7);
 	padding: 1px 3px;
 	border-radius: 2px;
+}
+.annot-wrapper .img-info-type {
+	background-color: #4F8;
+	color: #222;
+	margin-right: 8px;
+	padding: 1px 4px 2px 4px;
 }
 
 .annot-wrapper-query .annot-info {
@@ -346,8 +390,14 @@ tr.clickable:hover .link-button {
 
 
 <script>
+var serverTimestamp = <%= System.currentTimeMillis() %>;
+var pageStartTimestamp = new Date().getTime();
 var taskIds = [];
+var jobIdMap = {};
+var timers = {};
+
 function init2() {   //called from wildbook.init() when finished
+	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div>');
 	parseTaskIds();
 	for (var i = 0 ; i < taskIds.length ; i++) {
 		grabTaskResult(taskIds[i]);
@@ -363,7 +413,9 @@ function parseTaskIds() {
 }
 
 function grabTaskResult(tid) {
-	$('.maincontent').append('<div class="task-content" id="task-' + tid + '"><div class="task-title"><span class="task-title-id"><b>Task ' + tid + '</b></span></div><div class="task-summary"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div></div>');
+	if (!$('#task-' + tid).length) {
+		$('.maincontent').append('<div class="task-content" id="task-' + tid + '"><div class="task-title"><span class="task-title-id" title="task id ' + tid + '"></span></div><div class="task-summary"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div></div>');
+	}
 	var mostRecent = false;
 	var gotResult = false;
 console.warn('------------------- %s', tid);
@@ -372,7 +424,11 @@ console.warn('------------------- %s', tid);
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
+			$('#wait-message-' + tid).remove();  //in case it already exists from previous
 			for (var i = 0 ; i < d.length ; i++) {
+				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
+					if (!jobIdMap[tid]) jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
+				}
 				//console.log('d[i].status._action --> %o', d[i].status._action);
 				if (d[i].status && d[i].status._action == 'getJobResult') {
 					showTaskResult(d[i]);
@@ -382,7 +438,35 @@ console.warn('------------------- %s', tid);
 					if (!mostRecent && d[i].status && d[i].status._action) mostRecent = d[i].status._action;
 				}
 			}
-			if (!gotResult) $('#task-' + tid).append('<p title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
+			if (!gotResult) {
+				//$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</span></p>');
+				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
+				if (jobIdMap[tid]) {
+					var tooLong = 15 * 60 * 1000;
+					var elapsed = approxServerTime() - jobIdMap[tid].timestamp;
+					console.warn("elapsed = %.1f min", elapsed / 60000);
+					if (elapsed > tooLong) {
+						if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+						$('#wait-message-' + tid).removeClass('throbbing').html('attempting to fetch results');
+						manualCallback(tid);
+					} else {
+						if (!timers[tid]) timers[tid] = { attempts: 0 };
+						if (timers[tid].attempts > 1000) {
+							if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+							$('#wait-message-' + tid).html('gave up trying to obtain results').removeClass('throbbing');;
+						} else {
+							timers[tid].attempts++;
+							timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+						}
+					}
+				} else {
+					if (!timers[tid]) timers[tid] = { attempts: 0 };
+					timers[tid].attempts++;
+					timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+				}
+			} else {
+				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+			}
 console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on tid=%s', d, tid);
 		},
 		error: function(a,b,c) {
@@ -391,6 +475,46 @@ console.info('!!>> got %o', d);
 			$('#task-' + tid).append('<p class="error">there was an error with task ' + tid + '</p>');
 		}
 	});
+}
+
+
+function approxServerTime() {
+	return serverTimestamp + (new Date().getTime() - pageStartTimestamp);
+}
+
+function manualCallback(tid) {
+	var m = jobIdMap[tid];
+	if (!m || !m.jobId) return alert('Could not find jobid for ' + tid);
+	if (jobIdMap[tid].manualAttempts > 3) {
+		$('#wait-message-' + tid).html('failed to obtain results').removeClass('throbbing');;
+		return;
+	}
+	jobIdMap[tid].manualAttempts++;
+	$('#wait-message-' + tid).html('<i>attempting to manually query IA</i>').removeClass('throbbing');;
+	console.log(m);
+
+	$.ajax({
+		url: '../IBEISIAGetJobStatus.jsp?jobid=' + m.jobId,
+		type: 'GET',
+		dataType: 'json',
+		complete: function(x, stat) {
+			console.log('status = %o; xhr=%o', stat, x);
+/*
+			var msg = '<i>unknown results</i>';
+			if (x.responseJSON && x.responseJSON.continue) {
+				msg = '<b>tried to get results (<i>reload</i> to check)</b>';
+			} else if (x.responseJSON && !x.responseJSON.continue) {
+				msg = '<b>disallowed getting results (already tried and failed)</b>';
+			}
+			$('#wait-message-' + tid).html(msg + ' [returned status=<i title="' + x.responseText + '">' + stat + '</i>]');
+*/
+		}
+	});
+	$('#wait-message-' + tid).remove();
+	grabTaskResult(tid);
+
+	//$('#wait-message-' + tid).html(m.jobId);
+	//alert(m.jobId);
 }
 
 var RESMAX = 12;
@@ -404,7 +528,14 @@ function showTaskResult(res) {
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
-		$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
+		var h = 'Matches based on <b>' + (isEdgeMatching ? 'trailing edge' : 'pattern') + '</b>';
+		if (res.timestamp) {
+			var d = new Date(res.timestamp);
+			h += '<span style="color: #FFF; margin: 0 11px; font-size: 0.7em;">' + d.toLocaleString() + '</span>';
+		}
+
+		h += '<span style="margin-left: 30px; font-size: 0.8em; color: #777;">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
+		$('#task-' + res.taskId + ' .task-title-id').html(h);
 		displayAnnot(res.taskId, qannotId, -1, -1);
 
 		var sorted = score_sort(res.status._response.response.json_result['cm_dict'][qannotId]);
@@ -442,11 +573,12 @@ console.info('%d ===> %s', num, annId);
 		url: 'matchResultsMulti.jsp?annotId=' + annId,
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, (num < 0)); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num); }
 	});
 }
 
-function displayAnnotDetails(taskId, res, isQueryAnnot) {
+function displayAnnotDetails(taskId, res, num) {
+	var isQueryAnnot = (num < 0);
 console.warn('+++++++ isQueryAnnot %o', isQueryAnnot);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error) {
 		console.warn('error on (task %s) res = %o', taskId, res);
@@ -473,21 +605,45 @@ console.warn('+++++++ isQueryAnnot %o', isQueryAnnot);
 		if (res.responseJSON.asset.features && (res.responseJSON.asset.features.length > 0)) {
 			encId = res.responseJSON.asset.features[0].encounterId;
 			indivId = res.responseJSON.asset.features[0].individualId;
-			var h = '';
+			var h = 'Matching results';
 			if (encId) {
-				h += '<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
+				h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
 				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
 			}
 			if (indivId) {
-				h += '<a class="indiv-link" target="_new" href="../individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
+				h += ' of <a class="indiv-link" title="open individual page" target="_new" href="../individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
 				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="indiv-link" target="_new" href="../individuals.jsp?number=' + indivId + '">' + indivId + '</a>');
 			}
-			if (isQueryAnnot && h) $('#task-' + taskId + ' .task-title').append(h);
+			if (encId || indivId) {
+				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + res.responseJSON.annId +'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+			}
+
+			//if (isQueryAnnot && h) $('#task-' + taskId + ' .task-title').append(h);
+			if (isQueryAnnot) {
+				if (h) $('#encounter-info .enc-title').html(h);
+				if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
+			} else {
+				if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
+			}
 		}
 	}
 	if (imgInfo) $('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
+
+function annotCheckbox(el) {
+	var jel = $(el);
+	annotCheckboxReset();
+	if (!el.checked) return;
+	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
+	jel.parent().addClass('annot-summary-checked');
+	return true;
+}
+
+function annotCheckboxReset() {
+	$('.annot-action-checkbox-active').removeClass('annot-action-checkbox-active').addClass('annot-action-checkbox-inactive').prop('checked', false);
+	$('.annot-summary-checked').removeClass('annot-summary-checked');
+}
 
 function annotClick(ev) {
 	//console.log(ev);

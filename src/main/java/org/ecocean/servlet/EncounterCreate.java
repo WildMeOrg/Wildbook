@@ -190,6 +190,12 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         } else {
             //(for logged in user only) allow option to forcibly set matchingOnly=false to toggle (default is matching only)
             if (jin.optBoolean("matchingOnly", true)) enc.setMatchingOnly();
+            /*
+                even tho setSubmitterID should be set (via .setAccessControl() below) for logged in users,
+                we are going to set email address as well.  this allows for a (encounter-specific) email address different
+                than the user object has set -- and this email address will be used (below) to send email about IA task(s)
+            */
+            enc.setSubmitterEmail(email);
         }
         enc.setAccessControl(request);
 
@@ -296,12 +302,21 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
               }
               if (!allowed) continue;
               //ok, this is really us!
+/*  ok, this logic was messed up, as userEmail was ALWAYS null at this point, so we are just trusting submitterEmail for now!
               if (userEmail == null) {
                   userEmail = enc.getSubmitterEmail();
               } else if (!userEmail.equals(enc.getSubmitterEmail())) {
                   rtn.put("error", "inconsistent encounter email addresses");
                   return rtn;
               }
+*/
+            userEmail = enc.getSubmitterEmail();
+            if (userEmail == null) {
+                rtn.put("error", "unable to get email address from encounter " + enc);
+                return rtn;
+            }
+            System.out.println("INFO: EncounterCreate.sendEmail() sending to " + userEmail + " <- " + enc);
+
               ecount++;
               encLinks += " - " + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\n";
               encLinksHtml += "<li><a href=\"" + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\">Encounter " + ecount + "</a></li>\n";
