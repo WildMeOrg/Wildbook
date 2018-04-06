@@ -303,7 +303,7 @@ if (sv!=null) {
 								id="closeEditDynamic" style="display: none;">Close Edit</button>
 					</h2>
 					<p id="editInstructions" style="display:none;"><small>Set any value to zero (0) to remove.</small></p>
-
+					<br/>
 				<%
 						// Let's make a list of editable Observations... Dynamically!
 						
@@ -317,7 +317,7 @@ if (sv!=null) {
 						String vl = ob.getValue();
 				%>		
 				
-					<p><em><%=nm%></em>:<%=vl%></p>
+					<p><em><%=nm%></em>:&nbsp<%=vl%></p>
 					<div style="display:none;" id="dialogDP<%=nm%>" class="editFormObservation" title="<%=props.getProperty("set")%> <%=nm%>">
 						<p class="editFormObservation">
 							<strong><%=props.getProperty("set")%> <%=nm%></strong>

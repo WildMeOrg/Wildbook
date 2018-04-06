@@ -4758,6 +4758,7 @@ $(document).ready(function() {
 				<h2>
 					<img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
 					<%=encprops.getProperty("dynamicProperties")%></h2>
+					<br/>
 				<%
 					}
 							// Let's make a list of editable Observations... Dynamically!
@@ -4771,8 +4772,7 @@ $(document).ready(function() {
 									String vl = ob.getValue();
 				%>
 				<div class="para observationForm">
-					<em><%=nm%></em>:
-					<%=vl%>
+					<em><%=nm%></em>:&nbsp<%=vl%>
 					<!-- first Observation form, modify existing... -->
 					<div style="display: none;" id="dialogDP<%=nm%>" title="<%=encprops.getProperty("set")%> <%=nm%>" class="observationForm modifyObservationForm">
 						<p class="editTextDynamic"><strong><%=encprops.getProperty("set")%> <%=nm%></strong></p>
