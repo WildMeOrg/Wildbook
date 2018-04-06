@@ -436,6 +436,7 @@ public class Occurrence implements java.io.Serializable{
     dateTimeCreated = time;
   }
 
+
     public void setDateTimeCreated() {
         dateTimeCreated = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
     }
@@ -766,6 +767,15 @@ public class Occurrence implements java.io.Serializable{
     }
     public void setDateTimeLong(Long dateTimeLong) {
       this.dateTimeLong = dateTimeLong;
+    }
+    public void setDateFromEncounters() {
+      for (Encounter enc: encounters) {
+        Long millis = enc.getDateInMilliseconds();
+        if (millis!=null) {
+          setDateTimeLong(millis);
+          return;
+        }
+      }
     }
     public DateTime getDateTime() {
       if (dateTimeLong == null) return null;
