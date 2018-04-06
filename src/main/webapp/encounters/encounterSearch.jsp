@@ -210,7 +210,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 
-<form action="searchResults.jsp" method="get" name="search" id="search">
+<form action="searchResults.jsp" method="get" name="encounterSearch" id="search">
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
@@ -1360,6 +1360,9 @@ inShepherd.closeDBTransaction();
 </table>
 <br />
 </div>
+
+<script type="text/javascript" src="../javascript/formNullRemover.js"></script>
+
 <jsp:include page="../footer.jsp" flush="true"/>
 
 

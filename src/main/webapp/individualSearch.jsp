@@ -195,7 +195,7 @@ if(compareAgainst.getGeneticSex()!=null){
 </strong></em></p>
 
 
-<form action="<%=formAction %>" method="get" name="search" id="search">
+<form action="<%=formAction %>" method="get" name="individualSearch" id="search">
     <%
 	if(request.getParameter("individualDistanceSearch")!=null){
 	%>
@@ -1801,7 +1801,11 @@ inShepherd.closeDBTransaction();
 <br>
 </div>
 
+<script type="text/javascript" src="javascript/formNullRemover.js"></script>
+
 <jsp:include page="footer.jsp" flush="true"/>
+
+
 
 
 <%
