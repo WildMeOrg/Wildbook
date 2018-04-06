@@ -790,9 +790,8 @@ function _submitterID(o) {
 	var submitterID = o.get('submitterID');
 	var submitterProject = o.get('submitterProject');
 	var submitterName = o.get('submitterName');
-	console.log('Submitter (ID, project, name) = ('+submitterID+", "+submitterProject+", "+submitterName+")");
-	var m = o.get('submitterName');
-	if (!m || /^\s*$/.test(m)) m = o.get('submitterProject');
+	var m = o.get('submitterProject');
+	if (!m || /^\s*$/.test(m)) m = o.get('submitterName');
 	if (!m || /^\s*$/.test(m)) m = o.get('submitterID');
 	return m;
 }
@@ -1100,7 +1099,6 @@ function _colThumb(o) {
 
 function _colModified(o) {
 	var m = o.get('modified');
-	console.log("_colModified got "+m);
 	if (!m) return '';
 	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
