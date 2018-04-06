@@ -60,9 +60,8 @@ HTML entity encoder/decoder: https://mothereff.in/html-entities
 Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
 
 <h2>Styling</h2>
+
 **less files used to compile css)**: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/styles
-
-
 
 **A lot of specific styles are defined here**: https://github.com/WildbookOrg/Wildbook/blob/dc8469b827535e0d9866e123154fc41a856c27ee/src/main/webapp/cust/mantamatcher/styles/config.json
 
