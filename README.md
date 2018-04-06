@@ -49,7 +49,7 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 **Images** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
 
 <ul>
- <li>**Homepage background image ("hero image)**: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/img/hero_manta.jpg </li>
+ <li>Homepage background image ("hero image): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/img/hero_manta.jpg </li>
 
  </ul>
 
