@@ -80,7 +80,7 @@ Colors get changed in this .less file: https://github.com/WildbookOrg/Wildbook/b
  <li>latest encounter links on homepage (aka @brand-secondary): <a href="https://www.colorhexa.com/00c0f7">#00c0f7</a>  </li>
  <li>h1 and h2, Advanced Info button: <a href="https://www.colorhexa.com/005589">#005589</a>  </li>
  <li>Report Encounter button on homepage (aka whaleSharkblue): <a href="https://www.colorhexa.com/5d8cc1">#5d8cc1</a>  </li>
- <li>body text color: <a href="https://www.colorhexa.com/">#</a>  </li>
+ <li>body text color (@gray-dark): <a href="https://www.colorhexa.com/333333">#333333</a>  </li>
 
  </ul>
 
