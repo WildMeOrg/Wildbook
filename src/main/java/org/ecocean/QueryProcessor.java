@@ -58,17 +58,10 @@ public abstract class QueryProcessor {
   // of saving time because it can be applied to survey and eventually indy.
   protected static String filterObservations(String filter, HttpServletRequest request, StringBuffer prettyPrint, String objectType) {
     filter = prepForCondition(filter);
-    int numObsSearched = 0;
-    boolean hasValue = false;
-    if (request.getParameter("numSearchedObs")!=null) {
-      numObsSearched = Integer.valueOf(request.getParameter("numSearchedObs"));
-      System.out.println("Num Obs Searched? "+numObsSearched);
-      if (request.getParameter("observationKey1")!=null&&!request.getParameter("observationKey1").equals("")) {
-        hasValue = true;
-      }
-    }  
+
     Enumeration<String> allParams = request.getParameterNames();
-    if (allParams!=null&&hasValue&&numObsSearched>=1) {
+    if (allParams!=null) {
+      int numObsSearched = 0;
       String keyID = "observationKey";
       String valID = "observationValue";
       HashMap<String,String> obKeys = new HashMap<>();
@@ -77,21 +70,24 @@ public abstract class QueryProcessor {
       while (allParams.hasMoreElements()) {
         String thisParam = allParams.nextElement();
         if (thisParam!=null&&thisParam.startsWith(keyID)) {
-          String keyParam = request.getParameter(thisParam);
+          System.out.println("===================================================== Checking this Param: "+thisParam);
+          String keyParam = request.getParameter(thisParam).trim();
           String keyNum = thisParam.replace(keyID,"");
           if (keyParam!=null&&!keyParam.equals("")) {
+            numObsSearched++;
+            System.out.println("Searching Ob #"+numObsSearched);
             obKeys.put(keyNum,keyParam);            
           }
         }
         if (thisParam!=null&&thisParam.startsWith(valID)) {
-          String valParam = request.getParameter(thisParam);
+          String valParam = request.getParameter(thisParam).trim();
           String valNum = thisParam.replace(valID,"");
           if (valParam!=null&&!valParam.equals("")) {
             obVals.put(valNum,valParam);            
           }
         }
       }  
-      for (int i=1;i<=numObsSearched;i++) {
+      for (int i=0;i<=numObsSearched;i++) {
         String num = String.valueOf(i);
         if (Util.basicSanitize(obKeys.get(num))!=null) {
           String thisKey = Util.basicSanitize(obKeys.get(num));
