@@ -78,7 +78,7 @@ public class OccurrenceSetObservation extends HttpServlet {
     String redirectURL = "/occurrence.jsp";
     if ((request.getParameter("number") != null) && (request.getParameter("name") != null)) {
       myShepherd.beginDBTransaction();
-      String name = request.getParameter("name");
+      String name = request.getParameter("name").trim();
       String id = request.getParameter("number");
       //String value = request.getParameter("value");
       
@@ -94,23 +94,26 @@ public class OccurrenceSetObservation extends HttpServlet {
 
       if ((request.getParameter("value") != null) && (!request.getParameter("value").equals(""))) {
         newValue = request.getParameter("value").trim();
+        System.out.println("Updating observation value to: "+newValue);
       }
             
       try {
-        if (newValue.equals("null")) {
+        if (newValue.equals("null")||newValue.equals("")||newValue==null) {
           occ.removeObservation(name);
           System.out.println("Removing Observation "+name);
         } else {
           if (occ.getObservationByName(name) != null && newValue != null) {
             Observation existing = occ.getObservationByName(name);
             existing.setValue(newValue);
+            System.out.println("Resetting value for Observation named "+name+" with new value "+newValue);
+            System.out.println("Did the value stick??? Name:"+existing.getName()+" Value: "+existing.getValue());
           } else {
             obs = new Observation(name, newValue, occ.getClass().getSimpleName(), occ.getID());
             occ.addObservation(obs);
-            myShepherd.commitDBTransaction();
             System.out.println("Success setting Observation!");       
           }
         }
+        myShepherd.commitDBTransaction();
       } catch (Exception le) {
         System.out.println("Hit locked exception.");
         locked = true;
@@ -124,9 +127,9 @@ public class OccurrenceSetObservation extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
 
         if (!newValue.equals("")&&!oldValue.equals("null")) {
-          out.println("<strong>Success:</strong> Occurrence Observation " + name + " has been updated from <i>" + oldValue + "</i> to <i>" + newValue + "</i>.");
+          out.println("<strong>Success:</strong> Occurrence Observation " + name + " has been updated to <i>" + newValue + "</i>.");
         } else if (oldValue.equals("null")) {
-          out.println("<strong>Success:</strong> Occurrence Observation " + name + " has been created with a value of <i>" + oldValue + "</i>.");
+          out.println("<strong>Success:</strong> Occurrence Observation " + name + " has been created with a value of <i>" + newValue + "</i>.");
         } else {
           out.println("<strong>Success:</strong> Occurrence Observation " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
         }
