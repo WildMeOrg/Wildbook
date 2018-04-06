@@ -43,28 +43,84 @@ if (request.getParameter("annotId") != null) {
 	return;
 }
 
-//quick hack to set id & approve
 
-/*
+//TODO security for this stuff, obvs?
 //quick hack to set id & approve
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
+	JSONObject res = new JSONObject("{\"success\": false}");
+	res.put("encounterId", request.getParameter("number"));
+	res.put("encounterId2", request.getParameter("enc2"));
+	res.put("individualId", request.getParameter("individualID"));
+	//note: short circuiting for now!  needs more testing
+
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
+
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
 	if (enc == null) {
-		out.println("{\"success\": false, \"error\": \"no such encounter\"}");
+		res.put("error", "no such encounter: " + request.getParameter("number"));
+		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
-	} else {
-		enc.setIndividualID(request.getParameter("individualID"));
-		enc.setState("approved");
-		myShepherd.commitDBTransaction();
-		out.println("{\"success\": true}");
+		myShepherd.closeDBTransaction();
+		return;
 	}
+
+	Encounter enc2 = null;
+	if (request.getParameter("enc2") != null) {
+		enc2 = myShepherd.getEncounter(request.getParameter("enc2"));
+		if (enc == null) {
+			res.put("error", "no such encounter: " + request.getParameter("enc2"));
+			out.println(res.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
+	}
+
+	/* now, making an assumption here (and the UI does as well):
+	   basically, we only allow a NEW INDIVIDUAL when both encounters are unnamed;
+	   otherwise, we are assuming we are naming one based on the other.  thus, we MUST
+	   use an *existing* indiv in those cases (but allow a new one in the other)
+	*/
+
+	MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(request.getParameter("individualID"));
+	if ((indiv == null) && (enc != null) && (enc2 != null)) {
+//TODO make actual individual yo!!!!
+//indiv.addComment(????)
+		res.put("error", "Creating a new MarkedIndividual currently not supported. YET! Sorry.");
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	}
+
+	if (indiv == null) {
+		res.put("error", "Unknown individual " + request.getParameter("individualID"));
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	}
+
+// TODO enc.setMatchedBy() + comments + etc?????
+	enc.setIndividualID(indiv.getIndividualID());
+	enc.setState("approved");
+	indiv.addEncounter(enc, context);
+	if (enc2 != null) {
+		enc2.setIndividualID(indiv.getIndividualID());
+		enc2.setState("approved");
+		indiv.addEncounter(enc2, context);
+	}
+	myShepherd.getPM().makePersistent(indiv);
+	
+	myShepherd.commitDBTransaction();
 	myShepherd.closeDBTransaction();
+	res.put("success", true);
+	out.println(res.toString());
 	return;
 }
-*/
+
 
 
   //session.setMaxInactiveInterval(6000);
@@ -87,6 +143,20 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 #encounter-info .enc-link {
 	color: #777;
+}
+
+#enc-action {
+	position: relative;
+	top: -5px;
+	left: 20px;
+	display: inline-block;
+	font-size: 0.7em;
+}
+
+#enc-action input[type="button"] {
+	line-height: 1em;
+	padding: auto;
+	margin: 0;
 }
 
 .throbbing {
@@ -395,6 +465,8 @@ var pageStartTimestamp = new Date().getTime();
 var taskIds = [];
 var jobIdMap = {};
 var timers = {};
+var matchInstructions = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
+var queryAnnotation = {};
 
 function init2() {   //called from wildbook.init() when finished
 	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div>');
@@ -618,8 +690,14 @@ console.warn('+++++++ isQueryAnnot %o', isQueryAnnot);
 				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + res.responseJSON.annId +'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
 			}
 
+			h += '<div id="enc-action">' + matchInstructions + '</div>';
 			//if (isQueryAnnot && h) $('#task-' + taskId + ' .task-title').append(h);
 			if (isQueryAnnot) {
+				queryAnnotation = {
+					id: res.responseJSON.annId,
+					encId: encId,
+					indivId: indivId
+				};
 				if (h) $('#encounter-info .enc-title').html(h);
 				if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
 			} else {
@@ -637,12 +715,30 @@ function annotCheckbox(el) {
 	if (!el.checked) return;
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
 	jel.parent().addClass('annot-summary-checked');
+
+	var h;
+	if (!queryAnnotation.encId || !jel.data('encid')) {
+		h = '<i>Insuffient encounter data for any actions</i>';
+	} else if (jel.data('individ') && queryAnnotation.indivId) {
+		h = 'The two encounters have <b>different individuals</b> already assigned and must be handled manually.';
+	} else if (jel.data('individ')) {
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\');" type="button" value="Set to individual ' + jel.data('individ') + '" />';
+	} else if (queryAnnotation.indivId) {
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
+	} else {
+		h = '<input onChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
+		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
+		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
+		h += ' /> <input type="button" value="Set individual on both encounters" />'
+	}
+	$('#enc-action').html(h);
 	return true;
 }
 
 function annotCheckboxReset() {
 	$('.annot-action-checkbox-active').removeClass('annot-action-checkbox-active').addClass('annot-action-checkbox-inactive').prop('checked', false);
 	$('.annot-summary-checked').removeClass('annot-summary-checked');
+	$('#enc-action').html(matchInstructions);
 }
 
 function annotClick(ev) {
@@ -769,7 +865,9 @@ function fakeEncounter(e, ma) {
 }
 
 
+/////// these are disabled now, as matching results "bar" handles actions
 function approvalButtons(qann, manns) {
+	return '';
 	if (!manns || (manns.length < 1) || !qann || !qann.encounter) return '';
 console.info(qann);
 	var inds = [];
@@ -790,29 +888,43 @@ console.warn(inds);
 }
 
 
-function approvalButtonClick(encID, indivID) {
-	console.info('approvalButtonClick(%s, %s)', encID, indivID);
-	jQuery('#approval-buttons').html('<i>sending request...</i>');
+function approvalButtonClick(encID, indivID, encID2) {
+	var msgTarget = '#enc-action';  //'#approval-buttons';
+	console.info('approvalButtonClick: id(%s) => %s %s', indivID, encID, encID2);
+	if (!indivID || !encID) {
+		jQuery(msgTarget).html('Argument errors');
+		return;
+	}
+	jQuery(msgTarget).html('<i>saving changes...</i>');
+	var url = 'matchResultsMulti.jsp?number=' + encID + '&individualID=' + indivID;
+	if (encID2) url += '&enc2=' + encID2;
 	jQuery.ajax({
-		url: 'matchResults.jsp?number=' + encID + '&individualID=' + indivID,
+		url: url,
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
+console.warn(d);
 			if (d.success) {
-				window.location.href = 'encounter.jsp?number=' + encID;
+				jQuery(msgTarget).html('<i><b>Update successful</b> - please wait....</i>');
+				//////window.location.href = 'encounter.jsp?number=' + encID;
 			} else {
-				console.warn(d);
-				jQuery('#approval-buttons').html('error');
-				alert('Error updating encounter: ' + d.error);
+				console.warn('error returned: %o', d);
+				jQuery(msgTarget).html('Error updating encounter: <b>' + d.error + '</b>');
 			}
 		},
 		error: function(x,y,z) {
 			console.warn('%o %o %o', x, y, z);
-			jQuery('#approval-buttons').html('error');
-			alert('Error updating encounter');
+			jQuery(msgTarget).html('<b>Error updating encounter</b>');
 		}
 	});
 	return true;
+}
+
+
+function approveNewIndividual(el) {
+	var jel = $(el);
+	console.info('name=%s; qe=%s, me=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'));
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'));
 }
 
 
