@@ -981,7 +981,6 @@ public class Occurrence implements java.io.Serializable {
     }
     public void addObservation(Observation obs) {
       boolean found = false;
-      System.out.println("Adding Observation in Base Class... : "+obs.toString());
       if (observations != null && observations.size() > 0) {
         for (Observation ob : observations) {
           if (ob.getName() != null) {

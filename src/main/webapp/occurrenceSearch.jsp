@@ -471,10 +471,10 @@ function FSControl(controlDiv, map) {
           <input name="observationKey1" type="text" id="observationKey1" value="" placeholder="Observation Name">
           <input name="observationValue1" type="text" id="observationValue1" value="" placeholder="Observation Value">
         </p>
+        <input name="numSearchedObs" type="hidden" id="numSearchedObs" value="1">
         <div id="additionalObsFields">
         
         </div>
-        <input name="numSearchedObs" type="hidden" id="numSearchedObs" value="1" >
         <input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=props.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
   		  <br/>
       </div>
@@ -482,7 +482,6 @@ function FSControl(controlDiv, map) {
 	</tr>	
 	<script>
 		$(document).ready(function(){
-			// Set to 2 because the first Observation is #1, and this variable will not be used until another is made.
 			var num = 2;
 			$('#addAnotherObBtn').click(function(){
 				var obField = '<p><input name="observationKey'+num+'" type="text" id="observationKey'+num+'" value="" placeholder="Observation Name"><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value="" placeholder="Observation Value"></p>';	

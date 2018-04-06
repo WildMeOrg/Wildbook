@@ -59,18 +59,11 @@ public class OccurrenceSetObservation extends HttpServlet {
     Occurrence occ = null;
     String dateString = ServletUtilities.getDate();
     
-    // What's my class again? What's my class again?
-    System.out.println("What's my class?");
+    // From generified code for baseclass in Read lab...
     if (obj.getClass().isInstance(occ)) {
-      System.out.println("Obj isInstance Occ ?? "+obj.getClass().isInstance(occ));
       occ = (Occurrence) obj;
       occ.setDWCDateLastModified(dateString);
     }
-    if (obj.getClass().isInstance(enc)) {
-      System.out.println("Obj isInstance Enc ?? "+obj.getClass().isInstance(enc));
-      enc = (Encounter) obj;
-      enc.setDWCDateLastModified(dateString);
-    }  
   }
   
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -87,37 +80,34 @@ public class OccurrenceSetObservation extends HttpServlet {
       myShepherd.beginDBTransaction();
       String name = request.getParameter("name");
       String id = request.getParameter("number");
-      String value = request.getParameter("value");
-      System.out.println("Setting Observation... Name : "+name+" ID : "+id+" Type : Survey, Value : "+value);
+      //String value = request.getParameter("value");
       
-      Occurrence changeMe = myShepherd.getOccurrence(id);
+      Occurrence occ = myShepherd.getOccurrence(id);
       Observation obs = null;
-      
-      redirectURL = "/occurrence.jsp";
 
-      
       String newValue = "null";
       String oldValue = "null";
 
-      if (changeMe.getObservationByName(name) != null) {
-        oldValue = changeMe.getObservationByName(name).getValue();
+      if (occ.getObservationByName(name) != null) {
+        oldValue = occ.getObservationByName(name).getValue();
       } 
 
       if ((request.getParameter("value") != null) && (!request.getParameter("value").equals(""))) {
-        newValue = request.getParameter("value");
+        newValue = request.getParameter("value").trim();
       }
             
       try {
         if (newValue.equals("null")) {
-          changeMe.removeObservation(name);
-          System.out.println("Servlet trying to remove Observation "+name);
+          occ.removeObservation(name);
+          System.out.println("Removing Observation "+name);
         } else {
-          if (changeMe.getObservationByName(name) != null && value != null) {
-            Observation existing = changeMe.getObservationByName(name);
-            existing.setValue(value);
+          if (occ.getObservationByName(name) != null && newValue != null) {
+            Observation existing = occ.getObservationByName(name);
+            existing.setValue(newValue);
           } else {
-            obs = new Observation(name, newValue, changeMe.getClass().getSimpleName(), changeMe.getID());
-            changeMe.addObservation(obs);
+            obs = new Observation(name, newValue, occ.getClass().getSimpleName(), occ.getID());
+            occ.addObservation(obs);
+            myShepherd.commitDBTransaction();
             System.out.println("Success setting Observation!");       
           }
         }
@@ -129,26 +119,28 @@ public class OccurrenceSetObservation extends HttpServlet {
       }
 
       if (!locked) {
-        setDateLastModified(changeMe);
-        myShepherd.commitDBTransaction();
+        setDateLastModified(occ);
+
         out.println(ServletUtilities.getHeader(request));
 
-        if (!newValue.equals("")) {
-          out.println("<strong>Success:</strong> Survey Observation " + name + " has been updated from <i>" + oldValue + "</i> to <i>" + newValue + "</i>.");
+        if (!newValue.equals("")&&!oldValue.equals("null")) {
+          out.println("<strong>Success:</strong> Occurrence Observation " + name + " has been updated from <i>" + oldValue + "</i> to <i>" + newValue + "</i>.");
+        } else if (oldValue.equals("null")) {
+          out.println("<strong>Success:</strong> Occurrence Observation " + name + " has been created with a value of <i>" + oldValue + "</i>.");
         } else {
-          out.println("<strong>Success:</strong> Survey Observation " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
+          out.println("<strong>Success:</strong> Occurrence Observation " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
         }
 
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+redirectURL+"?number="+request.getParameter("number")+"\">Return to Survey "+ request.getParameter("number") + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+redirectURL+"?number="+request.getParameter("number")+"\">Return to Occurrence "+ request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         out.println("<p><a href=\"individualSearchResults.jsp\">View all marked individuals</a></font></p>");
         out.println(ServletUtilities.getFooter(context));
-        String message = "Survey " + request.getParameter("number") + " Observation " + name + " has been updated from \"" + oldValue + "\" to \"" + newValue + "\".";
+        String message = "Occurrence " + request.getParameter("number") + " Observation " + name + " has been updated from \"" + oldValue + "\" to \"" + newValue + "\".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> Survey Observation " + name + " was NOT updated because another user is currently modifying this record. Please try to reset the value again in a few seconds.");
+        out.println("<strong>Failure:</strong> Occurrence Observation " + name + " was NOT updated because another user is currently modifying this record. Please try to reset the value again in a few seconds.");
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) +redirectURL+"?number=" + request.getParameter("number") + "\">Return to survey " + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
@@ -171,13 +163,9 @@ public class OccurrenceSetObservation extends HttpServlet {
       out.println(ServletUtilities.getFooter(context));
 
     }
-
-
     out.close();
     myShepherd.closeDBTransaction();
   }
-
-
   
 }
 
