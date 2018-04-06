@@ -84,7 +84,7 @@ Colors get changed in this .less file: https://github.com/WildbookOrg/Wildbook/b
 
  </ul>
 
-and here: https://github.com/WildbookOrg/Wildbook/blob/48358e0f59cb3209990da65417c868fabb7d6a1f/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
+and here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
 
 <ul>
 <li>red text for mandatory fields (.text-danger): <a href="https://www.colorhexa.com/a94442">#a94442</a>  </li>
