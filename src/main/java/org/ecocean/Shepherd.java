@@ -896,6 +896,48 @@ public class Shepherd {
     return tempTask;
   }
 
+  public Taxonomy getOrCreateTaxonomy(String scientificName) {
+    return getOrCreateTaxonomy(scientificName, true); // shepherds are for committing after all
+  }
+  public Taxonomy getOrCreateTaxonomy(String scientificName, boolean commit) {
+    Taxonomy taxy = getTaxonomy(scientificName);
+    if (taxy==null) taxy = new Taxonomy(scientificName);
+    if (commit) storeNewTaxonomy(taxy);
+    return taxy;
+  }
+  public Taxonomy getTaxonomy(String scientificName) {
+    List al = new ArrayList();
+    try{
+      String filter = "this.scientificName.toLowerCase() == \"" + scientificName.toLowerCase() + "\"";
+      Extent keyClass = pm.getExtent(Taxonomy.class, true);
+      Query acceptedKeywords = pm.newQuery(keyClass, filter);
+      Collection c = (Collection) (acceptedKeywords.execute());
+      al = new ArrayList(c);
+      try {
+        acceptedKeywords.closeAll();
+      } catch (NullPointerException npe) {}
+    }
+    catch(Exception e){e.printStackTrace();}
+    return ((al.size()>0) ? ((Taxonomy) al.get(0)) : null);
+  }
+  public String storeNewTaxonomy(Taxonomy enc) {
+    //enc.setOccurrenceID(uniqueID);
+    beginDBTransaction();
+    try {
+      pm.makePersistent(enc);
+      commitDBTransaction();
+      System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
+      e.printStackTrace();
+      return "fail";
+    }
+    return (enc.getId());
+  }
+
+
+
   public Keyword getKeyword(String readableName) {
 
     Iterator<Keyword> keywords = getAllKeywords();
