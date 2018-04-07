@@ -85,7 +85,7 @@ public class Occurrence implements java.io.Serializable{
 
   private String submitterID;
 
-
+  private List<Taxonomy> species;
 
   // do we have these?
 
@@ -396,6 +396,36 @@ public class Occurrence implements java.io.Serializable{
 
   }
 
+
+  public List<Taxonomy> getAllSpecies() {
+    return this.species;
+  }
+  public void setAllSpecies(List<Taxonomy> species) {
+    this.species = species;
+  }
+  public String getSpeciesString() {
+    Taxonomy taxy = getSpecies();
+    if (taxy==null) return null;
+    return taxy.getScientificName();
+  }
+  public void addSpeciesString(String scientificName, Shepherd readOnlyShepherd) {
+    Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false); // commit=false as standard with setters
+    addSpecies(taxy);
+  }
+  public Taxonomy getSpecies() {
+    return getSpecies(0);
+  }
+  public Taxonomy getSpecies(int i) {
+    if (species==null || species.size()<=i) return null;
+    return species.get(i);
+  }
+  public void addSpecies(Taxonomy species) {
+    ensureSpeciesListExists();
+    if (!this.species.contains(species)) this.species.add(species);
+  }
+  private void ensureSpeciesListExists() {
+    if (this.species==null) this.species = new ArrayList<Taxonomy>();
+  }
 
   public String getDWCDateLastModified() {
     return modified;
