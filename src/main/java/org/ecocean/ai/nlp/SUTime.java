@@ -227,6 +227,12 @@ public class SUTime {
   }
   
   public static ArrayList<String> parseStringForDates(HttpServletRequest request, String text) {
+    String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+    return parseStringForDates(request, text, relativeDate);
+  }
+  
+  
+  public static ArrayList<String> parseStringForDates(HttpServletRequest request, String text, String relativeDate) {
     
     ArrayList<String> arrayListDates = new ArrayList<String>();
     
@@ -255,7 +261,7 @@ public class SUTime {
 
       try {
         
-        List<CoreMap> timexAnnsAll=getDates(text,request, pipeline);
+        List<CoreMap> timexAnnsAll=getDates(text,request, pipeline, relativeDate);
         
         for (CoreMap cm : timexAnnsAll) {
           Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
@@ -278,11 +284,16 @@ public class SUTime {
       return arrayListDates;
   }  
   
+  //
   public static String parseDateStringForBestDate(HttpServletRequest request, String text) {
-
-          ArrayList<String> arrayListDates=parseStringForDates(request, text);
+    String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+    return parseDateStringForBestDate(request, text, relativeDate);
+  }
+  
+  
+  public static String parseDateStringForBestDate(HttpServletRequest request, String text, String relativeDate) {
+          ArrayList<String> arrayListDates=parseStringForDates(request, text, relativeDate);
           String selectedDate = "";
-
           try{
             selectedDate = selectBestDateFromCandidates(arrayListDates);
           } 
@@ -295,7 +306,6 @@ public class SUTime {
           else{
             return selectedDate;
           }
-      
   }
   
 public static String selectBestDateFromCandidates(ArrayList<String> candidates) throws Exception{
