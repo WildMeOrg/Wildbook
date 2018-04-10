@@ -613,4 +613,14 @@ public class Util {
           formatted = format.format(date);
           return formatted.toString();
     }
+
+    public static int count(Iterator it) {
+      int num = 0;
+      while (it.hasNext()) {
+        Object elem = it.next();
+        num++;
+      }
+      return num;
+    }
+
 }

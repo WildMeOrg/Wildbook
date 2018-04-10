@@ -57,6 +57,7 @@ public class Occurrence implements java.io.Serializable{
   private String socialMediaQueryCommentID;
   private String socialMediaQueryCommentReplies;
 
+  private List<Taxonomy> taxonomies;
   // this is helpful for sorting but isn't (for now) intended to be UI-facing
   // rather it's set from Encounters
   private Long millis;
