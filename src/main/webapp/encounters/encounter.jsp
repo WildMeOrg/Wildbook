@@ -409,7 +409,7 @@ var encounterNumber = '<%=num%>';
       			Encounter enc = myShepherd.getEncounter(num);
 
             // lynx hack to keep these consistent
-            StudySite stu = myShepherd.getStudySite(en);
+            StudySite stu = myShepherd.getStudySite(enc);
             if (stu!=null) enc.importStudySiteFields(stu);
 
 
@@ -1868,7 +1868,7 @@ else {
 <%
 String stuID = enc.getStudySiteID();
 System.out.println("***   Encounter.jsp: got stuID = "+stuID);
-StudySite stu = myShepherd.getStudySite(stuID);
+//StudySite stu = myShepherd.getStudySite(stuID);
 String displayStu = "none";
 if (stu!=null) {
     // build hyperlink to studysite page
