@@ -699,6 +699,15 @@ function _colModified(o) {
 	return d.toLocaleDateString();
 }
 
+function _colDate(o) {
+	var millis = o.dateAsString();
+}
+
+function _colDateSort(o) {
+	var d = o.date();
+	if (!d) return 0;
+	return d.getTime();
+}
 
 function _textExtraction(n) {
 	var s = $(n).text();
