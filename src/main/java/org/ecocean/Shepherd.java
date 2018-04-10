@@ -1328,6 +1328,23 @@ public class Shepherd {
     }
   }
 
+  public Iterator<Taxonomy> getAllTaxonomies() {
+    try {
+      Extent taxClass = pm.getExtent(Taxonomy.class, true);
+      Iterator it = taxClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+  public int getNumTaxonomies() {
+    Iterator<Taxonomy> taxis = getAllTaxonomies();
+    return (Util.count(taxis));
+  }
+
+
 
 
 
