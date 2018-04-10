@@ -145,6 +145,8 @@
 				/InterconnectSubmitSpots = authc, roles[imageProcessor]
 				/interconnectSubmitSpots = authc, roles[imageProcessor]
 
+				/encounters/encounter.jsp = authc
+				/encounters/encounterMediaGallery.jsp = authc
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
 
