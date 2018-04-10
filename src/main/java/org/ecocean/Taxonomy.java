@@ -16,6 +16,9 @@ public class Taxonomy implements java.io.Serializable {
   private String scientificName;
   private List<String> commonNames; 
 
+  // A Convention: getters/setters for Taxonomy objects (in other Classes) will use noun "Taxonomy".
+  // while convenience string-only methods will use noun "Species" (and might require Shepherds to see which Taxonomy objects exist in the DB, for e.g. putting a species string on an Encounter)
+
   public Taxonomy() {
   }
 

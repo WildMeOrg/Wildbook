@@ -1248,12 +1248,24 @@ public class Shepherd {
       return it;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllOccurrencesNoQuery. Returning a null iterator.");
-      npe.printStackTrace();
       return null;
     }
   }
 
-
+  public Iterator<Taxonomy> getAllTaxonomies() {
+    try {
+      Extent taxClass = pm.getExtent(Taxonomy.class, true);
+      Iterator it = taxClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllTaxonomies. Returning a null iterator.");
+      return null;
+    }
+  }
+  public int getNumTaxonomies() {
+    Iterator<Taxonomy> taxis = getAllTaxonomies();
+    return (Util.count(taxis));
+  }
 
 
   public Iterator getAllAnnotationsNoQuery() {

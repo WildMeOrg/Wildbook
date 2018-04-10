@@ -634,35 +634,47 @@ public class Occurrence implements java.io.Serializable{
 
   }
 
-
-  public List<Taxonomy> getAllSpecies() {
-    return this.species;
-  }
-  public void setAllSpecies(List<Taxonomy> species) {
-    this.species = species;
-  }
-  public String getSpeciesString() {
-    Taxonomy taxy = getSpecies();
+  // Convention: getters/setters for Taxonomy objects use noun "Taxonomy".
+  // while convenience string-only methods use noun "Species"
+  public String getSpecies() { return getSpecies(0);}
+  public String getSpecies(int i) {
+    Taxonomy taxy = getTaxonomy(i);
     if (taxy==null) return null;
     return taxy.getScientificName();
   }
-  public void addSpeciesString(String scientificName, Shepherd readOnlyShepherd) {
+  public void addSpecies(String scientificName, Shepherd readOnlyShepherd) {
     Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false); // commit=false as standard with setters
-    addSpecies(taxy);
+    addTaxonomy(taxy);
   }
-  public Taxonomy getSpecies() {
-    return getSpecies(0);
+  // warning: overwrites list (use addSpecies for multi-species)
+  public void setSpecies(String scientificName, Shepherd readOnlyShepherd) {
+    Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false);
+    setTaxonomy(taxy);
   }
-  public Taxonomy getSpecies(int i) {
-    if (species==null || species.size()<=i) return null;
-    return species.get(i);
+
+  public List<Taxonomy> getTaxonomies() {
+    return this.taxonomies;
   }
-  public void addSpecies(Taxonomy species) {
-    ensureSpeciesListExists();
-    if (!this.species.contains(species)) this.species.add(species);
+  public void setTaxonomies(List<Taxonomy> taxonomies) {
+    this.taxonomies = taxonomies;
   }
-  private void ensureSpeciesListExists() {
-    if (this.species==null) this.species = new ArrayList<Taxonomy>();
+  public Taxonomy getTaxonomy() { return getTaxonomy(0);}
+  public Taxonomy getTaxonomy(int i) {
+    if (taxonomies==null || taxonomies.size()<=i) return null;
+    return taxonomies.get(i);
+  }
+  public void addTaxonomy(Taxonomy taxy) {
+    ensureTaxonomiesExist();
+    if (!this.taxonomies.contains(taxy)) this.taxonomies.add(taxy);
+  }
+  // warning: overwrites list (use addTaxonomy for multi-species)
+  public void setTaxonomy(Taxonomy taxy) {
+    List<Taxonomy> taxis = new ArrayList<Taxonomy>();
+    taxis.add(taxy);
+    setTaxonomies(taxis);
+  }
+  private void ensureTaxonomiesExist() {
+    if (this.taxonomies==null) this.taxonomies = new ArrayList<Taxonomy>();
   }
 
   public String getDWCDateLastModified() {
