@@ -12,6 +12,10 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 import org.json.JSONObject;
 import org.json.JSONException;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.text.DateFormat;
+import java.util.TimeZone;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
@@ -19,7 +23,12 @@ import org.joda.time.LocalDateTime;
 //EXIF-related imports
 import java.io.File;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
@@ -288,8 +297,13 @@ public class Util {
         coords=new ArrayList<Point2D>(encsSize);
         for(int i=0;i<encsSize;i++){
           Encounter e=encs.get(i);
-          int lat=(int)e.getDecimalLatitudeAsDouble();
-          int longie=(int)e.getDecimalLongitudeAsDouble();
+            // updating this to handle empty (null) values
+            //  note: forcing this to an int was legacy code.  seems "bad" (loss of accuracy); but doing anyway!  2017-03-16  -jon   FIXME?
+            if ((e.getDecimalLatitudeAsDouble() == null) || (e.getDecimalLongitudeAsDouble() == null)) continue;
+            int lat = (int)Math.round(e.getDecimalLatitudeAsDouble());
+            int longie = (int)Math.round(e.getDecimalLongitudeAsDouble());
+          //int lat=(int)e.getDecimalLatitudeAsDouble();
+          //int longie=(int)e.getDecimalLongitudeAsDouble();
           Point2D myPoint=new Point2D(lat,longie);
           if(!coords.contains(myPoint)){
             coords.add(myPoint);
@@ -472,6 +486,19 @@ public class Util {
         return ll.toString();
     }
 
+    //   h/t  https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
+    public static String validEmailRegexPattern() {
+        //return "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";  //THIS FAILED on sito.org+foo@gmail.com !!
+        return "^[_A-Za-z0-9-\\+\\.]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+    }
+
+    public static boolean isValidEmailAddress(String email) {
+        if (email == null) return false;
+        java.util.regex.Pattern patt = java.util.regex.Pattern.compile(validEmailRegexPattern());
+        java.util.regex.Matcher matcher = patt.matcher(email);
+        return matcher.matches();
+    }
+
     // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
     public static int getNumSections(int collectionSize, int itemsPerSection) {
       return (collectionSize - 1)/itemsPerSection + 1;
@@ -501,6 +528,12 @@ public class Util {
       if (lower.length()<=1) return (lower.toUpperCase());
       return (lower.substring(0,1).toUpperCase() + lower.substring(1));
     }
+
+    public static String capitolizeFirstLetter(String str) {
+      if (str.length()<=1) return (str.toUpperCase());
+      return (str.substring(0,1).toUpperCase() + str.substring(1));
+    }
+
 
     public static boolean requestHasVal(HttpServletRequest request, String paramName) {
       return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
@@ -542,5 +575,40 @@ public class Util {
 
     public static boolean stringExists(String str) {
       return (str!=null && !str.equals(""));
+    }
+
+
+    public static boolean hasProperty(String key, Properties props) {
+      return (props.getProperty(key) != null);
+    }
+
+    // given "animalType"
+    public static List<String> getIndexedPropertyValues(String key, Properties props) {
+      List<String> values = new ArrayList<String>();
+      for (int i=0; hasProperty((key+i), props); i++) {
+        values.add(props.getProperty(key+i));
+      }
+      return values;
+    }
+
+    public static void writeToFile(String data, String path) throws FileNotFoundException {
+      PrintWriter out = new PrintWriter(path);
+      out.println(data);
+      out.close();
+    }
+
+    public static String readFromFile(String path) throws FileNotFoundException, IOException {
+      FileInputStream inputStream = new FileInputStream(path);
+      String readData = IOUtils.toString(inputStream);
+      return readData;
+    }
+
+    public static String convertEpochTimeToHumanReadable (long epochTime){
+      Date date = new Date(epochTime);
+          DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+          format.setTimeZone(TimeZone.getTimeZone("Etc/GMT"));
+          String formatted = format.format(date);
+          formatted = format.format(date);
+          return formatted.toString();
     }
 }

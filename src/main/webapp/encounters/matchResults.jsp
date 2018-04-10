@@ -19,6 +19,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 //quick hack to set id & approve
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
 	Shepherd myShepherd = new Shepherd(context);
+	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
 	if (enc == null) {
@@ -41,11 +42,12 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	String jobId = null;
 	String qannId = null;
 	Shepherd myShepherd2 = new Shepherd(context);
+	myShepherd2.setAction("matchResults.jsp2");
 	myShepherd2.beginDBTransaction();
 	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd2);
         for (IdentityServiceLog l : logs) {
             if (l.getServiceJobID() != null) jobId = l.getServiceJobID();
-            if (l.getObjectID() != null) qannId = l.getObjectID();
+            if ((l.getObjectIDs() != null) && (l.getObjectIDs().length > 0)) qannId = l.getObjectIDs()[0];
         }
 
 	String qMediaAssetJson = null;
@@ -75,6 +77,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 #approval-buttons {
 	height: 5em;
+}
+
+#link {
+	clear: both;
 }
 
 #results {
@@ -328,15 +334,15 @@ console.info('waiting to try again...');
 		return;
 	}
 	if (res.matchAnnotations.length == 1) {
-    var altIDString = res.matchAnnotations[0].encounter.otherCatalogNumbers;
-    if (altIDString && altIDString.length > 0) {
-      altIDString = ', altID '+altIDString;
-    }
+		var altIDString = res.matchAnnotations[0].encounter.otherCatalogNumbers || '';
+		if (altIDString && altIDString.length > 0) {
+      			altIDString = ', altID '+altIDString;
+    		}
 
 		$('#results').html('One match found (<a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
-			'</a> id ' + res.matchAnnotations[0].encounter.individualID + altIDString +
+			'</a> id ' + (res.matchAnnotations[0].encounter.individualID || 'unknown') + altIDString +
 			') - score ' + res.matchAnnotations[0].score + approvalButtons(res.queryAnnotation, res.matchAnnotations));
 		updateMatch(res.matchAnnotations[0]);
 		return;
@@ -350,14 +356,14 @@ console.info('waiting to try again...');
 	var h = '<p><b>' + res.matchAnnotations.length + ' matches</b></p><ul>';
 	for (var i = 0 ; i < res.matchAnnotations.length ; i++) {
       // a little handling of the alternate ID
-      var altIDString = res.matchAnnotations[i].encounter.otherCatalogNumbers;
-      if (altIDString && altIDString.length > 0) {
-        altIDString = ' (altID: '+altIDString+')';
-      }
+      var altIDString = res.matchAnnotations[i].encounter.otherCatalogNumbers || '';
+	if (altIDString && altIDString.length > 0) {
+		altIDString = ' (altID: '+altIDString+')';
+	}
 		h += '<li data-i="' + i + '"><a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[i].encounter.catalogNumber + '">' +
 			res.matchAnnotations[i].encounter.catalogNumber + altIDString + '</a> (' +
-			res.matchAnnotations[i].encounter.individualID + '), score = ' +
+			(res.matchAnnotations[i].encounter.individualID || 'unidentified') + '), score = ' +
 			res.matchAnnotations[i].score + '</li>';
 	}
 	h += '</ul><div>' + approvalButtons(res.queryAnnotation, res.matchAnnotations) + '</div>';

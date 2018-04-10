@@ -28,19 +28,19 @@ context=ServletUtilities.getContext(request);
             Sitemap</h1>
       
         <ul>
-          <li><a href="http://<%=CommonConfiguration.getURLLocation(request)%>">Home</a></li>
+          <li><a href="//<%=CommonConfiguration.getURLLocation(request)%>">Home</a></li>
     
           <li><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp">Report
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp">Report
             an encounter</a></li>
           <li><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/searchResults.jsp">All
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/searchResults.jsp">All
             Encounters</a></li>
           <li><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/individualSearchResults.jsp">All
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/individualSearchResults.jsp">All
             Marked Individuals</a></li>
           <li><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/thumbnailSearchResults.jsp?noQuery=true">Image
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/thumbnailSearchResults.jsp?noQuery=true">Image
             thumbnails</a></li>
 
 </ul>
@@ -59,7 +59,7 @@ context=ServletUtilities.getContext(request);
             while (it2.hasNext()) {
               Encounter tempEnc2 = it2.next();
         %> <a
-        href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=tempEnc2.getEncounterNumber()%>"><%=tempEnc2.getEncounterNumber()%>
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=tempEnc2.getEncounterNumber()%>"><%=tempEnc2.getEncounterNumber()%>
       </a> <%
         }
       %>
@@ -71,7 +71,7 @@ context=ServletUtilities.getContext(request);
           while (it3.hasNext()) {
             MarkedIndividual tempShark = it3.next();
         %> <a
-        href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=tempShark.getName()%>"><%=tempShark.getName()%>
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=tempShark.getName()%>"><%=tempShark.getName()%>
       </a> <%
           }
 

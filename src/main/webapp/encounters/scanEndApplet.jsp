@@ -35,14 +35,27 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 
-  session.setMaxInactiveInterval(6000);
-  String num = request.getParameter("number");
-	String encSubdir = Encounter.subdir(num);
+  //session.setMaxInactiveInterval(6000);
+  String num="";
+  if(request.getParameter("number")!=null){
+	Shepherd myShepherd=new Shepherd(context);
+	myShepherd.setAction("scanEndApplet.jsp");
+	myShepherd.beginDBTransaction();
+	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
+  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+	}
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+  }	
+  String encSubdir = Encounter.subdir(num);
+
+	/*
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("scanEndApplet.jsp");
   if (request.getParameter("writeThis") == null) {
     myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
   }
+  */
   //Shepherd altShepherd = new Shepherd(context);
   String sessionId = session.getId();
   boolean xmlOK = false;
@@ -118,8 +131,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <ul id="tabmenu">
   <li><a
-    href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-    <%=request.getParameter("number")%>
+    href="encounter.jsp?number=<%=num%>">Encounter
+    <%=num%>
   </a></li>
   <li><a class="active">Modified Groth</a></li>
 
@@ -141,7 +154,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   %>
 
   <li><a
-    href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
+    href="i3sScanEndApplet.jsp?writeThis=true&number=<%=num%>&I3S=true<%=fileSider%>">I3S</a>
   </li>
   <%
     }
@@ -157,12 +170,15 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   Element root;
   String side = "left";
 
+  /*
   if (request.getParameter("writeThis") == null) {
     initresults = myShepherd.matches;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       side = "right";
     }
-  } else {
+  }
+  */
+  //else {
 
 //read from the written XML here if flagged
     try {
@@ -189,11 +205,11 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     } catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
-      initresults = myShepherd.matches;
+      //initresults = myShepherd.matches;
       xmlOK = false;
     }
 
-  }
+  //}
   MatchObject[] matches = new MatchObject[0];
   if (!xmlOK) {
     int resultsSize = initresults.size();
@@ -219,7 +235,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 </p>
 <p>The following encounter(s) received the highest
   match values against a <%=side%>-side scan of encounter <a
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
+    href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
 <%
@@ -238,7 +254,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 <%
-    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
+    String feedURL = "//" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
     String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
     //System.out.println("Base URL is: " + baseURL);
@@ -300,14 +316,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
         <tr>
           <td>
             <a
-                  href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
           </a></td>
           <%
             }
@@ -357,7 +373,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
         
         <tr align="left" valign="top">
           <td>
-            <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
             	<%=enc1.attributeValue("assignedToShark")%>
             </a>
           </td>
@@ -365,7 +381,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
             }
@@ -449,8 +465,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 
-myShepherd.closeDBTransaction();
-    myShepherd = null;
+	//myShepherd.closeDBTransaction();
+    //myShepherd = null;
     doc = null;
     root = null;
     initresults = null;

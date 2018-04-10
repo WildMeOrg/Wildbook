@@ -37,54 +37,66 @@ context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("encounterSpotTool.jsp");
 myShepherd.beginDBTransaction();
-
 int imageID = Integer.parseInt(request.getParameter("imageID"));
-MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
-if (ma == null) throw new Exception("unknown MediaAsset id=" + imageID);
-Encounter enc = null;
-for (Annotation ann : ma.getAnnotations()) {
-	enc = Encounter.findByAnnotation(ann, myShepherd);
-	if (enc != null) break;
+String imgSrc="";
+String encNum="";
+try{
+
+	
+	MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
+	if (ma == null) throw new Exception("unknown MediaAsset id=" + imageID);
+	Encounter enc = null;
+	for (Annotation ann : ma.getAnnotations()) {
+		enc = Encounter.findByAnnotation(ann, myShepherd);
+		encNum=enc.getCatalogNumber();
+		if (enc != null) break;
+	}
+	if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
+	
+	//let's set up references to our file system components
+	String rootWebappPath = getServletContext().getRealPath("/");
+	//String fooDir = ServletUtilities.dataDir(context, rootWebappPath);
+	String baseDir = CommonConfiguration.getDataDirectoryName(context);
+	/*
+	File webappsDir = new File(rootWebappPath).getParentFile();
+	File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+	File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+	File encounterDir = new File(encountersDir, num);
+	*/
+	
+	imgSrc = ma.webURL().toString();
+	
+	
+	//handle some cache-related security
+	  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+	  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+	  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+	  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+	
+	
+	//handle translation
+	  //String langCode = "en";
+	String langCode=ServletUtilities.getLanguageCode(request);
+	    
+	
+	
+	
+	//let's load encounters.properties
+	  //Properties encprops = new Properties();
+	  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
+	
+	  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+	
+		Properties collabProps = new Properties();
+	 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 }
-if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
-
-//let's set up references to our file system components
-String rootWebappPath = getServletContext().getRealPath("/");
-//String fooDir = ServletUtilities.dataDir(context, rootWebappPath);
-String baseDir = CommonConfiguration.getDataDirectoryName(context);
-/*
-File webappsDir = new File(rootWebappPath).getParentFile();
-File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-File encounterDir = new File(encountersDir, num);
-*/
-
-String imgSrc = ma.webURL().toString();
-
-
-//handle some cache-related security
-  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
-
-
-//handle translation
-  //String langCode = "en";
-String langCode=ServletUtilities.getLanguageCode(request);
-    
-
-
-
-//let's load encounters.properties
-  //Properties encprops = new Properties();
-  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
-
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-
-	Properties collabProps = new Properties();
- 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-
+catch(Exception e){
+	e.printStackTrace();
+}
+finally{
+ 	myShepherd.rollbackDBTransaction();
+ 	myShepherd.closeDBTransaction();
+}
 
 %>
 
@@ -213,7 +225,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 
-var encounterNumber = '<%=enc.getCatalogNumber()%>';
+var encounterNumber = '<%=encNum %>';
 var mediaAssetId = '<%=imageID%>';
 var itool = false;
 document.addEventListener('imageTools:workCanvas:update', function(ev) {
@@ -597,9 +609,7 @@ function allGood(d) {
 <body <%if (request.getParameter("noscript") == null) {%>
   xonload="initialize()" <%}%>>
 
- <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 
- 
  
 <script src="../javascript/imageTools.js"></script>
 <script>
@@ -641,11 +651,7 @@ $(document).ready(function() {
 
 </div>
 
-<%
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
 
-%>
 
 
 <jsp:include page="../footer.jsp" flush="true"/>

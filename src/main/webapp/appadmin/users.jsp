@@ -224,7 +224,7 @@ String context="context0";
 		        		    			</table>
 		        		    		
 		        		    	</td>
-		        	<form action="../UserCreate?context=context0<%=isEditAddition %>" method="post" id="newUser">	    
+		        	<form action="../UserCreate?context=context0<%=isEditAddition %>" method="post" id="newUser" accept-charset="UTF-8">	    
     		    	<td><table width="100%" class="tissueSample">
       				<tr><td colspan="3"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured, listed in commonConfiguration.properties, and matched to the URL-based functions of the Shepherd Project in the Apache Shiro filter in web.xml.</em></td></tr>
       				<tr>

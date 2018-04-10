@@ -106,6 +106,10 @@ public class Shepherd {
     return pm;
   }
 
+  public String getDataDirectoryName() {
+    return CommonConfiguration.getDataDirectoryName(getContext());
+  }
+
   //public PersistenceManagerFactory getPMF() {
   //  return pmf;
   //}
@@ -1329,6 +1333,21 @@ public class Shepherd {
     }
   }
 
+  public Iterator<Occurrence> getAllOccurrencesNoQuery() {
+    try {
+      Extent encClass = pm.getExtent(Occurrence.class, true);
+      Iterator it = encClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllOccurrencesNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+
+
+
   public Iterator getAllAnnotationsNoQuery() {
     try {
       Extent annClass = pm.getExtent(Annotation.class, true);
@@ -1457,8 +1476,10 @@ public class Shepherd {
   public List getAllOccurrences(Query myQuery) {
     Collection c;
     try {
+      System.out.println("getAllOccurrences is called on query "+myQuery);
       c = (Collection) (myQuery.execute());
       ArrayList list = new ArrayList(c);
+      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
       //Collections.reverse(list);
       Iterator it = list.iterator();
       return list;
@@ -1508,6 +1529,24 @@ public class Shepherd {
       return it;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllDataSheets(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+
+  public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences, Map<String, Object> paramMap) {
+    Collection c;
+    try {
+      System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
+      c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
+      ArrayList list = new ArrayList(c);
+      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
       npe.printStackTrace();
       return null;
     }
@@ -2010,35 +2049,38 @@ public class Shepherd {
     int numAnnots=al.size();
     ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>();
     for(int i=0;i<numAnnots;i++){
+      try{
+        MediaAsset ma=al.get(i).getMediaAsset();
+        AssetStore as=ma.getStore();
+        String fullFileSystemPath=as.localPath(ma).toString();
+        URL u = ma.safeURL(this);
+        String webURL = ((u == null) ? null : u.toString());
+        int lastIndex=webURL.lastIndexOf("/")+1;
+        String filename=webURL.substring(lastIndex);
+        SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
+        spv.setWebURL(webURL);
+        spv.setDataCollectionEventID(ma.getUUID());
 
-      MediaAsset ma=al.get(i).getMediaAsset();
-      AssetStore as=ma.getStore();
-      String fullFileSystemPath=as.localPath(ma).toString();
-      URL u = ma.safeURL(this);
-      String webURL = ((u == null) ? null : u.toString());
-      int lastIndex=webURL.lastIndexOf("/")+1;
-      String filename=webURL.substring(lastIndex);
-      SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
-      spv.setWebURL(webURL);
-      spv.setDataCollectionEventID(ma.getUUID());
-
-      //add Keywords
-      if(ma.getKeywords()!=null){
-        ArrayList<Keyword> alkw=ma.getKeywords();
-        int numKeywords=alkw.size();
-        for(int y=0;y<numKeywords;y++){
-          Keyword kw=alkw.get(y);
-          spv.addKeyword(kw);
+        //add Keywords
+        if(ma.getKeywords()!=null){
+          ArrayList<Keyword> alkw=ma.getKeywords();
+          int numKeywords=alkw.size();
+          for(int y=0;y<numKeywords;y++){
+            Keyword kw=alkw.get(y);
+            spv.addKeyword(kw);
+          }
         }
-      }
 
-      myArray.add(spv);
+        myArray.add(spv);
 
+    }
+    catch(Exception e){}
 
     }
     return myArray;
   }
 
+/*  
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
 	  String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE keywords.contains(word0) && ( word0.indexname == \""+word.getIndexname()+"\" ) VARIABLES org.ecocean.Keyword word0";
       Query samples = pm.newQuery(keywordQueryString);
@@ -2047,7 +2089,16 @@ public class Shepherd {
 	    samples.closeAll();
 	    return myArray;
 	  }
-
+*/
+  
+  public ArrayList<MediaAsset> getAllMediAssetsWithKeyword(Keyword word0){
+    String keywordQueryString="SELECT FROM org.ecocean.media.MediaAsset WHERE ( this.keywords.contains(word0) && ( word0.indexname == \""+word0.getIndexname()+"\" ) ) VARIABLES org.ecocean.Keyword word0";
+    Query samples = pm.newQuery(keywordQueryString);
+    Collection c = (Collection) (samples.execute());
+    ArrayList<MediaAsset> myArray=new ArrayList<MediaAsset>(c);
+    samples.closeAll();
+    return myArray;
+  } 
 
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(String locationID){
     ArrayList<MarkedIndividual> myArray=new ArrayList<MarkedIndividual>();
@@ -2209,6 +2260,15 @@ public class Shepherd {
     }
     return indiv;
   }
+
+    //note, new indiv is *not* made persistent here!  so do that yourself if you want to. (shouldnt matter if not-new)
+    public MarkedIndividual getOrCreateMarkedIndividual(String name, Encounter enc) {
+        MarkedIndividual indiv = getMarkedIndividualQuiet(name);
+        if (indiv != null) return indiv;
+        indiv = new MarkedIndividual(name, enc);
+        enc.assignToMarkedIndividual(name);
+        return indiv;
+    }
 
 
   public Occurrence getOccurrence(String id) {
@@ -2484,6 +2544,21 @@ public class Shepherd {
       return 0;
     }
   }
+  public int getNumOccurrences() {
+    pm.getFetchPlan().setGroup("count");
+    Extent encClass = pm.getExtent(Occurrence.class, true);
+    Query acceptedOccurrences = pm.newQuery(encClass);
+    try {
+      Collection c = (Collection) (acceptedOccurrences.execute());
+      int num = c.size();
+      acceptedOccurrences.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedOccurrences.closeAll();
+      return 0;
+    }
+  }
 
   public int getNumDataSheets() {
     pm.getFetchPlan().setGroup("count");
@@ -2625,9 +2700,9 @@ public class Shepherd {
     Extent encClass = pm.getExtent(Encounter.class, true);
     String filter = "";
     if (rightSide) {
-      filter = "this.numSpotsRight > 0";
+      filter = "this.rightSpots != null";
     } else {
-      filter = "this.numSpotsLeft > 0";
+      filter = "this.spots != null";
     }
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     int num = 0;
@@ -2752,6 +2827,7 @@ public class Shepherd {
   public void commitDBTransaction() {
     try {
       //System.out.println("     shepherd:"+identifyMe+" is trying to commit a transaction");
+      // System.out.println("Is the pm null? " + Boolean.toString(pm == null));
       if ((pm != null) && (pm.currentTransaction().isActive())) {
 
         //System.out.println("     Now commiting a transaction with pm"+(String)pm.getUserObject());
@@ -2873,6 +2949,7 @@ public class Shepherd {
   public List<User> getAllUsers() {
     Collection c;
     ArrayList<User> list = new ArrayList<User>();
+    System.out.println("Shepherd.getAllUsers() called in context "+getContext());
     Extent userClass = pm.getExtent(User.class, true);
     Query users = pm.newQuery(userClass);
     users.setOrdering("fullName ascending");
@@ -2882,6 +2959,7 @@ public class Shepherd {
         list = new ArrayList<User>(c);
       }
       users.closeAll();
+      System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
       return list;
     }
     catch (Exception npe) {
@@ -3031,7 +3109,7 @@ public class Shepherd {
 					if(!nameString.equals(imageName)){hasKeyword=false;}
 			}
       if (hasKeyword && isAcceptableVideoFile(imageName)) {
-              m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
+              m_thumb = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
               //thumbs.add(m_thumb);
               thumbs.add(images.get(i));
       }
@@ -3110,7 +3188,7 @@ public class Shepherd {
             if(!nameString.equals(imageName)){hasKeyword=false;}
         }
         if (hasKeyword && isAcceptableVideoFile(imageName)) {
-                m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
+                m_thumb = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
         }
@@ -3306,12 +3384,16 @@ public class Shepherd {
   }
 
   public List<MarkedIndividual> getMarkedIndividualsByAlternateID(String altID) {
-    String filter = "this.alternateid.toLowerCase() == \"" + altID.toLowerCase() + "\"";
-    Extent encClass = pm.getExtent(MarkedIndividual.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    ArrayList al = new ArrayList(c);
-    acceptedEncounters.closeAll();
+    ArrayList al = new ArrayList();
+    try{
+      String filter = "this.alternateid.toLowerCase() == \"" + altID.toLowerCase() + "\"";
+      Extent encClass = pm.getExtent(MarkedIndividual.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      al = new ArrayList(c);
+      acceptedEncounters.closeAll();
+    }
+    catch(Exception e){e.printStackTrace();}
     return al;
   }
 
@@ -3880,7 +3962,6 @@ public class Shepherd {
     if (request == null || request.getUserPrincipal() == null) return null;
     return getUser(request.getUserPrincipal().getName());
   }
-
 
 
 

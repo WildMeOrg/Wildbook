@@ -59,6 +59,7 @@ console.log('init!!!!');
 		});
 
 		if (!this.imgEl) return;
+                this.imgEl.setAttribute('crossOrigin', 'anonymous');
 
 		//sourceEl is what/where actual copy comes from -- and thus can be and img, canvas, or (apparently!) video
 		if (!this.sourceEl) this.sourceEl = this.imgEl;

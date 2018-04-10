@@ -85,7 +85,7 @@ public class EncounterSetReleaseDate extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         out.println(sb.toString());
         out.println("No changes were made.");
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         //out.println(ServletUtilities.getFooter(context));
       }
       else if (!locked) {

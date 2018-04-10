@@ -539,6 +539,7 @@ maLib.isImage = function(maJson) {
 
 maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
     if (maLib.isImage(maJson)) return false;
+    if (!maJson.url) return false;
     var caption = (caption || '') + (maCaptionFunction ? maCaptionFunction(maJson) : '');
     var regexp = new RegExp("^video/(ogg|m4v|mp4|webm)$");
     if (maJson.metadata && maJson.metadata.contentType && regexp.test(maJson.metadata.contentType)) {

@@ -103,7 +103,7 @@ public class EncounterSetMeasurements extends HttpServlet {
           out.println(MessageFormat.format("<br/>{0} set to {1}", requestEventValue.type, requestEventValue.value));
         }
 
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       else {
@@ -111,7 +111,7 @@ public class EncounterSetMeasurements extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.");
 
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       

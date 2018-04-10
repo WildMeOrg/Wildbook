@@ -1,0 +1,143 @@
+.adoption-page{
+  h1, h2{
+    text-align: center;
+  }
+  h2{
+    color: @brand-dark;
+    font-size: 3rem;
+    margin-top: -1rem;
+  }
+}
+
+.adoption-details{
+  font-size: 2.5rem;
+  line-height: 4rem;
+  margin-top: 5rem;
+  .flex(center);
+  flex-direction: column;
+  a{
+    align-self: flex-end;
+    margin-top: 0;
+  }
+  @media (min-width: @screen-sm-min){
+    font-size: 3rem;
+  }
+}
+
+#custom-donation-image{
+  width: 80%;
+  margin: 7rem auto 6rem auto;
+}
+
+
+
+// If you would like to display text based donation options rather than a custom image, comment out the display property on donations. Un-comment the text based donation options below.
+.donations{
+  display: none;
+}
+// text based donation options START
+// .donation-option-group{
+//   .flex(center, center, column);
+//   flex-wrap: wrap;
+//   margin-top: 3rem;
+//   @media screen and (min-width: 500px){
+//     margin-top: 6rem;
+//     .flex(space-around, @fd:row);
+//   }
+// }
+//
+// .donation-option{
+//   width:15rem;
+//   margin: 0 auto;
+//   p{
+//     text-align: center;
+//     font-size: 1.5rem;
+//     padding-top: 1rem;
+//   }
+//   @media screen and (min-width: 329px){
+//     margin: 0 10px;
+//     width:20rem;
+//     p{
+//       font-size: 2.5rem;
+//       letter-spacing: .1rem;
+//       line-height: 3rem;
+//     }
+//   }
+// }
+//
+// .donation-circle{
+//   width: 15rem;
+//   height: 15rem;
+//   border-radius: 50%;
+//   background-color: @brand-button-primary;
+//   color: white;
+//   margin: 0 auto;
+//   p{
+//     font-size: 2rem;
+//     margin: 0;
+//     line-height: 2.5rem;
+//     position: relative;
+//     top: 3rem;
+//   }
+//   p:last-of-type{
+//     font-size: 3.2rem;
+//     font-weight: bold;
+//   }
+//   @media (min-width: @screen-sm-min){
+//     width: 20rem;
+//     height: 20rem;
+//     p{
+//       font-size: 3rem;
+//       line-height: 5rem;
+//     }
+//     p:last-of-type{
+//       font-size: 4.2rem;
+//     }
+//   }
+// }
+// text based donation options END
+
+
+
+.adopters-featured{
+  margin-top: 6rem;
+  h2{
+    color: @h1Colour;
+  }
+  .adopter-feature-gallery{
+    .flex(space-between);
+    flex-wrap: wrap;
+    margin-top: 3rem;
+
+  }
+  .adopter{
+    width: 48%;
+    margin-bottom: 1rem;
+    border: 1px solid #a7a7a7;
+  }
+  .adopter-details{
+    .flex(center, center, column);
+    p{
+      width: 85%;
+      margin-bottom: 3rem;
+    }
+    p:first-of-type{
+      text-align: center;
+      margin: 1rem 0;
+      font-weight: 400;
+    }
+  }
+  .adopter-header{
+    margin: 0;
+    background-color: @h1Colour;
+    color: white;
+    text-align: center;
+    line-height: 4rem;
+    p{margin: 0;}
+  }
+  @media screen and (min-width: 600px){
+    .adopter{
+      width: 24%;
+    }
+  }
+}

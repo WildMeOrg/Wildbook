@@ -81,7 +81,7 @@ public class IndividualSetAlternateID extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the alternate ID for individual " + sharky + " to " + alternateID + ".</p>");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
         String message = "The alternate ID for " + sharky + " was set to " + alternateID + ".";
       } else {
@@ -89,7 +89,7 @@ public class IndividualSetAlternateID extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This individual is currently being modified by another user. Please wait a few seconds before trying to modify this individual again.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
       }

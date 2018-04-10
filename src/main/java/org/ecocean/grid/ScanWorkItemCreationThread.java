@@ -28,6 +28,8 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import javax.jdo.Query;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Enumeration;
 
 
 public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
@@ -81,8 +83,8 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
 
 
   public void createThem() {
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("ScanWorkItemCreationThread.class");
+    //Shepherd myShepherd = new Shepherd(context);
+    //myShepherd.setAction("ScanWorkItemCreationThread.class");
     GridManager gm = GridManagerFactory.getGridManager();
 
     String secondRun = "true";
@@ -111,30 +113,36 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
     Vector<String> newSWIs = new Vector<String>();
     Vector<ScanWorkItem> addThese = new Vector<ScanWorkItem>();
     //System.out.println("Successfully created the scanTask shell!");
-    myShepherd.beginDBTransaction();
+    //myShepherd.beginDBTransaction();
+    //EncounterLite baseEnc=new EncounterLite(myShepherd.getEncounter(encounterNumber));
+    EncounterLite baseEnc=gm.getMatchGraphEncounterLiteEntry(encounterNumber);
+    //myShepherd.rollbackDBTransaction();
     //now, add the workItems
     //myShepherd.beginDBTransaction();
     Query query=null;
     try {
       //Iterator encounters = myShepherd.getAllEncountersNoQuery();
       
-      query=myShepherd.getPM().newQuery(jdoql);
-      Collection c = (Collection) (query.execute());
-      System.out.println("Num scans to do: "+c.size());
-      Iterator encounters = c.iterator();
-      
+      //query=myShepherd.getPM().newQuery(jdoql);
+      //Collection c = (Collection) (query.execute());
+      //System.out.println("Num scans to do: "+c.size());
+      //Iterator encounters = c.iterator();
 
-      
+      ConcurrentHashMap<String,EncounterLite> chm= gm.getMatchGraph();
+      Enumeration<String> keys=chm.keys();
+     
       int count = 0;
 
-      while (encounters.hasNext()) {
+      while (keys.hasMoreElements()) {
         //System.out.println("     Iterating encounters to create scanWorkItems...");
-        Encounter enc = (Encounter) encounters.next();
-        if (!enc.getEncounterNumber().equals(encounterNumber)) {
+        String kv=keys.nextElement();
+        EncounterLite el=chm.get(kv);
+        //Encounter enc = (Encounter) encounters.next();
+        if (!kv.equals(encounterNumber)) {
           String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
-          if (rightSide && (enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
+          if (rightSide && (el.getRightSpots() != null) && (el.getRightSpots().size() > 0)) {
             //add the workItem
-            ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2);
+            ScanWorkItem swi = new ScanWorkItem(baseEnc, el, wiIdentifier, taskID, props2);
             //String uniqueNum = swi.getUniqueNumber();
 
             gm.addWorkItem(swi);
@@ -142,9 +150,9 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
             //System.out.println("Added a new right-side scan task!");
             count++;
           } 
-          else if (!rightSide && (enc.getSpots() != null) && (enc.getSpots().size() > 0)) {
+          else if (!rightSide && (el.getSpots() != null) && (el.getSpots().size() > 0)) {
             //add the workItem
-            ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2);
+            ScanWorkItem swi = new ScanWorkItem(baseEnc, el, wiIdentifier, taskID, props2);
 
             //String uniqueNum = swi.getUniqueNumber();
 
@@ -159,19 +167,19 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
 
 
       //System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");
-      myShepherd.rollbackDBTransaction();
+      //myShepherd.rollbackDBTransaction();
       
       finished = true;
     } 
     catch (Exception e) {
       System.out.println("I failed while constructing the workItems for a new scanTask.");
       e.printStackTrace();
-      myShepherd.rollbackDBTransaction();
+      //myShepherd.rollbackDBTransaction();
       
     }
     finally{
       if(query!=null){query.closeAll();}
-      myShepherd.closeDBTransaction();
+      //myShepherd.closeDBTransaction();
     }
 
   }

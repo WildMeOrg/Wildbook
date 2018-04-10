@@ -1,22 +1,3 @@
-
-<style>
-
-.mediaasset {
-	position: relative;
-}
-.mediaasset img {
-	position: absolute;
-	top: 0;
-	right: 20px;
-	max-width: 350px;
-}
-
-.deprecated {
-	color: #888;
-}
-
-</style>
-
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
@@ -24,7 +5,6 @@ org.ecocean.media.*,
 java.util.ArrayList,
 org.json.JSONObject,
 java.util.Properties" %>
-
 <%!
 
 	public Shepherd myShepherd = null;
@@ -105,7 +85,11 @@ java.util.Properties" %>
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
 		shown.add(ma);
 		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b><ul style=\"width: 65%\">";
-		h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><img title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></a>";
+		if (ma.webURL().toString().matches(".+.mp4$")) {
+			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
+		} else {
+			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><img title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></a>";
+		}
 		h += "<li>store: <b>" + ma.getStore() + "</b></li>";
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
@@ -116,9 +100,7 @@ java.util.Properties" %>
 		}
 		return h + "</ul></div>";
 	}
-%>
-
-<%
+%><%
 
 myShepherd = new Shepherd("context0");
 myShepherd.setAction("obrowse.jsp");
@@ -147,6 +129,28 @@ if (id == null) {
 	out.println(showForm());
 	return;
 }
+
+if (!type.equals("MediaAssetMetadata")) { %>
+<style>
+
+.mediaasset {
+	position: relative;
+}
+.mediaasset img {
+	position: absolute;
+	top: 0;
+	right: 20px;
+	max-width: 350px;
+}
+
+.deprecated {
+	color: #888;
+}
+
+</style>
+<%
+}
+
 
 boolean needForm = false;
 
@@ -188,6 +192,7 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("MediaAssetMetadata")) {  //note: you pass the actual MediaAsset id here
+	response.setContentType("text/json");
 	try {
 		MediaAsset ma = ((MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {

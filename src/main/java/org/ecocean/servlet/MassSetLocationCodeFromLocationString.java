@@ -35,13 +35,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
-//import java.io.FileReader;
-//import java.io.BufferedReader;
-//import java.io.File;
-//import java.util.Vector;
-
-//import com.oreilly.servlet.multipart.*;
-//import java.lang.StringBuffer;
 
 
 public class MassSetLocationCodeFromLocationString extends HttpServlet {
@@ -60,57 +53,54 @@ public class MassSetLocationCodeFromLocationString extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("MassSetLocationCodeFromLocationString.class");
 
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-    boolean madeChanges = false;
     int count = 0;
 
     String locCode = "", matchString = "";
     matchString = request.getParameter("matchString").toLowerCase();
     locCode = request.getParameter("locCode");
-    Extent encClass = myShepherd.getPM().getExtent(Encounter.class, true);
-    Query query = myShepherd.getPM().newQuery(encClass);
+    
 
     if ((locCode != null) && (matchString != null) && (!matchString.equals("")) && (!locCode.equals(""))) {
+      Extent encClass = myShepherd.getPM().getExtent(Encounter.class, true);
+      Query query = myShepherd.getPM().newQuery(encClass);
       myShepherd.beginDBTransaction();
       try {
         Iterator<Encounter> it = myShepherd.getAllEncounters(query);
 
         while (it.hasNext()) {
           Encounter tempEnc = it.next();
-          if (tempEnc.getLocation().toLowerCase().indexOf(matchString) != -1) {
+          if ((tempEnc.getLocation()!=null)&&(tempEnc.getLocation().toLowerCase().indexOf(matchString) != -1)) {
             tempEnc.setLocationCode(locCode);
-
             tempEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set location ID: " + locCode + ".");
-
-
-            madeChanges = true;
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
             count++;
           }
         } //end while
-      } catch (Exception le) {
+      } 
+      catch (Exception le) {
         locked = true;
+
+      }
+      finally {
+        query.closeAll();
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
+        
       }
-      if (!madeChanges && !locked) {
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-      } else if (!locked) {
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-      }
-      //success!!!!!!!!
-      query.closeAll();
+
       if (!locked) {
         //myShepherd.commitDBTransaction();
         //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println(("<strong>Success!</strong> I have successfully changed the location code to " + locCode + " for " + count + " encounters based on the location string: " + matchString + "."));
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       //failure due to exception

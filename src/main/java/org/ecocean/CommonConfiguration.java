@@ -115,7 +115,8 @@ public class CommonConfiguration {
 
   //start getter methods
   public static String getURLLocation(HttpServletRequest request) {
-    return request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+    int port = request.getServerPort();
+    return request.getServerName() + (((port == 80)||(port == 443)) ? "" : ":" + port) + request.getContextPath();
   }
 
 
@@ -274,11 +275,11 @@ public class CommonConfiguration {
   }
 
   public static String getGoogleMapsKey(String context) {
-    return getProperty("googleMapsKey",context);
+    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleMapsKey");
   }
 
   public static String getGoogleSearchKey(String context) {
-    return getProperty("googleSearchKey",context);
+    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleSearchKey");
   }
 
   public static String getProperty(String name, String context) {

@@ -1,0 +1,14 @@
+SUBJECT: Adoption Started! @INDIVIDUAL_NICKNAME@ - @INDIVIDUAL_ID@
+Hello!
+
+This is a confirmation email for your recent adoption of a @INDIVIDUAL_NICKNAME@.
+Thank you for contributing to our efforts in mark-recapture for these
+amazing animals.
+
+@ADOPTION_STRIPE_CUSTOMER_ID@
+
+Thanks again for your critical help and support!
+
+To cancel your adoption, retain this email and click on the link below.
+
+@ADOPTION_CANCELLATION_LINK@

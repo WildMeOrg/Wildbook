@@ -125,7 +125,7 @@ System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
             }
             try {
               String serverUrl = request.getServerName();
-              return "http://"+serverUrl+url;
+              return request.getScheme()+"://"+serverUrl+url;
             }
             catch (Exception e) {
               return  "/unknownUrlPath"+url;

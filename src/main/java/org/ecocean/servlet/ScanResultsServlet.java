@@ -178,10 +178,13 @@ public class ScanResultsServlet extends HttpServlet {
     context=ServletUtilities.getContext(request);
     //set up a shepherd for DB transactions
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("ScanResultsServlet.class");
 
     //System.out.println("scanResultsServlet: I am starting up.");
     response.setContentType("application/octet-stream");
-    HttpSession session = request.getSession();
+    //HttpSession session = request.getSession();
+   
+    
     String num = "";
     String newEncDate = "";
     String newEncShark = "";
@@ -202,11 +205,14 @@ public class ScanResultsServlet extends HttpServlet {
       System.out.println("!!!!DB access problem in scanResultsServlets!!!!");
     }
     myShepherd.rollbackDBTransaction();
+    
+    
+    
     ObjectInputStream inputFromApplet = null;
     try {
       
       PrintWriter out = null;
-      BufferedReader inTest = null;
+      //BufferedReader inTest = null;
 
       // get an input stream from the applet
       inputFromApplet = new ObjectInputStream(request.getInputStream());
@@ -219,7 +225,7 @@ public class ScanResultsServlet extends HttpServlet {
 
       System.out.println("scanResultsServlet: I successfully closed the stream.");
 
-      myShepherd.matches = results;
+      //myShepherd.matches = results;
 
       //put results into a cookie in case user selected temporary scan
       //session.setAttribute( num, myShepherd);

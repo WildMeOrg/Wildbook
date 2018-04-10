@@ -1,0 +1,12 @@
+SUBJECT: Your photos are being processed for identification!
+You have submitted some photos for identification.  Thank you!
+
+You can view their progress here:
+@TASKLINKS@
+
+-----
+(links to help etc)
+
+
+[@ACCESSKEY@]
+

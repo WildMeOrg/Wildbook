@@ -14,6 +14,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -179,6 +180,10 @@ public class Annotation implements java.io.Serializable {
     public boolean isTrivial() {
         MediaAsset ma = this.getMediaAsset();
         if (ma == null) return false;
+        for (Feature ft : getFeatures()) {
+            if (ft.isUnity()) return true;  //TODO what *really* of multiple features?? does "just one unity" make sense?
+        }
+        //see note above. this is to attempt to be backwards-compatible.  :/  "untested"
         return (!needsTransform() && (getWidth() == (int)ma.getWidth()) && (getHeight() == (int)ma.getHeight()));
     }
 
@@ -220,6 +225,16 @@ public class Annotation implements java.io.Serializable {
         }
     }
 */
+
+    //returns null if not MediaAsset (whaaa??), otherwise a list (possibly empty) of siblings on the MediaAsset
+    public List<Annotation> getMediaAssetSiblings() {
+        if (this.getMediaAsset() == null) return null;
+        List<Annotation> sibs = new ArrayList<Annotation>();
+        for (Annotation ann : this.getMediaAsset().getAnnotations()) {  //fyi .getAnnotations() doesnt return null
+            if (!ann.getId().equals(this.getId())) sibs.add(ann);
+        }
+        return sibs;
+    }
 
     public String getSpecies() {
         return species;
@@ -338,6 +353,7 @@ public class Annotation implements java.io.Serializable {
                 }
                 jobj.put("features", feats);
             }
+            jobj.put("identificationStatus", this.getIdentificationStatus());
             return jobj;
         }
 
@@ -397,7 +413,7 @@ public class Annotation implements java.io.Serializable {
 
     public String findIndividualId(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
-        if (enc == null) return null;
+        if ((enc == null) || !enc.hasMarkedIndividual()) return null;
         return enc.getIndividualID();  //is this one of those things that can be "None" ?
     }
 
@@ -406,6 +422,64 @@ public class Annotation implements java.io.Serializable {
         return Encounter.findByAnnotation(this, myShepherd);
     }
 
+/* untested!
+    public Encounter findEncounterDeep(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+System.out.println(">>>> findEncounterDeep(" + this + ") -> enc1 = " + enc);
+        if (enc != null) return enc;
+        MediaAsset ma = this.getMediaAsset();
+System.out.println("  >> findEncounterDeep() -> ma = " + ma + " .... getting Annotations:");
+        if (ma == null) return null;
+        ArrayList<Annotation> anns = ma.getAnnotations();
+        for (Annotation ann : anns) {
+System.out.println("  >> findEncounterDeep() -> ann = " + ann);
+            //question: do we *only* look for trivial here? seems like we would want that... cuz we crawl hierarchy only in weird video cases etc
+            if (ann.isTrivial()) return ann.findEncounterDeep(myShepherd); //recurse! (and effectively bottom-out here... do or die
+        }
+        return null;  //fall thru, no luck!
+    }
+*/
+
+    //this is a little tricky. the idea is the end result will get us an Encounter, which *may* be new
+    // if it is new, its pretty straight forward (uses findEncounter) .. if not, creation is as follows:
+    // look for "sibling" Annotations on same MediaAsset.  if one of them has an Encounter, we clone that.
+    // additionally, if one is a trivial annotation, we drop it after.  if no siblings are found, we create
+    // an Encounter based on this Annotation (which may get us something, e.g. species, date, loc)
+    public Encounter toEncounter(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc != null) return enc;
+/*   NOTE: for now i am snipping out this sibling stuff!  youtube-sourced frames used this but now doesnt... here for prosperity...
+System.out.println(".toEncounter() on " + this + " found no Encounter.... trying to find one on siblings or make one....");
+        List<Annotation> sibs = this.getMediaAssetSiblings();
+        Annotation sourceSib = null;
+        Encounter sourceEnc = null;
+        if (sibs != null) {
+            //we look for one that has an Encounter, favoring the trivial one (so we can replace it) otherwise any will do
+            for (Annotation sib : sibs) {
+                sourceEnc = sib.findEncounter(myShepherd);
+                if (sourceEnc == null) continue;
+                sourceSib = sib;
+                if (sib.isTrivial()) break;  //we have a winner
+            }
+        }
+
+System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc);
+        if (sourceSib == null) return new Encounter(this);  //from scratch it is then!
+
+        if (sourceSib.isTrivial()) {
+            System.out.println("INFO: annot.toEncounter() replaced trivial " + sourceSib + " with " + this + " on " + sourceEnc);
+            sourceEnc.addAnnotationReplacingUnityFeature(this);
+            sourceEnc.setSpeciesFromAnnotations();
+            return sourceEnc;
+        }
+
+        enc = sourceEnc.cloneWithoutAnnotations();
+        enc.addAnnotation(this);
+        enc.setSpeciesFromAnnotations();
+        return enc;
+*/
+        return new Encounter(this);
+    }
 
 /*  deprecated, maybe?
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {

@@ -5,8 +5,9 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>6.0.0-EXPERIMENTAL</version>
+  <version>7.0.0-EXPERIMENTAL</version>
   <packaging>war</packaging>
+
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,6 +17,12 @@
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
     <geotools.version>8.3</geotools.version>
+	
+	<!--
+	 <project.http.version></project.http.version>
+	 <project.oauth.version></project.oauth.version>
+	 -->
+	 
   </properties>
 
   <repositories>
@@ -60,13 +67,17 @@
 		-->
 
         <!-- Optional Jars (for certain features) but required by maven for building. -->
-        <dependency>
+        
+		<!--
+		<dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib-nodep</artifactId>
             <version>[2.1_3,)</version>
             <type>jar</type>
             <optional>true</optional>
         </dependency>
+		-->
+		<!--
         <dependency>
             <groupId>com.thoughtworks.proxytoys</groupId>
             <artifactId>proxytoys</artifactId>
@@ -74,7 +85,7 @@
             <type>jar</type>
             <optional>true</optional>
         </dependency>
-
+        -->
 
     <dependency>
       <groupId>javax</groupId>
@@ -107,7 +118,19 @@
     <dependency>
         <groupId>org.pac4j</groupId>
         <artifactId>pac4j-oauth</artifactId>
-        <version>1.7.0</version>
+        <version>1.9.7</version>
+    </dependency>
+	
+	<dependency>
+        <groupId>org.scribe</groupId>
+        <artifactId>scribe</artifactId>
+        <version>1.3.7</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.0</version>
     </dependency>
 
 <dependency>
@@ -116,12 +139,13 @@
 	<version>1.10.34</version>
 </dependency>
 
-
+<!--
     <dependency>
       <groupId>commons-dbcp</groupId>
       <artifactId>commons-dbcp</artifactId>
       <version>1.4</version>
     </dependency>
+	-->
 
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -149,11 +173,7 @@
       <version>1.0.4</version>
     </dependency>
 
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.6</version>
-    </dependency>
+
 
     <dependency>
       <groupId>javax.mail</groupId>
@@ -172,10 +192,18 @@
       <version>2.3</version>
     </dependency>
 
+	<!--
 <dependency>
 	<groupId>org.postgresql</groupId>
 	<artifactId>postgresql</artifactId>
 	<version>9.4.1208.jre7</version>
+</dependency>
+-->
+
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>42.1.4</version>
 </dependency>
 
     <dependency>
@@ -222,11 +250,6 @@
 </dependency>
 
 
-<dependency>
-	<groupId>org.springframework</groupId>
-	<artifactId>spring-test</artifactId>
-	<version>3.1.1.RELEASE</version>
-</dependency>
 
 <!--
 <dependency>
@@ -302,7 +325,7 @@
 
 
 	<!--End JDO and DataNucleus dependencies -->
-	
+
 
 
     <dependency>
@@ -333,25 +356,21 @@
       <version>3.2</version>
       <scope>test</scope>
     </dependency>
-    
-        <dependency>
-        <groupId>org.apache.poi</groupId>
-        <artifactId>poi</artifactId>
-        <version>3.11</version>
-    </dependency>
-    
 
         <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi</artifactId>
         <version>3.11</version>
     </dependency>
+
 
     <dependency>
     <groupId>org.apache.poi</groupId>
     <artifactId>poi-ooxml</artifactId>
     <version>3.11</version>
 </dependency>
+
+
 
     <!-- wildbook local jars, not in public maven repos -->
     <dependency>
@@ -404,12 +423,52 @@
       <version>1.7.12</version>
     </dependency>
 	
+<dependency>
+    <groupId>org.twitter4j</groupId>
+    <artifactId>twitter4j-core</artifactId>
+    <version>4.0.5</version>
+</dependency>
 
+
+	   <!-- START QR code generating dependencies-->
+        <dependency>
+          <groupId>com.google.zxing</groupId>
+          <artifactId>core</artifactId>
+          <version>2.2</version>
+    </dependency>
+
+        <dependency>
+            <groupId>net.glxn</groupId>
+            <artifactId>qrgen</artifactId>
+            <version>1.3</version>
+    </dependency>
+
+    <!-- END QR code generating dependencies -->
+
+<dependency>
+	<groupId>com.mchange</groupId>
+	<artifactId>c3p0</artifactId>
+	<version>0.9.5.2</version>
+</dependency>
+
+
+    <dependency>
+      <groupId>com.google.apis</groupId>
+      <artifactId>google-api-services-youtube</artifactId>
+      <version>v3-rev191-1.23.0</version>
+    </dependency>
 
 <dependency>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-dbcp2</artifactId>
     <version>2.1</version>
+</dependency>
+
+<dependency>
+    <groupId>com.zaxxer</groupId>
+    <artifactId>HikariCP</artifactId>
+    <version>2.7.2</version>
+
 </dependency>
 
 <dependency>
@@ -430,6 +489,148 @@
 	<version>3.1.1.RELEASE</version>
 </dependency>
 
+<dependency>
+  <groupId>com.stripe</groupId>
+  <artifactId>stripe-java</artifactId>
+  <version>3.1.0</version>
+</dependency>
+
+<!-- natural date language processing-->
+<!--
+<dependency>
+  <groupId>com.joestelmach</groupId>
+  <artifactId>natty</artifactId>
+  <version>0.13</version>
+</dependency>
+-->
+    <!-- YouTube Data V3 support -->
+    <!-- This dependency is only used for the Topics API sample, which requires the Jackson JSON parser -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.4</version>
+        </dependency>
+
+		<!--
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-jackson2</artifactId>
+            <version>${project.http.version}</version>
+        </dependency>
+		
+
+        <dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-jetty</artifactId>
+            <version>${project.oauth.version}</version>
+        </dependency>
+		-->
+<!--
+        <dependency>
+            <groupId>com.google.collections</groupId>
+            <artifactId>google-collections</artifactId>
+            <version>1.0</version>
+        </dependency>
+		-->
+        <!-- dependencies for translation -->
+
+		<dependency>
+  <groupId>com.google.cloud</groupId>
+  <artifactId>google-cloud-translate</artifactId>
+  <version>1.15.0</version>
+</dependency>
+		
+	    
+	    <dependency>
+	      <groupId>com.google.truth</groupId>
+	      <artifactId>truth</artifactId>
+	      <version>0.32</version>
+	    </dependency>
+
+<!-- dependencies for Google Vision/OCR -->
+<dependency>
+  <groupId>com.google.cloud</groupId>
+  <artifactId>google-cloud-vision</artifactId>
+  <version>1.15.0</version>
+</dependency>
+    
+     <dependency>
+      <groupId>com.google.auth</groupId>
+      <artifactId>google-auth-library-oauth2-http</artifactId>
+      <version>0.6.1</version>
+     </dependency>
+     
+     <dependency>
+      <groupId>com.google.auth</groupId>
+      <artifactId>google-auth-library-credentials</artifactId>
+      <version>0.6.1</version>
+    </dependency>
+    
+
+<!-- dependencies for Stanford NLP -->
+		<dependency>
+	    <groupId>edu.stanford.nlp</groupId>
+	    <artifactId>stanford-corenlp</artifactId>
+	    <version>3.8.0</version>
+		
+		 <exclusions>
+			<exclusion>  
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-java</artifactId>
+			</exclusion>
+		</exclusions> 
+		
+		
+		</dependency>
+		<!--
+		<dependency>
+		  <groupId>edu.stanford.nlp</groupId>
+		  <artifactId>stanford-corenlp</artifactId>
+		  <version>3.6.0</version>
+		  <classifier>models</classifier> 
+		</dependency>
+		-->
+		<!-- streamlined and smaller SUTime only Stanford CoreNLP model JAR in the local repo-->
+		<dependency>
+			<groupId>sutime-stanford-corenlp-models</groupId>
+			<artifactId>sutime-stanford-corenlp-models</artifactId>
+			<version>3.6.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-parser -->
+		<dependency>
+		    <groupId>edu.stanford.nlp</groupId>
+		    <artifactId>stanford-parser</artifactId>
+		    <version>3.7.0</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
+		<!--
+		<dependency>
+		    <groupId>net.sourceforge.tess4j</groupId>
+		    <artifactId>tess4j</artifactId>
+		    <version>3.4.0</version>
+		</dependency>
+		-->
+
+
+  <!-- natural date language processing-->
+  <!--
+  <dependency>
+    <groupId>com.joestelmach</groupId>
+    <artifactId>natty</artifactId>
+    <version>0.13</version>
+  </dependency>
+  -->
+      <!-- YouTube Data V3 support -->
+      <!-- This dependency is only used for the Topics API sample, which requires the Jackson JSON parser -->
+<!--         
+		 <dependency>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-mapper-asl</artifactId>
+              <version>1.9.4</version>
+          </dependency>
+		  -->
+
 
   </dependencies>
 
@@ -441,7 +642,9 @@
       </resource>
     </resources>
 
+	
     <plugins>
+	<!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>
@@ -474,6 +677,7 @@
           </filesets>
         </configuration>
       </plugin>
+	  -->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -489,12 +693,15 @@
           <execution>
             <phase>install</phase>
             <goals>
+			<!--
               <goal>javadoc</goal>
+			  -->
             </goals>
           </execution>
         </executions>
       </plugin>
 
+	  <!--
       <plugin>
         <groupId>org.mortbay.jetty</groupId>
         <artifactId>maven-jetty-plugin</artifactId>
@@ -505,7 +712,7 @@
             <additionalClasspathElement>${project.build.outputDirectory}</additionalClasspathElement>
           </additionalClasspathElements>
 
-          <!--jettyConfig>src/test/resources/jetty/jetty.xml</jettyConfig-->
+ 
 
           <connectors>
             <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
@@ -557,6 +764,7 @@
           </execution>
         </executions>
       </plugin>
+	  -->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -612,6 +820,7 @@
         </executions>
       </plugin>
 
+	  <!--
       <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>2.6</version>
@@ -624,6 +833,7 @@
           </execution>
         </executions>
       </plugin>
+	  -->
 
         <plugin>
             <groupId>org.lesscss</groupId>

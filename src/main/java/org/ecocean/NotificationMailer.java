@@ -166,6 +166,7 @@ public final class NotificationMailer implements Runnable {
   private EmailTemplate mailer;
   /** Flag indicating whether setup failed. */
   private boolean failedSetup;
+  private String urlScheme="http";
 
   /**
    * Creates a new NotificationMailer instance.
@@ -186,6 +187,8 @@ public final class NotificationMailer implements Runnable {
     System.out.println("NoteMailerHere2");
     this.context = context;
     this.sender = CommonConfiguration.getAutoEmailAddress(context);
+    System.out.println("Send this email to: "+to);
+    System.out.println("This email is from: "+sender);
     this.recipients = to;
     this.host = CommonConfiguration.getMailHost(context);
     boolean useSSL = CommonConfiguration.getMailHostSslOption(context);
@@ -195,17 +198,22 @@ public final class NotificationMailer implements Runnable {
       mAuth = mailAuth.split(":", 2);
     try {
       mailer = loadEmailTemplate(langCode, types);
+      System.out.println("About to set email host:" + host);
       mailer.setHost(host, useSSL);
       if (mAuth != null)
         mailer.setUseAuth(true, mAuth[0], mAuth[1]);
       // Can also set port/SSL/etc. here if needed.
       // Perform tag replacements.
+      System.out.println("About to perform string replacements");
+
       if (map != null) {
         for (Map.Entry<String, String> me : map.entrySet()) {
           try {
             mailer.replace(me.getKey(), me.getValue() == null ? "" : me.getValue());
-          } catch (IllegalStateException ex) {
+          }
+          catch (IllegalStateException ex) {
             // Additional safe-guard for when key's value is missing in some map implementations.
+            ex.printStackTrace();
           }
         }
         // Remove REMOVEME section when not applicable (i.e. no hashed email info).
@@ -219,7 +227,7 @@ public final class NotificationMailer implements Runnable {
           // Extra layer to help prevent chance of URL spoof attacks.
           String noTrack = map.get(EMAIL_NOTRACK);
           if (noTrack.matches("([a-z]+)=(.+)")) {
-            String link = String.format("http://%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
+            String link = String.format(urlScheme+"://%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
             mailer.replace("@REMOVEME_LINK@", link, true);
           }
         } else {
@@ -228,6 +236,8 @@ public final class NotificationMailer implements Runnable {
             mailer.replaceRegexInHtmlText("(?s)<!--@REMOVEME_START@.*@REMOVEME_END@-->", null, false);
         }
       }
+      System.out.println("String replacement done!");
+
     } catch (IOException ex) {
       // Logged/flagged as error to avoid interrupting client code processing.
       ex.printStackTrace();
@@ -287,7 +297,7 @@ public final class NotificationMailer implements Runnable {
    * @param text text with which to replace standard content tag
    */
   public NotificationMailer(String context, String langCode, Collection<String> to, String type, final String text) {
-    this(context, langCode, to, type, new HashMap<String, String>(){{ put(STANDARD_CONTENT_TAG, text); 
+    this(context, langCode, to, type, new HashMap<String, String>(){{ put(STANDARD_CONTENT_TAG, text);
       System.out.println("NoteMailerHere1");
     }});
   }
@@ -342,7 +352,7 @@ public final class NotificationMailer implements Runnable {
    */
   private EmailTemplate loadEmailTemplate(String langCode, List<String> types) throws IOException {
     System.out.println("NoteMailerHere4 and types are: "+types.toString());
-    
+
     if (langCode != null && !"".equals(langCode.trim())) {
       for (String type : types) {
         if (existsEmailTemplate(langCode, type))
@@ -521,6 +531,31 @@ public final class NotificationMailer implements Runnable {
   }
 
   /**
+   * Creates a basic tag map for the specified adoption.
+   * This map can subsequently be enhanced with extra tags.
+   * Adoption tags included:
+   * <ul>
+   * <li>&#64;INDIVIDUAL_LINK&#64;</li>
+   * <li>&#64;INDIVIDUAL_ID&#64;</li>
+   * <li>&#64;INDIVIDUAL_ALT_ID&#64;</li>
+   * <li>&#64;INDIVIDUAL_SEX&#64;</li>
+   * <li>&#64;INDIVIDUAL_NAME&#64;</li>
+   * <li>&#64;INDIVIDUAL_NICKNAME&#64;</li>
+   * <li>&#64;INDIVIDUAL_NICKNAMER&#64;</li>
+   * <li>&#64;INDIVIDUAL_COMMENTS&#64;</li>
+   * </ul>
+   *
+   * @param req servlet request for data reference
+   * @param ind MarkedIndividual for which to add tag data
+   * @return map instance for tag replacement in email template
+   */
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Adoption adp, String scheme) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, adp, scheme);
+    return map;
+  }
+
+  /**
    * Creates a basic tag map for the specified encounter.
    * This map can subsequently be enhanced with extra tags.
    * Individual tags included:
@@ -541,7 +576,7 @@ public final class NotificationMailer implements Runnable {
    */
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind) {
     Map<String, String> map = new HashMap<>();
-    addTags(map, req, ind);
+    addTags(map, req, ind, req.getScheme());
     return map;
   }
 
@@ -577,7 +612,7 @@ public final class NotificationMailer implements Runnable {
    */
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc) {
     Map<String, String> map = new HashMap<>();
-    addTags(map, req, enc);
+    addTags(map, req, enc,req.getScheme());
     return map;
   }
 
@@ -593,10 +628,40 @@ public final class NotificationMailer implements Runnable {
    * @param enc Encounter for which to add tag data
    * @return map instance for tag replacement in email template
    */
-  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Encounter enc) {
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Encounter enc, String scheme) {
     Map<String, String> map = new HashMap<>();
-    addTags(map, req, ind);
-    addTags(map, req, enc);
+    addTags(map, req, ind, scheme);
+    addTags(map, req, enc, scheme);
+    return map;
+  }
+  
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Encounter enc) {
+    return createBasicTagMap(req, ind, enc,req.getScheme());
+  }
+
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Adoption adp, String scheme) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, ind,scheme);
+    addTags(map, req, adp,scheme);
+    return map;
+  }
+  
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Adoption adp) {
+    return createBasicTagMap(req, ind, adp, req.getScheme());
+  }
+
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc, Adoption adp, String scheme) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, enc,scheme);
+    addTags(map, req, adp,scheme);
+    return map;
+  }
+
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc, Adoption adp, MarkedIndividual ind, String scheme) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, enc, scheme);
+    addTags(map, req, adp, scheme);
+    addTags(map, req, ind,scheme);
     return map;
   }
 
@@ -607,10 +672,10 @@ public final class NotificationMailer implements Runnable {
    * @param ind MarkedIndividual for which to add tag data
    * @param map map to which to add tag data
    */
-  private static void addTags(Map<String, String> map, HttpServletRequest req, MarkedIndividual ind) {
+  private static void addTags(Map<String, String> map, HttpServletRequest req, MarkedIndividual ind, String scheme) {
     Objects.requireNonNull(map);
     if (!map.containsKey("@URL_LOCATION@"))
-      map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
+      map.put("@URL_LOCATION@", String.format(scheme+"://%s", CommonConfiguration.getURLLocation(req)));
     if (ind != null) {
       map.put("@INDIVIDUAL_LINK@", String.format("%s/individuals.jsp?number=%s", map.get("@URL_LOCATION@"), ind.getIndividualID()));
       map.put("@INDIVIDUAL_ID@", ind.getIndividualID());
@@ -624,6 +689,35 @@ public final class NotificationMailer implements Runnable {
   }
 
   /**
+   * Adds info tags for the specified adoption.
+   *
+   * @param req servlet request for data reference
+   * @param ind Adoption for which to add tag data
+   * @param map map to which to add tag data
+   */
+  private static void addTags(Map<String, String> map, HttpServletRequest req, Adoption adp, String scheme) {
+    Objects.requireNonNull(map);
+    if (!map.containsKey("@URL_LOCATION@"))
+      map.put("@URL_LOCATION@", String.format(scheme+"://%s", CommonConfiguration.getURLLocation(req)));
+    if (adp != null) {
+      map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptions/emailCancelAdoption.jsp?number=%s&stripeID=%s&adoption=%s", map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(), adp.getID()));
+      map.put("@ADOPTION_ALTERATION_LINK@", String.format("%s/adoptions/emailAlterAdoption.jsp?number=%s&stripeID=%s&adoption=%s", map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(), adp.getID()));
+      map.put("@ADOPTION_ID@", adp.getID());
+      map.put("@ADOPTION_STRIPE_CUSTOMER_ID@", adp.getStripeCustomerId());
+      map.put("@ADOPTER_NAME@", adp.getAdopterName());
+      map.put("@ADOPTER_EMAIL@", adp.getAdopterEmail());
+      map.put("@ADOPTER_ADDRESS@", adp.getAdopterAddress());
+      map.put("@ADOPTER_QUOTE@", adp.getAdopterQuote());
+      map.put("@ADOPTION_MANAGER@", adp.getAdoptionManager());
+      map.put("@ADOPTION_INDIVIDUAL@", adp.getMarkedIndividual());
+      map.put("@ADOPTION_ENCOUNTER@", adp.getEncounter());
+      map.put("@ADOPTION_NOTES@", adp.getNotes());
+      map.put("@ADOPTION_TYPE@", adp.getAdoptionType());
+      map.put("@ADOPTION_START@", adp.getAdoptionStartDate());
+    }
+  }
+
+  /**
    * Creates a basic tag map for the specified encounter.
    * This map can subsequently be enhanced with extra tags.
    *
@@ -631,10 +725,10 @@ public final class NotificationMailer implements Runnable {
    * @param enc Encounter for which to add tag data
    * @return map instance for tag replacement in email template
    */
-  private static void addTags(Map<String, String> map, HttpServletRequest req, Encounter enc) {
+  private static void addTags(Map<String, String> map, HttpServletRequest req, Encounter enc, String scheme) {
     Objects.requireNonNull(map);
     if (!map.containsKey("@URL_LOCATION@"))
-      map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
+      map.put("@URL_LOCATION@", String.format(scheme+"://%s", CommonConfiguration.getURLLocation(req)));
     if (enc != null) {
       // Add useful encounter fields.
       map.put("@ENCOUNTER_LINK@", String.format("%s/encounters/encounter.jsp?number=%s", map.get("@URL_LOCATION@"), enc.getCatalogNumber()));
@@ -716,4 +810,7 @@ public final class NotificationMailer implements Runnable {
     String subj = mailer.getSubject();
     mailer.setSubject(subj == null ? text : subj + text);
   }
+  
+  public void setUrlScheme(String scheme){this.urlScheme=scheme;}
+  
 }

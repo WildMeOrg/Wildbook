@@ -65,12 +65,13 @@ public class EncounterSetSubmitterID extends HttpServlet {
 
     String encounterNumber = "None", submitter = "N/A";
     String prevSubmitter = "null";
-    myShepherd.beginDBTransaction();
+   
 
 
     encounterNumber = request.getParameter("number");
     submitter = request.getParameter("submitter");
     if ((myShepherd.isEncounter(encounterNumber)) && (request.getParameter("number") != null)) {
+      myShepherd.beginDBTransaction();
       Encounter sharky = myShepherd.getEncounter(encounterNumber);
 
       try {
@@ -89,29 +90,30 @@ public class EncounterSetSubmitterID extends HttpServlet {
       } catch (Exception le) {
         locked = true;
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
       }
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the Library submitter ID for encounter " + encounterNumber + " from " + prevSubmitter + " to " + submitter + ".</p>");
         response.setStatus(HttpServletResponse.SC_OK);
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
         String message = "The submitter ID for encounter " + encounterNumber + " was changed from " + prevSubmitter + " to " + submitter + ".";
         ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
       } 
       else {
-
+        
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to remove this data file again.");
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
       }
+      
     } 
     else {
 
@@ -122,7 +124,7 @@ public class EncounterSetSubmitterID extends HttpServlet {
 
     }
     out.close();
-    myShepherd.rollbackDBTransaction();
+    //myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
   }
 

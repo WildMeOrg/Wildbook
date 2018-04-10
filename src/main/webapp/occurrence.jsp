@@ -381,7 +381,7 @@ if(sharky.getLocationID()!=null){
     <td class="lineitem"><%=location%>
     </td>
     <td width="100" height="32px" class="lineitem">
-    	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
+    	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
     		
     		<%
     		//if the encounter has photos, show photo folder icon
@@ -408,7 +408,7 @@ if(sharky.getLocationID()!=null){
     	</a>
     </td>
     <td class="lineitem"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%>
+      href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%>
     </a></td>
 
     <%
@@ -487,7 +487,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
       <%-- Get images for slider --%>
       <%
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
-      String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+      String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
       int numPhotos=photoObjectArray.size();
 	if(numPhotos>0){
 	      for (int extraImgNo=0; extraImgNo<numPhotos; extraImgNo++) {
@@ -574,6 +574,16 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 <%
 
 } 
+    else {
+    	%>
+    	
+    	<p class="para">There is no corresponding occurrence number in the database. Please double-check the occurrence number and try again.</p>
+
+    	<form action="occurrence.jsp" method="post" name="encounter"><strong>Go
+    	  to occurrence: </strong> <input name="number" type="text" value="" size="20"> <input name="Go" type="submit" value="Submit" /></form>
+
+    	<%
+    }
 
 
 

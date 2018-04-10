@@ -20,6 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.ai.nmt.google.DetectTranslate;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import java.util.Properties;
 
 import javax.jdo.*;
 
@@ -129,6 +132,49 @@ public class IndividualAddEncounter extends HttpServlet {
             }
             
             
+            try{
+              //let's do a YouTube post-back check
+              System.out.println("In IndividualAddEncounter trying to fire YouTube..");
+              if(enc2add.getOccurrenceID()!=null){
+                if(myShepherd.isOccurrence(enc2add.getOccurrenceID())){
+                  System.out.println("...In IndividualAddEncounter found an occurrence..");
+                  Occurrence occur=myShepherd.getOccurrence(enc2add.getOccurrenceID());
+                  //TBD-support more than just en language
+                  
+                  //determine language for response
+                  String ytRemarks=enc2add.getOccurrenceRemarks().trim().toLowerCase();
+                  int commentEnd=ytRemarks.indexOf("from youtube video:");
+                  if(commentEnd>0){
+                    ytRemarks=ytRemarks.substring(commentEnd);
+                  }
+                  String detectedLanguage="en";
+                  try{
+                    detectedLanguage= DetectTranslate.detectLanguage(ytRemarks);
+
+                    if(!detectedLanguage.toLowerCase().startsWith("en")){
+                      ytRemarks= DetectTranslate.translateToEnglish(ytRemarks);
+                    }
+                    if(detectedLanguage.startsWith("es")){detectedLanguage="es";}
+                    else{detectedLanguage="en";}
+                  }
+                  catch(Exception e){
+                    System.out.println("I hit an exception trying to detect language.");
+                    e.printStackTrace();
+                  }
+                  //end determine language for response
+
+                  
+                  
+                  Properties ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+                  String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
+                  System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
+                  YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd, context);
+                }
+              }
+            }
+            catch(Exception e){e.printStackTrace();}
+            
+            
             
           } catch (Exception le) {
             System.out.println("Hit locked exception on action: " + action);
@@ -207,7 +253,7 @@ public class IndividualAddEncounter extends HttpServlet {
               }
 
               String rssTitle = request.getParameter("individual") + " Resight";
-              String rssLink = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number");
+              String rssLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number");
               String rssDescription = request.getParameter("individual") + " was resighted on " + enc2add.getShortDate() + ".";
               //File rssFile = new File(getServletContext().getRealPath(("/"+context+"/rss.xml")));
 
@@ -236,8 +282,8 @@ public class IndividualAddEncounter extends HttpServlet {
             if (sexMismatch) {
               out.println("<p><strong>Warning! There is conflict between the designated sex of the new encounter and the designated sex in previous records. You should resolve this conflict for consistency.</strong></p>");
             }
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View individual " + request.getParameter("individual") + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View individual " + request.getParameter("individual") + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
             String message = "Encounter #" + request.getParameter("number") + " was added to " + request.getParameter("individual") + ".";
 
@@ -252,8 +298,8 @@ public class IndividualAddEncounter extends HttpServlet {
           else {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT added to " + request.getParameter("individual") + ". Another user is currently modifying this record in the database. Please try to add the encounter again after a few seconds.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View " + request.getParameter("individual") + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View " + request.getParameter("individual") + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
 
           }

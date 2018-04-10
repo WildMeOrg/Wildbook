@@ -299,6 +299,20 @@ $(document).ready(function() {
     console.log('Change detected on form. ChangedFields = '+JSON.stringify(changedFields));
 	});
 
+  $( ".datepicker" ).datetimepicker({
+    changeMonth: true,
+    changeYear: true,
+    dateFormat: 'yy-mm-dd',
+    maxDate: '+1d',
+    controlType: 'select',
+    alwaysSetTime: false
+  });
+  $( ".datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+
+
+
+
+
   $( ".datepicker.display" ).datetimepicker({
     changeMonth: true,
     changeYear: true,
@@ -336,8 +350,6 @@ $(document).ready(function() {
       console.log("found a val: "+valStr);
     }
   })
-
-  $( ".datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
 
   $('#classEditTemplateForm input.datepicker.display').change(function() {
     console.log("The datepicker has changed.");

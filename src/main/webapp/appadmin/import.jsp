@@ -8,7 +8,7 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
  // String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
 
   //set up the file input stream
@@ -23,11 +23,11 @@ context=ServletUtilities.getContext(request);
     <jsp:include page="../header.jsp" flush="true" />
 
     <div class="container maincontent">
- 
 
-        
+
+
           <h1>Data Import</h1>
-      
+
 
         <p>Use the following forms to import data into the Shepherd Project.</p>
 		<p><strong>SRGD Data Import</strong></p>
@@ -44,13 +44,18 @@ context=ServletUtilities.getContext(request);
         <input name="file2add" type="file" size="40" />
         <p><input name="addtlFile" type="submit" id="addtlFile" value="Upload" /></p>
 		</form>
+    <form action="../ImportExcelMetadata" method="post" enctype="multipart/form-data" name="ImportExcelMetadata">
+     <strong>
+     <img align="absmiddle" src="../images/CSV.png"/> Encounter metadata import:</strong>&nbsp;
+        <input name="file2add" type="file" size="40" />
+        <p><input name="addtlFile" type="submit" id="addtlFile" value="Upload" /></p>
+    </form>
     </td>
   </tr>
 </table>
 
       </div>
 
-    
+
 
     <jsp:include page="../footer.jsp" flush="true"/>
-

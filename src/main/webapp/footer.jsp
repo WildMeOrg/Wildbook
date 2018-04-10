@@ -4,7 +4,7 @@
      	import="org.ecocean.CommonConfiguration,org.ecocean.ContextConfiguration"
 %>
         <%
-        String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+        String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         %>
 
         <!-- footer -->

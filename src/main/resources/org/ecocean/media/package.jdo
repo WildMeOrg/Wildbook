@@ -17,7 +17,7 @@
             	<field name="revision" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
-		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" default-fetch-group="true" />
+		<field name="metadata" persistence-modifier="persistent" cacheable="false" element-type="org.ecocean.media.MediaAssetMetadata" default-fetch-group="true" />
 		<field name="parametersAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
 		</field>
@@ -84,6 +84,18 @@
  	<class name="URLAssetStore">
  		<inheritance strategy="superclass-table">
  			<discriminator value="URL"/>
+ 		</inheritance>
+ 	</class>
+
+ 	<class name="YouTubeAssetStore">
+ 		<inheritance strategy="superclass-table">
+ 			<discriminator value="YouTube"/>
+ 		</inheritance>
+ 	</class>
+
+ 	<class name="TwitterAssetStore">
+ 		<inheritance strategy="superclass-table">
+ 			<discriminator value="Twitter"/>
  		</inheritance>
  	</class>
 

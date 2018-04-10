@@ -19,10 +19,8 @@ String context=ServletUtilities.getContext(request);
 
 //set up our Shepherd
 
-Shepherd myShepherd=null;
-myShepherd=new Shepherd(context);
+Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
-
 
 //check for and inject a default user 'tomcat' if none exists
 if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
@@ -34,8 +32,6 @@ if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
   <%
   StartupWildbook.initializeWildbook(request, myShepherd);
 }
-
-
 
 %>
 
@@ -51,7 +47,7 @@ margin-top: 0px !important;
 margin-bottom: 8px !important;
 </style>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?sensor=false"></script>
 
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
@@ -184,7 +180,6 @@ margin-bottom: 8px !important;
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
  		myShepherd.beginDBTransaction();
-
  		try{
 	 		for(int i=0;i<numLocationIDs;i++){
 
@@ -208,8 +203,8 @@ margin-bottom: 8px !important;
 	 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
 			          bounds.extend(latLng);
 
-	 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
-
+	 		          var divString<%=i%> = "<div style=\"padding-top: 25px;font-weight:bold;text-align: center;line-height: 35px;vertical-align: middle;width:60px;height:49px; background-image: url('//www.whaleshark.org/cust/mantamatcher/img/fin-silhouette.svg');background-size: cover\"><a href=\"http://www.whaleshark.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+	 		          //http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png
 
 	 		         var marker<%=i%> = new RichMarker({
 	 		            position: latLng,
@@ -231,11 +226,10 @@ margin-bottom: 8px !important;
 
 	 		}  //end for
  		}
- 		catch(Exception e){
- 			e.printStackTrace();
- 		}
+ 		catch(Exception e){e.printStackTrace();}
  		finally{
- 			myShepherd.rollbackDBTransaction();
+ 			//myShepherd.rollbackDBTransaction();
+ 			//myShepherd.closeDBTransaction();
  		}
  	 	%>
 
@@ -344,14 +338,9 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numNests=0;
 
+int numDataContributors=0;
+//Shepherd myShepherd=new Shepherd(context);
 myShepherd.beginDBTransaction();
-
-//String url = "login.jsp";
-//response.sendRedirect(url);
-//RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
-//dispatcher.forward(request, response);
-
-
 try{
 
 
@@ -365,8 +354,8 @@ catch(Exception e){
     e.printStackTrace();
 }
 finally{
-   myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
+	//myShepherd.rollbackDBTransaction();
+	//myShepherd.closeDBTransaction();
 }
 %>
 
@@ -382,8 +371,16 @@ finally{
 			</button>
 			-->
             <a href="submit.jsp">
-                <button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>
+                <button class="large heroBtn">Report your sightings<span class="button-icon" aria-hidden="true"></button>
             </a>
+            <br>
+            <a href="adoptashark.jsp">
+                <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
+            </a>
+            <br>
+            <br>
+            <h4 style="color: white;">Our work is possible with the generous support of:</h4>
+            <img border="1px" src="images/QWSP_Logo_small.png" height="125px" width="170px" /> <img border="1px" src="images/Siren_Fleet_small.gif" height="125px" width="128px"  />
         </div>
 
 	</div>
@@ -394,6 +391,10 @@ finally{
 <section class="container text-center main-section">
 
 	<h2 class="section-header">How it works</h2>
+	<p class="lead">The Wildbook for Whale Sharks photo-identification library is a visual database of whale shark (Rhincodon typus) encounters and of individually catalogued whale sharks. The library is maintained and used by marine biologists to collect and analyze whale shark sighting data to learn more about these amazing creatures.</p>
+	<p class="lead">The Wildbook uses photographs of the skin patterning behind the gills of each shark, and any scars, to distinguish between individual animals. Cutting-edge software supports rapid identification using pattern recognition and photo management tools.
+
+You too can assist with whale shark research, by submitting photos and sighting data. The information you submit will be used in mark-recapture studies to help with the global conservation of this threatened species.</p>
 
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
 		<ol class="list-inline carousel-indicators slide-nav">
@@ -405,11 +406,13 @@ finally{
 		<div class="carousel-inner text-left">
 			<div class="item active">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Photograph the ID area</h3>
+					<h3>Photograph the spots behind the gills</h3>
 					<p class="lead">
-						Animals with patterned features can often be identified uniquely. By taking a picture, you can match that pattern to others already in the database. Your animal might be new to the database, or it might be a new sighting of one we have seen before!
+						Each whale shark has an individual fingerprint: the pattern of spots behind the gills on the left or right sides. Get an image or video of their &ldquo;print&rdquo; and we can match that pattern to others already in the database, or your whale shark might be completely new to the database.
 					</p>
-
+					<p class="lead">
+						<a href="photographing.jsp" title="">See the photography guide</a>
+					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
 					<img style="border-radius: 50%;" class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
@@ -417,9 +420,9 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Submit PhotoID or sighting</h3>
+					<h3>Submit photo/video</h3>
 					<p class="lead">
-						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the animal, and add other information, such as species or sex, if you can. You will receive email updates when your animal is processed.
+						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the shark, and add other information, such as scarring and sex, if you can. You will receive email updates when your animal is processed by a researcher.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -459,62 +462,66 @@ finally{
 
             <!-- Random user profile to select -->
             <%
-            myShepherd.beginDBTransaction();
-            try{
-								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
-            if(featuredUser!=null){
-                String profilePhotoURL="images/empty_profile.jpg";
-                if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-                }
+            //Shepherd myShepherd=new Shepherd(context);
+            //myShepherd.beginDBTransaction();
+			try{
+	            User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+	            if(featuredUser!=null){
+	                String profilePhotoURL="images/empty_profile.jpg";
+	                if(featuredUser.getUserImage()!=null){
+	                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+	                }
 
-            %>
-                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                    <div class="focusbox-inner opec">
-                        <h2>Our contributors</h2>
-                        <div>
-                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
-                            <p><%=featuredUser.getFullName() %>
-                                <%
-                                if(featuredUser.getAffiliation()!=null){
-                                %>
-                                <i><%=featuredUser.getAffiliation() %></i>
-                                <%
-                                }
-                                %>
-                            </p>
-                            <p><%=featuredUser.getUserStatement() %></p>
-                        </div>
-                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
-                    </div>
-                </section>
-            <%
-            } // end if
-
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{
-
-            	myShepherd.rollbackDBTransaction();
-            }
+	            %>
+	                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+	                    <div class="focusbox-inner opec">
+	                        <h2>Our contributors</h2>
+	                        <div>
+	                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+	                            <p><%=featuredUser.getFullName() %>
+	                                <%
+	                                if(featuredUser.getAffiliation()!=null){
+	                                %>
+	                                <i><%=featuredUser.getAffiliation() %></i>
+	                                <%
+	                                }
+	                                %>
+	                            </p>
+	                            <p><%=featuredUser.getUserStatement() %></p>
+	                        </div>
+	                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
+	                    </div>
+	                </section>
+	            <%
+	            }
+			}
+			catch(Exception e){e.printStackTrace();}
+			finally{
+	            //myShepherd.rollbackDBTransaction();
+	            //myShepherd.closeDBTransaction();
+			}
             %>
 
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest animal encounters</h2>
+                    <h2>Latest shark encounters</h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
-                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
-                       int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
+                       //Shepherd myShepherd=new Shepherd(context);
+
+
+                       //myShepherd.beginDBTransaction();
                        try{
+                    	   List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                           int numResults=latestIndividuals.size();
+
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
 	                            <li>
-	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
+	                                <img src="cust/mantamatcher/img/whalesharkbw.png" alt="" class="pull-left" />
 	                                <small>
 	                                    <time>
 	                                        <%=thisEnc.getDate() %>
@@ -532,13 +539,12 @@ finally{
 	                            </li>
 	                        <%
 	                        }
-						}
+                       }
                        catch(Exception e){e.printStackTrace();}
                        finally{
-                    	   myShepherd.rollbackDBTransaction();
-
+	                       //myShepherd.rollbackDBTransaction();
+	                       //myShepherd.closeDBTransaction();
                        }
-
                         %>
 
                     </ul>
@@ -550,12 +556,14 @@ finally{
                     <h2>Top spotters (past 30 days)</h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    myShepherd.beginDBTransaction();
+                    //Shepherd myShepherd=new Shepherd(context);
+                    //myShepherd.beginDBTransaction();
+
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
 	                    long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
 
-	                    System.out.println("  I think my startTime is: "+startTime);
+	                    //System.out.println("  I think my startTime is: "+startTime);
 
 	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
@@ -594,7 +602,11 @@ finally{
 	                   } //end while
                     }
                     catch(Exception e){e.printStackTrace();}
-                    finally{myShepherd.rollbackDBTransaction();}
+                    finally{
+                    	//myShepherd.rollbackDBTransaction();
+                        //myShepherd.closeDBTransaction();
+                    }
+
 
                    %>
 
@@ -609,15 +621,20 @@ finally{
 <div class="container-fluid">
     <section class="container text-center  main-section">
         <div class="row">
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified whale sharks</i></p>
             </section>
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
             </section>
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
                 <p class="brand-primary"><i><span class="massive"><%=numNests %></span> recorded nests</i></p>
+                <!--<p class="brand-primary"><i><span class="massive">5200</span> citizen scientists</i></p>-->
+            </section>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> researchers and volunteers</i></p>
             </section>
         </div>
 
@@ -626,12 +643,12 @@ finally{
         <main class="container">
             <article class="text-center">
                 <div class="row">
-                    <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
-                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1>Why we do this</h1>
-                        <p class="lead">Place an inspirational quote here.</p>
-                        <a href="#" title="">I want to know more</a>
-                    </div>
+                      <h1 style="color: #005589;-webkit-text-fill-color: #005589;">Why we do this</h1>
+                        <p class="lead">
+                            <i>&ldquo;Wildbook for Whale Sharks has pioneered the way for a new generation of global scale, collaborative wildlife projects that blend citizen science and computer vision to help researchers get bigger and more detailed pictures of some of the world's most mysterious species.&rdquo;</i> - Jason Holmberg, Information Architect</p>
+                        <a href="whoAreWe.jsp" title="">Learn more about the Researchers and Volunteers</a><br>
+                        <a href="http://www.wildme.org" title="">Learn more about Wild Me and Wildbook</a>
+                    
                 </div>
             </article>
         <main>
@@ -639,14 +656,13 @@ finally{
     </section>
 </div>
 
-<div class="container main-section">
+<div class="container-fluid main-section">
     <h2 class="section-header">Encounters around the world</h2>
 
-      <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
+      <div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
 
 </div>
 
-<!--
 <div class="container-fluid">
     <section class="container main-section">
         <h2 class="section-header">How can I help?</h2>
@@ -654,16 +670,17 @@ finally{
 
         <section class="adopt-section row">
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3 class="uppercase">Adopt an animal</h3>
+                <h3 class="uppercase">Adopt a Whale Shark</h3>
                 <ul>
                     <li>Support individual research programs in different regions</li>
 					<li>Receive email updates when we resight your adopted animal</li>
 					<li>Display your photo and a quote on the animal's page in our database</li>
 </ul>
-                <a href="adoptananimal.jsp" title="">Learn more about adopting an individual animal in our study</a>
+                <a href="adoptashark.jsp" title="">Learn more about adopting an individual animal in our study</a>
             </div>
             <%
-            myShepherd.beginDBTransaction();
+            //Shepherd myShepherd=new Shepherd(context);
+            //myShepherd.beginDBTransaction();
             try{
 	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
 	            if(adopt!=null){
@@ -692,34 +709,40 @@ finally{
 				}
             }
             catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
-
+            finally{
+	            myShepherd.rollbackDBTransaction();
+	            myShepherd.closeDBTransaction();
+            }
             %>
 
 
         </section>
-
-
         <hr />
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3>Donate</h3>
-                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these animals and their habitat.</p>
-                <a href="adoptananimal.jsp" title="More information about donations">Learn more about how to donate</a>
+                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these sharks and their habitat.</p>
+                <p>You can make a one time donation or <a href="adoptashark.jsp" title="More information about donations">learn about adopting an animal</a></p>
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a href="adoptananimal.jsp">
-	                <button class="large contrast">
-	                    Donate
+                <a href="oneTimeDonation.jsp">
+	                <button class="large">
+	                    One Time Donation
 	                    <span class="button-icon" aria-hidden="true">
 	                </button>
                 </a>
             </div>
         </section>
-
     </section>
 </div>
--->
+
+<div class="container-fluid">
+    <section class="container main-section">
+        <h2 class="section-header">Development</h2>
+        <p class="lead text-center">Wildbook for Whale Sharks is maintained and developed by <a href="http://www.facebook.com/holmbergius">Jason Holmberg (Information Architect)</a> with significant support and input from the research community. This site is a flagship project of Wild Me's <a href="http://www.wildbook.org">Wildbook</a> and <a href="http://www.ibeis.org">IBEIS</a> open source projects. <a href="http://www.simonjpierce.com/">Dr. Simon Pierce</a> provides scientific oversight and guidance.</p>
+</section>
+</div>
+
 
 <jsp:include page="footer.jsp" flush="true"/>
 
@@ -730,8 +753,3 @@ google.maps.event.addDomListener(window, "resize", function() {
 	 map.fitBounds(bounds);
 	});
 </script>
-
-<%
-myShepherd.closeDBTransaction();
-myShepherd=null;
-%>

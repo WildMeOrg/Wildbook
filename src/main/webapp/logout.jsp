@@ -15,6 +15,8 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
+  props = ShepherdProperties.getProperties("login.properties", langCode,context);
+
   
 
   //set up the file input stream
@@ -26,11 +28,11 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent">
           <p>
 
-          <h1 class="intro">Logout</h1>
+          <h1 class="intro"><%=props.getProperty("logout") %></h1>
           </p>
         
 
-        <p>Thank you for using this software! You are now safely logged out.</p>
+        <p><%=props.getProperty("loggedOut") %></p>
         
             <%
 		        Logger log = LoggerFactory.getLogger(getClass());
@@ -38,7 +40,7 @@ context=ServletUtilities.getContext(request);
 	
 	    %>
 
-        <p><a href="welcome.jsp">Click here to log back in.</a></p>
+        <p><a href="welcome.jsp"><%=props.getProperty("clickHere") %></a></p>
 
         <p>&nbsp;</p>
       </div>
