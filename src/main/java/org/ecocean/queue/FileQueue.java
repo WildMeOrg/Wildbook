@@ -46,6 +46,7 @@ public class FileQueue extends Queue {
     }
 
     public static File setQueueDir(String context) throws IOException {
+        if (queueBaseDir != null) return queueBaseDir;  //hey we have one already!
         String qd = Queue.getProperty(context, "filequeue_basedir");
         if (qd == null) qd = CommonConfiguration.getProperty("ScheduledQueueDir", "context0");  //legacy
 
