@@ -406,6 +406,15 @@ public class Occurrence implements java.io.Serializable{
     if (taxy==null) return null;
     return taxy.getScientificName();
   }
+  // convenience method for e.g. web display
+  public List<String> getAllSpecies() {
+    List<String> result = new ArrayList<String>();
+    for (Taxonomy tax: taxonomies) {
+      String sciName = tax.getScientificName();
+      if (sciName!=null && !result.contains(sciName)) result.add(sciName);
+    }
+    return result;
+  }
   public void addSpecies(String scientificName, Shepherd readOnlyShepherd) {
     Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false); // commit=false as standard with setters
     addTaxonomy(taxy);
