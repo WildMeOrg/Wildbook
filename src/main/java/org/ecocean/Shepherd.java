@@ -1340,15 +1340,9 @@ public class Shepherd {
     }
   }
   public int getNumTaxonomies() {
-    Iterator<Taxonomy> taxis = getAllTaxonomies();
+    Iterator taxis = getAllTaxonomies();
     return (Util.count(taxis));
   }
-
-
-
-
-
-
 
   public Iterator getAllAnnotationsNoQuery() {
     try {
