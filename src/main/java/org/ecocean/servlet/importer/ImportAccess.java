@@ -118,6 +118,7 @@ public class ImportAccess extends HttpServlet {
     myShepherd.beginDBTransaction();
     for (Occurrence indy : generatedOccurrences.values()) {
       indy.setLatLonFromEncs();
+      if (indy.getDateTimeLong()==null) indy.setDateFromEncounters();
       if (!myShepherd.isOccurrence(indy.getOccurrenceID())) {
         myShepherd.storeNewOccurrence(indy);
       }
