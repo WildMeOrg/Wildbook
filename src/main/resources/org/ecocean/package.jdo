@@ -106,6 +106,12 @@
         <join/>
       </field>
 
+      <field name="taxonomies" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Taxonomy"/>
+        <join/>
+      </field>
+
+
       <field name="comments" persistence-modifier="persistent" default-fetch-group="false">
         <column jdbc-type="LONGVARCHAR"/>
       </field>
