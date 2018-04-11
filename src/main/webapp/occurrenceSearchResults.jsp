@@ -249,6 +249,20 @@ function _notZero(fieldName) {
   }
   return _helperFunc;
 }
+function _species(o) {
+	var taxonomies = o['taxonomies'];
+	console.log("occ "+o['occurrenceID']+" taxonomies "+taxonomies);
+	if (o['taxonomies']==null || o['taxonomies'].length==0 || o['taxonomies'][0]['scientificName']==undefined) return '';
+	return o['taxonomies'][0]['scientificName'];
+}
+function _date(o) {
+	var millis = o['dateTimeLong'];
+	if (millis==null) return '';
+	var date = new Date(millis);
+	if (date==null) return '';
+	var dateStr = date.toISOString();
+	return dateStr.split('T')[0];
+}
 
 
 var colDefn = [
@@ -270,9 +284,9 @@ var colDefn = [
     value: _notUndefined('occurrenceID'),
   },
   {
-    key: 'fieldStudySite',
-    label: 'Field Study Site',
-    value: _notUndefined('fieldStudySite'),
+    key: 'dateTimeLong',
+    label: 'Date',
+    value: _date,
   },
   {
     key: 'sightingPlatform',
@@ -280,14 +294,13 @@ var colDefn = [
     value: _notUndefined('sightingPlatform'),
   },
   {
-    key: 'bestGroupSizeEstimate',
-    label: 'group size estimate',
-    value: _notUndefined('bestGroupSizeEstimate'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+    key: 'taxonomies',
+    label: 'Species',
+    value: _species,
   },
   {
     key: 'individualCount',
-    label: 'num Id\'d individuals',
+    label: '# Individuals',
     value: _notUndefined('individualCount'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
