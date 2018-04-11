@@ -901,8 +901,10 @@ public class Shepherd {
   }
   public Taxonomy getOrCreateTaxonomy(String scientificName, boolean commit) {
     Taxonomy taxy = getTaxonomy(scientificName);
-    if (taxy==null) taxy = new Taxonomy(scientificName);
-    if (commit) storeNewTaxonomy(taxy);
+    if (taxy==null) {
+      taxy = new Taxonomy(scientificName);
+      if (commit) storeNewTaxonomy(taxy);
+    }
     return taxy;
   }
   public Taxonomy getTaxonomy(String scientificName) {
@@ -922,6 +924,7 @@ public class Shepherd {
   }
   public String storeNewTaxonomy(Taxonomy enc) {
     //enc.setOccurrenceID(uniqueID);
+    boolean transactionWasActive = isDBTransactionActive();
     beginDBTransaction();
     try {
       pm.makePersistent(enc);
@@ -933,6 +936,7 @@ public class Shepherd {
       e.printStackTrace();
       return "fail";
     }
+    if (transactionWasActive) beginDBTransaction();
     return (enc.getId());
   }
 

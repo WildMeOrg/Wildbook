@@ -408,6 +408,7 @@ public class Occurrence implements java.io.Serializable{
   }
   // convenience method for e.g. web display
   public List<String> getAllSpecies() {
+    System.out.println("getAllSpecies called with # taxonomies: "+taxonomies.size());
     List<String> result = new ArrayList<String>();
     for (Taxonomy tax: taxonomies) {
       String sciName = tax.getScientificName();
@@ -424,6 +425,12 @@ public class Occurrence implements java.io.Serializable{
     Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false);
     setTaxonomy(taxy);
   }
+  public boolean hasSpecies(String scientificName) {
+    for (Taxonomy taxy: taxonomies) {
+      if (scientificName.equals(taxy.getScientificName())) return true;
+    }
+    return false;
+  }
 
   public List<Taxonomy> getTaxonomies() {
     return this.taxonomies;
@@ -431,6 +438,21 @@ public class Occurrence implements java.io.Serializable{
   public void setTaxonomies(List<Taxonomy> taxonomies) {
     this.taxonomies = taxonomies;
   }
+  public void setTaxonomiesFromEncounters(Shepherd myShepherd) {
+    setTaxonomiesFromEncounters(myShepherd, true); // if we don't commit we risk creating multiple taxonomies with the same scientificName
+  }
+  public void setTaxonomiesFromEncounters(Shepherd myShepherd, boolean commit) {
+    boolean shepherdWasCommitting = myShepherd.isDBTransactionActive();
+    for (Encounter enc: encounters) {
+      String taxString = enc.getTaxonomyString();
+      // we need the manual hasSpecies check below to prevent duplicates with the same scientificName when commit=false
+      if (!Util.stringExists(taxString) || (commit==false && hasSpecies(taxString))) continue;
+      Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxString, commit);
+      addTaxonomy(taxy);
+    }
+    if (shepherdWasCommitting) myShepherd.beginDBTransaction();
+  }
+
   public Taxonomy getTaxonomy() { return getTaxonomy(0);}
   public Taxonomy getTaxonomy(int i) {
     if (taxonomies==null || taxonomies.size()<=i) return null;
