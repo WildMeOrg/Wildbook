@@ -126,14 +126,20 @@ public class StartupWildbook implements ServletContextListener {
         createMatchGraph();
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
-        startIAQueue("context0");
+        startIAQueues("context0");
     }
 
 
-    private void startIAQueue(String context) {
+    private void startIAQueues(String context) {
         class IAMessageHandler extends QueueMessageHandler {
             public boolean handler(String msg) {
                 org.ecocean.servlet.IAGateway.processQueueMessage(msg);  //yeah we need to move this somewhere else...
+                return true;
+            }
+        }
+        class IACallbackMessageHandler extends QueueMessageHandler {
+            public boolean handler(String msg) {
+                org.ecocean.servlet.IAGateway.processCallbackQueueMessage(msg);  //yeah we need to move this somewhere else...
                 return true;
             }
         }
@@ -149,17 +155,30 @@ public class StartupWildbook implements ServletContextListener {
         } catch (java.io.IOException ex) {
             System.out.println("+ ERROR: IA queue startup exception: " + ex.toString());
         }
-        if (queue == null) {
-            System.out.println("+ WARNING: IA queue service NOT started");
+        Queue queueCallback = null;
+        try {
+            queueCallback = QueueUtil.getBest(context, "IACallback");
+        } catch (java.io.IOException ex) {
+            System.out.println("+ ERROR: IACallback queue startup exception: " + ex.toString());
+        }
+        if ((queue == null) || (queueCallback == null)) {
+            System.out.println("+ WARNING: IA queue service(s) NOT started");
             return;
         }
 
         IAMessageHandler qh = new IAMessageHandler();
         try {
             queue.consume(qh);
-            System.out.println("+ StartupWildbook.startIAQueue() consume() started on " + queue.toString());
+            System.out.println("+ StartupWildbook.startIAQueues() queue.consume() started on " + queue.toString());
         } catch (java.io.IOException iox) {
-            System.out.println("+ StartupWildbook.startIAQueue() consume() FAILED on " + queue.toString() + ": " + iox.toString());
+            System.out.println("+ StartupWildbook.startIAQueues() queue.consume() FAILED on " + queue.toString() + ": " + iox.toString());
+        }
+        IACallbackMessageHandler qh2 = new IACallbackMessageHandler();
+        try {
+            queueCallback.consume(qh2);
+            System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() started on " + queueCallback.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
         }
     }
 
