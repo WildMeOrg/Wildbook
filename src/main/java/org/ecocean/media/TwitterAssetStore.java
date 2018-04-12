@@ -331,7 +331,6 @@ public class TwitterAssetStore extends AssetStore {
     }
 
     private static void setEntityMetadata(MediaAsset ma) {
-        System.out.println("Hey mark. Got here.");
         System.out.println("MediaAssetId is: " + ma.toString());
         if (ma.getParameters() == null) return;
         JSONObject d = new JSONObject("{\"attributes\": {} }");

@@ -46,6 +46,8 @@ import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +60,7 @@ import javax.jdo.Query;
 import java.io.InputStream;
 import java.util.UUID;
 
+
 public class IAGateway extends HttpServlet {
 
     private static final int ERROR_CODE_NO_REVIEWS = 410;
@@ -65,6 +68,7 @@ public class IAGateway extends HttpServlet {
     private static final int IDENTIFICATION_REVIEWS_BEFORE_SEND = 2;
 
     private static Queue IAQueue = null;
+    private static Queue IACallbackQueue = null;
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -356,8 +360,17 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
-
     String qstr = request.getQueryString();
+
+    if ("callback".equals(qstr)) {
+        JSONObject rtn = queueCallback(request);
+        response.setContentType("text/plain");
+        PrintWriter out = response.getWriter();
+        out.println(rtn.toString());
+        out.close();
+        return;
+    }
+
     if ("detectionReviewPost".equals(qstr)) {
         String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
         if (url == null) throw new IOException("IBEISIARestUrlDetectReview url not set");
@@ -1111,6 +1124,11 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
         return IAQueue;
     }
 
+    public static Queue getIACallbackQueue(String context) throws IOException {
+        if (IACallbackQueue != null) return IACallbackQueue;
+        IACallbackQueue = QueueUtil.getBest(context, "IACallback");
+        return IACallbackQueue;
+    }
 
 
     //TODO clean this up!  now that this is moved here, there is probably lots of redundancy with above no?
@@ -1171,5 +1189,40 @@ System.out.println("--- BEFORE _doIdentify() ---");
             System.out.println("WARNING: IAGateway.processQueueMessage() unable to use json data in '" + message + "'; ignoring");
         }
     }
+
+    public static void processCallbackQueueMessage(String message) {
+        System.out.println("NOT YET IMPLEMENTED!  processCallbackQueueMessage got: " + message);
+    }
+
+    //weirdly (via StartupWildbook) stuff put in the queue is processed by.... the method right above us!  :)  :(
+    private JSONObject queueCallback(HttpServletRequest request) throws IOException {
+        JSONObject rtn = new JSONObject();
+        JSONObject qjob = new JSONObject();
+        String qid = Util.generateUUID();
+        qjob.put("qid", qid);
+        qjob.put("queryString", request.getQueryString());
+        BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
+        String line;
+        String raw = "";
+        while ((line = br.readLine()) != null) {
+            raw += line;
+        }
+        br.close();
+        qjob.put("dataRaw", raw);
+        try {
+            JSONObject dataJson = new JSONObject(raw);
+            qjob.put("dataJson", dataJson);
+        } catch (org.json.JSONException jex) { }  //meh then ignore it!
+        String context = ServletUtilities.getContext(request);
+        Queue queue = getIACallbackQueue(context);
+        qjob.put("context", context);
+        qjob.put("timestamp", System.currentTimeMillis());
+System.out.println("qjob => " + qjob);
+        queue.publish(qjob.toString());
+        rtn.put("success", true);
+        rtn.put("qid", qid);
+        return rtn;
+    }
+
 
 }
