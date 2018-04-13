@@ -790,7 +790,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 
 
     //a slightly different flavor -- we can explicitely pass the query annotation
-	//  NOTE!!! TODO this might be redundant with beginIdentifyAnnotaions above. (this came from crc)
+    //  NOTE!!! TODO this might be redundant with beginIdentifyAnnotaions above. (this came from crc)
 /*
     public static JSONObject beginIdentify(Annotation qann, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
         //TODO possibly could exclude qencs from tencs?
@@ -924,7 +924,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     }
 
     public static String[] findTaskIDsFromObjectID(String objectID, Shepherd myShepherd) {
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByObjectID(SERVICE_NAME, objectID, myShepherd);
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByObjectID(SERVICE_NAME, objectID, myShepherd);
         if ((logs == null) || (logs.size() < 1)) return null;
 
         String[] ids = new String[logs.size()];
@@ -3067,95 +3067,78 @@ return Util.generateUUID();
         String rootDir = qjob.optString("rootDir", null);
         String jobId = qjob.optString("jobId", null);
         JSONObject res = qjob.optJSONObject("dataJson");
-        if ((context == null) || (rootDir == null) || (jobId == null) || (res == null)) {
+        if ((context == null) || (rootDir == null) || (jobId == null)) {  //not requiring res so we can have GET callbacks
             System.out.println("ERROR: callbackFromQueue() has insuffient parameters");
             return;
         }
 System.out.println("callbackFromQueue OK!!!!");
- 
-/*
-    private void 
-private void tryToGet(String jobID, String context, HttpServletRequest request) throws JSONException {
-System.out.println("<<<<<<<<<< tryToGet(" + jobID + ")----");
-	JSONObject statusResponse = new JSONObject();
-//if (jobID != null) return;
 
-	try {
-		statusResponse = IBEISIA.getJobStatus(jobID, context);
-	} catch (Exception ex) {
+        //from here on has been grafted on from IBEISIAGetJobStatus.jsp
+        JSONObject statusResponse = new JSONObject();
+        try {
+statusResponse = getJobStatus(jobId, context);
+        } catch (Exception ex) {
 System.out.println("except? " + ex.toString());
-		statusResponse.put("_error", ex.toString());
-		//success = !(ex instanceof java.net.SocketTimeoutException);  //for now only re-try if we had a timeout; so may *fail* for other reasons
-	}
+            statusResponse.put("_error", ex.toString());
+        }
 
 System.out.println(statusResponse.toString());
-	JSONObject jlog = new JSONObject();
-	jlog.put("jobID", jobID);
+        JSONObject jlog = new JSONObject();
+        jlog.put("jobId", jobId);
+        String taskId = findTaskIDFromJobID(jobId, context);
+        if (taskId == null) {
+            jlog.put("error", "could not determine task ID from job " + jobId);
+        } else {
+            jlog.put("taskId", taskId);
+        }
 
-	//Shepherd myShepherd=new Shepherd(context);
-	//myShepherd.setAction("IBEISIAGetJobStatus.jsp");			
-	//we have to find the taskID associated with this IBEIS-IA job
-	String taskID = IBEISIA.findTaskIDFromJobID(jobID, context);
-	if (taskID == null) {
-		jlog.put("error", "could not determine task ID from job " + jobID);
-	} else {
-		jlog.put("taskID", taskID);
-	}
-
-	jlog.put("_action", "getJobStatus");
-	jlog.put("_response", statusResponse);
+        jlog.put("_action", "getJobStatus");
+        jlog.put("_response", statusResponse);
 
 
-	IBEISIA.log(taskID, jobID, jlog, context);
+        log(taskId, jobId, jlog, context);
 
-	JSONObject all = new JSONObject();
-	all.put("jobStatus", jlog);
-System.out.println(">>>>------[ jobID = " + jobID + " -> taskID = " + taskID + " ]----------------------------------------------------");
+        JSONObject all = new JSONObject();
+        all.put("jobStatus", jlog);
+System.out.println(">>>>------[ jobId = " + jobId + " -> taskId = " + taskId + " ]----------------------------------------------------");
 
-try {
-	if ((statusResponse != null) && statusResponse.has("status") &&
-	    statusResponse.getJSONObject("status").getBoolean("success") &&
-	    statusResponse.has("response") && statusResponse.getJSONObject("response").has("status") &&
-            "ok".equals(statusResponse.getJSONObject("response").getString("status")) &&
-            "completed".equals(statusResponse.getJSONObject("response").getString("jobstatus")) &&
-            "ok".equals(statusResponse.getJSONObject("response").getString("exec_status"))) {
-System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
-		JSONObject resultResponse = IBEISIA.getJobResult(jobID, context);
-		JSONObject rlog = new JSONObject();
-		rlog.put("jobID", jobID);
-		rlog.put("_action", "getJobResult");
-		rlog.put("_response", resultResponse);
-		IBEISIA.log(taskID, jobID, rlog, context);
-		all.put("jobResult", rlog);
+        try {
+            if ((statusResponse != null) && statusResponse.has("status") &&
+                statusResponse.getJSONObject("status").getBoolean("success") &&
+                statusResponse.has("response") && statusResponse.getJSONObject("response").has("status") &&
+                "ok".equals(statusResponse.getJSONObject("response").getString("status")) &&
+                "completed".equals(statusResponse.getJSONObject("response").getString("jobstatus")) &&
+                "ok".equals(statusResponse.getJSONObject("response").getString("exec_status"))) {
+System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobId + ")");
+                JSONObject resultResponse = getJobResult(jobId, context);
+                JSONObject rlog = new JSONObject();
+                rlog.put("jobId", jobId);
+                rlog.put("_action", "getJobResult");
+                rlog.put("_response", resultResponse);
+                log(taskId, jobId, rlog, context);
+                all.put("jobResult", rlog);
 
-		JSONObject proc = IBEISIA.processCallback(taskID, rlog, request);
+                JSONObject proc = processCallback(taskId, rlog, context, rootDir);
 System.out.println("processCallback returned --> " + proc);
-	}
-} catch (Exception ex) {
-	System.out.println("whoops got exception: " + ex.toString());
-	ex.printStackTrace();
-}
-finally{
-	//myShepherd.rollbackDBTransaction();
-	//myShepherd.closeDBTransaction();
-}
+            }
+        } catch (Exception ex) {
+            System.out.println("whoops got exception: " + ex.toString());
+            ex.printStackTrace();
+        }
 
-	all.put("_timestamp", System.currentTimeMillis());
+/*
+        finally {
+            //myShepherd.rollbackDBTransaction();
+            //myShepherd.closeDBTransaction();
+        }
+*/
+
+        all.put("_timestamp", System.currentTimeMillis());
 System.out.println("-------- >>> " + all.toString() + "\n##################################################################");
-	return;
-
-}
-
-
-
-%>
-
-
-
-
+        return;
+    }
 ////////////////////////////
 
-*/
-    }
+
 
 }

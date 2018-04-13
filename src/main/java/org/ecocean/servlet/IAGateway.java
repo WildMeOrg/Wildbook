@@ -80,6 +80,18 @@ public class IAGateway extends HttpServlet {
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
+    String qstr = request.getQueryString();
+
+    //duplicated in both doGet and doPost
+    if ((qstr != null) && (qstr.matches(".*\\bcallback\\b.*"))) {
+        JSONObject rtn = queueCallback(request);
+        response.setContentType("text/plain");
+        PrintWriter out = response.getWriter();
+        out.println(rtn.toString());
+        out.close();
+        return;
+    }
+
     String getOut = "";
     String context = ServletUtilities.getContext(request);
 
@@ -361,6 +373,7 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
     String qstr = request.getQueryString();
 
+    //duplicated in both doGet and doPost
     if ((qstr != null) && (qstr.matches(".*\\bcallback\\b.*"))) {
         JSONObject rtn = queueCallback(request);
         response.setContentType("text/plain");
