@@ -161,6 +161,16 @@ public class ParseDateLocation {
       return myDate;
   }
 
+    /*
+        TODO FIXME this is made by jon as a desired set of arguments to call from IBEISIA.fromDetection()
+
+           note: rootDir is base path for context, i.e. request.getSession().getServletContext().getRealPath("/")
+                 suitable for, e.g. baseDir = ServletUtilities.dataDir(context, rootDir);
+    */
+  public static String parseDate(String textInput, String context, String rootDir){
+    return null;
+  }
+
   //NOTE: parseDate method WITHOUT tweet4j status object as a parameter. There is another parseDate method!
   public static String parseDate(HttpServletRequest request, String textInput, String context){
 
