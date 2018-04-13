@@ -54,7 +54,7 @@ Shepherd myShepherd=new Shepherd(context);
 
 <body>
 <table border="1">
-<tr><th>Occurrence</th><th>Current Date</th><th>Potentially Matched Date</th><th>LocationID</th><th>New LocationID</th><th>Title Only</th><th>Description Only</th><th>Comments Only</th><th>Relative date</th></tr>
+<tr><th>Occurrence</th><th>VideoID<th>Current Date</th><th>Potentially Matched Date</th><th>LocationID</th><th>New LocationID</th><th>Title Only</th><th>Description Only</th><th>Comments Only</th><th>Relative date</th></tr>
 <%
 
 myShepherd.beginDBTransaction();
@@ -62,6 +62,9 @@ myShepherd.beginDBTransaction();
 int numVideos=0;
 int numCommentedVideos=0;
 int numCommentedVideosReplies=0;
+int numVideosWithID=0;
+int numUncuratedVideos=0;
+
 
 try{
 	
@@ -88,6 +91,8 @@ try{
 		
 		for(int i=0;i<numResults;i++){
 			
+			boolean videoHasID=false;
+			
 			//YouTubeAsset itself
 			MediaAsset ma=results.get(i);
 			
@@ -106,6 +111,7 @@ try{
 				String videoTitle="[unknown]";
 				String videoTitleShort=videoTitle;
 				String videoComments="";
+				String videoCommentsClean="";
 				if(videoTitle.length()>1000){videoTitleShort=videoTitle.substring(0,1000);}
 				if(md.getData().optJSONObject("basic") != null){
 					videoTitle=md.getData().getJSONObject("basic").optString("title").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();
@@ -130,6 +136,20 @@ try{
     			newQ.closeAll();
     			int numEncs=encresults.size();
     			
+    			//check if any have been approved
+    			boolean videoIsCurated=false;
+    			for(int y=0;y<numEncs;y++){
+    				Encounter enc=encresults.get(y);
+    				if((enc.getState()!=null)&&((enc.getState().equals("approved"))||(enc.getState().equals("unidentifiable")))){
+    					if(!goodDataVideos.contains(ma))goodDataVideos.add(ma);
+    					videoIsCurated=true;
+    				}
+    				else{
+    					numUncuratedVideos++;
+    				}
+    				if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("")))videoHasID=true;
+    			}
+    			
     			Occurrence occur=null;
     			
     			Properties props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
@@ -151,7 +171,10 @@ try{
     					
     					
     					List<CommentThread> comments=YouTube.getVideoCommentsList(occur, context);
-    					if((comments==null)||(comments.size()==0))videoComments="";
+    					if((comments==null)||(comments.size()==0)){
+    						videoComments="";
+    						videoCommentsClean="";
+    					}
     					else{
     						boolean isWildMeComment=false;
     				        int numComments=comments.size();
@@ -170,10 +193,13 @@ try{
     				            }
     				            String style="";
   				              	if(isWildMeComment){
-  				              		style="color: green;";
+  				              		style="color: green;font-weight: bold;";
   				              		hasWildMeComment=true;
   				              	}
-    				            videoComments+="<li style=\""+style+"\">"+authorName+":"+translateIfNotEnglish(topLevelComment.getSnippet().getTextDisplay());
+    				            videoComments+="<li style=\""+style+"\">"+authorName+": "+translateIfNotEnglish(topLevelComment.getSnippet().getTextDisplay());
+    				            
+    				            videoCommentsClean+=translateIfNotEnglish(topLevelComment.getSnippet().getTextDisplay());
+    				            
     				            
     				            if(ct.getReplies()!=null){
     				            	 CommentThreadReplies ctr=ct.getReplies();
@@ -189,13 +215,15 @@ try{
 		    				              Comment reply=replies.get(g);
 		    				              
 		    				              videoComments+="<li>"+translateIfNotEnglish(reply.getSnippet().getTextDisplay())+"</li>";
-		      				            
+		    				              videoCommentsClean+=translateIfNotEnglish(reply.getSnippet().getTextDisplay());
+			      				            
 		    				             }
 		    				            videoComments+="</ul>\n";
 	    				            }
     				             }
 
     				            videoComments+="</li>\n";
+    				            style="";
     				            
     				        }
     						videoComments+="</ul>\n";
@@ -220,11 +248,11 @@ try{
     				videoTitle=translateIfNotEnglish(videoTitle);
     				videoTags=translateIfNotEnglish(videoTags);
     				videoDescription=translateIfNotEnglish(videoDescription);	
-    				videoComments=translateIfNotEnglish(videoComments);
+    				//videoComments=translateIfNotEnglish(videoComments);
     				
     				StringBuffer sb=new StringBuffer("");
     				
-    				sb.append(videoTitle+" "+videoDescription+" "+videoTags+" "+videoComments);
+    				sb.append(videoTitle+" "+videoDescription+" "+videoTags+" "+videoCommentsClean);
     				
 
     				
@@ -256,30 +284,55 @@ try{
     	              if(newLocationID==null)newLocationID="";
     				%>
     				
-    				<tr><td><%=occurID %></td><td><%=currentDate %></td><td><%=newDetectedDate %></td><td><%=currentLocationID %></td><td><%=newLocationID %></td><td><%=videoTitle %></td><td><%=videoDescription %></td><td><%=videoComments %></td><td><%=relativeDate %></td></tr>
+    				<tr><td><%=occurID %></td><td><a href="https://www.youtube.com/watch?v=<%=videoID %>"><%=videoID %></a></td><td><%=currentDate %></td><td><%=newDetectedDate %></td><td><%=currentLocationID %></td><td><%=newLocationID %></td><td><%=videoTitle %></td><td><%=videoDescription %></td><td><%=videoComments %></td><td><%=relativeDate %></td></tr>
     				<%
     				
     			}
+    			else{if(!poorDataVideos.contains(ma))poorDataVideos.add(ma);}
 
     			
     			
               
               
               }
+              else{if(!poorDataVideos.contains(ma))poorDataVideos.add(ma);}
               
               if(hasWildMeComment)numCommentedVideos++;
               if(hasWildMeCommentReplies)numCommentedVideosReplies++;
               
+            }
+            else{
+            	if(!poorDataVideos.contains(ma))poorDataVideos.add(ma);
             }
 
 			
 			
 
 			
-		
+			if(videoHasID)numVideosWithID++;
 		}
 		
 	%>
+	
+	</table>
+
+<h2>About the Agent</h2>
+<p>Num videos processed: <%=numVideos %></p>
+<p>How many videos have been marked approved/unidentifiable? <%=goodDataVideos.size() %></p>
+<p>How many videos were deemed to have no valuable data? <%=poorDataVideos.size() %></p>
+<p>How many videos resulted in IDs? <%=numVideosWithID %></p>
+<p>How many videos are still uncurated? <%=numUncuratedVideos %></p>
+
+<p>Sanity check: <%=numUncuratedVideos %> uncurated + <%=poorDataVideos.size() %> worthless + <%=goodDataVideos.size() %> = <%=(goodDataVideos.size()+poorDataVideos.size() + numUncuratedVideos) %> of <%=numVideos %> total videos possible</p>
+
+<h2>About the People</h2>
+<p>How productive is the agent versus a human? TBD</p>
+<p>What is the average OP response time to our questions? TBD</p>
+<p>Num commented videos: <%=numCommentedVideos %></p>
+<p>Num commented videos with replies: <%=numCommentedVideosReplies %></p>
+<p>Percentage responding: <%=(new Double((double)numCommentedVideosReplies/numCommentedVideos*100)).toString() %>% </p>
+	
+	
 	<%
 	
 
@@ -300,12 +353,9 @@ finally{
 
 %>
 
-</table>
 
-<p>Num videos: <%=numVideos %></p>
-<p>Num commented videos: <%=numCommentedVideos %></p>
-<p>Num commented videos with replies: <%=numCommentedVideosReplies %></p>
-<p>Percentage responding: <%=(new Double(numCommentedVideosReplies/numCommentedVideos)).toString() %> </p>
+
+
 
 </body>
 </html>
