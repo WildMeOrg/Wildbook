@@ -1145,11 +1145,16 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
     }
 
     public static JSONObject processCallback(String taskID, JSONObject resp, HttpServletRequest request) {
+        String context = ServletUtilities.getContext(request);
+        String rootDir = request.getSession().getServletContext().getRealPath("/");
+        return processCallback(taskID, resp, context, rootDir);
+    }
+
+    public static JSONObject processCallback(String taskID, JSONObject resp, String context, String rootDir) {
 System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
         JSONObject rtn = new JSONObject("{\"success\": false}");
         rtn.put("taskId", taskID);
         if (taskID == null) return rtn;
-        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd=new Shepherd(context);
         myShepherd.setAction("IBEISIA.processCallback");
         myShepherd.beginDBTransaction();
@@ -1161,11 +1166,11 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
 System.out.println("**** type ---------------> [" + type + "]");
         if ("detect".equals(type)) {
             rtn.put("success", true);
-            rtn.put("processResult", processCallbackDetect(taskID, logs, resp, myShepherd, request));
+            rtn.put("processResult", processCallbackDetect(taskID, logs, resp, myShepherd, context, rootDir));
 
         } else if ("identify".equals(type)) {
             rtn.put("success", true);
-            rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, request));
+            rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, context, rootDir));
         } else {
             rtn.put("error", "unknown task action type " + type);
         }
@@ -1183,6 +1188,16 @@ System.out.println("**** type ---------------> [" + type + "]");
     }
 
     private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst) {
+        String context = ServletUtilities.getContext(request);
+        String rootDir = request.getSession().getServletContext().getRealPath("/");
+        return processCallbackDetect(taskID, logs, resp, myShepherd, context, rootDir, screenName, imageId, twitterInst);
+    }
+
+    private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, String context, String rootDir) {
+        return processCallbackDetect(taskID, logs, resp, myShepherd, context, rootDir, null, null, null);
+    }
+
+    private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, String context, String rootDir, String screenName, String imageId, Twitter twitterInst) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
 System.out.println("***** ids = " + ids);
@@ -1257,7 +1272,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                             System.out.println("WARNING: could not create Annotation from " + asset + " and " + jann);
                             continue;
                         }
-                        if (!skipEncounters) _tellEncounter(myShepherd, request, ann);
+                        if (!skipEncounters) _tellEncounter(myShepherd, ann);  // ???, context, rootDir);
                         allAnns.add(ann);  //this is cumulative over *all MAs*
                         newAnns.put(ann.getId());
                         try {
@@ -1266,7 +1281,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                             if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
 
                               System.out.println("Detection found a whale shark; sending to identification");
-                              ident.put(ann.getId(), IAIntake(ann, myShepherd, request));
+                              ident.put(ann.getId(), IAIntake(ann, myShepherd, context, rootDir));
                             }
                         } catch (Exception ex) {
                             System.out.println("WARNING: IAIntake threw exception " + ex);
@@ -1304,7 +1319,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         je.put(enc.getCatalogNumber());
                     }
                     myShepherd.getPM().makePersistent(occ);
-                    fromDetection(occ, myShepherd, request, ServletUtilities.getContext(request));
+                    fromDetection(occ, myShepherd, context, rootDir);
                     jlog.put("collatedEncounters", je);
                     jlog.put("collatedOccurrence", occ.getOccurrenceID());
                 }
@@ -1323,13 +1338,13 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
         return rtn;
     }
 
-    private static void _tellEncounter(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
+    private static void _tellEncounter(Shepherd myShepherd, Annotation ann) {  //, String context, String rootDir) {
 System.out.println("/------ _tellEncounter ann = " + ann);
         Encounter enc = ann.toEncounter(myShepherd);
 System.out.println("\\------ _tellEncounter enc = " + enc);
         if (enc == null) return;
         myShepherd.getPM().makePersistent(enc);
-        enc.detectedAnnotation(myShepherd, request, ann);
+        enc.detectedAnnotation(myShepherd, ann);
     }
 
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request) {
@@ -1337,6 +1352,16 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
     }
 
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst) {
+        String context = ServletUtilities.getContext(request);
+        String rootDir = request.getSession().getServletContext().getRealPath("/");
+        return processCallbackIdentify(taskID, logs, resp, context, rootDir, null, null, null);
+    }
+
+    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, String context, String rootDir) {
+        return processCallbackIdentify(taskID, logs, resp, context, rootDir, null, null, null);
+    }
+
+    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, String context, String rootDir, String screenName, String imageId, Twitter twitterInst) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
         if (ids == null) {
@@ -1344,7 +1369,6 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
             return rtn;
         }
         HashMap<String,Annotation> anns = new HashMap<String,Annotation>();
-        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd=new Shepherd(context);
         myShepherd.setAction("IBEISIA.processCallbackIdentify");
         myShepherd.beginDBTransaction();
@@ -2678,8 +2702,14 @@ System.out.println("IAIntake(detect:" + mas + ") [taskId=" + taskId + "] -> " + 
         return taskId;
     }
 
-    //ditto above, most things
     public static String IAIntake(Annotation ann, Shepherd myShepherd, HttpServletRequest request) throws ServletException, IOException {
+        String context = ServletUtilities.getContext(request);
+        String rootDir = request.getSession().getServletContext().getRealPath("/");
+        return IAIntake(ann, myShepherd, context, rootDir);
+    }
+
+    //ditto above, most things
+    public static String IAIntake(Annotation ann, Shepherd myShepherd, String context, String rootDir) throws ServletException, IOException {
 System.out.println("* * * * * * * IAIntake(ident) NOT YET IMPLEMENTED ====> " + ann);
 return Util.generateUUID();
 /*
@@ -2712,7 +2742,7 @@ return Util.generateUUID();
 
     //this is called when a batch of encounters (which should be on this occurrence) were made from detection
     // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
-    public static void fromDetection(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context)  {
+    public static void fromDetection(Occurrence occ, Shepherd myShepherd, String context, String rootDir)  {
         System.out.println(">>>>>> detection created " + occ.toString());
 
         //set the locationID/location/date on all encounters by inspecting detected comments on the first encounter
@@ -2870,7 +2900,7 @@ return Util.generateUUID();
                     System.out.println(">>>>>> looking for date with NLP");
                     //call Stanford NLP function to find and select a date from ytRemarks
                     //String myDate= ServletUtilities.nlpDateParse(remarks);
-                    String myDate=ParseDateLocation.parseDate(request,remarks, context);
+                    String myDate=ParseDateLocation.parseDate(remarks, context, rootDir);
                     System.out.println("Finished ParseDateLocation.parseDate");;
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
@@ -3028,5 +3058,104 @@ return Util.generateUUID();
         return rtn;
     }
 
+
+    //this is built explicitly for Queue support (to lose dependency on passing request around)
+    public static void callbackFromQueue(JSONObject qjob) {
+        System.out.println("INFO: callbackFromQueue() -> " + qjob);
+        if (qjob == null) return;
+        String context = qjob.optString("context", null);
+        String rootDir = qjob.optString("rootDir", null);
+        String jobId = qjob.optString("jobId", null);
+        JSONObject res = qjob.optJSONObject("dataJson");
+        if ((context == null) || (rootDir == null) || (jobId == null) || (res == null)) {
+            System.out.println("ERROR: callbackFromQueue() has insuffient parameters");
+            return;
+        }
+System.out.println("callbackFromQueue OK!!!!");
+ 
+/*
+    private void 
+private void tryToGet(String jobID, String context, HttpServletRequest request) throws JSONException {
+System.out.println("<<<<<<<<<< tryToGet(" + jobID + ")----");
+	JSONObject statusResponse = new JSONObject();
+//if (jobID != null) return;
+
+	try {
+		statusResponse = IBEISIA.getJobStatus(jobID, context);
+	} catch (Exception ex) {
+System.out.println("except? " + ex.toString());
+		statusResponse.put("_error", ex.toString());
+		//success = !(ex instanceof java.net.SocketTimeoutException);  //for now only re-try if we had a timeout; so may *fail* for other reasons
+	}
+
+System.out.println(statusResponse.toString());
+	JSONObject jlog = new JSONObject();
+	jlog.put("jobID", jobID);
+
+	//Shepherd myShepherd=new Shepherd(context);
+	//myShepherd.setAction("IBEISIAGetJobStatus.jsp");			
+	//we have to find the taskID associated with this IBEIS-IA job
+	String taskID = IBEISIA.findTaskIDFromJobID(jobID, context);
+	if (taskID == null) {
+		jlog.put("error", "could not determine task ID from job " + jobID);
+	} else {
+		jlog.put("taskID", taskID);
+	}
+
+	jlog.put("_action", "getJobStatus");
+	jlog.put("_response", statusResponse);
+
+
+	IBEISIA.log(taskID, jobID, jlog, context);
+
+	JSONObject all = new JSONObject();
+	all.put("jobStatus", jlog);
+System.out.println(">>>>------[ jobID = " + jobID + " -> taskID = " + taskID + " ]----------------------------------------------------");
+
+try {
+	if ((statusResponse != null) && statusResponse.has("status") &&
+	    statusResponse.getJSONObject("status").getBoolean("success") &&
+	    statusResponse.has("response") && statusResponse.getJSONObject("response").has("status") &&
+            "ok".equals(statusResponse.getJSONObject("response").getString("status")) &&
+            "completed".equals(statusResponse.getJSONObject("response").getString("jobstatus")) &&
+            "ok".equals(statusResponse.getJSONObject("response").getString("exec_status"))) {
+System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
+		JSONObject resultResponse = IBEISIA.getJobResult(jobID, context);
+		JSONObject rlog = new JSONObject();
+		rlog.put("jobID", jobID);
+		rlog.put("_action", "getJobResult");
+		rlog.put("_response", resultResponse);
+		IBEISIA.log(taskID, jobID, rlog, context);
+		all.put("jobResult", rlog);
+
+		JSONObject proc = IBEISIA.processCallback(taskID, rlog, request);
+System.out.println("processCallback returned --> " + proc);
+	}
+} catch (Exception ex) {
+	System.out.println("whoops got exception: " + ex.toString());
+	ex.printStackTrace();
+}
+finally{
+	//myShepherd.rollbackDBTransaction();
+	//myShepherd.closeDBTransaction();
+}
+
+	all.put("_timestamp", System.currentTimeMillis());
+System.out.println("-------- >>> " + all.toString() + "\n##################################################################");
+	return;
+
+}
+
+
+
+%>
+
+
+
+
+////////////////////////////
+
+*/
+    }
 
 }

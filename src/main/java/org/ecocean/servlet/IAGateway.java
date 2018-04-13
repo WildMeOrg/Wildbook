@@ -56,7 +56,6 @@ import java.util.Collections;
 import java.util.Iterator;
 
 import javax.jdo.Query;
-
 import java.io.InputStream;
 import java.util.UUID;
 
@@ -362,7 +361,7 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
     String qstr = request.getQueryString();
 
-    if ("callback".equals(qstr)) {
+    if ((qstr != null) && (qstr.matches(".*\\bcallback\\b.*"))) {
         JSONObject rtn = queueCallback(request);
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
@@ -1191,7 +1190,14 @@ System.out.println("--- BEFORE _doIdentify() ---");
     }
 
     public static void processCallbackQueueMessage(String message) {
-        System.out.println("NOT YET IMPLEMENTED!  processCallbackQueueMessage got: " + message);
+        JSONObject jmsg = Util.stringToJSONObject(message);
+        if (jmsg == null) {
+            System.out.println("ERROR: processCallbackQueueMessage() failed to parse JSON from " + message);
+            return;
+        }
+ 
+        //System.out.println("NOT YET IMPLEMENTED!  processCallbackQueueMessage got: " + message);
+        IBEISIA.callbackFromQueue(jmsg);
     }
 
     //weirdly (via StartupWildbook) stuff put in the queue is processed by.... the method right above us!  :)  :(
@@ -1209,14 +1215,21 @@ System.out.println("--- BEFORE _doIdentify() ---");
         }
         br.close();
         qjob.put("dataRaw", raw);
-        try {
-            JSONObject dataJson = new JSONObject(raw);
-            qjob.put("dataJson", dataJson);
-        } catch (org.json.JSONException jex) { }  //meh then ignore it!
+        qjob.put("dataJson", Util.stringToJSONObject(raw));
         String context = ServletUtilities.getContext(request);
         Queue queue = getIACallbackQueue(context);
         qjob.put("context", context);
+        qjob.put("rootDir", request.getSession().getServletContext().getRealPath("/"));
+        qjob.put("requestMethod", request.getMethod());
+        qjob.put("requestUri", request.getRequestURI());
         qjob.put("timestamp", System.currentTimeMillis());
+        String baseUrl = null;
+        try {
+            baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+        } catch (java.net.URISyntaxException ex) {}
+        qjob.put("baseUrl", baseUrl);
+        qjob.put("jobId", request.getParameter("jobid"));
+
 System.out.println("qjob => " + qjob);
         queue.publish(qjob.toString());
         rtn.put("success", true);
