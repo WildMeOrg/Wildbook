@@ -1418,11 +1418,11 @@ public class IndividualQueryProcessor {
               MarkedIndividual indy = indys.next();
               indy.refreshNumberLocations();
             }
-            allSharks=myShepherd.getAllMarkedIndividuals(query, "numberLocations descending", paramMap);
+            allSharks=myShepherd.getAllMarkedIndividuals(query, "numberLocations descending, individualID descending", paramMap);
           }
-          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
+          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending, individualID descending", paramMap);}
           // Added to show adoptable sharks in gallery.
-          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
+          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending, individualID descending", paramMap);}
 
           else{
             allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
