@@ -16,7 +16,12 @@ org.joda.time.*,
 org.joda.time.format.DateTimeFormat,
 com.google.api.services.youtube.YouTube.CommentThreads,
 com.google.api.services.youtube.model.*,
-com.google.api.services.youtube.model.CommentSnippet"%>
+com.google.api.services.youtube.model.CommentSnippet,
+weka.classifiers.Classifier,
+weka.core.Instance,
+weka.core.Attribute,
+weka.core.DenseInstance, org.ecocean.ai.weka.Classify,
+weka.core.Instances"%>
 
 <%!
 private String translateIfNotEnglish(String text){
@@ -36,6 +41,24 @@ private String translateIfNotEnglish(String text){
 
 %>
 
+<%!
+public static Double classify(weka.core.Instance instance, String fullPathToClassifierFile) {
+    Double result=-1.0;
+
+    try {
+      // load classifier from file
+      Classifier cls_co = (Classifier) weka.core.SerializationHelper.read(fullPathToClassifierFile);
+
+      
+      return new Double(cls_co.classifyInstance(instance));
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+    return result;   
+  }
+%>
+
 
 <%
 
@@ -48,7 +71,12 @@ Shepherd myShepherd=new Shepherd(context);
 <html>
 <head>
 <title>YouTube Details</title>
+<style>
 
+tr.rowhighlight td, tr.rowhighlight th{
+    background-color:#A9A9A9;
+}
+</style>
 </head>
 
 
@@ -64,6 +92,26 @@ int numCommentedVideos=0;
 int numCommentedVideosReplies=0;
 int numVideosWithID=0;
 int numUncuratedVideos=0;
+
+
+//weka locationID
+ArrayList<Attribute> attributeList = new ArrayList<Attribute>(2);
+ArrayList<Attribute> attributeList2 = new ArrayList<Attribute>(2);
+Attribute desc = new Attribute("description", true);
+Attribute merged = new Attribute("merged", true);
+List<String> classVal2 = myShepherd.getAllLocationIDs();
+classVal2.remove(0);
+ArrayList<String> classVal = new ArrayList<String>();
+classVal.add("good");
+classVal.add("poor");
+attributeList2.add(desc);
+attributeList2.add(new Attribute("@@class@@",classVal2));
+attributeList.add(merged);
+attributeList.add(new Attribute("@@class@@",classVal));
+String locIDpath="/data/whaleshark_data_dirs/shepherd_data_dir/wekaModels/whaleSharkLocationIDClassifier.model";
+String path="/data/whaleshark_data_dirs/shepherd_data_dir/wekaModels/youtubeRandomForest.model";
+
+
 
 
 try{
@@ -89,7 +137,8 @@ try{
 		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
 		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
 		
-		for(int i=0;i<numResults;i++){
+		for(int i=0;i<40;i++){
+		//for(int i=0;i<numResults;i++){
 			
 			boolean videoHasID=false;
 			
@@ -144,11 +193,10 @@ try{
     					if(!goodDataVideos.contains(ma))goodDataVideos.add(ma);
     					videoIsCurated=true;
     				}
-    				else{
-    					numUncuratedVideos++;
-    				}
+
     				if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("")))videoHasID=true;
     			}
+    			if(!videoIsCurated)numUncuratedVideos++;
     			
     			Occurrence occur=null;
     			
@@ -245,6 +293,11 @@ try{
     						
     					}
     				}
+    				
+    				StringBuffer sbOriginalText=new StringBuffer("");
+    				sbOriginalText.append(videoTitle+" "+videoDescription+" "+videoTags+" "+videoCommentsClean);
+    				
+    				
     				videoTitle=translateIfNotEnglish(videoTitle);
     				videoTags=translateIfNotEnglish(videoTags);
     				videoDescription=translateIfNotEnglish(videoDescription);	
@@ -267,6 +320,8 @@ try{
     				String newLocationID="";
     	              String lowercaseRemarks=sb.toString().toLowerCase();
     	              try{
+    	            	  
+    	            	  /*
     	                Enumeration m_enum = props.propertyNames();
     	                while (m_enum.hasMoreElements()) {
     	                  String aLocationSnippet = ((String) m_enum.nextElement()).trim();
@@ -275,20 +330,50 @@ try{
     	                	  newLocationID = props.getProperty(aLocationSnippet);
     	                    //System.out.println(".....Building an idea of location: "+location);
     	                  }
-    	                }
+    	                }*/
+    	                
+    	            	  Instances data2 = new Instances("TestInstances",attributeList2,2);
+    	            	  data2.setClassIndex(data2.numAttributes()-1);
+    	            	  Instance pos2 = new DenseInstance(data2.numAttributes());
+    	            	  pos2.setValue(desc, sbOriginalText.toString().replaceAll("[^A-Za-z0-9 ]", "").replace("\n", "").trim());
+    	            	  data2.add(pos2);
+    	            	  pos2.setDataset(data2);
+    	            	  
+    	            	  newLocationID=pos2.classAttribute().value(classify(pos2, locIDpath).intValue());
+    	                
 
     	              }
     	              catch(Exception e){
     	                e.printStackTrace();
     	              }
     	              if(newLocationID==null)newLocationID="";
+    	              
+    	              //predict if this is a good video
+    	              Instances data = new Instances("TestInstances",attributeList,2);
+    	           		data.setClassIndex(data.numAttributes()-1);
+    	            	  Instance pos = new DenseInstance(data.numAttributes());
+    	            	  pos.setValue(merged, lowercaseRemarks.replaceAll("whale shark", "whaleshark"));
+    	            	  data.add(pos);
+    	            	  pos.setDataset(data);
+    	              
+    	            	  Double prediction = classify(pos,path);
+    	            	  String rowClass="";
+    	            	  if(prediction.intValue()==1)rowClass="class=\"rowhighlight\"";
+    	            	  
     				%>
     				
-    				<tr><td><%=occurID %></td><td><a href="https://www.youtube.com/watch?v=<%=videoID %>"><%=videoID %></a></td><td><%=currentDate %></td><td><%=newDetectedDate %></td><td><%=currentLocationID %></td><td><%=newLocationID %></td><td><%=videoTitle %></td><td><%=videoDescription %></td><td><%=videoComments %></td><td><%=relativeDate %></td></tr>
+    				<tr <%=rowClass %>><td><a href="https://www.whaleshark.org/occurrence.jsp?number=<%=occurID %>"><%=occurID %></a></td><td><a href="https://www.youtube.com/watch?v=<%=videoID %>"><%=videoID %></a></td><td><%=currentDate %></td><td><%=newDetectedDate %></td><td><%=currentLocationID %></td><td><%=newLocationID %></td><td><%=videoTitle %></td><td><%=videoDescription %></td><td><%=videoComments %></td><td><%=relativeDate %></td></tr>
     				<%
     				
     			}
-    			else{if(!poorDataVideos.contains(ma))poorDataVideos.add(ma);}
+    			else{
+    				if(!poorDataVideos.contains(ma)){
+    					poorDataVideos.add(ma);
+    					numUncuratedVideos--;
+    					
+    					}
+    			}
+    			
 
     			
     			
@@ -323,7 +408,7 @@ try{
 <p>How many videos resulted in IDs? <%=numVideosWithID %></p>
 <p>How many videos are still uncurated? <%=numUncuratedVideos %></p>
 
-<p>Sanity check: <%=numUncuratedVideos %> uncurated + <%=poorDataVideos.size() %> worthless + <%=goodDataVideos.size() %> = <%=(goodDataVideos.size()+poorDataVideos.size() + numUncuratedVideos) %> of <%=numVideos %> total videos possible</p>
+<p>Sanity check: <%=numUncuratedVideos %> uncurated + <%=poorDataVideos.size() %> worthless + <%=goodDataVideos.size() %>curated = <%=(goodDataVideos.size()+poorDataVideos.size() + numUncuratedVideos) %> of <%=numVideos %> total videos possible</p>
 
 <h2>About the People</h2>
 <p>How productive is the agent versus a human? TBD</p>

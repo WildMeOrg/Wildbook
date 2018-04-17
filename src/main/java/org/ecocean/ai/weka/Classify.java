@@ -1,8 +1,13 @@
 package org.ecocean.ai.weka;
 
 
+import java.util.List;
+import java.util.ArrayList;
 import weka.classifiers.Classifier;
 import weka.core.Instance;
+import weka.core.Attribute;
+import weka.core.DenseInstance;
+import weka.core.Instances;
 
 
 public class Classify {
@@ -18,7 +23,6 @@ public class Classify {
       // load classifier from file
       Classifier cls_co = (Classifier) weka.core.SerializationHelper.read(fullPathToClassifierFile);
 
-      
       return new Double(cls_co.classifyInstance(instance));
     }
     catch(Exception e) {
@@ -79,7 +83,38 @@ public class Classify {
   }
   */
 
+  public static Instances makeInstance(List<String> attributesToClassifyNames, List<String> valuesToClassify, List<String> classValues) {
 
+    //check for attribute names and values iin equal number
+    if(attributesToClassifyNames.size()!=(valuesToClassify.size()))return null;
+    
+    int numAttributes=attributesToClassifyNames.size();
+    
+    ArrayList<Attribute> attributeList = new ArrayList<Attribute>(numAttributes);
+    for(int i=0;i<numAttributes;i++) {
+      Attribute merged = new Attribute(attributesToClassifyNames.get(i), true);
+      attributeList.add(merged);
+    }
+
+    attributeList.add(new Attribute("@@class@@",classValues));
+
+    Instances data = new Instances("TestInstances",attributeList,1);
+    data.setClassIndex(data.numAttributes()-1);
+
+    Instance weka_instance = new DenseInstance(data.numAttributes());
+    data.add(weka_instance);
+    weka_instance.setDataset(data);
+    
+    //set attribute values
+    for(int i=0;i<numAttributes;i++) {
+      weka_instance.setValue(attributeList.get(i), valuesToClassify.get(i));
+    }
+    
+    return data;
+    
+  }
+  
+  
 
 
 }

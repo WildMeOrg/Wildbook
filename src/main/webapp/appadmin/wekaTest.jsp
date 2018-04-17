@@ -56,34 +56,57 @@ if(request.getParameter("test")!=null){
 };
 
 String path="/data/whaleshark_data_dirs/shepherd_data_dir/wekaModels/youtubeRandomForest.model";
+String locIDpath="/data/whaleshark_data_dirs/shepherd_data_dir/wekaModels/whaleSharkLocationIDClassifier.model";
+
 
 ArrayList<Attribute> attributeList = new ArrayList<Attribute>(2);
+ArrayList<Attribute> attributeList2 = new ArrayList<Attribute>(2);
 
 Attribute merged = new Attribute("merged", true);
+Attribute desc = new Attribute("description", true);
 
 
 ArrayList<String> classVal = new ArrayList<String>();
 classVal.add("good");
 classVal.add("poor");
 
+Shepherd myShepherd=new Shepherd(context);
+myShepherd.beginDBTransaction();
+List<String> classVal2 = myShepherd.getAllLocationIDs();
+classVal2.remove(0);
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+
 attributeList.add(merged);
 attributeList.add(new Attribute("@@class@@",classVal));
+
+attributeList2.add(desc);
+attributeList2.add(new Attribute("@@class@@",classVal2));
 
 Instances data = new Instances("TestInstances",attributeList,2);
 data.setClassIndex(data.numAttributes()-1);
 
+Instances data2 = new Instances("TestInstances",attributeList2,2);
+data2.setClassIndex(data2.numAttributes()-1);
+
 //pos
 Instance pos = new DenseInstance(data.numAttributes());
+Instance pos2 = new DenseInstance(data2.numAttributes());
 //pos.setClassMissing();
 pos.setValue(merged, positive);
 data.add(pos);
 pos.setDataset(data);
 
+pos2.setValue(desc, positive);
+data2.add(pos2);
+pos2.setDataset(data2);
+
 
 
 
 %>
-<li><%=positive %>: <%=Classify.classifyWithFilteredClassifier(data.get(0), path) %></li>
+<li><%=positive %>: <%=pos.classAttribute().value(classify(pos, path).intValue()) %></li>
+<li><%=positive %>: <%=pos2.classAttribute().value(classify(pos2, locIDpath).intValue()) %></li>
 
 </ul>
 
