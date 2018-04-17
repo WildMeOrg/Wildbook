@@ -13,6 +13,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
+import org.ecocean.Taxonomy;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.servlet.ServletUtilities;
@@ -1086,8 +1087,8 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
 
 
 //{"xtl":910,"height":413,"theta":0,"width":444,"class":"giraffe_reticulated","confidence":0.2208,"ytl":182}
-    public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, boolean skipEncounter) {
-        Annotation ann = convertAnnotation(asset, jann);
+    public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir, boolean skipEncounter) {
+        Annotation ann = convertAnnotation(asset, jann, myShepherd, context, rootDir);
         if (ann == null) return null;
         if (skipEncounter) {
             myShepherd.getPM().makePersistent(ann);
@@ -1107,11 +1108,12 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
         return ann;
     }
 
-    public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult) {
+    public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult, Shepherd myShepherd, String context, String rootDir) {
         if (iaResult == null) return null;
 
-        //this is hard-coded for whaleshark.org branch .... need to generalize this!!  TODO
-        if (!iaResult.optString("class", "_FAIL_").equals("whale_shark")) {
+
+        Taxonomy tax = iaTaxonomyMap(myShepherd, context).get(iaResult.optString("class", "_FAIL_"));
+        if (tax == null) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: bailing on IA results due to invalid species detected -- " + iaResult.toString());
             return null;
         }
@@ -1121,6 +1123,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
                                                 iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0), fparams);
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
+//TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         return new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
     }
 
@@ -1267,7 +1270,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         }
                         //these are annotations we can make automatically from ia detection.  we also do the same upon review return
                         //  note this creates other stuff too, like encounter
-                        Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, skipEncounters);
+                        Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, context, rootDir, skipEncounters);
                         if (ann == null) {
                             System.out.println("WARNING: could not create Annotation from " + asset + " and " + jann);
                             continue;
@@ -3058,6 +3061,22 @@ return Util.generateUUID();
         return rtn;
     }
 
+
+    //TODO cache???
+    public static HashMap<String,Taxonomy> iaTaxonomyMap(Shepherd myShepherd, String context) {
+        HashMap<String,Taxonomy> map = new HashMap<String,Taxonomy>();
+        String sciName = "";
+        int i = 0;
+        while (sciName != null) {
+            sciName = CommonConfiguration.getProperty("iaTaxonomyScientificName" + i, context);
+            if (sciName == null) continue;
+            String iaClass = CommonConfiguration.getProperty("iaDetectionClass" + i, context);
+            if (iaClass == null) iaClass = sciName;  //tough love
+            map.put(iaClass, myShepherd.getOrCreateTaxonomy(sciName, true));
+            i++;
+        }
+        return map;
+    }
 
     //this is built explicitly for Queue support (to lose dependency on passing request around)
     public static void callbackFromQueue(JSONObject qjob) {

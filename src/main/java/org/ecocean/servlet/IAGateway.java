@@ -399,6 +399,7 @@ System.out.println("############################ rtn -> \n" + rtn);
         //this maybe should be broken out into a method?
         if ((rtn.optJSONObject("status") != null) && rtn.getJSONObject("status").optBoolean("success", false) && (rtn.optJSONObject("response") != null)) {
             String context = ServletUtilities.getContext(request);
+            String rootDir = request.getSession().getServletContext().getRealPath("/");
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("IAGateway.class7");
             myShepherd.beginDBTransaction();
@@ -426,7 +427,7 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                     for (int a = 0 ; a < alist.length() ; a++) {
                         JSONObject jann = alist.optJSONObject(a);
                         if (jann == null) continue;
-                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd, false);
+                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd, context, rootDir, false);
                         if (ann == null) continue;
                         myShepherd.getPM().makePersistent(ann);
                         thisAnns.put(ann.getId());
