@@ -67,11 +67,17 @@ Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass
 
 **less files used to compile css)**: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/styles
 
-**A lot of specific styles are defined here**: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/config.json
+Lots of settings here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap-vars.less
+
+and here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
 
 <ul>
- <li>body text color (@gray-dark): <a href="https://www.colorhexa.com/333333">#333333</a>  </li>
+ <li>e.g. body text color (@gray-dark): <a href="https://www.colorhexa.com/333333">#333333</a>  </li>
  </ul>
+
+**Some (mostly page-specific) styles are defined here**: 
+https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/css
+
 
 <h2>Color palette notes</h2>
 
