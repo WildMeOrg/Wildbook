@@ -52,7 +52,7 @@ if(request.getParameter("locationCodeField")!=null){
 int numIndividualsOnPage=18;
 
 int startNum = 0;
-int endNum = numIndividualsOnPage-1;
+int endNum = numIndividualsOnPage;
 try {
   if (request.getParameter("startNum") != null) {
     startNum = (new Integer(request.getParameter("startNum"))).intValue();
@@ -62,10 +62,10 @@ try {
   }
 } catch (NumberFormatException nfe) {
   startNum = 0;
-  endNum = numIndividualsOnPage-1;
+  endNum = numIndividualsOnPage;
 }
 
-int listNum = 18;
+int listNum = endNum;
 
 int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
 try {
@@ -186,7 +186,7 @@ if (rIndividuals.size() < listNum) {
 
   .super-crop.seal-gallery-pic {
     display: none;
-  }listNum
+  }
   .super-crop.seal-gallery-pic.active {
     display: block;
   }
@@ -279,11 +279,11 @@ int numDataContributors=0;
 <h1><%=props.getProperty("gallery") %></h1>
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
-    <button type="button" class="btn-link recentSightings"><a class="recentSightings" href="gallery.jsp?startNum=0&endNum=17&sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
+    <button type="button" class="btn-link recentSightings"><a class="recentSightings" href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
     
-    <button type="button" class="btn-link mostSightings"><a class="mostSightings  " href="gallery.jsp?startNum=0&endNum=17&sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
+    <button type="button" class="btn-link mostSightings"><a class="mostSightings  " href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
-    <button type="button" class="btn-link mostTraveled"><a class="mostTraveled" href="gallery.jsp?startNum=0&endNum=17&sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
+    <button type="button" class="btn-link mostTraveled"><a class="mostTraveled" href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
 
 
     <!--  Placement for adoptable sharks button, in same format as above. -->
@@ -315,8 +315,7 @@ int numDataContributors=0;
       $('.recentSightings').removeClass('gallerySortActive');
     }
 
-    // Like all proper code, the index of our indys starts at zero, but for displaying pages to the user we add one to the endNum to get a whole number result.
-    var pageNum = "Page: "+String(parseInt(<%=endNum%>+1)/parseInt(<%=numIndividualsOnPage%>));
+    var pageNum = "Page: "+String(parseInt(<%=endNum%>)/parseInt(<%=numIndividualsOnPage%>));
     $('.pageCounter b').html(pageNum);
 
   }); 
@@ -345,10 +344,10 @@ int numDataContributors=0;
       <div class="row" id="location-header">
       <%
       String locCode=request.getParameter("locationCodeField")
-      .replaceAll("PS","Pohjois-Saimaa")
-  	  .replaceAll("HV","Haukivesi")
-      .replaceAll("JV","Joutenvesi")
-      .replaceAll("PEV","Pyyvesi - Enonvesi")
+       		.replaceAll("PS","Pohjois-Saimaa")
+  	   		.replaceAll("HV","Haukivesi")
+            .replaceAll("JV","Joutenvesi")
+         	.replaceAll("PEV","Pyyvesi - Enonvesi")
 			.replaceAll("KV","Kolovesi")
 			.replaceAll("PV","Pihlajavesi")
 			.replaceAll("PUV","Puruvesi")
@@ -435,6 +434,7 @@ int numDataContributors=0;
         for (int j=0; j<2; j++) {
           %>
           <div class="col-sm-12 gallery-info" id="ginfo<%=i*2+j%>" style="display: none">
+
 
             <div class="gallery-inner">
               <div class="super-crop seal-gallery-pic active">
@@ -544,31 +544,15 @@ int numDataContributors=0;
 	                String thisIndyLoc = null;
 	                String thisIndyDate = null;
 	                try {
-
-                    MarkedIndividual mi = myShepherd.getMarkedIndividual(pairName[j]);
-                    Encounter[] arr = mi.getDateSortedEncounters();
-                    for (int encNo=0;encNo<arr.length;encNo++) {
-                      Encounter enc = arr[encNo];
-                      System.out.println("Encounter Location : "+enc.getLocation());
-                      System.out.println("Encounter Date : "+enc.getShortDate());
-                      System.out.println("Encounter Millis : "+enc.getDateInMilliseconds());
-
-                      if (thisIndyDate==null&&enc.getShortDate()!="Unknown") {
-                          thisIndyDate=enc.getShortDate();
-                      }
-
-                      if (thisIndyLoc==null&&enc.getLocation()!="Unknown") {
-                          thisIndyLoc=enc.getLocation();
-                      }
-                    }
-
-	                	//dateAndLoc = myShepherd.getLastEncounterDateAndLocation(pairName[j]);
-                    //if (dateAndLoc.containsKey("location")) {
-                    //  thisIndyLoc = dateAndLoc.get("location");
-                    //}
-                    //if (dateAndLoc.containsKey("date")) {
-                    //  thisIndyDate = dateAndLoc.get("date");
-                    //}
+	                	myShepherd.beginDBTransaction();
+	                	dateAndLoc = myShepherd.getLastEncounterDateAndLocation(pairName[j]);
+	                	myShepherd.commitDBTransaction(); 
+						if (dateAndLoc.containsKey("location")) {
+							thisIndyLoc = dateAndLoc.get("location");
+						}
+						if (dateAndLoc.containsKey("date")) {
+							thisIndyDate = dateAndLoc.get("date");
+						}
 	                } catch (Exception e) {
 	                	e.printStackTrace();
 	                }
@@ -580,9 +564,7 @@ int numDataContributors=0;
 	                if (thisIndyDate != null) {
 	                %>		
 	                	<p>Last Sighted Date: <%=thisIndyDate%></p>
-	                <%
-                  }
-                  %>
+	                <%}%>
 	                </td>
                 <tr>
               </tr></table>
@@ -613,7 +595,7 @@ int numDataContributors=0;
 
           if (endNum<allSharks) {
             %>
-            &nbsp;&nbsp;<a class="gallistNumlery-arrows btn btn-default" href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"><span class="arrow-span">&nbsp;&nbsp; Next &nbsp;&nbsp;&nbsp;</span><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+            &nbsp;&nbsp;<a class="gallery-arrows btn btn-default" href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"><span class="arrow-span">&nbsp;&nbsp; Next &nbsp;&nbsp;&nbsp;</span><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
             <%  
           }
           %>
