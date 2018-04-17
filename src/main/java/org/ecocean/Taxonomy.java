@@ -52,7 +52,7 @@ public class Taxonomy implements java.io.Serializable {
     return commonNames;
   }
   public void addCommonName(String commonName) {
-    this.commonNames.add(commonName);
+    if (!this.commonNames.contains(commonName)) this.commonNames.add(commonName);
   }
   public String getCommonName() {
     return getCommonName(0);
