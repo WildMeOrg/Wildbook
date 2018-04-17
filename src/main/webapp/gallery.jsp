@@ -315,8 +315,9 @@ int numDataContributors=0;
       $('.recentSightings').removeClass('gallerySortActive');
     }
 
-    var pageNum = "Page: "+String(parseInt(<%=endNum%>)/parseInt(<%=numIndividualsOnPage%>));
-    $('.pageCounter b').html(pageNum);
+    //var pageNum = "Page: "+String((parseInt(<%=startNum%>)+1)/parseInt(<%=numIndividualsOnPage%>));
+    var pageNum = String(Math.round(parseInt(<%=endNum%>)/parseInt(<%=numIndividualsOnPage%>))); 
+    $('.pageCounter b').html("Date: "+pageNum);
 
   }); 
 </script>
@@ -547,12 +548,12 @@ int numDataContributors=0;
 	                	myShepherd.beginDBTransaction();
 	                	dateAndLoc = myShepherd.getLastEncounterDateAndLocation(pairName[j]);
 	                	myShepherd.commitDBTransaction(); 
-						if (dateAndLoc.containsKey("location")) {
-							thisIndyLoc = dateAndLoc.get("location");
-						}
-						if (dateAndLoc.containsKey("date")) {
-							thisIndyDate = dateAndLoc.get("date");
-						}
+                    if (dateAndLoc.containsKey("location")) {
+                      thisIndyLoc = dateAndLoc.get("location");
+                    }
+                    if (dateAndLoc.containsKey("date")) {
+                      thisIndyDate = dateAndLoc.get("date");
+                    }
 	                } catch (Exception e) {
 	                	e.printStackTrace();
 	                }
@@ -584,18 +585,13 @@ int numDataContributors=0;
 
           <%
           if (startNum>0) {
-            int newStart = Math.max(startNum-numIndividualsOnPage,0);
             %>
-            <a class="gallery-arrows btn btn-default" href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"><span class="arrow-span"> Previous </span></a> &nbsp;&nbsp;
+            <a class="gallery-arrows btn btn-default" href="<%=urlLoc%>/gallery.jsp?startNum=<%=startNum-numIndividualsOnPage%>&endNum=<%=endNum-numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"><span class="arrow-span"> Previous </span></a> &nbsp;&nbsp;
             <%
           }
-          System.out.println("End Num: "+endNum);
-          System.out.println("AllSharks: "+allSharks);
-          System.out.println("Indys on page: "+numIndividualsOnPage);
-
           if (endNum<allSharks) {
             %>
-            &nbsp;&nbsp;<a class="gallery-arrows btn btn-default" href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"><span class="arrow-span">&nbsp;&nbsp; Next &nbsp;&nbsp;&nbsp;</span><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+            &nbsp;&nbsp;<a class="gallery-arrows btn btn-default" href= "<%=urlLoc%>/gallery.jsp?startNum=<%=startNum+numIndividualsOnPage%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString%><%=locationCodeFieldString %>"><span class="arrow-span">&nbsp;&nbsp; Next &nbsp;&nbsp;&nbsp;</span><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
             <%  
           }
           %>

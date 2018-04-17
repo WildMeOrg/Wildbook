@@ -3259,10 +3259,14 @@ public class Shepherd {
   public HashMap<String,String> getLastEncounterDateAndLocation(String name) {
     MarkedIndividual mi = getMarkedIndividual(name);
     HashMap<String,String> dateAndLoc = new HashMap<String,String>(2);
+    mi.refreshDateLastestSighting();
     Encounter[] arr = mi.getDateSortedEncounters();
     String date = null;
     String loc = null;
     try {
+      for (Encounter enc : arr) {
+        System.out.println("DATES IN OREDER FOR ENC: "+enc.getShortDate());
+      }
       date = arr[0].getShortDate();
       loc = arr[0].getLocation();
     } catch (Exception e) {
