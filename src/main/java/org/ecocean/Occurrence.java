@@ -408,7 +408,6 @@ public class Occurrence implements java.io.Serializable{
   }
   // convenience method for e.g. web display
   public List<String> getAllSpecies() {
-    System.out.println("getAllSpecies called with # taxonomies: "+taxonomies.size());
     List<String> result = new ArrayList<String>();
     for (Taxonomy tax: taxonomies) {
       String sciName = tax.getScientificName();
