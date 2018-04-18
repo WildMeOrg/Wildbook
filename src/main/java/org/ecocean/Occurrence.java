@@ -83,7 +83,11 @@ public class Occurrence implements java.io.Serializable{
   private Integer numCalves;
   private String observer;
 
+  private String submitterID;
 
+  // Convention: getters/setters for Taxonomy objects use noun "Taxonomy".
+  // while convenience string-only methods with noun "Species"
+  private List<Taxonomy> taxonomies;
 
   // do we have these?
 
@@ -190,6 +194,21 @@ public class Occurrence implements java.io.Serializable{
 
   }
 
+  public void setSubmitterIDFromEncs(){
+    for (Encounter enc: encounters) {
+      if (Util.stringExists(enc.getSubmitterID())) {
+        setSubmitterID(enc.getSubmitterID());
+        return;
+      }
+    }
+  }
+  public void setSubmitterID(String submitterID) {
+    this.submitterID = submitterID;
+  }
+  public String getSubmitterID() {
+    return submitterID;
+  }
+
   public void setAssets(List<MediaAsset> assets) {
     this.assets = assets;
   }
@@ -268,6 +287,9 @@ public class Occurrence implements java.io.Serializable{
 
   public String getOccurrenceID(){return occurrenceID;}
 
+  public String getWebUrl(HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+getOccurrenceID());
+  }
 
   public Integer getIndividualCount(){return individualCount;}
   public void setIndividualCount(Integer count){
@@ -402,6 +424,12 @@ public class Occurrence implements java.io.Serializable{
     Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false);
     setTaxonomy(taxy);
   }
+  public boolean hasSpecies(String scientificName) {
+    for (Taxonomy taxy: taxonomies) {
+      if (scientificName.equals(taxy.getScientificName())) return true;
+    }
+    return false;
+  }
 
   public List<Taxonomy> getTaxonomies() {
     return this.taxonomies;
@@ -409,6 +437,21 @@ public class Occurrence implements java.io.Serializable{
   public void setTaxonomies(List<Taxonomy> taxonomies) {
     this.taxonomies = taxonomies;
   }
+  public void setTaxonomiesFromEncounters(Shepherd myShepherd) {
+    setTaxonomiesFromEncounters(myShepherd, true); // if we don't commit we risk creating multiple taxonomies with the same scientificName
+  }
+  public void setTaxonomiesFromEncounters(Shepherd myShepherd, boolean commit) {
+    boolean shepherdWasCommitting = myShepherd.isDBTransactionActive();
+    for (Encounter enc: encounters) {
+      String taxString = enc.getTaxonomyString();
+      // we need the manual hasSpecies check below to prevent duplicates with the same scientificName when commit=false
+      if (!Util.stringExists(taxString) || (commit==false && hasSpecies(taxString))) continue;
+      Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxString, commit);
+      addTaxonomy(taxy);
+    }
+    if (shepherdWasCommitting) myShepherd.beginDBTransaction();
+  }
+
   public Taxonomy getTaxonomy() { return getTaxonomy(0);}
   public Taxonomy getTaxonomy(int i) {
     if (taxonomies==null || taxonomies.size()<=i) return null;
@@ -466,6 +509,7 @@ public class Occurrence implements java.io.Serializable{
   public void setDateTimeCreated(String time) {
     dateTimeCreated = time;
   }
+
 
     public void setDateTimeCreated() {
         dateTimeCreated = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
@@ -797,6 +841,15 @@ public class Occurrence implements java.io.Serializable{
     }
     public void setDateTimeLong(Long dateTimeLong) {
       this.dateTimeLong = dateTimeLong;
+    }
+    public void setDateFromEncounters() {
+      for (Encounter enc: encounters) {
+        Long millis = enc.getDateInMilliseconds();
+        if (millis!=null) {
+          setDateTimeLong(millis);
+          return;
+        }
+      }
     }
     public DateTime getDateTime() {
       if (dateTimeLong == null) return null;

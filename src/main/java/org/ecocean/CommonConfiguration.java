@@ -133,6 +133,10 @@ public class CommonConfiguration {
   public static URI getServerURI(HttpServletRequest req, String contextPath) throws URISyntaxException {
     return new URI(req.getScheme(), null, req.getServerName(), req.getServerPort(), contextPath, null, null).normalize();
   }
+  // If we want to create full URL links within the webapp, we want to exclude the port used above
+  public static URI getServerURINoPort(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return new URI(req.getScheme(), req.getServerName(), contextPath, null).normalize();
+  }
 
   /**
    * Utility method to return a URL string for the specified
@@ -146,6 +150,18 @@ public class CommonConfiguration {
    */
   public static String getServerURL(HttpServletRequest req, String contextPath) throws URISyntaxException {
     return getServerURI(req, contextPath).toASCIIString();
+  }
+  public static String getServerURLNoPort(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return getServerURINoPort(req, contextPath).toASCIIString();
+  }
+  public static String getServerURL(HttpServletRequest req) {
+    try {
+      return getServerURLNoPort(req, req.getContextPath());
+    }
+    catch (URISyntaxException e) {
+      System.out.println("URISyntaxException on CommonConfiguration.getServerURL("+req+"). Returning Null.");
+      return null;
+    }
   }
 
 
@@ -275,11 +291,11 @@ public class CommonConfiguration {
   }
 
   public static String getGoogleMapsKey(String context) {
-    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleMapsKey");
+    return getProperty("googleMapsKey",context);
   }
 
   public static String getGoogleSearchKey(String context) {
-    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleSearchKey");
+    return getProperty("googleSearchKey",context);
   }
 
   public static String getProperty(String name, String context) {
