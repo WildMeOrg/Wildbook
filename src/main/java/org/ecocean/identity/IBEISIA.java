@@ -227,7 +227,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         myShepherd.beginDBTransaction();
 
         HashMap<String,Object> map = new HashMap<String,Object>();
-        map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
+        map.put("callback_url", callbackUrl(baseUrl));
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
         map.put("matching_state_list", IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));  //this is "universal"
         if (userConfidence != null) map.put("user_confidence", userConfidence);
@@ -295,7 +295,7 @@ System.out.println("     free ride :)");
 
 
 System.out.println("===================================== qlist & tlist =========================");
-System.out.println(qlist + " callback=" + baseUrl + "/IBEISIAGetJobStatus.jsp");
+System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
 System.out.println("tlist.size()=" + tlist.size());
 System.out.println(map);
 myShepherd.rollbackDBTransaction();
@@ -311,7 +311,7 @@ myShepherd.closeDBTransaction();
         URL url = new URL(u);
 
         HashMap<String,Object> map = new HashMap<String,Object>();
-        map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
+        map.put("callback_url", callbackUrl(baseUrl));
 System.out.println("sendDetect() baseUrl = " + baseUrl);
         ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
 
@@ -3076,6 +3076,11 @@ return Util.generateUUID();
             i++;
         }
         return map;
+    }
+
+
+    public static String callbackUrl(String baseUrl) {
+        return baseUrl + "/ia?callback";
     }
 
     //this is built explicitly for Queue support (to lose dependency on passing request around)
