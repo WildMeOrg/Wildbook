@@ -586,5 +586,13 @@ public class Util {
       return (stringExists(val1) && !stringExists(val2));
     }
 
+    public static int count(Iterator it) {
+      int num = 0;
+      while (it.hasNext()) {
+        Object elem = it.next();
+        num++;
+      }
+      return num;
+    }
 
 }

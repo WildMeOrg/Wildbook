@@ -509,10 +509,10 @@ if(request.getUserPrincipal()!=null){
             },
             select: function(ev, ui) {
                 if (ui.item.type == "individual") {
-                    window.location.replace("<%=(urlLoc+"/individuals.jsp?number=") %>" + ui.item.value);
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
                 }
                 else if (ui.item.type == "locationID") {
-                	window.location.replace("<%=(urlLoc+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
                 }
                 /*
                 //restore user later
@@ -528,7 +528,7 @@ if(request.getUserPrincipal()!=null){
             //source: app.config.wildbook.proxyUrl + "/search"
             source: function( request, response ) {
                 $.ajax({
-                    url: '<%=urlLoc %>/SiteSearch',
+                    url: '<%=("//" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
                     dataType: "json",
                     data: {
                         term: request.term

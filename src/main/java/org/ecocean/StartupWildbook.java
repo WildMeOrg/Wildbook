@@ -12,6 +12,7 @@ import javax.servlet.ServletContext;
 import java.net.URL;
 
 import org.ecocean.*;
+import org.ecocean.queue.*;
 import org.ecocean.grid.MatchGraphCreationThread;
 //import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
@@ -37,8 +38,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class StartupWildbook implements ServletContextListener {
 
-  ScheduledExecutorService schedExec = null;
-  ScheduledFuture schedFuture = null;
   // this function is automatically run on webapp init
   // it is attached via web.xml's <listener></listener>
   public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
@@ -70,6 +69,9 @@ public class StartupWildbook implements ServletContextListener {
         Role newRole1=new Role("tomcat","admin");
         newRole1.setContext("context0");
         myShepherd.getPM().makePersistent(newRole1);
+        Role newRole2=new Role("tomcat","researcher");
+        newRole2.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole2);
         Role newRole4=new Role("tomcat","destroyer");
         newRole4.setContext("context0");
         myShepherd.getPM().makePersistent(newRole4);
@@ -123,13 +125,70 @@ public class StartupWildbook implements ServletContextListener {
         if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
         createMatchGraph();
 
-        File qdir = ScheduledQueue.setQueueDir(context);
-        if (qdir == null) {
-            System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
-        //} else if ((res == null) || !res.toString().equals("jndi:/localhost/")) {  //mimicking primeIA() here, and skipping for improper resource
-        //    System.out.println("+ INFO: queue service start skipped for res=" + res.toString());
+        //TODO genericize starting "all" consumers ... configurable? how?  etc.
+        startIAQueues("context0");
+    }
+
+
+    private void startIAQueues(String context) {
+        class IAMessageHandler extends QueueMessageHandler {
+            public boolean handler(String msg) {
+                org.ecocean.servlet.IAGateway.processQueueMessage(msg);  //yeah we need to move this somewhere else...
+                return true;
+            }
+        }
+        class IACallbackMessageHandler extends QueueMessageHandler {
+            public boolean handler(String msg) {
+                org.ecocean.servlet.IAGateway.processCallbackQueueMessage(msg);  //yeah we need to move this somewhere else...
+                return true;
+            }
+        }
+
+        if (!IBEISIA.iaEnabled()) {
+            System.out.println("+ INFO: IA not enabled; IA queue service not started");
+            return;
+        }
+
+        Queue queue = null;
+        try {
+            queue = QueueUtil.getBest(context, "IA");
+        } catch (java.io.IOException ex) {
+            System.out.println("+ ERROR: IA queue startup exception: " + ex.toString());
+        }
+        Queue queueCallback = null;
+        try {
+            queueCallback = QueueUtil.getBest(context, "IACallback");
+        } catch (java.io.IOException ex) {
+            System.out.println("+ ERROR: IACallback queue startup exception: " + ex.toString());
+        }
+        if ((queue == null) || (queueCallback == null)) {
+            System.out.println("+ WARNING: IA queue service(s) NOT started");
+            return;
+        }
+
+        IAMessageHandler qh = new IAMessageHandler();
+        try {
+            queue.consume(qh);
+            System.out.println("+ StartupWildbook.startIAQueues() queue.consume() started on " + queue.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() queue.consume() FAILED on " + queue.toString() + ": " + iox.toString());
+        }
+        IACallbackMessageHandler qh2 = new IACallbackMessageHandler();
+        try {
+            queueCallback.consume(qh2);
+            System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() started on " + queueCallback.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
+        }
+    }
+
+
+
+    /////////public abstract void consume(QueueMessageHandler msgHandler) throws java.io.IOException;
+/*
         } else {
-            System.out.println("+ queue service starting; dir = " + qdir.toString());
+            final String queueRef = queue.toString();
+            System.out.println("+ IA queue service started on " + queueRef + "; initializing consumer...");
             schedExec = Executors.newScheduledThreadPool(5);
             schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
                 int count = 0;
@@ -137,14 +196,14 @@ public class StartupWildbook implements ServletContextListener {
                     ++count;
                     boolean cont = true;
                     try {
-                        cont = ScheduledQueue.checkQueue();
+                        //cont = ScheduledQueue.checkQueue();
                     } catch (Exception ex) {
-                        System.out.println("!!!! ScheduledQueue.checkQueue() got an exception; halting: " + ex.toString() + " !!!!");
-                        cont = false;
+                        //System.out.println("!!!! ScheduledQueue.checkQueue() got an exception; halting: " + ex.toString() + " !!!!");
+                        //cont = false;
                     }
-                    if (count % 100 == 1) System.out.println("==== ScheduledQueue run [count " + count + "]; queueDir=" + ScheduledQueue.getQueueDir() + "; continue = " + cont + " ====");
+                    if (count % 100 == 1) System.out.println("==== IAQueue run [count " + count + "]; queue=" + queueRef + "; continue = " + cont + " ====");
                     if (!cont) {
-                        System.out.println(":::: ScheduledQueue shutdown via discontinue signal ::::");
+                        System.out.println(":::: IAQueue shutdown via discontinue signal ::::");
                         schedExec.shutdown();
                     }
                 }
@@ -160,13 +219,12 @@ public class StartupWildbook implements ServletContextListener {
             }
             System.out.println("==== schedExec.shutdown() called, apparently");
         }
+*/
 
-    }
 
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("* StartupWildbook destroyed called");
-        schedExec.shutdown();
-        schedFuture.cancel(true);
+        QueueUtil.cleanup();
     }
 
 

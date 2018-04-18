@@ -3035,7 +3035,7 @@ throw new Exception();
 
     //ann is the Annotation that was created after IA detection.  mostly this is just to notify... someone
     //  note: this is for singly-made encounters; see also Occurrence.fromDetection()
-    public void detectedAnnotation(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
+    public void detectedAnnotation(Shepherd myShepherd, Annotation ann) {
 System.out.println(">>>>> detectedAnnotation() on " + this);
     }
 
