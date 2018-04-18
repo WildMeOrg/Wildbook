@@ -1420,9 +1420,9 @@ public class IndividualQueryProcessor {
             }
             allSharks=myShepherd.getAllMarkedIndividuals(query, "numberLocations descending, individualID descending", paramMap);
           }
-          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending, individualID descending", paramMap);}
+          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending NULLS LAST, individualID descending", paramMap);}
           // Added to show adoptable sharks in gallery.
-          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending, individualID descending", paramMap);}
+          
 
           else{
             allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);

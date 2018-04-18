@@ -96,17 +96,19 @@ Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 
 
 myShepherd.beginDBTransaction();
+Iterator<MarkedIndividual> indys = myShepherd.getAllMarkedIndividuals();
+while (indys.hasNext()) {
+  MarkedIndividual indy = indys.next();
+  indy.refreshDateLatestSighting();
+  myShepherd.commitDBTransaction();
+  myShepherd.beginDBTransaction();
+  System.out.println("Indy: "+indy.getIndividualID()+"  Has LatestSighting time: "+indy.getDateLatestSighting());
+}
 
 int count = myShepherd.getNumAdoptions();
 int allSharks = myShepherd.getNumMarkedIndividuals();
 int countAdoptable = allSharks - count;
 
-Iterator<MarkedIndividual> indys = myShepherd.getAllMarkedIndividuals();
-while (indys.hasNext()) {
-  MarkedIndividual indy = indys.next();
-  indy.refreshDateLatestSighting();
-  System.out.println("Refreshing Latest Sightings for Indy: "+indy.getIndividualID());
-}
 
 if(request.getParameter("adoptableSharks")!=null){
 	//get current time minus two years
@@ -552,37 +554,37 @@ int numDataContributors=0;
 	                String thisIndyDate = null;
 	                try {
                     MarkedIndividual mi = myShepherd.getMarkedIndividual(pairName[j]);
-                    mi.refreshDateLatestSighting();
                     System.out.println("++++++++++++++++++++ Date Latest Sighting: "+mi.getDateLatestSighting());
                     Vector<Encounter> encs = mi.getEncounters();
                     Long tempMillis = 1L;
                     Encounter bestEnc = null;
                     for (int k=0;k<encs.size();k++) {
                       Encounter tempEnc = encs.get(k);
-                      System.out.println("++++++++++++++++++++ Enc All dates #"+k+" : "+tempEnc.getDateInMilliseconds());
-                      if (tempEnc.getDateInMilliseconds()>tempMillis) {
+                      System.out.println("++++++++++++++++++++ Enc All Milli dates #"+k+" : "+tempEnc.getDateInMilliseconds());
+                      if (bestEnc==null||(tempEnc.getDateInMilliseconds()!=null&&tempEnc.getDateInMilliseconds()>tempMillis)) {
                         bestEnc = tempEnc;
                         tempMillis = tempEnc.getDateInMilliseconds();
                       }
                     }
+                    tempMillis = 1L;
                     if (bestEnc!=null) {
                       thisIndyDate = bestEnc.getShortDate();
                       thisIndyLoc = bestEnc.getLocation();
 
                       System.out.println("++++++++++++++++++++ This indy Loc: "+thisIndyLoc);
-                      System.out.println("++++++++++++++++++++ This indy Date: "+thisIndyLoc);
+                      System.out.println("++++++++++++++++++++ This indy Date: "+thisIndyDate);
                     } else {
                       thisIndyDate = mi.getDateLatestSighting();
                     }
 	                } catch (Exception e) {
 	                	e.printStackTrace();
 	                }
-	                if (thisIndyLoc != null) {
+	                if (thisIndyLoc!=null&&thisIndyLoc!="") {
 	                %>
 	                	<p>Last Sighted Location: <%=thisIndyLoc%></p>
 	                <%
 	                }
-	                if (thisIndyDate != null) {
+	                if (thisIndyDate!=null&&thisIndyDate!="") {
 	                %>		
 	                	<p>Last Sighted Date: <%=thisIndyDate%></p>
 	                <%
