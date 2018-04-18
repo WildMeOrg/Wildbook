@@ -653,5 +653,12 @@
 
 	</class>
 
+	<class name="SystemValue">
+		<field name="key" primary-key="true" />
+		<field name="version">
+			<column allows-null="true" />
+		</field>
+	</class>
+
   </package>
 </jdo>
