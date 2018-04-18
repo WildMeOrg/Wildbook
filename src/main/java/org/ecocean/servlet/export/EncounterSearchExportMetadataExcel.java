@@ -8,6 +8,7 @@ import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenDataReporter;
 
 import javax.jdo.*;
 
@@ -150,8 +151,16 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet{
         // Excel export =========================================================
         int count = 0;
 
+        HiddenDataReporter hiddenData = new HiddenDataReporter();
+
          for(int i=0;i<numMatchingEncounters;i++){
             Encounter enc=(Encounter)rEncounters.get(i);
+
+            if (!enc.canUserAccess(request)) {
+              hiddenData.addEncounter(enc);
+              continue;
+            }
+
             count++;
             numResults++;
 
@@ -204,6 +213,8 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet{
 
         outp.close();
         outp=null;
+
+        System.out.println("Done with EncounterSearchExportMetadataExcel. We hid "+hiddenData.numEncounters()+" encounters");
 
       }
       catch(Exception ioe){
