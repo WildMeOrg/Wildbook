@@ -31,13 +31,15 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int endNum = 100;
+  int maxPages = 300;
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
 
   int numResults = 0;
 	int count=0;
+
+	int indsWithoutPics=0;
 
   Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
   myShepherd.beginDBTransaction();
@@ -50,7 +52,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	numResults = rIndividuals.size();
 	System.out.println("PictureBook: returned "+numResults+" individuals");
 
-  if (numResults < endNum) endNum = numResults;
+  if (numResults < maxPages) maxPages = numResults;
   %>
 	
 	<jsp:include page="header.jsp" flush="true"/>
@@ -171,15 +173,18 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		boolean haspic3 = exemplarImages.size()>2;
 
 
-		if (!hasHeader) continue; // skip individuals without any images
-
+		if (!hasHeader) {
+			indsWithoutPics++;
+			continue; // skip individuals without any images
+		}
 		count++;
-		if (count>endNum) break;
+		if (count>maxPages) break;
 
 		String id = mark.getIndividualID();
 		String altID = mark.getAlternateID();
 		if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
 		String altIDStr = (Util.stringExists(altID)) ? ("<em>("+altID+")</em>") : "";
+		System.out.println("PictureBook: proceeded past hasHeader check");
 
 
 		%>
@@ -325,6 +330,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
+	System.out.println("PictureBook: done with java, found "+indsWithoutPics+" individuals with no pictures");
 
 %>
 
