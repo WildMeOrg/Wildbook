@@ -483,11 +483,14 @@ function submitForm() {
 	document.forms['encounterForm'].submit();
 }
 
-
+var toRemove = [];
 var fileListGlobal = [];
 var fileNameListGlobal = [];
 function updateList(inp) {
-
+    //All this is getting reset onChange because the fileItem is immutable. 
+    fileListGlobal = [];
+    fileNameListGlobal = [];
+    toRemove = [];
     //document.getElementById('input-file-list').innerHTML = "";
     document.getElementById('uploadList').innerHTML = "";
     var name = "";
@@ -507,7 +510,7 @@ function updateList(inp) {
                 fileNameListGlobal.push(name);
             }
         }
-        fileListHTML = '<b id="fileCounter">' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's:') + '</b> ' + fileListGlobal.join('');
+        fileListHTML = '<b id="fileCounter">' + fileListGlobal.length + ' file' + ((fileListGlobal.length == 1) ? '' : 's:') + '</b> ' + fileListGlobal.join('');
     } else {
         fileListHTML = inp.value;
     }
@@ -521,7 +524,6 @@ function showUploadBox() {
   $("#submitupload").removeClass("hidden");
 }
 
-var toRemove = [];
 function removeFile(id) {
   var num = id.substring("fileNameLink".length);
   var name = $("#filename"+num).val();
@@ -531,8 +533,10 @@ function removeFile(id) {
   var count = "";
   if (numFiles > 1) {
     count = String(numFiles) + " files:";
-  } else {
+  } else if (numFiles===1) {
     count = String(numFiles) + " file:";
+  } else {
+    count = "";
   }
   $('#fileCounter').html(count);
   $("#toRemove").val(toRemove.join(";"));
@@ -581,6 +585,7 @@ function removeFile(id) {
       <ul id="uploadList" style="list-style:none;"> 
       
       </ul>
+      <label><%=props.getProperty("canAddOnce") %></label>
       <input type="hidden" id="toRemove" name="toRemove" value=""></input>
     </div>
 
