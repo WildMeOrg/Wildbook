@@ -101,6 +101,13 @@ int count = myShepherd.getNumAdoptions();
 int allSharks = myShepherd.getNumMarkedIndividuals();
 int countAdoptable = allSharks - count;
 
+Iterator<MarkedIndividual> indys = myShepherd.getAllMarkedIndividuals();
+while (indys.hasNext()) {
+  MarkedIndividual indy = indys.next();
+  indy.refreshDateLatestSighting();
+  System.out.println("Refreshing Latest Sightings for Indy: "+indy.getIndividualID());
+}
+
 if(request.getParameter("adoptableSharks")!=null){
 	//get current time minus two years
 	Long twoYears=new Long("63072000000");
@@ -317,7 +324,7 @@ int numDataContributors=0;
 
     //var pageNum = "Page: "+String((parseInt(<%=startNum%>)+1)/parseInt(<%=numIndividualsOnPage%>));
     var pageNum = String(Math.round(parseInt(<%=endNum%>)/parseInt(<%=numIndividualsOnPage%>))); 
-    $('.pageCounter b').html("Date: "+pageNum);
+    $('.pageCounter b').html("Page: "+pageNum);
 
   }); 
 </script>
@@ -541,18 +548,31 @@ int numDataContributors=0;
                 <tr>
 	                <td>
 	                <%
-	                HashMap<String,String> dateAndLoc = new HashMap<String,String>();
 	                String thisIndyLoc = null;
 	                String thisIndyDate = null;
 	                try {
-	                	myShepherd.beginDBTransaction();
-	                	dateAndLoc = myShepherd.getLastEncounterDateAndLocation(pairName[j]);
-	                	myShepherd.commitDBTransaction(); 
-                    if (dateAndLoc.containsKey("location")) {
-                      thisIndyLoc = dateAndLoc.get("location");
+                    MarkedIndividual mi = myShepherd.getMarkedIndividual(pairName[j]);
+                    mi.refreshDateLatestSighting();
+                    System.out.println("++++++++++++++++++++ Date Latest Sighting: "+mi.getDateLatestSighting());
+                    Vector<Encounter> encs = mi.getEncounters();
+                    Long tempMillis = 1L;
+                    Encounter bestEnc = null;
+                    for (int k=0;k<encs.size();k++) {
+                      Encounter tempEnc = encs.get(k);
+                      System.out.println("++++++++++++++++++++ Enc All dates #"+k+" : "+tempEnc.getDateInMilliseconds());
+                      if (tempEnc.getDateInMilliseconds()>tempMillis) {
+                        bestEnc = tempEnc;
+                        tempMillis = tempEnc.getDateInMilliseconds();
+                      }
                     }
-                    if (dateAndLoc.containsKey("date")) {
-                      thisIndyDate = dateAndLoc.get("date");
+                    if (bestEnc!=null) {
+                      thisIndyDate = bestEnc.getShortDate();
+                      thisIndyLoc = bestEnc.getLocation();
+
+                      System.out.println("++++++++++++++++++++ This indy Loc: "+thisIndyLoc);
+                      System.out.println("++++++++++++++++++++ This indy Date: "+thisIndyLoc);
+                    } else {
+                      thisIndyDate = mi.getDateLatestSighting();
                     }
 	                } catch (Exception e) {
 	                	e.printStackTrace();
@@ -565,7 +585,9 @@ int numDataContributors=0;
 	                if (thisIndyDate != null) {
 	                %>		
 	                	<p>Last Sighted Date: <%=thisIndyDate%></p>
-	                <%}%>
+	                <%
+                  }
+                  %>
 	                </td>
                 <tr>
               </tr></table>
@@ -590,6 +612,7 @@ int numDataContributors=0;
             <%
           }
           if (endNum<allSharks) {
+            System.out.println("AllSharks number: "+allSharks);
             %>
             &nbsp;&nbsp;<a class="gallery-arrows btn btn-default" href= "<%=urlLoc%>/gallery.jsp?startNum=<%=startNum+numIndividualsOnPage%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString%><%=locationCodeFieldString %>"><span class="arrow-span">&nbsp;&nbsp; Next &nbsp;&nbsp;&nbsp;</span><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
             <%  

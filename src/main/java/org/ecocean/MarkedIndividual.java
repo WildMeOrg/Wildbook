@@ -229,7 +229,7 @@ public class MarkedIndividual implements java.io.Serializable {
 		return d;
 	}
 	
-	 public String refreshDateLastestSighting() {
+	 public String refreshDateLatestSighting() {
 	    Encounter[] sorted = this.getDateSortedEncounters();
 	    if (sorted.length < 1) return null;
 	    Encounter last = sorted[0];
@@ -1967,7 +1967,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		this.resetMaxNumYearsBetweenSightings();
 		this.refreshDateFirstIdentified();
 		this.refreshThumbnailUrl(context);
-		this.refreshDateLastestSighting();
+		this.refreshDateLatestSighting();
 	}
 
 
