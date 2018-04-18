@@ -47,7 +47,7 @@ public class ImportAccess extends HttpServlet {
   // Hack. TODO: remove?
   private static boolean runOncePercompile = false;
 
-  private static boolean committing = true; // for developing w/o mucking up database
+  private static boolean committing = false; // for developing w/o mucking up database
   
   // Okay, we might need to build a hashmap out of every line in this table, so we can create multiple encounters 
   // for the date/sighting number pairs that occure multiple times. 
@@ -486,12 +486,12 @@ public class ImportAccess extends HttpServlet {
     System.out.println("    PROCIDPHOTOS Now to load the columns of the table into our boy");
     
 
-    System.out.println("    ** PROCIDPHOTOS about to set date");
+    System.out.println("PROCIDPHOTOS about to set date");
     Date encTime = null;
     try {encTime = thisRow.getDate("Date");}
     catch (Exception e) {
       try {encTime = new Date(thisRow.get("Date").toString());}
-      catch (Exception f) {}
+      catch (Exception f) {System.out.println("PROCIDPHOTOS about to set date");}
     }
     if (encTime!=null) {
       enc.setDateInMilliseconds(encTime.getTime());
@@ -551,7 +551,7 @@ public class ImportAccess extends HttpServlet {
   // each row in idphotos is an annotation, but you can deduce which encounter it is by the individual_id and date fields
   private String getEncounterCodeForIDPhotoRow(Row thisRow) {
     try {
-      String indivDayCode = getDailyGroupNameForIDPhotoRow(thisRow);
+      String indivDayCode = getDailyIndivNameForIDPhotoRow(thisRow);
       Date rowDate = getDateForIDPhotoRow(thisRow);
       if ((indivDayCode == null || "".equals(indivDayCode)) && rowDate == null) return null;
       return indivDayCode + rowDate.toString();
@@ -581,8 +581,7 @@ public class ImportAccess extends HttpServlet {
   private String getDailyIndivNameForIDPhotoRow(Row thisRow) {
     // since "Individual_designation" of A2^2 means the second member of group A2 on that day...
     String individualDesignation = thisRow.get("Individual_designation").toString();
-    if (individualDesignation == null || individualDesignation.equals("") || (individualDesignation.split("^").length==0)) return null;
-    return individualDesignation.split("^")[1];
+    return individualDesignation;
   }
 
   private Date getDateForIDPhotoRow(Row thisRow) {
@@ -623,7 +622,7 @@ public class ImportAccess extends HttpServlet {
       if (omcd!=null) return "OMCD"+omcd; // label the omcd row
     } catch (Exception e) {
       try {
-        return getDateForIDPhotoRow(thisRow).toString() + getDailyGroupNameForIDPhotoRow(thisRow);
+        return (getDateForIDPhotoRow(thisRow).toString() +"-group"+ getDailyGroupNameForIDPhotoRow(thisRow));
       }
       catch (Exception f) {
         System.out.println("    +getOccurrenceCodeForIDPhotoRow: no occurrence code found for row "+loggingRefForIDPhotoRow(thisRow)+"; returning a UUID");
