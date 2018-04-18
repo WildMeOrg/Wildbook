@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration,
-         com.google.gson.Gson,
+         com.google.gson.Gson,java.text.SimpleDateFormat,
          org.datanucleus.api.rest.orgjson.JSONObject
          " %>
 
@@ -131,6 +131,26 @@ context=ServletUtilities.getContext(request);
 
       Occurrence occ = myShepherd.getOccurrence(name);
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
+
+
+      System.out.println("");
+      System.out.println("Occurrence.jsp: I think a bot is loading this page, so here's some loggin':");
+      String ipAddress = request.getHeader("X-FORWARDED-FOR");
+      if (ipAddress == null) ipAddress = request.getRemoteAddr();
+      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
+      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+      System.out.println("    From IP: "+ipAddress);
+      System.out.println("    "+currentTimeString);
+      System.out.println("    Occurrence: "+occ);
+      System.out.println("    hasAuthority: "+hasAuthority);
+      System.out.println("    request.getAuthType(): "+request.getAuthType());
+      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
+      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
+      System.out.println("");
+
+
+
+
 
       Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
       int total = dateSortedEncs.length;
