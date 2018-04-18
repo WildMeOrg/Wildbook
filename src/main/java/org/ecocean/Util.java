@@ -22,12 +22,15 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import java.util.Iterator;
-import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 
-//import javax.jdo.JDOException;
-//import javax.jdo.JDOHelper;
+// java sucks for making us add four import lines just to use a multimap. INELEGANT. NEXT!
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
+
 import javax.jdo.Query;
 //import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.http.HttpServlet;
@@ -594,5 +597,11 @@ public class Util {
       }
       return num;
     }
+
+  public static <KeyType, ValType> void addToMultimap(Map<KeyType, Set<ValType>> multimap, KeyType key, ValType val) {
+    if (!multimap.containsKey(key)) multimap.put(key, new HashSet<ValType>());
+    multimap.get(key).add(val);
+  }
+
 
 }
