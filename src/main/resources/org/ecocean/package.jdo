@@ -327,6 +327,19 @@
       <fetch-group name="count"/>
     </class>
 
+    <class name="Taxonomy" identity-type="application">
+      <field name="id" primary-key="true">
+      </field>
+
+	<field name="scientificName" allows-null="false">
+		<index name="TAXONOMY_SCIENTIFICNAME_INDEX" unique="true" />
+	</field>
+
+      <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
+    </class>
+
+
+
     <class name="SuperSpot">
       <datastore-identity strategy="increment"/>
     </class>
