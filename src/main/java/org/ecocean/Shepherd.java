@@ -2712,6 +2712,10 @@ public class Shepherd {
     //pmf=null;
   }
 
+  public boolean isDBTransactionActive() {
+    return (pm!=null && !pm.isClosed() && pm.currentTransaction().isActive());
+  }
+
   /**
    * Commits (makes permanent) any changes made to an open database
    */

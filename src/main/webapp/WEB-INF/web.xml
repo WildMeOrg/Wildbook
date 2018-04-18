@@ -1044,14 +1044,10 @@
   </servlet>
 
 <!--
-
-<!--
       <servlet>
            <servlet-name>MozPradel</servlet-name>
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet>
--->
-
 -->
 
   <servlet>
@@ -1232,8 +1228,6 @@
     <servlet-name>ResurrectDeletedEncounter</servlet-name>
     <servlet-class>org.ecocean.servlet.ResurrectDeletedEncounter</servlet-class>
   </servlet>
-
-<!--
 
 <!--
       <servlet>
