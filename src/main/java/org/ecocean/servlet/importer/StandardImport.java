@@ -53,7 +53,7 @@ StandardImport extends HttpServlet {
 	List<String> missingPhotos = new ArrayList<String>();
 	List<String> foundPhotos = new ArrayList<String>();
 	int numFolderRows = 0;
-	boolean committing = true;
+	boolean committing = false;
 	PrintWriter out;
 	// verbose variable can be switched on/off throughout the import for debugging
 	boolean verbose = false;
@@ -81,7 +81,7 @@ StandardImport extends HttpServlet {
     astore = getAssetStore(myShepherd);
 
     photoDirectory = "/data/oman_import/photos/";
-    String filename = "/data/oman_import/ASWN_firstExport.xlsx";
+    String filename = "/data/oman_import/ASWN_secondExport.xlsx";
     // photoDirectory = "/data/indocet/";
     // String filename = "/data/indocet/indocet_blended.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
@@ -193,8 +193,8 @@ StandardImport extends HttpServlet {
     for (String colName: colIndexMap.keySet()) {
       if (!unusedColumns.contains(colName)) usedColumns.add(colName);
     }
-    out.println("<h2><em>USED</em> Column headings ("+unusedColumns.size()+"):</h2><ul>");
-    for (String heading: unusedColumns) {
+    out.println("<h2><em>USED</em> Column headings ("+usedColumns.size()+"):</h2><ul>");
+    for (String heading: usedColumns) {
       out.println("<li>"+heading+"</li>");
     }
     out.println("</ul>");
@@ -217,9 +217,20 @@ StandardImport extends HttpServlet {
     //fs.close();
   }
 
+  public Taxonomy loadTaxonomy0(Row row) {
+    String sciName = getString(row, "Taxonomy.scientificName");
+    if (sciName==null) return null;
+    Taxonomy taxy = myShepherd.getOrCreateTaxonomy(sciName);
+    String commonName = getString(row, "Taxonomy.commonName");
+    if (commonName!=null) taxy.addCommonName(commonName);
+    return taxy;
+  }
 
-
-
+  public Taxonomy loadTaxonomy1(Row row) {
+    String sciName = getString(row, "Occurrence.taxonomy1");
+    if (sciName==null) return null;
+    return myShepherd.getOrCreateTaxonomy(sciName);
+  }
 
   public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
   	
@@ -252,9 +263,55 @@ StandardImport extends HttpServlet {
   	if (fieldSurveyCode!=null) occ.setFieldSurveyCode(fieldSurveyCode);
 
   	String sightingPlatform = getString(row, "Survey.vessel");
+    if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation");
   	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatform);
     String surveyComments = getString(row, "Survey.comments");
     if (surveyComments!=null) occ.addComments(surveyComments);
+
+    Integer numAdults = getInteger(row, "Occurrence.numAdults");
+    if (numAdults!=null) occ.setNumAdults(numAdults);
+
+    Integer minGroupSize = getInteger(row, "Occurrence.minGroupSizeEstimate");
+    if (minGroupSize!=null) occ.setMinGroupSizeEstimate(minGroupSize);
+    Integer maxGroupSize = getInteger(row, "Occurrence.maxGroupSizeEstimate");
+    if (maxGroupSize!=null) occ.setMaxGroupSizeEstimate(maxGroupSize);
+    Double bestGroupSize = getDouble(row, "Occurrence.bestGroupSizeEstimate");
+    if (bestGroupSize!=null) occ.setBestGroupSizeEstimate(bestGroupSize);
+
+    Integer numCalves = getInteger(row, "Occurrence.numCalves");
+    if (numCalves!=null) occ.setNumCalves(numCalves);
+    Integer numJuveniles = getInteger(row, "Occurrence.numJuveniles");
+    if (numJuveniles!=null) occ.setNumJuveniles(numJuveniles);
+
+
+    Double bearing = getDouble(row, "Occurrence.bearing");
+    if (bearing!=null) occ.setBearing(bearing);
+    Double distance = getDouble(row, "Occurrence.distance");
+    if (distance!=null) occ.setDistance(distance);
+
+    Double swellHeight = getDouble(row, "Occurrence.swellHeight");
+    if (swellHeight!=null) occ.setSwellHeight(swellHeight);
+    String seaState = getString(row, "Occurrence.seaState");
+    if (seaState!=null) occ.setSeaState(seaState);
+    Double visibilityIndex = getDouble(row, "Occurrence.visibilityIndex");
+    if (visibilityIndex!=null) occ.setVisibilityIndex(visibilityIndex);
+
+    Double transectBearing = getDouble(row, "Occurrence.transectBearing");
+    if (transectBearing!=null) occ.setTransectBearing(transectBearing);
+    String transectName = getString(row, "Occurrence.transectName");
+    if (transectName!=null) occ.setTransectName(transectName);
+
+    String initialCue = getString(row, "Occurrence.initialCue");
+    String humanActivity = getString(row, "Occurrence.humanActivityNearby");
+    if (humanActivity!=null) occ.setHumanActivityNearby(humanActivity);
+    Double effortCode = getDouble(row, "Occurrence.effortCode");
+    if (effortCode!=null) occ.setEffortCode(effortCode);
+
+    Taxonomy taxy = loadTaxonomy0(row);
+    if (taxy!=null) occ.addTaxonomy(taxy);
+
+    Taxonomy taxy1 = loadTaxonomy1(row);
+    if (taxy1!=null) occ.addTaxonomy(taxy1);
 
   	String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
   	if (surveyTrackVessel!=null) occ.setSightingPlatform(surveyTrackVessel);
