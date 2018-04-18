@@ -2,7 +2,7 @@
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
-org.datanucleus.ExecutionContext,
+org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
@@ -95,8 +95,10 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individuals.jsp");
 
-
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+
+
+
 
 %>
 
@@ -111,8 +113,23 @@ if (request.getParameter("number")!=null) {
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
 
-
 			boolean visible = indie.canUserAccess(request);
+
+      System.out.println("");
+      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+      String ipAddress = request.getHeader("X-FORWARDED-FOR");
+      if (ipAddress == null) ipAddress = request.getRemoteAddr();
+      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
+      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+      System.out.println("    From IP: "+ipAddress);
+      System.out.println("    "+currentTimeString);
+      System.out.println("    Individual: "+indie);
+      System.out.println("    is visible: "+visible);
+      System.out.println("    request.getAuthType(): "+request.getAuthType());
+      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
+      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
+      System.out.println("");
+
 
 			if (!visible) {
   			ArrayList<String> uids = indie.getAllAssignedUsers();
