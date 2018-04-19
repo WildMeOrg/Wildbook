@@ -100,30 +100,15 @@ public class TwitterUtil {
         return tw.verifyCredentials();
     }
 
-  public static String toJSONString(Object obj) {
-    String returnVal = null;
-    Gson gson = new Gson();
-    returnVal = gson.toJson(obj);
-    if(returnVal == null){
-      System.out.println("returnVal in toJSONString is null");
+
+    public static String toJSONString(Object obj) {
+        return TwitterObjectFactory.getRawJSON(obj);
     }
-    System.out.println(returnVal);
-    return returnVal;
-  }
-  public static JSONObject toJSONObject(Object obj) {
-    String s = toJSONString(obj);
-    if (s == null){
-      System.out.println("toJSONString is null");
-      return null;
+    public static JSONObject toJSONObject(Object obj) {
+        String s = toJSONString(obj);
+        if (s == null) return null;
+        return new JSONObject(s);
     }
-    try {
-      JSONObject j = new JSONObject(s);
-      return j;
-    } catch (JSONException ex) {
-      System.out.println("ERROR: TwitterUtil.toJSONObject() could not parse '" + s + "' as JSON: " + ex.toString());
-      return null;
-    }
-  }
 
   //http://twitter4j.org/en/configuration.html
   public static TwitterFactory getTwitterFactory(String context) {
@@ -149,16 +134,11 @@ public class TwitterUtil {
   }
 
 
-  public static String createTweet(String tweet, Twitter twitterInst) throws TwitterException {
-    String returnVal = null;
-    try {
-      Status status = twitterInst.updateStatus(tweet);
-      returnVal = status.getText();
-    } catch(TwitterException e) {
-      e.printStackTrace();
+    //note: this directly sends tweet.  check out TwitterBot.sendTweet() for info on the prefered queued version.
+    //  queueing will take into account rates etc.
+    public static Status sendTweet(String tweetText) throws TwitterException {
+        if (tfactory == null) throw new TwitterException("TwitterUtil has not been initialized");
+        return tfactory.getInstance().updateStatus(tweetText);
     }
-    return returnVal;
-  }
-
 
 }

@@ -19,6 +19,7 @@ import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
+import org.ecocean.RateLimitation;
 
 import com.google.gson.Gson;
 import java.util.List;
@@ -39,34 +40,32 @@ import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.Status;
 
 public class TwitterBot {
-  private static String SYSTEMVALUE_KEY_SINCEID = "TwitterBotSinceId";
+    private static String SYSTEMVALUE_KEY_SINCEID = "TwitterBotSinceId";
+    private static Queue queueIn = null;
+    private static Queue queueOut = null;
 
-  public static void sendCourtesyTweet(String screenName, String mediaType,  Twitter twitterInst, Long twitterId) {
+    //this probably *should* be "universal" for twitter!  (on TwitterUtil?) or at least per-account
+    private static RateLimitation outgoingRL = new RateLimitation(48 * 60 * 60 * 1000);  //only care about last 48 hrs
+
+
+  public static void sendCourtesyTweet(String screenName, String mediaType, Long twitterId) {
     String reply = null;
     if(mediaType.equals("photo")) {
       reply = "Thank you for the photo(s), including id " + Long.toString(twitterId) + ", @" + screenName + "! Result pending!";
     } else {
       reply = "Thanks for tweet " + Long.toString(twitterId) + ", @" + screenName + "! Could you send me a pic in a new tweet?";
     }
-    try {
-      String status = TwitterUtil.createTweet(reply, twitterInst);
-    } catch(TwitterException e) {
-      e.printStackTrace();
-    }
+    sendTweet(reply);
   }
 
-  public static void sendCourtesyTweet(String screenName, String mediaType,  Twitter twitterInst, String id) {
+  public static void sendCourtesyTweet(String screenName, String mediaType, String id) {
     String reply = null;
     if(mediaType.equals("photo")) {
       reply = "Thank you for the photo(s), including id " + id + ", @" + screenName + "! Result pending!";
     } else {
       reply = "Thanks for tweet " + id + ", @" + screenName + "! Could you send me a pic in a new tweet?";
     }
-    try {
-      String status = TwitterUtil.createTweet(reply, twitterInst);
-    } catch(TwitterException e) {
-      e.printStackTrace();
-    }
+    sendTweet(reply);
   }
 
   public static void sendPhotoSpecificCourtesyTweet(org.json.JSONArray emedia, String tweeterScreenName, Twitter twitterInst){
@@ -88,7 +87,7 @@ public class TwitterBot {
         if(mediaType.equals("photo")){
           //For now, just one courtesy tweet per tweet, even if the tweet contains multiple images
           if(photoCount<1){
-            sendCourtesyTweet(tweeterScreenName, mediaType, twitterInst, mediaEntityId);
+            sendCourtesyTweet(tweeterScreenName, mediaType, mediaEntityId);
           }
           photoCount += 1;
         }
@@ -150,7 +149,7 @@ public class TwitterBot {
   }
 
 
-  public static void sendDetectionAndIdentificationTweet(String screenName, String imageId, Twitter twitterInst, String whaleId, boolean detected, boolean identified, String info){
+  public static void sendDetectionAndIdentificationTweet(String screenName, String imageId, String whaleId, boolean detected, boolean identified, String info){
     String tweet = null, tweet2 = null;
     if(detected && identified){
       tweet = "Hi, @" + screenName + "! We detected a whale in " + imageId + " and identified it as " + whaleId + "!";
@@ -163,24 +162,15 @@ public class TwitterBot {
       tweet =  "Hi, @" + screenName + "! We were not able to identify a whale in " + imageId + ".";
       tweet2 = "@" + screenName + ", if you'd like to make a manual submission for " + imageId + ", please go to http://www.flukebook.org/submit.jsp";
     }
-
-    try {
-      String status1 = TwitterUtil.createTweet(tweet, twitterInst);
-      String status2 = TwitterUtil.createTweet(tweet2, twitterInst);
-    } catch(TwitterException e){
-      e.printStackTrace();
-    }
+    sendTweet(tweet);
+    sendTweet(tweet2);
   }
 
-  public static void sendTimeoutTweet(String screenName, Twitter twitterInst, String id) {
+  public static void sendTimeoutTweet(String screenName, String id) {
     String reply = "Hello @" + screenName + "The image you sent for tweet " + id + " was unable to be processed";
     String reply2 = "@" + screenName + ", if you'd like to make a manual submission, please go to http://www.flukebook.org/submit.jsp";
-    try {
-      String status = TwitterUtil.createTweet(reply, twitterInst);
-      String status2 = TwitterUtil.createTweet(reply2, twitterInst);
-    } catch(TwitterException e) {
-      e.printStackTrace();
-    }
+    sendTweet(reply);
+    sendTweet(reply2);
   }
 
   public static JSONArray removePendingEntry(JSONArray pendingResults, int index){
@@ -196,12 +186,37 @@ public class TwitterBot {
   }
 
 
+    public static String rateLimitationInfo() {
+        return outgoingRL.toString();
+    }
+
+    //this is *queued* sending, which is what we want (usually!) so that rate limits etc can be taken care of
+    public static void sendTweet(String tweetText) {
+        //for now, outgoing queue just takes tweet text!  maybe this will change?  see: messageOutHandler()
+        queuePush(queueOut, tweetText);
+    }
+
+
     private static void messageInHandler(String msg) {
 System.out.println("<<< hey i should be doing something with: " + msg);
     }
 
     private static void messageOutHandler(String msg) {
-System.out.println(">>> hey i should be sending this tweet: " + msg);
+        int lastHour = outgoingRL.numSinceHoursAgo(1);
+        while (lastHour > 10) {
+            System.out.println("INFO: TwitterBot.messageOutHandler() got message.  Last hour rate = " + lastHour + ", so stalling...");
+            try {
+                Thread.sleep(5000);
+            } catch (java.lang.InterruptedException ex) {}
+            lastHour = outgoingRL.numSinceHoursAgo(1);
+        }
+        try {
+            Status tweet = TwitterUtil.sendTweet(msg);
+            System.out.println("INFO: TweetBot.messageOutHandler() sent tweet id=" + tweet.getId());
+        } catch (TwitterException tex) {
+            System.out.println("WARNING: TweetBot.messageOutHandler(" + msg + ") threw " + tex.toString());
+        }
+        outgoingRL.addEvent();  //adding event *even if we fail* ... just cuz???
     }
 
 
@@ -226,13 +241,13 @@ System.out.println(">>> hey i should be sending this tweet: " + msg);
             return false;
         }
 
-        Queue queueIn = null;
+        queueIn = null;
         try {
             queueIn = QueueUtil.getBest(context, "TwitterIn");
         } catch (java.io.IOException ex) {
             System.out.println("+ ERROR: TwitterIn queue startup exception: " + ex.toString());
         }
-        Queue queueOut = null;
+        queueOut = null;
         try {
             queueOut = QueueUtil.getBest(context, "TwitterOut");
         } catch (java.io.IOException ex) {
@@ -258,7 +273,6 @@ System.out.println(">>> hey i should be sending this tweet: " + msg);
             System.out.println("+ TwitterBot.startServices() queueOut.consume() FAILED on " + queueOut.toString() + ": " + iox.toString());
         }
 
-
         //TODO start "listener"
         return true;
     }
@@ -273,6 +287,20 @@ System.out.println(">>> hey i should be sending this tweet: " + msg);
             return null;
         }
         return "@" + handle;
+    }
+
+    public static boolean queuePush(Queue q, String msg) {
+        if (q == null) {
+            System.out.println("ERROR: TwitterBot.queuePush() has null queue.  msg=" + msg);
+            return false;
+        }
+        try {
+            q.publish(msg);
+        } catch (java.io.IOException iox) {
+            System.out.println("ERROR: TwitterBot.queuePush(" + q.toString() + ", " + msg + ") publish() got exception: " + iox.toString());
+            return false;
+        }
+        return true;
     }
 
     //finds tweets and dumps into incoming queue... easy-peasy!
@@ -295,9 +323,19 @@ System.out.println(">>> hey i should be sending this tweet: " + msg);
         //note, it appears we really should be *paging thru* multiple sets of these... FIXME
         //   see:   http://twitter4j.org/javadoc/twitter4j/QueryResult.html
         List<Status> tweets = qr.getTweets();
+        int offset = 0;
         for (Status tweet : tweets) {
             if (tweet.getId() > sinceId) sinceId = tweet.getId();
-System.out.println("\n\n>>>>>>>>>>>>>>>>>>>>>>>>\n" + tweet);
+            JSONObject qjob = new JSONObject();
+            qjob.put("numOffset", offset);
+            qjob.put("numTotal", tweets.size());
+            qjob.put("timestamp", System.currentTimeMillis());
+            qjob.put("source", "TwitterBot.collectTweets()");
+            qjob.put("tweetId", tweet.getId());
+            qjob.put("tweet", TwitterUtil.toJSONObject(tweet));
+//System.out.println("\n\n>>>>>>>>>>>>>>>>>>>>>>>>\n" + tweet);
+            queuePush(queueIn, qjob.toString());
+            offset++;
         }
 
         SystemValue.set(myShepherd, SYSTEMVALUE_KEY_SINCEID, sinceId);
