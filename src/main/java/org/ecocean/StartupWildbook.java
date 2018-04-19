@@ -127,6 +127,7 @@ public class StartupWildbook implements ServletContextListener {
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
         startIAQueues("context0");
+        TwitterBot.startServices("context0");
     }
 
 
@@ -181,45 +182,6 @@ public class StartupWildbook implements ServletContextListener {
             System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
         }
     }
-
-
-
-    /////////public abstract void consume(QueueMessageHandler msgHandler) throws java.io.IOException;
-/*
-        } else {
-            final String queueRef = queue.toString();
-            System.out.println("+ IA queue service started on " + queueRef + "; initializing consumer...");
-            schedExec = Executors.newScheduledThreadPool(5);
-            schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
-                int count = 0;
-                public void run() {
-                    ++count;
-                    boolean cont = true;
-                    try {
-                        //cont = ScheduledQueue.checkQueue();
-                    } catch (Exception ex) {
-                        //System.out.println("!!!! ScheduledQueue.checkQueue() got an exception; halting: " + ex.toString() + " !!!!");
-                        //cont = false;
-                    }
-                    if (count % 100 == 1) System.out.println("==== IAQueue run [count " + count + "]; queue=" + queueRef + "; continue = " + cont + " ====");
-                    if (!cont) {
-                        System.out.println(":::: IAQueue shutdown via discontinue signal ::::");
-                        schedExec.shutdown();
-                    }
-                }
-            },
-            10,  //initial delay  ... TODO these could be configurable, obvs
-            10,  //period delay *after* execution finishes
-            TimeUnit.SECONDS);
-            System.out.println("---- about to awaitTermination() ----");
-            try {
-                schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
-            } catch (java.lang.InterruptedException ex) {
-                System.out.println("WARNING: queue interrupted! " + ex.toString());
-            }
-            System.out.println("==== schedExec.shutdown() called, apparently");
-        }
-*/
 
 
     public void contextDestroyed(ServletContextEvent sce) {
