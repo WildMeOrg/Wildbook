@@ -40,7 +40,8 @@ import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.Status;
 
 public class TwitterBot {
-    private static String SYSTEMVALUE_KEY_SINCEID = "TwitterBotSinceId";
+    private static String SYSTEMVALUE_KEY_COLLECT_SINCEID = "TwitterBotCollectSinceId";
+    private static String SYSTEMVALUE_KEY_COLLECT_PROCESSED_ID = "TwitterBotCollectProcessedId";
     private static Queue queueIn = null;
     private static Queue queueOut = null;
 
@@ -310,8 +311,12 @@ System.out.println("<<< hey i should be doing something with: " + msg);
             System.out.println("WARNING: TwitterBot.collectTweets() could not establish searchString.  :(");
             return -99;
         }
-        Long sinceId = SystemValue.getLong(myShepherd, SYSTEMVALUE_KEY_SINCEID);
+
+        Long sinceId = SystemValue.getLong(myShepherd, SYSTEMVALUE_KEY_COLLECT_SINCEID);
         if (sinceId == null) sinceId = 986640529160048640l; //dont go back forever! kinda arbitrary start...
+        Long previousId = SystemValue.getLong(myShepherd, SYSTEMVALUE_KEY_COLLECT_PROCESSED_ID);
+        if (previousId == null) previousId = 0l;  //we dont process any id < this, since we should only move forward in time!
+
         QueryResult qr = null;
         try {
             qr = TwitterUtil.findTweets(searchString, sinceId);
@@ -323,8 +328,15 @@ System.out.println("<<< hey i should be doing something with: " + msg);
         //note, it appears we really should be *paging thru* multiple sets of these... FIXME
         //   see:   http://twitter4j.org/javadoc/twitter4j/QueryResult.html
         List<Status> tweets = qr.getTweets();
-        int offset = 0;
+        int offset = -1;
+        int queued = 0;
         for (Status tweet : tweets) {
+            offset++;
+            if (tweet.getId() <= previousId) {
+                System.out.println("INFO: TwitterBot.collectTweets() skipping " + tweet.getId() + ", less than previousId");
+                continue;
+            }
+            previousId = tweet.getId();
             if (tweet.getId() > sinceId) sinceId = tweet.getId();
             JSONObject qjob = new JSONObject();
             qjob.put("numOffset", offset);
@@ -335,11 +347,12 @@ System.out.println("<<< hey i should be doing something with: " + msg);
             qjob.put("tweet", TwitterUtil.toJSONObject(tweet));
 //System.out.println("\n\n>>>>>>>>>>>>>>>>>>>>>>>>\n" + tweet);
             queuePush(queueIn, qjob.toString());
-            offset++;
+            queued++;
         }
 
-        SystemValue.set(myShepherd, SYSTEMVALUE_KEY_SINCEID, sinceId);
-        return tweets.size();
+        SystemValue.set(myShepherd, SYSTEMVALUE_KEY_COLLECT_PROCESSED_ID, previousId);
+        SystemValue.set(myShepherd, SYSTEMVALUE_KEY_COLLECT_SINCEID, sinceId);
+        return queued;
     }
 
 }
