@@ -573,8 +573,9 @@ int numDataContributors=0;
 
                       System.out.println("++++++++++++++++++++ This indy Loc: "+thisIndyLoc);
                       System.out.println("++++++++++++++++++++ This indy Date: "+thisIndyDate);
-                    } else {
-                      thisIndyDate = mi.getDateLatestSighting();
+                    }
+                    if (thisIndyDate.equals("Unknown")&&mi.getDateLatestSighting()!=null) {
+                      thisIndyDate = mi.getDateLatestSighting().split(" ")[0];
                     }
 	                } catch (Exception e) {
 	                	e.printStackTrace();
