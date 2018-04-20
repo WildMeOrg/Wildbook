@@ -12,6 +12,7 @@ import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+import java.util.HashMap;
 
 import com.google.gson.Gson;
 
@@ -41,7 +42,8 @@ import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.Status;
 
 public class TwitterUtil {
-  private static TwitterFactory tfactory = null;
+    private static TwitterFactory tfactory = null;  //note should be based on context like below no????  TODO
+    private static HashMap<String,Properties> Props = new HashMap<String,Properties>();  //keyed on context
 
     public static Twitter init(HttpServletRequest request) {
         return init(ServletUtilities.getContext(request));
@@ -110,16 +112,29 @@ public class TwitterUtil {
         return new JSONObject(s);
     }
 
+    public static String getProperty(String context, String key) {
+        if (Props.get(context) == null) Props.put(context, ShepherdProperties.getProperties("twitter.properties", "", context));
+        if (Props.get(context) == null) throw new RuntimeException("could not load twitter.properties for " + context);  //ouch
+        return Props.get(context).getProperty(key);
+    }
+
   //http://twitter4j.org/en/configuration.html
   public static TwitterFactory getTwitterFactory(String context) {
+/*
     Properties props = ShepherdProperties.getProperties("twitter.properties", "", context);
     if (props == null) throw new RuntimeException("no twitter.properties");
     String debug = props.getProperty("debug");
     String consumerKey = props.getProperty("consumerKey");
+*/
+    String debug = getProperty(context, "debug");
+    String consumerKey = getProperty(context, "consumerKey");
     if ((consumerKey == null) || consumerKey.equals("")) throw new RuntimeException("twitter.properties missing consumerKey");  //hopefully enough of a hint
-    String consumerSecret = props.getProperty("consumerSecret");
-    String accessToken = props.getProperty("accessToken");
-    String accessTokenSecret = props.getProperty("accessTokenSecret");
+    //String consumerSecret = props.getProperty("consumerSecret");
+    //String accessToken = props.getProperty("accessToken");
+    //String accessTokenSecret = props.getProperty("accessTokenSecret");
+    String consumerSecret = getProperty(context, "consumerSecret");
+    String accessToken = getProperty(context, "accessToken");
+    String accessTokenSecret = getProperty(context, "accessTokenSecret");
     ConfigurationBuilder cb = new ConfigurationBuilder();
     cb.setDebugEnabled((debug != null) && debug.toLowerCase().equals("true"))
     .setOAuthRequestTokenURL("https://api.twitter.com/oauth2/request_token")
