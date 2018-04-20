@@ -704,11 +704,11 @@ try {
     <section class="container text-center  main-section">
         <div class="row">
 
-
 			<!-- add left and right side ID for encounters and Individuals - GSB branch -->
 
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedInd") %></i></p>
+			<section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+                <p class="indyCounter brand-primary"><i><span class="numSpotted"><%=numIndyLeftID%></span>&nbsp;&nbsp;<%=props.getProperty("leftIDIndNum") %></i></p>
+                <p class="indyCounter brand-primary"><i><span class="numSpotted"><%=numIndyRightID%></span>&nbsp;&nbsp;<%=props.getProperty("rightIDIndNum") %></i></p>
             </section>
 
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
@@ -719,15 +719,9 @@ try {
 				<p class="brand-primary"><i><span class="massive"><%=numCitScientists%></span> <%=props.getProperty("citScientists") %></i></p>
 			</section>
 
-			<section class="hidden-xs col-sm-6 col-md-6 col-lg-6 padding">
-                <p class="brand-primary"><i><span class="numSpotted"><%=numIndyLeftID%></span>&nbsp;&nbsp;<%=props.getProperty("leftIDIndNum") %></i></p>
-                <p class="brand-primary"><i><span class="numSpotted"><%=numIndyRightID%></span>&nbsp;&nbsp;<%=props.getProperty("rightIDIndNum") %></i></p>
-            </section>
-
-			<section class="hidden-xs col-sm-6 col-md-6 col-lg-6 padding">
-                <p class="brand-primary"><i><span class="numSpotted"><%=numEncLeftID %></span>&nbsp;&nbsp;<%=props.getProperty("leftIDEncNum") %></i></p>
-                <p class="brand-primary"><i><span class="numSpotted"><%=numEncRightID %></span>&nbsp;&nbsp;<%=props.getProperty("rightIDEncNum") %></i></p>
-            </section>
+			<section class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+				<p class="brand-primary"><i><%=props.getProperty("counterSummary")%></i></p>
+			</section>
 
         </div>
 

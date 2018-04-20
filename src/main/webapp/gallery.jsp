@@ -626,7 +626,7 @@ int numDataContributors=0;
 
 
         </p>
-        <p class="pull-right galleryCounter pageCounter"><b>Page: 1</b></p>
+        <p id="galleryCounterBottom" class="galleryCounter pageCounter"><b>Page: 1</b></p>
 
 	 </div>
   </section>

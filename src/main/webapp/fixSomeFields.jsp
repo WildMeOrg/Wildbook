@@ -28,39 +28,42 @@ Shepherd myShepherd=new Shepherd(context);
 
 <ul>
 <%
-try {
+boolean commit = false;
+if (commit) {
+    try {
 
-    String[] names = {"Tom","Karen","Bud","Stephanie","Archibald","Penny","Steven","Erin","Trevor","Carlos","Belinda","Wanda","Murray","Patrick","Gertrude","Pam","Tim","John"};
-	// rootDir = request.getSession().getServlet().getServletContext().getRealPath("/");
-	// String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "wildbook_data_dir");
- 
-    ArrayList<Encounter> encs = new ArrayList<>();
-    ArrayList<MarkedIndividual> indys = new ArrayList<MarkedIndividual>();
+        String[] names = {"Tom","Karen","Bud","Stephanie","Archibald","Penny","Steven","Erin","Trevor","Carlos","Belinda","Wanda","Murray","Patrick","Gertrude","Pam","Tim","John"};
+        // rootDir = request.getSession().getServlet().getServletContext().getRealPath("/");
+        // String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "wildbook_data_dir");
+    
+        ArrayList<Encounter> encs = new ArrayList<>();
+        ArrayList<MarkedIndividual> indys = new ArrayList<MarkedIndividual>();
 
-    int count = 0;
+        int count = 0;
 
-    while (count<18) {
-        myShepherd.beginDBTransaction();
-        Encounter enc = new Encounter();
-        enc.setState("approved");
-        myShepherd.storeNewEncounter(enc, Util.generateUUID());
-        myShepherd.commitDBTransaction();
-        myShepherd.beginDBTransaction();
-        MarkedIndividual indy = new MarkedIndividual();
-        indy.setIndividualID(names[count]);
-        myShepherd.storeNewMarkedIndividual(indy);
-        myShepherd.commitDBTransaction();
-        enc.setIndividualID(indy.getIndividualID());
+        while (count<18) {
+            myShepherd.beginDBTransaction();
+            Encounter enc = new Encounter();
+            enc.setState("approved");
+            myShepherd.storeNewEncounter(enc, Util.generateUUID());
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+            MarkedIndividual indy = new MarkedIndividual();
+            indy.setIndividualID(names[count]);
+            myShepherd.storeNewMarkedIndividual(indy);
+            myShepherd.commitDBTransaction();
+            enc.setIndividualID(indy.getIndividualID());
 
-        count++;
-        System.out.println("====== Created this Indy/Enc for testing! Number: "+count+" Name: "+names[count]);
+            count++;
+            System.out.println("====== Created this Indy/Enc for testing! Number: "+count+" Name: "+names[count]);
+        }
+        System.out.println("====== Done! Created testing individuals from list of 18.");
+
+    } catch (Exception e) {
+        myShepherd.rollbackDBTransaction();
+    } finally {
+        myShepherd.closeDBTransaction();
     }
-    System.out.println("====== Done! Created testing individuals from list of 18.");
-
-} catch (Exception e) {
-	myShepherd.rollbackDBTransaction();
-} finally {
-	myShepherd.closeDBTransaction();
 }
 
 %>
