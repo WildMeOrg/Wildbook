@@ -104,12 +104,22 @@ public class TwitterUtil {
 
 
     public static String toJSONString(Object obj) {
+        if (obj == null) return null;
         return TwitterObjectFactory.getRawJSON(obj);
     }
     public static JSONObject toJSONObject(Object obj) {
         String s = toJSONString(obj);
         if (s == null) return null;
         return new JSONObject(s);
+    }
+    public static Status toStatus(JSONObject jobj) {
+        if (jobj == null) return null;
+        try {
+            return TwitterObjectFactory.createStatus(jobj.toString());
+        } catch (Exception ex) {
+            System.out.println("ERROR: TwitterUtil.toStatus() failed with " + ex.toString());
+        }
+        return null;
     }
 
     public static String getProperty(String context, String key) {

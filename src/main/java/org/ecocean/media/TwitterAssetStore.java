@@ -218,9 +218,8 @@ public class TwitterAssetStore extends AssetStore {
             p.put("id", p.optString("id_str", null));  //squash the long id at "id" with string
             MediaAsset kid = store.create(p);
             kid.addLabel("_entity");
-            //TODO here
             setEntityMetadata(kid);
-            kid.getMetadata().getDataAsString(); //TODO no idea what this does -MF
+            kid.getMetadata().getDataAsString();
             kid.setParentId(ma.getId());
             //derivationMethods?  metadata? (of image) etc.... ??
             mas.add(kid);
@@ -228,6 +227,7 @@ public class TwitterAssetStore extends AssetStore {
         return mas;
     }
 
+/*   remove?  TODO
     public static List<MediaAsset> entitiesAsMediaAssetsGsonObj(MediaAsset ma, Long parentTweetId) {
         JSONObject raw = getRawJSONObject(ma);
         // System.out.println(raw.toString());
@@ -257,6 +257,7 @@ public class TwitterAssetStore extends AssetStore {
         }
         return mas;
     }
+*/
 
     //this assumes we already set metadata
     public static JSONObject getRawJSONObject(MediaAsset ma) {
