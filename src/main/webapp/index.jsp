@@ -719,7 +719,7 @@ try {
 				<p class="brand-primary"><i><span class="massive"><%=numCitScientists%></span> <%=props.getProperty("citScientists") %></i></p>
 			</section>
 
-			<section class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+			<section class="col-xs-12 col-sm-12 col-md-12 col-lg-12 counterSummary">
 				<p class="brand-primary"><i><%=props.getProperty("counterSummary")%></i></p>
 			</section>
 
