@@ -355,6 +355,11 @@ public class Shepherd {
     pm.deletePersistent(ad);
   }
 
+  public void throwAwayAnnotation(Annotation ad) {
+    String number = ad.getId();
+    pm.deletePersistent(ad);
+  }
+
   public void throwAwayKeyword(Keyword word) {
     String indexname = word.getIndexname();
     pm.deletePersistent(word);
