@@ -364,7 +364,25 @@ var countdown = 100;
 
 var newIndivHtml = 'Create a new individual<button> test button</button>';
 
+function filterEncounterOutOfResults(res, encID) {
+	if (!res || !res.queryAnnotation || !res.matchAnnotations || (res.matchAnnotations.length < 1) || !res.matchAnnotations[0].encounter || !res.matchAnnotations[0].encounter.catalogNumber) {
+		console.log("Error: filterEncounterOutOfResults called on the wrong JSON architecture for result "+res);
+		return res;
+	}
+	var replacement = {matchAnnotations: []};
+	for (var i=0; i<res.matchAnnotations.length; i++) {
+		thisID = res.matchAnnotations[i].encounter.catalogNumber;
+		if (thisID!=null && !(thisID===encID)) {
+			replacement.matchAnnotations.push(res.matchAnnotations[i]);
+		}
+	}
+	res.matchAnnotations = replacement.matchAnnotations;
+	return res;
+}
+
 function processResults(res) {
+	var encNum = '<%=encNum%>';
+	res = filterEncounterOutOfResults(res,encNum);
 	if (!res || !res.queryAnnotation) {
 console.info('waiting to try again...');
 		$('#results').html('Waiting for results. You may leave this page.  [countdown=' + countdown + ']');
