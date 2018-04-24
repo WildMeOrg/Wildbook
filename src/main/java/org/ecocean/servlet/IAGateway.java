@@ -1242,7 +1242,10 @@ System.out.println("--- BEFORE _doIdentify() ---");
             baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
         } catch (java.net.URISyntaxException ex) {}
         qjob.put("baseUrl", baseUrl);
-        qjob.put("jobId", request.getParameter("jobid"));
+        //real IA sends "jobid=jobid-xxxx" as body on POST, but this gives us a url-based alternative (for testing)
+        String jobId = request.getParameter("jobid");
+        if (raw.startsWith("jobid=") && (raw.length() > 6)) jobId = raw.substring(6);
+        qjob.put("jobId", jobId);
 
 System.out.println("qjob => " + qjob);
         queue.publish(qjob.toString());
