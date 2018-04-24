@@ -3096,7 +3096,7 @@ return Util.generateUUID();
         String jobId = qjob.optString("jobId", null);
         JSONObject res = qjob.optJSONObject("dataJson");
         if ((context == null) || (rootDir == null) || (jobId == null)) {  //not requiring res so we can have GET callbacks
-            System.out.println("ERROR: callbackFromQueue() has insuffient parameters");
+            System.out.println("ERROR: callbackFromQueue() has insufficient parameters");
             return;
         }
 System.out.println("callbackFromQueue OK!!!!");
