@@ -239,7 +239,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 1;
+	var mapZoom = 1.5;
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
