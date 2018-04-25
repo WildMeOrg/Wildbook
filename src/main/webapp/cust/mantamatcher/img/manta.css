@@ -1593,7 +1593,7 @@ pre code {
 }
 @media (min-width: 768px) {
   .container {
-    width: 750px;
+    width: auto;
   }
 }
 @media (min-width: 992px) {
@@ -7722,7 +7722,7 @@ input[type="submit"].light {
   margin: 1rem;
 }
 .main-section {
-  padding-top: 50px;
+  /* padding-top: 50px; */
   padding-bottom: 80px;
 }
 .main-section h1,
