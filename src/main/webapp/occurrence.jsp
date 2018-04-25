@@ -624,7 +624,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 <tr>
 <td>
 
-      <jsp:include page="individualMapEmbed.jsp" flush="true">
+      <jsp:include page="occurrenceMapEmbed.jsp" flush="true">
         <jsp:param name="occurrence_number" value="<%=name%>"/>
       </jsp:include>
 </td>
