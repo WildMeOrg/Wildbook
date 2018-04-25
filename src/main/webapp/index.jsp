@@ -51,8 +51,11 @@ margin-top: 0px !important;
 margin-bottom: 8px !important;
 </style>
 
-<script src="//maps.google.com/maps/api/js?sensor=false"></script>
-
+<%
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+String langCode = ServletUtilities.getLanguageCode(request);
+%>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
 <script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
@@ -133,7 +136,7 @@ margin-bottom: 8px !important;
 
 
         var center = new google.maps.LatLng(0,0);
-        var mapZoom = 8;
+        var mapZoom = 1.5;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 

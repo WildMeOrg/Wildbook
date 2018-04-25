@@ -683,7 +683,6 @@ public class CommonConfiguration {
   public static boolean isWildbookInitialized(Shepherd myShepherd) {
     List<User> users = myShepherd.getAllUsers();
     if (users.size() == 0) return false;
-
     return true;
   }
 
