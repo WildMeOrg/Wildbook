@@ -51,6 +51,8 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 <ul>
  <li>Homepage background image ("hero image): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/img/hero_manta.jpg </li>
 
+<li>Specify header logos here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap-overrides.less</li>
+
  </ul>
 
 <h2> Quick reference </h2>
