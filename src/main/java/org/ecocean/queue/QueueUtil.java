@@ -2,7 +2,6 @@ package org.ecocean.queue;
 
 import java.io.IOException;
 
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
