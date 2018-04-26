@@ -32,11 +32,18 @@ import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.Status;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.lang.Runnable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledFuture;
+
 public class TwitterBot {
     private static String SYSTEMVALUE_KEY_COLLECT_SINCEID = "TwitterBotCollectSinceId";
     private static String SYSTEMVALUE_KEY_COLLECT_PROCESSED_ID = "TwitterBotCollectProcessedId";
     private static Queue queueIn = null;
     private static Queue queueOut = null;
+    private static long collectorStartTime = 0l;
 
     //this probably *should* be "universal" for twitter!  (on TwitterUtil?) or at least per-account
     private static RateLimitation outgoingRL = new RateLimitation(48 * 60 * 60 * 1000);  //only care about last 48 hrs
@@ -303,7 +310,7 @@ System.out.println("##### qjob = " + qjob);
             System.out.println("+ TwitterBot.startServices() queueOut.consume() FAILED on " + queueOut.toString() + ": " + iox.toString());
         }
 
-        //TODO start "listener"
+        startCollector(context);
         return true;
     }
 
@@ -398,6 +405,47 @@ System.out.println("##### qjob = " + qjob);
             text.replaceAll("%" + k, vars.get(k));
         }
         return text;
+    }
+
+
+    //basically our "listener" daemon; but is more pull (poll?) than push so to speak.
+    // just checks for tweets at regular intervals
+    private static void startCollector(final String context) { //throws java.io.IOException {
+        collectorStartTime = System.currentTimeMillis();  //TODO should really be keyed off context!
+        //note: up to user discretion not to violate twitter rate limits  TODO maybe handle this in code?
+        long interval = 600;
+        String ci = TwitterUtil.getProperty(context, "collectorInterval");
+        if (ci != null) {
+            try {
+                interval = Long.parseLong(ci);
+            } catch (java.lang.NumberFormatException ex) {
+                System.out.println("WARNING: TwitterBot.startCollector() could not parse collectorInterval; using default -- " + ex.toString());
+            }
+        }
+        System.out.println("+ TwitterBot.startCollector(" + context + ") starting with interval = " + interval + " sec.");
+        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
+        final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+            int count = 0;
+            public void run() {
+                ++count;
+                if (count % 10 == 0) System.out.println("INFO: TwitterBot.startCollection(" + context + ") ping. " + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min");
+/* TODO have something to allow shutdown???
+                if (!cont) {
+                    schedExec.shutdown();
+                }
+*/
+            }
+        },
+        20,  //initial delay
+        interval,  //period delay *after* execution finishes
+        TimeUnit.SECONDS);  //unit of delays above
+
+        try {
+            schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
+        } catch (java.lang.InterruptedException ex) {
+            System.out.println("WARNING: TwitterBot.startCollector(" + context + ") interrupted: " + ex.toString());
+        }
+        System.out.println("+ TwitterBot.startCollector(" + context + ") backgrounded");
     }
 
 }
