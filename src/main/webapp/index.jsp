@@ -454,7 +454,7 @@ try {
 
 	</div>
 	<div id="image-credit">
-		<p id="credit-text"><i style="color:white;">image credit Ian Uhalt</i></p>	
+		<p id="credit-text"><i style="color:white;"><%= props.getProperty("heroImageCredit") %></i></p>	
 	</div>
 
 
