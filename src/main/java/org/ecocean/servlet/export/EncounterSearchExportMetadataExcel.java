@@ -8,7 +8,7 @@ import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.security.HiddenDataReporter;
+import org.ecocean.security.*;
 
 import javax.jdo.*;
 
@@ -18,44 +18,27 @@ import jxl.write.*;
 import jxl.Workbook;
 
 
-public class EncounterSearchExportMetadataExcel extends HttpServlet{
+public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
   private static final int BYTES_DOWNLOAD = 1024;
 
-  private static String cleanToString(Object obj) {
-    if (obj==null) return "";
-    return obj.toString();
-  }
-
-
   public void init(ServletConfig config) throws ServletException {
       super.init(config);
-    }
-
+  }
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
       doPost(request, response);
   }
 
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-
-    //set the response
-
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 
-
-
     Vector rEncounters = new Vector();
-    int numResults = 0;
-
 
     //set up the files
     String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".xls";
-
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -65,203 +48,124 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet{
     if(!encountersDir.exists()){encountersDir.mkdirs();}
 
     File excelFile = new File(encountersDir.getAbsolutePath()+"/"+ filename);
-
-
     myShepherd.beginDBTransaction();
-
 
     try {
 
-      //set up the output stream
-      FileOutputStream fos = new FileOutputStream(excelFile);
-      OutputStreamWriter outp = new OutputStreamWriter(fos);
+      EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+      rEncounters = queryResult.getResult();
+      int numMatchingEncounters = rEncounters.size();
 
-      try{
-
-
-        EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
-        rEncounters = queryResult.getResult();
-
-				Vector blocked = Encounter.blocked(rEncounters, request);
-				if (blocked.size() > 0) {
-					response.setContentType("text/html");
-					PrintWriter out = response.getWriter();
-					out.println(ServletUtilities.getHeader(request));
-					out.println("<html><body><p><strong>Access denied.</strong></p>");
-					out.println(ServletUtilities.getFooter(context));
-					out.close();
-					return;
-				}
-
-        int numMatchingEncounters=rEncounters.size();
-
-       //business logic start here
-
-        //load the optional locales
-        Properties props = new Properties();
-        try {
-          props=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-
-        } catch (Exception e) {
-          System.out.println("     Could not load locales.properties EncounterSearchExportExcelFile.");
-          e.printStackTrace();
-        }
-
-      //let's set up some cell formats
-        WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
-        WritableCellFormat integerFormat = new WritableCellFormat(NumberFormats.INTEGER);
-
-      //let's write out headers for the OBIS export file
-        WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
-        WritableSheet sheet = workbookOBIS.createSheet("Search Results", 0);
-
-        String[] colHeaders = new String[]{
-          "catalog number",
-          "individual ID",
-          "occurrence ID",
-          "year",
-          "month",
-          "day",
-          "hour",
-          "minutes",
-          "milliseconds (definitive datetime)",
-          "latitude",
-          "longitude",
-          "locationID",
-          "country",
-          "other catalog numbers",
-          "submitter name",
-          "submitter organization",
-          "sex",
-          "behavior",
-          "life stage",
-          "group role",
-          "researcher comments",
-          "verbatim locality",
-          "alternate ID",
-          "web URL",
-          "individual web URL",
-          "occurrence web URL"
-        };
-
-        for (int i=0; i<colHeaders.length; i++) {
-          sheet.addCell(new Label(i, 0, colHeaders[i]));
-        }
-
-        // Excel export =========================================================
-        int count = 0;
-
-        HiddenDataReporter hiddenData = new HiddenDataReporter();
-
-         for(int i=0;i<numMatchingEncounters;i++){
-            Encounter enc=(Encounter)rEncounters.get(i);
-
-            if (!enc.canUserAccess(request)) {
-              hiddenData.addEncounter(enc);
-              continue;
-            }
-
-            count++;
-            numResults++;
-
-            List<Label> rowLabels = new ArrayList<Label>();
-
-            rowLabels.add(new Label(0, count, enc.getCatalogNumber()));
-            rowLabels.add(new Label(1, count, enc.getIndividualID()));
-            rowLabels.add(new Label(2, count, enc.getOccurrenceID()));
-            rowLabels.add(new Label(3, count, String.valueOf(enc.getYear())));
-            rowLabels.add(new Label(4, count, String.valueOf(enc.getMonth())));
-            rowLabels.add(new Label(5, count, String.valueOf(enc.getDay())));
-            rowLabels.add(new Label(6, count, String.valueOf(enc.getHour())));
-            rowLabels.add(new Label(7, count, enc.getMinutes()));
-            rowLabels.add(new Label(8, count, String.valueOf(enc.getDateInMilliseconds())));
-            rowLabels.add(new Label(9, count, enc.getDecimalLatitude()));
-            rowLabels.add(new Label(10, count, enc.getDecimalLongitude()));
-
-            rowLabels.add(new Label(11, count, enc.getLocationID()));
-            rowLabels.add(new Label(12, count, enc.getCountry()));
-            rowLabels.add(new Label(13, count, enc.getOtherCatalogNumbers()));
-            rowLabels.add(new Label(14, count, enc.getSubmitterName()));
-            rowLabels.add(new Label(15, count, enc.getSubmitterOrganization()));
-
-            rowLabels.add(new Label(16, count, enc.getSex()));
-            rowLabels.add(new Label(17, count, enc.getBehavior()));
-            rowLabels.add(new Label(18, count, enc.getLifeStage()));
-            rowLabels.add(new Label(19, count, enc.getGroupRole()));
-            rowLabels.add(new Label(20, count, enc.getRComments()));
-            rowLabels.add(new Label(21, count, enc.getVerbatimLocality()));
-            rowLabels.add(new Label(22, count, enc.getAlternateID()));
-
-            rowLabels.add(new Label(23, count, ServletUtilities.getEncounterUrl(enc.getCatalogNumber(),request)));
-            rowLabels.add(new Label(24, count, ServletUtilities.getIndividualUrl(enc.getIndividualID(),request)));
-            rowLabels.add(new Label(25, count, ServletUtilities.getOccurrenceUrl(enc.getOccurrenceID(),request)));
-
-
-            for(Label lab: rowLabels) {
-              sheet.addCell(lab);
-            }
-         } //end for loop iterating encounters
-
-         workbookOBIS.write();
-         workbookOBIS.close();
-
-      // end Excel export =========================================================
-
-
-
-        //business logic end here
-
-        outp.close();
-        outp=null;
-
-        System.out.println("Done with EncounterSearchExportMetadataExcel. We hid "+hiddenData.numEncounters()+" encounters");
-
-      }
-      catch(Exception ioe){
-        ioe.printStackTrace();
-        response.setContentType("text/html");
-        PrintWriter out = response.getWriter();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<html><body><p><strong>Error encountered</strong> with file writing. Check the relevant log.</p>");
-        out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter(context));
-        out.close();
-        outp.close();
-        outp=null;
+      // business logic start here
+      WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile);
+      WritableSheet sheet = excelWorkbook.createSheet("Search Results", 0);
+      String[] colHeaders = new String[]{
+        "catalog number",
+        "individual ID",
+        "occurrence ID",
+        "year",
+        "month",
+        "day",
+        "hour",
+        "minutes",
+        "milliseconds (definitive datetime)",
+        "latitude",
+        "longitude",
+        "locationID",
+        "country",
+        "other catalog numbers",
+        "submitter name",
+        "submitter organization",
+        "sex",
+        "behavior",
+        "life stage",
+        "group role",
+        "researcher comments",
+        "verbatim locality",
+        "alternate ID",
+        "web URL",
+        "individual web URL",
+        "occurrence web URL"
+      };
+      for (int i=0; i<colHeaders.length; i++) {
+        sheet.addCell(new Label(i, 0, colHeaders[i]));
       }
 
+      // Security: categorize hidden encounters with the initializer
+      HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
 
+      // Excel export =========================================================
+      int row = 0;
+      for (int i=0;i<numMatchingEncounters;i++) {
+
+        Encounter enc=(Encounter)rEncounters.get(i);
+        // Security: skip this row if user doesn't have permission to view this encounter
+        if (hiddenData.contains(enc)) continue;
+        row++;
+
+        // write data cells (corresponding to colHeaders above)
+        sheet.addCell(new Label(0,  row, enc.getCatalogNumber()));
+        sheet.addCell(new Label(1,  row, enc.getIndividualID()));
+        sheet.addCell(new Label(2,  row, enc.getOccurrenceID()));
+        sheet.addCell(new Label(3,  row, String.valueOf(enc.getYear())));
+        sheet.addCell(new Label(4,  row, String.valueOf(enc.getMonth())));
+        sheet.addCell(new Label(5,  row, String.valueOf(enc.getDay())));
+        sheet.addCell(new Label(6,  row, String.valueOf(enc.getHour())));
+        sheet.addCell(new Label(7,  row, enc.getMinutes()));
+        sheet.addCell(new Label(8,  row, String.valueOf(enc.getDateInMilliseconds())));
+        sheet.addCell(new Label(9,  row, enc.getDecimalLatitude()));
+        sheet.addCell(new Label(10, row, enc.getDecimalLongitude()));
+        sheet.addCell(new Label(11, row, enc.getLocationID()));
+        sheet.addCell(new Label(12, row, enc.getCountry()));
+        sheet.addCell(new Label(13, row, enc.getOtherCatalogNumbers()));
+        sheet.addCell(new Label(14, row, enc.getSubmitterName()));
+        sheet.addCell(new Label(15, row, enc.getSubmitterOrganization()));
+        sheet.addCell(new Label(16, row, enc.getSex()));
+        sheet.addCell(new Label(17, row, enc.getBehavior()));
+        sheet.addCell(new Label(18, row, enc.getLifeStage()));
+        sheet.addCell(new Label(19, row, enc.getGroupRole()));
+        sheet.addCell(new Label(20, row, enc.getRComments()));
+        sheet.addCell(new Label(21, row, enc.getVerbatimLocality()));
+        sheet.addCell(new Label(22, row, enc.getAlternateID()));
+        sheet.addCell(new Label(23, row, ServletUtilities.getEncounterUrl(enc.getCatalogNumber(),request)));
+        sheet.addCell(new Label(24, row, ServletUtilities.getIndividualUrl(enc.getIndividualID(),request)));
+        sheet.addCell(new Label(25, row, ServletUtilities.getOccurrenceUrl(enc.getOccurrenceID(),request)));
+     	} //end for loop iterating encounters
+
+      // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data
+      hiddenData.writeHiddenDataReport(excelWorkbook);
+
+      excelWorkbook.write();
+      excelWorkbook.close();
+      // end Excel export and business logic ===============================================
+      System.out.println("Done with EncounterSearchExportMetadataExcel. We hid "+hiddenData.size()+" encounters.");
     }
-    catch(Exception e) {
+    catch (Exception e) {
       e.printStackTrace();
       response.setContentType("text/html");
       PrintWriter out = response.getWriter();
       out.println(ServletUtilities.getHeader(request));
       out.println("<html><body><p><strong>Error encountered</strong></p>");
-        out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter(context));
-        out.close();
+      out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
+      out.println(ServletUtilities.getFooter(context));
+      out.close();
     }
 
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
 
-      //now write out the file
-      response.setContentType("application/msexcel");
-      response.setHeader("Content-Disposition","attachment;filename="+filename);
-      ServletContext ctx = getServletContext();
-      //InputStream is = ctx.getResourceAsStream("/encounters/"+filename);
-     InputStream is=new FileInputStream(excelFile);
-
-      int read=0;
-      byte[] bytes = new byte[BYTES_DOWNLOAD];
-      OutputStream os = response.getOutputStream();
-
-      while((read = is.read(bytes))!= -1){
-        os.write(bytes, 0, read);
-      }
-      os.flush();
-      os.close();
+    // now write out the file
+    response.setContentType("application/msexcel");
+    response.setHeader("Content-Disposition","attachment;filename="+filename);
+    InputStream is=new FileInputStream(excelFile);
+    int read=0;
+    byte[] bytes = new byte[BYTES_DOWNLOAD];
+    OutputStream os = response.getOutputStream();
+    while((read = is.read(bytes))!= -1){
+      os.write(bytes, 0, read);
     }
-
+    os.flush();
+    os.close();
   }
+
+}
