@@ -6,6 +6,8 @@ import java.io.Serializable;
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
@@ -44,6 +46,10 @@ public class Collaboration implements java.io.Serializable {
 		this.setDateTimeCreated();
 	}
 
+	public Collaboration(User u1, User u2) {
+		this(u1.getUsername(), u2.getUsername());
+	}
+
 	public String getUsername1() {
 		return this.username1;
 	}
@@ -62,6 +68,11 @@ public class Collaboration implements java.io.Serializable {
 		this.setId();
 	}
 
+	public String getDateStringCreated() {
+		Date date = new Date(getDateTimeCreated());
+		return (date.toString());
+	}
+
 	public long getDateTimeCreated() {
 		return this.dateTimeCreated;
 	}
@@ -76,6 +87,16 @@ public class Collaboration implements java.io.Serializable {
 
 	public void setState(String s) {
 		this.state = s;
+	}
+
+	public void setApproved() {
+		this.setState(STATE_APPROVED);
+	}
+	public void setRejected() {
+		this.setState(STATE_REJECTED);
+	}
+	public boolean isApproved() {
+		return (this.state!=null && this.state.equals(STATE_APPROVED));
 	}
 
 	public String getState() {
@@ -141,6 +162,19 @@ public class Collaboration implements java.io.Serializable {
     return returnMe;
 	}
 
+	public static Collaboration collaborationBetweenUsers(User u1, User u2, String context) {
+		return collaborationBetweenUsers(context, u1.getUsername(), u2.getUsername());
+/*
+		List<Collaboration> all = collaborationsForUser(context, u1);
+		for (Collaboration c : all) {
+			if (c.username1.equals(u2) || c.username2.equals(u2)) return c;
+		}
+		return null;
+*/
+	}
+
+
+
 	public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
 		return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
 /*
@@ -151,7 +185,9 @@ public class Collaboration implements java.io.Serializable {
 		return null;
 */
 	}
-
+	public static boolean canCollaborate(User u1, User u2, String context) {
+		return canCollaborate(context, u1.getUsername(), u2.getUsername());
+	}
 	public static boolean canCollaborate(String context, String u1, String u2) {
 		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
 		if (u1.equals(u2)) return true;
@@ -233,6 +269,16 @@ public class Collaboration implements java.io.Serializable {
 		}
 		return false;
 	}
+
+  public String toString() {
+      return new ToStringBuilder(this)
+              .append("username1", getUsername1())
+              .append("username2", getUsername2())
+              .append("state", getState())
+              .append("dateTimeCreated", getDateStringCreated())
+              .toString();
+  }
+
 
 
 /*   CURRENTLY NOT USED
