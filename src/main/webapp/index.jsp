@@ -454,7 +454,7 @@ try {
 
 	</div>
 	<div id="image-credit">
-		<p id="credit-text"><i style="color:white;">image credit Ian Uhalt</i></p>	
+		<p id="credit-text"><i style="color:white;"><%= props.getProperty("heroImageCredit") %></i></p>	
 	</div>
 
 
@@ -731,7 +731,7 @@ try {
             <article class="text-center">
                 <div class="row">
                 	<div class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-	                    <img src="cust/mantamatcher/img/bass/danHardingQuote.png" alt="" />
+	                    <img src="cust/mantamatcher/img/bass/Ian_Uhalt.jpg" alt="" />
 	          			<label class="image_label"><%=props.getProperty("quoteImageCaption") %></label>                	
                 	</div>
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
