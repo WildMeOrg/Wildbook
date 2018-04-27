@@ -739,7 +739,10 @@ public class Encounter implements java.io.Serializable {
   }
 
   public String getWebUrl(HttpServletRequest req) {
-    return (CommonConfiguration.getServerURL(req)+"/encounters/encounter.jsp?number="+getCatalogNumber());
+    return getWebUrl(this.getCatalogNumber(), req);
+  }
+  public static String getWebUrl(String encId, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/encounters/encounter.jsp?number="+encId);
   }
 
   /**
@@ -2805,7 +2808,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 		}
 		return blk;
 	}
-
 
 /*
 in short, this rebuilds (or builds for the first time) ALL *derived* images (etc?) for this encounter.
