@@ -661,8 +661,11 @@ public class MarkedIndividual implements java.io.Serializable {
     return (Arrays.copyOfRange(allEncs, 0, Math.min(limit,allEncs.length)));
   }
   
+  public static String getWebUrl(String individualID, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/individuals.jsp?number="+individualID);
+  }
   public String getWebUrl(HttpServletRequest req) {
-    return (CommonConfiguration.getServerURL(req)+"/individuals.jsp?number="+getIndividualID());
+    return getWebUrl(this.getIndividualID(), req);
   }
 
   //sorted with the most recent first
