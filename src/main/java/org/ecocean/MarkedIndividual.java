@@ -656,6 +656,14 @@ public class MarkedIndividual implements java.io.Serializable {
     return (getDateSortedEncounters(false, limit));
   }
 
+  // for the scenario where you don't have permission to view this, but you'd like to
+  public String getAnEncounterOwner() {
+    for (Encounter enc: encounters) {
+      if (Util.stringExists(enc.getAssignedUsername())) return enc.getAssignedUsername();
+    }
+    return null;
+  }
+
   public Encounter[] getDateSortedEncounters(boolean reverse, int limit) {
     Encounter[] allEncs = getDateSortedEncounters(reverse);
     return (Arrays.copyOfRange(allEncs, 0, Math.min(limit,allEncs.length)));
