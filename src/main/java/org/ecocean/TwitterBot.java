@@ -12,6 +12,7 @@ import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+import java.io.IOException;
 
 import org.ecocean.TwitterUtil;
 import org.ecocean.media.MediaAsset;
@@ -48,7 +49,23 @@ public class TwitterBot {
     //this probably *should* be "universal" for twitter!  (on TwitterUtil?) or at least per-account
     private static RateLimitation outgoingRL = new RateLimitation(48 * 60 * 60 * 1000);  //only care about last 48 hrs
 
+    //kind of convenience method (to TwitterUtil) but also swallows exception
+    //   TODO yeah this really should be based off context.  :(
+    public static twitter4j.User myUser() {
+        try {
+            return TwitterUtil.myUser();
+        } catch (TwitterException ex) {
+            System.out.println("WARNING: TwitterBot.myUser() threw " + ex.toString());
+        }
+        return null;
+    }
+
     public static void processIncomingTweet(Status tweet, String context) {
+        if (tweet == null) return;
+        if ((tweet.getUser() != null) && tweet.getUser().equals(myUser())) {
+            System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " ignored as it was from TwitterBot account itself!");
+            return;
+        }
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("TwitterBot.processIncomingTweet");
         myShepherd.beginDBTransaction();
@@ -63,14 +80,28 @@ public class TwitterBot {
         List<MediaAsset> entities = null;
         if (tweetMA == null) {
             tweetMA = tas.create(p);
-            ////////MediaAssetFactory.save(tweetMA, myShepherd);
-            //entities = (load the children) !!!   TODO
-        } else {
+            tweetMA.addLabel("_original");
+            try {
+                tweetMA.updateMetadata();
+            } catch (IOException ex) {
+                System.out.println("WARNING: TwitterBot.processIncomingTweet() tweetMA.updateMetadata() threw " + ex.toString());
+            }
+            MediaAssetFactory.save(tweetMA, myShepherd);
             entities = tas.entitiesAsMediaAssets(tweetMA);
+            if ((entities != null) && (entities.size() > 0)) {
+                for (MediaAsset ema : entities) {
+                    MediaAssetFactory.save(ema, myShepherd);
+                }
+            }
+        } else {
+            ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
+            System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
+            return;
+            //entities = (load the children from retrieved tweetMA)
         }
-System.out.println("processIncomingTweet:\n" + tweet + "\n" + tweetMA);
-        //sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
-        myShepherd.rollbackDBTransaction();
+System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
+        sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
+        myShepherd.commitDBTransaction();
     }
 
     public static void sendCourtesyTweet(String context, Status originTweet, MediaAsset ma) {
@@ -217,7 +248,8 @@ System.out.println("processIncomingTweet:\n" + tweet + "\n" + tweetMA);
     //this is *queued* sending, which is what we want (usually!) so that rate limits etc can be taken care of
     public static void sendTweet(String tweetText) {
         //for now, outgoing queue just takes tweet text!  maybe this will change?  see: messageOutHandler()
-        queuePush(queueOut, tweetText);
+        /////////////queuePush(queueOut, tweetText);
+System.out.println("FAKE-SEND-TWEET:\n[" + tweetText + "]");
     }
 
     private static void messageInHandler(String msg) {
@@ -240,7 +272,7 @@ System.out.println("##### qjob = " + qjob);
 
     private static void messageOutHandler(String msg) {
         int lastHour = outgoingRL.numSinceHoursAgo(1);
-        while (lastHour > 10) {
+        while (lastHour > 10) {   //TODO maybe this is configurable? must adhere to twitter policy etc
             System.out.println("INFO: TwitterBot.messageOutHandler() got message.  Last hour rate = " + lastHour + ", so stalling...");
             try {
                 Thread.sleep(5000);
@@ -281,13 +313,13 @@ System.out.println("##### qjob = " + qjob);
         queueIn = null;
         try {
             queueIn = QueueUtil.getBest(context, "TwitterIn");
-        } catch (java.io.IOException ex) {
+        } catch (IOException ex) {
             System.out.println("+ ERROR: TwitterIn queue startup exception: " + ex.toString());
         }
         queueOut = null;
         try {
             queueOut = QueueUtil.getBest(context, "TwitterOut");
-        } catch (java.io.IOException ex) {
+        } catch (IOException ex) {
             System.out.println("+ ERROR: TwitterOut queue startup exception: " + ex.toString());
         }
         if ((queueIn == null) || (queueOut == null)) {
@@ -299,14 +331,14 @@ System.out.println("##### qjob = " + qjob);
         try {
             queueIn.consume(qh);
             System.out.println("+ TwitterBot.startServices() queueIn.consume() started on " + queueIn.toString());
-        } catch (java.io.IOException iox) {
+        } catch (IOException iox) {
             System.out.println("+ TwitterBot.startServices() queueIn.consume() FAILED on " + queueIn.toString() + ": " + iox.toString());
         }
         TwitterOutgoingMessageHandler qh2 = new TwitterOutgoingMessageHandler();
         try {
             queueOut.consume(qh2);
             System.out.println("+ TwitterBot.startServices() queueOut.consume() started on " + queueOut.toString());
-        } catch (java.io.IOException iox) {
+        } catch (IOException iox) {
             System.out.println("+ TwitterBot.startServices() queueOut.consume() FAILED on " + queueOut.toString() + ": " + iox.toString());
         }
 
@@ -333,7 +365,7 @@ System.out.println("##### qjob = " + qjob);
         }
         try {
             q.publish(msg);
-        } catch (java.io.IOException iox) {
+        } catch (IOException iox) {
             System.out.println("ERROR: TwitterBot.queuePush(" + q.toString() + ", " + msg + ") publish() got exception: " + iox.toString());
             return false;
         }
@@ -402,7 +434,7 @@ System.out.println("##### qjob = " + qjob);
         if (text == null) return null;
         //is there a "standard" java way to do this? sh/could be in Util? (template substitution)  etc.
         for (String k : vars.keySet()) {
-            text.replaceAll("%" + k, vars.get(k));
+            text = text.replaceAll("%" + k, vars.get(k));
         }
         return text;
     }
@@ -410,7 +442,7 @@ System.out.println("##### qjob = " + qjob);
 
     //basically our "listener" daemon; but is more pull (poll?) than push so to speak.
     // just checks for tweets at regular intervals
-    private static void startCollector(final String context) { //throws java.io.IOException {
+    private static void startCollector(final String context) { //throws IOException {
         collectorStartTime = System.currentTimeMillis();  //TODO should really be keyed off context!
         //note: up to user discretion not to violate twitter rate limits  TODO maybe handle this in code?
         long interval = 600;
@@ -428,12 +460,18 @@ System.out.println("##### qjob = " + qjob);
             int count = 0;
             public void run() {
                 ++count;
-                if (count % 10 == 0) System.out.println("INFO: TwitterBot.startCollection(" + context + ") ping. " + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min");
-/* TODO have something to allow shutdown???
-                if (!cont) {
+                if (new java.io.File("/tmp/WB_TWITTERBOT_SHUTDOWN").exists()) {
+                    System.out.println("INFO: TwitterBot.startCollection(" + context + ") shutting down due to file signal");
                     schedExec.shutdown();
+                    return;
                 }
-*/
+                //if (count % 10 == 0) System.out.println("INFO: TwitterBot.startCollection(" + context + ") ping. " + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min");
+                Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("TwitterBot.startCollection()");
+                myShepherd.beginDBTransaction();
+                int t = collectTweets(myShepherd);
+                myShepherd.commitDBTransaction();
+                if ((t != 0) || (count % 10 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
             }
         },
         20,  //initial delay
