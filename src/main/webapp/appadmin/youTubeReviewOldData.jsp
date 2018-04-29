@@ -137,7 +137,7 @@ try{
 		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
 		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
 		
-		for(int i=0;i<40;i++){
+		for(int i=601;i<900;i++){
 		//for(int i=0;i<numResults;i++){
 			
 			boolean videoHasID=false;
@@ -321,7 +321,7 @@ try{
     	              String lowercaseRemarks=sb.toString().toLowerCase();
     	              try{
     	            	  
-    	            	  /*
+    	            	  
     	                Enumeration m_enum = props.propertyNames();
     	                while (m_enum.hasMoreElements()) {
     	                  String aLocationSnippet = ((String) m_enum.nextElement()).trim();
@@ -330,8 +330,8 @@ try{
     	                	  newLocationID = props.getProperty(aLocationSnippet);
     	                    //System.out.println(".....Building an idea of location: "+location);
     	                  }
-    	                }*/
-    	                
+    	                }
+    	                /*
     	            	  Instances data2 = new Instances("TestInstances",attributeList2,2);
     	            	  data2.setClassIndex(data2.numAttributes()-1);
     	            	  Instance pos2 = new DenseInstance(data2.numAttributes());
@@ -340,7 +340,7 @@ try{
     	            	  pos2.setDataset(data2);
     	            	  
     	            	  newLocationID=pos2.classAttribute().value(classify(pos2, locIDpath).intValue());
-    	                
+    	                */
 
     	              }
     	              catch(Exception e){
@@ -362,7 +362,7 @@ try{
     	            	  
     				%>
     				
-    				<tr <%=rowClass %>><td><a href="https://www.whaleshark.org/occurrence.jsp?number=<%=occurID %>"><%=occurID %></a></td><td><a href="https://www.youtube.com/watch?v=<%=videoID %>"><%=videoID %></a></td><td><%=currentDate %></td><td><%=newDetectedDate %></td><td><%=currentLocationID %></td><td><%=newLocationID %></td><td><%=videoTitle %></td><td><%=videoDescription %></td><td><%=videoComments %></td><td><%=relativeDate %></td></tr>
+    				<tr <%=rowClass %>><td><a target="_blank" href="https://www.whaleshark.org/occurrence.jsp?number=<%=occurID %>"><%=occurID %></a></td><td><a target="_blank" href="https://www.youtube.com/watch?v=<%=videoID %>"><%=videoID %></a></td><td><%=currentDate %></td><td><%=newDetectedDate %></td><td><%=currentLocationID %></td><td><%=newLocationID %></td><td><%=videoTitle %></td><td><%=videoDescription %></td><td><%=videoComments %></td><td><%=relativeDate %></td></tr>
     				<%
     				
     			}

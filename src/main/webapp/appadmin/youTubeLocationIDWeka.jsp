@@ -4,7 +4,13 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.ai.nmt.google.*,
-java.io.*,org.json.JSONObject,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.*,org.json.JSONObject,java.util.*, 
+java.util.regex.Pattern,
+java.util.regex.Matcher,
+
+java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"
+
+%>
 
 <%!
 private String translateIfNotEnglish(String text){
@@ -12,13 +18,30 @@ private String translateIfNotEnglish(String text){
 	if(shortForm.length()>500){shortForm=shortForm.substring(0,499);}
 	String langCode=DetectTranslate.detectLanguage(shortForm);
 	if((!langCode.toLowerCase().equals("en"))&&(!langCode.toLowerCase().equals("und"))){
-		System.out.println("Translating: "+text);
+		//System.out.println("Translating: "+text);
 		text=DetectTranslate.translateToEnglish(text).replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();
-		System.out.println("Translated to: "+text);
+		//System.out.println("Translated to: "+text);
 	}
 	return text;
 }
 
+%>
+
+
+
+<%!
+private String removeUrl(String commentstr)
+{
+    String urlPattern = "((https?|ftp|gopher|telnet|file|Unsure|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
+    Pattern p = Pattern.compile(urlPattern,Pattern.CASE_INSENSITIVE);
+    Matcher m = p.matcher(commentstr);
+    int i = 0;
+    while (m.find()) {
+        commentstr = commentstr.replaceAll(m.group(i),"").trim();
+        i++;
+    }
+    return commentstr;
+}
 %>
 
 
@@ -81,7 +104,14 @@ try{
 			if(enc.getComments()!=null){
 				myDescription+=(" "+enc.getComments());
 			}
+			myDescription = myDescription.replaceAll("https?://\\S+\\s?", "");
+			
 			myDescription=myDescription.replaceAll("[^A-Za-z0-9 ]", "").replace("\n", "").trim();
+			
+			
+			//myDescription=removeUrl(myDescription);
+			//myDescription=translateIfNotEnglish(myDescription);
+			
 			if((!myDescription.equals(""))&&(!enc.getLocationID().trim().equals(""))&&(!enc.getLocationID().trim().equals("None")))sb.append("'"+myDescription+"',"+enc.getLocationID()+"\n");
 			
 		
