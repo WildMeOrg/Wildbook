@@ -49,6 +49,21 @@ abstract class HiddenDataReporter<T> {
 		if (tObjectsToFilter!=null) this.loadAllByPermission(tObjectsToFilter);
 	}
 
+	// if you just want to scrub the search results vector
+	public Vector securityScrubbedResults(Vector tObjectsToFilter, boolean hiddenIdsToOwnersIsValid) {
+		if (!hiddenIdsToOwnersIsValid) loadAllByPermission(tObjectsToFilter);
+		Vector cleanResults = new Vector();
+		for (Object untypedObj: tObjectsToFilter) {
+			T typedObj = (T) untypedObj;
+			// if hiddenData doesn't contain the object, add it to clean results
+			if (!this.contains(typedObj)) cleanResults.add(untypedObj);
+		}
+		return cleanResults;
+	}
+	// assumes these are the same objects you submitted at initialization
+	public Vector securityScrubbedResults(Vector tObjectsToFilter) {
+		return securityScrubbedResults(tObjectsToFilter, false);
+	}
 	// since different WB objects use diff conventions
 	// the HiddenDataReporter logic is the same for all inheriting classes and built from
 	// these basic pieces. You can make a HDR for anything with these methods.
