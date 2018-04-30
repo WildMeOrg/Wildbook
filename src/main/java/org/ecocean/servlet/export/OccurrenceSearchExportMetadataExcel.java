@@ -8,6 +8,7 @@ import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenOccReporter;
 
 import javax.jdo.*;
 
@@ -17,7 +18,7 @@ import jxl.write.*;
 import jxl.Workbook;
 
 
-public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
+public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
 
   private static final int BYTES_DOWNLOAD = 1024;
 
@@ -85,6 +86,7 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
         int numMatchingOccurrences=rOccurrences.size();
 
        //business logic start here
+        HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request);
 
         //load the optional locales
         Properties props = new Properties();
@@ -120,6 +122,8 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
 
          for(int i=0;i<numMatchingOccurrences;i++){
             Occurrence enc=(Occurrence)rOccurrences.get(i);
+            if (hiddenData.contains(enc)) continue;
+
             count++;
             numResults++;
 
@@ -155,6 +159,8 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
               sheet.addCell(lab);
             }
          } //end for loop iterating encounters
+
+         hiddenData.writeHiddenDataReport(workbookOBIS);
 
          workbookOBIS.write();
          workbookOBIS.close();

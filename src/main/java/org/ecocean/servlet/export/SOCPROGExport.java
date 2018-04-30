@@ -9,6 +9,7 @@ import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.BiologicalMeasurement;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenIndividualReporter;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import jxl.write.*;
@@ -185,11 +186,13 @@ public class SOCPROGExport extends HttpServlet{
 
            
             Vector iterateMe=query2Individuals;
-            
+            HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(iterateMe, request);
+            hiddenData.writeHiddenDataReport(workbookOBIS,2); // since 0 and 1 are in use above;
             
             for(int k=0;k<iterateMe.size();k++){
               
               MarkedIndividual indy=(MarkedIndividual)iterateMe.get(k);
+              if (hiddenData.contains(indy)) continue;
               //System.out.println("          Individual: "+indy.getIndividualID());
               Vector encs=indy.getEncounters();
               int numEncs=encs.size();
