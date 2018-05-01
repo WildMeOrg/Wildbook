@@ -225,7 +225,7 @@ if(compareAgainst.getGeneticSex()!=null){
 <tr>
   <td width="810px">
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a> <a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
@@ -456,7 +456,7 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
       color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
@@ -512,7 +512,7 @@ function FSControl(controlDiv, map) {
 
   <tr id="FieldsTitleRow">
     <td>
-      <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      <h4 class="intro search-collapse-header"><a
         href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
         src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
         color="#000000"><%=occProps.getProperty("fieldsTitle") %></font></a></h4>
@@ -546,7 +546,7 @@ function FSControl(controlDiv, map) {
 <tr>
   <td>
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>

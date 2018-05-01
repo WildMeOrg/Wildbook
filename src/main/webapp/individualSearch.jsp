@@ -208,7 +208,7 @@ if(compareAgainst.getGeneticSex()!=null){
 <tr>
   <td width="810px">
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a> <a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
@@ -434,7 +434,7 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
       color="#000000"><%=props.getProperty("locationFilterText") %></font></a></h4>
@@ -497,7 +497,7 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
       color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
@@ -897,7 +897,7 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
       color="#000000"><%=props.getProperty("observationFilters") %></font></a></h4>
@@ -1216,7 +1216,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
   <tr>
     <td>
-      <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      <h4 class="intro search-collapse-header"><a
         href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
         src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
         color="#000000"><%=props.getProperty("tagsTitle") %></font></a></h4>
@@ -1284,7 +1284,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:if>
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; ">
+    <h4 class="intro search-collapse-header">
     	<a href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none">
     		<img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
     		<font color="#000000"><%=props.getProperty("biologicalSamples") %></font>
@@ -1499,7 +1499,7 @@ else {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
       color="#000000"><%=props.getProperty("identityFilters") %></font></a></h4>
@@ -1616,7 +1616,7 @@ else {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
       color="#000000"><%=props.getProperty("socialFilters") %></font></a></h4>
@@ -1730,7 +1730,7 @@ else {
 <tr>
   <td>
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
