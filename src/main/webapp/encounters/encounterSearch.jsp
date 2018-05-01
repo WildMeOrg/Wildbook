@@ -96,6 +96,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
 }
 </style>
+
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 
@@ -300,7 +301,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <tr>
   <td width="810px">
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a>
       <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
@@ -438,7 +439,7 @@ function useData(doc){
 </tr>
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=encprops.get("locationFilterText") %></font></a></h4>
@@ -542,7 +543,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=encprops.getProperty("dateFilters") %></font></a></h4>
@@ -636,7 +637,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=encprops.getProperty("observationFilters") %></font></a></h4>
@@ -932,7 +933,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=encprops.getProperty("identityFilters") %></font></a></h4>
@@ -999,7 +1000,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <c:if test="${showMetalTags or showAcousticTag or showSatelliteTag}">
  <tr>
      <td>
-     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+     <h4 class="intro search-collapse-header"><a
        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
        src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
        <font color="#000000"><%=encprops.getProperty("tagsTitle") %></font></a></h4>
@@ -1054,7 +1055,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=encprops.getProperty("biologicalSamples") %></font></a></h4>
@@ -1246,7 +1247,7 @@ else {
 <tr>
   <td>
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+    <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=encprops.getProperty("metadataFilters") %></font></a></h4>
