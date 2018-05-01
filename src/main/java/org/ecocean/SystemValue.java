@@ -83,6 +83,9 @@ public class SystemValue implements java.io.Serializable {
     public static SystemValue set(Shepherd myShepherd, String key, String val) {
         return _set(myShepherd, key, "String", val);
     }
+    public static SystemValue set(Shepherd myShepherd, String key, JSONObject val) {
+        return _set(myShepherd, key, "JSONObject", val);
+    }
 
     public static JSONObject getValue(Shepherd myShepherd, String key) {
         SystemValue sv = load(myShepherd, key);
@@ -134,6 +137,18 @@ public class SystemValue implements java.io.Serializable {
             return null;
         }
     }
+    public static JSONObject getJSONObject(Shepherd myShepherd, String key) {
+        JSONObject v = getValue(myShepherd, key);
+        if (v == null) return null;
+        if (v.isNull("value")) return null;
+        try {
+            return v.getJSONObject("value");
+        } catch (JSONException ex) {
+            System.out.println("WARNING: parse error on " + v.toString() + ": " + ex.toString());
+            return null;
+        }
+    }
+
 
     public String toString() {
         return new ToStringBuilder(this)
