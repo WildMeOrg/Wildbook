@@ -134,7 +134,10 @@
 		 
 		 </ul>
 		 
-		<% if (blocked.size() < 1) { %>
+		<%
+		 //if (blocked.size() < 1) {
+		 if (true) {
+		  %>
 		 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 		
