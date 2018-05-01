@@ -126,7 +126,9 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
  * 
  */
 $(document).ready(function(){
-    $('[data-toggle="tooltip"]').tooltip(); 
+    if ($(window).width()>700) {
+    	$('[data-toggle="tooltip"]').tooltip();
+    }
 });
 
 
