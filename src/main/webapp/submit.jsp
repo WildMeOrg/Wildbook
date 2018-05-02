@@ -430,12 +430,12 @@ function gpsLiveUpdate() {
 
         <div class="col-xs-6 col-sm-6 col-md-12 col-lg-12">
           <img class="img-responsive" src="cust/mantamatcher/img/bass/katieDavisLeftFlank.jpg" />
-          <p><label><%=props.getProperty("leftFlank") %></label></p>
+          <p><label class="image_label"><%=props.getProperty("leftFlank") %></label></p>
         </div>
 
         <div class="col-xs-6 col-sm-6 col-md-12 col-lg-12">
           <img class="img-responsive" src="cust/mantamatcher/img/bass/MerryPassagePhilGarner_rightside.jpg" />
-          <p><label><%=props.getProperty("rightFlank") %></label></p>
+          <p><label class="image_label"><%=props.getProperty("rightFlank") %></label></p>
         </div>
 
       </div>
