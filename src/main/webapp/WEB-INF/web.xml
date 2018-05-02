@@ -128,6 +128,7 @@
 
                 /rest/** = authcBasicWildbook,roles[rest]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
+				/LightRest/** = authcBasicWildbook,roles[rest]
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
 
@@ -1242,14 +1243,18 @@
   </servlet>
   
   <!-- LightRestServlet -->
-   <servlet>
-    <servlet-name>LightRestServlet</servlet-name>
+  <servlet>
+    <servlet-name>LightRest</servlet-name>
     <servlet-class>org.ecocean.servlet.LightRestServlet</servlet-class>
+      <init-param>
+        <param-name>persistence-context</param-name>
+        <param-value>ShepherdPMF</param-value>
+    </init-param>
   </servlet>
-  <servlet-mapping>
-    <servlet-name>LightRestServlet</servlet-name>
-    <url-pattern>/LightRestServlet</url-pattern>
-  </servlet-mapping>
+<servlet-mapping>
+  <servlet-name>LightRest</servlet-name>
+  <url-pattern>/LightRest/*</url-pattern>
+</servlet-mapping>
   
     <!-- SUTimeServlet -->
    <servlet>
