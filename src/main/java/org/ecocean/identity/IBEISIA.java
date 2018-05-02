@@ -1,20 +1,33 @@
 package org.ecocean.identity;
 
 import org.ecocean.ImageAttributes;
+
 import org.ecocean.Annotation;
 import org.ecocean.Util;
+import org.ecocean.YouTube;
+import org.ecocean.ai.nmt.google.DetectTranslate;
+import org.ecocean.ai.ocr.google.GoogleOcr;
+import org.ecocean.ai.utilities.ParseDateLocation;
+import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.Shepherd;
+import org.ecocean.ShepherdProperties;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.CommonConfiguration;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+import java.util.StringTokenizer;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.net.URL;
@@ -33,6 +46,15 @@ import org.apache.commons.lang3.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+
+//date time
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+
+import twitter4j.*;
+
+
 
 
 public class IBEISIA {
@@ -137,7 +159,7 @@ public class IBEISIA {
 
 System.out.println("sendMediaAssets(): sending " + ct);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?
-        return RestClient.post(url, new JSONObject(map));
+        return RestClient.post(url, hashMapToJSONObject(map));
     }
 
 
@@ -158,7 +180,9 @@ System.out.println("sendMediaAssets(): sending " + ct);
         map.put("annot_bbox_list", new ArrayList<int[]>());
         map.put("annot_name_list", new ArrayList<String>());
 
-        Shepherd myShepherd = new Shepherd(context);
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("IBEISIA.class_sendAnnotations");
+        myShepherd.beginDBTransaction();
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
             int[] bbox = ann.getBbox();
@@ -172,6 +196,8 @@ System.out.println("sendMediaAssets(): sending " + ct);
             markSent(ann);
             ct++;
         }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
 
 System.out.println("sendAnnotations(): sending " + ct);
         if (ct < 1) return null;
@@ -180,7 +206,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         boolean tryAgain = true;
         JSONObject res = null;
         while (tryAgain) {
-            res = RestClient.post(url, new JSONObject(map));
+            res = RestClient.post(url, hashMapToJSONObject(map));
             tryAgain = iaCheckMissing(res, context);
         }
         return res;
@@ -273,7 +299,7 @@ System.out.println("tlist.size()=" + tlist.size());
 System.out.println(map);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-        return RestClient.post(url, new JSONObject(map));
+        return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
 
@@ -1083,6 +1109,13 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult) {
         if (iaResult == null) return null;
+
+        //this is hard-coded for whaleshark.org branch .... need to generalize this!!  TODO
+        if (!iaResult.optString("class", "_FAIL_").equals("whale_shark")) {
+            System.out.println("WARNING: bailing on IA results due to invalid species detected -- " + iaResult.toString());
+            return null;
+        }
+
         JSONObject fparams = new JSONObject();
         fparams.put("detectionConfidence", iaResult.optDouble("confidence", -2.0));
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
@@ -1146,6 +1179,10 @@ System.out.println("**** type ---------------> [" + type + "]");
 */
 
     private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, HttpServletRequest request) {
+      return processCallbackDetect(taskID, logs, resp, myShepherd, request, null, null, null);
+    }
+
+    private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
 System.out.println("***** ids = " + ids);
@@ -1205,8 +1242,12 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
-                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) {
+                        //if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue() || !jann.optString("species", "unkown").equals("whale_fluke")) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
+                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
+
                             needsReview = true;
+                            System.out.println("Detection didn't find a whale shark");
+                            // TwitterUtil.sendDetectionAndIdentificationTweet(screenName, imageId, twitterInst, whaleId, false, false, ""); //TODO find a way to get screenName, imageId, etc. over here
                             continue;
                         }
                         //these are annotations we can make automatically from ia detection.  we also do the same upon review return
@@ -1221,7 +1262,12 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         newAnns.put(ann.getId());
                         try {
                             //TODO how to know *if* we should start identification
-                            ident.put(ann.getId(), IAIntake(ann, myShepherd, request));
+                            //if(jann.optDouble("confidence", -1.0) >= getDetectionCutoffValue() && jann.optString("species", "unkown").equals("whale_fluke")){
+                            if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
+
+                              System.out.println("Detection found a whale shark; sending to identification");
+                              ident.put(ann.getId(), IAIntake(ann, myShepherd, request));
+                            }
                         } catch (Exception ex) {
                             System.out.println("WARNING: IAIntake threw exception " + ex);
                         }
@@ -1248,15 +1294,17 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     occ.setDWCDateLastModified();
                     occ.setDateTimeCreated();
                     occ.addComments("<i>created during frame collation by IA</i>");
+
                     JSONArray je = new JSONArray();
                     for (Encounter enc : encs) {
                         enc.setOccurrenceID(occ.getOccurrenceID());
                         occ.addEncounter(enc);
+                        occ.setSocialMediaSourceID(enc.getEventID());
                         myShepherd.getPM().makePersistent(enc);
                         je.put(enc.getCatalogNumber());
                     }
                     myShepherd.getPM().makePersistent(occ);
-                    occ.fromDetection(myShepherd, request);
+                    fromDetection(occ, myShepherd, request, ServletUtilities.getContext(request));
                     jlog.put("collatedEncounters", je);
                     jlog.put("collatedOccurrence", occ.getOccurrenceID());
                 }
@@ -1284,8 +1332,11 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         enc.detectedAnnotation(myShepherd, request, ann);
     }
 
-
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request) {
+      return processCallbackIdentify(taskID, logs, resp, request, null, null, null);
+    }
+
+    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
         if (ids == null) {
@@ -1324,12 +1375,35 @@ System.out.println("**** " + ann);
             JSONArray rlist = infDict.getJSONObject("annot_pair_dict").getJSONArray("review_pair_list");
             JSONArray clist = infDict.getJSONObject("annot_pair_dict").optJSONArray("confidence_list");  //this allows for null case, fyi
             for (int i = 0 ; i < rlist.length() ; i++) {
-                //note: it *seems like* annot_uuid_1 is *always* the member that is from the query_annot_uuid_list... but?? is it?
+                //NOTE: it *seems like* annot_uuid_1 is *always* the member that is from the query_annot_uuid_list... but?? is it? NOTE: Mark and Chris assumed this was true in the line below that looks like String matchUuid = rlist.getJSONObject(i).optJSONObject("annot_uuid_2");
+
+                //NOTE: will the review_pair_list and confidence_list always be in descending order? IF not, then TODO we'll have to only select the best match (what if there's more than one really good match)
                 String annId = fromFancyUUID(rlist.getJSONObject(i).getJSONObject("annot_uuid_1"));  //gets not opts here... so ungraceful fail possible
                 if (!needReviewMap.containsKey(annId)) needReviewMap.put(annId, false); //only set first, so if set true it stays true
                 if (needIdentificationReview(rlist, clist, i, context)) {
                     needReview = true;
                     needReviewMap.put(annId, true);
+                } else if(clist.optDouble(i, -99.0) >= getIdentificationCutoffValue()){
+                  System.out.println("Maybe identified it??");
+                  try{
+
+                    //String matchUuid = rlist.getJSONObject(i).optJSONObject("annot_uuid_2").toString();
+
+                    String matchUuid = rlist.getJSONObject(i).getJSONObject("annot_uuid_2").toString();
+
+                    System.out.println(matchUuid);
+                    //TODO get baseURL
+                    // String info = baseURL + "/individuals.jsp/?number=" + matchUuid;
+                    if(screenName != null && imageId != null && twitterInst != null){
+                      //TODO pass info to tweet
+                    } else{
+                      System.out.println("Arguments to generate a return tweet were not available; skipped.");
+                    }
+
+                  } catch(Exception e){
+                    e.printStackTrace();
+                  }
+
                 }
             }
         }
@@ -1372,7 +1446,7 @@ System.out.println("*****************\nhey i think we are happy with these annot
 
     //scores < these will require human review (otherwise they carry on automatically)
     public static double getDetectionCutoffValue() {
-        return 0.7;
+        return 0.35;
     }
     public static double getIdentificationCutoffValue() {
         return 0.8;
@@ -2635,5 +2709,324 @@ System.out.println("* * * * * * * IAIntake(ident) NOT YET IMPLEMENTED ====> " + 
 return Util.generateUUID();
     }
 */
+
+    //this is called when a batch of encounters (which should be on this occurrence) were made from detection
+    // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
+    public static void fromDetection(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context)  {
+        System.out.println(">>>>>> detection created " + occ.toString());
+
+        //set the locationID/location/date on all encounters by inspecting detected comments on the first encounter
+        if((occ.getEncounters()!=null)&&(occ.getEncounters().get(0)!=null)){
+
+
+          String locCode=null;
+          String location="";
+          int year=-1;
+          int month=-1;
+          int day=-1;
+          List<Encounter> encounters=occ.getEncounters();
+          int numEncounters=encounters.size();
+          Encounter enc=encounters.get(0);
+          String ytRemarks="";
+          
+          
+          //GET AND TRANSLATE VIDEO COMMENTS
+          if(YouTube.getVideoDescription(occ, myShepherd)!=null) {
+            ytRemarks=YouTube.getVideoDescription(occ, myShepherd);
+          }
+          
+          String detectedLanguage="en";
+          try{
+            
+            detectedLanguage= DetectTranslate.detectLanguage(ytRemarks);
+            System.out.println("Video description suggests language: "+detectedLanguage);
+
+            if(!detectedLanguage.toLowerCase().startsWith("en")){
+              ytRemarks= DetectTranslate.translateToEnglish(ytRemarks);
+            }
+          }
+          catch(Exception e){
+            System.out.println("I hit an exception trying to detect language.");
+            e.printStackTrace();
+          }
+          
+          //GET AND TRANSLATE VIDEO TITLE
+          String videoTitle="";
+          if(YouTube.getVideoTitle(occ, myShepherd)!=null) {
+            videoTitle=YouTube.getVideoTitle(occ, myShepherd);
+          }
+          
+          
+          try{
+            String titleLanguage="en";
+            titleLanguage= DetectTranslate.detectLanguage(videoTitle);
+            System.out.println("Video title "+videoTitle+" suggests language: "+titleLanguage);
+
+            
+            //use the title language if there were no comments
+            if(ytRemarks.equals("")) {
+              detectedLanguage=titleLanguage;
+            }
+
+            if(!titleLanguage.toLowerCase().startsWith("en")){
+              videoTitle= DetectTranslate.translateToEnglish(videoTitle);
+            }
+          }
+          catch(Exception e){
+            System.out.println("I hit an exception trying to detect language in the video title.");
+            e.printStackTrace();
+          }
+          
+          System.out.println("Final detectedLanguage: "+detectedLanguage);
+          
+          
+          //GET AND TRANSLATE OCR TEXT EMBEDDED IN VIDEO FRAMES
+          //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
+          String ocrRemarks="";
+          try {
+            if((occ.getEncounters()!=null)&&(occ.getEncounters().size()>0)){
+              Encounter myEnc=occ.getEncounters().get(0);
+              List<MediaAsset> assets= myEnc.getMedia();
+              if((assets!=null)&&(assets.size()>0)){
+                MediaAsset myAsset = assets.get(0);
+                MediaAsset parent = myAsset.getParent(myShepherd);
+                if(parent!=null){
+                  ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
+                  if((frames!=null)&&(frames.size()>0)){
+                      
+                      //Google OCR
+                      ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
+                      ocrRemarks = GoogleOcr.detectText(bytesFrames);
+                      if(ocrRemarks==null)ocrRemarks="";
+                        System.out.println("I found OCR remarks: "+ocrRemarks);
+                    }
+                  }
+                  else{
+                    System.out.println("I could not find any frames from YouTubeAssetStore.findFrames for asset:"+myAsset.getId()+" from Encounter "+myEnc.getCatalogNumber());
+                  }
+              }
+              }
+            }
+            catch (Exception e) {
+              e.printStackTrace();
+              System.out.println("I hit an exception trying to find ocrRemarks.");
+            }
+          
+          
+          
+          try{
+            String ocrDetectedLanguage="en";
+            ocrDetectedLanguage= DetectTranslate.detectLanguage(ocrRemarks);
+            
+            System.out.println("OCR suggests language: "+ocrDetectedLanguage);
+
+
+            if(!ocrDetectedLanguage.toLowerCase().startsWith("en")){
+              ocrRemarks= DetectTranslate.translateToEnglish(ocrRemarks);
+            }
+          }
+          catch(Exception e){
+            System.out.println("I hit an exception trying to detect language for OCR comments.");
+            e.printStackTrace();
+          }
+
+
+            String remarks=ytRemarks+" "+ ocrRemarks + " "+videoTitle;
+
+            System.out.println("Let's parse these remarks for date and location: "+remarks);
+
+            Properties props = new Properties();
+
+            //OK, let's check the comments and tags for retrievable metadata
+            try {
+
+
+            //first parse for location and locationID
+              String lowercaseRemarks=remarks.toLowerCase();
+              try{
+                props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+                Enumeration m_enum = props.propertyNames();
+                while (m_enum.hasMoreElements()) {
+                  String aLocationSnippet = ((String) m_enum.nextElement()).trim();
+                  System.out.println("     Looking for: "+aLocationSnippet);
+                  if (lowercaseRemarks.indexOf(aLocationSnippet) != -1) {
+                    locCode = props.getProperty(aLocationSnippet);
+                    location+=(aLocationSnippet+" ");
+                    System.out.println(".....Building an idea of location: "+location);
+                  }
+                }
+
+              }
+              catch(Exception e){
+                e.printStackTrace();
+              }
+
+              boolean setDate=true;
+              if(enc.getDateInMilliseconds()!=null){setDate=false;}
+              //next use natural language processing for date
+              if(setDate){
+                //boolean NLPsuccess=false;
+                try{
+                    System.out.println(">>>>>> looking for date with NLP");
+                    //call Stanford NLP function to find and select a date from ytRemarks
+                    //String myDate= ServletUtilities.nlpDateParse(remarks);
+                    String myDate=ParseDateLocation.parseDate(request,remarks, context);
+                    System.out.println("Finished ParseDateLocation.parseDate");;
+                    //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
+                    if (myDate!=null) {
+                        System.out.println(">>>>>> NLP found date: "+myDate);
+     
+
+                        //current datetime just for quality comparison
+                        LocalDateTime dt = new LocalDateTime();
+
+                        DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+                        LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseLocalDateTime(myDate));
+                        //System.out.println("     reportedDateTime is: "+reportedDateTime.toString(parser1));
+                        StringTokenizer str=new StringTokenizer(myDate,"-");
+                        int numTokens=str.countTokens();
+                        System.out.println("     StringTokenizer for date has "+numTokens+" tokens for String input "+str.toString());
+
+                        if(numTokens>=1){
+                         
+                          year=reportedDateTime.getYear();
+                            if(year>(dt.getYear()+1)){ 
+                              year=-1;
+                            }
+                        }
+                        if(numTokens>=2){
+                          try { month=reportedDateTime.getMonthOfYear(); } catch (Exception e) { month=-1;}
+                        }
+                        else{month=-1;}
+                        //see if we can get a day, because we do want to support only yyy-MM too
+                        if(numTokens>=3){
+                          try { day=reportedDateTime.getDayOfMonth(); } catch (Exception e) { day=0; }
+                        }
+                        else{day=-1;}
+
+
+                    }
+
+                }
+                catch(Exception e){
+                    System.out.println("Exception in NLP in IBEISIA.class");
+                    e.printStackTrace();
+                }
+
+
+                  //if we found a date via NLP or brute force, let's use it here
+                  if(year>-1){
+                    for(int i=0;i<numEncounters;i++){
+                      Encounter enctemp=encounters.get(i);
+                      enctemp.setYear(year);
+                      if(month>-1){
+                        enctemp.setMonth(month);
+                        if(day>-1){enctemp.setDay(day);}
+                      }
+                    }
+
+                  }
+
+            }//end if set date
+
+
+              }
+
+            catch (Exception props_e) {
+              props_e.printStackTrace();
+            }
+
+
+          //if we found a locationID, iterate and set it on every Encounter
+          if(locCode!=null){
+
+            for(int i=0;i<numEncounters;i++){
+              Encounter enctemp=encounters.get(i);
+              enctemp.setLocationID(locCode);
+              System.out.println("Setting locationID for detected Encounter to: "+locCode);
+              if(!location.equals("")){
+                enctemp.setLocation(location.trim());
+                System.out.println("Setting location for detected Encounter to: "+location);
+                }
+            }
+          }
+
+
+          //set the Wildbook A.I. user if it exists
+          if(myShepherd.getUser("wildbookai")!=null){
+            for(int i=0;i<numEncounters;i++){
+              Encounter enctemp=encounters.get(i);
+              enctemp.setSubmitterID("wildbookai");
+            }
+          }
+
+          //if date and/or location not found, ask youtube poster through comment section.
+          //          cred= ShepherdProperties.getProperties("youtubeCredentials.properties", "");
+          try{
+            //YouTube.init(request);
+            Properties quest = new Properties();
+            //Properties questEs = new Properties();
+
+            //TBD-simplify to one set of files
+            System.out.println("Getting quest.properties for language code: "+detectedLanguage);
+            quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+            //questEs= ShepherdProperties.getProperties("questEs.properties");
+
+            String questionToPost=null;
+
+            if((enc.getDateInMilliseconds()==null)&&(locCode==null)){
+              questionToPost= quest.getProperty("whenWhere");
+
+            }
+            else if(enc.getDateInMilliseconds()==null){
+              questionToPost= quest.getProperty("when");
+
+            }
+            else if(locCode==null){
+              questionToPost= quest.getProperty("where");
+            }
+
+            if(questionToPost!=null){
+            String videoId = enc.getEventID().replaceAll("youtube:","");
+              try{
+                YouTube.postQuestion(questionToPost,videoId, occ, context);
+              }
+              catch(Exception e){e.printStackTrace();}
+            }
+
+        }
+         catch(Exception yet){
+           System.out.println("Caught exception trying to post a YouTube question.");
+           yet.printStackTrace();
+         }
+
+
+
+        }
+        //end set date/location/locationID on Encounters
+
+    }
+
+
+    //// TOTAL HACK... buy jon a drink and he will tell you about these.....
+    public static JSONObject hashMapToJSONObject(HashMap<String,ArrayList> map) {
+        if (map == null) return null;
+        //return new JSONObject(map);  // this *used to work*, i swear!!!
+        JSONObject rtn = new JSONObject();
+        for (String k : map.keySet()) {
+            rtn.put(k, map.get(k));
+        }
+        return rtn;
+    }
+    public static JSONObject hashMapToJSONObject2(HashMap<String,Object> map) {   //note: Object-flavoured
+        if (map == null) return null;
+        //return new JSONObject(map);  // this *used to work*, i swear!!!
+        JSONObject rtn = new JSONObject();
+        for (String k : map.keySet()) {
+            rtn.put(k, map.get(k));
+        }
+        return rtn;
+    }
+
 
 }

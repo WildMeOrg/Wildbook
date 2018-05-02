@@ -3,7 +3,7 @@ package org.ecocean;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.HashSet;
 import org.joda.time.DateTime;
 import java.text.SimpleDateFormat;
+
+import org.ecocean.media.AssetStoreType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
@@ -49,6 +51,11 @@ public class Occurrence implements java.io.Serializable{
   private String modified;
   //private String locationID;
   private String dateTimeCreated;
+  
+  //social media registration fields for AI-created occurrences
+  private String socialMediaSourceID;
+  private String socialMediaQueryCommentID;
+  private String socialMediaQueryCommentReplies;
 
   // this is helpful for sorting but isn't (for now) intended to be UI-facing
   // rather it's set from Encounters
@@ -77,6 +84,7 @@ public class Occurrence implements java.io.Serializable{
 /////Lewa-specifics
   private DateTime dateTime;
 
+  /*
 	private String habitat;
   private String groupType;
   private String groupActivity;
@@ -87,8 +95,10 @@ public class Occurrence implements java.io.Serializable{
 	private Integer numLactFemales;
   private Integer numJuveniles;
 	private Double bearing;
-
+*/
   // new fields added for Dan's lab
+  
+  /*
   private String imageSet;
   private String soil;
   private String rain;
@@ -98,7 +108,9 @@ public class Occurrence implements java.io.Serializable{
   private String grassHeight;
   private String weather;
   private String wind;
-
+*/
+  
+  
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
 
@@ -490,6 +502,8 @@ public class Occurrence implements java.io.Serializable{
 		this.distance = d;
 	}
 
+	
+	/*
 	public String getHabitat() {
 		return this.habitat;
 	}
@@ -585,7 +599,7 @@ public class Occurrence implements java.io.Serializable{
 
   public String getWind() { return this.wind; }
 	public void setWind(String h) { this.wind = h; }
-
+*/
 
 
 
@@ -812,11 +826,7 @@ public class Occurrence implements java.io.Serializable{
 
     }
     
-    //this is called when a batch of encounters (which should be on this occurrence) were made from detection
-    // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
-    public void fromDetection(Shepherd myShepherd, HttpServletRequest request) {
-        System.out.println(">>>>>> detection created " + this);
-    }
+
 
     public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
       
@@ -826,6 +836,58 @@ public class Occurrence implements java.io.Serializable{
       
 
     }
+    
+    //social media registration fields for AI-created occurrences
+    public String getSocialMediaSourceID(){return socialMediaSourceID;};
+    public void setSocialMediaSourceID(String id){socialMediaSourceID=id;};
+    
+    
+    public String getSocialMediaQueryCommentID(){return socialMediaQueryCommentID;};
+    public void setSocialMediaQueryCommentID(String id){socialMediaQueryCommentID=id;};
+    //each night we look for one occurrence that has commentid but not commentresponseid.
+    
+    public String getSocialMediaQueryCommentReplies(){return socialMediaQueryCommentReplies;};
+    public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
 
+    public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
+      if(getMediaAssetsOfType(aType).size()>0){return true;}
+      return false;
+    }
+    
+    public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      try{
+        int numEncs=encounters.size();
+        for(int k=0;k<numEncs;k++){
+          
+          ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
+          int numAssets=assets.size();
+          for(int i=0;i<numAssets;i++){
+            MediaAsset ma=assets.get(i);
+            if(ma.getStore().getType()==aType){results.add(ma);}
+          }
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      return results;
+    }
+    
+    public boolean hasMediaAssetFromRootStoreType(Shepherd myShepherd, AssetStoreType aType){
+      try{
+        int numEncs=encounters.size();
+        for(int k=0;k<numEncs;k++){
+          
+          ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
+          int numAssets=assets.size();
+          for(int i=0;i<numAssets;i++){
+            MediaAsset ma=assets.get(i);
+            if(ma.getStore().getType()==aType){return true;}
+            if(ma.getParentRoot(myShepherd).getStore().getType()==aType){return true;}
+          }
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      return false;
+    }
 
 }

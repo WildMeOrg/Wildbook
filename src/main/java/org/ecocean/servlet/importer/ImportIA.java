@@ -48,6 +48,7 @@ public class ImportIA extends HttpServlet {
     context=ServletUtilities.getContext(request);
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("ImportIA");
     FeatureType.initAll(myShepherd);
     PrintWriter out = response.getWriter();
 

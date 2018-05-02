@@ -1240,6 +1240,27 @@
     <servlet-name>TranslateQuery</servlet-name>
     <servlet-class>org.ecocean.servlet.TranslateQuery</servlet-class>
   </servlet>
+  
+  <!-- LightRestServlet -->
+   <servlet>
+    <servlet-name>LightRestServlet</servlet-name>
+    <servlet-class>org.ecocean.servlet.LightRestServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LightRestServlet</servlet-name>
+    <url-pattern>/LightRestServlet</url-pattern>
+  </servlet-mapping>
+  
+    <!-- SUTimeServlet -->
+   <servlet>
+    <servlet-name>SUTimeServlet</servlet-name>
+    <servlet-class>org.ecocean.servlet.SUTimeServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SUTimeServlet</servlet-name>
+    <url-pattern>/SUTimeServlet</url-pattern>
+  </servlet-mapping>
+
 
 
   <servlet-mapping>

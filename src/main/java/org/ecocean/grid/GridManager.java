@@ -310,6 +310,7 @@ public class GridManager {
     //refresh the grid stats if necessary
     if ((lastGridStatsQuery == 1) || ((currenTime - lastGridStatsQuery) > gridStatsRefreshPeriod)) {
       Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("GridManager.class");
       myShepherd.beginDBTransaction();
       numScanTasks = myShepherd.getNumScanTasks();
       myShepherd.rollbackDBTransaction();

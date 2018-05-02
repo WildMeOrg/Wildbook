@@ -12,6 +12,10 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 import org.json.JSONObject;
 import org.json.JSONException;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.text.DateFormat;
+import java.util.TimeZone;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
@@ -20,7 +24,12 @@ import org.joda.time.LocalDateTime;
 //EXIF-related imports
 import java.io.File;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
@@ -278,8 +287,8 @@ public class Util {
       if ((coords == null)||(refresh)) {
 
         //execute the JDOQL
-        
-        
+
+
         Query query=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null");
         Collection<Encounter> c = (Collection<Encounter>) (query.execute());
         ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
@@ -303,7 +312,7 @@ public class Util {
         }
 
         query.closeAll();
-        
+
       }
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
@@ -584,6 +593,24 @@ public class Util {
       return values;
     }
 
+    public static void writeToFile(String data, String path) throws FileNotFoundException {
+      PrintWriter out = new PrintWriter(path);
+      out.println(data);
+      out.close();
+    }
 
+    public static String readFromFile(String path) throws FileNotFoundException, IOException {
+      FileInputStream inputStream = new FileInputStream(path);
+      String readData = IOUtils.toString(inputStream);
+      return readData;
+    }
 
+    public static String convertEpochTimeToHumanReadable (long epochTime){
+      Date date = new Date(epochTime);
+          DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+          format.setTimeZone(TimeZone.getTimeZone("Etc/GMT"));
+          String formatted = format.format(date);
+          formatted = format.format(date);
+          return formatted.toString();
+    }
 }

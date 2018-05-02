@@ -31,6 +31,9 @@ org.ecocean.media.*
 
 <%
 /*
+	######### you probably really want mediaAssetsToEncounters.jsp (note that final "s" !!!) ... sorry!  ##############
+	###################################################################################################################
+
 	this is pretty much hardcoded to A Kopelmans exif data...  modify as needed!  here is example of exif we are maybe using:
 
 exif. --

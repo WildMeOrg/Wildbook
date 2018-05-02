@@ -19,6 +19,8 @@ import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
@@ -68,6 +70,9 @@ public class StartupWildbook implements ServletContextListener {
         Role newRole1=new Role("tomcat","admin");
         newRole1.setContext("context0");
         myShepherd.getPM().makePersistent(newRole1);
+        Role newRole2=new Role("tomcat","researcher");
+        newRole2.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole2);
         Role newRole4=new Role("tomcat","destroyer");
         newRole4.setContext("context0");
         myShepherd.getPM().makePersistent(newRole4);

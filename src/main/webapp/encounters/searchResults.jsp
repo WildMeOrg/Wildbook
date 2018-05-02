@@ -2,6 +2,16 @@
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
 
 
+<%!
+
+String dispToString(Integer i) {
+	if (i==null) return "";
+	return i.toString();
+}
+
+%>
+
+
 <%
 
 String context="context0";
@@ -37,9 +47,9 @@ context=ServletUtilities.getContext(request);
 
 //--let's estimate the number of results that might be unique
 
-  int numUniqueEncounters = 0;
-  int numUnidentifiedEncounters = 0;
-  int numDuplicateEncounters = 0;
+  Integer numUniqueEncounters = null;
+  Integer numUnidentifiedEncounters = null;
+  Integer numDuplicateEncounters = null;
 
 %>
 
@@ -337,12 +347,6 @@ $(document).keydown(function(k) {
 
 var colDefn = [
 	{
-		key: 'thumb',
-		label: 'Thumb',
-		value: _colThumb,
-		nosort: true,
-	},
-	{
 		key: 'individualID',
 		label: 'ID',
 		value: _colIndLink,
@@ -351,11 +355,6 @@ var colDefn = [
   {
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
-  },
-  {
-    key: 'filename',
-    label: 'Filename(s)',
-    value: _colFileName,
   },
 	{
 		key: 'date',
@@ -380,6 +379,7 @@ var colDefn = [
 	{
 		key: 'submitterID',
 		label: '<%=encprops.getProperty("submitterName")%>',
+		value: _submitterID,
 	},
 	{
 		key: 'creationDate',
@@ -785,6 +785,11 @@ function _colModified(o) {
 	return d.toLocaleDateString();
 }
 
+function _submitterID(o) {
+	var m = o.get('submitterName');
+	if (!m) m = o.get('submitterProject');
+	return m;
+}
 
 function _textExtraction(n) {
 	var s = $(n).text();
@@ -1165,9 +1170,9 @@ console.log(t);
           if (request.getUserPrincipal()!=null) {
         %>
         <br/>
-        <span id="count-ided"><%=numUniqueEncounters%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
-        <span id="count-unid"><%=numUnidentifiedEncounters%></span> <%=encprops.getProperty("unidentified")%><br/>
-        <span id="count-dailydup"><%=(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
+        <span id="count-ided"><%=dispToString(numUniqueEncounters)%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
+        <span id="count-unid"><%=dispToString(numUnidentifiedEncounters)%></span> <%=encprops.getProperty("unidentified")%><br/>
+        <span id="count-dailydup"><%=dispToString(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
         <%
           }
         %>
