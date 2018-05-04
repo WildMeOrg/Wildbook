@@ -62,6 +62,9 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
+
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
@@ -273,11 +276,27 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                     </ul>
 
+
+                    <style type="text/css">
+                      #header-search-button, #header-search-button:hover {
+                        color: inherit;
+                        background-color: inherit;
+                        padding: 0px;
+                        margin: 0px;
+                      }
+                    </style>
+                    <script>
+                      $('#header-search-button').click(function() {
+                        document.forms['header-search'].submit();
+                      })
+                    </script>
+
+
                     <div class="search-wrapper">
                       <label class="search-field-header">
-                            <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
-	                            <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
-	                            <input type="submit" value="search" />
+                            <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
+                              <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+                              <button type="submit" id="header-search-button"><span class="el el-lg el-search"></span></button>
                           </form>
                       </label>
                     </div>
@@ -300,8 +319,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                   <div id="navbar" class="navbar-collapse collapse">
                   <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
                     <ul class="nav navbar-nav">
-                                  <!--                -->
-                      <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
+
+                      <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->                        
+                        <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
+                      </li>
+
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
                       <li class="dropdown">
