@@ -1,0 +1,5 @@
+/* IMO this icon is poorly rendered by default, this adjustment aligns the bottom of the chevron with the baseline of text */
+.el-chevron-down {
+	position: relative;
+	top:2px;
+}
