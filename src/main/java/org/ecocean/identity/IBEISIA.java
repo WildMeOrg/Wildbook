@@ -1101,6 +1101,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
             enc.setOccurrenceID(occ.getOccurrenceID());
             occ.addEncounter(enc);
         }
+        enc.detectedAnnotation(myShepherd, ann);  //this is a stub presently, so meh?
         myShepherd.getPM().makePersistent(ann);
         myShepherd.getPM().makePersistent(enc);
         if (occ != null) myShepherd.getPM().makePersistent(occ);
@@ -1110,7 +1111,6 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult, Shepherd myShepherd, String context, String rootDir) {
         if (iaResult == null) return null;
-
 
         Taxonomy tax = iaTaxonomyMap(myShepherd, context).get(iaResult.optString("class", "_FAIL_"));
         if (tax == null) {  //null could mean "invalid IA taxonomy"
@@ -1275,7 +1275,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                             System.out.println("WARNING: could not create Annotation from " + asset + " and " + jann);
                             continue;
                         }
-                        if (!skipEncounters) _tellEncounter(myShepherd, ann);  // ???, context, rootDir);
+                        // MAYBE NOT NEEDED - same(?) logic in createAnnotationFromIAResult above ?????   if (!skipEncounters) _tellEncounter(myShepherd, ann);  // ???, context, rootDir);
                         allAnns.add(ann);  //this is cumulative over *all MAs*
                         newAnns.put(ann.getId());
                         try {
@@ -1341,6 +1341,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
         return rtn;
     }
 
+/*  not convinced we need this at all!!!   -jon
     private static void _tellEncounter(Shepherd myShepherd, Annotation ann) {  //, String context, String rootDir) {
 System.out.println("/------ _tellEncounter ann = " + ann);
         Encounter enc = ann.toEncounter(myShepherd);
@@ -1349,6 +1350,7 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         myShepherd.getPM().makePersistent(enc);
         enc.detectedAnnotation(myShepherd, ann);
     }
+*/
 
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request) {
       return processCallbackIdentify(taskID, logs, resp, request, null, null, null);
