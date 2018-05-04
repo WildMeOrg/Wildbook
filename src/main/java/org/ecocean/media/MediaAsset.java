@@ -397,6 +397,13 @@ public class MediaAsset implements java.io.Serializable {
             f.asset = this;
         }
     }
+    //note: this will outright deletes feature (from db, blame datanucleus), and thus will
+    // break the reference from Annotation-Feature that (likely) existed ... oops?
+    public void removeFeature(Feature f) {
+        if (features == null) return;
+        System.out.println("INFO: removeFeature() killing off " + f + " from " + this);
+        features.remove(f);
+    }
 
     //kinda sorta really only for Encounter.findAllMediaByFeatureId()
     public boolean hasFeatures(String[] featureIds) {
