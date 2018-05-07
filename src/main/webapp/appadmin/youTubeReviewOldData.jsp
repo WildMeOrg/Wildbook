@@ -21,7 +21,8 @@ weka.classifiers.Classifier,
 weka.core.Instance,
 weka.core.Attribute,
 weka.core.DenseInstance, org.ecocean.ai.weka.Classify,
-weka.core.Instances"%>
+weka.core.Instances,
+java.util.concurrent.atomic.AtomicInteger"%>
 
 <%!
 private static String translateIfNotEnglish(String text){
@@ -61,11 +62,17 @@ public static Double classify(weka.core.Instance instance, String fullPathToClas
 
 <%!
 
-public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsset ma, HttpServletRequest request, Shepherd myShepherd, String context, Integer numVideosWithID,Integer numVideos, Integer numUncuratedVideos, Integer numCommentedVideos,Integer numCommentedVideosReplies,ArrayList<MediaAsset> goodDataVideos,ArrayList<MediaAsset> poorDataVideos){
+public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsset ma, HttpServletRequest request, Shepherd myShepherd, String context, AtomicInteger numVideosWithID,AtomicInteger numVideos, AtomicInteger numUncuratedVideos, AtomicInteger numCommentedVideos,AtomicInteger numCommentedVideosReplies,ArrayList<MediaAsset> goodDataVideos,ArrayList<MediaAsset> poorDataVideos, boolean persistDifferences, AtomicInteger numDatesFound, AtomicInteger numLocationIDsFound){
 
+	//if we're going to persist changes, ensure the Shepherd object is ready
+	if(persistDifferences && !myShepherd.getPM().currentTransaction().isActive()){
+		myShepherd.beginDBTransaction();
+	}
+	
+	//the return string of HTML content
 	String resultsHTML="";
 	
-	//weka predictors
+	//weka predictor preparation answering the question: does this video description suggest a real world whale shark sighting?
 	ArrayList<Attribute> attributeList = new ArrayList<Attribute>(2);
 	ArrayList<Attribute> attributeList2 = new ArrayList<Attribute>(2);
 	Attribute desc = new Attribute("description", true);
@@ -88,36 +95,46 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 	boolean hasWildMeCommentReplies=false;
 	String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
     
-	
-    //JSONObject data=md.getData();
+	//video has metadata for analysis?
     if ((ma.getMetadata() != null)) {
-      numVideos++;
+      numVideos.incrementAndGet();
       MediaAssetMetadata md = ma.getMetadata();	
+      
+      //video metadata is not null, so proceed
       if (md.getData() != null) {
     	
+    	//setup our metadata fields  
     	String videoID=ma.getMetadata().getData().getJSONObject("detailed").optString("id");
 		String videoTitle="[unknown]";
 		String videoTitleShort=videoTitle;
 		String videoComments="";
 		String videoCommentsClean="";
 		String locIDWords="";
+		String videoDescription="[no description]";
+		String videoTags="[no tags]";
+		
+		//start capturing metadata about the YouTube video
+		
+		//video title
 		if(videoTitle.length()>1000){videoTitleShort=videoTitle.substring(0,1000);}
 		if(md.getData().optJSONObject("basic") != null){
 			videoTitle=md.getData().getJSONObject("basic").optString("title").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();
-			
-			
 		}
-		String videoDescription="[no description]";
+		
+		//video description
 		String videoDescriptionShort=videoDescription;
 		if(videoDescription.length()>1000){videoDescriptionShort=videoDescription.substring(0,1000);}
-		String videoTags="[no tags]";
+		
+		//video tags
 		String videoTagsShort=videoTags;
 		if(videoTags.length()>1000){videoTagsShort=videoTags.substring(0,1000);}
 		if(md.getData().getJSONObject("detailed")!=null){
 			videoDescription=md.getData().getJSONObject("detailed").optString("description").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase();
-			videoTags=md.getData().getJSONObject("detailed").getJSONArray("tags").toString().replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();	
-			
+			videoTags=md.getData().getJSONObject("detailed").getJSONArray("tags").toString().replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();		
 		}
+		
+		//Let's get the Encounter objects related to this video
+		//JDOQL query
 		String qFilter="SELECT FROM org.ecocean.Encounter WHERE (occurrenceRemarks.indexOf('"+videoID+"') != -1)";
 		Query newQ=myShepherd.getPM().newQuery(qFilter);
 		Collection d=(Collection)newQ.execute();
@@ -125,7 +142,8 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 		newQ.closeAll();
 		int numEncs=encresults.size();
 		
-		//check if any have been approved
+		//let's iterate our matching Encounters
+		//first, check if any have been approved (curated) and count them
 		boolean videoIsCurated=false;
 		for(int y=0;y<numEncs;y++){
 			Encounter enc=encresults.get(y);
@@ -136,28 +154,36 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 
 			if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("")))videoHasID=true;
 		}
-		if(!videoIsCurated)numUncuratedVideos++;
+		if(!videoIsCurated)numUncuratedVideos.incrementAndGet();
 		
-		Occurrence occur=null;
 		
+		Occurrence occur=null;		
 		LinkedProperties props=(LinkedProperties)ShepherdProperties.getProperties("submitActionClass.properties", "",context);
-        
+
+		String chosenStyleDate="";
+		String chosenStyleLocation="";
 		
+		//if we have matching encounters, then the video is either uncurated, or it has been determined to have useful data (curated)
 		if(numEncs>0){
 			
 			//check for Occurrence
 			String occurID="";
+					
+			//grab the first Encounter for analysis		
 			Encounter enc=encresults.get(0);
+					
+			//get the current values for date and location ID		
 			String currentDate="";
 			String currentLocationID="";
 			if(enc.getDate()!=null)currentDate=enc.getDate().replaceAll("Unknown", "");	
 			if(enc.getLocationID()!=null)currentLocationID=enc.getLocationID().replaceAll("None", "");	
 			
+			//our encounters should all have an Occurrence, one per video
 			if(enc.getOccurrenceID()!=null){
 				occur=myShepherd.getOccurrence(enc.getOccurrenceID());
 				
 				
-				
+				//let's get all our YouTube video metadata and comments
 				List<CommentThread> comments=YouTube.getVideoCommentsList(occur, context);
 				if((comments==null)||(comments.size()==0)){
 					videoComments="";
@@ -221,23 +247,28 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 				
 				occurID=occur.getOccurrenceID();
 
-				String tempRelativeDate=YouTube.getVideoPublishedAt(occur, context);
+				//prep the YouTube video date for SUTimee analysis
+				String tempRelativeDate=null;
+				try{		
+					tempRelativeDate=YouTube.getVideoPublishedAt(occur, context);
+				}
+				catch(Exception e){}
 				if((tempRelativeDate!=null)&&(tempRelativeDate.indexOf("T")!=-1)){
 					tempRelativeDate=tempRelativeDate.substring(0,tempRelativeDate.indexOf("T"));
 				}
 				if((tempRelativeDate!=null)&&(!tempRelativeDate.equals(""))){
-					
 					DateTimeFormatter parser2 = DateTimeFormat.forPattern("yyyy-MM-dd");
 					DateTime time = parser2.parseDateTime(tempRelativeDate);
-					relativeDate=time.toString(parser2);
-					
+					relativeDate=time.toString(parser2);	
 				}
+				
+				
 			}
 			
 			StringBuffer sbOriginalText=new StringBuffer("");
 			sbOriginalText.append(videoTitle+" "+videoDescription+" "+videoTags+" "+videoCommentsClean);
 			
-			
+			//let's do some translation to English for standardization
 			videoTitle=translateIfNotEnglish(videoTitle);
 			videoTags=translateIfNotEnglish(videoTags);
 			videoDescription=translateIfNotEnglish(videoDescription);	
@@ -248,15 +279,15 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 			sb.append(videoTitle+" "+videoDescription+" "+videoTags+" "+videoCommentsClean);
 			
 
-			
+			//get video date with SUTime
 			String newDetectedDate="";
 			try{
 				newDetectedDate=SUTime.parseDateStringForBestDate(request, sb.toString(), relativeDate).replaceAll("null","");
 			}
 			catch(Exception e){}
-			//get video date
+			if(!newDetectedDate.equals("")){numDatesFound.incrementAndGet();}
 			
-			
+			//determine new LocationID, including comments
 			String newLocationID="";
               String lowercaseRemarks=sb.toString().toLowerCase();
               try{
@@ -288,27 +319,118 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
                 e.printStackTrace();
               }
               if(newLocationID==null)newLocationID="";
+              if(!newLocationID.equals("")){numLocationIDsFound.incrementAndGet();}
               
               //predict if this is a good video
               Instances data = new Instances("TestInstances",attributeList,2);
-           		data.setClassIndex(data.numAttributes()-1);
-            	  Instance pos = new DenseInstance(data.numAttributes());
-            	  pos.setValue(merged, lowercaseRemarks.replaceAll("whale shark", "whaleshark"));
-            	  data.add(pos);
-            	  pos.setDataset(data);
+           	  data.setClassIndex(data.numAttributes()-1);
+              Instance pos = new DenseInstance(data.numAttributes());
+              pos.setValue(merged, lowercaseRemarks.replaceAll("whale shark", "whaleshark"));
+              data.add(pos);
+              pos.setDataset(data);
               
-            	  Double prediction = classify(pos,path);
-            	  String rowClass="";
-            	  if(prediction.intValue()==1)rowClass="class=\"rowhighlight\"";
+              Double prediction = classify(pos,path);
+              String rowClass="";
+              if(prediction.intValue()==1)rowClass="class=\"rowhighlight\"";
             	  
-				resultsHTML="<tr "+rowClass+"><td><a target=\"_blank\" href=\"https://www.whaleshark.org/occurrence.jsp?number="+occurID+"\">"+occurID+"</a></td><td><a target=\"_blank\" href=\"https://www.youtube.com/watch?v="+videoID+"\">"+videoID+"</a></td><td>"+currentDate+"</td><td>"+newDetectedDate+"</td><td>"+currentLocationID+"</td><td>"+newLocationID+"</td><td>"+videoTitle+"</td><td>"+videoDescription+"</td><td>"+videoComments+"</td><td>"+videoCommentsClean+"<br><br>LocID Words: "+locIDWords+"</br></br></td><td>"+relativeDate+"</td></tr>";
-			
+			  
+			  //here is where we would put logic to update encounters if appropriate
+			  if(persistDifferences){
+				boolean madeAChange=false;
+				
+				for(int y=0;y<numEncs;y++){
+					Encounter thisEnc=encresults.get(y);	
+					chosenStyleDate+="year: "+thisEnc.getYear()+";millis:"+thisEnc.getDateInMilliseconds()+";";
+					
+				  	//SET LOCATION ID
+				  	//first, if we even found a location ID in comments, lets' consider it.
+				  	//otherwise, there's no point
+				  	
+				  	if((newLocationID!=null)&&(!newLocationID.trim().equals(""))){
+					  
+						//next, if we have a new locationID and one was not set before, then this is an easy win
+					  	if((thisEnc.getLocationID()==null)||(thisEnc.getLocationID().trim().equals(""))){
+					  		thisEnc.setLocationID(newLocationID);
+					  		madeAChange=true;
+					  	}
+					  	else if(!thisEnc.getLocationID().trim().equals(newLocationID.trim())){
+						  	//ok, the location IDs are different, now what?
+							
+						  	//maybe the newLocationID further specifies the older locationID, that would be a win		
+						    if(newLocationID.trim().startsWith(thisEnc.getLocationID().trim())){
+						    	thisEnc.setLocationID(newLocationID.trim());
+						    	madeAChange=true;
+						    }
+						  	//if the Encounter is not yet approved, then we can reset it as well since it's uncurated and may have been incorrectly detected with older values
+						    else if((enc.getState()!=null)&&(enc.getState().equals("unapproved"))){
+						    	thisEnc.setLocationID(newLocationID.trim());
+						    	madeAChange=true;
+						    }
+						    else{
+						    	//we have to respect a human's previous judgment on setting this value
+						    }
+								  
+					  	}
+					  	else{
+						  	//nothing needed, they're identical so no change is needed
+					  	}
+						
+				  	}
+						
+					
+						
+						if(madeAChange)chosenStyleLocation="font-style: italic;";
+						chosenStyleDate+="madeit: here;";
+						//let's check and fix date
+						if((newDetectedDate!=null)&&(!newDetectedDate.trim().equals(""))){
+							
+							//well we have something to analyze at least
+							//DateTimeFormatter parser3 = DateTimeFormat.forPattern("yyyy-MM-dd");
+							DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
+							DateTime dt=parser3.parseDateTime(newDetectedDate);
+							
+							//check for the easy case
+							if((thisEnc.getDateInMilliseconds()==null)||(thisEnc.getYear()<=0)){
+								thisEnc.setDateInMilliseconds(dt.getMillis());
+								chosenStyleDate+="font-style: italic; color: red;";
+								madeAChange=true;
+							}
+							//if it's unapproved/uncurated, trust the newer value
+							else if(thisEnc.getState().equals("auto_sourced")){
+								thisEnc.setDateInMilliseconds(dt.getMillis());
+								chosenStyleDate+="font-style: italic; color: green;";
+								madeAChange=true;
+							}
+							
+							
+							
+						}
+						
+						//now persist
+						if(madeAChange){
+							//myShepherd.commitDBTransaction();
+							//myShepherd.beginDBTransaction();
+						}
+						
+						
+				  	}
+			  	
+			  
+			 
+			  
+			  }
+			  
+			  resultsHTML="<tr "+rowClass+"><td><a target=\"_blank\" href=\"https://www.whaleshark.org/occurrence.jsp?number="+occurID+"\">"+occurID+"</a></td><td><a target=\"_blank\" href=\"https://www.youtube.com/watch?v="+videoID+"\">"+videoID+"</a></td><td>"+currentDate+"</td><td><p style=\""+chosenStyleDate+"\">"+newDetectedDate+"</p></td><td>"+currentLocationID+"</td><td><p style=\""+chosenStyleLocation+"\">"+newLocationID+"</p></td><td>"+videoTitle+"</td><td>"+videoDescription+"</td><td>"+videoComments+"</td><td>"+videoCommentsClean+"<br><br>LocID Words: "+locIDWords+"</br></br></td><td>"+relativeDate+"</td></tr>";
+				
+			  
+			  
 			
 		}
+		//this video had no encounters, probably been curated as having no value
 		else{
 			if(!poorDataVideos.contains(ma)){
 				poorDataVideos.add(ma);
-				numUncuratedVideos--;
+				numUncuratedVideos.decrementAndGet();
 				
 				}
 		}
@@ -319,21 +441,20 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
       
       
       }
+      //video metadata is null, not much we can do here
       else{if(!poorDataVideos.contains(ma))poorDataVideos.add(ma);}
       
-      if(hasWildMeComment)numCommentedVideos++;
-      if(hasWildMeCommentReplies)numCommentedVideosReplies++;
+      if(hasWildMeComment)numCommentedVideos.incrementAndGet();
+      if(hasWildMeCommentReplies)numCommentedVideosReplies.incrementAndGet();
       
     }
+    //video had no metadata, not much we can do here
     else{
     	if(!poorDataVideos.contains(ma))poorDataVideos.add(ma);
     }
 
 	
-	
-
-	
-	if(videoHasID)numVideosWithID++;
+	if(videoHasID)numVideosWithID.incrementAndGet();
 	
 	return resultsHTML;
 }
@@ -369,14 +490,13 @@ tr.rowhighlight td, tr.rowhighlight th{
 
 myShepherd.beginDBTransaction();
 
-Integer numVideos=0;
-Integer  numCommentedVideos=0;
-Integer  numCommentedVideosReplies=0;
-Integer  numVideosWithID=0;
-Integer  numUncuratedVideos=0;
-
-
-
+AtomicInteger numVideos=new AtomicInteger(0);
+AtomicInteger  numCommentedVideos=new AtomicInteger(0);
+AtomicInteger  numCommentedVideosReplies=new AtomicInteger(0);
+AtomicInteger  numVideosWithID=new AtomicInteger(0);
+AtomicInteger  numUncuratedVideos=new AtomicInteger(0);
+AtomicInteger numDatesFound=new AtomicInteger(0);
+AtomicInteger numLocationIDsFound=new AtomicInteger(0);
 
 
 
@@ -403,7 +523,7 @@ try{
 		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
 		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
 		
-		for(int i=1701;i<1800;i++){
+		for(int i=1801;i<2000;i++){
 		//for(int i=0;i<numResults;i++){
 			
 			
@@ -411,7 +531,7 @@ try{
 			//YouTubeAsset itself
 			MediaAsset ma=results.get(i);
 			
-			String returnedHTML=annotateChildrenOfYouTubeMediaAssetWithDateLocation(ma,  request,  myShepherd, context,  numVideosWithID, numVideos, numUncuratedVideos, numCommentedVideos, numCommentedVideosReplies,goodDataVideos,poorDataVideos);
+			String returnedHTML=annotateChildrenOfYouTubeMediaAssetWithDateLocation(ma,  request,  myShepherd, context,  numVideosWithID, numVideos, numUncuratedVideos, numCommentedVideos, numCommentedVideosReplies,goodDataVideos,poorDataVideos, true,numDatesFound, numLocationIDsFound);
 
 			%>
 			<%=returnedHTML %>
@@ -429,6 +549,8 @@ try{
 <p>How many videos were deemed to have no valuable data? <%=poorDataVideos.size() %></p>
 <p>How many videos resulted in IDs? <%=numVideosWithID.intValue() %></p>
 <p>How many videos are still uncurated? <%=numUncuratedVideos.intValue() %></p>
+<p>How many videos had detectable dates? <%=numDatesFound %></p>
+<p>How many videos had locationIDs? <%=numLocationIDsFound %></p>
 
 <p>Sanity check: <%=numUncuratedVideos.intValue() %> uncurated + <%=poorDataVideos.size() %> worthless + <%=goodDataVideos.size() %>curated = <%=(goodDataVideos.size()+poorDataVideos.size() + numUncuratedVideos.intValue()) %> of <%=numVideos %> total videos possible</p>
 
