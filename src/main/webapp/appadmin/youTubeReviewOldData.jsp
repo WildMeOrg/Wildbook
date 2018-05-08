@@ -366,7 +366,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 						    	madeAChange=true;
 						    }
 						  	//if the Encounter is not yet approved, then we can reset it as well since it's uncurated and may have been incorrectly detected with older values
-						    else if((thisEnc.getState()!=null)&&(thisEnc.getState().equals("unapproved"))){
+						    else if((thisEnc.getState()!=null)&&(thisEnc.getState().equals("auto_sourced"))){
 						    	thisEnc.setLocationID(newLocationID.trim());
 						    	madeAChange=true;
 						    }
