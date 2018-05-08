@@ -24,12 +24,75 @@ body {
 	background-color: #075366;
 }
 
+.navbar #header-search-button {
+  color: #000;
+  -webkit-text-fill-color: #000;
+}
+
 .navbar-default .navbar-nav li a{
 	color: #ffffff;
 	text-shadow: none;
 	text-transform: uppercase;
-	font-weight: 500;
+	font-weight: 400;
+}
 
+.search-collapse-header {
+	background-color: #f4f4f4;
+	color: #006f8a;
+	border: 1px solid #df9b00;
+}
+
+
+
+/* overwrite individualStyles */
+#markedIndividualHeader span {
+		color: #075366;
+    -webkit-text-fill-color: #075366;
+}
+div .nav-tabs > li > a {
+	background-color: #fff;
+	color: #555;
+}
+div .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, div .nav-tabs > li.active > a:focus {
+	background-color: #075366;
+	color: #fff;
+	}
+thead th, tr th {
+	background-color: #075366;
+}
+/* end individualStyles */
+
+
+/* Begin searchResults overwrite */
+/* unselected table header */
+div table.tablesorter thead tr th, div table.tablesorter tfoot tr th {
+	background-color: #075366;
+	color: #fff;
+}
+/* a selected table header */
+div table.tablesorter thead tr .headerSortDown, div table.tablesorter thead tr .headerSortUp {
+  background-color: #127D98;
+  color:#fff;
+}
+/* active tabmenu */
+#tabmenu li a.active {
+  background-color: #127D98;
+  color:#fff;
+}
+/* inactive tabmenu */
+#tabmenu li a {
+	background-color: #075366;
+	color: #fff;
+}
+#tabmenu li a:hover, #tabmenu li a.active:hover {
+	color: #fff;
+	cursor: pointer;
+	background-color: #127D98;
+}
+/* End searchResults overwrite */
+
+.search-collapse-header a, search-collapse-header a:hover {
+	color: #006f8a;
 }
 
 /* a selected navbar dropdown*/
@@ -38,6 +101,7 @@ body {
     background-color: #0F6F89;
   }
 
+
 /* a hovered-over navbar item */
 .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > .open > a:hover.navbar-default .navbar-nav > li > a:focus {
     background-color: #127D98;
@@ -45,7 +109,7 @@ body {
 
 /* a dropdown item on the navbar */
 .navbar-default .navbar-nav .open .dropdown-menu > li > a {
-		font-weight: 500;
+		font-weight: 400;
 		font-size: 0.9em;
     color: #fff;
     background-color: #0F6F8A;
@@ -62,7 +126,7 @@ body {
 
 /* a hovered dropdown item on the navbar */
 .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
-		font-weight: 500;
+    font-weight: 400;
 		font-size: 0.9em;
     color: #fff;
     background-color: #127D98;
@@ -82,7 +146,7 @@ body {
 .secondary-nav li, .page-header a {
 	font-family: inherit;
 	color: #000;
-} 
+}
 
 /* button */
 button, html input[type="button"], input[type="reset"], input[type="submit"] {
