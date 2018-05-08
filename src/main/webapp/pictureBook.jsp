@@ -7,6 +7,7 @@ java.util.Vector,
 java.util.ArrayList,
 java.util.List,
 org.datanucleus.api.rest.orgjson.JSONArray,
+org.ecocean.security.HiddenIndividualReporter,
 org.datanucleus.api.rest.RESTUtils,
 org.datanucleus.api.jdo.JDOPersistenceManager,
 org.datanucleus.api.rest.orgjson.JSONObject" %>
@@ -49,6 +50,8 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   String order ="";
   MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
   rIndividuals = result.getResult();
+  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(result, request);
+  rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 	numResults = rIndividuals.size();
 	System.out.println("PictureBook: returned "+numResults+" individuals");
 
