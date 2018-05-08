@@ -30,7 +30,7 @@ public class QueueUtil {
 
 
     //helper method for backgrounding queue consumers who dont background themselves
-    //unnecessary for RabbitMQQueue, as 
+    //unnecessary for RabbitMQQueue (consumer goes into background automatically)
     public static void background(final Queue queue) throws IOException {
         final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
         final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
