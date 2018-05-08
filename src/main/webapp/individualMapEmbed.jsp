@@ -162,7 +162,6 @@ String lastLatLong="";
 					           }
 					           %>
 					           var marker = new google.maps.Marker({
-					        	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=markerColor%>',
 					        	   position:latLng,
 					        	   map:map<%=zIndexString%>
 					        	});
