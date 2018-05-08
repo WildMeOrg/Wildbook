@@ -193,7 +193,10 @@ public class Occurrence implements java.io.Serializable{
     return isNew;
 
   }
-
+  public void setSubmitterIDFromEncs(boolean overwrite) {
+    if (!overwrite && Util.stringExists(getSubmitterID())) return;
+    setSubmitterIDFromEncs();
+  }
   public void setSubmitterIDFromEncs(){
     for (Encounter enc: encounters) {
       if (Util.stringExists(enc.getSubmitterID())) {
@@ -245,6 +248,11 @@ public class Occurrence implements java.io.Serializable{
   }
 
 
+
+  public void setLatLonFromEncs(boolean overwrite) {
+    if (!overwrite && hasLatLon()) return;
+    setLatLonFromEncs();
+  }
   public void setLatLonFromEncs() {
     for (Encounter enc: getEncounters()) {
       String lat = enc.getDecimalLatitude();
@@ -764,6 +772,9 @@ public class Occurrence implements java.io.Serializable{
     public Double getDecimalLongitude() {
       return decimalLongitude;
     }
+    public boolean hasLatLon() {
+      return (decimalLongitude!=null && decimalLatitude!=null);
+    }
     public void setDecimalLongitude(Double decimalLongitude) {
       this.decimalLongitude = decimalLongitude;
     }
@@ -797,6 +808,8 @@ public class Occurrence implements java.io.Serializable{
     public Integer getMinGroupSizeEstimate() {
       return minGroupSizeEstimate;
     }
+
+
     public void setMinGroupSizeEstimate(Integer minGroupSizeEstimate) {
       this.minGroupSizeEstimate = minGroupSizeEstimate;
     }
