@@ -226,8 +226,7 @@ if(compareAgainst.getGeneticSex()!=null){
   <td width="810px">
 
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a> <a
+      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><span class="el el-chevron-down"></span></a> <a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
       color="#000000"><%=props.getProperty("locationFilter") %></font></a></h4>
   </td>
@@ -457,8 +456,7 @@ function FSControl(controlDiv, map) {
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
   </td>
 </tr>
@@ -513,8 +511,7 @@ function FSControl(controlDiv, map) {
   <tr id="FieldsTitleRow">
     <td>
       <h4 class="intro search-collapse-header"><a
-        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-        src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
         color="#000000"><%=occProps.getProperty("fieldsTitle") %></font></a></h4>
     </td>
   </tr>
@@ -547,8 +544,7 @@ function FSControl(controlDiv, map) {
   <td>
 
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down"></span>
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
   </td>
 </tr>
