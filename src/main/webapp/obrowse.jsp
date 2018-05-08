@@ -35,6 +35,10 @@ java.util.Properties" %>
 				}
 			}
 			h += "</ul></div>";
+		} else if(enc.getAnnotations()==null){
+			h+="<div> Annotations = NULL</div>";
+		} else if(enc.getAnnotations().size()==0) {
+			h+="<div> Annotations are EMPTY</div>";
 		}
 		// Add some Occurrence and MarkedIndividual Stuff.
 		h+= "<p>OccurrenceID: <a href='occurrence.jsp?number="+enc.getOccurrenceID()+"'>"+enc.getOccurrenceID()+"</a></p>";
