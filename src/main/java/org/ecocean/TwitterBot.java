@@ -102,6 +102,39 @@ public class TwitterBot {
 System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
         myShepherd.commitDBTransaction();
+        if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
+
+        String baseUrl = CommonConfiguration.getServerURL(context);
+        if (baseUrl == null) {
+            System.out.println("DANGER! could not obtain baseUrl in TwitterBot.processIncomingTweet() for tweet " + tweet.getId() + "; failing miserably!");
+            return;
+        }
+
+        //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
+        JSONObject qj = detectionQueueJob(entities, context, baseUrl);
+        qj.put("tweetAssetId", tweetMA.getId());
+        try {
+            org.ecocean.servlet.IAGateway.addToQueue(context, qj.toString());
+            System.out.println("INFO: TwitterBot.processIncomingTweet() added detection taskId=" + qj.optString("taskId") + " to IAQueue");
+        } catch (IOException ioe) {
+            System.out.println("ERROR: TwitterBot.processIncomingTweet() during addToQueue threw " + ioe.toString());
+        }
+    }
+
+    //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
+    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl) {
+        JSONObject qj = new JSONObject();
+        qj.put("taskId", Util.generateUUID());
+        qj.put("__context", context);
+        qj.put("__baseUrl", baseUrl);
+        JSONArray idArr = new JSONArray();
+        JSONObject maj = new JSONObject();
+        for (MediaAsset ma : mas) {
+            idArr.put(ma.getId());
+        }
+        maj.put("mediaAssetIds", idArr);
+        qj.put("detect", maj);
+        return qj;
     }
 
     public static void sendCourtesyTweet(String context, Status originTweet, MediaAsset ma) {
@@ -248,14 +281,13 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     //this is *queued* sending, which is what we want (usually!) so that rate limits etc can be taken care of
     public static void sendTweet(String tweetText) {
         //for now, outgoing queue just takes tweet text!  maybe this will change?  see: messageOutHandler()
-        /////////////queuePush(queueOut, tweetText);
-System.out.println("FAKE-SEND-TWEET:\n[" + tweetText + "]");
+        queuePush(queueOut, tweetText);
+System.out.println("SEND-TWEET:\n[" + tweetText + "]");
     }
 
     private static void messageInHandler(String msg) {
 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nmessageInHandler msg=" + msg);
         JSONObject qjob = Util.stringToJSONObject(msg);
-System.out.println("##### qjob = " + qjob);
         if (qjob == null) return;
         String context = qjob.optString("context");
         if (context == null) {
@@ -414,7 +446,6 @@ System.out.println("##### qjob = " + qjob);
             qjob.put("source", "TwitterBot.collectTweets()");
             qjob.put("tweetId", tweet.getId());
             qjob.put("tweet", TwitterUtil.toJSONObject(tweet));
-//System.out.println("\n\n>>>>>>>>>>>>>>>>>>>>>>>>\n" + tweet);
             queuePush(queueIn, qjob.toString());
             queued++;
         }
@@ -444,7 +475,7 @@ System.out.println("##### qjob = " + qjob);
     // just checks for tweets at regular intervals
     private static void startCollector(final String context) { //throws IOException {
         collectorStartTime = System.currentTimeMillis();  //TODO should really be keyed off context!
-        //note: up to user discretion not to violate twitter rate limits  TODO maybe handle this in code?
+        //note: up to user discretion not to violate twitter rate limits  TODO maybe handle this in code?  (value in seconds)
         long interval = 600;
         String ci = TwitterUtil.getProperty(context, "collectorInterval");
         if (ci != null) {
@@ -465,13 +496,12 @@ System.out.println("##### qjob = " + qjob);
                     schedExec.shutdown();
                     return;
                 }
-                //if (count % 10 == 0) System.out.println("INFO: TwitterBot.startCollection(" + context + ") ping. " + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min");
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("TwitterBot.startCollection()");
                 myShepherd.beginDBTransaction();
                 int t = collectTweets(myShepherd);
                 myShepherd.commitDBTransaction();
-                if ((t != 0) || (count % 10 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
+                if ((t != 0) || (count % 1 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
             }
         },
         20,  //initial delay
@@ -484,6 +514,38 @@ System.out.println("##### qjob = " + qjob);
             System.out.println("WARNING: TwitterBot.startCollector(" + context + ") interrupted: " + ex.toString());
         }
         System.out.println("+ TwitterBot.startCollector(" + context + ") backgrounded");
+    }
+
+    //the only thing we need to do here is handle the case there were not annotations made
+    //  since otherwise those annotations are going on for identification (and we have nothing to send)
+    // NOTE: non-twitter results get passed here too!! in that case we should do nothing and return null
+    public static String processDetectionResults(Shepherd myShepherd, ArrayList<MediaAsset> mas) {
+System.out.println("processDetectionResults() -> " + mas);
+        if ((mas == null) || (mas.size() < 1)) return null;
+        int successful = 0;
+        MediaAsset tweetMA = null;
+        for (MediaAsset ma : mas) {
+            if (tweetMA == null) {
+                MediaAsset t = TwitterUtil.parentTweet(myShepherd, ma);
+                if (t == null) continue;
+                tweetMA = t;  //all these "should be" children of the same tweet, so any parentTweet will do
+            }
+            //aha, we have a tweet-spawned media asset.  but did it pass detection and get annotations?
+            ArrayList<Annotation> anns = ma.getAnnotations();
+            if ((anns != null) && (anns.size() > 0)) successful++;
+        }
+        if (tweetMA == null) return null;  //no tweet stuff
+        if (successful > 0) return successful + " Annotation(s) in process; not detection-fail tweet sent.";
+
+        String context = myShepherd.getContext();
+        Map<String,String> vars = new HashMap<String,String>();
+        Status originTweet = TwitterUtil.toStatus(tweetMA);
+        if (originTweet == null) return "No Annotations found; but also error: unable to generate originTweet for " + tweetMA;
+
+        vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
+        //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
+        sendTweet(tweetText(context, "tweetTextIANone", vars));
+        return "Failed to find any Annotations; sent tweet";
     }
 
 }

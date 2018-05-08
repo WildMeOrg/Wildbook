@@ -18,6 +18,7 @@ import org.ecocean.MarkedIndividual;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.TwitterBot;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-import twitter4j.*;
+//import twitter4j.*;
 
 
 
@@ -1187,20 +1188,12 @@ System.out.println("**** type ---------------> [" + type + "]");
 */
 
     private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, HttpServletRequest request) {
-      return processCallbackDetect(taskID, logs, resp, myShepherd, request, null, null, null);
-    }
-
-    private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst) {
         String context = ServletUtilities.getContext(request);
         String rootDir = request.getSession().getServletContext().getRealPath("/");
-        return processCallbackDetect(taskID, logs, resp, myShepherd, context, rootDir, screenName, imageId, twitterInst);
+        return processCallbackDetect(taskID, logs, resp, myShepherd, context, rootDir);
     }
 
     private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, String context, String rootDir) {
-        return processCallbackDetect(taskID, logs, resp, myShepherd, context, rootDir, null, null, null);
-    }
-
-    private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, String context, String rootDir, String screenName, String imageId, Twitter twitterInst) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
 System.out.println("***** ids = " + ids);
@@ -1260,12 +1253,8 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
-                        //if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue() || !jann.optString("species", "unkown").equals("whale_fluke")) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
-                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
-
+                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence
                             needsReview = true;
-                            System.out.println("Detection didn't find a whale shark");
-                            // TwitterUtil.sendDetectionAndIdentificationTweet(screenName, imageId, twitterInst, whaleId, false, false, ""); //TODO find a way to get screenName, imageId, etc. over here
                             continue;
                         }
                         //these are annotations we can make automatically from ia detection.  we also do the same upon review return
@@ -1327,6 +1316,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     jlog.put("collatedOccurrence", occ.getOccurrenceID());
                 }
 
+                jlog.put("twitterBot", TwitterBot.processDetectionResults(myShepherd, mas));  //will do nothing if not twitter-sourced
                 jlog.put("_action", "processedCallbackDetect");
                 if (amap.length() > 0) jlog.put("annotations", amap);
                 if (ident.length() > 0) jlog.put("identificationTasks", ident);
@@ -1350,10 +1340,17 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         enc.detectedAnnotation(myShepherd, ann);
     }
 
+/*   WE MAY NOT NEED THESE ARGS ANY MORE?????
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request) {
-      return processCallbackIdentify(taskID, logs, resp, request, null, null, null);
+        String context = ServletUtilities.getContext(request);
+        String rootDir = request.getSession().getServletContext().getRealPath("/");
+        return processCallbackIdentify(taskID, logs, resp, context, rootDir);
     }
+*/
 
+
+
+/*
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst) {
         String context = ServletUtilities.getContext(request);
         String rootDir = request.getSession().getServletContext().getRealPath("/");
@@ -1363,8 +1360,9 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, String context, String rootDir) {
         return processCallbackIdentify(taskID, logs, resp, context, rootDir, null, null, null);
     }
+*/
 
-    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, String context, String rootDir, String screenName, String imageId, Twitter twitterInst) {
+    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, String context, String rootDir) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
         if (ids == null) {
@@ -1410,27 +1408,6 @@ System.out.println("**** " + ann);
                 if (needIdentificationReview(rlist, clist, i, context)) {
                     needReview = true;
                     needReviewMap.put(annId, true);
-                } else if(clist.optDouble(i, -99.0) >= getIdentificationCutoffValue()){
-                  System.out.println("Maybe identified it??");
-                  try{
-
-                    //String matchUuid = rlist.getJSONObject(i).optJSONObject("annot_uuid_2").toString();
-
-                    String matchUuid = rlist.getJSONObject(i).getJSONObject("annot_uuid_2").toString();
-
-                    System.out.println(matchUuid);
-                    //TODO get baseURL
-                    // String info = baseURL + "/individuals.jsp/?number=" + matchUuid;
-                    if(screenName != null && imageId != null && twitterInst != null){
-                      //TODO pass info to tweet
-                    } else{
-                      System.out.println("Arguments to generate a return tweet were not available; skipped.");
-                    }
-
-                  } catch(Exception e){
-                    e.printStackTrace();
-                  }
-
                 }
             }
         }
