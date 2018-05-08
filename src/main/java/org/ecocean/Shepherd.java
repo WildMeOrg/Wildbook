@@ -2360,7 +2360,9 @@ public class Shepherd {
 
   public Occurrence getOccurrence(Encounter enc) {
     if (enc==null) return null;
-    return (getOccurrence(enc.getOccurrenceID()));
+    Occurrence occ = (getOccurrence(enc.getOccurrenceID()));
+    if (occ!=null) return occ;
+    return getOccurrenceForEncounter(enc.getCatalogNumber());
   }
 
 
