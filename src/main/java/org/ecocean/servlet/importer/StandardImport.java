@@ -80,10 +80,10 @@ StandardImport extends HttpServlet {
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
 
-    photoDirectory = "/data/oman_import/photos/";
-    String filename = "/data/oman_import/ASWN_secondExport.xlsx";
-    // photoDirectory = "/data/indocet/";
-    // String filename = "/data/indocet/indocet_blended.xlsx";
+    // photoDirectory = "/data/oman_import/photos/";
+    // String filename = "/data/oman_import/ASWN_secondExport.xlsx";
+    photoDirectory = "/data/indocet/";
+    String filename = "/data/indocet/indocet_blended-globicefixed.xlsx"; //"/data/indocet/indocet_blended.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
     File dataFile = new File(filename);
     boolean dataFound = dataFile.exists();
@@ -321,7 +321,12 @@ StandardImport extends HttpServlet {
     if (millis==null) millis = getLong(row, "Occurrence.millis");
   	if (millis!=null) occ.setDateTimeLong(millis);
 
-  	if (enc!=null) occ.addEncounter(enc);
+  	if (enc!=null) {
+      occ.addEncounter(enc);
+      // overwrite=false on following fromEncs methods
+      occ.setLatLonFromEncs(false);
+      occ.setSubmitterIDFromEncs(false);
+    }
 
   	return occ;
 
@@ -666,44 +671,6 @@ StandardImport extends HttpServlet {
   	localPath = Util.windowsFileStringToLinux(localPath);
   	String fullPath = photoDirectory+localPath;
     String resolvedPath = resolveHumanEnteredFilename(fullPath);
-    // boolean fileExists = Util.fileExists(fullPath);
-
-    // String candidatePath;
-    // if (!fileExists) {
-    // 	candidatePath = lowercaseJpg(fullPath);
-    // 	fileExists = Util.fileExists(candidatePath);
-    //   if (fileExists) fullPath = candidatePath;
-    // }
-
-    // if (!fileExists) {
-    //   candidatePath = uppercaseJpg(fullPath);
-    //   fileExists = Util.fileExists(candidatePath);
-    //   if (fileExists) fullPath = candidatePath;
-    // }
-
-    // if (!fileExists) {
-    // 	candidatePath = removeTailingSpace(fullPath);
-    //   fileExists = Util.fileExists(candidatePath);
-    //   if (fileExists) fullPath = candidatePath;
-    // }
-
-    // if (!fileExists) {
-    //   candidatePath = fixSpaceBeforeJpg(fullPath);
-    //   fileExists = Util.fileExists(candidatePath);
-    //   if (fileExists) fullPath = candidatePath;
-    // }
-    // if (!fileExists) {
-    //   candidatePath = fixSpaceBeforeDotJpg(fullPath);
-    //   fileExists = Util.fileExists(candidatePath);
-    //   if (fileExists) fullPath = candidatePath;
-    // }
-    // if (!fileExists) {
-    //   candidatePath = fixSpaceBeforeDotJpg(lowercaseJpg(fullPath));
-    //   fileExists = Util.fileExists(candidatePath);
-    //   if (fileExists) fullPath = candidatePath;
-    // }
-
-    // if (!fileExists) {
     if (resolvedPath==null) {
       missingPhotos.add(fullPath);
       return null;
@@ -777,6 +744,9 @@ StandardImport extends HttpServlet {
     String candidatePath = uppercaseJpg(fullPath);
     if (Util.fileExists(candidatePath)) return candidatePath;
 
+    String candidatePath2 = uppercaseBeforeJpg(candidatePath);
+    if (Util.fileExists(candidatePath2)) return candidatePath2;
+
     candidatePath = lowercaseJpg(fullPath);
     if (Util.fileExists(candidatePath)) return candidatePath;
 
@@ -790,6 +760,21 @@ StandardImport extends HttpServlet {
     if (Util.fileExists(candidatePath)) return candidatePath;
 
     return null;
+  }
+
+  private String uppercaseBeforeJpg(String filename) {
+  	// uppercases the section between final slash and .jpg
+  	if (filename==null) return null;
+  	int indexOfDotJpg = filename.indexOf(".jpg");
+  	if (indexOfDotJpg == -1) indexOfDotJpg = filename.indexOf(".JPG");
+  	int indexOfLastSlash = filename.lastIndexOf("/");
+  	if (indexOfDotJpg==-1 || indexOfLastSlash==-1) return filename;
+
+  	String beforePart      = filename.substring(0,indexOfLastSlash+1);
+  	String capitolizedPart = filename.substring(indexOfLastSlash+1,indexOfDotJpg).toUpperCase();
+  	String afterPart       = filename.substring(indexOfDotJpg);
+
+  	return (beforePart+capitolizedPart+afterPart);
   }
 
   private String lowercaseJpg(String filename) {
