@@ -339,8 +339,12 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 				boolean madeAChange=false;
 				
 				for(int y=0;y<numEncs;y++){
-					Encounter thisEnc=encresults.get(y);	
-					chosenStyleDate+="year: "+thisEnc.getYear()+";millis:"+thisEnc.getDateInMilliseconds()+";";
+					Encounter thisEnc=encresults.get(y);
+					
+					
+					
+					
+					chosenStyleDate+="year: "+thisEnc.getYear()+";millis:"+thisEnc.getDateInMilliseconds()+";locationID: "+thisEnc.getLocationID()+";";
 					
 				  	//SET LOCATION ID
 				  	//first, if we even found a location ID in comments, lets' consider it.
@@ -349,7 +353,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 				  	if((newLocationID!=null)&&(!newLocationID.trim().equals(""))){
 					  
 						//next, if we have a new locationID and one was not set before, then this is an easy win
-					  	if((thisEnc.getLocationID()==null)||(thisEnc.getLocationID().trim().equals(""))){
+					  	if((thisEnc.getLocationID()==null)||(thisEnc.getLocationID().trim().equals(""))||(thisEnc.getLocationID().trim().equals("None"))){
 					  		thisEnc.setLocationID(newLocationID);
 					  		madeAChange=true;
 					  	}
@@ -362,24 +366,31 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 						    	madeAChange=true;
 						    }
 						  	//if the Encounter is not yet approved, then we can reset it as well since it's uncurated and may have been incorrectly detected with older values
-						    else if((enc.getState()!=null)&&(enc.getState().equals("unapproved"))){
+						    else if((thisEnc.getState()!=null)&&(thisEnc.getState().equals("unapproved"))){
 						    	thisEnc.setLocationID(newLocationID.trim());
 						    	madeAChange=true;
 						    }
-						    else{
-						    	//we have to respect a human's previous judgment on setting this value
-						    }
 								  
 					  	}
-					  	else{
-						  	//nothing needed, they're identical so no change is needed
-					  	}
+
 						
 				  	}
-						
 					
+				  	//thisEnc.setHour(-1);
+					//madeAChange=true;
+					
+					//now persist
+					if(madeAChange){
+						myShepherd.commitDBTransaction();
+						myShepherd.beginDBTransaction();
+					}
+					if(madeAChange)chosenStyleLocation="font-style: italic;";
 						
-						if(madeAChange)chosenStyleLocation="font-style: italic;";
+						
+						
+						//reset for date
+						madeAChange=false;
+						
 						chosenStyleDate+="madeit: here;";
 						//let's check and fix date
 						if((newDetectedDate!=null)&&(!newDetectedDate.trim().equals(""))){
@@ -389,18 +400,61 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 							DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
 							DateTime dt=parser3.parseDateTime(newDetectedDate);
 							
+							
+							/*
+							if((thisEnc.getMonth()==1)&&(newDetectedDate.length()==4)){
+								thisEnc.setMonth(-1);
+								thisEnc.setDay(-1);
+								madeAChange=true;
+								thisEnc.setHour(-1);
+							}
+							*/
+							
 							//check for the easy case
 							if((thisEnc.getDateInMilliseconds()==null)||(thisEnc.getYear()<=0)){
-								thisEnc.setDateInMilliseconds(dt.getMillis());
+								
+								if(newDetectedDate.length()==10){
+									thisEnc.setYear(dt.getYear());
+									thisEnc.setMonth(dt.getMonthOfYear());
+									thisEnc.setDay(dt.getDayOfMonth());
+								}
+								else if(newDetectedDate.length()==7){
+									thisEnc.setYear(dt.getYear());
+									thisEnc.setMonth(dt.getMonthOfYear());
+									
+								}
+								else if(newDetectedDate.length()==4){
+									thisEnc.setYear(dt.getYear());
+									
+								}
+								
+								//thisEnc.setDateInMilliseconds(dt.getMillis());
+								
+								
 								chosenStyleDate+="font-style: italic; color: red;";
 								madeAChange=true;
 							}
 							//if it's unapproved/uncurated, trust the newer value
 							else if(thisEnc.getState().equals("auto_sourced")){
-								thisEnc.setDateInMilliseconds(dt.getMillis());
+								
+								if(newDetectedDate.length()==10){
+									thisEnc.setYear(dt.getYear());
+									thisEnc.setMonth(dt.getMonthOfYear());
+									thisEnc.setDay(dt.getDayOfMonth());
+								}
+								else if(newDetectedDate.length()==7){
+									thisEnc.setYear(dt.getYear());
+									thisEnc.setMonth(dt.getMonthOfYear());
+									
+								}
+								else if(newDetectedDate.length()==4){
+									thisEnc.setYear(dt.getYear());
+									
+								}
 								chosenStyleDate+="font-style: italic; color: green;";
 								madeAChange=true;
 							}
+							
 							
 							
 							
@@ -408,8 +462,8 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 						
 						//now persist
 						if(madeAChange){
-							//myShepherd.commitDBTransaction();
-							//myShepherd.beginDBTransaction();
+							myShepherd.commitDBTransaction();
+							myShepherd.beginDBTransaction();
 						}
 						
 						
@@ -523,8 +577,8 @@ try{
 		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
 		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
 		
-		for(int i=1801;i<2000;i++){
-		//for(int i=0;i<numResults;i++){
+		//for(int i=1801;i<2000;i++){
+		for(int i=0;i<numResults;i++){
 			
 			
 			
