@@ -40,17 +40,8 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-
-
 Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("header_checkServerInfo.jsp");
-myShepherd.beginDBTransaction();
-boolean updated = CommonConfiguration.checkServerInfo(myShepherd, request);
-if (updated) {
-    myShepherd.commitDBTransaction();
-} else {
-    myShepherd.rollbackDBTransaction();
-}
+CommonConfiguration.ensureServerInfo(myShepherd, request);
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
