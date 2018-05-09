@@ -211,6 +211,18 @@ public class CommonConfiguration {
     public static void setServerInfo(Shepherd myShepherd, JSONObject info) {
         SystemValue.set(myShepherd, "SERVER_INFO", info);
     }
+
+    public static void ensureServerInfo(Shepherd myShepherd, HttpServletRequest req) {
+      myShepherd.setAction("header_checkServerInfo.jsp");
+      myShepherd.beginDBTransaction();
+      boolean updated = checkServerInfo(myShepherd, req);
+      if (updated) {
+          myShepherd.commitDBTransaction();
+      } else {
+          myShepherd.rollbackDBTransaction();
+      }
+    }
+
     //does the main sanity check to see if url-info is correct or needs updating
     public static boolean checkServerInfo(Shepherd myShepherd, HttpServletRequest req) {
         boolean updated = false;

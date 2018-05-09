@@ -42,16 +42,8 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
 
-// 'updated' logic sets serverInfo if necessary
-myShepherd.setAction("header_checkServerInfo.jsp");
-myShepherd.beginDBTransaction();
-boolean updated = CommonConfiguration.checkServerInfo(myShepherd, request);
-if (updated) {
-    myShepherd.commitDBTransaction();
-} else {
-    myShepherd.rollbackDBTransaction();
-}
-
+// 'sets serverInfo if necessary
+CommonConfiguration.ensureServerInfo(myShepherd, request);
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
