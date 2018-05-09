@@ -310,7 +310,7 @@ int numDataContributors=0;
 
   <% if (request.getParameter("adoptableSharks")!=null) { %>
     <h3><%=props.getProperty("numAdoptable").replaceAll("%NUM%", (new Integer(countAdoptable)).toString()) %></h3>
-    <p><%=props.getProperty("adoptOne") %> <strong><a href="adoptashark.jsp"><%=props.getProperty("learnMore") %></a></strong></p>
+    <p><%=props.getProperty("adoptOne") %> <strong><a href="adoptananimal.jsp"><%=props.getProperty("learnMore") %></a></strong></p>
   <% } %>
 
     <% if(request.getParameter("locationCodeField")!=null) {%>

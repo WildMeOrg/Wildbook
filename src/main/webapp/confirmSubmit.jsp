@@ -209,6 +209,11 @@ new_message.append("<html><body>");
 <p>
 	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
 </p>
+<hr>
+<p>Did you know you can adopt a shark, and give it a nickname? Click the button below to look through all the sharks that need to be adopted.</p>
+<a href="adoptananimal.jsp">
+    <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
+</a>
 <%
 
 

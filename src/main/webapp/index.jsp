@@ -400,6 +400,10 @@ finally{
             <a href="submit.jsp">
                 <button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>
             </a>
+            <a href="adoptananimal.jsp">
+                <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
+            </a>
+            <br>
         </div>
 
 	</div>
@@ -674,18 +678,65 @@ finally{
 <div class="container-fluid">
     <section class="container main-section">
         <h2 class="section-header">How can I help?</h2>
-        <p class="lead text-center"></p>
+        <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
 
-		<!--  DELETED FROM HERE: adopt an animal section-->
+        <section class="adopt-section row">
+            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <h3 class="uppercase">Adopt a Whale Shark</h3>
+                <ul>
+                    <li>Support individual research programs in different regions</li>
+					<li>Receive email updates when we resight your adopted animal</li>
+					<li>Display your photo and a quote on the animal's page in our database</li>
+</ul>
+                <a href="http://"+<%=CommonConfiguration.getURLLocation(request)%>+"adoptananimal.jsp" title="">Learn more about adopting an individual animal in our study</a>
+            </div>
+            <%
+            try{
+	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
+	            if(adopt!=null){
+	            %>
+	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
+		                <div class="focusbox-inner" style="overflow: hidden;">
+		                	<%
+		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
+		                	%>
+		                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
+		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
+		                    <%
+		                    if(adopt.getAdopterQuote()!=null){
+		                    %>
+			                    <blockquote>
+			                        <%=adopt.getAdopterQuote() %>
+			                    </blockquote>
+		                    <%
+		                    }
+		                    %>
+		                </div>
+		            </div>
+
+	            <%
+				}
+            }
+            catch(Exception e){e.printStackTrace();}
+            finally{
+	            myShepherd.rollbackDBTransaction();
+	            myShepherd.closeDBTransaction();
+            }
+            %>
+
+
+        </section>
+        <hr />
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3>Donate</h3>
-                <p>If you are not a diver, there are still ways you can help.</p>
+                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these sharks and their habitat.</p>
+                <p>You can make a one time donation or <a href="adoptananimal.jsp" title="More information about donations">learn about adopting an animal</a></p>
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a href="">
-	                <button class="large contrast">
-	                    Donate
+                <a href="oneTimeDonation.jsp">
+	                <button class="large">
+	                    One Time Donation
 	                    <span class="button-icon" aria-hidden="true">
 	                </button>
                 </a>
@@ -693,6 +744,7 @@ finally{
         </section>
     </section>
 </div>
+
 
 
 <jsp:include page="footer.jsp" flush="true"/>
