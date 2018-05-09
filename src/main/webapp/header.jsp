@@ -40,9 +40,23 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 Shepherd myShepherd = new Shepherd(context);
+
+// 'updated' logic sets serverInfo if necessary
+myShepherd.setAction("header_checkServerInfo.jsp");
+myShepherd.beginDBTransaction();
+boolean updated = CommonConfiguration.checkServerInfo(myShepherd, request);
+if (updated) {
+    myShepherd.commitDBTransaction();
+} else {
+    myShepherd.rollbackDBTransaction();
+}
+
+
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
 myShepherd.setAction("header.jsp");
+myShepherd.beginDBTransaction();
 
 String username = null;
 User user = null;
@@ -84,6 +98,9 @@ if(request.getUserPrincipal()!=null){
       }
       %>
 
+
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
@@ -276,6 +293,22 @@ if(request.getUserPrincipal()!=null){
 
                     </ul>
 
+
+                    <style type="text/css">
+                      #header-search-button, #header-search-button:hover {
+                        color: inherit;
+                        background-color: inherit;
+                        padding: 0px;
+                        margin: 0px;
+                      }
+                    </style>
+                    <script>
+                      $('#header-search-button').click(function() {
+                        document.forms['header-search'].submit();
+                      })
+                    </script>
+
+
                     <div class="search-wrapper">
                       <label class="search-field-header">
                             <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
@@ -308,11 +341,6 @@ if(request.getUserPrincipal()!=null){
                     <ul class="nav navbar-nav">
                                   <!--                -->
                       <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
-                      <li><!-- Use the following if you want to use class selectors-->
-<span class="icon-phone"></span>
- 
-<!-- Use the following if you want to use data attributes.-->
-<span data-icon="&#xe004"></span></li>
 
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
