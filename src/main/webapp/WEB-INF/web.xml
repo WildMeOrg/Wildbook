@@ -153,6 +153,7 @@
 
 		/IndividualSetNickname = authc, roles[researcher]
 
+    /makeTestingIndy.jsp = authc, roles[admin]
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
