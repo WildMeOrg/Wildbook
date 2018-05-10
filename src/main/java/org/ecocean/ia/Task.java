@@ -7,9 +7,10 @@ package org.ecocean.ia;
 
 import org.ecocean.Shepherd;
 import org.ecocean.Annotation;
+import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.identity.IBEISIA;
-import java.util.UUID;
+//import java.util.UUID;   :(
 import java.util.List;
 import java.util.ArrayList;
 import org.joda.time.DateTime;
@@ -17,7 +18,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class Task implements java.io.Serializable {
 
-    private UUID id = null;
+    private String id = null;
     private long created = -1;
     private long modified = -1;
     //private List<Object> objects = null;  //in some perfect world i could figure out how to persist this.  :/  oh, for a wb base class.
@@ -25,12 +26,12 @@ public class Task implements java.io.Serializable {
     private List<Annotation> objectAnnotations = null;
 
     public Task() {
-        id = UUID.randomUUID();
+        id = Util.generateUUID();
         created = System.currentTimeMillis();
         modified = System.currentTimeMillis();
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
