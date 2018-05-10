@@ -6,9 +6,14 @@
     <package name="org.ecocean.ia">
 
 	<class name="Task" identity-type="application">
-		<field name="id" primary-key="true" value-strategy="uuid" >
+		<field name="id" primary-key="true">
+        		<column length="36"/>
+		</field>
+<!--
+		<field name="id" field-type="java.util.UUID" primary-key="true" value-strategy="uuid">
                         <column sql-type="uuid" />
                 </field>
+-->
 <!--
 		<field name="parentId" persistence-modifier="persistent">
 			<column jdbc-type="INT" allows-null="true"/>
