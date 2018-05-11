@@ -25,6 +25,8 @@ import org.ecocean.identity.IBEISIA;
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 public class IA {
 
@@ -55,17 +57,43 @@ public class IA {
         return task;
     }
 */
+
+    //i think objects ingested here must(?) be persisted (and committed), as we have to assume (or we know)
+    //  that these processes will use queues which operate in different (Shepherd) threads and will thus try
+    //  to find the objects via the db.  :/
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
         if ((mas == null) || (mas.size() < 1)) return null;
         Task task = new Task();
         task.setObjectMediaAssets(mas);
+
+        //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
+        JSONArray maArr = new JSONArray();
+        for (MediaAsset ma : mas) {
+            maArr.put(ma.getId());
+        }
+        String context = myShepherd.getContext();
+        JSONObject qjob = new JSONObject();
+        qjob.put("detect", maArr);
+        qjob.put("taskId", task.getId());
+        qjob.put("__context", context);
+        //qjob.put("__baseUrl", baseUrl);
+        boolean sent = false;
+        try {
+            sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("ERROR: IA.intakeMediaAssets() addToQueue() threw " + iox.toString());
+        }
+
+System.out.println("INFO: IA.intakeMediaAsset() accepted " + mas.size() + " assets; queued? = " + sent);
         return task;
     }
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
         if ((anns == null) || (anns.size() < 1)) return null;
         Task task = new Task();
         task.setObjectAnnotations(anns);
+System.out.println("INFO: IA.intakeMediaAsset() accepted " + anns.size() + " annots");
         return task;
     }
+
 
 }
