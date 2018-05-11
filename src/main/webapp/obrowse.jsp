@@ -1,3 +1,68 @@
+<html><head><title>obrowse</title>
+<script src="tools/jquery/js/jquery.min.js"></script>
+<style>
+
+.img-margin {
+    float: right;
+    display: inline-block;
+}
+
+#img-wrapper {
+    position: relative;
+}
+.featurebox {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    outline: solid 1px rgba(255,255,0,0.8);
+}
+.mediaasset {
+	position: relative;
+}
+.mediaasset img {
+	xposition: absolute;
+	top: 0;
+	xright: 20px;
+	max-width: 350px;
+}
+
+.deprecated {
+	color: #888;
+}
+
+</style>
+
+<script>
+var features = {};
+
+function addFeature(id, bbox) {
+    features[id] = bbox;
+}
+
+function drawFeatures() {
+    for (id in features) {
+        drawFeature(id);
+    }
+}
+function drawFeature(id) {
+    if (!(id in features)) return;
+    var bbox = features[id];
+    var el = $('#img-wrapper');
+    var img = $('img')[0];
+    var f = $('<div title="' + id + '" id="feature-' + id + '" class="featurebox" />');
+    el.append(f);
+    if (!bbox || !bbox.width) return;  //trivial annot, so leave it as whole image
+    var scale = img.height / img.naturalHeight;
+    f.css('width', (bbox.width * scale) + 'px');
+    f.css('height', (bbox.height * scale) + 'px');
+    f.css('left', (bbox.x * scale) + 'px');
+    f.css('top', (bbox.y * scale) + 'px');
+}
+</script>
+
+</head><body>
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
@@ -41,6 +106,7 @@ java.util.Properties" %>
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
 		h += "<li>" + showMediaAsset(f.getMediaAsset()) + "</li>";
 		h += "<li>" + showAnnotation(f.getAnnotation()) + "</li>";
+                h += "<script>addFeature('" + f.getId() + "', " + f.getParametersAsString() + ");</script>";
 		h += "<li>parameters: " + niceJson(f.getParameters()) + "</li>";
 		return h + "</ul></div>";
 	}
@@ -84,14 +150,16 @@ java.util.Properties" %>
 		if (ma == null) return "asset: <b>[none]</b>";
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
 		shown.add(ma);
-		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b><ul style=\"width: 65%\">";
+		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b>";
                 if (ma.webURL() == null) {
 			h += "<div style=\"position: absolute; right: 0;\"><i><b>webURL()</b> returned null</i></div>";
 		} else if (ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
-			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><img title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></a>";
+			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></div></div></a>";
+
 		}
+                h += "<ul style=\"width: 65%\">";
 		h += "<li>store: <b>" + ma.getStore() + "</b></li>";
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
@@ -130,27 +198,6 @@ if (type == null) type = "Encounter";
 if (id == null) {
 	out.println(showForm());
 	return;
-}
-
-if (!type.equals("MediaAssetMetadata")) { %>
-<style>
-
-.mediaasset {
-	position: relative;
-}
-.mediaasset img {
-	position: absolute;
-	top: 0;
-	right: 20px;
-	max-width: 350px;
-}
-
-.deprecated {
-	color: #888;
-}
-
-</style>
-<%
 }
 
 
@@ -220,4 +267,4 @@ myShepherd.closeDBTransaction();
 
 %>
 
-
+</body></html>
