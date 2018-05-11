@@ -10,12 +10,6 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Envelope;
 
-/*
-
-A light wrapper to RabbitMQ libs.  possibly(?) allow for exansion later to support an underlying base abstract class
-(e.g. Queue.java)
-
-*/
 
 public class RabbitMQQueue extends Queue {
     private static String TYPE_NAME = "RabbitMQ";

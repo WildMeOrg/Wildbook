@@ -16,9 +16,10 @@ import java.util.HashMap;
 
 import com.google.gson.Gson;
 
-/*
-import org.ecocean.media.TwitterAssetStore;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.TwitterAssetStore;
+
+/*
 import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
@@ -75,10 +76,7 @@ public class TwitterUtil {
   public static QueryResult findTweets(String search, long sinceId) throws TwitterException {
     Twitter tw = tfactory.getInstance();
     Query query = new Query(search);
-    if (sinceId >= 0l){
-      System.out.println("sinceId is " + Long.toString(sinceId) + " and is >= 0l");
-      query.setSinceId(sinceId);
-    }
+    if (sinceId >= 0l) query.setSinceId(sinceId);
     return tw.search(query);
   }
 
@@ -120,6 +118,17 @@ public class TwitterUtil {
             System.out.println("ERROR: TwitterUtil.toStatus() failed with " + ex.toString());
         }
         return null;
+    }
+    //twitter-MediaAsset to propert twitter4j.Status
+    public static Status toStatus(MediaAsset ma) {
+        if ((ma == null) ||
+            !(ma.getStore() instanceof TwitterAssetStore) ||
+            !ma.hasLabel("_original") ||
+            (ma.getMetadata() == null) ||
+            (ma.getMetadata().getData().optJSONObject("twitterRawJson") == null)) {
+            return null;
+        }
+        return toStatus(ma.getMetadata().getData().getJSONObject("twitterRawJson"));
     }
 
     public static String getProperty(String context, String key) {
@@ -165,5 +174,15 @@ public class TwitterUtil {
         if (tfactory == null) throw new TwitterException("TwitterUtil has not been initialized");
         return tfactory.getInstance().updateStatus(tweetText);
     }
+
+    //given an "entity" (child) MediaAsset of a tweet, will return the parent tweet MediaAsset
+    public static MediaAsset parentTweet(Shepherd myShepherd, MediaAsset ma) {
+        if ((ma == null) || !ma.hasLabel("_entity")) return null;
+        MediaAsset parentMA = ma.getParent(myShepherd);
+        if (parentMA == null) return null;
+        if (parentMA.getStore() instanceof TwitterAssetStore) return parentMA;
+        return null;
+    }
+
 
 }
