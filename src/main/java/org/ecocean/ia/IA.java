@@ -19,6 +19,7 @@
 package org.ecocean.ia;
 
 import org.ecocean.Shepherd;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Annotation;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.identity.IBEISIA;
@@ -71,12 +72,14 @@ public class IA {
         for (MediaAsset ma : mas) {
             maArr.put(ma.getId());
         }
+        JSONObject dj = new JSONObject();
+        dj.put("mediaAssetIds", maArr);
         String context = myShepherd.getContext();
         JSONObject qjob = new JSONObject();
-        qjob.put("detect", maArr);
+        qjob.put("detect", dj);
         qjob.put("taskId", task.getId());
         qjob.put("__context", context);
-        //qjob.put("__baseUrl", baseUrl);
+        qjob.put("__baseUrl", CommonConfiguration.getServerURL(context));
         boolean sent = false;
         try {
             sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
