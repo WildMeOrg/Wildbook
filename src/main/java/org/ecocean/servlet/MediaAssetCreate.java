@@ -20,6 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.ia.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -90,6 +91,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 ....
             ]
         },
+    "skipIA": false,  //default is do-not-skipIA, but you may want off when done later (e.g. match.jsp which does in CreateEncounter)
 .... (other types) ...
     ]
 
@@ -129,20 +131,25 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         }
 
         //this has to be after commit (so queue can find them from different thread), so we do a little work here
-        JSONArray ids = res.optJSONArray("allMediaAssetIds");
-        if ((ids != null) && (ids.length() > 0)) {
-            myShepherd = new Shepherd(context);
-            myShepherd.setAction("MediaAssetCreate.class_IA.intake");
-            myShepherd.beginDBTransaction();
-            List<MediaAsset> allMAs = new ArrayList<MediaAsset>();  //this is to pass to IA.intake()
-            for (int i = 0 ; i < ids.length() ; i++) {
-                int id = ids.optInt(i, -1);
-                if (id < 0) continue;
-                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                if (ma != null) allMAs.add(ma);
+        if (!j.optBoolean("skipIA", false)) {
+            JSONArray ids = res.optJSONArray("allMediaAssetIds");
+            if ((ids != null) && (ids.length() > 0)) {
+                myShepherd = new Shepherd(context);
+                myShepherd.setAction("MediaAssetCreate.class_IA.intake");
+                myShepherd.beginDBTransaction();
+                List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+                for (int i = 0 ; i < ids.length() ; i++) {
+                    int id = ids.optInt(i, -1);
+                    if (id < 0) continue;
+                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                    if (ma != null) allMAs.add(ma);
+                }
+                if (allMAs.size() > 0) {
+                    Task task = IA.intakeMediaAssets(myShepherd, allMAs);
+                    res.put("IATaskId", task.getId());
+                }
+                myShepherd.rollbackDBTransaction();
             }
-            if (allMAs.size() > 0) org.ecocean.ia.IA.intakeMediaAssets(myShepherd, allMAs);
-            myShepherd.rollbackDBTransaction();
         }
 
         out.println(res.toString());
