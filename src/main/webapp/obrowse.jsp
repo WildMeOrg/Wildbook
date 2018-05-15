@@ -16,7 +16,8 @@
     height: 100%;
     top: 0;
     left: 0;
-    outline: solid 1px rgba(255,255,0,0.8);
+    outline: dashed 2px rgba(255,255,0,0.8);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
 }
 .mediaasset {
 	position: relative;
