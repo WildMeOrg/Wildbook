@@ -112,16 +112,13 @@ public class StartupWildbook implements ServletContextListener {
 
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
-        if (skipInit(sce, null)) return;
-        System.out.println("* StartupWildbook initialized called");
-        ServletContext context = sce.getServletContext();
-/*
-        URL res = null;
-        try {
-            res = context.getResource("/");
-        } catch (Exception ex) {}
-        // res -> e.g. "jndi:/localhost/fubar"
-*/
+        ServletContext sContext = sce.getServletContext();
+        System.out.println("* StartupWildbook initialized for: " + servletContextInfo(sContext));
+        if (skipInit(sce, null)) {
+            System.out.println("- SKIPPED initialization by /tmp/WB_SKIP_INIT");
+            return;
+        }
+
         if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
         createMatchGraph();
 
@@ -185,7 +182,8 @@ public class StartupWildbook implements ServletContextListener {
 
 
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("* StartupWildbook destroyed called");
+        ServletContext sContext = sce.getServletContext();
+        System.out.println("* StartupWildbook destroyed called for: " + servletContextInfo(sContext));
         QueueUtil.cleanup();
     }
 
@@ -222,6 +220,16 @@ System.out.println("  StartupWildbook.properStartupResource() res = " + res);
     }
 */
 
+
+    public static String servletContextInfo(ServletContext sc) {
+        if (sc == null) return null;
+        try {
+            return sc.getServletContextName() + " [" + sc.getContextPath() + " via " + sc.getRealPath("/") + "]";
+        } catch (Exception ex) {
+            System.out.println("WARNING: StartupWildbook.servletContextInfo() threw " + ex.toString());
+            return "<unknown>";
+        }
+    }
 
 }
 
