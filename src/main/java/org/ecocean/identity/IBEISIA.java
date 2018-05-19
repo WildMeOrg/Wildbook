@@ -1290,9 +1290,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     }
                     boolean needsReview = false;
                     JSONArray newAnns = new JSONArray();
-//System.out.println("============================================================== JANNS " + janns.toString(2));
                     boolean skipEncounters = asset.hasLabel("_frame");
-System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
@@ -1312,16 +1310,6 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         newAnns.put(ann.getId());
                         ///note: *removed* IA.intake (or IAIntake?) from here, as it needs to be done post-commit,
                         ///  so we use 'annotations' in returned JSON to kick that off (since they all would have passed confidence)
-/*
-                        try {
-                            System.out.println("INFO: IBEISIA detection callback found species='" + ann.getSpecies() + "'; sending to identification");
-                            //architectural question: do we only send to IBEISIA.IAIntake or "global" ia.IA.intake()   TODO  ???
-                            Task task = IA.intake(myShepherd, ann);
-                            ident.put(ann.getId(), task.getId());
-                        } catch (Exception ex) {
-                            System.out.println("WARNING: IBEISIA.IAIntake() threw exception " + ex);
-                        }
-*/
                         numCreated++;
                     }
                     if (needsReview) {
@@ -1364,7 +1352,6 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                 jlog.put("twitterBot", TwitterBot.processDetectionResults(myShepherd, mas));  //will do nothing if not twitter-sourced
                 jlog.put("_action", "processedCallbackDetect");
                 if (amap.length() > 0) jlog.put("annotations", amap);
-                ////if (ident.length() > 0) jlog.put("identificationTasks", ident);
                 if (needReview.length() > 0) jlog.put("needReview", needReview);
                 log(taskID, null, jlog, myShepherd.getContext());
 
@@ -1387,27 +1374,6 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
     }
 */
 
-/*   WE MAY NOT NEED THESE ARGS ANY MORE?????
-    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request) {
-        String context = ServletUtilities.getContext(request);
-        String rootDir = request.getSession().getServletContext().getRealPath("/");
-        return processCallbackIdentify(taskID, logs, resp, context, rootDir);
-    }
-*/
-
-
-
-/*
-    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, HttpServletRequest request, String screenName, String imageId, Twitter twitterInst) {
-        String context = ServletUtilities.getContext(request);
-        String rootDir = request.getSession().getServletContext().getRealPath("/");
-        return processCallbackIdentify(taskID, logs, resp, context, rootDir, null, null, null);
-    }
-
-    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, String context, String rootDir) {
-        return processCallbackIdentify(taskID, logs, resp, context, rootDir, null, null, null);
-    }
-*/
 
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, String context, String rootDir) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
