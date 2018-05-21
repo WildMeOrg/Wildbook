@@ -24,6 +24,11 @@ private String translateIfNotEnglish(String text){
 
 <%
 
+boolean concatenate=false;
+if(request.getParameter("concatenate")!=null){
+	concatenate=true;
+}
+
 String context="context0";
 context=ServletUtilities.getContext(request);
 
@@ -68,8 +73,14 @@ try{
 		
 		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
 		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
-		StringBuffer sb=new StringBuffer("@RELATION YouTubeWhaleShark\n\n@ATTRIBUTE title String\n@ATTRIBUTE description String\n@ATTRIBUTE tags String\n@ATTRIBUTE class {good,poor}\n\n@data\n");
-		
+		StringBuffer sb=new StringBuffer();
+		if(!concatenate){
+			sb.append("@RELATION YouTubeWhaleShark\n\n@ATTRIBUTE title String\n@ATTRIBUTE description String\n@ATTRIBUTE tags String\n@ATTRIBUTE class {good,poor}\n\n@data\n");
+		}
+		else{
+			sb.append("@RELATION YouTubeWhaleShark\n\n@ATTRIBUTE description String\n@ATTRIBUTE class {good,poor}\n\n@data\n");
+			
+		}
 		for(int i=0;i<numResults;i++){
 			
 			//YouTubeAsset itself
@@ -113,8 +124,13 @@ try{
     				videoTags=translateIfNotEnglish(videoTags);
     				videoDescription=translateIfNotEnglish(videoDescription);		
     				
-    				
-    				sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',good\n");
+    				if(!concatenate){
+    					sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',good\n");
+    				}
+    				else{
+    					sb.append("'"+videoTitle+" "+videoDescription+" "+videoTags+"',good\n");
+    	    			
+    				}
     			}
     			else{
     				
@@ -132,8 +148,15 @@ try{
     				videoTitle=translateIfNotEnglish(videoTitle);
     				videoTags=translateIfNotEnglish(videoTags);
     				videoDescription=translateIfNotEnglish(videoDescription);	
+    					if(!concatenate){
+    						sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',poor\n");
+        					
+    					}
+    					else{
+    						sb.append("'"+videoTitle+" "+videoDescription+" "+videoTags+"',poor\n");
+        					
+    					}
     					
-    					sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',poor\n");
     				}
     			}
     			

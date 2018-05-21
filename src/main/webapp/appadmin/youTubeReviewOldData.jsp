@@ -72,6 +72,8 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 	//the return string of HTML content
 	String resultsHTML="";
 	
+	
+	/*
 	//weka predictor preparation answering the question: does this video description suggest a real world whale shark sighting?
 	ArrayList<Attribute> attributeList = new ArrayList<Attribute>(2);
 	ArrayList<Attribute> attributeList2 = new ArrayList<Attribute>(2);
@@ -88,7 +90,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 	attributeList.add(new Attribute("@@class@@",classVal));
 	String locIDpath="/data/whaleshark_data_dirs/shepherd_data_dir/wekaModels/whaleSharkLocationIDClassifier.model";
 	String path="/data/whaleshark_data_dirs/shepherd_data_dir/wekaModels/youtubeRandomForest.model";
-
+*/
 	
 	boolean videoHasID=false;
 	boolean hasWildMeComment=false;
@@ -322,6 +324,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
               if(!newLocationID.equals("")){numLocationIDsFound.incrementAndGet();}
               
               //predict if this is a good video
+              /*
               Instances data = new Instances("TestInstances",attributeList,2);
            	  data.setClassIndex(data.numAttributes()-1);
               Instance pos = new DenseInstance(data.numAttributes());
@@ -332,7 +335,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
               Double prediction = classify(pos,path);
               String rowClass="";
               if(prediction.intValue()==1)rowClass="class=\"rowhighlight\"";
-            	  
+            	*/  
 			  
 			  //here is where we would put logic to update encounters if appropriate
 			  if(persistDifferences){
@@ -474,7 +477,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 			  
 			  }
 			  
-			  resultsHTML="<tr "+rowClass+"><td><a target=\"_blank\" href=\"https://www.whaleshark.org/occurrence.jsp?number="+occurID+"\">"+occurID+"</a></td><td><a target=\"_blank\" href=\"https://www.youtube.com/watch?v="+videoID+"\">"+videoID+"</a></td><td>"+currentDate+"</td><td><p style=\""+chosenStyleDate+"\">"+newDetectedDate+"</p></td><td>"+currentLocationID+"</td><td><p style=\""+chosenStyleLocation+"\">"+newLocationID+"</p></td><td>"+videoTitle+"</td><td>"+videoDescription+"</td><td>"+videoComments+"</td><td>"+videoCommentsClean+"<br><br>LocID Words: "+locIDWords+"</br></br></td><td>"+relativeDate+"</td></tr>";
+			  resultsHTML="<tr><td><a target=\"_blank\" href=\"https://www.whaleshark.org/occurrence.jsp?number="+occurID+"\">"+occurID+"</a></td><td><a target=\"_blank\" href=\"https://www.youtube.com/watch?v="+videoID+"\">"+videoID+"</a></td><td>"+currentDate+"</td><td><p style=\""+chosenStyleDate+"\">"+newDetectedDate+"</p></td><td>"+currentLocationID+"</td><td><p style=\""+chosenStyleLocation+"\">"+newLocationID+"</p></td><td>"+videoTitle+"</td><td>"+videoDescription+"</td><td>"+videoComments+"</td><td>"+videoCommentsClean+"<br><br>LocID Words: "+locIDWords+"</br></br></td><td>"+relativeDate+"</td></tr>";
 				
 			  
 			  
@@ -585,7 +588,7 @@ try{
 			//YouTubeAsset itself
 			MediaAsset ma=results.get(i);
 			
-			String returnedHTML=annotateChildrenOfYouTubeMediaAssetWithDateLocation(ma,  request,  myShepherd, context,  numVideosWithID, numVideos, numUncuratedVideos, numCommentedVideos, numCommentedVideosReplies,goodDataVideos,poorDataVideos, true,numDatesFound, numLocationIDsFound);
+			String returnedHTML=YouTube.annotateChildrenOfYouTubeMediaAssetWithDateLocation(ma,  request,  myShepherd, context,  numVideosWithID, numVideos, numUncuratedVideos, numCommentedVideos, numCommentedVideosReplies,goodDataVideos,poorDataVideos, true,numDatesFound, numLocationIDsFound);
 
 			%>
 			<%=returnedHTML %>
