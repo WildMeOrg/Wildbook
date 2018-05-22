@@ -319,15 +319,6 @@ var searchResults = <%=encsJson%>;
 var jdoql = '<%= filter.replaceAll("'", "\\\\'") %>';
 
 var testColumns = {
-	thumb: { label: 'Thumb', val: _colThumb },
-	individualID: { label: 'ID', val: _colIndLink },
-	date: { label: 'Date', val: _colEncDate },
-	verbatimLocality: { label: 'Location' },
-	locationID: { label: 'Location ID' },
-	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
-	submitterID: { label: 'Submitter' },
-	creationDate: { label: 'Created', val: _colCreationDate },
-	modified: { label: 'Edit Date', val: _colModified },
 };
 
 
@@ -351,6 +342,11 @@ var colDefn = [
 		label: 'ID',
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
+	},
+	{
+		key: 'occurrenceID',
+		label: 'Sighting ID',
+		value: _occurrenceID,
 	},
   {
     key: 'otherCatalogNumbers',
@@ -763,6 +759,11 @@ function _colTaxonomy(o) {
 	return o.get('genus') + ' ' + o.get('specificEpithet');
 }
 
+function _occurrenceID(o) {
+	if (!o.get('occurrenceID')) return '';
+	return o.get('occurrenceID');
+}
+
 
 function _colRowNum(o) {
 	return o._rowNum;
@@ -786,8 +787,13 @@ function _colModified(o) {
 }
 
 function _submitterID(o) {
+	var submitterID = o.get('submitterID');
+	var submitterProject = o.get('submitterProject');
+	var submitterName = o.get('submitterName');
+	console.log('Submitter (ID, project, name) = ('+submitterID+", "+submitterProject+", "+submitterName+")");
 	var m = o.get('submitterName');
-	if (!m) m = o.get('submitterProject');
+	if (!m || /^\s*$/.test(m)) m = o.get('submitterProject');
+	if (!m || /^\s*$/.test(m)) m = o.get('submitterID');
 	return m;
 }
 
@@ -908,6 +914,11 @@ function _colFileName(o) {
   var outStrings = [];
   for (id in o.get('annotations')) {
     var ann = o.get('annotations')[id];
+    //note: assuming 0th feature "may be bad" ?   TODO
+    if (ann.features && ann.features.length && ann.features[0].mediaAsset && ann.features[0].mediaAsset.filename) {
+      outStrings.push(ann.features[0].mediaAsset.filename);
+    }
+/*
     if (ann.mediaAsset != undefined) {
       var urlString = ann.mediaAsset.url;
       var pieces = urlString.split('/');
@@ -916,6 +927,7 @@ function _colFileName(o) {
       //console.log('\t added url string: '+ann.mediaAsset.url);
     }
     console.log('\t no mediaAsset found in annotation '+JSON.stringify(ann));
+*/
   }
   return outStrings.join(',\n');
 }
@@ -1088,6 +1100,7 @@ function _colThumb(o) {
 
 function _colModified(o) {
 	var m = o.get('modified');
+	console.log("_colModified got "+m);
 	if (!m) return '';
 	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';

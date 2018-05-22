@@ -185,8 +185,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("encounterSearch.jsp");
-  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();
 
 
@@ -763,6 +761,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       </p>
   </td>
 </tr>
+
+<!-- groupRole categorical: using ClassEditTemplate -->
+<%
+ClassEditTemplate.printStringFieldSearchRowCategories("groupRole",out,encprops);
+%>
+
 <%
 
 if(CommonConfiguration.showProperty("showLifestage",context)){
@@ -884,8 +888,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       <%
 
 
-        List<Keyword> keys = myShepherd.getSortedKeywordList(kwQuery);
-        for (Keyword word: keys) {
+        Iterator<Keyword> keys = myShepherd.getAllKeywords();
+        while (keys.hasNext()) {
+        	Keyword word = (Keyword)keys.next();
       %>
       <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
       </option>

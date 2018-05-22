@@ -116,6 +116,43 @@ public class ClassEditTemplate {
      );
   }
 
+  public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+    String displayName = getDisplayName(fieldName, nameLookup);
+    out.println("<tr id=\""+fieldName+"Row\">");
+    out.println("  <td id=\""+fieldName+"Title\"><strong>"+displayName+"</strong>");
+    out.println("  <input name=\""+fieldName+"\"/></td>");
+    out.println("</tr>");
+
+  }
+
+  public static void printStringFieldSearchRowCategories(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+
+  List<String> values=Util.getIndexedPropertyValues(fieldName,nameLookup);
+  System.out.println("ClassEditTemplate is printing a categorical variable with options "+values);
+  out.println("<tr id=\""+fieldName+"Row\">");
+  out.println("  <td id=\""+fieldName+"Title\"><strong>"+displayName+"</strong>");
+  out.println("  <select name=\""+fieldName+"\"/>");
+  for (String val: values) {
+    out.println("<option>"+val+"</option>");
+  }
+  out.println("  </select></td>");
+  out.println("</tr>");
+
+}
+
+
+
+
+public static String getDisplayName(String fieldName, Properties nameLookup) throws IOException, IllegalAccessException {
+  // Tries to lookup a translation and defaults to some string manipulation
+  return (nameLookup.getProperty(fieldName, capitalizedPrettyFieldName(fieldName)));
+}
+
+
+
 
   public static String prettyFieldNameFromGetMethod(Method getMeth) {
     String withoutGet = getMeth.getName().substring(3);
@@ -124,6 +161,12 @@ public class ClassEditTemplate {
 
   public static String prettyFieldName(String fieldName) {
     return splitCamelCase(fieldName);
+  }
+
+  public static String capitalizedPrettyFieldName(String fieldName) {
+    String name = prettyFieldName(fieldName);
+    if (name.length()>0) return(name.substring(0,1).toUpperCase()+name.substring(1));
+    return name;
   }
 
 
@@ -334,10 +377,14 @@ public class ClassEditTemplate {
     while (en.hasMoreElements()) {
 
       String pname = (String) en.nextElement();
+      System.out.println("  "+pname);
+
       if (pname.indexOf(relevantParamPrefix) == 0) {
         String setterName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
         String value = request.getParameter(pname);
+        System.out.print(" = "+value);
         invokeObjectMethod(obj, setterName, value);
+        System.out.println("  (successfully invoked object method)");
       }
 
     }

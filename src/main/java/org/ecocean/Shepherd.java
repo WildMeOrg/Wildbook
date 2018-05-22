@@ -316,6 +316,10 @@ public class Shepherd {
     pm.deletePersistent(ad);
   }
 
+  public void throwAwayAnnotation(Annotation ad) {
+    pm.deletePersistent(ad);
+  }
+
   public void throwAwayKeyword(Keyword word) {
     String indexname = word.getIndexname();
     pm.deletePersistent(word);
@@ -692,10 +696,23 @@ public class Shepherd {
       user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, username.trim()), true)));
     }
     catch (Exception nsoe) {
+      System.out.println("Shepherd.getUser(String) called for nonexistent user "+username);
       return null;
     }
     return user;
   }
+
+  public User getUser(HttpServletRequest request) {
+    String username=null;
+    try {
+      username = request.getUserPrincipal().toString();
+    } catch (Exception e) {
+      System.out.println("Shepherd.getUser(HttpServletRequest) called with no user logged in");
+      return null;
+    }
+    return getUser(username);
+  }
+
 
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
@@ -853,6 +870,48 @@ public class Shepherd {
     }
     return tempTask;
   }
+
+  public Taxonomy getOrCreateTaxonomy(String scientificName) {
+    return getOrCreateTaxonomy(scientificName, true); // shepherds are for committing after all
+  }
+  public Taxonomy getOrCreateTaxonomy(String scientificName, boolean commit) {
+    Taxonomy taxy = getTaxonomy(scientificName);
+    if (taxy==null) taxy = new Taxonomy(scientificName);
+    if (commit) storeNewTaxonomy(taxy);
+    return taxy;
+  }
+  public Taxonomy getTaxonomy(String scientificName) {
+    List al = new ArrayList();
+    try{
+      String filter = "this.scientificName.toLowerCase() == \"" + scientificName.toLowerCase() + "\"";
+      Extent keyClass = pm.getExtent(Taxonomy.class, true);
+      Query acceptedKeywords = pm.newQuery(keyClass, filter);
+      Collection c = (Collection) (acceptedKeywords.execute());
+      al = new ArrayList(c);
+      try {
+        acceptedKeywords.closeAll();
+      } catch (NullPointerException npe) {}
+    }
+    catch(Exception e){e.printStackTrace();}
+    return ((al.size()>0) ? ((Taxonomy) al.get(0)) : null);
+  }
+  public String storeNewTaxonomy(Taxonomy enc) {
+    //enc.setOccurrenceID(uniqueID);
+    beginDBTransaction();
+    try {
+      pm.makePersistent(enc);
+      commitDBTransaction();
+      System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
+      e.printStackTrace();
+      return "fail";
+    }
+    return (enc.getId());
+  }
+
+
 
   public Keyword getKeyword(String readableName) {
 
@@ -1073,6 +1132,9 @@ public class Shepherd {
     }
     return true;
   }
+  public boolean isMarkedIndividual(MarkedIndividual mark) {
+    return (mark!=null && isMarkedIndividual(mark.getIndividualID()));
+  }
 
   public boolean isOccurrence(String name) {
     try {
@@ -1082,6 +1144,11 @@ public class Shepherd {
     }
     return true;
   }
+
+  public boolean isOccurrence(Occurrence occ) {
+    return (occ!=null && isOccurrence(occ.getOccurrenceID()));
+  }
+
 
   public boolean isRelationship(String type, String markedIndividualName1, String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, boolean checkBidirectional) {
     try {
@@ -1210,6 +1277,25 @@ public class Shepherd {
       return null;
     }
   }
+
+
+  public Iterator<Taxonomy> getAllTaxonomies() {
+    try {
+      Extent taxClass = pm.getExtent(Taxonomy.class, true);
+      Iterator it = taxClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllTaxonomies. Returning a null iterator.");
+      return null;
+    }
+  }
+  public int getNumTaxonomies() {
+    Iterator<Taxonomy> taxis = getAllTaxonomies();
+    return (Util.count(taxis));
+  }
+
+
+
 
   public Iterator getAllAnnotationsNoQuery() {
     try {
@@ -1940,6 +2026,7 @@ public class Shepherd {
     return myArray;
   }
 
+/*  
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
 	  String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE keywords.contains(word0) && ( word0.indexname == \""+word.getIndexname()+"\" ) VARIABLES org.ecocean.Keyword word0";
       Query samples = pm.newQuery(keywordQueryString);
@@ -1948,7 +2035,16 @@ public class Shepherd {
 	    samples.closeAll();
 	    return myArray;
 	  }
-
+*/
+  
+  public ArrayList<MediaAsset> getAllMediAssetsWithKeyword(Keyword word0){
+    String keywordQueryString="SELECT FROM org.ecocean.media.MediaAsset WHERE ( this.keywords.contains(word0) && ( word0.indexname == \""+word0.getIndexname()+"\" ) ) VARIABLES org.ecocean.Keyword word0";
+    Query samples = pm.newQuery(keywordQueryString);
+    Collection c = (Collection) (samples.execute());
+    ArrayList<MediaAsset> myArray=new ArrayList<MediaAsset>(c);
+    samples.closeAll();
+    return myArray;
+  } 
 
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(String locationID){
     ArrayList<MarkedIndividual> myArray=new ArrayList<MarkedIndividual>();
@@ -2110,6 +2206,13 @@ public class Shepherd {
     }
     return indiv;
   }
+
+  public MarkedIndividual getMarkedIndividual(Encounter enc) {
+    if (enc==null) return null;
+    return (getMarkedIndividual(enc.getIndividualID()));
+  }
+
+
  
     //note, new indiv is *not* made persistent here!  so do that yourself if you want to. (shouldnt matter if not-new)
     public MarkedIndividual getOrCreateMarkedIndividual(String name, Encounter enc) {
@@ -2130,6 +2233,20 @@ public class Shepherd {
       return null;
     }
     return tempShark;
+  }
+
+  public Occurrence getOccurrence(Encounter enc) {
+    if (enc==null) return null;
+    return (getOccurrence(enc.getOccurrenceID()));
+  }
+
+
+  public Occurrence getOrCreateOccurrence(String id) {
+      if (id==null) return new Occurrence(Util.generateUUID());
+      Occurrence occ = getOccurrence(id);
+      if (occ != null) return occ;
+      occ = new Occurrence(id);
+      return occ;
   }
 
 
@@ -2595,6 +2712,10 @@ public class Shepherd {
     //pmf=null;
   }
 
+  public boolean isDBTransactionActive() {
+    return (pm!=null && !pm.isClosed() && pm.currentTransaction().isActive());
+  }
+
   /**
    * Commits (makes permanent) any changes made to an open database
    */
@@ -2602,6 +2723,7 @@ public class Shepherd {
   public void commitDBTransaction() {
     try {
       //System.out.println("     shepherd:"+identifyMe+" is trying to commit a transaction");
+      // System.out.println("Is the pm null? " + Boolean.toString(pm == null));
       if ((pm != null) && (pm.currentTransaction().isActive())) {
 
         //System.out.println("     Now commiting a transaction with pm"+(String)pm.getUserObject());
@@ -3207,12 +3329,16 @@ public class Shepherd {
   }
 
   public List<MarkedIndividual> getMarkedIndividualsByAlternateID(String altID) {
-    String filter = "this.alternateid.toLowerCase() == \"" + altID.toLowerCase() + "\"";
-    Extent encClass = pm.getExtent(MarkedIndividual.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    ArrayList al = new ArrayList(c);
-    acceptedEncounters.closeAll();
+    ArrayList al = new ArrayList();
+    try{
+      String filter = "this.alternateid.toLowerCase() == \"" + altID.toLowerCase() + "\"";
+      Extent encClass = pm.getExtent(MarkedIndividual.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      al = new ArrayList(c);
+      acceptedEncounters.closeAll();
+    }
+    catch(Exception e){e.printStackTrace();}
     return al;
   }
 

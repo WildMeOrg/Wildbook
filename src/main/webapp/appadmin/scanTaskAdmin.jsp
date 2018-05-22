@@ -94,20 +94,10 @@ String showContext="My ";
 if(request.getParameter("showAll")==null){
 %>
 <p class="caption">Your scanTasks are shown below. Click <b>Show All scanTasks</b> to see all of the tasks in the grid for all users.</p>
-
-<p class="caption">Refreshing results in <span id="countdown"></span> seconds.</p>
-  <script type="text/javascript">
-  (function countdown(remaining) {
-	    if(remaining === 0)
-	        location.reload(true);
-	    document.getElementById('countdown').innerHTML = remaining;
-	    setTimeout(function(){ countdown(remaining - 1); }, 1000);
-	})(30);
-  </script>
-
 <p>
 	<a style="cursor:pointer;color: blue" class="caption" href="scanTaskAdmin.jsp?showAll=true">Show All scanTasks</a>
 </p>
+
 <%
 }
 else{
@@ -121,6 +111,28 @@ else{
 <%
 }
 %>
+<p class="caption">Refreshing results in <span id="countdown"></span> seconds.</p>
+  <script type="text/javascript">
+  (function countdown(remaining) {
+	    if(remaining === 0)location.reload(true);
+	    document.getElementById('countdown').innerHTML = remaining;
+	    setTimeout(function(){ countdown(remaining - 1); }, 1000);
+
+	})<%
+	    if(request.getParameter("showAll")==null){
+	    %>
+	    (30);	
+	    <%
+	    }
+	    else {
+	    %>
+	    (100);
+	    <%
+	    }
+	    %>
+  </script>
+
+
 
 <h3><%=showContext %>Pending scanTasks</h3>
 <table class="table">
@@ -128,7 +140,7 @@ else{
   <tr>
     <th><strong>Identifier</strong></th>
     <th><strong>User</strong></th>
-    <th><strong>Completion</strong></th>
+    <th><strong>Progress</strong></th>
     <th colspan="2"><strong>Actions</strong></th>
   </tr>
   </thead>
@@ -146,15 +158,15 @@ else{
       ScanTask st = it.next();
       if (!st.hasFinished()) {
         scanNum++;
-        int numTotal = st.getNumComparisons();
+        //int numTotal = st.getNumComparisons();
 
         int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
 
-        int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
+        int numIncomplete = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
 
         //int numTaskTot = st.getNumComparisons();
-		String numTaskTot=numComplete+"/"+st.getNumComparisons();
-		if(st.getNumComparisons()==Integer.MAX_VALUE){numTaskTot="Building...";}
+		//String numTaskTot=numComplete+"/"+st.getNumComparisons();
+		//if(st.getNumComparisons()==Integer.MAX_VALUE){numTaskTot="Building...";}
         
         
    String styleString="";
@@ -162,15 +174,23 @@ else{
         
   %>
   <tr id="<%=st.getUniqueNumber()%>" >
-    <td style="<%=styleString %>"><%=scanNum%>. <%=st.getUniqueNumber()%>
+    <td style="<%=styleString %>">
+    	<%=scanNum%>. <%=st.getUniqueNumber()%>
     </td>
-    <td><%=st.getSubmitter()%>
+    <td>
+		<%=st.getSubmitter()%>
     </td>
-    <td><%=numTaskTot%>
+    <td>
+    	<div class="w3-border">
+    		<%
+    		double percentage=(double)numComplete/(numComplete+numIncomplete)*100;
+    		%>
+  			<div style="height:24px;width:<%=percentage %>%"><%=numComplete %>/<%=(numComplete+numIncomplete) %></div>
+		</div>
     </td>
     <td>
       <%
-      if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
+      if ((numComplete > 0) && (numIncomplete==0)) {
       %>
       <form name="scanNum<%=scanNum%>_writeOut" method="post"
             action="../<%=CommonConfiguration.getProperty("patternMatchingEndPointServletName", context) %>"><input name="number" type="hidden"

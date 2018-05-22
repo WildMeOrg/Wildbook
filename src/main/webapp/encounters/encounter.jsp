@@ -3988,6 +3988,86 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 %>
 <!--  END BEHAVIOR SECTION -->
 
+<!--  START GROUP ROLE SECTION -->
+<p class="para"><%=encprops.getProperty("groupRole") %>&nbsp;
+
+  <%
+
+    String oldGroupRole = enc.getGroupRole();
+    if (oldGroupRole != null) {
+  %>
+  <span id="displayGroupRole"><%=enc.getGroupRole()%></span>
+  <%
+  } else {
+  %>
+  <span id="displayGroupRole"><%=encprops.getProperty("none")%></span>
+  <%
+    }
+    %>
+</p>
+
+    <!-- start set groupRole popup -->
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#editGroupRole").click(function(event) {
+        event.preventDefault();
+
+        $("#editGroupRole").hide();
+
+        var number = $("#groupRoleNumber").val();
+        var groupRoleComment = $("#groupRoleInput").val();
+
+        $.post("../EncounterSetString", {"number": number, "field": "groupRole", "newVal":groupRoleComment},
+        function() {
+          $("#groupRoleErrorDiv").hide();
+          $("#groupRoleCheck").show();
+          $("#displayGroupRole").html(groupRoleComment);
+        })
+        .fail(function(response) {
+          $("#groupRoleError, #groupRoleErrorDiv").show();
+          $("#groupRoleErrorDiv").html(response.responseText);
+        });
+      });
+
+      $("#groupRoleInput").click(function() {
+        $("#groupRoleError, #groupRoleCheck, #groupRoleErrorDiv").hide()
+        $("#editGroupRole").show();
+      });
+    });
+  </script>
+  <div>
+    <div class="highlight resultMessageDiv" id="groupRoleErrorDiv"></div>
+
+    <p class="editTextObservation"><strong><%=encprops.getProperty("editGroupRoleComments")%></strong></p>
+    <span class="editTextObservation"><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></span>
+    <form name="setBehaviorComments" class="editFormObservation">
+      <input name="number" type="hidden" value="<%=num%>" id="groupRoleNumber"/>
+      <input name="action" type="hidden" value="editGroupRole" id="groupRoleAction"/>
+
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <textarea name="groupRoleComment" class="form-control" id="groupRoleInput">
+          <%
+         if(oldGroupRole!=null){
+         %>
+            <%=oldGroupRole%>
+        <%
+        }
+        %>
+        </textarea>
+      </div>
+      <div class="col-sm-3">
+        <input name="EditGroupRole" type="submit" id="editGroupRole" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
+        <span class="form-control-feedback" id="groupRoleCheck">&check;</span>
+        <span class="form-control-feedback" id="groupRoleError">X</span>
+      </div>
+    </div>
+    </form>
+  </div>
+
+
+
+
 
 
 <!--  START PATTERNING CODE SECTION -->
@@ -6193,13 +6273,12 @@ finally{
   		myShepherd.rollbackDBTransaction();
   		myShepherd.closeDBTransaction();
 		%>
-		<p class="para">There is no encounter #<%=num%> in the database. Please double-check the encounter number and try again.</p>
+		<p class="para">There is no corresponding encounter number in the database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
-  to encounter: </strong> <input name="number" type="text" value="<%=num%>" size="20"> <input name="Go" type="submit" value="Submit" /></form>
+  to encounter: </strong> <input name="number" type="text" value="" size="20"> <input name="Go" type="submit" value="Submit" /></form>
 
 
-<p><font color="#990000"><a href="../individualSearchResults.jsp">View all individuals</a></font></p>
 
 
 <%

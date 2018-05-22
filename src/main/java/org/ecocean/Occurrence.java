@@ -22,6 +22,8 @@ import org.ecocean.datacollection.Instant;
 
 import org.joda.time.DateTime;
 
+import org.ecocean.media.AssetStoreType;
+
 /**
  * Whereas an Encounter is meant to represent one MarkedIndividual at one point in time and space, an Occurrence
  * is meant to represent several Encounters that occur in a natural grouping (e.g., a pod of dolphins). Ultimately
@@ -32,8 +34,6 @@ import org.joda.time.DateTime;
  *
  */
 public class Occurrence implements java.io.Serializable{
-
-
 
   /**
    *
@@ -62,6 +62,11 @@ public class Occurrence implements java.io.Serializable{
   private Double seaSurfaceTemp;
   private Double swellHeight;
   private Double visibilityIndex; // 1-5 with 5 indicating horizon visible
+  
+  //social media registration fields for AI-created occurrences
+  private String socialMediaSourceID;
+  private String socialMediaQueryCommentID;
+  private String socialMediaQueryCommentReplies;
 
   private Double effortCode; // 1-5;
 
@@ -80,10 +85,17 @@ public class Occurrence implements java.io.Serializable{
   private Integer numCalves;
   private String observer;
 
+  private String submitterID;
 
+  // Convention: getters/setters for Taxonomy objects use noun "Taxonomy".
+  // while convenience string-only methods with noun "Species"
+  private List<Taxonomy> taxonomies;
 
   // do we have these?
 
+  // this is helpful for sorting but isn't (for now) intended to be UI-facing
+  // rather it's set from Encounters
+  private Long millis;
 
 
   private Long dateTimeLong; // this is for searching
@@ -106,6 +118,18 @@ public class Occurrence implements java.io.Serializable{
     assets = new ArrayList<MediaAsset>();
     setDWCDateLastModified();
     setDateTimeCreated();
+    //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+  }
+
+  public Occurrence(String occurrenceID){
+    System.out.println("    NEW OCCURRENCE with only an id: "+occurrenceID);
+    this.occurrenceID=occurrenceID;
+    encounters=new ArrayList<Encounter>();
+    assets = new ArrayList<MediaAsset>();
+    setDWCDateLastModified();
+    setDateTimeCreated();
+    System.out.println("Created new occurrence "+this.occurrenceID);
+
     //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
   }
 
@@ -170,6 +194,21 @@ public class Occurrence implements java.io.Serializable{
     //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     return isNew;
 
+  }
+
+  public void setSubmitterIDFromEncs(){
+    for (Encounter enc: encounters) {
+      if (Util.stringExists(enc.getSubmitterID())) {
+        setSubmitterID(enc.getSubmitterID());
+        return;
+      }
+    }
+  }
+  public void setSubmitterID(String submitterID) {
+    this.submitterID = submitterID;
+  }
+  public String getSubmitterID() {
+    return submitterID;
   }
 
   public void setAssets(List<MediaAsset> assets) {
@@ -250,6 +289,9 @@ public class Occurrence implements java.io.Serializable{
 
   public String getOccurrenceID(){return occurrenceID;}
 
+  public String getWebUrl(HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+getOccurrenceID());
+  }
 
   public Integer getIndividualCount(){return individualCount;}
   public void setIndividualCount(Integer count){
@@ -365,6 +407,78 @@ public class Occurrence implements java.io.Serializable{
 
   }
 
+  // Convention: getters/setters for Taxonomy objects use noun "Taxonomy".
+  // while convenience string-only methods use noun "Species"
+  public String getSpecies() { return getSpecies(0);}
+  public String getSpecies(int i) {
+    Taxonomy taxy = getTaxonomy(i);
+    if (taxy==null) return null;
+    return taxy.getScientificName();
+  }
+  // convenience method for e.g. web display
+  public List<String> getAllSpecies() {
+    List<String> result = new ArrayList<String>();
+    for (Taxonomy tax: taxonomies) {
+      String sciName = tax.getScientificName();
+      if (sciName!=null && !result.contains(sciName)) result.add(sciName);
+    }
+    return result;
+  }
+  public void addSpecies(String scientificName, Shepherd readOnlyShepherd) {
+    Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false); // commit=false as standard with setters
+    addTaxonomy(taxy);
+  }
+  // warning: overwrites list (use addSpecies for multi-species)
+  public void setSpecies(String scientificName, Shepherd readOnlyShepherd) {
+    Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false);
+    setTaxonomy(taxy);
+  }
+  public boolean hasSpecies(String scientificName) {
+    for (Taxonomy taxy: taxonomies) {
+      if (scientificName.equals(taxy.getScientificName())) return true;
+    }
+    return false;
+  }
+
+  public List<Taxonomy> getTaxonomies() {
+    return this.taxonomies;
+  }
+  public void setTaxonomies(List<Taxonomy> taxonomies) {
+    this.taxonomies = taxonomies;
+  }
+  public void setTaxonomiesFromEncounters(Shepherd myShepherd) {
+    setTaxonomiesFromEncounters(myShepherd, true); // if we don't commit we risk creating multiple taxonomies with the same scientificName
+  }
+  public void setTaxonomiesFromEncounters(Shepherd myShepherd, boolean commit) {
+    boolean shepherdWasCommitting = myShepherd.isDBTransactionActive();
+    for (Encounter enc: encounters) {
+      String taxString = enc.getTaxonomyString();
+      // we need the manual hasSpecies check below to prevent duplicates with the same scientificName when commit=false
+      if (!Util.stringExists(taxString) || (commit==false && hasSpecies(taxString))) continue;
+      Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxString, commit);
+      addTaxonomy(taxy);
+    }
+    if (shepherdWasCommitting) myShepherd.beginDBTransaction();
+  }
+
+  public Taxonomy getTaxonomy() { return getTaxonomy(0);}
+  public Taxonomy getTaxonomy(int i) {
+    if (taxonomies==null || taxonomies.size()<=i) return null;
+    return taxonomies.get(i);
+  }
+  public void addTaxonomy(Taxonomy taxy) {
+    ensureTaxonomiesExist();
+    if (!this.taxonomies.contains(taxy)) this.taxonomies.add(taxy);
+  }
+  // warning: overwrites list (use addTaxonomy for multi-species)
+  public void setTaxonomy(Taxonomy taxy) {
+    List<Taxonomy> taxis = new ArrayList<Taxonomy>();
+    taxis.add(taxy);
+    setTaxonomies(taxis);
+  }
+  private void ensureTaxonomiesExist() {
+    if (this.taxonomies==null) this.taxonomies = new ArrayList<Taxonomy>();
+  }
 
   public String getDWCDateLastModified() {
     return modified;
@@ -404,6 +518,7 @@ public class Occurrence implements java.io.Serializable{
   public void setDateTimeCreated(String time) {
     dateTimeCreated = time;
   }
+
 
     public void setDateTimeCreated() {
         dateTimeCreated = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
@@ -451,10 +566,10 @@ public class Occurrence implements java.io.Serializable{
      return allIDs;
    }
 
-	//convenience function to Collaboration permissions
-	public boolean canUserAccess(HttpServletRequest request) {
-		return Collaboration.canUserAccessOccurrence(this, request);
-	}
+  //convenience function to Collaboration permissions
+  public boolean canUserAccess(HttpServletRequest request) {
+    return Collaboration.canUserAccessOccurrence(this, request);
+  }
 
   public JSONObject uiJson(HttpServletRequest request) throws JSONException {
     JSONObject jobj = new JSONObject();
@@ -483,7 +598,7 @@ public class Occurrence implements java.io.Serializable{
     jobj.put("encounters", this.encounters);
     if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
         JSONArray jarr = new JSONArray();
-	///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+  ///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
         //but for *now* (see note way above) this is all we need for gallery/image display js:
         for (Encounter enc : this.getEncounters()) {
             JSONObject je = new JSONObject();
@@ -513,6 +628,12 @@ public class Occurrence implements java.io.Serializable{
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", occurrenceID)
+                .append("fieldStudySite",fieldStudySite)
+                .append("fieldSurveyCode",fieldSurveyCode)
+                .append("sightingPlatform",sightingPlatform)
+                .append("decimalLatitude",decimalLatitude)
+                .append("decimalLongitude",decimalLongitude)
+                .append("individualCount",individualCount)
                 .toString();
     }
 
@@ -730,6 +851,15 @@ public class Occurrence implements java.io.Serializable{
     public void setDateTimeLong(Long dateTimeLong) {
       this.dateTimeLong = dateTimeLong;
     }
+    public void setDateFromEncounters() {
+      for (Encounter enc: encounters) {
+        Long millis = enc.getDateInMilliseconds();
+        if (millis!=null) {
+          setDateTimeLong(millis);
+          return;
+        }
+      }
+    }
     public DateTime getDateTime() {
       if (dateTimeLong == null) return null;
       return new DateTime(dateTimeLong);
@@ -738,7 +868,101 @@ public class Occurrence implements java.io.Serializable{
       if (dt == null) dateTimeLong = null;
       else dateTimeLong = dt.getMillis();
     }
+    
+    //social media registration fields for AI-created occurrences
+    public String getSocialMediaSourceID(){return socialMediaSourceID;};
+    public void setSocialMediaSourceID(String id){socialMediaSourceID=id;};
+    
+    
+    public String getSocialMediaQueryCommentID(){return socialMediaQueryCommentID;};
+    public void setSocialMediaQueryCommentID(String id){socialMediaQueryCommentID=id;};
+    //each night we look for one occurrence that has commentid but not commentresponseid.
+    
+    public String getSocialMediaQueryCommentReplies(){return socialMediaQueryCommentReplies;};
+    public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
 
+
+    public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
+      if(getMediaAssetsOfType(aType).size()>0){return true;}
+      return false;
+    }
+    
+    public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      try{
+        int numEncs=encounters.size();
+        for(int k=0;k<numEncs;k++){
+          
+          ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
+          int numAssets=assets.size();
+          for(int i=0;i<numAssets;i++){
+            MediaAsset ma=assets.get(i);
+            if(ma.getStore().getType()==aType){results.add(ma);}
+          }
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      return results;
+    }
+    
+    public boolean hasMediaAssetFromRootStoreType(Shepherd myShepherd, AssetStoreType aType){
+      try{
+        int numEncs=encounters.size();
+        for(int k=0;k<numEncs;k++){
+          
+          ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
+          int numAssets=assets.size();
+          for(int i=0;i<numAssets;i++){
+            MediaAsset ma=assets.get(i);
+            if(ma.getStore().getType()==aType){return true;}
+            if(ma.getParentRoot(myShepherd).getStore().getType()==aType){return true;}
+          }
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      return false;
+    }
+
+
+    public void setMillis(Long millis) {this.millis = millis;}
+    public Long getMillis() {return this.millis;}
+
+    public void setMillisFromEncounters() {
+      this.millis = getMillisFromEncounters();
+    }
+
+    public Long getMillisFromEncounters() {
+      for (Encounter enc: encounters) {
+        if (enc.getDateInMilliseconds()!=null) {
+          return enc.getDateInMilliseconds();
+        }
+      }
+      return null;
+    }
+
+
+    public void setMillisFromEncounterAvg() {
+      this.millis = getMillisFromEncounterAvg();
+    }
+
+    public Long getMillisFromEncounterAvg() {
+      Long total = 0L;
+      int numAveraged = 0;
+      for (Encounter enc: encounters) {
+        if (enc.getDateInMilliseconds()!=null) {
+          total += enc.getDateInMilliseconds();
+          numAveraged++;
+        }
+      }
+      if (numAveraged == 0) return null;
+      return (total / numAveraged);
+    }
+    public Long getMillisRobust() {
+      if (this.millis!=null) return this.millis;
+      if (getMillisFromEncounterAvg()!=null) return getMillisFromEncounterAvg();
+      if (getMillisFromEncounters()!=null) return getMillisFromEncounters();
+      return null;
+    }
 
 
 

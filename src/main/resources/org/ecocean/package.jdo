@@ -118,6 +118,16 @@
       <field name="groupBehavior" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
+	  
+       <field name="socialMediaSourceID" persistence-modifier="persistent">
+        <column length="1024" allows-null="true"/>
+      </field>
+	       <field name="socialMediaQueryCommentID" persistence-modifier="persistent">
+        <column length="1024" allows-null="true"/>
+      </field>
+	       <field name="socialMediaQueryCommentReplies" persistence-modifier="persistent">
+        <column length="1024" allows-null="true"/>
+      </field>
 
       <field name="individualCount" persistence-modifier="persistent">
         <column jdbc-type="INTEGER" allows-null="true"/>
@@ -217,6 +227,11 @@
         <column length="256"/>
       </field>
 
+      <field name="groupRole" persistence-modifier="persistent">
+        <column length="256"/>
+      </field>
+
+
       <field name="livingStatus" persistence-modifier="persistent">
         <column length="256"/>
       </field>
@@ -305,8 +320,30 @@
         <collection element-type="java.lang.String"/>
       </field>
 
+      <field name="isUsed">
+        <column default-value="false" />
+
+<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here:
+      <column default-value="0" />
+-->
+      </field>
+
+
       <fetch-group name="count"/>
     </class>
+
+    <class name="Taxonomy" identity-type="application">
+      <field name="id" primary-key="true">
+      </field>
+
+	<field name="scientificName" allows-null="false">
+		<index name="TAXONOMY_SCIENTIFICNAME_INDEX" unique="true" />
+	</field>
+
+      <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
+    </class>
+
+
 
     <class name="SuperSpot">
       <datastore-identity strategy="increment"/>
@@ -317,10 +354,11 @@
         <column length="36"/>
       </field>
 		<field name="isExemplar">
-<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here:
-			<column default-value="0" />
--->
+<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here: -->
+<!--			<column default-value="0" /> -->
+<!-- this is for postgresql-->
 			<column default-value="false" />
+
 		</field>
 
             	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >
@@ -329,6 +367,15 @@
             	</field>
 
       <field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" recursion-depth="3"/>
+
+      <field name="quality" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
+      <field name="distinctiveness" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
       <!--
 		<field name="annot_xtl" />
 		<field name="annot_ytl" />
@@ -418,9 +465,6 @@
       </field>
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
-	  
-	  <field name="webURL" persistence-modifier="none"></field>
-
     </class>
 
     <class name="Measurement" identity-type="application">
@@ -635,6 +679,13 @@
 			<column name="PARENT_ID" />
 		</field>
 
+	</class>
+
+	<class name="SystemValue">
+		<field name="key" primary-key="true" />
+		<field name="version">
+			<column allows-null="true" />
+		</field>
 	</class>
 
   </package>
