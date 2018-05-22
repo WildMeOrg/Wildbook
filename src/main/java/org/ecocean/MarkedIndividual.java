@@ -211,7 +211,8 @@ public class MarkedIndividual implements java.io.Serializable {
 	public int refreshNumberEncounters() {
 		this.numberEncounters = encounters.size();
 		return this.numberEncounters;
-	}
+  }
+  
 
 
 	public String getDateFirstIdentified() {
