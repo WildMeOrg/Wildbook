@@ -139,12 +139,12 @@ public class ScanTask implements Serializable {
         numSpots = el.getSpots().size();
       }
     }
-    numComparisons++;
+    //numComparisons++;
   }
 
   public void setWorkItems(Vector swis) {
     this.workItems = swis;
-    numComparisons=swis.size();
+    //numComparisons=swis.size();
     ScanWorkItem swi = (ScanWorkItem) swis.get(0);
     if (numSpots == 0) {
       EncounterLite el = swi.getNewEncounterLite();
@@ -287,6 +287,7 @@ public class ScanTask implements Serializable {
     this.submitter = submitter;
   }
 
+  /*
   public void setNumComparisons(int num) {
     this.numComparisons = num;
   }
@@ -294,6 +295,7 @@ public class ScanTask implements Serializable {
   public int getNumComparisons() {
     return numComparisons;
   }
+  */
 
   public boolean getDeleteOnFinish() {
     return deleteOnFinish;

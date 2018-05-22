@@ -40,9 +40,33 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
+Shepherd myShepherd = new Shepherd(context);
 
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+// 'sets serverInfo if necessary
+CommonConfiguration.ensureServerInfo(myShepherd, request);
+
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+myShepherd.setAction("header.jsp");
+myShepherd.beginDBTransaction();
+
+String username = null;
+User user = null;
+boolean indocetUser = false;
+
+if(request.getUserPrincipal()!=null){
+
+  user = myShepherd.getUser(request);
+  username = (user!=null) ? user.getUsername() : null;
+  indocetUser = (user!=null && user.hasAffiliation("indocet"));
+
+  //finally{
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+  //}
+}
 %>
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -57,8 +81,19 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-      <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
+      <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
+
+      <%
+      if (indocetUser) {
+        %><link rel="stylesheet" href="<%=urlLoc %>/cust/indocet/overwrite.css" /><%
+      }
+      %>
+
+
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
+
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
@@ -109,16 +144,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                       <%
 
-	                      if(request.getUserPrincipal()!=null){
-	                    	  Shepherd myShepherd = new Shepherd(context);
-
-	                          try{
-	                        	  myShepherd.beginDBTransaction();
-		                    	  String username = request.getUserPrincipal().toString();
-		                    	  User user = myShepherd.getUser(username);
-		                    	  String fullname=username;
-		                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
-		                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+	                      if(user != null){
+	                          try {
+  		                    	  String fullname=request.getUserPrincipal().toString();
+                              if (user.getFullName()!=null) fullname=user.getFullName();
+                              String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
 		                          if(user.getUserImage()!=null){
 		                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
 		                          }
@@ -131,10 +161,6 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 		                      		<%
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
-	                          finally{
-	                        	  myShepherd.rollbackDBTransaction();
-	                        	  myShepherd.closeDBTransaction();
-	                          }
 	                      }
 	                      else{
 	                      %>
@@ -223,7 +249,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
             						String myLang=supportedLanguages.get(h);
             					%>
-            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="//<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
             						<script type="text/javascript">
 
             							$( "#flag_<%=myLang%>" ).click(function() {
@@ -259,6 +285,22 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                     </ul>
 
+
+                    <style type="text/css">
+                      #header-search-button, #header-search-button:hover {
+                        color: inherit;
+                        background-color: inherit;
+                        padding: 0px;
+                        margin: 0px;
+                      }
+                    </style>
+                    <script>
+                      $('#header-search-button').click(function() {
+                        document.forms['header-search'].submit();
+                      })
+                    </script>
+
+
                     <div class="search-wrapper">
                       <label class="search-field-header">
                             <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
@@ -269,7 +311,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
+
                 </div>
               </div>
 
@@ -289,6 +333,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     <ul class="nav navbar-nav">
                                   <!--                -->
                       <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
+
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
                       <!-- temporarily commented out: experiment w streamlining header UI
@@ -484,10 +529,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             },
             select: function(ev, ui) {
                 if (ui.item.type == "individual") {
-                    window.location.replace("<%=(urlLoc+"/individuals.jsp?number=") %>" + ui.item.value);
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
                 }
                 else if (ui.item.type == "locationID") {
-                	window.location.replace("<%=(urlLoc+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
                 }
                 /*
                 //restore user later
@@ -503,7 +548,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             //source: app.config.wildbook.proxyUrl + "/search"
             source: function( request, response ) {
                 $.ajax({
-                    url: '<%=urlLoc %>/SiteSearch',
+                    url: '<%=("//" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
                     dataType: "json",
                     data: {
                         term: request.term

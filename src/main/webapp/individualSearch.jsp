@@ -43,6 +43,7 @@ context=ServletUtilities.getContext(request);
   <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
 
   <script type="text/javascript">
+
     animatedcollapse.addDiv('location', 'fade=1')
     animatedcollapse.addDiv('map', 'fade=1')
     animatedcollapse.addDiv('date', 'fade=1')
@@ -506,6 +507,16 @@ function FSControl(controlDiv, map) {
 <tr>
   <td>
     <div id="date" style="display:none;">
+
+            <p><strong> Skip date filtering? </strong>            <label>
+              <input name="noDate" type="checkbox" id="noDate" value="noDate" checked />
+            </label>
+ <em>select this option if you are searching for encounters that don't have any date</em>
+          </p>
+
+
+
+
       <p><%=props.getProperty("dateInstructions") %></p>
       <strong><%=props.getProperty("sightingDates")%></strong><br/>
       <table width="720">
@@ -714,14 +725,27 @@ function FSControl(controlDiv, map) {
 	</tr>
 </table>
 
+
+<script type="text/javascript">
+    // when user clicks a date input, uncheck the "ignore date" checker
+    $('#day1, #month1, #year1, #day2, #month2, #year2').click(function() {
+      console.log("We're registering a date input!");
+      $('#noDate').prop('checked', false);
+    });
+
+    $('#day1').click(function() {
+      console.log("We're registering a date input!");
+      $('#noDate').prop('checked', false);
+    });
+
+</script>
+
       <p><strong><%=props.getProperty("addedsightingDates")%></strong></p>
 
       <table width="720">
         <tr>
           <td width="670"><label><em>
-          
-          
-          
+                    
             &nbsp;<%=props.getProperty("day")%>
           </em> <em> <select name="addedday1" id="addedday1">
             <option value="1" selected>1</option>

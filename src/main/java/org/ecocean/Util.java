@@ -575,12 +575,17 @@ public class Util {
 
     // replaces wrong-slashes with right-slashes
     public static String windowsFileStringToLinux(String windowsFileString) {
-      return windowsFileString.replace("\\","/");
+      return windowsFileString.replaceAll("\\\\","/");
     }
 
     public static boolean fileExists(String filepath) {
       File f = new File(filepath);
       return (f.exists() && !f.isDirectory());
+    }
+    
+    // convenience method for comparing string values
+    public static boolean shouldReplace(String val1, String val2) {
+      return (stringExists(val1) && !stringExists(val2));
     }
 
     public static boolean isValidDecimalLatitude(Double lat) {
@@ -590,6 +595,14 @@ public class Util {
     public static boolean isValidDecimalLongitude(Double lon) {
         if (lon == null) return false;
         return ((lon >= -180.0) && (lon <= 180.0));
+
+    public static int count(Iterator it) {
+      int num = 0;
+      while (it.hasNext()) {
+        Object elem = it.next();
+        num++;
+      }
+      return num;
     }
 
 }

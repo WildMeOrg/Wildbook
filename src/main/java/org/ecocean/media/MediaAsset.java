@@ -397,6 +397,13 @@ public class MediaAsset implements java.io.Serializable {
             f.asset = this;
         }
     }
+    //note: this will outright deletes feature (from db, blame datanucleus), and thus will
+    // break the reference from Annotation-Feature that (likely) existed ... oops?
+    public void removeFeature(Feature f) {
+        if (features == null) return;
+        System.out.println("INFO: removeFeature() killing off " + f + " from " + this);
+        features.remove(f);
+    }
 
     //kinda sorta really only for Encounter.findAllMediaByFeatureId()
     public boolean hasFeatures(String[] featureIds) {
@@ -693,7 +700,8 @@ public class MediaAsset implements java.io.Serializable {
             top = MediaAssetFactory.load(parentId, myShepherd);
             if (top == null) throw new RuntimeException("bestSafeAsset() failed to find parent on " + this);
             if (!top.hasLabel("_original")) {
-                System.out.println("INFO: " + this + " had a non-_original parent of " + top + "; so using this");
+                // Commented out below because it prints 5k lines at a time when loading an occurrence (!?!?)
+                //System.out.println("INFO: " + this + " had a non-_original parent of " + top + "; so using this");
                 return this;  //we stick with this cuz we are kinda at a dead end
             }
         }
@@ -1076,6 +1084,12 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         if(keywords.contains(key)){return true;}
       }
       return false;
+    }
+    
+    public void removeKeyword(Keyword k) {
+      if (keywords != null) {
+        if (keywords.contains(k)) keywords.remove(k);
+      }
     }
 
 

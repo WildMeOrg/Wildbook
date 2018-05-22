@@ -81,6 +81,8 @@ context=ServletUtilities.getContext(request);
 
   <jsp:include page="header.jsp" flush="true"/>
 
+<script src="javascript/classEditTemplate.js"></script>
+<link rel="stylesheet" href="css/classEditTemplate.css" type="text/css" media="all">
 
 <script src="javascript/sss.js"></script>
 <link rel="stylesheet" href="css/sss.css" type="text/css" media="all">
@@ -738,12 +740,13 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
   %>
 
 </table>
-</div>
-
 <div class="submit" style="position:relative">
 <input type="submit" name="save" value="Save" />
 <span class="note" style="position:absolute;bottom:9"></span>
 </div>
+
+</div>
+
 
 </form>
 </div> <!--row -->
@@ -755,7 +758,17 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 <%
 
-}
+} 
+    else {
+    	%>
+    	
+    	<p class="para">There is no corresponding occurrence number in the database. Please double-check the occurrence number and try again.</p>
+
+    	<form action="occurrence.jsp" method="post" name="encounter"><strong>Go
+    	  to occurrence: </strong> <input name="number" type="text" value="" size="20"> <input name="Go" type="submit" value="Submit" /></form>
+
+    	<%
+    }
 
 
 
