@@ -55,8 +55,9 @@ public class SpotterConserveIO {
     */
 
     //////TODO this is an "Object" now cuz i dont have SurveyTrack here yet!  (get from colin)
-    public static Object ciToSurveyTrack(JSONObject jin) {
+    public static SurveyTrack ciToSurveyTrack(JSONObject jin) {
         if (jin.optJSONArray("sightings") != null) {
+            SurveyTrack st = new SurveyTrack();
             List<Occurrence> occs = new ArrayList<Occurrence>();
 
             /* the way this apparently works is the "sightings" array is actually *two* sets of data:
@@ -70,7 +71,7 @@ public class SpotterConserveIO {
                 Occurrence occ = ciToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize));
                 if (occ != null) occs.add(occ);
             }
-            /////// now do something with occs!
+            st.setOccurrences(occs);
         }
 
         if (jin.optJSONArray("weather") != null) {
