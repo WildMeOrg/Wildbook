@@ -736,13 +736,26 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 					<br>
 			</div>
 		</div>
-		<!-- depth -->
+		<!-- depth && above/below water -->
+
+    <div class="form-group form-inline">
+
+      <div class="col-xs-6 col-lg-4">
+        <label class="text-danger control-label" style="text-align:left;">Was the image taken from under water?</label>
+      </div>
+      <div class="col-xs-6 col-md-8">
+        <input type="radio" name="measurement(underwater)" onChange="aboveWater()" value="1" id="underwaterTrue"></input>
+        <label>Yes</label>
+        &nbsp
+        <input type="radio" name="measurement(underwater)" onChange="aboveWater()" value="0" id="underwaterFalse" checked></input>
+        <input type="hidden" name="measurement(underwaterunits)" value="binary">
+        <label>No</label>
+      </div>
+    </div>
 		
-		<div class="form-group form-inline">
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label"  style="text-align:left;">Sea floor depth in feet</label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
+		<div id="depthDiv" style="display:none;" class="form-group form-inline">
+			<div class="col-xs-12 col-lg-12">
+			  <label class="control-label" style="text-align:left;">Please enter depth in feet if you know it.</label>
         <input class="form-control" onChange="convertDepth()" name="feetDepth" type="number" id="feetDepth">
 				<input name="depth" type="hidden" id="depth">
 			</div>
@@ -778,6 +791,15 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     %>
 
 <script>
+function aboveWater() {
+  if (document.getElementById("underwaterTrue").checked) {
+    $('#depthDiv').show();
+  } else {
+    $('#depthDiv').hide();
+    $('#depth').val('');
+  }
+}
+
 function convertDepth() {
   console.log("converting depth...");
   var feet;
@@ -865,10 +887,6 @@ function convertDepth() {
 	</div>
 	</fieldset>
 
-
-
-		
-  
 
   <hr/>
 
@@ -1082,7 +1100,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   </tr>
   
   <!--the below line makes it so that temp is not listed here (temp is listed above)-->
-	
+	<c:if test="${item.label!='Temp.'&&item.type!='underwater'}">
     <tr>
     <td>Pre-caudal Length</td>
     <td><input name="measurement(precaudallength)" id="precaudallength"/><input type="hidden" name="measurement(precaudallengthunits)" value="centimeters"/></td>
