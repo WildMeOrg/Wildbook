@@ -727,34 +727,32 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 		</p>
 		<div class="form-group form-inline">
 			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label pull-left" style="text-align:left;">Water Temperature</label>
+				<label class="text-danger control-label pull-left" style="text-align:left;">Water Temperature in Celcius</label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="measurement(temperature)" type="text" id="temperature">
+				<input class="form-control" name="measurement(temperature)" type="text" id="temperature" size="20">
 					
 					<input type="hidden" name="measurement(temperatureunits)" value="celsius">
-					&nbsp;Fahrenheit <br>
+					<br>
 			</div>
 		</div>
 		<!-- depth -->
 		
 		<div class="form-group form-inline">
 			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label"  style="text-align:left;">Sea floor depth at site</label>
+				<label class="text-danger control-label"  style="text-align:left;">Sea floor depth in feet</label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="depth" type="text" id="depth">
-					&nbsp;meters
+        <input class="form-control" onChange="convertDepth()" name="feetDepth" type="number" id="feetDepth">
+				<input name="depth" type="hidden" id="depth">
 			</div>
 		</div>
-		
 	</div>
 </div>
 
 
 </fieldset>
 <hr />
-
 
     <%
     //let's pre-populate important info for logged in users
@@ -779,7 +777,19 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     }
     %>
 
-
+<script>
+function convertDepth() {
+  console.log("converting depth...");
+  var feet;
+  if ($('#feetDepth').val()!="") {
+    feet = parseInt($('#feetDepth').val());
+    meters = (feet*0.3048).toFixed(2);
+    console.log("original value = "+feet);
+    $('#depth').val(meters);
+    console.log("new value from hidden input = "+$('#depth').val());
+  }
+}
+</script>
 
   <fieldset>
     <div class="row">
