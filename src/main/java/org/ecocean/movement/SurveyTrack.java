@@ -46,7 +46,6 @@ public class SurveyTrack implements java.io.Serializable{
     }
   }
   
-/*  cuz we dont have Survey here yet!
   public SurveyTrack(Survey survey){
     if (survey != null) {
       this.parentSurveyID = survey.getID();
@@ -55,7 +54,6 @@ public class SurveyTrack implements java.io.Serializable{
       setDateTimeCreated();
     }
   }
-*/
   
   public String getDateTimeCreated() {
     if (dateTimeCreated != null) {
@@ -137,11 +135,10 @@ public class SurveyTrack implements java.io.Serializable{
   }
   
   public ArrayList<Occurrence> getAllOccurrences() {
-    if (occurrences!=null&&!occurrences.isEmpty()) {
-     return occurrences; 
-    } else {
-      return null;
+    if (!occurrences.isEmpty()) {
+      return occurrences; 
     }
+    return null;
   }
   
   public Occurrence getOccurenceByID(String id) {
@@ -155,45 +152,29 @@ public class SurveyTrack implements java.io.Serializable{
   }
   
   public boolean hasOccurrence(Occurrence queryOcc) {
-    boolean hasIt = false;
-    for (Occurrence occ : occurrences) {
-      if (queryOcc.getOccurrenceID().equals(occ.getOccurrenceID())) {
-        hasIt = true;
-        break;
-      }
+    if (!occurrences.isEmpty()&&occurrences.contains(queryOcc)) {
+      return true;
     }
-    return hasIt;
+    return false;
   }
   
-  public void addOccurrence(Occurrence occ, Shepherd myShepherd) {
-    if (occ != null) {
-      occurrences.add(occ);
-      if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
-        double lat = occ.getDecimalLatitude();
-        double lon = occ.getDecimalLongitude();
-        Long milliDate = null;
-        if (occ.getDateTimeLong()!=null) {
-          milliDate = occ.getDateTimeLong();
-        }
-       // createPointLocationForPath(lat,lon,milliDate, myShepherd);
+  public void addOccurrence(Occurrence occ) {
+    try {
+      if (occ != null&&!occurrences.contains(occ)) {
+        occurrences.add(occ);
+        setDWCDateLastModified();
       }
-      setDWCDateLastModified();
-    }
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("From Survey Track: Failed to this occ!");
+    } 
   }
   
   public void addMultipleOccurrences(ArrayList<Occurrence> occArray, Shepherd myShepherd) {
     if (occArray.size() >= 1) {
-      for (int i=0; i<occArray.size(); i++) {
-        Occurrence occ = occArray.get(i);
-        occurrences.add(occ);
-        if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
-          double lat = occ.getDecimalLatitude();
-          double lon = occ.getDecimalLongitude();
-          Long milliDate = null;
-          if (occ.getDateTimeLong()!=null) {
-            milliDate = occ.getDateTimeLong();
-          }
-         // createPointLocationForPath(lat,lon,milliDate, myShepherd);
+      for (Occurrence occ : occArray) {
+        if (!occurrences.contains(occ)) {
+          occurrences.add(occ);
         }
       }
       setDWCDateLastModified();
@@ -213,7 +194,6 @@ public class SurveyTrack implements java.io.Serializable{
   
   private Path getOrCreatePath(String pathID, Shepherd myShepherd) {
     Path pth = null;
-/*
     myShepherd.beginDBTransaction();
     try {
       if (myShepherd.isPath(pathID)) {
@@ -227,7 +207,6 @@ public class SurveyTrack implements java.io.Serializable{
       myShepherd.rollbackDBTransaction();
       npe.printStackTrace();
     }
-*/
     return pth;
   }
   

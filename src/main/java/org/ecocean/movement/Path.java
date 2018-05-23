@@ -6,7 +6,6 @@ import org.ecocean.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
 * @author Colin Kingen
@@ -47,8 +46,12 @@ public class Path implements java.io.Serializable {
   }
   
   public Path(ArrayList<PointLocation> pts) {
-    this.pointLocations = pts;
     generateUUID();
+    if (pts.size() >= 1) {
+      for (int i=0; i<pts.size(); i++ ) {
+        this.pointLocations.add(pts.get(i));
+      }
+    }
   }  
   
   public String getID() {
@@ -93,17 +96,23 @@ public class Path implements java.io.Serializable {
   }
   
   public String getStartTime() {
-    DateTime dt = new DateTime(this.getStartTimeMillis());
-    DateTimeFormatter out = DateTimeFormat.forPattern("HHmm");
-    String startTime = out.print(dt.getMillis());
-    return startTime;
+    if (this.getStartTimeMillis()!=null) {
+      DateTime dt = new DateTime(this.getStartTimeMillis());
+      DateTimeFormatter out = DateTimeFormat.forPattern("HH:mm");
+      String startTime = out.print(dt.getMillis());
+      return startTime;
+    }
+    return null;
   }
 
   public String getEndTime() {
-    DateTime dt = new DateTime(this.getEndTimeMillis());
-    DateTimeFormatter out = DateTimeFormat.forPattern("HHmm");
-    String endTime = out.print(dt.getMillis());
-    return endTime;
+    if (this.getEndTimeMillis()!=null) {
+      DateTime dt = new DateTime(this.getEndTimeMillis());
+      DateTimeFormatter out = DateTimeFormat.forPattern("HH:mm");
+      String endTime = out.print(dt.getMillis());
+      return endTime;
+    }
+    return null;
   } 
 
   public Long getEndTimeMillis() {
@@ -123,7 +132,6 @@ public class Path implements java.io.Serializable {
   }
   
   public void addPointLocation(PointLocation p) {
-    if (this.pointLocations == null) this.pointLocations = new ArrayList<PointLocation>();
     if (this.getPointLocation(p.getID()) == null) {
       this.pointLocations.add(p);
     }
@@ -147,11 +155,5 @@ public class Path implements java.io.Serializable {
   private void generateUUID() {
     this.pathID = Util.generateUUID();
   }
-
-    public String toString() {
-        return new ToStringBuilder(this)
-            .append("id", getID())
-            .append("numPointLocations", (pointLocations == null) ? "NULL" : pointLocations.size())
-            .toString();
-    }
+  
 }
