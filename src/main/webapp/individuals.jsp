@@ -7,7 +7,10 @@ org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 
+<jsp:include page="header.jsp" flush="true"/>
+
 <%
+
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -132,6 +135,20 @@ if (request.getParameter("number")!=null) {
 
 
 			if (!visible) {
+
+        // remove any potentially-sensitive data, labeled with the secure-field class
+        System.out.println("Not visible! Printing stuff!");
+        %>
+        <script type="text/javascript">
+          console.log("Not visible! Printing stuff!");
+          $(document).ready(function() {
+            $('.secure-field').each(function() {
+              console.log("I found a secure field to remove! Text="+$(this).text());
+              this.remove();
+            });
+          });
+        </script>
+        <%
   			ArrayList<String> uids = indie.getAllAssignedUsers();
 				ArrayList<String> possible = new ArrayList<String>();
 				for (String u : uids) {
@@ -166,7 +183,6 @@ if (request.getParameter("number")!=null) {
 	}
 }
 %>
-<jsp:include page="header.jsp" flush="true"/>
 
 
 
@@ -363,14 +379,14 @@ $(document).ready(function() {
 </script>
 
 <%---------- Main Div ----------%>
-<div class="container maincontent">
+<div class="container maincontent secure-field">
   <%=blocker%>
   <%
   myShepherd.beginDBTransaction();
   try {
     if (myShepherd.isMarkedIndividual(name)) { %>
   <%-- Header Row --%>
-  <div class="row mainHeader" style="position:relative;">
+  <div class="row mainHeader secure-field" style="position:relative;">
     <div class="col-sm-6">
 
           <%
