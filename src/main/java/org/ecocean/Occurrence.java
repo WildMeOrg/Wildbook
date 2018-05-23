@@ -174,6 +174,16 @@ public class Occurrence implements java.io.Serializable{
   public ArrayList<Encounter> getEncounters(){
     return encounters;
   }
+  public List<String> getEncounterIDs(){
+    List<String> res = new ArrayList<String>();
+    for (Encounter enc: encounters) {res.add(enc.getCatalogNumber());}
+    return res;
+  }
+  public List<String> getEncounterWebUrls(HttpServletRequest request){
+    List<String> res = new ArrayList<String>();
+    for (Encounter enc: encounters) {res.add(enc.getWebUrl(request));}
+    return res;
+  }
 
   public boolean addAsset(MediaAsset ma){
     if(assets==null){assets=new ArrayList<MediaAsset>();}
