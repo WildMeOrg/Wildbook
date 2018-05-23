@@ -40,9 +40,15 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 Shepherd myShepherd = new Shepherd(context);
+
+// 'sets serverInfo if necessary
+CommonConfiguration.ensureServerInfo(myShepherd, request);
+
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
 myShepherd.setAction("header.jsp");
+myShepherd.beginDBTransaction();
 
 String username = null;
 User user = null;
@@ -524,10 +530,10 @@ if(request.getUserPrincipal()!=null){
             },
             select: function(ev, ui) {
                 if (ui.item.type == "individual") {
-                    window.location.replace("<%=(urlLoc+"/individuals.jsp?number=") %>" + ui.item.value);
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
                 }
                 else if (ui.item.type == "locationID") {
-                	window.location.replace("<%=(urlLoc+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
                 }
                 /*
                 //restore user later
@@ -543,7 +549,7 @@ if(request.getUserPrincipal()!=null){
             //source: app.config.wildbook.proxyUrl + "/search"
             source: function( request, response ) {
                 $.ajax({
-                    url: '<%=urlLoc %>/SiteSearch',
+                    url: '<%=("//" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
                     dataType: "json",
                     data: {
                         term: request.term

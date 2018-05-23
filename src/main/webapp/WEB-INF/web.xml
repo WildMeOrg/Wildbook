@@ -145,6 +145,8 @@
 				/InterconnectSubmitSpots = authc, roles[imageProcessor]
 				/interconnectSubmitSpots = authc, roles[imageProcessor]
 
+				/encounters/encounter.jsp = authc
+				/encounters/encounterMediaGallery.jsp = authc
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
 
@@ -629,6 +631,7 @@
 		<url-pattern>/upload</url-pattern>
 	</servlet-mapping>
 
+	<!--
     <servlet>
     <servlet-name>BatchUpload</servlet-name>
     <servlet-class>org.ecocean.servlet.BatchUpload</servlet-class>
@@ -647,6 +650,7 @@
     <servlet-name>BatchUpload</servlet-name>
     <url-pattern>/BatchUpload/*</url-pattern>
   </servlet-mapping>
+    -->
 
     <servlet-mapping>
     <servlet-name>IAGateway</servlet-name>
@@ -928,21 +932,24 @@
     <servlet-class>org.ecocean.servlet.TrackerFeed</servlet-class>
   </servlet>
 
+  <!--
     <servlet>
     <servlet-name>SideFeed</servlet-name>
     <servlet-class>org.ecocean.servlet.SideFeed</servlet-class>
   </servlet>
-
+-->
+  
   <servlet>
     <servlet-name>EncounterRemoveImage</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveImage</servlet-class>
   </servlet>
 
+  <!--
     <servlet>
          <servlet-name>mitFeed</servlet-name>
   	<servlet-class>org.ecocean.servlet.MitFeed</servlet-class>
   </servlet>
-
+-->
 
   <servlet>
     <servlet-name>DeleteAdoption</servlet-name>
@@ -1041,14 +1048,12 @@
     <servlet-class>org.ecocean.servlet.EncounterCreate</servlet-class>
   </servlet>
 
-
 <!--
       <servlet>
            <servlet-name>MozPradel</servlet-name>
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet>
 -->
-
 
   <servlet>
     <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
@@ -1229,7 +1234,6 @@
     <servlet-class>org.ecocean.servlet.ResurrectDeletedEncounter</servlet-class>
   </servlet>
 
-
 <!--
       <servlet>
            <servlet-name>MozRobustByMonths</servlet-name>
@@ -1335,10 +1339,12 @@
     <url-pattern>/ImgSyncServlet1</url-pattern>
   </servlet-mapping>
 
+  <!--
     <servlet-mapping>
       <servlet-name>SideFeed</servlet-name>
       <url-pattern>/SideFeed</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet>
     <servlet-name>WorkspaceServer</servlet-name>
@@ -2153,12 +2159,12 @@
     <servlet-name>IndividualAddFile</servlet-name>
     <url-pattern>/IndividualAddFile</url-pattern>
   </servlet-mapping>
-
+<!--
   <servlet-mapping>
     <servlet-name>TrackerFeed</servlet-name>
     <url-pattern>/TrackerFeed</url-pattern>
   </servlet-mapping>
-
+-->
   <servlet-mapping>
     <servlet-name>EncounterAddSpotFile</servlet-name>
     <url-pattern>/EncounterAddSpotFile</url-pattern>

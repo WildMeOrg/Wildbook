@@ -2340,6 +2340,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         annotations.add(ann);
     }
 
+/*  officially deprecating this (until needed?) ... work now being done with replaceAnnotation() basically   -jon
     public void addAnnotationReplacingUnityFeature(Annotation ann) {
         int unityAnnotIndex = -1;
         if (annotations == null) annotations = new ArrayList<Annotation>();
@@ -2359,6 +2360,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
           annotations.add(ann);
         }
     }
+*/
 
     public Annotation getAnnotationWithKeyword(String word) {
         System.out.println("getAnnotationWithKeyword called for "+word);
@@ -2511,20 +2513,25 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
       annotations.add(ann);
     }
 
+    public void removeAnnotation(Annotation ann) {
+        if (annotations == null) return;
+        annotations.remove(ann);
+    }
+
     public void removeAnnotation(int index) {
       annotations.remove(index);
     }
-    public void removeAnnotation(Annotation ann) {
-      int annNum = indexOfAnnotation(ann);
-      if (annNum>=0) removeAnnotation(annNum);
+
+    //this removes an Annotation from Encounter (and from its MediaAsset!!) and replaces it with a new one
+    // please note: the oldAnn gets killed off (not orphaned)
+    public void replaceAnnotation(Annotation oldAnn, Annotation newAnn) {
+        oldAnn.detachFromMediaAsset();
+        //note: newAnn should already attached to a MediaAsset
+        removeAnnotation(oldAnn);
+        addAnnotation(newAnn);
     }
-    public int indexOfAnnotation(Annotation ann) {
-      for (int i=0; i<annotations.size(); i++) {
-        Annotation myAnn = annotations.get(i);
-        if (myAnn.getId().equals(ann.getId())) return i;
-      }
-      return -1;
-    }
+
+
     public void removeMediaAsset(MediaAsset ma) {
       removeAnnotation(indexOfMediaAsset(ma.getId()));
     }
@@ -3048,6 +3055,14 @@ throw new Exception();
         enc.setSpecificEpithet(this.getSpecificEpithet());
         enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
         enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
+        //just going to go ahead and go nuts here and copy most "logical"(?) things.  reset on clone if needed
+        enc.setSubmitterID(this.getSubmitterID());
+        enc.setSex(this.getSex());
+        enc.setLocationID(this.getLocationID());
+        enc.setVerbatimLocality(this.getVerbatimLocality());
+        enc.setOccurrenceID(this.getOccurrenceID());
+        enc.setRecordedBy(this.getRecordedBy());
+        enc.setState(this.getState());  //not too sure about this one?
         return enc;
     }
 
@@ -3059,7 +3074,7 @@ throw new Exception();
 
     //ann is the Annotation that was created after IA detection.  mostly this is just to notify... someone
     //  note: this is for singly-made encounters; see also Occurrence.fromDetection()
-    public void detectedAnnotation(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
+    public void detectedAnnotation(Shepherd myShepherd, Annotation ann) {
 System.out.println(">>>>> detectedAnnotation() on " + this);
     }
 
