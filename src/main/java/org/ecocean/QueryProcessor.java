@@ -47,14 +47,17 @@ public abstract class QueryProcessor {
     return jdoStringEqualsConstraint(fieldName, val);
   }
 
-
-  protected static String filterWithBasicStringField(String filter, String fieldName, HttpServletRequest request) {
-    String subFilter = stringFieldSubFilter(request, fieldName);
-    System.out.println("filterWithBasicStringField: field "+fieldName+" made subFilter "+subFilter);
+  protected static String filterWithSubfilter(String filter, String subfilter) {
     if (!Util.stringExists(subFilter)) return filter;
     filter = prepForCondition(filter);
     filter+= subFilter;
     return filter;
+  }
+
+  protected static String filterWithBasicStringField(String filter, String fieldName, HttpServletRequest request) {
+    String subFilter = stringFieldSubFilter(request, fieldName);
+    System.out.println("filterWithBasicStringField: field "+fieldName+" made subFilter "+subFilter);
+    return filterWithSubfilter(filter, subFilter);
   }
   // same as above, but also does bad practice of modifying inpnut variable prettyPrint (this makes for nice 'n' readable code!)
   protected static String filterWithBasicStringField(String filter, String fieldName, HttpServletRequest request, StringBuffer prettyPrint) {
