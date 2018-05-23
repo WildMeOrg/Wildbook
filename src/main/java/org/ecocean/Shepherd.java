@@ -3646,6 +3646,21 @@ public class Shepherd {
     return al;
   }
 
+  public List<String> getAllEncounterStrVals(String fieldName) {
+    return getAllStrVals(Encounter.class, fieldName);
+  }
+
+  public List<String> getAllStrVals(Class fromClass, String fieldName) {
+    Query q = pm.newQuery(fromClass);
+    q.setResult("distinct "+fieldName);
+    q.setOrdering(fieldName+" ascending");
+    Collection results = (Collection) q.execute();
+    List resList = new ArrayList(results);
+    q.closeAll();
+    return resList;
+  }
+
+
   public List<String> getAllSpecificEpithets() {
       Query q = pm.newQuery(Encounter.class);
       q.setResult("distinct specificEpithet");
