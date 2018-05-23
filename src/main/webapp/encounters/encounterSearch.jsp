@@ -1320,14 +1320,23 @@ else {
           }
         %>
       </select>
+
+</td>
+</tr>
+
+<tr>
+  <td>
+        <strong><%=encprops.getProperty("restrictSearchOrg")%></strong><br />
+    		<input type="checkbox" name="guid" value="NCAquariums"/>
+  </td>
+</tr>
+
+
 <%
 inShepherd.rollbackDBTransaction();
 inShepherd.closeDBTransaction();
 
 %>
-
-</td>
-</tr>
     </table>
     </div>
   </td>

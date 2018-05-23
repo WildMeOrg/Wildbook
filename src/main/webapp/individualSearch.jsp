@@ -1718,31 +1718,44 @@ else {
   <div id="metadata" style="display:none; ">
   <p><%=props.getProperty("metadataInstructions") %></p>
 
-	<strong><%=props.getProperty("username")%></strong><br />
-      <%
-      	Shepherd inShepherd=new Shepherd("context0");
-      inShepherd.setAction("individualSearch.jsp2");
-        List<User> users = inShepherd.getAllUsers();
-        int numUsers = users.size();
+    <div class="row">
+      <div class="col-md-6">
+        <strong><%=props.getProperty("username")%></strong><br />
+            <%
+              Shepherd inShepherd=new Shepherd("context0");
+            inShepherd.setAction("individualSearch.jsp2");
+              List<User> users = inShepherd.getAllUsers();
+              int numUsers = users.size();
 
-      %>
+            %>
 
-      <select multiple size="5" name="username" id="username">
-        <option value="None"></option>
-        <%
-          for (int n = 0; n < numUsers; n++) {
-            String username = users.get(n).getUsername();
-            String userFullName=username;
-            if(users.get(n).getFullName()!=null){
-            	userFullName=users.get(n).getFullName();
+        <select multiple size="5" name="username" id="username">
+          <option value="None"></option>
+          <%
+            for (int n = 0; n < numUsers; n++) {
+              String username = users.get(n).getUsername();
+              String userFullName=username;
+              if(users.get(n).getFullName()!=null){
+                userFullName=users.get(n).getFullName();
+              }
+
+            %>
+            <option value="<%=username%>"><%=userFullName%></option>
+            <%
             }
+          %>
+        </select>
+      </div>
 
-        	%>
-        	<option value="<%=username%>"><%=userFullName%></option>
-        	<%
-          }
-        %>
-      </select>
+      <div class="col-md-6">
+          <strong><%=props.getProperty("restrictSearchOrg")%></strong><br />
+    			<input type="checkbox" name="guid" value="NCAquariums"/>
+      </div>
+    </div>
+
+
+
+
 <%
 inShepherd.rollbackDBTransaction();
 inShepherd.closeDBTransaction();
