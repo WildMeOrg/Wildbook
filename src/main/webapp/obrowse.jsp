@@ -126,7 +126,6 @@ java.util.Properties" %>
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\"><a href=\"obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\"> MediaAsset <b>" + ma.getId() + "</b></a></div>";
 		shown.add(ma);
 		String h = "<div class=\"mediaasset shown\"><a href=\"obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\"> MediaAsset <b>" + ma.getId() + "</b></a><ul>";
-;
 		if (ma.webURL()!=null && ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
