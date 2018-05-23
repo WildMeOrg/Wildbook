@@ -14,7 +14,7 @@
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
-	 org.json.JSONObject,
+         org.json.JSONObject,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -405,7 +405,7 @@ var encounterNumber = '<%=num%>';
 
 
 
-  <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
 <script src="../javascript/imageTools.js"></script>
 
@@ -428,12 +428,25 @@ var encounterNumber = '<%=num%>';
 						boolean visible = enc.canUserAccess(request);
 						if (!visible) visible = checkAccessKey(request, enc);
 						if (!visible) {
+
+
+              // remove any potentially-sensitive data, labeled with the secure-field class
+              %>
+              <script type="text/javascript">
+                $(document).ready(function() {
+                  $('.secure-field').remove();
+                });
+              </script>
+              <%
+
+
 							String blocker = "";
 							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 							String uid = null;
 							String name = null;
+              String blockerOptions = "overlayCSS: { backgroundColor: '#000', opacity: 1.0, cursor:'wait'}";
 							if (request.getUserPrincipal() == null) {
 								cmsg = "<p>Access limited.</p>";
 							} if ((c == null) || (c.getState() == null)) {
@@ -448,9 +461,9 @@ var encounterNumber = '<%=num%>';
 
 							cmsg = cmsg.replace("'", "\\'");
 							if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
-								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
+								blocker = "<script>$(document).ready(function() { $.blockUI({"+blockerOptions+", message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
 							} else {
-								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
+								blocker = "<script>$(document).ready(function() { $.blockUI({"+blockerOptions+", message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
 							}
 							out.println(blocker);
 						}
@@ -591,7 +604,7 @@ $(function() {
 				}
     			%>
                	<h1 class="<%=classColor%>" id="headerText">
-                	<%=encprops.getProperty("title") %> <%=individuo %> <%=livingStatus %>
+                	<%=encprops.getProperty("title") %><span class="secure-field"> <%=individuo %> <%=livingStatus %></span>
                 </h1>
 
 
@@ -620,7 +633,7 @@ $(function() {
 	<!-- main display area -->
 
 				<div class="container">
-					<div class="row">
+					<div class="row secure-field">
 
 
             <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
@@ -6299,6 +6312,5 @@ String pswipedir = urlLoc+"/photoswipe";
 <jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
 <script src='<%=pswipedir%>/photoswipe.js'></script>
 <script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
-
 
 <jsp:include page="../footer.jsp" flush="true"/>
