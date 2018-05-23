@@ -62,7 +62,33 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 </head>
 
-<style type="text/css">v\:* {
+<style type="text/css">
+/* this .search-collapse-header .rotate-chevron logic doesn't work
+ because animatedcollapse.js is eating the click event (I think.).
+ It's unclear atm where/whether to modify animatedcollapse.js to
+ rotate this chevron.
+*/
+.search-collapse-header .rotate-chevron {
+    -moz-transition: transform 0.5s;
+    -webkit-transition: transform 0.5s;
+    transition: transform 0.5s;
+}
+.search-collapse-header .rotate-chevron.down {
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+</style>
+<script>
+$(".search-collapse-header a").click(function(){
+    console.log("LOG!: collapse-header is clicked!");
+    $(this).children(".rotate-chevron").toggleClass("down");
+});
+</script>
+
+
+<style type="text/css"> {
   behavior: url(#default#VML);  
    .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
@@ -302,10 +328,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
   <td width="810px">
 
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a>
-      <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
-        color="#000000"><%=encprops.getProperty("locationFilter") %></font></a></h4>
+      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><span class="el el-lg el-chevron-down rotate-chevron"></span> <%=encprops.getProperty("locationFilter") %></a></h4>
 
 
     
@@ -440,9 +463,8 @@ function useData(doc){
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.get("locationFilterText") %></font></a></h4>
+      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.get("locationFilterText") %></a></h4>
 
     <div id="location" style="display:none; ">
       <p><%=encprops.getProperty("locationInstructions") %></p>
@@ -544,9 +566,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("dateFilters") %></font></a></h4>
+      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("dateFilters") %></a></h4>
   </td>
 </tr>
 
@@ -638,9 +659,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("observationFilters") %></font></a></h4>
+      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("observationFilters") %></a></h4>
   </td>
 </tr>
 
@@ -934,9 +954,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("identityFilters") %></font></a></h4>
+      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("identityFilters") %></a></h4>
   </td>
 </tr>
 <tr>
@@ -1001,9 +1020,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
  <tr>
      <td>
      <h4 class="intro search-collapse-header"><a
-       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-       <font color="#000000"><%=encprops.getProperty("tagsTitle") %></font></a></h4>
+       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+       <%=encprops.getProperty("tagsTitle") %></a></h4>
      </td>
  </tr>
  <tr>
@@ -1056,9 +1074,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("biologicalSamples") %></font></a></h4>
+      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("biologicalSamples") %></a></h4>
   </td>
 </tr>
 <tr>
@@ -1248,9 +1265,8 @@ else {
   <td>
 
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("metadataFilters") %></font></a></h4>
+      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("metadataFilters") %></a></h4>
   </td>
 </tr>
 
