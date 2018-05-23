@@ -181,7 +181,7 @@ button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[
     background-color: #075366;
  }
 
-h1, h2, .brand-primary {
+h1, h2, .brand-primary, div #markedIndividualHeader {
     color: #075366;
     -webkit-text-fill-color: #075366;
 }
