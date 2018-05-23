@@ -46,7 +46,6 @@ public class StartupWildbook implements ServletContextListener {
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
 
-
   }
 
   public static void ensureTomcatUserExists(Shepherd myShepherd) {
@@ -72,13 +71,15 @@ public class StartupWildbook implements ServletContextListener {
         Role newRole2=new Role("tomcat","researcher");
         newRole2.setContext("context0");
         myShepherd.getPM().makePersistent(newRole2);
+        Role newRole3=new Role("tomcat", "machinelearning");
+        newRole3.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole3);
         Role newRole4=new Role("tomcat","destroyer");
         newRole4.setContext("context0");
         myShepherd.getPM().makePersistent(newRole4);
-
-        Role newRole7=new Role("tomcat","rest");
-        newRole7.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole7);
+        Role newRole5=new Role("tomcat","rest");
+        newRole5.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole5);
         myShepherd.commitDBTransaction();
         System.out.println("Creating tomcat user account...");
         }
@@ -120,7 +121,7 @@ public class StartupWildbook implements ServletContextListener {
         }
 
         if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
-        createMatchGraph();
+        //createMatchGraph();
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
         startIAQueues("context0");
