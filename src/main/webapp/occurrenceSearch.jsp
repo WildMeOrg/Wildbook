@@ -14,6 +14,20 @@ public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp
   out.println("</tr>");
 
 }
+public static void printStringFieldSearchRow(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+  out.println("<tr id=\""+fieldName+"Row\">");
+  out.println("  <td id=\""+fieldName+"Title\">"+displayName+"</td>");
+  out.println("  <td> <select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
+  out.println("    <option value=\"None\" selected=\"selected\"></option>");
+  for (String val: valueOptions) {
+    out.println("    <option value=\""+val+"\">"+val+"</option>");
+  }
+  out.println("  </select></td>");
+  out.println("</tr>");
+
+}
 
 public static String getDisplayName(String fieldName, Properties nameLookup) throws IOException, IllegalAccessException {
   // Tries to lookup a translation and defaults to some string manipulation
@@ -530,7 +544,19 @@ function FSControl(controlDiv, map) {
               <table>
 
               <%
+              // should make listVals logic contingent on if user is logged in
+              List<String> listVals = new ArrayList<String>();
+              listVals.add("groupBehavior");
+              listVals.add("fieldStudySite");
+              listVals.add("fieldSurveyCode");
+              listVals.add("sightingPlatform");
+              for (String fieldName : listVals) {
+                List<String> posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
+                printStringFieldSearchRow(fieldName,posVals,out, occProps);
+              }
+
               for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
+                if (listVals.contains(fieldName)) continue; // already printed
                 printStringFieldSearchRow(fieldName, out, occProps);
               }
               %>
