@@ -1085,71 +1085,60 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
 %>
 <c:if test="${showMeasurements}">
-<hr>
-<fieldset>
+  <hr>
+  <fieldset>
 
 
- <div class="form-group">
-           <h3>Measurements</h3>
+  <div class="form-group">
+            <h3>Measurements</h3>
 
 
-<div class="col-xs-12 col-lg-8">
-  <table class="measurements">
-  <tr>
-  <th>Type</th><th>Size</th><th>Units</th><th>Sampling Protocol</th>
-  </tr>
-  
-  <!--the below line makes it so that temp is not listed here (temp is listed above)-->
-	<c:if test="${item.label!='Temp.'&&item.type!='underwater'}">
+  <div class="col-xs-12 col-lg-8">
+    <table class="measurements">
     <tr>
-    <td>Pre-caudal Length</td>
-    <td><input name="measurement(precaudallength)" id="precaudallength"/><input type="hidden" name="measurement(precaudallengthunits)" value="centimeters"/></td>
-    <td>feet</td>
-    
-      <td>
-        <select name="measurement(precaudallengthsamplingProtocol)">
-        
-          <option value="samplingProtocol0">Laser measured</option>
-        
-          <option value="samplingProtocol1">Tape measured length qualifiers</option>
-        
-        </select>
-      </td>
-    
+    <th>Type</th><th>Size</th><th>Units</th><th>Sampling Protocol</th>
     </tr>
-    	
-  
-  <!--the below line makes it so that temp is not listed here (temp is listed above)-->
-	
-    <tr>
-    <td>Length</td>
-    <td><input name="measurement(length)" id="length"/><input type="hidden" name="measurement(lengthunits)" value="centimeters"/></td>
-    <td>feet</td>
-    
-      <td>
-        <select name="measurement(lengthsamplingProtocol)">
+      <!--the below line makes it so that temp is not listed here (temp is listed above)-->
+        <tr>
+        <td>Pre-caudal Length</td>
+        <td><input name="measurement(precaudallength)" id="precaudallength"/><input type="hidden" name="measurement(precaudallengthunits)" value="centimeters"/></td>
+        <td>feet</td>
         
-          <option value="samplingProtocol0">Laser measured</option>
+          <td>
+            <select name="measurement(precaudallengthsamplingProtocol)">
+            
+              <option value="samplingProtocol0">Laser measured</option>
+            
+              <option value="samplingProtocol1">Tape measured length qualifiers</option>
+            
+            </select>
+          </td>
         
-          <option value="samplingProtocol1">Tape measured length qualifiers</option>
+        </tr>
+          
+        <tr>
+        <td>Length</td>
+        <td><input name="measurement(length)" id="length"/><input type="hidden" name="measurement(lengthunits)" value="centimeters"/></td>
+        <td>feet</td>
         
-        </select>
-      </td>
-    
-    </tr>
-    	
-  
-  <!--the below line makes it so that temp is not listed here (temp is listed above)-->
-	
-  
-  </table>
-   </div>
-        </div>
-         </fieldset>
-
-
+          <td>
+            <select name="measurement(lengthsamplingProtocol)">
+            
+              <option value="samplingProtocol0">Laser measured</option>
+            
+              <option value="samplingProtocol1">Tape measured length qualifiers</option>
+            
+            </select>
+          </td>
+        
+        </tr>
+            
+      
+      </table>
+      </div>
+    </div>
+  </fieldset>
 </c:if>
-
 
 
       <hr/>
