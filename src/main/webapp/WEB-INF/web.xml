@@ -214,7 +214,7 @@
 		         /UserRemoveProfileImage = authc, roles[researcher]
 		         /EncounterSearchExportExcelFile = authc, roles[researcher]
 		         /EncounterSearchExportShapefile = authc, roles[researcher]
-		         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
+		         /EncounterSearchExportEmailAddresses = authc, roles[admin]
 		         /EncounterAddComment = authc, roles[researcher]
 		         /OccurrenceAddComment = authc, roles[researcher]
 		          /OccurrenceSetIndividualCount = authc, roles[researcher]

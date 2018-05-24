@@ -474,6 +474,10 @@
       <field name="fullName">
         <column name="FULLNAME"/>
       </field>
+	  
+	  <field name="uuid" primary-key="true">
+        <column name="UUID"/>
+      </field>
 
       <field name="emailAddress">
         <column name="EMAILADDRESS"/>
@@ -503,8 +507,8 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
 
-      <field name="username" primary-key="true" column="username">
-        <column length="100"/>
+      <field name="username" column="username" unique="true" allows-null="false">
+        <column length="100" allows-null="true"/>
       </field>
 
       <field name="password" column="password">
