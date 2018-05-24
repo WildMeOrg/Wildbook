@@ -24,6 +24,7 @@ myShepherd=new Shepherd(context);
 
 
 //check for and inject a default user 'tomcat' if none exists
+//removed for production
 
   	//check usernames and passwords
 	myShepherd.beginDBTransaction();

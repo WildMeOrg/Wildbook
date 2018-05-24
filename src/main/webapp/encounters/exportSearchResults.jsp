@@ -138,6 +138,15 @@
 		 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 		
+		<p>
+			<table border="1" bordercolor="black" cellspacing="0">
+				<tr><td bgcolor="#CCCCCC"><strong>Complete Tabular Export of Encounter Records</strong></td></tr>
+				<tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportAllData?<%=request.getQueryString()%>">Click here</a>
+				</td></tr>
+      </table>
+	  </p>
+
+
 		<p>CRC Excel Matching Summary <a href="//<%=CommonConfiguration.getURLLocation(request)%>/CRCExportReport?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 		

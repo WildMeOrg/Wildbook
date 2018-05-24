@@ -246,7 +246,7 @@ public class IndividualSearchExportAllData extends HttpServlet{
         PrintWriter out = response.getWriter();
         out.println(ServletUtilities.getHeader(request));
         out.println("<html><body><p><strong>Error encountered</strong> with file writing. Check the relevant log.</p>");
-        out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
+        out.println("<p>Please let the webmaster know you encountered an error at: IndividualSearchExportAllData servlet</p></body></html>");
         out.println(ServletUtilities.getFooter(context));
         out.close();
         outp.close();
@@ -261,7 +261,7 @@ public class IndividualSearchExportAllData extends HttpServlet{
       PrintWriter out = response.getWriter();
       out.println(ServletUtilities.getHeader(request));
       out.println("<html><body><p><strong>Error encountered</strong></p>");
-        out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
+        out.println("<p>Please let the webmaster know you encountered an error at: IndividualSearchExportAllData servlet</p></body></html>");
         out.println(ServletUtilities.getFooter(context));
         out.close();
     }
@@ -273,7 +273,7 @@ public class IndividualSearchExportAllData extends HttpServlet{
       response.setContentType("application/msexcel");
       response.setHeader("Content-Disposition","attachment;filename="+filename);
       ServletContext ctx = getServletContext();
-      //InputStream is = ctx.getResourceAsStream("/encounters/"+filename);
+      //InputStream is = ctx.getResourceAsStream("/individuals/"+filename);
      InputStream is=new FileInputStream(excelFile);
 
       int read=0;
