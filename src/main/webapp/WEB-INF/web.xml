@@ -721,6 +721,10 @@
         <servlet-class>org.ecocean.servlet.export.IndividualSearchExportAllData</servlet-class>
   </servlet>
 
+    <servlet>
+        <servlet-name>EncounterSearchExportAllData</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.EncounterSearchExportAllData</servlet-class>
+  </servlet>
 
       <servlet>
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
@@ -1650,6 +1654,11 @@
   <servlet-mapping>
         <servlet-name>IndividualSearchExportAllData</servlet-name>
         <url-pattern>/IndividualSearchExportAllData</url-pattern>
+  </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>EncounterSearchExportAllData</servlet-name>
+        <url-pattern>/EncounterSearchExportAllData</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
