@@ -19,10 +19,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import java.io.UnsupportedEncodingException;
 
+// general note: "CI" refers to Channel Island (project) and "WA" to WhaleAlert
+
 public class SpotterConserveIO {
 
-    public static int PROJECT_ID_CI = 2;
-    public static int PROJECT_ID_WA = 7;
+    private static int PROJECT_ID_CI = 2;
+    private static int PROJECT_ID_WA = 7;
+    private static String SYSTEMVALUE_KEY_LASTSYNC_CI = "SpotterConserveIO_lastSync_CI";
+    private static String SYSTEMVALUE_KEY_LASTSYNC_WA = "SpotterConserveIO_lastSync_WA";
     public static String apiUsername = null;
     public static String apiPassword = null;
     public static String apiUrlPrefix = null;
@@ -48,17 +52,36 @@ public class SpotterConserveIO {
     }
 
 
-    //public SpotterConserveIO() {}
+    //this is the "starting point" for JSON from the API
+    public static Survey ciToSurvey(JSONObject jin) {
+        Survey survey = new Survey();
+        DateTime startDate = toDateTime(jin.optString("start_date", null));
+        DateTime endDate = toDateTime(jin.optString("end_date", null));
+        DateTime createDate = toDateTime(jin.optString("create_date", null));
 
-    /*
-        we currently support two trip "types": Channel Island and WhaleAlert.  the prefixes ci and wa denote these flavors.
-    */
+        if (startDate != null) survey.setStartTimeMilli(startDate.getMillis());
+        if (endDate != null) survey.setEndTimeMilli(endDate.getMillis());
+        if (createDate != null) survey.addComments("<p>Created on source: <b>" + createDate.toString() + "</b></p>");
 
-    //////TODO this is an "Object" now cuz i dont have SurveyTrack here yet!  (get from colin)
-    public static SurveyTrack ciToSurveyTrack(JSONObject jin) {
+        survey.setProjectType("Channel Island Spotter conserve.IO");
+        survey.addComments("<p>Observer Names: <b>" + jin.optString("Observer Names", "<i>none provided</i>") + "</b></p>");
+        survey.setProjectName("Channel Island");
+        survey.setOrganization("conserve.io");
+
+        //there will be only one SurveyTrack pulled from this data, fwiw
+        SurveyTrack st = ciToSurveyTrack(jin, survey);  //TODO survey should get dropped in future when FK stuff gets fixed
+  //public void addMultipleSurveyTrack(ArrayList<SurveyTrack> trackArray) {
+///TODO do we .setEffort based on survey track lengths or what???
+        return survey;
+    }
+
+
+    public static SurveyTrack ciToSurveyTrack(JSONObject jin, Survey survey) {
+        SurveyTrack st = new SurveyTrack(survey);
+        survey.addSurveyTrack(st);  //TODO combine these two re: FK etc etc
+
         if (jin.optJSONArray("sightings") != null) {
-            SurveyTrack st = new SurveyTrack();
-            List<Occurrence> occs = new ArrayList<Occurrence>();
+            ArrayList<Occurrence> occs = new ArrayList<Occurrence>();
 
             /* the way this apparently works is the "sightings" array is actually *two* sets of data:
                (1) a list of json objs in one format, then (2) a second list (same length) in another.
@@ -74,17 +97,22 @@ public class SpotterConserveIO {
             st.setOccurrences(occs);
         }
 
-        if (jin.optJSONArray("weather") != null) {
+        Path path = trackToPath(jin.optJSONObject("track"));
+        if (path != null) st.setPath(path);
+
+/*
+        if (jin.optJSONArray("CINMS Weather") != null) {
             // maybe we make our own "weather datacollectionevent" !
             List<Observation> wths = new ArrayList<Observation>();
-            JSONArray jw = jin.getJSONArray("weather");
+            JSONArray jw = jin.getJSONArray("CINMS Weather");
             for (int i = 0 ; i < jw.length() ; i++) {
                 //Observation wth = ciToWeather(jw.optJSONObject(i));
                 //if (wth != null) wths.add(wth);
             }
             //.setWeather(wths);
         }
-        return null;
+*/
+        return st;
     }
 
 
@@ -187,7 +215,7 @@ System.out.println("MADE " + enc);
         return new Instant(name, dt, null);
     }
 
-    //someday, SpeciesTaxonomy!  sigh  TODO
+    //someday, Taxonomy!  sigh  TODO
     private static String ciSpecies(String species) {  //e.g. "Blue Whale" --> "Balaenoptera musculus" ... also: may be null
         return species;  //meh. for now.
     }
@@ -199,6 +227,7 @@ System.out.println("MADE " + enc);
     /*
        note: seems gpx has a trk made up of trkseg, which are made of trkpts...
        i suppose we really should have trkseg -> path, then have surveytrack made of multiple paths...
+       however, *for now* we just combine all leaf points into one Path
        TODO discuss with colin et al
 
        also: really should we be able to pass in entire "track" structure (find .gpx, save schema, etc)?  probably!
@@ -310,11 +339,32 @@ System.out.println(ploc);
         return new DateTime(dt.replaceAll(" ", "T"));
     }
 
+    public static JSONObject ciGetTripList(String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        int since = ciGetLastSync(context);
+        JSONObject rtn = ciGetTripListSince(since);
+        int last = ciSetLastSync(context);
+        rtn.put("_wb_since", since);
+        rtn.put("_wb_set_last", last);
+        rtn.put("_wb_timestamp", System.currentTimeMillis());
+        return rtn;
+    }
+    public static JSONObject waGetTripList(String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        int since = waGetLastSync(context);
+        JSONObject rtn = waGetTripListSince(since);
+        int last = waSetLastSync(context);
+        rtn.put("_wb_since", since);
+        rtn.put("_wb_set_last", last);
+        rtn.put("_wb_timestamp", System.currentTimeMillis());
+        return rtn;
+    }
+
     //note: since is seconds (int), NOT millis (long) !!!
     public static JSONObject ciGetTripListSince(int since) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+System.out.println(">>> ciGetTripListSince grabbing since " + new DateTime(new Long(since) * 1000));
         return apiGet("/project/" + PROJECT_ID_CI + "/trip_data/" + since + "/0");
     }
     public static JSONObject waGetTripListSince(int since) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new Long(since) * 1000));
         return apiGet("/project/" + PROJECT_ID_WA + "/trip_data/" + since + "/0");
     }
 
@@ -331,6 +381,53 @@ System.out.println(ploc);
         String res = RestClient.get(getUrl, apiUsername, apiPassword);
         if (res == null) return null;
         return new JSONObject(res);
+    }
+
+
+    //note: these are in seconds (not milli) cuz that is what spotter.io uses
+
+    public static int ciGetLastSync(String context) {
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.beginDBTransaction();
+        Integer last = SystemValue.getInteger(myShepherd, SYSTEMVALUE_KEY_LASTSYNC_CI);
+        myShepherd.rollbackDBTransaction();
+        if (last != null) return last;
+        //if we dont have a value, we kind of grab one in the past so we arent getting everything forever!
+        Long sec = (long)(System.currentTimeMillis() / 1000) - (7 * 24 * 60 * 60);
+        return sec.intValue();
+    }
+    public static int ciSetLastSync(String context) {  //the "now" flavor
+        Long sec = (long)(System.currentTimeMillis() / 1000);
+        return ciSetLastSync(context, sec.intValue());
+    }
+    public static int ciSetLastSync(String context, int time) {
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.beginDBTransaction();
+        SystemValue.set(myShepherd, SYSTEMVALUE_KEY_LASTSYNC_CI, time);
+        myShepherd.commitDBTransaction();
+        return time;
+    }
+
+    public static int waGetLastSync(String context) {
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.beginDBTransaction();
+        Integer last = SystemValue.getInteger(myShepherd, SYSTEMVALUE_KEY_LASTSYNC_WA);
+        myShepherd.rollbackDBTransaction();
+        if (last != null) return last;
+        //if we dont have a value, we kind of grab one in the past so we arent getting everything forever!
+        Long sec = (long)(System.currentTimeMillis() / 1000) - (7 * 24 * 60 * 60);
+        return sec.intValue();
+    }
+    public static int waSetLastSync(String context) {  //the "now" flavor
+        Long sec = (long)(System.currentTimeMillis() / 1000);
+        return waSetLastSync(context, sec.intValue());
+    }
+    public static int waSetLastSync(String context, int time) {
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.beginDBTransaction();
+        SystemValue.set(myShepherd, SYSTEMVALUE_KEY_LASTSYNC_WA, time);
+        myShepherd.commitDBTransaction();
+        return time;
     }
 
 }
