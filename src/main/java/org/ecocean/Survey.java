@@ -135,7 +135,12 @@ public class Survey implements java.io.Serializable{
     surveyID = id;
   }
   
+    public ArrayList<SurveyTrack> getSurveyTracks() {
+        return surveyTracks;
+    }
+
   public ArrayList<SurveyTrack> getAllSurveyTracks() {
+    if (surveyTracks == null) return null;
     if (!surveyTracks.isEmpty()) {
      return surveyTracks; 
     } else {
@@ -144,6 +149,7 @@ public class Survey implements java.io.Serializable{
   }
   
   public SurveyTrack getSurveyTrackByID(String id) {
+    if (surveyTracks == null) return null;
     for (int i=0; i<surveyTracks.size(); i++) {
       SurveyTrack thisTrack = surveyTracks.get(i);
       if (thisTrack.getID().equals(id)) {
@@ -154,6 +160,7 @@ public class Survey implements java.io.Serializable{
   }
   
   public void addSurveyTrack(SurveyTrack thisTrack) {
+    if (surveyTracks == null) surveyTracks = new ArrayList<SurveyTrack>();
     if (thisTrack != null) {
       surveyTracks.add(thisTrack);
       setDWCDateLastModified();
@@ -161,6 +168,7 @@ public class Survey implements java.io.Serializable{
   }
   
   public void addMultipleSurveyTrack(ArrayList<SurveyTrack> trackArray) {
+    if (surveyTracks == null) surveyTracks = new ArrayList<SurveyTrack>();
     if (trackArray.size() >= 1) {
       for (int i=0; i<trackArray.size(); i++) {
         surveyTracks.add(trackArray.get(i));
