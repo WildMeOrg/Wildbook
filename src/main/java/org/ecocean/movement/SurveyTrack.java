@@ -112,6 +112,12 @@ public class SurveyTrack implements java.io.Serializable{
     }
   }
   
+    public void setPath(Path p) {
+        if (p == null) return;
+        pathID = p.getID();
+        setDWCDateLastModified();
+    }
+
   public void setPathID(String pid) {
     if (pid != null && !pid.equals("") ) {
       pathID = pid;
@@ -134,6 +140,9 @@ public class SurveyTrack implements java.io.Serializable{
     }
   }
   
+    public ArrayList<Occurrence> getOccurrences() {
+        return getAllOccurrences();
+    }
   public ArrayList<Occurrence> getAllOccurrences() {
     if (!occurrences.isEmpty()) {
       return occurrences; 
@@ -170,6 +179,10 @@ public class SurveyTrack implements java.io.Serializable{
     } 
   }
   
+    public void setOccurrences(ArrayList<Occurrence> occs) {
+        occurrences = occs;
+    }
+
   public void addMultipleOccurrences(ArrayList<Occurrence> occArray, Shepherd myShepherd) {
     if (occArray.size() >= 1) {
       for (Occurrence occ : occArray) {
