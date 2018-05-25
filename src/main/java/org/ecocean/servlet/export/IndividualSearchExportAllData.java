@@ -219,14 +219,22 @@ public class IndividualSearchExportAllData extends HttpServlet{
             Label maxIntLabel = new Label(15, count, String.valueOf(maxInterval));
             sheet.addCell(maxIntLabel);
 
+            Date epoch = new Date();
+
             long birth = mi.getTimeOfBirth();
-            String bString = milliToDate(birth);
+            String bString = "";
+            if (epoch.getTime()<birth) {
+              bString = milliToDate(birth);
+            }
             Label birthLabel = new Label(16, count, bString);
             sheet.addCell(birthLabel);
 
             long death = mi.getTimeofDeath();
-            String dString = milliToDate(death);
-            Label deathLabel = new Label(15, count, dString);
+            String dString = "";
+            if (epoch.getTime()<death) {
+              dString = milliToDate(death);
+            }
+            Label deathLabel = new Label(17, count, dString);
             sheet.addCell(deathLabel);
 
          } //end for loop iterating indys
@@ -289,7 +297,7 @@ public class IndividualSearchExportAllData extends HttpServlet{
     private String milliToDate(long millis) {
         String date = "";
         Date dt = new Date(millis);
-        SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy");
         date = df.format(dt);
         return date;
     }
