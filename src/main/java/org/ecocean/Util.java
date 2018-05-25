@@ -595,6 +595,7 @@ public class Util {
     public static boolean isValidDecimalLongitude(Double lon) {
         if (lon == null) return false;
         return ((lon >= -180.0) && (lon <= 180.0));
+    }
 
     public static int count(Iterator it) {
       int num = 0;
