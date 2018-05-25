@@ -309,35 +309,35 @@ public class EncounterSearchExportAllData extends HttpServlet{
 
             Measurement pcLength = enc.getMeasurement("precaudallength");
             if (pcLength!=null) {
-                Label lPCLength = new Label(23, count, Double.toString(pcLength.getValue()));
+                Label lPCLength = new Label(24, count, Double.toString(pcLength.getValue()));
               sheet.addCell(lPCLength);
             }
 
             Measurement length = enc.getMeasurement("length");
-            if (pcLength!=null) {
-              Label lLength = new Label(24, count, Double.toString(length.getValue()));
+            if (length!=null) {
+              Label lLength = new Label(25, count, Double.toString(length.getValue()));
               sheet.addCell(lLength);
             }
 
             Measurement temperature = enc.getMeasurement("temperature");
-            if (pcLength!=null) {
-              Label temp = new Label(25, count, Double.toString(temperature.getValue()));
+            if (temperature!=null) {
+              Label temp = new Label(26, count, Double.toString(temperature.getValue()));
               sheet.addCell(temp);
             }
 
             Measurement abovewater = enc.getMeasurement("underwater");
-            if (pcLength!=null) {
-              Label lAbovewater = new Label(26, count, Double.toString(abovewater.getValue()));
+            if (abovewater!=null) {
+              Label lAbovewater = new Label(27, count, Double.toString(abovewater.getValue()));
               sheet.addCell(lAbovewater);
             }
 
             if (enc.getTissueSamples()!=null&&enc.getTissueSamples().size()>0) {
-                Label samples = new Label(27, count, String.valueOf(enc.getTissueSamples().size()));
+                Label samples = new Label(28, count, String.valueOf(enc.getTissueSamples().size()));
                 sheet.addCell(samples);
             }
 
             if (enc.getAnnotations()!=null) {
-                Label anns = new Label(28, count, String.valueOf(enc.getAnnotations().size()));
+                Label anns = new Label(29, count, String.valueOf(enc.getAnnotations().size()));
                 sheet.addCell(anns);
             }
 
@@ -346,17 +346,17 @@ public class EncounterSearchExportAllData extends HttpServlet{
                 for (MetalTag mt : enc.getMetalTags()) {
                     ids += (mt.getId()+"; ");
                 }
-                Label lIDs = new Label(29, count, ids);
+                Label lIDs = new Label(30, count, ids);
                 sheet.addCell(lIDs);
             }
 
             if (enc.getAcousticTag()!=null) {
-                Label at = new Label(30, count, enc.getAcousticTag().getId());
+                Label at = new Label(31, count, enc.getAcousticTag().getId());
                 sheet.addCell(at);
             }
 
             if (enc.getSatelliteTag()!=null) {
-                Label st = new Label(31, count, enc.getSatelliteTag().getId());
+                Label st = new Label(32, count, enc.getSatelliteTag().getId());
                 sheet.addCell(st);
             }
 

@@ -128,9 +128,8 @@ public class IndividualSearchExportAllData extends HttpServlet{
             count++;
             numResults++;
 
-            String indyID = (String) rIndividuals.get(i);
-            MarkedIndividual mi = myShepherd.getMarkedIndividual(indyID);
-            value = indyID;
+            MarkedIndividual mi = (MarkedIndividual) rIndividuals.get(i);
+            value = mi.getIndividualID();
             if (value!=null && !value.equals("")) {
               Label indyIDLabel = new Label(0, count, mi.getIndividualID());
               sheet.addCell(indyIDLabel);
