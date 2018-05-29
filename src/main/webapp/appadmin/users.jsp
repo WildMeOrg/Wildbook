@@ -97,12 +97,12 @@ String context="context0";
 	      		<td style="font-size:small"><a href="mailto:<%=emailAddress%>"><img height="20px" width="20px" src="../images/Crystal_Clear_app_email.png" /></a></td>
 	      		<td style="font-size:small"><%=affiliation%></td>
 	      		<td style="font-size:x-small"><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()).replaceAll("\r","<br />") %></em></td>
-	      		<td><a href="users.jsp?context=context0&username=<%=user.getUsername()%>&isEdit=true#editUser"><img width="20px" height="20px" src="../images/Crystal_Clear_action_edit.png" /></a></td>   	
+	      		<td><a href="users.jsp?context=context0&email=<%=user.getEmailAddress()%>&isEdit=true#editUser"><img width="20px" height="20px" src="../images/Crystal_Clear_action_edit.png" /></a></td>   	
 	      		<td>
 	      			<%
 	      			if(!user.getUsername().equals(request.getUserPrincipal().getName())){
 	      			%>
-	      			<form onsubmit="return confirm('Are you sure you want to delete this user?');" action="../UserDelete?context=context0&username=<%=user.getUsername()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
+	      			<form onsubmit="return confirm('Are you sure you want to delete this user?');" action="../UserDelete?context=context0&email=<%=user.getEmailAddress()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
 	      			<%
 	      			}
 	      			else {
@@ -169,8 +169,8 @@ String context="context0";
     		    String receiveEmails="checked=\"checked\"";
     		    boolean hasProfilePhoto=false;
     		    
-    		    if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("username").trim())!=null)){
-    		    	User thisUser=myShepherd.getUser(request.getParameter("username").trim());
+    		    if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("email"))!=null)){
+    		    	User thisUser=myShepherd.getUserByEmailAddress(request.getParameter("email"));
     		    	localUsername=thisUser.getUsername();
     		    	if(thisUser.getAffiliation()!=null){
     		    		localAffiliation=thisUser.getAffiliation();
