@@ -37,6 +37,12 @@ context=ServletUtilities.getContext(request);
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
 		<p>
+		
+		</p>
+		Diamant S. et al (2018) Movements and habitat use of satellite-tagged whale sharks off western Madagascar.<br>
+		<a href="https://www.int-res.com/articles/esr2018/36/n036p049.pdf">Web link</a>
+		<p>
+		
 		Rohner CA, Richardson AJ, Jaine FRA, Bennett MB, Weeks SJ, Cliff G, Robinson DP, Reeve-Arnold KE, Pierce SJ. (2018) Satellite tagging highlights the importance of productive Mozambican coastal waters to the ecology and conservation of whale sharks.<br>
 		<a href="https://peerj.com/articles/4161/">Web link</a>
 		</p>
