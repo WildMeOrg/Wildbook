@@ -209,6 +209,9 @@ new_message.append("<html><body>");
 <p>
 	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
 </p>
+<p>
+	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp?mimicEncounter=<%=number%>">Would you like to submit another Encounter with the same information?</a>.
+</p>
 <hr>
 <p>Did you know you can adopt a shark, and give it a nickname? Click the button below to look through all the sharks that need to be adopted.</p>
 <a href="adoptananimal.jsp">
