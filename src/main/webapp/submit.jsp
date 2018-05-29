@@ -1292,7 +1292,8 @@ function sendButtonClicked() {
 	return true;
 }
 </script>
-
+<br>
+	<p class="text-center"><input type="checkbox" required name="terms"> I accept the <u><a target="_blank" href="userAgreement.jsp">Terms and Conditions of the User Agreement</a></u></p>
 
       <p class="text-center">
         <button class="large" type="submit" onclick="return sendButtonClicked();">
