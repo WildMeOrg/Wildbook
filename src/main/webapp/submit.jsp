@@ -5,6 +5,7 @@
                  org.ecocean.*,
                  java.util.Properties,
                  java.util.List,
+                 java.util.ArrayList,
                  java.util.Locale" %>
 
 
@@ -840,7 +841,7 @@ function convertDepth() {
 
       <div class="col-xs-12 col-lg-6">
         <h3><%=props.getProperty("aboutPhotographer") %></h3>
-
+        <p class="help-block"><%=props.getProperty("submit_contacphoto") %></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_name") %></label>
@@ -856,6 +857,31 @@ function convertDepth() {
           </div>
           <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24">
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xs-12 col-lg-12">
+        <h3><%=props.getProperty("charterOperator") %></h3>
+        <p class="help-block"><%=props.getProperty("submit_charteroperator") %></p>
+        <p class="help-block"><small><%=props.getProperty("leaveBlankIfNone") %></small></p>
+        <div class="form-group form-inline">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("operatorName") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <select class="form-control"  name="charterOperatorName" id="charterOperatorName">
+              <%
+              if (CommonConfiguration.getIndexedPropertyValues("charterOperator", context).size()>0) {
+                ArrayList<String> operators = (ArrayList) CommonConfiguration.getIndexedPropertyValues("charterOperator", context);
+                for (String operator : operators) {
+              %>
+                  <option value="<%=operator%>"><%=operator%></option>
+              <%
+                }
+              }
+              %>
+            </select> 
           </div>
         </div>
       </div>

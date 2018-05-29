@@ -3,6 +3,7 @@
          org.joda.time.format.DateTimeFormatter,
          org.joda.time.LocalDateTime,
          java.util.Locale,
+         java.util.ArrayList,
          org.ecocean.servlet.ServletUtilities,
          com.drew.imaging.jpeg.JpegMetadataReader,
          com.drew.metadata.Directory,
@@ -14,10 +15,10 @@
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
-	 org.json.JSONObject,
+	       org.json.JSONObject,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
-         java.util.*,org.ecocean.security.Collaboration" %>
+         java.util.*, org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -2419,8 +2420,20 @@ if(enc.getLocation()!=null){
                         if(enc.getCharterOperator()!=null){ 
                           coValue = enc.getCharterOperator().trim();
                         }  
-                        %> 
-                      <input class="form-control" name="charterOperator" type="text" id="charterOperator" value="<%=coValue%>"/>
+                        %>
+                      <select class="form-control"  name="charterOperator" id="charterOperator">
+                        <option value="<%=coValue%>"><%=coValue%></option>
+                        <%
+                        if (CommonConfiguration.getIndexedPropertyValues("charterOperator", context).size()>0) {
+                          ArrayList<String> operators = (ArrayList) CommonConfiguration.getIndexedPropertyValues("charterOperator", context);
+                          for (String operator : operators) {
+                        %>
+                            <option value="<%=operator%>"><%=operator%></option>
+                        <%
+                          }
+                        }
+                        %>
+                      </select>   
                         <span class="form-control-feedback" id="charterOperatorCheck">&check;</span>
                         <span class="form-control-feedback" id="charterOperatorError">X</span>
                       </div>

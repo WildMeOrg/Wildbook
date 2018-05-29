@@ -726,6 +726,9 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       if (fv.get("nsharks") != null && fv.get("nsharks").toString().length() > 0) {
         enc.setDynamicProperty("# sharks in cave", fv.get("nsharks").toString());
     }
+    if (fv.get("charterOperatorName") != null && fv.get("charterOperatorName").toString().length() > 0) {
+      enc.setCharterOperator(fv.get("charterOperatorName").toString());
+    }
 
 
       List<MetalTag> metalTags = getMetalTags(fv);
