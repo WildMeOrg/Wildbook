@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
-
+import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
 
 /**
@@ -74,10 +74,22 @@ public class User implements Serializable {
   	  setUsername(username);
   	  setPassword(password);
   	  setSalt(salt);
-			setReceiveEmails(true);
+			setReceiveEmails(false);
   	  RefreshDate();
   	  this.lastLogin=-1;
   	}
+  	
+    public User(String email){
+      uuid=Util.generateUUID();
+      setEmailAddress(email);
+      setReceiveEmails(false);
+      String salt=ServletUtilities.getSalt().toHex();
+      String pass=Util.generateUUID();
+      String hashedPassword=ServletUtilities.hashAndSaltPassword(pass, salt);
+      setPassword(hashedPassword);
+      RefreshDate();
+      this.lastLogin=-1;
+    }
 
   public void RefreshDate()
   {

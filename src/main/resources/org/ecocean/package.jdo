@@ -507,7 +507,7 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
 
-      <field name="username" column="username" unique="true" allows-null="false">
+      <field name="username" column="username" unique="true">
         <column length="100" allows-null="true"/>
       </field>
 

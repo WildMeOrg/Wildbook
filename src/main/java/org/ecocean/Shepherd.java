@@ -698,6 +698,19 @@ public class Shepherd {
     return user;
   }
   
+  
+  public List<User> getUsersWithUsername() {
+    List<User> users=null;
+    String filter="SELECT FROM org.ecocean.User WHERE username != null";   
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    users=new ArrayList<User>(c);
+    query.closeAll();
+    return users;
+  }
+  
+
+  
   public User getUserByUUID(String uuid) {
     User user= null;
     try {
@@ -1810,6 +1823,23 @@ public class Shepherd {
     query.closeAll();
     return null;
   }
+  
+  public User getUserByAffiliation(String affil){
+    String filter="SELECT FROM org.ecocean.User WHERE affiliation == \""+affil+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+
+    while(it.hasNext()){
+      User myUser=(User)it.next();
+      query.closeAll();
+      return myUser;
+    }
+    query.closeAll();
+    return null;
+  }
+  
+  
 
   public User getUserBySocialId(String service, String id) {
         if ((id == null) || (service == null)) return null;
@@ -3759,6 +3789,25 @@ public class Shepherd {
 
   public String getAction(){return action;}
 
+  public List<String> getAllEncounterNumbers(){
+      List<String> encs=null;
+      String filter="SELECT DISTINCT catalogNumber FROM org.ecocean.Encounter";  
+      Query query=getPM().newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      encs=new ArrayList<String>(c);
+      query.closeAll();
+      return encs;
+  }
+  
+  public List<String> getAllUsernamesWithRoles(){
+    List<String> usernames=null;
+    String filter="SELECT DISTINCT username FROM org.ecocean.Role";  
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    usernames=new ArrayList<String>(c);
+    query.closeAll();
+    return usernames;
+}
 
 
 

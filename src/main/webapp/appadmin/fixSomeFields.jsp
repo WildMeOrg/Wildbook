@@ -30,46 +30,17 @@ Shepherd myShepherd=new Shepherd(context);
 <%
 
 myShepherd.beginDBTransaction();
-
-int numFixes=0;
-
 try{
-	Occurrence occur=myShepherd.getOccurrence("f433d9e8-fe37-4427-8f7d-9d7a9491a95c");
-	 int numEncs=occur.getEncounters().size();
-     for(int k=0;k<numEncs;k++){
-       
-       ArrayList<MediaAsset> assets=occur.getEncounters().get(k).getMedia();
-       int numAssets=assets.size();
-       for(int i=0;i<numAssets;i++){
-       MediaAsset ma=assets.get(i);
-       %>
-       <li><%=ma.getId()%>
-       <%
-         AssetStore mas=ma.getStore();
-       	%>
-       	...<%=mas.getType() %>
-       	<%
-       	//if(ma){}
-       	
-         if(occur.hasMediaAssetFromRootStoreType(myShepherd, AssetStoreType.YouTube)){
-        	 %>
-        	 ...YEAH YOUTUBE PARENT with video ID: <%=ma.getParent(myShepherd).getId() %>!
-        	 <%
-         }
-       %>
-       </li>
-       <%
-       }
-     }
-     %>
-     </ul>
-     <%
-     
-     //TBD-support more than just en language
-     Properties ytProps=ShepherdProperties.getProperties("quest.properties", "en");
-     String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", "TST_ID");
-     System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
-     YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd);
+	
+    List<String> encs=null;
+    String filter="SELECT DISTINCT catalogNumber FROM org.ecocean.Encounter";  
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    encs=new ArrayList<String>(c);
+    query.closeAll();
+    %>
+    <li><%=encs.toString() %></li>
+	<%
 
 }
 catch(Exception e){

@@ -32,9 +32,12 @@ public class SharkGridThreadExecutorService {
       if (threadPool == null) {
         GridManager gm = GridManagerFactory.getGridManager();
         //threadPool=new ThreadPoolExecutor(gm.getCreationDeletionThreadQueueSize(),gm.getCreationDeletionThreadQueueSize(),0,TimeUnit.SECONDS, (new ArrayBlockingQueue(100)));
-        threadPool = new SharkGridThreadPoolExecutor(gm.getCreationDeletionThreadQueueSize(), gm.getCreationDeletionThreadQueueSize());
-
+        if(!gm.getCreationThread()) {
+          threadPool = new SharkGridThreadPoolExecutor(gm.getCreationDeletionThreadQueueSize(), gm.getCreationDeletionThreadQueueSize());
+        }
+        gm.setCreationThread(true);
       }
+      
       return threadPool;
     } catch (Exception jdo) {
       jdo.printStackTrace();
