@@ -49,6 +49,75 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+    
+    
+    //let's pre-populate default values
+    String default_date="";
+    String default_releaseDate="";
+    String default_location = "";
+    String default_locationID = "";
+    String default_latitude = "";
+    String default_longitude = "";
+    String default_measurement_temperature="";
+    String default_measurement_depth="";
+    //let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation="";
+    String project="";
+    if(request.getRemoteUser()!=null){
+        submitterName=request.getRemoteUser();
+        Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("submit.jsp1");
+        myShepherd.beginDBTransaction();
+        if(myShepherd.getUser(submitterName)!=null){
+            User user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+    }
+    String photographerName="";
+    String photographerEmail="";
+    
+    //if there's a mimic encounter, set those parameters now
+    if(request.getParameter("mimicEncounter")!=null){
+    	String mimicEnc=request.getParameter("mimicEncounter");
+    	Shepherd mimicShepherd=new Shepherd(context);
+    	mimicShepherd.setAction("submit.jsp_mimicShepherd");
+    	if(mimicShepherd.isEncounter(mimicEnc)){
+    		Encounter enc=mimicShepherd.getEncounter(mimicEnc);
+    		
+    		if(enc.getSubmitterName()!=null)submitterName=enc.getSubmitterName();
+    		if(enc.getSubmitterEmail()!=null)submitterEmail=enc.getSubmitterEmail();
+    		if(enc.getPhotographerName()!=null)photographerName=enc.getPhotographerName();
+    		if(enc.getPhotographerEmail()!=null)photographerEmail=enc.getPhotographerEmail();
+    	    if(enc.getSubmitterOrganization()!=null)affiliation=enc.getSubmitterOrganization();
+            if(enc.getSubmitterProject()!=null)project=enc.getSubmitterProject();
+            if(enc.getDate()!=null)default_date=enc.getDate();
+            if(enc.getReleaseDate()!=null)default_releaseDate=enc.getReleaseDate().toString();
+			if(enc.getVerbatimLocality()!=null)default_location=enc.getVerbatimLocality();
+			if(enc.getLocationID()!=null)default_locationID=enc.getLocationID();
+			if(enc.getDecimalLatitude()!=null)default_latitude=enc.getDecimalLatitude();
+    	    if(enc.getDecimalLongitude()!=null)default_longitude=enc.getDecimalLongitude();
+			if(enc.getMeasurement("temperature")!=null)default_measurement_temperature=enc.getMeasurement("temperature").getValue().toString();
+			if(enc.getDepthAsDouble()!=null)default_measurement_depth=enc.getDepthAsDouble().toString();
+    	    
+    	}
+    	mimicShepherd.rollbackDBTransaction();
+    	mimicShepherd.closeDBTransaction();
+    }
+    
+    
+    
+    
+    
+ 
+    
+    
 %>
 
 <style type="text/css">
@@ -281,73 +350,8 @@ function placeMarker(location) {
           });
 }
 
-function fullScreen() {
-    $("#map_canvas").addClass('full_screen_map');
-    $('html, body').animate({scrollTop:0}, 'slow');
-    initialize();
-
-    //hide header
-    $("#header_menu").hide();
-
-    //if(overlaysSet){overlaysSet=false;setOverlays();}
-}
 
 
-function exitFullScreen() {
-    $("#header_menu").show();
-    $("#map_canvas").removeClass('full_screen_map');
-
-    initialize();
-    //if(overlaysSet){overlaysSet=false;setOverlays();}
-}
-
-
-//making the exit fullscreen button
-function addFullscreenButton(controlDiv, map) {
-    // Set CSS styles for the DIV containing the control
-    // Setting padding to 5 px will offset the control
-    // from the edge of the map
-    controlDiv.style.padding = '5px';
-
-    // Set CSS for the control border
-    var controlUI = document.createElement('DIV');
-    controlUI.style.backgroundColor = '#f8f8f8';
-    controlUI.style.borderStyle = 'solid';
-    controlUI.style.borderWidth = '1px';
-    controlUI.style.borderColor = '#a9bbdf';;
-    controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    controlUI.style.cursor = 'pointer';
-    controlUI.style.textAlign = 'center';
-    controlUI.title = 'Toggle the fullscreen mode';
-    controlDiv.appendChild(controlUI);
-
-    // Set CSS for the control interior
-    var controlText = document.createElement('DIV');
-    controlText.style.fontSize = '12px';
-    controlText.style.fontWeight = 'bold';
-    controlText.style.color = '#000000';
-    controlText.style.paddingLeft = '4px';
-    controlText.style.paddingRight = '4px';
-    controlText.style.paddingTop = '3px';
-    controlText.style.paddingBottom = '2px';
-    controlUI.appendChild(controlText);
-
-    //toggle the text of the button
-    if($("#map_canvas").hasClass("full_screen_map")){
-        controlText.innerHTML = '<%=props.getProperty("exitFullscreen") %>';
-    } else {
-        controlText.innerHTML = '<%=props.getProperty("fullscreen") %>';
-    }
-
-    // Setup the click event listeners: toggle the full screen
-    google.maps.event.addDomListener(controlUI, 'click', function() {
-        if($("#map_canvas").hasClass("full_screen_map")) {
-            exitFullScreen();
-        } else {
-            fullScreen();
-        }
-    });
-}
 
 google.maps.event.addDomListener(window, 'load', initialize);
 
@@ -494,7 +498,7 @@ function showUploadBox() {
 
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
-        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" value="<%=default_date %>"  />
 </div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -517,7 +521,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 
     <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
-        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
+        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" value="<%=default_releaseDate %>" size="20">
       </div>
       </div>
 
@@ -537,7 +541,7 @@ if(CommonConfiguration.showReleaseDate(context)){
         <label class="control-label text-danger">Location description:</label>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <input name="location" type="text" id="location" size="40" class="form-control">
+        <input name="location" type="text" id="location" size="40" class="form-control" value="<%=default_location %>">
       </div>
     </div>
 
@@ -555,17 +559,21 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="locationID" id="locationID" class="form-control">
-            <option value="" selected="selected"></option>
+            <option value=""></option>
                   <%
                          boolean hasMoreLocationsIDs=true;
                          int locNum=0;
 
                          while(hasMoreLocationsIDs){
                                String currentLocationID = "locationID"+locNum;
+                               String selected="";
                                if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
+                            	   
+                            	   if(default_locationID.equals(CommonConfiguration.getProperty(currentLocationID,context))) {selected="selected=\"selected\"";}
+                                   
                                    %>
 
-                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
+                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
                                    <%
                                  locNum++;
                             }
@@ -708,7 +716,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				<label class="text-danger control-label">Latitude</label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="lat" type="text" id="latitude" size="24">
+				<input class="form-control" name="lat" type="text" id="latitude" size="24" value="<%=default_latitude %>">
 			</div>
 		</div>
 		<div class="form-group form-inline">
@@ -716,7 +724,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				<label class="text-danger control-label">Longitude<br></label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="longitude" type="text" id="longitude" size="24">
+				<input class="form-control" name="longitude" type="text" id="longitude" size="24" value="<%=default_longitude %>>
 			</div>
 		</div>
 		<p class="help-block">We ask that you upload GPS coordinates in the decimal degrees format. Do you have coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a></p>
@@ -731,7 +739,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				<label class="text-danger control-label pull-left" style="text-align:left;">Water Temperature in Celcius</label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="measurement(temperature)" type="text" id="temperature" size="20">
+				<input class="form-control" name="measurement(temperature)" type="text" id="temperature" size="20" value="<%=default_measurement_temperature  %>">
 					
 					<input type="hidden" name="measurement(temperatureunits)" value="celsius">
 					<br>
@@ -757,7 +765,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 		<div id="depthDiv" style="display:none;" class="form-group form-inline">
 			<div class="col-xs-12 col-lg-12">
 			  <label class="control-label" style="text-align:left;">Please enter depth in feet if you know it.</label>
-        <input class="form-control" onChange="convertDepth()" name="feetDepth" type="number" id="feetDepth">
+        <input class="form-control" onChange="convertDepth()" name="feetDepth" type="number" id="feetDepth" value="<%=default_measurement_depth %>">
 				<input name="depth" type="hidden" id="depth">
 			</div>
 		</div>
@@ -768,28 +776,6 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 </fieldset>
 <hr />
 
-    <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation="";
-    String project="";
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-        Shepherd myShepherd=new Shepherd(context);
-        myShepherd.setAction("submit.jsp1");
-        myShepherd.beginDBTransaction();
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-    }
-    %>
 
 <script>
 function aboveWater() {
@@ -847,7 +833,7 @@ function convertDepth() {
             <label class="control-label"><%=props.getProperty("submit_name") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="photographerName" type="text" id="photographerName" size="24">
+            <input class="form-control" name="photographerName" type="text" id="photographerName" size="24" value="<%=photographerName %>">
           </div>
         </div>
 
@@ -856,7 +842,7 @@ function convertDepth() {
             <label class="control-label"><%=props.getProperty("submit_email") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24">
+            <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24"  value="<%=photographerEmail %>">
           </div>
         </div>
       </div>
@@ -1332,7 +1318,8 @@ function sendButtonClicked() {
 	return true;
 }
 </script>
-
+<br>
+	<p class="text-center"><input type="checkbox" required name="terms"> I accept the <u><a target="_blank" href="userAgreement.jsp">Terms and Conditions of the User Agreement</a></u></p>
 
       <p class="text-center">
         <button class="large" type="submit" onclick="return sendButtonClicked();">
