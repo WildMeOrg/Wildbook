@@ -1873,9 +1873,9 @@ if(enc.getLocation()!=null){
               buttons.toggle();
             });
             $("#editContactBtn").click(function() {
-              $(".editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
+              $(".editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers, #setCharterOperator").show();
 
-              $("#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
+              $("#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #charterOperatorError, #charterOperatorCheck").hide();
 
               $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-error");
 
@@ -2029,8 +2029,28 @@ if(enc.getLocation()!=null){
                                           }
                                           %>
                                         </p>
+                                <%
+                                if(isOwner){
+                                %>
+                                  <p class="para">
+                                    <em>
+                                      <%=encprops.getProperty("charterOperator") %>
+                                    </em>
+                                    <br/>
+                                      <%
+                                        if(enc.getCharterOperator()!=null) {
+                                        %>
+                                          <span id="displayCharterOperator"><%=enc.getCharterOperator()%></span><br/> <%
+                                        } else {
+                                        %>
+                                        <%=encprops.getProperty("none") %>
                                         <%
-                                          %>
+                                        }
+                                        %>
+                                  </p>
+                                <%
+                                }
+                                %>
 
           <!-- start submitter -->
           <script type="text/javascript">
@@ -2348,6 +2368,69 @@ if(enc.getLocation()!=null){
                   </form>
                 </div>
                 <!-- end inform others  -->
+
+
+              <%-- start charter operator --%>
+              <script type="text/javascript">
+                $(document).ready(function() {
+                  $("#setCharterOperator").click(function(event) {
+                    event.preventDefault();
+
+                    $("#setCharterOperator").hide();
+
+                    var number = $("#charterOperatorEncounter").val();
+                    var charterOperator = $("#charterOperator").val();
+
+                    $.post("../EncounterSetCharterOperator", {"number": number, "charterOperator": charterOperator},
+                    function() {
+                      $("#charterOperatorErrorDiv").hide();
+                      $("#charterOperatorDiv").addClass("has-success");
+                      $("#charterOperatorCheck").show();
+                      $("#displayCharterOperator").text(charterOperator);
+                    })
+                    .fail(function(response) {
+                      $("#charterOperatorDiv").addClass("has-error");
+                      $("#charterOperatorError, #charterOperatorErrorDiv").show();
+                      $("#charterOperatorErrorDiv").html(response.responseText);
+                    });
+                  });
+
+                  $("#charterOperator").click(function() {
+                    $("#charterOperatorError, #charterOperatorCheck, #charterOperatorErrorDiv").hide()
+                    $("#charterOperatorDiv").removeClass("has-success");
+                    $("#charterOperatorDiv").removeClass("has-error");
+                    $("#setCharterOperator").show();
+                  });
+                });
+              </script>
+
+              <div>
+                <div class="highlight resultMessageDiv" id="charterOperatorErrorDiv"></div>
+
+                <p class="editTextContact">
+                  <strong><%=encprops.getProperty("setCharterOperator")%></strong>
+                </p>
+                <form name="setCharterOperator" class="editFormContact">
+                  <input name="number" type="hidden" value="<%=num%>" id="charterOperatorEncounter"/>
+                  <div class="form-group row">
+                    <div class="col-sm-6" id="charterOperatorDiv">
+                        <%
+                        String coValue = "";
+                        if(enc.getCharterOperator()!=null){ 
+                          coValue = enc.getCharterOperator().trim();
+                        }  
+                        %> 
+                      <input class="form-control" name="charterOperator" type="text" id="charterOperator" value="<%=coValue%>"/>
+                        <span class="form-control-feedback" id="charterOperatorCheck">&check;</span>
+                        <span class="form-control-feedback" id="charterOperatorError">X</span>
+                      </div>
+                      <div class="col-sm-3">
+                        <input name="Set" type="submit" id="setCharterOperator" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <!-- end charterOperator  -->
                 <%
                   }
                   %>

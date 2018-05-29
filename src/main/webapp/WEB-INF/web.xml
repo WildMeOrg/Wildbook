@@ -363,6 +363,11 @@
     <servlet-class>org.ecocean.servlet.EncounterSetInformOthers</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>EncounterSetCharterOperator</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetCharterOperator</servlet-class>
+  </servlet>
+
     <servlet>
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
@@ -2026,6 +2031,10 @@
     <url-pattern>/EncounterSetInformOthers</url-pattern>
   </servlet-mapping>
 
+  <servlet-mapping>
+    <servlet-name>EncounterSetCharterOperator</servlet-name>
+    <url-pattern>/EncounterSetCharterOperator</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>IndividualAddFile</servlet-name>

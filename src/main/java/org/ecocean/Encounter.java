@@ -95,6 +95,7 @@ public class Encounter implements java.io.Serializable {
    * <p/>
    * Wherever possible, this class will be extended with Darwin Core attributes for greater adoption of the standard.
    */
+  private String charterOperator;
   private String sex = "unknown";
   private String locationID = "None";
   private Double maximumDepthInMeters;
@@ -554,6 +555,17 @@ public class Encounter implements java.io.Serializable {
    */
   public String getSex() {
     return sex;
+  }
+
+
+  public void setCharterOperator(String ca) {
+    if (ca!=null&&!"".equals(ca)) {
+      charterOperator = ca;
+    }
+  }
+
+  public String getCharterOperator() {
+    return charterOperator;
   }
 
   /**
