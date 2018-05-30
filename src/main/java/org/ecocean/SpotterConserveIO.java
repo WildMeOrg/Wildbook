@@ -11,6 +11,9 @@ import org.joda.time.DateTime;
 import org.ecocean.datacollection.*;
 import org.ecocean.movement.*;
 import org.ecocean.media.Feature;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.media.URLAssetStore;
 import java.net.URL;
 
 import java.io.IOException;
@@ -52,6 +55,12 @@ public class SpotterConserveIO {
     }
 
 
+
+/******************************************
+    Channel Island flavor
+******************************************/
+
+
     //this is the "starting point" for JSON from the API
     public static Survey ciToSurvey(JSONObject jin) {
         Survey survey = new Survey();
@@ -70,7 +79,6 @@ public class SpotterConserveIO {
 
         //there will be only one SurveyTrack pulled from this data, fwiw
         SurveyTrack st = ciToSurveyTrack(jin, survey);  //TODO survey should get dropped in future when FK stuff gets fixed
-  //public void addMultipleSurveyTrack(ArrayList<SurveyTrack> trackArray) {
 ///TODO do we .setEffort based on survey track lengths or what???
         return survey;
     }
@@ -124,6 +132,19 @@ public class SpotterConserveIO {
         occ.setBearing(findDouble(jin, "device_bearing"));
         occ.setDecimalLatitude(resolveLatLon(jin, "device_latitude", "latitude"));
         occ.setDecimalLongitude(resolveLatLon(jin, "device_longitude", "longitude"));
+        int numCalves = jin.optInt("Calves Sighted", 0);
+        int numTotal = jin.optInt("Total Sighted (Including Calves)", 0);
+        int numAdults = numTotal - numCalves;
+        occ.setNumCalves(numCalves);
+        occ.setNumAdults(numAdults);
+        occ.setBestGroupSizeEstimate(new Double(numTotal));
+
+/* also notable?
+Other Vessels On Scene: 0,
+Other Species: "",
+Certainty: "Certain",
+Distance Category: "B"
+*/
 
         //it actually appears the jin2 array contains WhaleAlert type sightings data, fwiw; but we only care about these 2:
         occ.addComments("<p class=\"import-source\">conserve.io source: <a href=\"" + jin2.optString("url") + "\"><b>" + jin2.optString("id") + "</b></a></p>");
@@ -223,6 +244,128 @@ System.out.println("MADE " + enc);
         if (species == null) return null;
         return species.split(" +");
     }
+
+
+/******************************************
+    Whale Alert flavor
+******************************************/
+
+    //this is the "starting point" for JSON from the API
+    // Whale Alert has no Survey/SurveyTrack info, so we go straight to Occurrence
+    //   n.b. chose Occurrence over Encounter since there is the possibility of reporting > 1 animal in the data from api
+    public static List<Occurrence> waToOccurrences(JSONObject jin, Shepherd myShepherd) {
+        if (jin.optJSONArray("sightings") == null) return null;   // not a lot to do!  :( 
+        List<Occurrence> occs = new ArrayList<Occurrence>();
+
+        // similar to CI, sightings list uses (i) and (i + N/2) format list as well
+        JSONArray jocc = jin.getJSONArray("sightings");
+        if (jocc.length() % 2 == 1) throw new RuntimeException("sightings JSONArray is odd length=" + jocc.length());
+        int halfSize = (int) jocc.length() / 2;
+        for (int i = 0 ; i < halfSize ; i++) {
+            Occurrence occ = waToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), myShepherd);
+            if (occ != null) occs.add(occ);
+        }
+        return occs;
+    }
+
+    public static Occurrence waToOccurrence(JSONObject jin, JSONObject jin2, Shepherd myShepherd) {
+        Occurrence occ = new Occurrence();
+        occ.setOccurrenceID(Util.generateUUID());
+        occ.addComments(jin.optString("Comments", null));
+        occ.setDateTimeCreated(jin.optString("create_date", null));
+        occ.setBearing(findDouble(jin, "device_bearing"));
+        occ.setDecimalLatitude(resolveLatLon(jin, "device_latitude", "Latitude"));
+        occ.setDecimalLongitude(resolveLatLon(jin, "device_longitude", "Longitude"));
+        occ.setIndividualCount(jin.optInt("Number Sighted", 0));
+        //occ.setBestGroupSizeEstimate(jin.optDouble("Number Sighted", 0.0));
+        //// ????? User sub = waToUser(jin);
+
+        //  also notable???     Whale Alert Other Species: ""
+
+//Whale Alert Species: "Orca",
+
+
+        //it actually appears the jin2 array contains WhaleAlert type sightings data, fwiw; but we only care about these 2:
+        occ.addComments("<p class=\"import-source\">conserve.io source: <a href=\"" + jin2.optString("url") + "\"><b>" + jin2.optString("id") + "</b></a></p>");
+
+        if (jin2.optJSONArray("photos") != null) {
+            ArrayList<Encounter> encs = new ArrayList<Encounter>();
+            JSONArray je = jin2.getJSONArray("photos");
+            for (int i = 0 ; i < je.length() ; i++) {
+                //basically we get one Encounter per photo here and let the Occurrence group it together
+                Encounter enc = waToEncounter(je.optString(i, null), jin, occ.getOccurrenceID(), myShepherd);
+                if (enc != null) encs.add(enc);
+            }
+            occ.setEncounters(encs);
+        }
+        myShepherd.getPM().makePersistent(occ);
+        return occ;
+    }
+
+
+    public static Encounter waToEncounter(String photoUrl, JSONObject occJson, String occId, Shepherd myShepherd) {
+        URLAssetStore urlStore = URLAssetStore.find(myShepherd);
+        if (urlStore == null) throw new RuntimeException("Could not find a URLAssetStore to store images");
+        //// ????? User sub = waToUser(jin);
+        Encounter enc = new Encounter();
+        enc.setCatalogNumber(Util.generateUUID());
+        //enc.setGroupSize(???)
+        enc.setOccurrenceID(occId);
+
+        String dc = occJson.optString("create_date", null);
+        if (dc != null) {
+            enc.setDWCDateAdded(dc);
+            DateTime dt = toDateTime(dc);
+            if (dt != null) enc.setDWCDateAdded(dt.getMillis());  //sets the millis version on enc.  SIGH!!!!!!!!!!!
+        }
+/*
+        /// TODO FIX FOR Taxonomy class!!! String tax[] = ciSpeciesSplit(occJson.optString("Whale Alert Species", null));
+        if ((tax != null) && (tax.length > 1)) {
+            enc.setGenus(tax[0]);
+            enc.setSpecificEpithet(tax[1]);
+        }
+*/
+        String species = "annot_species";
+        enc.setGenus("test");
+        enc.setSpecificEpithet("test");
+
+        if (photoUrl != null) {
+            JSONObject params = new JSONObject();
+            params.put("url", photoUrl);
+            MediaAsset ma = urlStore.create(params);
+            ma.addLabel("_original");
+            ma.addDerivationMethod("SpotterConserveIO.waToEncounter", System.currentTimeMillis());
+            ///////ma.setAccessControl(request);  // sub User ??
+            try {
+                ma.updateMetadata();
+            } catch (IOException iox) {
+                System.out.println("WARNING: SpotterConserveIO.waToEncounter() on updateMetadata() of " + photoUrl + " threw " + iox.toString());
+            }
+            MediaAssetFactory.save(ma, myShepherd);
+            ma.updateStandardChildren(myShepherd);
+            Annotation ann = new Annotation(species, ma);
+            myShepherd.getPM().makePersistent(ann);
+            enc.addAnnotation(ann);
+        }
+
+        myShepherd.getPM().makePersistent(enc);
+System.out.println("MADE " + enc);
+        return enc;
+    }
+
+    public static User waToUser(JSONObject jin) {
+        /* something-something User()  see: JH work on user-submission
+        String subEmail = jin.optString("Whale Alert Submitter Email", null);
+        String subName = jin.optString("Whale Alert Submitter Name", null);
+        String subPhone = jin.optString("Whale Alert Submitter Phone", null);  //prob ignore!
+        */
+        return null;
+    }
+
+
+
+///// more flavorless utility
+
 
     /*
        note: seems gpx has a trk made up of trkseg, which are made of trkpts...
@@ -338,6 +481,9 @@ System.out.println(ploc);
         if (dt == null) return null;
         return new DateTime(dt.replaceAll(" ", "T"));
     }
+
+
+//// API-related calls (both flavors)
 
     public static JSONObject ciGetTripList(String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         int since = ciGetLastSync(context);
