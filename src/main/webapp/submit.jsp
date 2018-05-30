@@ -60,6 +60,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     String default_longitude = "";
     String default_measurement_temperature="";
     String default_measurement_depth="";
+    String default_measurement_underwater="";
+    String default_charter_operator="";
     //let's pre-populate important info for logged in users
     String submitterName="";
     String submitterEmail="";
@@ -95,17 +97,32 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     		if(enc.getSubmitterEmail()!=null)submitterEmail=enc.getSubmitterEmail();
     		if(enc.getPhotographerName()!=null)photographerName=enc.getPhotographerName();
     		if(enc.getPhotographerEmail()!=null)photographerEmail=enc.getPhotographerEmail();
-    	    if(enc.getSubmitterOrganization()!=null)affiliation=enc.getSubmitterOrganization();
-            if(enc.getSubmitterProject()!=null)project=enc.getSubmitterProject();
-            if(enc.getDate()!=null)default_date=enc.getDate();
-            if(enc.getReleaseDate()!=null)default_releaseDate=enc.getReleaseDate().toString();
-			if(enc.getVerbatimLocality()!=null)default_location=enc.getVerbatimLocality();
-			if(enc.getLocationID()!=null)default_locationID=enc.getLocationID();
-			if(enc.getDecimalLatitude()!=null)default_latitude=enc.getDecimalLatitude();
-    	    if(enc.getDecimalLongitude()!=null)default_longitude=enc.getDecimalLongitude();
-			if(enc.getMeasurement("temperature")!=null)default_measurement_temperature=enc.getMeasurement("temperature").getValue().toString();
-			if(enc.getDepthAsDouble()!=null)default_measurement_depth=enc.getDepthAsDouble().toString();
-    	    
+        if(enc.getSubmitterOrganization()!=null)affiliation=enc.getSubmitterOrganization();
+        if(enc.getSubmitterProject()!=null)project=enc.getSubmitterProject();
+        if(enc.getDate()!=null)default_date=enc.getDate();
+        if(enc.getReleaseDate()!=null)default_releaseDate=enc.getReleaseDate().toString();
+        if(enc.getVerbatimLocality()!=null)default_location=enc.getVerbatimLocality();
+        if(enc.getLocationID()!=null)default_locationID=enc.getLocationID();
+        if(enc.getDecimalLatitude()!=null)default_latitude=enc.getDecimalLatitude();
+        if(enc.getDecimalLongitude()!=null)default_longitude=enc.getDecimalLongitude();
+        if(enc.getCharterOperator()!=null)default_charter_operator=enc.getCharterOperator();
+
+        if(enc.getMeasurement("temperature")!=null) {
+          //Got to convert the temp back to F, so it can be left alone for repeated submit. 
+          double temp = enc.getMeasurement("temperature").getValue()*1.8+32;
+          default_measurement_temperature=String.valueOf(temp);
+        }
+
+        if(enc.getDepthAsDouble()!=null) {
+          //Got to conver the depth back to feet 
+          double depth = enc.getDepthAsDouble()*3.2808; 
+          default_measurement_depth=String.valueOf(depth);
+        }
+
+        if(enc.getMeasurement("measurement(underwater")!=null) { 
+          default_measurement_underwater=enc.getMeasurement("underwater").getValue().toString();
+        }  
+
     	}
     	mimicShepherd.rollbackDBTransaction();
     	mimicShepherd.closeDBTransaction();
@@ -724,7 +741,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				<label class="text-danger control-label">Longitude<br></label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="longitude" type="text" id="longitude" size="24" value="<%=default_longitude %>>
+				<input class="form-control" name="longitude" type="text" id="longitude" size="24" value="<%=default_longitude %>">
 			</div>
 		</div>
 		<p class="help-block">We ask that you upload GPS coordinates in the decimal degrees format. Do you have coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a></p>
@@ -736,7 +753,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 		</p>
 		<div class="form-group form-inline">
 			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label pull-left" style="text-align:left;">Water Temperature in Celcius</label>
+				<label class="text-danger control-label pull-left" style="text-align:left;">Water Temperature in Fahrenheit</label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
 				<input class="form-control" name="measurement(temperature)" type="text" id="temperature" size="20" value="<%=default_measurement_temperature  %>">
@@ -778,6 +795,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 
 <script>
+
 function aboveWater() {
   if (document.getElementById("underwaterTrue").checked) {
     $('#depthDiv').show();
@@ -787,15 +805,21 @@ function aboveWater() {
   }
 }
 
+$(document).ready(function() {
+    if ($('#feetDepth').val().length>0) {
+      $('#underwaterFalse').prop("checked", false);
+      $('#underwaterTrue').prop("checked", true);
+      aboveWater()
+    }
+});
+
 function convertDepth() {
   console.log("converting depth...");
   var feet;
   if ($('#feetDepth').val()!="") {
     feet = parseInt($('#feetDepth').val());
-    meters = (feet*0.3048).toFixed(2);
-    console.log("original value = "+feet);
+    meters = (feet*0.3048);
     $('#depth').val(meters);
-    console.log("new value from hidden input = "+$('#depth').val());
   }
 }
 </script>
@@ -857,6 +881,7 @@ function convertDepth() {
           </div>
           <div class="col-xs-6 col-lg-8">
             <select class="form-control"  name="charterOperatorName" id="charterOperatorName">
+              <option value="<%=default_charter_operator%>"><%=default_charter_operator%></option>
               <%
               if (CommonConfiguration.getIndexedPropertyValues("charterOperator", context).size()>0) {
                 ArrayList<String> operators = (ArrayList) CommonConfiguration.getIndexedPropertyValues("charterOperator", context);
