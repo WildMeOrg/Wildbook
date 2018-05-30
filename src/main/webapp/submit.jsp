@@ -1342,17 +1342,25 @@ function sendButtonClicked() {
 	%>
 	return true;
 }
+
+function agreementChecked() {
+  var checked = $('#agreementCheckbox').is(':checked');
+  if (checked) {
+    $('#sendButton').prop("disabled", false);
+  } else {
+    $('#sendButton').prop("disabled", true);
+  }
+}
 </script>
 <br>
-	<p class="text-center"><input type="checkbox" required name="terms"> I accept the <u><a target="_blank" href="userAgreement.jsp">Terms and Conditions of the User Agreement</a></u></p>
+	<p class="text-center"><input id="agreementCheckbox" type="checkbox" required onchange="agreementChecked()" name="terms"> I accept the <u><a target="_blank" href="userAgreement.jsp">Terms and Conditions of the User Agreement<span class="text-danger" style="text-decoration:none;"><strong> (required)</strong></span></a></u></p>
 
       <p class="text-center">
-        <button class="large" type="submit" onclick="return sendButtonClicked();">
+        <button class="large" id="sendButton" type="submit" onclick="return sendButtonClicked();" disabled>
           <%=props.getProperty("submit_send") %>
           <span class="button-icon" aria-hidden="true" />
         </button>
       </p>
-
 
 <p>&nbsp;</p>
 <%if (request.getRemoteUser() != null) {%>
