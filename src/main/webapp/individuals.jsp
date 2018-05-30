@@ -371,7 +371,7 @@ $(document).ready(function() {
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
                   %>
-                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
+                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md adoptButton"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
                   <%
                   }
                   if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
