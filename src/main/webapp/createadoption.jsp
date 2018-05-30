@@ -112,10 +112,10 @@ context=ServletUtilities.getContext(request);
 			<div class="input-group">
 				<span class="input-group-addon">Adoption Type</span>
 				<select id='planName' class="input-l-width" name="planName">
-					<option value="individual">Fry $2/Month</option>
-					<option value="whopper" selected="selected">Whopper - $5/Month</option>
-					<option value="behemoth">Behemoth - $250/Year</option>
-					<option value="legend">Legend - $1000/Year</option>
+					<option value="SAS-Fry">Fry $2/Month</option>
+					<option value="SAS-Whopper" selected="selected">Whopper - $5/Month</option>
+					<option value="SAS-Behemoth">Behemoth - $250/Year</option>
+					<option value="SAS-Legend">Legend - $1000/Year</option>
 			</select>
 			</div>
 			<div class="input-group">
