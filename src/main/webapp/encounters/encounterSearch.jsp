@@ -453,7 +453,22 @@ function useData(doc){
         <em><%=encprops.getProperty("leaveBlank")%>
         </em>
       </p>
-
+      <p>
+        <strong><%=encprops.getProperty("charterOperatorText")%>:</strong>
+        <select class="form-control"  name="charterOperator" id="encSearchCharterOperatorName">
+              <option value="">None</option>
+          <%
+          if (CommonConfiguration.getIndexedPropertyValues("charterOperator", context).size()>0) {
+            ArrayList<String> operators = (ArrayList) CommonConfiguration.getIndexedPropertyValues("charterOperator", context);
+            for (String operator : operators) {
+          %>
+              <option value="<%=operator%>"><%=operator%></option>
+          <%
+            }
+          }
+          %>
+        </select> 
+      </p>
       <p><strong><%=encprops.getProperty("locationID")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
         target="_blank"><img src="../images/information_icon_svg.gif"

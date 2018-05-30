@@ -951,6 +951,15 @@ public class EncounterQueryProcessor {
     }
     //end guid filter
 
+    //filter for charter operator------------------------------------------
+    if((request.getParameter("charterOperator")!=null)&&(!request.getParameter("charterOperator").equals(""))) {
+      String charterOperator=request.getParameter("charterOperator").trim();
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="charterOperator.startsWith('"+charterOperator+"')";}
+      else{filter+=" && charterOperator.startsWith('"+charterOperator+"')";}
+      prettyPrint.append("charterOperator starts with \""+charterOperator+"\".<br />");
+    }
+    //end charter operator filter
+
 
     //filter gpsOnly - return only Encounters with a defined location. This is mostly used for mapping JSP pages
     if(request.getAttribute("gpsOnly")!=null){
