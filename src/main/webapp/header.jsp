@@ -290,16 +290,6 @@ if (!isUserLoggedIn) {
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp">About Spot a Shark</a></li>
-                          <li><a href="<%=urlLoc %>/GreyNurseSharks.jsp">About the Sand Tiger Shark </a></li>
-                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                            <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
-                        </ul>
-                      </li>
-
-                      <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                         <%
