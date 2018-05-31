@@ -12,6 +12,6 @@ Previously identified record: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@
 New encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help! If you're interested in supporting our
+Thanks again for your critical help. If you're interested in supporting our
 research to understand and protect animals like yours, please adopt and
 nickname your animal

@@ -377,11 +377,6 @@ var colDefn = [
 		value: _colTaxonomy,
 	},
 	{
-		key: 'submitterID',
-		label: '<%=encprops.getProperty("submitterName")%>',
-		value: _submitterID,
-	},
-	{
 		key: 'creationDate',
 		label: 'Created',
 		value: _colCreationDate,
