@@ -46,7 +46,6 @@ public class StartupWildbook implements ServletContextListener {
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
 
-
   }
 
   public static void ensureTomcatUserExists(Shepherd myShepherd) {
@@ -72,13 +71,15 @@ public class StartupWildbook implements ServletContextListener {
         Role newRole2=new Role("tomcat","researcher");
         newRole2.setContext("context0");
         myShepherd.getPM().makePersistent(newRole2);
+        Role newRole3=new Role("tomcat", "machinelearning");
+        newRole3.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole3);
         Role newRole4=new Role("tomcat","destroyer");
         newRole4.setContext("context0");
         myShepherd.getPM().makePersistent(newRole4);
-
-        Role newRole7=new Role("tomcat","rest");
-        newRole7.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole7);
+        Role newRole5=new Role("tomcat","rest");
+        newRole5.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole5);
         myShepherd.commitDBTransaction();
         System.out.println("Creating tomcat user account...");
         }
@@ -112,28 +113,32 @@ public class StartupWildbook implements ServletContextListener {
 
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
-        if (skipInit(sce, null)) return;
-        System.out.println("* StartupWildbook initialized called");
-        ServletContext context = sce.getServletContext();
-/*
-        URL res = null;
-        try {
-            res = context.getResource("/");
-        } catch (Exception ex) {}
-        // res -> e.g. "jndi:/localhost/fubar"
-*/
+        ServletContext sContext = sce.getServletContext();
+        System.out.println("* StartupWildbook initialized for: " + servletContextInfo(sContext));
+        if (skipInit(sce, null)) {
+            System.out.println("- SKIPPED initialization by /tmp/WB_SKIP_INIT");
+            return;
+        }
+
         if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
-        createMatchGraph();
+        //createMatchGraph();
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
-        startIAQueue("context0");
+        startIAQueues("context0");
+        TwitterBot.startServices("context0");
     }
 
 
-    private void startIAQueue(String context) {
+    private void startIAQueues(String context) {
         class IAMessageHandler extends QueueMessageHandler {
             public boolean handler(String msg) {
                 org.ecocean.servlet.IAGateway.processQueueMessage(msg);  //yeah we need to move this somewhere else...
+                return true;
+            }
+        }
+        class IACallbackMessageHandler extends QueueMessageHandler {
+            public boolean handler(String msg) {
+                org.ecocean.servlet.IAGateway.processCallbackQueueMessage(msg);  //yeah we need to move this somewhere else...
                 return true;
             }
         }
@@ -149,62 +154,37 @@ public class StartupWildbook implements ServletContextListener {
         } catch (java.io.IOException ex) {
             System.out.println("+ ERROR: IA queue startup exception: " + ex.toString());
         }
-        if (queue == null) {
-            System.out.println("+ WARNING: IA queue service NOT started");
+        Queue queueCallback = null;
+        try {
+            queueCallback = QueueUtil.getBest(context, "IACallback");
+        } catch (java.io.IOException ex) {
+            System.out.println("+ ERROR: IACallback queue startup exception: " + ex.toString());
+        }
+        if ((queue == null) || (queueCallback == null)) {
+            System.out.println("+ WARNING: IA queue service(s) NOT started");
             return;
         }
 
         IAMessageHandler qh = new IAMessageHandler();
         try {
             queue.consume(qh);
-            System.out.println("+ StartupWildbook.startIAQueue() consume() started on " + queue.toString());
+            System.out.println("+ StartupWildbook.startIAQueues() queue.consume() started on " + queue.toString());
         } catch (java.io.IOException iox) {
-            System.out.println("+ StartupWildbook.startIAQueue() consume() FAILED on " + queue.toString() + ": " + iox.toString());
+            System.out.println("+ StartupWildbook.startIAQueues() queue.consume() FAILED on " + queue.toString() + ": " + iox.toString());
+        }
+        IACallbackMessageHandler qh2 = new IACallbackMessageHandler();
+        try {
+            queueCallback.consume(qh2);
+            System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() started on " + queueCallback.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
         }
     }
 
 
-
-    /////////public abstract void consume(QueueMessageHandler msgHandler) throws java.io.IOException;
-/*
-        } else {
-            final String queueRef = queue.toString();
-            System.out.println("+ IA queue service started on " + queueRef + "; initializing consumer...");
-            schedExec = Executors.newScheduledThreadPool(5);
-            schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
-                int count = 0;
-                public void run() {
-                    ++count;
-                    boolean cont = true;
-                    try {
-                        //cont = ScheduledQueue.checkQueue();
-                    } catch (Exception ex) {
-                        //System.out.println("!!!! ScheduledQueue.checkQueue() got an exception; halting: " + ex.toString() + " !!!!");
-                        //cont = false;
-                    }
-                    if (count % 100 == 1) System.out.println("==== IAQueue run [count " + count + "]; queue=" + queueRef + "; continue = " + cont + " ====");
-                    if (!cont) {
-                        System.out.println(":::: IAQueue shutdown via discontinue signal ::::");
-                        schedExec.shutdown();
-                    }
-                }
-            },
-            10,  //initial delay  ... TODO these could be configurable, obvs
-            10,  //period delay *after* execution finishes
-            TimeUnit.SECONDS);
-            System.out.println("---- about to awaitTermination() ----");
-            try {
-                schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
-            } catch (java.lang.InterruptedException ex) {
-                System.out.println("WARNING: queue interrupted! " + ex.toString());
-            }
-            System.out.println("==== schedExec.shutdown() called, apparently");
-        }
-*/
-
-
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("* StartupWildbook destroyed called");
+        ServletContext sContext = sce.getServletContext();
+        System.out.println("* StartupWildbook destroyed called for: " + servletContextInfo(sContext));
         QueueUtil.cleanup();
     }
 
@@ -241,6 +221,16 @@ System.out.println("  StartupWildbook.properStartupResource() res = " + res);
     }
 */
 
+
+    public static String servletContextInfo(ServletContext sc) {
+        if (sc == null) return null;
+        try {
+            return sc.getServletContextName() + " [" + sc.getContextPath() + " via " + sc.getRealPath("/") + "]";
+        } catch (Exception ex) {
+            System.out.println("WARNING: StartupWildbook.servletContextInfo() threw " + ex.toString());
+            return "<unknown>";
+        }
+    }
 
 }
 

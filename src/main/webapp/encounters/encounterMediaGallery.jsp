@@ -478,6 +478,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 	<%
     }
 	%>
+	
 
 /*
         if (true) {

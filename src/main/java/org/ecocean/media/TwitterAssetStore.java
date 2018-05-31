@@ -139,7 +139,7 @@ public class TwitterAssetStore extends AssetStore {
             u = "https://www.twitter.com/statuses/" + id;
         } else if (ma.hasLabel("_entity")) {
             //could also use params.type ("photo") if need be?
-            if (ma.getParameters() != null) u = ma.getParameters().optString("mediaURL", null);
+            if (ma.getParameters() != null) u = ma.getParameters().optString("media_url", null);
         }
         if (u == null) return null;  //dunno/how!
         try {
@@ -204,6 +204,8 @@ public class TwitterAssetStore extends AssetStore {
 */
 
 ///// note: might also want to walk .entities.urls -- https://dev.twitter.com/overview/api/entities-in-twitter-objects#urls
+// aside(?) we might want to generate similary from a Status object (aka tweet)
+//   see:  http://twitter4j.org/javadoc/twitter4j/EntitySupport.html#getMediaEntities--
     public static List<MediaAsset> entitiesAsMediaAssets(MediaAsset ma) {
         JSONObject raw = getRawJSONObject(ma);
         // System.out.println(raw.toString());
@@ -218,9 +220,8 @@ public class TwitterAssetStore extends AssetStore {
             p.put("id", p.optString("id_str", null));  //squash the long id at "id" with string
             MediaAsset kid = store.create(p);
             kid.addLabel("_entity");
-            //TODO here
             setEntityMetadata(kid);
-            kid.getMetadata().getDataAsString(); //TODO no idea what this does -MF
+            kid.getMetadata().getDataAsString();
             kid.setParentId(ma.getId());
             //derivationMethods?  metadata? (of image) etc.... ??
             mas.add(kid);
@@ -228,6 +229,7 @@ public class TwitterAssetStore extends AssetStore {
         return mas;
     }
 
+/*   remove?  TODO
     public static List<MediaAsset> entitiesAsMediaAssetsGsonObj(MediaAsset ma, Long parentTweetId) {
         JSONObject raw = getRawJSONObject(ma);
         // System.out.println(raw.toString());
@@ -257,6 +259,7 @@ public class TwitterAssetStore extends AssetStore {
         }
         return mas;
     }
+*/
 
     //this assumes we already set metadata
     public static JSONObject getRawJSONObject(MediaAsset ma) {
@@ -270,35 +273,15 @@ public class TwitterAssetStore extends AssetStore {
     //  this is keyed as "twitterRawJson"
     //  NOTE: this also assumes TwitterUtil.init(request) has been called
     public MediaAssetMetadata extractMetadata(MediaAsset ma, boolean minimal) throws IOException {
-        ArrayList<String> labels =  ma.getLabels();
-        System.out.println("labels:");
-        System.out.println(labels);
-        try{
-          Long parentTweetId = getParentTweetIdFromLabels(labels);
-        } catch(Exception e){
-          e.printStackTrace();
-        }
-
         JSONObject data = new JSONObject();
         Long id = longIdFromParameters(ma.getParameters());
         if (id == null) return new MediaAssetMetadata(data);
-        Status tweet = null;
-        if(labels.contains("_entity")){
-          try{
-            Long parentTweetIdFromEntity = getParentTweetIdFromLabels(labels);
-            tweet = TwitterUtil.getTweet(parentTweetIdFromEntity);
-          } catch(Exception e){
-            e.printStackTrace();
-          }
-        } else{
-          tweet = TwitterUtil.getTweet(id);
-        }
-        if(tweet != null){
-          data.put(METADATA_KEY_RAWJSON, TwitterUtil.toJSONObject(tweet));
-        }
+        Status tweet = TwitterUtil.getTweet(id);
+        data.put(METADATA_KEY_RAWJSON, TwitterUtil.toJSONObject(tweet));
         return new MediaAssetMetadata(data);
     }
 
+/*
     public Long getParentTweetIdFromLabels(ArrayList<String> labels) throws Exception{
       Long returnVal = null;
       for(int i = 0; i<labels.size(); i++){
@@ -329,28 +312,29 @@ public class TwitterAssetStore extends AssetStore {
         return returnVal;
       }
     }
+*/
 
     private static void setEntityMetadata(MediaAsset ma) {
-        System.out.println("Hey mark. Got here.");
-        System.out.println("MediaAssetId is: " + ma.toString());
         if (ma.getParameters() == null) return;
         JSONObject d = new JSONObject("{\"attributes\": {} }");
-        if ((ma.getParameters().optJSONObject("sizes") != null) && (ma.getParameters().getJSONObject("sizes").optJSONObject("3") != null)) {
-            d.getJSONObject("attributes").put("width", ma.getParameters().getJSONObject("sizes").getJSONObject("3").optDouble("width", 0));
-            d.getJSONObject("attributes").put("height", ma.getParameters().getJSONObject("sizes").getJSONObject("3").optDouble("height", 0));
+        if ((ma.getParameters().optJSONObject("sizes") != null) && (ma.getParameters().getJSONObject("sizes").optJSONObject("large") != null)) {
+            d.getJSONObject("attributes").put("width", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("w", 0));
+            d.getJSONObject("attributes").put("height", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("h", 0));
         }
+
 	String mimeGuess = ma.getParameters().optString("type", "unknown");
 	if (mimeGuess.equals("photo")) mimeGuess = "image";
 	mimeGuess += "/";
-	String url = ma.getParameters().optString("mediaURL", ".unknown");
-	int i = url.lastIndexOf(".");
-	String ext = "jpeg";
-/*
-	if (i > -1) {
-		ext = url.substring(i);
-	}
-*/
-	mimeGuess += ext;
+	String url = ma.getParameters().optString("media_url", "__fail__").toLowerCase();
+        if (url.endsWith(".jpg") || url.endsWith(".jpeg")) {
+            mimeGuess += "jpeg";
+        } else if (url.endsWith(".png")) {
+            mimeGuess += "png";
+        } else if (url.endsWith(".gif")) {
+            mimeGuess += "gif";
+        } else {
+            mimeGuess += "unknown";
+        }
 	d.getJSONObject("attributes").put("contentType", mimeGuess);
         ma.setMetadata(new MediaAssetMetadata(d));
     }

@@ -914,7 +914,9 @@ System.out.println(thisRequest);
 
         JSONObject convertToJson(HttpServletRequest req, Object obj, ExecutionContext ec) {
 //System.out.println("convertToJson(non-Collection) trying class=" + obj.getClass());
+            //System.out.println("        LightRest: convertToJson(obj) has been called!");
             boolean isEnc = (obj.getClass()==Encounter.class);
+            //System.out.println("        LightRest: isEnc = "+isEnc);
 
             if (isEnc) {
 
