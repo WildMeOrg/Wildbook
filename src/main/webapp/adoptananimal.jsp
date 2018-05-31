@@ -29,12 +29,12 @@ context=ServletUtilities.getContext(request);
 
 <div class="container maincontent adoption-page">
 	<h1 class="intro-adopt">Adopt a Shark</h1>
-	<h2>Support cutting edge whale shark research.</h2>
+	<h2>Support cutting edge sand tiger shark research.</h2>
 	<section class="adoption-details">
 		<p>
-			Adopt a whale shark, give it a nickname, and receive updates each time it's spotted! Funds
+			Adopt a sand tiger shark, give it a nickname, and receive updates each time it's spotted! Funds
 			raised by shark adoptions are used to offset the costs of maintaining this global library and
-			to support new and existing research projects for the world's most mysterious fish.
+			to support new and existing research projects.
 		</p>
 		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
@@ -86,7 +86,7 @@ context=ServletUtilities.getContext(request);
 					<p>$?/yr</p>
 				</div>
 				<p>
-					We appreciate your support of ongoing whale shark research
+					We appreciate your support of ongoing tiger shark research
 				</p>
 			</div>
 		</article>
@@ -112,7 +112,7 @@ context=ServletUtilities.getContext(request);
 			
 					<div class="adopter" style="width: 190px">
 						<div class="adopter-header" >
-							<p>Whale Shark Adopter</p>
+							<p>Tiger Shark Adopter</p>
 						</div>
 						<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="" />
 						<div class="adopter-details">

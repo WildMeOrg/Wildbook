@@ -5,7 +5,7 @@ use URI::Escape;
 use Data::Dumper;
 
 my $BASE_URL = 'http://localhost';
-my $search_keyword = 'whale shark';
+my $search_keyword = 'tiger shark';
 my $max_videos = $ARGV[0] || 1;
 my $tmp_prefix = '/tmp/yt.' . time;
 

@@ -65,7 +65,7 @@ public class IBEISIA {
         speciesMap = new HashMap<String, String[]>();
         speciesMap.put("zebra_plains", new String[]{"Equus","quagga"});
         speciesMap.put("zebra_grevys", new String[]{"Equus","grevyi"});
-        speciesMap.put("whale shark", new String[]{"Rhincodon","typus"});
+        speciesMap.put("tiger shark", new String[]{"Rhincodon","typus"});
     }
 
     public static String STATUS_PENDING = "pending";  //pending review (needs action by user)
@@ -1246,7 +1246,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                         if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
 
                             needsReview = true;
-                            System.out.println("Detection didn't find a whale shark");
+                            System.out.println("Detection didn't find a tiger shark");
                             // TwitterUtil.sendDetectionAndIdentificationTweet(screenName, imageId, twitterInst, whaleId, false, false, ""); //TODO find a way to get screenName, imageId, etc. over here
                             continue;
                         }
@@ -1265,7 +1265,7 @@ System.out.println("+++++++++++ >>>> skipEncounters ???? " + skipEncounters);
                             //if(jann.optDouble("confidence", -1.0) >= getDetectionCutoffValue() && jann.optString("species", "unkown").equals("whale_fluke")){
                             if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence or wasn't a identified as a whale fluke
 
-                              System.out.println("Detection found a whale shark; sending to identification");
+                              System.out.println("Detection found a tiger shark; sending to identification");
                               ident.put(ann.getId(), IAIntake(ann, myShepherd, request));
                             }
                         } catch (Exception ex) {

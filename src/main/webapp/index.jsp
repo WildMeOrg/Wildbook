@@ -683,7 +683,7 @@ finally{
 
         <section class="adopt-section row">
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3 class="uppercase">Adopt a Whale Shark</h3>
+                <h3 class="uppercase">Adopt a Sand Tiger Shark</h3>
                 <ul>
                     <li>Support individual research programs in different regions</li>
 					<li>Receive email updates when we resight your adopted animal</li>
