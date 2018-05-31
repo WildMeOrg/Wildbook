@@ -1570,6 +1570,15 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return guid;
   }
 
+  // Generified for LightRest access ect
+  public void setGuid(String guid) {
+    this.guid = guid;
+  }
+
+  public String getGuid() {
+    return guid;
+  }
+
   public void setDWCImageURL(String link) {
     dwcImageURL = link;
   }
