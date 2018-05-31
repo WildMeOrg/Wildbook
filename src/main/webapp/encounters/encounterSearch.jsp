@@ -189,6 +189,11 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();
 
+  boolean loggedIn = false;
+  try{
+    if(request.getUserPrincipal()!=null){loggedIn=true;}
+  } catch (NullPointerException nullLogged) {}
+
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
@@ -1291,12 +1296,18 @@ else {
 		</td>
         </tr>
 		
-		<tr>
-  <td><br /><strong><%=encprops.getProperty("submitterName")%></strong>
-    <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
-    </em>
-  </td>
-</tr>
+  <%
+  if (loggedIn) {
+  %>  
+	<tr>
+    <td><br /><strong><%=encprops.getProperty("submitterName")%></strong>
+      <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
+      </em>
+    </td>
+  </tr>
+  <%
+  }
+  %>
 
 
 
@@ -1317,8 +1328,11 @@ else {
         List<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
+
+      if (loggedIn) {
       %>
-	<br /><strong><%=encprops.getProperty("username")%></strong><br />
+
+	    <br /><strong><%=encprops.getProperty("username")%></strong><br />
       <select multiple size="5" name="username" id="username">
         <option value="None"></option>
         <%
@@ -1333,8 +1347,11 @@ else {
         	<option value="<%=username%>"><%=userFullName%></option>
         	<%
           }
+          %>
+          </select>
+        <%
+        }
         %>
-      </select>
 
 </td>
 </tr>
