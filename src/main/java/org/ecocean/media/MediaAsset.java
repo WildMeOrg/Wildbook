@@ -111,7 +111,10 @@ public class MediaAsset implements java.io.Serializable {
 
     protected DateTime userDateTime;
 
-
+    // Variables used in the Survey, SurveyTrack, Path, Location model
+    
+    private String correspondingSurveyTrackID;
+    private String correspondingSurveyID;
 
 
     //protected MediaAssetType type;
@@ -206,6 +209,32 @@ public class MediaAsset implements java.io.Serializable {
 
     public void setOccurrence(Occurrence occ) {
       this.occurrence = occ;
+    }
+    
+    public void setCorrespondingSurveyTrackID(String id) {
+      if (id != null && !id.equals("")) {
+        correspondingSurveyTrackID = id;
+      }
+    }
+
+    public String getCorrespondingSurveyTrackID() {
+      if (correspondingSurveyTrackID != null) {
+        return correspondingSurveyTrackID;
+      }
+      return null;
+    }
+    
+    public void setCorrespondingSurveyID(String id) {
+      if (id != null && !id.equals("")) {
+        correspondingSurveyID = id;
+      }
+    }
+    
+    public String getCorrespondingSurveyID() {
+      if (correspondingSurveyID != null) {
+        return correspondingSurveyID;
+      }
+      return null;
     }
 
     public String getDetectionStatus() {
@@ -396,6 +425,13 @@ public class MediaAsset implements java.io.Serializable {
             features.add(f);
             f.asset = this;
         }
+    }
+    //note: this will outright deletes feature (from db, blame datanucleus), and thus will
+    // break the reference from Annotation-Feature that (likely) existed ... oops?
+    public void removeFeature(Feature f) {
+        if (features == null) return;
+        System.out.println("INFO: removeFeature() killing off " + f + " from " + this);
+        features.remove(f);
     }
 
     //kinda sorta really only for Encounter.findAllMediaByFeatureId()

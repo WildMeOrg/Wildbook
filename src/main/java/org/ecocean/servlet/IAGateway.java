@@ -46,6 +46,8 @@ import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,9 +56,9 @@ import java.util.Collections;
 import java.util.Iterator;
 
 import javax.jdo.Query;
-
 import java.io.InputStream;
 import java.util.UUID;
+
 
 public class IAGateway extends HttpServlet {
 
@@ -65,6 +67,7 @@ public class IAGateway extends HttpServlet {
     private static final int IDENTIFICATION_REVIEWS_BEFORE_SEND = 2;
 
     private static Queue IAQueue = null;
+    private static Queue IACallbackQueue = null;
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -77,6 +80,18 @@ public class IAGateway extends HttpServlet {
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
+    String qstr = request.getQueryString();
+
+    //duplicated in both doGet and doPost
+    if ((qstr != null) && (qstr.matches(".*\\bcallback\\b.*"))) {
+        JSONObject rtn = queueCallback(request);
+        response.setContentType("text/plain");
+        PrintWriter out = response.getWriter();
+        out.println(rtn.toString());
+        out.close();
+        return;
+    }
+
     String getOut = "";
     String context = ServletUtilities.getContext(request);
 
@@ -356,8 +371,18 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
-
     String qstr = request.getQueryString();
+
+    //duplicated in both doGet and doPost
+    if ((qstr != null) && (qstr.matches(".*\\bcallback\\b.*"))) {
+        JSONObject rtn = queueCallback(request);
+        response.setContentType("text/plain");
+        PrintWriter out = response.getWriter();
+        out.println(rtn.toString());
+        out.close();
+        return;
+    }
+
     if ("detectionReviewPost".equals(qstr)) {
         String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
         if (url == null) throw new IOException("IBEISIARestUrlDetectReview url not set");
@@ -374,6 +399,7 @@ System.out.println("############################ rtn -> \n" + rtn);
         //this maybe should be broken out into a method?
         if ((rtn.optJSONObject("status") != null) && rtn.getJSONObject("status").optBoolean("success", false) && (rtn.optJSONObject("response") != null)) {
             String context = ServletUtilities.getContext(request);
+            String rootDir = request.getSession().getServletContext().getRealPath("/");
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("IAGateway.class7");
             myShepherd.beginDBTransaction();
@@ -401,9 +427,9 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                     for (int a = 0 ; a < alist.length() ; a++) {
                         JSONObject jann = alist.optJSONObject(a);
                         if (jann == null) continue;
-                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd, false);
+                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd, context, rootDir, false);
                         if (ann == null) continue;
-                        myShepherd.getPM().makePersistent(ann);
+                        //myShepherd.getPM().makePersistent(ann);  //done in createAnnotationFromIAResult
                         thisAnns.put(ann.getId());
                     }
                     if (thisAnns.length() > 0) annsMade.put(Integer.toString(ma.getId()), thisAnns);
@@ -661,6 +687,12 @@ System.out.println("anns -> " + anns);
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         for (Annotation ann : anns) {
+/*
+System.out.println(ann + " ############################ " + ann.getFeatures());
+for (Feature ft : ann.getFeatures()) {
+System.out.println("     >>> " + ft + " >> " + ft.getParameters());
+}
+*/
             JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getSpecies(), opt);
             JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize,
                                                          ((anns.size() == 1) ? taskId : null));  //we use passed taskId if only 1 ann but generate otherwise
@@ -1111,6 +1143,11 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
         return IAQueue;
     }
 
+    public static Queue getIACallbackQueue(String context) throws IOException {
+        if (IACallbackQueue != null) return IACallbackQueue;
+        IACallbackQueue = QueueUtil.getBest(context, "IACallback");
+        return IACallbackQueue;
+    }
 
 
     //TODO clean this up!  now that this is moved here, there is probably lots of redundancy with above no?
@@ -1158,7 +1195,7 @@ System.out.println(" > taskId = " + jobj.getString("taskId"));
             String baseUrl = jobj.optString("__baseUrl", null);
 System.out.println("--- BEFORE _doIdentify() ---");
             try {
-                JSONObject rtn = IAGateway._doIdentify(jobj, res, myShepherd, context, baseUrl);
+                JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl);
                 System.out.println("INFO: IAGateway.processQueueMessage() 'identify' from successful --> " + rtn.toString());
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {
@@ -1171,5 +1208,57 @@ System.out.println("--- BEFORE _doIdentify() ---");
             System.out.println("WARNING: IAGateway.processQueueMessage() unable to use json data in '" + message + "'; ignoring");
         }
     }
+
+    public static void processCallbackQueueMessage(String message) {
+        JSONObject jmsg = Util.stringToJSONObject(message);
+        if (jmsg == null) {
+            System.out.println("ERROR: processCallbackQueueMessage() failed to parse JSON from " + message);
+            return;
+        }
+ 
+        //System.out.println("NOT YET IMPLEMENTED!  processCallbackQueueMessage got: " + message);
+        IBEISIA.callbackFromQueue(jmsg);
+    }
+
+    //weirdly (via StartupWildbook) stuff put in the queue is processed by.... the method right above us!  :)  :(
+    private JSONObject queueCallback(HttpServletRequest request) throws IOException {
+        JSONObject rtn = new JSONObject();
+        JSONObject qjob = new JSONObject();
+        String qid = Util.generateUUID();
+        qjob.put("qid", qid);
+        qjob.put("queryString", request.getQueryString());
+        BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
+        String line;
+        String raw = "";
+        while ((line = br.readLine()) != null) {
+            raw += line;
+        }
+        br.close();
+        qjob.put("dataRaw", raw);
+        qjob.put("dataJson", Util.stringToJSONObject(raw));
+        String context = ServletUtilities.getContext(request);
+        Queue queue = getIACallbackQueue(context);
+        qjob.put("context", context);
+        qjob.put("rootDir", request.getSession().getServletContext().getRealPath("/"));
+        qjob.put("requestMethod", request.getMethod());
+        qjob.put("requestUri", request.getRequestURI());
+        qjob.put("timestamp", System.currentTimeMillis());
+        String baseUrl = null;
+        try {
+            baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+        } catch (java.net.URISyntaxException ex) {}
+        qjob.put("baseUrl", baseUrl);
+        //real IA sends "jobid=jobid-xxxx" as body on POST, but this gives us a url-based alternative (for testing)
+        String jobId = request.getParameter("jobid");
+        if (raw.startsWith("jobid=") && (raw.length() > 6)) jobId = raw.substring(6);
+        qjob.put("jobId", jobId);
+
+System.out.println("qjob => " + qjob);
+        queue.publish(qjob.toString());
+        rtn.put("success", true);
+        rtn.put("qid", qid);
+        return rtn;
+    }
+
 
 }

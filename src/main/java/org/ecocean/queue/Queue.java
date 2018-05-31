@@ -2,13 +2,6 @@ package org.ecocean.queue;
 import java.util.Properties;
 import org.ecocean.ShepherdProperties;
 
-/*
-
-this is just a silly placeholder for now... the idea that we could abstract Queue to allow
-for both (say) RabbitMQ and a simple directory/file-based queue if the install didnt want to go full RabbitMQ
-... but for now let RabbitMQ live on as its own....
-
-*/
 
 public abstract class Queue {
     protected String type = null;
