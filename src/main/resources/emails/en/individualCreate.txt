@@ -4,7 +4,7 @@ Hello!
 Just a quick e-mail to let you know that the grey nurse shark encounter that you submitted
 has been added as a new, previously unidentified shark!
 
-You discovered a new shark for science!
+You discovered a new shark for science.
 
 Newly marked shark: @INDIVIDUAL_ID@
 @INDIVIDUAL_LINK@
@@ -12,6 +12,6 @@ Newly marked shark: @INDIVIDUAL_ID@
 Encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help! If you're interested in supporting our
+Thanks again for your critical help. If you're interested in supporting our
 research to understand and protect animals like yours, please adopt and
 nickname your animal:

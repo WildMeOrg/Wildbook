@@ -1,7 +1,7 @@
 SUBJECT: New encounter submission: @ENCOUNTER_ID@
 Thank you for participating in Spot a Shark!
 
-Thank you for reporting your grey nurse shark shark encounter! We will use your information to assist a global community of researchers and citizen scientists working to better understand and protect wildlife.
+Thank you for reporting your sand tiger shark encounter. We will use your information to assist a global community of researchers and citizen scientists working to better understand and protect wildlife.
 
 Your sighting link:
 @ENCOUNTER_LINK@
