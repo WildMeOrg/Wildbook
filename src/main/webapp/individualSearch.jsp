@@ -34,6 +34,13 @@ context=ServletUtilities.getContext(request);
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
 
+  boolean loggedIn = false;
+  try{
+    if(request.getUserPrincipal()!=null){loggedIn=true;}
+  } catch (NullPointerException nullLogged) {}
+
+
+
 %>
 
 
@@ -1719,15 +1726,16 @@ else {
   <p><%=props.getProperty("metadataInstructions") %></p>
 
     <div class="row">
+    <%
+      Shepherd inShepherd=new Shepherd("context0");
+      inShepherd.setAction("individualSearch.jsp2");
+      List<User> users = inShepherd.getAllUsers();
+      int numUsers = users.size();
+
+      if (loggedIn) {
+    %>
       <div class="col-md-6">
         <strong><%=props.getProperty("username")%></strong><br />
-            <%
-              Shepherd inShepherd=new Shepherd("context0");
-            inShepherd.setAction("individualSearch.jsp2");
-              List<User> users = inShepherd.getAllUsers();
-              int numUsers = users.size();
-
-            %>
 
         <select multiple size="5" name="username" id="username">
           <option value="None"></option>
@@ -1746,6 +1754,9 @@ else {
           %>
         </select>
       </div>
+    <%
+      }
+    %>
 
       <div class="col-md-6">
           <strong><%=props.getProperty("restrictSearchOrg")%></strong><br />
