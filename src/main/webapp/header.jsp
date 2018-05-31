@@ -44,6 +44,10 @@ props = ShepherdProperties.getProperties("header.properties", langCode, context)
 String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
 boolean isUserLoggedIn = false;
+String homeLinkTarget = urlLoc;
+if (!isUserLoggedIn) {
+  homeLinkTarget = "https://spotashark.fr3lavde-liquidwebsites.com/";
+}
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -262,7 +266,7 @@ boolean isUserLoggedIn = false;
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand" target="_blank" href="<%=homeLinkTarget%>">Wildbook for Mark-Recapture Studies</a>
                 </div>
               </div>
 
@@ -280,15 +284,16 @@ boolean isUserLoggedIn = false;
                   <div id="navbar" class="navbar-collapse collapse">
                   <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
                     <ul class="nav navbar-nav">
-                                  <!--                -->
-                      <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
+                    
+                      <li class="active home text-hide"><a href="<%=homeLinkTarget%>"><%=props.getProperty("home")%></a></li>
+
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp">About Spot a Shark</a></li>
-                          <li><a href="<%=urlLoc %>/GreyNurseSharks.jsp">About the Grey Nurse Shark </a></li>
+                          <li><a href="<%=urlLoc %>/GreyNurseSharks.jsp">About the Sand Tiger Shark </a></li>
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                             <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         </ul>
