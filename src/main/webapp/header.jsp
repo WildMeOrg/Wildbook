@@ -42,6 +42,8 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 
 String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+
+boolean isUserLoggedIn = false;
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -101,6 +103,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
 	                      if(request.getUserPrincipal()!=null){
 	                    	  Shepherd myShepherd = new Shepherd(context);
+                          isUserLoggedIn = true;
 
 	                          try{
 	                        	  myShepherd.beginDBTransaction();
@@ -317,6 +320,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp?guid=NCAquariums"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
                       </li>
+
+                      <%
+                      if (isUserLoggedIn) {
+                      %>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -364,6 +371,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                         </ul>
                       </li>
+                      <%
+                      }
+                      %>
                       <!-- end locationID sites -->
 
                       <li class="dropdown">
@@ -371,9 +381,19 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
+                              <%
+                              if (isUserLoggedIn) {
+                              %>
                               <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
+                              <%
+                              }
+                              %>
+              
                            </ul>
                       </li>
+                      <%
+                      if (isUserLoggedIn) {
+                      %>
 
                       <li>
                         <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
@@ -421,6 +441,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                             } //end if admin %>
                         </ul>
                       </li>
+                      <%
+                      }
+                      %>
                     </ul>
 
 
