@@ -291,7 +291,7 @@ td.measurement {
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
 	                zoom: mapZoom,
 	                center: center,
-	                mapTypeId: google.maps.MapTypeId.HYBRID,
+	                mapTypeId: google.maps.MapTypeId.TERRAIN,
 	                zoomControl: true,
 	                scaleControl: false,
 	                scrollwheel: false,
