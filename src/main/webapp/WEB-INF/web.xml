@@ -127,7 +127,7 @@
 
                 /rest/** = authcBasicWildbook,roles[rest]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
-                /LightRest/** = authcBasicWildbook,roles[rest]
+                /LightRest/** = authcBasicWildbook,roles[researcher]
 
 
 
@@ -1144,9 +1144,6 @@
     <servlet-name>EncounterSetSize</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSize</servlet-class>
   </servlet>
-  -->
-
-  <!--
   <servlet>
     <servlet-name>EncounterVMData</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterVMData</servlet-class>
@@ -1217,8 +1214,6 @@
     <servlet-name>EncounterAddImage</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddImage</servlet-class>
   </servlet>
-  -->
-<!--
   <servlet>
     <servlet-name>CalendarXMLServer2</servlet-name>
     <servlet-class>org.ecocean.servlet.CalendarXMLServer2</servlet-class>
@@ -1659,9 +1654,7 @@
          <servlet-name>ningalooPradel</servlet-name>
          <url-pattern>/CJS</url-pattern>
   </servlet-mapping>
-  -->
 
-  <!--
   <servlet-mapping>
     <servlet-name>EncounterSetIdentifiable</servlet-name>
     <url-pattern>/EncounterSetIdentifiable</url-pattern>
