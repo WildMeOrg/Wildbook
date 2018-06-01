@@ -222,21 +222,6 @@ public class Occurrence implements java.io.Serializable{
     return submitterID;
   }
 
-  public void setSubmitterIDFromEncs(){
-    for (Encounter enc: encounters) {
-      if (Util.stringExists(enc.getSubmitterID())) {
-        setSubmitterID(enc.getSubmitterID());
-        return;
-      }
-    }
-  }
-  public void setSubmitterID(String submitterID) {
-    this.submitterID = submitterID;
-  }
-  public String getSubmitterID() {
-    return submitterID;
-  }
-
   public void setAssets(List<MediaAsset> assets) {
     this.assets = assets;
   }
