@@ -42,8 +42,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class
-StandardImport extends HttpServlet {
+public class StandardImport extends HttpServlet {
 
 	// variables shared by any single import instance
 	Shepherd myShepherd;
