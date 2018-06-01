@@ -125,7 +125,7 @@
                 #and admin areas
                 [urls]
 
-                /rest/** = authcBasicWildbook,roles[rest]
+                /rest/** = authcBasicWildbook,roles[researcher]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
                 /LightRest/** = authcBasicWildbook,roles[researcher]
 
