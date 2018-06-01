@@ -341,8 +341,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
-                      <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
-
 
                       <!-- submit encounter, survey -->
 
