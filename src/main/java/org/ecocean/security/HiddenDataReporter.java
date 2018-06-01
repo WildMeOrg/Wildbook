@@ -8,7 +8,6 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import static org.ecocean.Util.addToMultimap;
-import static org.ecocean.Util.sizeOfMultimap;
 
 // java sucks for making us add three import lines just to use a multimap (without calling a single method on it!). INELEGANT. NEXT!
 import java.util.Iterator;
