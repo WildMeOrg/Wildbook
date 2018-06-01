@@ -100,7 +100,16 @@ if (!isUserLoggedIn) {
               <div class="header-top-wrapper">
                 <div class="container">
                 <div class="search-and-secondary-wrapper">
+                      <%
+                      if(CommonConfiguration.allowAdoptions(context)){
+                      %>
+                        <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><span><%=props.getProperty("adoptAnAnimal") %>&nbsp</span></button></a>
+                      <%
+                      }
+                      %> 
                     <ul class="secondary-nav hor-ul no-bullets">
+
+
 
 
                       <%
