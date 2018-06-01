@@ -48,9 +48,9 @@ public abstract class QueryProcessor {
   }
 
   protected static String filterWithSubfilter(String filter, String subfilter) {
-    if (!Util.stringExists(subFilter)) return filter;
+    if (!Util.stringExists(subfilter)) return filter;
     filter = prepForCondition(filter);
-    filter+= subFilter;
+    filter+= subfilter;
     return filter;
   }
 
