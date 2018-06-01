@@ -103,7 +103,7 @@ context=ServletUtilities.getContext(request);
           zoom: mapZoom,
           fullscreenControl: true,
           center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID,
+          mapTypeId: google.maps.MapTypeId.TERRAIN,
           zoomControl: true,
           scaleControl: false,
           scrollwheel: false,
