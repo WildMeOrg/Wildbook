@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import org.ecocean.Util;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public class Taxonomy implements java.io.Serializable {
 
   private String id;
