@@ -101,6 +101,7 @@ context=ServletUtilities.getContext(request);
     	  var bounds = new google.maps.LatLngBounds();
         var map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
+          maxZoom: 13,
           fullscreenControl: true,
           center: center,
           mapTypeId: google.maps.MapTypeId.HYBRID,
@@ -294,7 +295,7 @@ for (var i = 0; i < markers.length; i ++) {
 setTimeout(function(){google.maps.event.removeListener(zoomChangeBoundsListener)}, 2000);
 var options = {
         imagePath: 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/images/m',
-        maxZoom: 8
+        maxZoom: 5
     };
 var markerCluster = new MarkerClusterer(map, markers, options)
  } // end initialize function
