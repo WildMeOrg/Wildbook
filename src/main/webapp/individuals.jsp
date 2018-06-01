@@ -233,10 +233,6 @@ if (request.getParameter("number")!=null) {
 </style>
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
-
-  <link rel="stylesheet" href="css/createadoption.css">
-
-
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>

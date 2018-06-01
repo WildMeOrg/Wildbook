@@ -335,7 +335,7 @@ th {
   display: none;
 }
 
-td {
+.maincontent td {
   font-family: sans-serif;
   font-size: 14px;
   vertical-align: middle;
