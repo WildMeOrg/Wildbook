@@ -46,7 +46,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 boolean isUserLoggedIn = false;
 String homeLinkTarget = urlLoc;
 if (!isUserLoggedIn) {
-  homeLinkTarget = "https://spotashark.fr3lavde-liquidwebsites.com/";
+  homeLinkTarget = "https://spotasharkusa.com/";
 }
 %>
 
