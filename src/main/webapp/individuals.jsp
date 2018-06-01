@@ -139,15 +139,7 @@ if (request.getParameter("number")!=null) {
         // remove any potentially-sensitive data, labeled with the secure-field class
         System.out.println("Not visible! Printing stuff!");
         %>
-        <script type="text/javascript">
-          console.log("Not visible! Printing stuff!");
-          $(document).ready(function() {
-            $('.secure-field').each(function() {
-              console.log("I found a secure field to remove! Text="+$(this).text());
-              this.remove();
-            });
-          });
-        </script>
+        <script src="/javascript/hide-secure-fields.js"></script>
         <%
   			ArrayList<String> uids = indie.getAllAssignedUsers();
 				ArrayList<String> possible = new ArrayList<String>();

@@ -4,6 +4,9 @@
          org.datanucleus.api.rest.orgjson.JSONObject
          " %>
 
+
+
+
 <%
 
 String blocker = "";
@@ -77,9 +80,12 @@ context=ServletUtilities.getContext(request);
 
     -->
   </style>
-
+<link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+<link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
   <jsp:include page="header.jsp" flush="true"/>
+<script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+
 
 <script src="javascript/classEditTemplate.js"></script>
 <link rel="stylesheet" href="css/classEditTemplate.css" type="text/css" media="all">
@@ -121,7 +127,7 @@ context=ServletUtilities.getContext(request);
 
 
 
-<div class="container maincontent">
+<div class="container maincontent secure-field">
 
 <%
   myShepherd.beginDBTransaction();
@@ -161,7 +167,11 @@ context=ServletUtilities.getContext(request);
       }
 
 			List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+      User user = myShepherd.getUser(request);
+      String username = (user!=null) ? user.getUsername() : "None";
 			boolean visible = occ.canUserAccess(request);
+
+      System.out.println(" * * * OCCURRENCE.JSP: isVisible for user "+username+" = "+visible);
 
       String saving = request.getParameter("save");
       String saveMessage = "";
@@ -234,15 +244,22 @@ context=ServletUtilities.getContext(request);
 
 
 			if (!visible) {
+
+        // remove any potentially-sensitive data, labeled with the secure-field class
+        System.out.println("Not visible!");
+        %>
+        <script src="/javascript/hide-secure-fields.js"></script>
+        <%
+
   			ArrayList<String> uids = occ.getAllAssignedUsers();
 				ArrayList<String> possible = new ArrayList<String>();
 				for (String u : uids) {
 					Collaboration c = null;
 					if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
 					if ((c == null) || (c.getState() == null)) {
-						User user = myShepherd.getUser(u);
+						User otherUser = myShepherd.getUser(u);
 						String fullName = u;
-						if (user.getFullName()!=null) fullName = user.getFullName();
+						if (otherUser.getFullName()!=null) fullName = otherUser.getFullName();
 						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
 					}
 				}
@@ -264,7 +281,7 @@ context=ServletUtilities.getContext(request);
 <table><tr>
 
 <td valign="middle">
- <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=occ.getOccurrenceID()%></h1>
+ <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <span class="secure-field"><%=occ.getOccurrenceID()%></span></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
  <table><tr valign="middle">
   <td>
@@ -281,6 +298,9 @@ context=ServletUtilities.getContext(request);
 <div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
 </td>
 </tr></table> </td></tr></table>
+
+
+<div class="secure-field occurrence-fields">
 
 <p><%=props.getProperty("groupBehavior") %>:
 <%
@@ -423,6 +443,10 @@ if(occ.getLocationID()!=null){
 }
 %>
 </p>
+
+</div>
+
+
 <table id="encounter_report" width="100%">
 <tr>
 
