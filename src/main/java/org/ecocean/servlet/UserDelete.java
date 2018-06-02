@@ -67,11 +67,11 @@ public class UserDelete extends HttpServlet {
           int numRoles=roles.size();
           for(int i=0;i<numRoles;i++){
             Role r=roles.get(i);
-            if(myShepherd.getUser(r.getUsername())==null){
+            //if(myShepherd.getUser(r.getUsername())!=null){
             myShepherd.getPM().deletePersistent(r);
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
-            }
+            //}
           }
       }
         
