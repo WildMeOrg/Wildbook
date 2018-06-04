@@ -199,6 +199,10 @@ new_message.append("<html><body>");
 
 <p><strong><%=props.getProperty("thankYou") %></strong></p>
 
+<p>
+	<strong><a href="//<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp?mimicEncounter=<%=number%>">Would you like to submit another Encounter with the same information?</a>Click here.</strong>
+</p>
+<br>
 <p><strong><%=props.getProperty("confirmFilesOK") %>:</strong> <%=filesOKMessage %></p>
 <p><strong><%=props.getProperty("confirmFilesBad") %>:</strong> <%=filesBadMessage %></p>
 
@@ -209,9 +213,7 @@ new_message.append("<html><body>");
 <p>
 	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
 </p>
-<p>
-	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp?mimicEncounter=<%=number%>">Would you like to submit another Encounter with the same information?</a>.
-</p>
+
 <hr>
 <p>You can adopt a sand tiger shark and give it a nickname. To search for adoptable sharks and select one or more sharks to adopt, click the button below. </p>
 <a href="adoptananimal.jsp">
