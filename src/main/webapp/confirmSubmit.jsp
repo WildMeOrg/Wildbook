@@ -200,8 +200,9 @@ new_message.append("<html><body>");
 <p><strong><%=props.getProperty("thankYou") %></strong></p>
 
 <p>
-	<strong><a href="//<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp?mimicEncounter=<%=number%>">Would you like to submit another Encounter with the same information?</a>Click here.</strong>
+	<strong><a href="//<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp?mimicEncounter=<%=number%>">Click here to submit another sand tiger shark encounter from the same date and location.</a></strong>
 </p>
+<p> Key information, such as the date, location, and your personal information will be autopopulated for your convenience.</p>
 <br>
 <p><strong><%=props.getProperty("confirmFilesOK") %>:</strong> <%=filesOKMessage %></p>
 <p><strong><%=props.getProperty("confirmFilesBad") %>:</strong> <%=filesBadMessage %></p>
