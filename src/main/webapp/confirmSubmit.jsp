@@ -213,7 +213,7 @@ new_message.append("<html><body>");
 	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp?mimicEncounter=<%=number%>">Would you like to submit another Encounter with the same information?</a>.
 </p>
 <hr>
-<p>Did you know you can adopt a shark, and give it a nickname? Click the button below to look through all the sharks that need to be adopted.</p>
+<p>You can adopt a sand tiger shark and give it a nickname. To search for adoptable sharks and select one or more sharks to adopt, click the button below. </p>
 <a href="adoptananimal.jsp">
     <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
 </a>

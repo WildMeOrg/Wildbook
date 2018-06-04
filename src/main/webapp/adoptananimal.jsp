@@ -32,9 +32,8 @@ context=ServletUtilities.getContext(request);
 	<h2>Support cutting edge sand tiger shark research.</h2>
 	<section class="adoption-details">
 		<p>
-			Adopt a sand tiger shark, give it a nickname, and receive updates each time it's spotted! Funds
-			raised by shark adoptions are used to offset the costs of maintaining this global library and
-			to support new and existing research projects.
+		By adopting a sand tiger shark, you can give it a nickname and receive updates each time it is spotted by citizen scientists. 
+		Funds raised through shark adoptions are used to maintain the Spot A Shark USA and Spot A Shark Australia programs and to support additional sand tiger shark research and conservation. 
 		</p>
 		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
