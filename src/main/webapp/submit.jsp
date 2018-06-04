@@ -553,6 +553,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
 <p class="help-block"><%=props.getProperty("where") %></p>
+<p class="text-danger"><%=props.getProperty("requiredLocation") %></p>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label text-danger">Location description:</label>
@@ -1373,9 +1374,37 @@ function sendButtonClicked() {
 	return true;
 }
 
-function agreementChecked() {
+function locationEntered() {
+  console.log("Location Entered?");
+  var gpsData = false;
+  if ($("#latitude").val().length>1&&$('#longitude').val().length>1) {
+    gpsData = true;
+    console.log("GPS yes!");
+  }
+  var locID = false; 
+  if ($("#locationID").val().length>0) {
+    locID = true;
+    console.log("Loc ID yes!");
+  }
+  var loc = false;
+  if ($("#location").val().length>0) {
+    loc = true;
+    console.log("Loc yes!");
+  }
+  if (gpsData||locID||loc) {
+    return true;
+    console.log("Return true.");
+  } else {
+    alert("Please enter at last one location field.");
+    $('#agreementCheckbox').prop('checked', false);
+    return false;
+  }
+}
+
+function requiredEntries() {
   var checked = $('#agreementCheckbox').is(':checked');
-  if (checked) {
+
+  if (checked&&locationEntered()) {
     $('#sendButton').prop("disabled", false);
   } else {
     $('#sendButton').prop("disabled", true);
@@ -1383,7 +1412,7 @@ function agreementChecked() {
 }
 </script>
 <br>
-	<p class="text-center"><input id="agreementCheckbox" type="checkbox" required onchange="agreementChecked()" name="terms"> I accept the <u><a target="_blank" href="userAgreement.jsp">Terms and Conditions of the User Agreement<span class="text-danger" style="text-decoration:none;"><strong> (required)</strong></span></a></u></p>
+	<p class="text-center"><input id="agreementCheckbox" type="checkbox" required onchange="requiredEntries()" name="terms"> I accept the <u><a target="_blank" href="userAgreement.jsp">Terms and Conditions of the User Agreement<span class="text-danger" style="text-decoration:none;"><strong> (required)</strong></span></a></u></p>
 
       <p class="text-center">
         <button class="large" id="sendButton" type="submit" onclick="return sendButtonClicked();" disabled>
