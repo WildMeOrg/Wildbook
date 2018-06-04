@@ -822,13 +822,43 @@ function convertDepth() {
     $('#depth').val(meters);
   }
 }
+
+function tookPhoto() {
+  if (document.getElementById("photographerNo").checked) {
+    $('#photographerData').show();
+  } else {
+    $('#photographerData').hide();
+  }
+}
+
 </script>
 
   <fieldset>
     <div class="row">
+
+      <div class="form-group form-inline">
+
+        <div class="col-xs-1 col-lg-1">
+
+        </div>
+        <div class="col-xs-5 col-lg-5">
+          <label class="text-danger control-label" style="text-align:left;">Are You the photographer?</label>
+        </div>
+        <div class="col-xs-5 col-md-5">
+          <input type="radio" name="isPhotographer" onChange="tookPhoto()" value="1" id="photographerYes" checked></input>
+          <label>Yes</label>
+          &nbsp
+          <input type="radio" name="isPhotographer" onChange="tookPhoto()" value="0" id="photographerNo"></input>
+          <label>No</label>
+        </div>
+        <div class="col-xs-1 col-lg-1">
+        </div>
+      </div>
+
       <div class="col-xs-12 col-lg-6">
         <h3><%=props.getProperty("aboutYou") %></h3>
         <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
+        <br>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
             <label class="text-danger control-label"><%=props.getProperty("submit_name") %></label>
@@ -849,7 +879,7 @@ function convertDepth() {
         </div>
       </div>
 
-      <div class="col-xs-12 col-lg-6">
+      <div id="photographerData" style="display:none;" class="col-xs-12 col-lg-6">
         <h3><%=props.getProperty("aboutPhotographer") %></h3>
         <p class="help-block"><%=props.getProperty("submit_contactphoto") %></p>
         <div class="form-group form-inline">
@@ -898,7 +928,7 @@ function convertDepth() {
       </div>
 
     </div>
-  </fielset>
+  </fieldset>
   
   <hr/>
 		<!-- shark flank side section -->
