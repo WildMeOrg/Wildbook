@@ -1,10 +1,10 @@
-SUBJECT: Email from Spot a Shark
+SUBJECT: Email from Spot a Shark USA
 
 @EMAIL_CONTENT@
 
 Sincerely,
 
-The Spot a Shark Team
+The Spot a Shark USA Team
 
 
 LEGAL STATEMENT

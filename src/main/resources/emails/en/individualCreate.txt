@@ -1,17 +1,22 @@
-SUBJECT: Encounter update: @ENCOUNTER_ID@
-Hello!
+SUBJECT: Sand tiger shark encounter update...
 
-Just a quick e-mail to let you know that the grey nurse shark encounter that you submitted
-has been added as a new, previously unidentified shark!
+Hi Spot A Shark USA contributor,
 
-You discovered a new shark for science.
+Great news! Spot A Shark USA researchers have now identified the sand tiger shark in the photo that you submitted.
+Your sand tiger shark has been assigned a unique ‘animal ID.’ Your sharks unique ID is:  @INDIVIDUAL_ID@ 
 
-Newly marked shark: @INDIVIDUAL_ID@
-@INDIVIDUAL_LINK@
+You can now search for and follow your shark on Spot A Shark USA using its ‘animal ID.’ 
+Your shark is also available for adoption. To adopt this sand tiger shark, give it a nickname, and receive updates when it is spotted, 
+click here to search for your shark.
 
-Encounter: @ENCOUNTER_ID@
-@ENCOUNTER_LINK@
+You will receive an email notification when other citizen-scientists observe your shark. 
+To opt out of these emails, click ‘unsubscribe’ at the bottom of your email at any time. 
+Thank you for your critical help with our sand tiger shark research and conservation. 
 
-Thanks again for your critical help. If you're interested in supporting our
-research to understand and protect animals like yours, please adopt and
-nickname your animal:
+Cheers,
+Spot A Shark USA
+
+Email: spotasharkusa@gmail.com
+Twitter: @SpotASharkUSA fa
+Facebook: @Spot A Shark USA
+Instagram: @SpotASharkUSA
