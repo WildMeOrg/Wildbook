@@ -682,13 +682,43 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
 
 	</script>
     
+	<div class="col-xs-12 col-lg-12">
+		<h4>GPS Coordinate Location</h4>
+  </div>
+  <div class="col-xs-12 col-lg-6">
+		<div class="form-group form-inline">
+      <div class="row">
+        <div class="col-xs-12 col-md-4">
+          <label class="text-danger control-label">Latitude</label>
+        </div>
+        <div class="col-xs-12 col-lg-8">
+          <input class="form-control" name="lat" type="text" id="latitude" size="24" value="<%=default_latitude %>">
+        </div>
+      </div>
+		</div>
+  </div>
+  <div class="col-xs-12 col-lg-6">
+		<div class="form-group form-inline">
+      <div class="row">
+        <div class="col-xs-12 col-md-4">
+          <label class="text-danger control-label">Longitude<br></label>
+        </div>
+        <div class="col-xs-12 col-lg-8">
+          <input class="form-control" name="longitude" type="text" id="longitude" size="24" value="<%=default_longitude %>">
+        </div>
+      </div>
+		</div>
+  </div>
+  <div class="col-xs-12 col-lg-6">
+		<p class="help-block">We ask that you upload GPS coordinates in the decimal degrees format. Do you have coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a></p>
+	</div>
 <%
 }
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
-          <div class="form-group required">
+    <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label"><%=props.getProperty("country") %></label>
       </div>
@@ -727,28 +757,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 </div>
 
 <div class="row">
-	<div class="col-xs-12 col-lg-6">
-		<h3>GPS Coordinates</h3>
-		<div class="form-group form-inline">
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label">Latitude</label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="lat" type="text" id="latitude" size="24" value="<%=default_latitude %>">
-			</div>
-		</div>
-		<div class="form-group form-inline">
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label">Longitude<br></label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="longitude" type="text" id="longitude" size="24" value="<%=default_longitude %>">
-			</div>
-		</div>
-		<p class="help-block">We ask that you upload GPS coordinates in the decimal degrees format. Do you have coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a></p>
-	</div>
 
-	<div class="col-xs-12 col-lg-6">
+	<div class="col-xs-12 col-lg-8">
 		<h3>Water Info</h3>
 		<p class="help-block">
 		</p>
