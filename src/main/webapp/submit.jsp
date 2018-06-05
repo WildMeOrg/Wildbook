@@ -469,7 +469,7 @@ function showUploadBox() {
 
 
 <fieldset>
-<h3><%=props.getProperty("submit_image")%></h3>
+<h3 class="text-danger"><%=props.getProperty("submit_image")%></h3>
 <p><%=props.getProperty("submit_pleaseadd")%></p>
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
@@ -553,14 +553,24 @@ if(CommonConfiguration.showReleaseDate(context)){
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
 <p class="help-block"><%=props.getProperty("where") %></p>
-<p class="text-danger"><%=props.getProperty("requiredLocation") %></p>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label text-danger">Location description:</label>
+        <label class="control-label">Location description:</label>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <input name="location" type="text" id="location" size="40" class="form-control" value="<%=default_location %>">
       </div>
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+      <p class="text-danger"><%=props.getProperty("requiredLocation") %></p>
+      <p class="help-block">
+        <%=props.getProperty("locationOptions") %>
+        <ul>
+          <li>Select location from a list of popular diving and fishing sites</li>
+          <li>Provide coordinates for the location using latitude and longitude</li>
+          <li>Manually identify location on a map</li>
+        </ul>
+      </p>
     </div>
 
 
@@ -570,9 +580,11 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
+    <br>
     <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-12">
         <label class="control-label"><%=props.getProperty("studySites") %></label>
+         <p class="help-block"><%=props.getProperty("studySitesSummary") %></p>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
@@ -683,7 +695,8 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
 	</script>
     
 	<div class="col-xs-12 col-lg-12">
-		<h4>GPS Coordinate Location</h4>
+		<h4>Enter geographic coordinates</h4>
+    <p class="help-block"><%=props.getProperty("gpsSummary") %> Link:(<a href="http://www.csgnetwork.com/gpscoordconv.html">http://www.csgnetwork.com/gpscoordconv.html</a>)</p>
   </div>
   <div class="col-xs-12 col-lg-6">
 		<div class="form-group form-inline">
@@ -744,6 +757,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 }  //end if showCountry
 
 %>
+<br>
+<div class="col-xs-12 col-lg-12">
+  <h4><%=props.getProperty("mapTitle") %></h4>
+  <p class="help-block"><%=props.getProperty("mapSummary") %> Link:(<a href="http://www.csgnetwork.com/gpscoordconv.html">http://www.csgnetwork.com/gpscoordconv.html</a>)</p>
+</div>
+
 
 <div style="text-align:center;">
     <p id="map">
@@ -867,7 +886,7 @@ function tookPhoto() {
       </div>
 
       <div class="col-xs-12 col-lg-6">
-        <h3><%=props.getProperty("aboutYou") %></h3>
+        <h3 class="text-danger"><%=props.getProperty("aboutYou") %></h3>
         <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
         <br>
         <div class="form-group form-inline">
@@ -915,7 +934,6 @@ function tookPhoto() {
       <div class="col-xs-12 col-lg-12">
         <h3><%=props.getProperty("charterOperator") %></h3>
         <p class="help-block"><%=props.getProperty("submit_charteroperator") %></p>
-        <p class="help-block"><small><%=props.getProperty("leaveBlankIfNone") %></small></p>
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("operatorName") %></label>
@@ -970,11 +988,9 @@ function tookPhoto() {
 
   <fieldset>
     <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
-      </div>
-
       <div class="col-xs-6 col-lg-8">
+        <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
+        <p class="help-block"><%=props.getProperty("submitterOrganizationSummary") %></p>
         <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
       </div>
     </div>
@@ -983,6 +999,7 @@ function tookPhoto() {
       <div class="col-xs-6 col-md-4">
         <label class="control-label"><%=props.getProperty("submitterProject") %></label>
       </div>
+
       <div class="col-xs-6 col-lg-8">
         <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
       </div>
@@ -992,6 +1009,7 @@ function tookPhoto() {
       <div class="col-xs-6 col-md-4">
         <label class="control-label"><%=props.getProperty("submit_comments") %></label>
       </div>
+
       <div class="col-xs-6 col-lg-8">
         <textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
       </div>
