@@ -502,7 +502,113 @@ function showUploadBox() {
 
 </fieldset>
 
-<hr />
+<hr/>
+
+ <fieldset>
+    <div class="row">
+
+      <div class="form-group form-inline">
+
+        <div class="col-xs-1 col-lg-1">
+
+        </div>
+        <div class="col-xs-5 col-lg-5">
+          <label class="text-danger control-label" style="text-align:left;">Are You the photographer?</label>
+        </div>
+        <div class="col-xs-5 col-md-5">
+          <input type="radio" name="isPhotographer" onChange="tookPhoto()" value="1" id="photographerYes" checked></input>
+          <label>Yes</label>
+          &nbsp
+          <input type="radio" name="isPhotographer" onChange="tookPhoto()" value="0" id="photographerNo"></input>
+          <label>No</label>
+        </div>
+        <div class="col-xs-1 col-lg-1">
+        </div>
+      </div>
+
+      <div class="col-xs-12 col-lg-6">
+        <h3 class="text-danger"><%=props.getProperty("aboutYou") %></h3>
+        <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
+        <br>
+        <div class="form-group form-inline">
+          <div class="col-xs-6 col-md-4">
+            <label class="text-danger control-label"><%=props.getProperty("submit_name") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName %>">
+          </div>
+        </div>
+
+        <div class="form-group form-inline">
+
+          <div class="col-xs-6 col-md-4">
+            <label class="text-danger control-label"><%=props.getProperty("submit_email") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>">
+          </div>
+        </div>
+      </div>
+
+      <div id="photographerData" style="display:none;" class="col-xs-12 col-lg-6">
+        <h3><%=props.getProperty("aboutPhotographer") %></h3>
+        <p class="help-block"><%=props.getProperty("submit_contactphoto") %></p>
+        <div class="form-group form-inline">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_name") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="photographerName" type="text" id="photographerName" size="24" value="<%=photographerName %>">
+          </div>
+        </div>
+
+        <div class="form-group form-inline">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_email") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24"  value="<%=photographerEmail %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-xs-6 col-lg-8">
+          <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
+          <p class="help-block"><%=props.getProperty("submitterOrganizationSummary") %></p>
+          <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
+        </div>
+      </div>
+
+      <div class="col-xs-12 col-lg-12">
+        <h3><%=props.getProperty("charterOperator") %></h3>
+        <p class="help-block"><%=props.getProperty("submit_charteroperator") %></p>
+        <div class="form-group form-inline">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("operatorName") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <select class="form-control"  name="charterOperatorName" id="charterOperatorName">
+              <option value="<%=default_charter_operator%>"><%=default_charter_operator%></option>
+              <%
+              if (CommonConfiguration.getIndexedPropertyValues("charterOperator", context).size()>0) {
+                ArrayList<String> operators = (ArrayList) CommonConfiguration.getIndexedPropertyValues("charterOperator", context);
+                for (String operator : operators) {
+              %>
+                  <option value="<%=operator%>"><%=operator%></option>
+              <%
+                }
+              }
+              %>
+            </select> 
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </fieldset>
+
+<hr>/
 
 <fieldset>
 
@@ -551,7 +657,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 <hr />
 
 <fieldset>
-    <h3><%=props.getProperty("submit_location")%></h3>
+    <h3 class="text-danger"><%=props.getProperty("submit_location")%></h3>
 <p class="help-block"><%=props.getProperty("where") %></p>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
@@ -722,9 +828,6 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
       </div>
 		</div>
   </div>
-  <div class="col-xs-12 col-lg-6">
-		<p class="help-block">We ask that you upload GPS coordinates in the decimal degrees format. Do you have coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a></p>
-	</div>
 <%
 }
 
@@ -760,7 +863,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <br>
 <div class="col-xs-12 col-lg-12">
   <h4><%=props.getProperty("mapTitle") %></h4>
-  <p class="help-block"><%=props.getProperty("mapSummary") %> Link:(<a href="http://www.csgnetwork.com/gpscoordconv.html">http://www.csgnetwork.com/gpscoordconv.html</a>)</p>
+  <p class="help-block"><%=props.getProperty("mapSummary") %></p>
 </div>
 
 
@@ -775,54 +878,55 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <p id="map_overlay_buttons"></p>
 </div>
 
+<hr/>
+<!-- ENVIRONMENTAL INFORMATION! -->
+
 <div class="row">
 
-	<div class="col-xs-12 col-lg-8">
-		<h3>Water Info</h3>
-		<p class="help-block">
-		</p>
-		<div class="form-group form-inline">
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label pull-left" style="text-align:left;">Water Temperature in Fahrenheit</label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<input class="form-control" name="measurement(temperature)" type="text" id="temperature" size="20" value="<%=default_measurement_temperature  %>">
-					
-					<input type="hidden" name="measurement(temperatureunits)" value="celsius">
-					<br>
-			</div>
-		</div>
-		<!-- depth && above/below water -->
+  <div class="col-xs-12 col-lg-12">
+    <h3><%=props.getProperty("environmentalHeader") %></h3>
+    <p class="help-block"><%=props.getProperty("environmentalSummary") %></p>
+  </div>
 
-    <div class="form-group form-inline">
-
-      <div class="col-xs-6 col-lg-4">
-        <label class="text-danger control-label" style="text-align:left;">Was the image taken from under water?</label>
-      </div>
-      <div class="col-xs-6 col-md-8">
-        <input type="radio" name="measurement(underwater)" onChange="aboveWater()" value="1" id="underwaterTrue"></input>
-        <label>Yes</label>
-        &nbsp
-        <input type="radio" name="measurement(underwater)" onChange="aboveWater()" value="0" id="underwaterFalse" checked></input>
-        <input type="hidden" name="measurement(underwaterunits)" value="binary">
-        <label>No</label>
-      </div>
+	<!-- depth && above/below water -->
+  <div class="form-group form-inline">
+    <div class="col-xs-12 col-md-6">
+      <label class="text-danger control-label" style="text-align:left;"><%=props.getProperty("aboveBelow") %></label>
     </div>
-		
-		<div id="depthDiv" style="display:none;" class="form-group form-inline">
-			<div class="col-xs-12 col-lg-12">
-			  <label class="control-label" style="text-align:left;">Please enter depth in feet if you know it.</label>
-        <input class="form-control" onChange="convertDepth()" name="feetDepth" type="number" id="feetDepth" value="<%=default_measurement_depth %>">
-				<input name="depth" type="hidden" id="depth">
-			</div>
+    <div class="col-xs-12 col-md-6">
+      <input type="radio" name="measurement(underwater)" onChange="aboveWater()" value="1" id="underwaterTrue"></input>
+      <label>Underwater</label>
+      &nbsp
+      <input type="radio" name="measurement(underwater)" onChange="aboveWater()" value="0" id="underwaterFalse" checked></input>
+      <input type="hidden" name="measurement(underwaterunits)" value="binary">
+      <label>Abovewater</label>
+    </div>
+  </div>
+  
+  <div id="depthDiv" style="display:none;" class="form-group form-inline">
+    <div class="col-xs-12 col-lg-12">
+      <label class="control-label" style="text-align:left;"><%=props.getProperty("submit_depth") %></label>
+      <p class="help-block"><%=props.getProperty("depthSummary")%></p>
+      <p class="help-block"><%=props.getProperty("depthUnits")%></p>
+      <input class="form-control" onChange="convertDepth()" name="feetDepth" type="number" id="feetDepth" value="<%=default_measurement_depth %>">
+      <input name="depth" type="hidden" id="depth">
+    </div>
+  </div>
+
+	<div class="form-group form-inline">
+	  <div class="col-xs-12 col-md-12">
+      <label class="control-label" style="text-align:left;"><%=props.getProperty("waterTemperature") %></label>
+      <p class="help-block"><%=props.getProperty("waterUnits") %></p>
+      <input class="form-control" name="measurement(temperature)" type="text" id="temperature" size="24" value="<%=default_measurement_temperature  %>">				
+      <input type="hidden" name="measurement(temperatureunits)" value="celsius">
+      <br>
 		</div>
 	</div>
+
 </div>
 
 
 </fieldset>
-<hr />
-
 
 <script>
 
@@ -862,108 +966,96 @@ function tookPhoto() {
 }
 
 </script>
-
-  <fieldset>
-    <div class="row">
-
-      <div class="form-group form-inline">
-
-        <div class="col-xs-1 col-lg-1">
-
-        </div>
-        <div class="col-xs-5 col-lg-5">
-          <label class="text-danger control-label" style="text-align:left;">Are You the photographer?</label>
-        </div>
-        <div class="col-xs-5 col-md-5">
-          <input type="radio" name="isPhotographer" onChange="tookPhoto()" value="1" id="photographerYes" checked></input>
-          <label>Yes</label>
-          &nbsp
-          <input type="radio" name="isPhotographer" onChange="tookPhoto()" value="0" id="photographerNo"></input>
-          <label>No</label>
-        </div>
-        <div class="col-xs-1 col-lg-1">
-        </div>
-      </div>
-
-      <div class="col-xs-12 col-lg-6">
-        <h3 class="text-danger"><%=props.getProperty("aboutYou") %></h3>
-        <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
-        <br>
-        <div class="form-group form-inline">
-          <div class="col-xs-6 col-md-4">
-            <label class="text-danger control-label"><%=props.getProperty("submit_name") %></label>
-          </div>
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName %>">
-          </div>
-        </div>
-
-        <div class="form-group form-inline">
-
-          <div class="col-xs-6 col-md-4">
-            <label class="text-danger control-label"><%=props.getProperty("submit_email") %></label>
-          </div>
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>">
-          </div>
-        </div>
-      </div>
-
-      <div id="photographerData" style="display:none;" class="col-xs-12 col-lg-6">
-        <h3><%=props.getProperty("aboutPhotographer") %></h3>
-        <p class="help-block"><%=props.getProperty("submit_contactphoto") %></p>
-        <div class="form-group form-inline">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_name") %></label>
-          </div>
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="photographerName" type="text" id="photographerName" size="24" value="<%=photographerName %>">
-          </div>
-        </div>
-
-        <div class="form-group form-inline">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_email") %></label>
-          </div>
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24"  value="<%=photographerEmail %>">
-          </div>
-        </div>
-      </div>
-
-      <div class="col-xs-12 col-lg-12">
-        <h3><%=props.getProperty("charterOperator") %></h3>
-        <p class="help-block"><%=props.getProperty("submit_charteroperator") %></p>
-        <div class="form-group form-inline">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("operatorName") %></label>
-          </div>
-          <div class="col-xs-6 col-lg-8">
-            <select class="form-control"  name="charterOperatorName" id="charterOperatorName">
-              <option value="<%=default_charter_operator%>"><%=default_charter_operator%></option>
-              <%
-              if (CommonConfiguration.getIndexedPropertyValues("charterOperator", context).size()>0) {
-                ArrayList<String> operators = (ArrayList) CommonConfiguration.getIndexedPropertyValues("charterOperator", context);
-                for (String operator : operators) {
-              %>
-                  <option value="<%=operator%>"><%=operator%></option>
-              <%
-                }
-              }
-              %>
-            </select> 
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </fieldset>
   
-  <hr/>
-		<!-- shark flank side section -->
-		<fieldset>
-			
+<hr/>
+
+<!-- About  the Shark -->
+<fieldset>			
 	<div class="row">
+
+    <div class="col-xs-12 col-lg-12">
+      <h3><%=props.getProperty("aboutTheSharkHeader") %></h3>
+    </div>
+
+    <div class="form-group">
+      <div class="col-xs-6 col-md-4">
+        <label class="control-label"><%=props.getProperty("status") %></label>
+      </div>
+      <div class="col-xs-6 col-lg-8">
+        <label class="radio-inline">
+          <input type="radio" name="livingStatus" value="alive" selected="selected"><%=props.getProperty("alive") %></input>
+        </label>
+        <label class="radio-inline">
+          <input type="radio" name="livingStatus" value="dead"><%=props.getProperty("dead") %></input>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-xs-6 col-md-4">
+        <label class="control-label"><%=props.getProperty("submit_sex") %>:</label>
+      </div>
+      <div class="col-xs-6 col-lg-8">
+        <label class="radio-inline">
+          <input name="sex" type="radio" value="unknown" checked="checked"> <%=props.getProperty("submit_unsure") %>
+        </label>
+        <label class="radio-inline">
+          <input type="radio" name="sex" value="male"> <%=props.getProperty("submit_male") %>
+        </label>
+        <label class="radio-inline">
+          <input type="radio" name="sex" value="female"> <%=props.getProperty("submit_female") %>
+        </label>
+      </div>
+    </div>
+
+<%
+if(CommonConfiguration.showProperty("showLifestage",context)){
+%>
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("lifeStage") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <%
+                      boolean hasMoreStages=true;
+                      int stageNum=0;
+
+                      while(hasMoreStages){
+                            String currentLifeStage = "lifeStage"+stageNum;
+                            if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
+                                %>
+                                <label class="radio-inline">
+                                  <input type="radio" name="lifeStage" value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></input>
+                                </label>
+                                <%
+                              stageNum++;
+                        }
+                        else{
+                          hasMoreStages=false;
+                        }
+                    }
+            %>
+          </div>
+        </div>
+<%
+}
+%>
+        <br/>
+
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
+            <p class="help-block"><%=props.getProperty("behaviorExplanation") %></p>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="behavior" type="text" id="behavior" size="48">
+          </div>
+        </div>
+
+
+
+
+
 		<div class="form-group">
 			<div class="col-xs-12 col-lg-12">
 				<h3>Hookmark</h3>
@@ -986,14 +1078,9 @@ function tookPhoto() {
 
   <hr/>
 
+
+
   <fieldset>
-    <div class="form-group">
-      <div class="col-xs-6 col-lg-8">
-        <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
-        <p class="help-block"><%=props.getProperty("submitterOrganizationSummary") %></p>
-        <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
-      </div>
-    </div>
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
@@ -1016,40 +1103,13 @@ function tookPhoto() {
     </div>
   </fieldset>
 
-
-
-
-  <h4 class="accordion">
-    <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
-      <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
-      <%=props.getProperty("advancedInformation") %>
-    </a>
-  </h4>
-
-    <div id="advancedInformation" fade="1" style="display: none;">
+    <div id="advancedInformation" fade="1">
 
       <h3><%=props.getProperty("aboutAnimal") %></h3>
 
       <fieldset>
 
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_sex") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <label class="radio-inline">
-              <input type="radio" name="sex" value="male"> <%=props.getProperty("submit_male") %>
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="sex" value="female"> <%=props.getProperty("submit_female") %>
-            </label>
-            <label class="radio-inline">
-              <input name="sex" type="radio" value="unknown" checked="checked"> <%=props.getProperty("submit_unsure") %>
-            </label>
-          </div>
-        </div>
-        </fieldset>
+      </fieldset>
  
         <fieldset>
 <%
@@ -1096,85 +1156,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 }
 
 %>
-
-  <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("status") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="livingStatus" id="livingStatus">
-              <option value="alive" selected="selected"><%=props.getProperty("alive") %></option>
-              <option value="dead"><%=props.getProperty("dead") %></option>
-            </select>
-          </div>
-        </div>
-
-				<div class="form-group">
-					<div class="col-xs-6 col-md-4">
-						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
-					</div>
-
-					<div class="col-xs-6 col-lg-8">
-						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
-					</div>
-				</div>
-
-
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
-          </div>
-        </div>
-
-
-
-<%
-
-if(CommonConfiguration.showProperty("showLifestage",context)){
-
-%>
-<div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("lifeStage") %></label>
-          </div>
-          <div class="col-xs-6 col-lg-8">
-  <select name="lifeStage" id="lifeStage">
-      <option value="" selected="selected"></option>
-  <%
-                     boolean hasMoreStages=true;
-                     int stageNum=0;
-
-                     while(hasMoreStages){
-                           String currentLifeStage = "lifeStage"+stageNum;
-                           if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-                               %>
-
-                                 <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-                               <%
-                             stageNum++;
-                        }
-                        else{
-                          hasMoreStages=false;
-                        }
-
-                   }
-
- %>
-  </select>
-  </div>
-        </div>
-
-
-<%
-}
-%>
-
-
 
 </fieldset>
 <%
