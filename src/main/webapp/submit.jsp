@@ -904,7 +904,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   </div>
   
   <div id="depthDiv" style="display:none;" class="form-group form-inline">
-    <div class="col-xs-12 col-lg-12">
+    <div class="col-xs-12 col-lg-6">
       <label class="control-label" style="text-align:left;"><%=props.getProperty("submit_depth") %></label>
       <p class="help-block"><%=props.getProperty("depthSummary")%></p>
       <p class="help-block"><%=props.getProperty("depthUnits")%></p>
@@ -914,7 +914,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   </div>
 
 	<div class="form-group form-inline">
-	  <div class="col-xs-12 col-md-12">
+	  <div class="col-xs-12 col-md-6">
       <label class="control-label" style="text-align:left;"><%=props.getProperty("waterTemperature") %></label>
       <p class="help-block"><%=props.getProperty("waterUnits") %></p>
       <input class="form-control" name="measurement(temperature)" type="text" id="temperature" size="24" value="<%=default_measurement_temperature  %>">				
@@ -936,6 +936,14 @@ function aboveWater() {
   } else {
     $('#depthDiv').hide();
     $('#depth').val('');
+  }
+}
+
+function scarOrHook() {
+  if (document.getElementById("hasScarTrue").checked) {
+    $('#scarringChecks').show();
+  } else {
+    $('#scarringChecks').hide();
   }
 }
 
@@ -1052,26 +1060,42 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
           </div>
         </div>
 
+        <div class="form-group">
+          <div class="col-xs-12 col-lg-12">
+            <label class="text-danger"><%=props.getProperty("hookmarkHead") %></p>
+          </div>
+          <div class="col-xs-12 col-lg-12">
+            <label class="radio-inline">
+              <input type="radio" name="hasScar" onChange="scarOrHook()" value="1" id="hasScarTrue">Yes</input>
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="hasScar" onChange="scarOrHook()" value="0" checked="checked" id="hasScarFalse">No</input>
+            </label>
+          </div>
 
 
 
+          <div id="scarringChecks" class="col-xs-6 col-lg-8" style="display:none;">
+            <label class="radio-inline">
+              <input type="checkbox" name="hookmark" value="FishingHook">Fishing Hook</input>
+            </label>
+            
+            <label class="radio-inline">
+              <input type="checkbox" name="hookmark" value="FishingGear">Fishing Gear</input>
+            </label>
 
-		<div class="form-group">
-			<div class="col-xs-12 col-lg-12">
-				<h3>Hookmark</h3>
-				<p class="text-danger">Is a hookmark or scar noticable in your photo?</p>
-			</div>
-			<div class="col-xs-6 col-md-4">
-				<label class="text-danger control-label">Scarring/hookmark:</label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<select class="form-control" name="hookmark" id="hookmark">
-					<option value="N" selected="selected">None</option>
-					<option value="H">Hooked</option>
-					<option value="O">Marked</option>
-				</select>
-			</div>
-		</div>
+            <label class="radio-inline">
+              <input type="checkbox" name="hookmark" value="Scarred">Scar(s)</input>
+            </label>
+
+            <label class="radio-inline">
+              <input type="checkbox" name="hookmark" value="Wounded">Wound(s)</input>
+            </label>
+            <br>
+            <p class="help-block"><%=props.getProperty("hookmarkHelp") %></p>
+          </div>
+        </div>
+
 	</div>
 	</fieldset>
 
@@ -1107,9 +1131,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
       <h3><%=props.getProperty("aboutAnimal") %></h3>
 
-      <fieldset>
-
-      </fieldset>
  
         <fieldset>
 <%
