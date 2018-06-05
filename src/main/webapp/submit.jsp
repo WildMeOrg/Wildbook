@@ -608,7 +608,7 @@ function showUploadBox() {
     </div>
   </fieldset>
 
-<hr>/
+<hr/>
 
 <fieldset>
 
@@ -947,6 +947,22 @@ function scarOrHook() {
   }
 }
 
+function hasATag() {
+  if (document.getElementById("hasTagTrue").checked) {
+    $('#tagDataDiv').show();
+  } else {
+    $('#tagDataDiv').hide();
+  }
+}
+
+function gotMeasurements() {
+  if (document.getElementById("hasMeasurementsTrue").checked) {
+    $('#measurementDataDiv').show();
+  } else {
+    $('#measurementDataDiv').hide();
+  }
+}
+
 $(document).ready(function() {
     if ($('#feetDepth').val().length>0) {
       $('#underwaterFalse').prop("checked", false);
@@ -1058,9 +1074,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
           <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="behavior" type="text" id="behavior" size="48">
           </div>
-        </div>
 
-        <div class="form-group">
           <div class="col-xs-12 col-lg-12">
             <label class="text-danger"><%=props.getProperty("hookmarkHead") %></p>
           </div>
@@ -1072,6 +1086,10 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
               <input type="radio" name="hasScar" onChange="scarOrHook()" value="0" checked="checked" id="hasScarFalse">No</input>
             </label>
           </div>
+        </div>
+
+        <br>
+        
 
 
 
@@ -1095,9 +1113,170 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             <p class="help-block"><%=props.getProperty("hookmarkHelp") %></p>
           </div>
         </div>
+        <div class="form-group">
+          <div class="col-xs-12 col-lg-12">
+            <label class="control-label"><%=props.getProperty("tagPrompt") %></label>
+          </div>
+          <div class="col-xs-12 col-lg-12">
+            <label class="radio-inline">
+              <input type="radio" name="hasTag" onChange="hasATag()" value="1" id="hasTagTrue">Yes</input>
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="hasTag" onChange="hasATag()" value="0" checked="checked" id="hasTagFalse">No</input>
+            </label>
+          </div>
+        </div>
 
-	</div>
+        <div id="tagDataDiv" style="display:none;">
+                <%
+            pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
+            pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
+            pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
+            pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
+          %>
+
+          <c:if test="${showMetalTags and !empty metalTags}">
+
+          <div class="form-group">
+                    <div class="col-xs-6 col-md-4">
+                      <label><%=props.getProperty("physicalTags") %></label>
+                    </div>
+
+          <div class="col-xs-12 col-lg-8">
+              <table class="metalTags">
+              <tr>
+                <th><%=props.getProperty("location") %></th><th><%=props.getProperty("tagNumber") %></th>
+              </tr>
+              <c:forEach items="${metalTags}" var="metalTagDesc">
+                <tr>
+                  <td><c:out value="${metalTagDesc.locationLabel}:"/></td>
+                  <td><input name="metalTag(${metalTagDesc.location})"/></td>
+                </tr>
+              </c:forEach>
+              </table>
+            </div>
+            </div>
+          </c:if>
+
+          <c:if test="${showAcousticTag}">
+          <div class="form-group">
+                    <div class="col-xs-6 col-md-4">
+                      <label><%=props.getProperty("acousticTag") %></label>
+                    </div>
+          <div class="col-xs-12 col-lg-8">
+                <table class="acousticTag">
+                <tr>
+                <td><%=props.getProperty("serialNumber") %></td>
+                <td><input name="acousticTagSerial"/></td>
+                </tr>
+                <tr>
+                  <td><%=props.getProperty("id") %></td>
+                  <td><input name="acousticTagId"/></td>
+                </tr>
+                </table>
+              </div>
+              </div>
+          </c:if>
+
+          <c:if test="${showSatelliteTag}">
+          <div class="form-group">
+                    <div class="col-xs-6 col-md-4">
+                      <label><%=props.getProperty("satelliteTag") %></label>
+                    </div>
+          <%
+            pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
+          %>
+          <div class="col-xs-12 col-lg-8">
+                <table class="satelliteTag">
+                <tr>
+                  <td><%=props.getProperty("name") %></td>
+                  <td>
+                      <select name="satelliteTagName">
+                        <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+                          <option value="${satelliteTagName}">${satelliteTagName}</option>
+                        </c:forEach>
+                      </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td><%=props.getProperty("serialNumber") %></td>
+                  <td><input name="satelliteTagSerial"/></td>
+                </tr>
+                <tr>
+                  <td><%=props.getProperty("argosNumber") %></td>
+                  <td><input name="satelliteTagArgosPttNumber"/></td>
+                </tr>
+                </table>
+              </div>
+              </div>
+          </c:if>
+          </div>
+
+          <br/>
+
+          <div class="form-group">
+            <div class="col-xs-12 col-lg-12">
+              <label class="text-danger"><%=props.getProperty("measurementHeader") %></p>
+            </div>
+            <div class="col-xs-12 col-lg-12">
+              <label class="radio-inline">
+                <input type="radio" name="hasMeasurements" onChange="gotMeasurements()" value="1" id="hasMeasurementsTrue">Yes</input>
+              </label>
+              <label class="radio-inline">
+                <input type="radio" name="hasMeasurements" onChange="gotMeasurements()" value="0" checked="checked" id="hasMeasurementsFalse">No</input>
+              </label>
+            </div>
+          </div>
+
+          <div id="measurementDataDiv" style="display:none;">
+              <%
+                  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
+              %>
+              <c:if test="${showMeasurements}">
+                <div class="form-group">
+
+                <div class="col-xs-12 col-lg-8">
+                  <table class="measurements">
+                  <tr>
+                  <th>Type</th><th>Size</th><th>Units</th><th>Sampling Protocol</th>
+                  </tr>
+                    <!--the below line makes it so that temp is not listed here (temp is listed above)-->
+                      <tr>
+                      <td>Pre-caudal Length</td>
+                      <td><input name="measurement(precaudallength)" id="precaudallength"/><input type="hidden" name="measurement(precaudallengthunits)" value="centimeters"/></td>
+                      <td>feet</td>
+                        <td>
+                          <select name="measurement(precaudallengthsamplingProtocol)">
+                          
+                            <option value="samplingProtocol0">Laser measured</option>
+                          
+                            <option value="samplingProtocol1">Tape measured length qualifiers</option>
+                          
+                          </select>
+                        </td>
+                      </tr>
+                      <tr>
+                      <td>Length</td>
+                      <td><input name="measurement(length)" id="length"/><input type="hidden" name="measurement(lengthunits)" value="centimeters"/></td>
+                      <td>feet</td>
+                      
+                        <td>
+                          <select name="measurement(lengthsamplingProtocol)">
+                          
+                            <option value="samplingProtocol0">Laser measured</option>
+                          
+                            <option value="samplingProtocol1">Tape measured length qualifiers</option>
+                          
+                          </select>
+                        </td>      
+                      </tr>
+                    </table>
+                    </div>
+                  </div>
+              </c:if>
+  	  </div>
 	</fieldset>
+
 
 
   <hr/>
@@ -1117,22 +1296,17 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     </div>
 
     <div class="form-group">
-      <div class="col-xs-6 col-md-4">
+      <div class="col-xs-12 col-md-12">
         <label class="control-label"><%=props.getProperty("submit_comments") %></label>
-      </div>
-
-      <div class="col-xs-6 col-lg-8">
+        <p class="help-block"><%=props.getProperty("commentsSummary") %></p>
         <textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
       </div>
+
     </div>
   </fieldset>
 
     <div id="advancedInformation" fade="1">
-
-      <h3><%=props.getProperty("aboutAnimal") %></h3>
-
- 
-        <fieldset>
+  <fieldset>
 <%
 
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
@@ -1179,154 +1353,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 %>
 
 </fieldset>
-<%
-    pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
-%>
-<c:if test="${showMeasurements}">
-  <hr>
-  <fieldset>
-
-
-  <div class="form-group">
-            <h3>Measurements</h3>
-
-
-  <div class="col-xs-12 col-lg-8">
-    <table class="measurements">
-    <tr>
-    <th>Type</th><th>Size</th><th>Units</th><th>Sampling Protocol</th>
-    </tr>
-      <!--the below line makes it so that temp is not listed here (temp is listed above)-->
-        <tr>
-        <td>Pre-caudal Length</td>
-        <td><input name="measurement(precaudallength)" id="precaudallength"/><input type="hidden" name="measurement(precaudallengthunits)" value="centimeters"/></td>
-        <td>feet</td>
-        
-          <td>
-            <select name="measurement(precaudallengthsamplingProtocol)">
-            
-              <option value="samplingProtocol0">Laser measured</option>
-            
-              <option value="samplingProtocol1">Tape measured length qualifiers</option>
-            
-            </select>
-          </td>
-        
-        </tr>
-          
-        <tr>
-        <td>Length</td>
-        <td><input name="measurement(length)" id="length"/><input type="hidden" name="measurement(lengthunits)" value="centimeters"/></td>
-        <td>feet</td>
-        
-          <td>
-            <select name="measurement(lengthsamplingProtocol)">
-            
-              <option value="samplingProtocol0">Laser measured</option>
-            
-              <option value="samplingProtocol1">Tape measured length qualifiers</option>
-            
-            </select>
-          </td>
-        
-        </tr>
-            
-      
-      </table>
-      </div>
-    </div>
-  </fieldset>
-</c:if>
-
-
-      <hr/>
-
-       <fieldset>
-        <h3><%=props.getProperty("tags") %></h3>
-      <%
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
-  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
-  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
-  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
-%>
-
-<c:if test="${showMetalTags and !empty metalTags}">
-
- <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label><%=props.getProperty("physicalTags") %></label>
-          </div>
-
-<div class="col-xs-12 col-lg-8">
-    <table class="metalTags">
-    <tr>
-      <th><%=props.getProperty("location") %></th><th><%=props.getProperty("tagNumber") %></th>
-    </tr>
-    <c:forEach items="${metalTags}" var="metalTagDesc">
-      <tr>
-        <td><c:out value="${metalTagDesc.locationLabel}:"/></td>
-        <td><input name="metalTag(${metalTagDesc.location})"/></td>
-      </tr>
-    </c:forEach>
-    </table>
-  </div>
-  </div>
-</c:if>
-
-<c:if test="${showAcousticTag}">
- <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label><%=props.getProperty("acousticTag") %></label>
-          </div>
-<div class="col-xs-12 col-lg-8">
-      <table class="acousticTag">
-      <tr>
-      <td><%=props.getProperty("serialNumber") %></td>
-      <td><input name="acousticTagSerial"/></td>
-      </tr>
-      <tr>
-        <td><%=props.getProperty("id") %></td>
-        <td><input name="acousticTagId"/></td>
-      </tr>
-      </table>
-    </div>
-    </div>
-</c:if>
-
-<c:if test="${showSatelliteTag}">
- <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label><%=props.getProperty("satelliteTag") %></label>
-          </div>
-<%
-  pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
-%>
-<div class="col-xs-12 col-lg-8">
-      <table class="satelliteTag">
-      <tr>
-        <td><%=props.getProperty("name") %></td>
-        <td>
-            <select name="satelliteTagName">
-              <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
-                <option value="${satelliteTagName}">${satelliteTagName}</option>
-              </c:forEach>
-            </select>
-        </td>
-      </tr>
-      <tr>
-        <td><%=props.getProperty("serialNumber") %></td>
-        <td><input name="satelliteTagSerial"/></td>
-      </tr>
-      <tr>
-        <td><%=props.getProperty("argosNumber") %></td>
-        <td><input name="satelliteTagArgosPttNumber"/></td>
-      </tr>
-      </table>
-    </div>
-    </div>
-</c:if>
-
-      </fieldset>
 
 <hr/>
 
