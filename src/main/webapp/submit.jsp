@@ -572,6 +572,8 @@ function showUploadBox() {
         </div>
       </div>
 
+      <br/>
+
       <div class="form-group">
         <div class="col-xs-6 col-lg-8">
           <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
@@ -1242,34 +1244,47 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
                   </tr>
                     <!--the below line makes it so that temp is not listed here (temp is listed above)-->
                       <tr>
-                      <td>Pre-caudal Length</td>
-                      <td><input name="measurement(precaudallength)" id="precaudallength"/><input type="hidden" name="measurement(precaudallengthunits)" value="centimeters"/></td>
-                      <td>feet</td>
+                        <td>Pre-caudal Length</td>
+                        <td><input name="measurement(precaudallength)" id="precaudallength"/><input type="hidden" name="measurement(precaudallengthunits)" value="centimeters"/></td>
+                        <td>centimeters</td>
                         <td>
                           <select name="measurement(precaudallengthsamplingProtocol)">
                           
-                            <option value="samplingProtocol0">Laser measured</option>
-                          
                             <option value="samplingProtocol1">Tape measured length qualifiers</option>
+                            <option value="samplingProtocol0">Laser measured</option>
                           
                           </select>
                         </td>
                       </tr>
-                      <tr>
-                      <td>Length</td>
-                      <td><input name="measurement(length)" id="length"/><input type="hidden" name="measurement(lengthunits)" value="centimeters"/></td>
-                      <td>feet</td>
                       
+                      <tr>
+                        <td>Length</td>
+                        <td><input name="measurement(length)" id="length"/><input type="hidden" name="measurement(lengthunits)" value="centimeters"/></td>
+                        <td>centimeters</td>
                         <td>
                           <select name="measurement(lengthsamplingProtocol)">
                           
-                            <option value="samplingProtocol0">Laser measured</option>
-                          
                             <option value="samplingProtocol1">Tape measured length qualifiers</option>
+                            <option value="samplingProtocol0">Laser measured</option>
                           
                           </select>
                         </td>      
                       </tr>
+
+                      <tr>
+                        <td>Fork Length</td>
+                        <td><input name="measurement(forklength)" id="forklength"/><input type="hidden" name="measurement(forklengthunits)" value="centimeters"/></td>
+                        <td>centimeters</td>
+                        <td>
+                          <select name="measurement(forklengthsamplingProtocol)">
+                          
+                            <option value="samplingProtocol1">Tape measured length qualifiers</option>
+                            <option value="samplingProtocol0">Laser measured</option>
+                          
+                          </select>
+                        </td>      
+                      </tr>
+
                     </table>
                     </div>
                   </div>
