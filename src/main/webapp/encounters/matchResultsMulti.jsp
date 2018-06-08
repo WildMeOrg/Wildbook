@@ -558,7 +558,8 @@ function manualCallback(tid) {
 	var m = jobIdMap[tid];
 	if (!m || !m.jobId) return alert('Could not find jobid for ' + tid);
 	if (jobIdMap[tid].manualAttempts > 3) {
-		$('#wait-message-' + tid).html('failed to obtain results').removeClass('throbbing');;
+		//$('#wait-message-' + tid).html('failed to obtain results').removeClass('throbbing');
+		$('#wait-message-' + tid).html('Still waiting on results. Please try again later. IA is most likely ingesting a large amount of data.').removeClass('throbbing');
 		return;
 	}
 	jobIdMap[tid].manualAttempts++;
@@ -613,7 +614,8 @@ function showTaskResult(res) {
 		var sorted = score_sort(res.status._response.response.json_result['cm_dict'][qannotId]);
 		if (!sorted || (sorted.length < 1)) {
 			//$('#task-' + res.taskId + ' .waiting').remove();  //shouldnt be here (cuz got result)
-			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
+			//$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
+			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">Image Analysis has returned and no match was found.</p>');
 			return;
 		}
 		var max = sorted.length;
