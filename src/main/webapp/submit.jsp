@@ -691,7 +691,7 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
     <br>
     <div class="form-group required">
       <div class="col-xs-12 col-sm-12 col-md-4 col-lg-12">
-        <label class="control-label"><%=props.getProperty("studySites") %></label>
+        <h4><%=props.getProperty("studySites") %></h4>
          <p class="help-block"><%=props.getProperty("studySitesSummary") %></p>
       </div>
 
@@ -722,6 +722,7 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
                        }
 
      %>
+            <option value=""><strong>Other</strong></option>
       </select>
       </div>
     </div>
@@ -1002,6 +1003,40 @@ function tookPhoto() {
     <div class="col-xs-12 col-lg-12">
       <h3><%=props.getProperty("aboutTheSharkHeader") %></h3>
     </div>
+<%
+if(CommonConfiguration.showProperty("showTaxonomy",context)){
+%>
+      <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("species") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <select class="form-control" name="genusSpecies" id="genusSpecies">
+             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
+<%
+  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+  					int numGenusSpeciesProps=species.size();
+  					String selected="";
+  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
+
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+                    	for(int q=0;q<numGenusSpeciesProps;q++){
+                           String currentGenuSpecies = "genusSpecies"+q;
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                               %>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                               <%
+                        }
+                   }
+                   }
+ %>
+  </select>
+    </div>
+        </div>
+<%
+}
+%>
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
@@ -1090,12 +1125,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
           </div>
         </div>
 
-        <br>
         
 
 
 
           <div id="scarringChecks" class="col-xs-6 col-lg-8" style="display:none;">
+            <label class="help-block"><%=props.getProperty("scarringExplanation") %></label>
             <label class="radio-inline">
               <input type="checkbox" name="hookmark" value="FishingHook">Fishing Hook</input>
             </label>
@@ -1321,53 +1356,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   </fieldset>
 
     <div id="advancedInformation" fade="1">
-  <fieldset>
-<%
-
-if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-%>
-
-      <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("species") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
-  <%
-
-  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
-  					int numGenusSpeciesProps=species.size();
-  					String selected="";
-  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
-
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-                    	for(int q=0;q<numGenusSpeciesProps;q++){
-                           String currentGenuSpecies = "genusSpecies"+q;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-
-                        }
-
-
-                   }
-                   }
- %>
-  </select>
-    </div>
-        </div>
-
-        <%
-}
-
-%>
-
-</fieldset>
 
 <hr/>
 
