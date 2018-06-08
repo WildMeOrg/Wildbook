@@ -1,11 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration,
-         com.google.gson.Gson,java.text.SimpleDateFormat,
-         org.datanucleus.api.rest.orgjson.JSONObject
+         com.google.gson.Gson,java.text.SimpleDateFormat,org.ecocean.tag.*,org.datanucleus.api.rest.orgjson.JSONObject
          " %>
-
-
-
 
 <%
 
@@ -23,33 +19,23 @@ context=ServletUtilities.getContext(request);
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
   File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  //if(!encountersDir.exists()){encountersDir.mkdirs();}
-  //File thisEncounterDir = new File(encountersDir, number);
 
-//setup our Properties object to hold all properties
+  String langCode=ServletUtilities.getLanguageCode(request);  
   Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-
-
-
-  //load our variables for the submit page
-
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/occurrence.properties"));
   props = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
+  
+  Properties encProps = new Properties();
+  encProps = ShepherdProperties.getProperties("encounter.properties", langCode,context);
 
-  System.out.println("occurrence.jsp got props with 'occurrence' defined as "+props.getProperty("occurrence"));
 
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
-  String name = request.getParameter("number").trim();
+  String number = request.getParameter("number").trim();
+  
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("occurrence.jsp");
-
-
 
   boolean isOwner = false;
   if (request.getUserPrincipal()!=null) {
@@ -58,32 +44,10 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-
-
-  <style type="text/css">
-    <!--
-    .style1 {
-      color: #000000;
-      font-weight: bold;
-    }
-
-
-
-    div.scroll {
-      height: 200px;
-      overflow: auto;
-      border: 1px solid #666;
-      background-color: #ccc;
-      padding: 8px;
-    }
-
-
-    -->
-  </style>
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 <link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
-  <jsp:include page="header.jsp" flush="true"/>
+<jsp:include page="header.jsp" flush="true"/>
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
 
@@ -92,6 +56,8 @@ context=ServletUtilities.getContext(request);
 
 <script src="javascript/sss.js"></script>
 <link rel="stylesheet" href="css/sss.css" type="text/css" media="all">
+<link rel="stylesheet" href="css/ecocean.css" type="text/css" media="all">
+  
 <script>
   jQuery(function($) {
     $('.slider').sss({
@@ -100,32 +66,10 @@ context=ServletUtilities.getContext(request);
       transition : 400, // Length (in milliseconds) of the fade transition.
       speed : 3500, // Slideshow speed in milliseconds.
       showNav : true // Set to false to hide navigation arrows.
-      });
-
-      $(".slider").show();
     });
+      $(".slider").show();
+  });
 </script>
-
-<!--  FACEBOOK LIKE BUTTON -->
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
-
-<!-- GOOGLE PLUS-ONE BUTTON -->
-<script type="text/javascript">
-  (function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-  })();
-</script>
-
-
 
 <div class="container maincontent secure-field">
 
@@ -415,20 +359,281 @@ if(occ.getIndividualCount()!=null){
     </td>
   </tr>
 </table>
+</div>
+  
+  <%
+  Occurrence occ = null;
+  boolean hasAuthority = false;
+  myShepherd.beginDBTransaction();
+  if (myShepherd.isOccurrence(number)) {
+      occ = myShepherd.getOccurrence(number);
+      hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
+	  List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+	  boolean visible = occ.canUserAccess(request);
 
-                         		</div>
-                         		<!-- popup dialog script -->
+	  if (!visible) {
+  		ArrayList<String> uids = occ.getAllAssignedUsers();
+		ArrayList<String> possible = new ArrayList<String>();
+		for (String u : uids) {
+			Collaboration c = null;
+			if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
+			if ((c == null) || (c.getState() == null)) {
+				User user = myShepherd.getUser(u);
+				String fullName = u;
+				if (user.getFullName()!=null) fullName = user.getFullName();
+					possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
+				}
+			}
+			String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+			cmsg = cmsg.replace("'", "\\'");
+
+			if (possible.size() > 0) {
+   			String arr = new Gson().toJson(possible);
+				blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+			} else {
+				cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+				blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
+			}
+		}
+	out.println(blocker);
+  }
+%>
+	<table>
+		<tr>
+			<td valign="middle">
+ 				<h2><strong><img style="align: center;" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=occ.getOccurrenceID()%></h2>
+				<p class="caption"><em><%=props.getProperty("description") %></em></p>
+  			</td>		
+  		</tr>
+  	</table>
+  	<p>
+	<%
+	if (occ.getSurvey(myShepherd)!=null) {
+		String surveyID = occ.getSurvey(myShepherd).getID();
+	%>	
+		<strong><%=props.getProperty("correspondingSurvey") %>:&nbsp</strong> 
+			<a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getOccurrenceID()%>&surveyID=<%=surveyID%>"><%=surveyID%></a>			
+	<%	
+	} else {
+	%>	
+		<strong><%=props.getProperty("noSurvey") %></strong>
+	<%
+	}
+	if (isOwner) {
+	%>
+		<a class="" type="button" name="button" id="editSurvey" style="cursor: pointer;"><strong>Edit</strong></a>
+		<a class="" type="button" name="button" id="closeEditSurvey" style="display: none;cursor: pointer;"><strong>Close Edit</strong></a> 			
+	<%
+	}
+	if (occ.getCorrespondingSurveyTrackID()!=null) {
+		String surveyTrackID = occ.getCorrespondingSurveyTrackID();
+	%>
+		<br/>	
+		<strong><%=props.getProperty("correspondingSurveyTrack") %>:&nbsp<%=surveyTrackID%></strong> 									
+	<%	
+	} 
+	%>		
+	</p>
+
+	<!-- Triggers edit survey and track ID form. -->
+	
+<script type="text/javascript">
+	$(document).ready(function() {
+	  var buttons = $("#editSurvey, #closeEditSurvey").on("click", function(){
+	    buttons.toggle();
+	  });
+	  $("#editSurvey").click(function() {
+	    //$(".editFormSurvey, .editTextSurvey, .allEditSurvey").toggle();
+	    $("#addSurveyForm").slideDown();
+	  });
+	  $("#closeEditSurvey").click(function() {
+	    //$(".editFormSurvey, .editTextSurvey, .resultMessageDiv, .allEditSurvey").toggle();
+	    $("#addSurveyForm").slideUp();
+	  });
+	});
+</script>								
+		<% 
+			if (isOwner) {
+		%>
+			<script type="text/javascript">
+                  $(document).ready(function() {
+                    $("#addOccurrence").click(function(event) {
+                      event.preventDefault();
+
+                      var occID = $("#addOccNumber").val();
+                      var surveyID = $("#surveyID").val();
+                      var surveyTrackID = $("#surveyTrackID").val();
+
+                      $.post("../OccurrenceSetSurveyAndTrack", {"occID": occID, "surveyTrackID": surveyTrackID, "surveyID": surveyID},
+                      function() {
+                        $("#addOccErrorDiv").hide();
+                        $("#addDiv").addClass("has-success");
+                        $("#createOccCheck").show();
+                        $("#addSurveyCheck").show().text("Success! Refresh the page to see your changes.");
+                      })
+                      .fail(function(response) {
+                        console.log("<small>Failed to add to survey.</small>");
+                        $("#addDiv").addClass("has-error");
+                        $("#addOccError, #addOccErrorDiv").show();
+                        $("#addSurveyError").show().text("Failed to add survey and track! Make sure it exists.");
+                        $("#addOccurrence").show();
+                      });
+                    });
+
+                    $("#add2OccurrenceInput").click(function() {
+                      $("#addOccError, #addOccCheck, #addOccErrorDiv").hide()
+                      $("#addDiv").removeClass("has-success");
+                      $("#addDiv").removeClass("has-error");
+                      $("#addOccurrence").show();
+                      $("#addEncErrorDiv").hide();
+                    });
+                  });
+                </script>
+			<div id="addSurveyForm" style="display:none;">
+				<div class="col-xs-6 col-lg-6">
+					<div class="highlight resultMessageDiv" id="addSurveyErrorDiv"></div>
+					<form name="addSurveyToOccurrence" class="editFormSurvey">
+						<input name="number" type="hidden" value="<%=number%>" id="addOccNumber" />
+						<div class="form-group row">
+							<div class="col-sm-8" id="addDiv">
+								<label><%=props.getProperty("addSurvey")%>: </label>
+								<input name="surveyID" id="surveyID" type="text" class="form-control" placeholder="<%=props.getProperty("surveyID")%>" /> 	
+								<br/>
+								<label><%=props.getProperty("addSurveyTrack")%>: </label><br/>
+								<label><small>Must be defined to link back from Survey.</small></label>
+								<input name="surveyTrackID" id="surveyTrackID" type="text" class="form-control" placeholder="<%=props.getProperty("surveyTrackID")%>" />
+								<label style="display:none;" id="addSurveyCheck"></label>
+								<label style="color:red;" id="addSurveyError"></label>
+							</div>
+							<div class="col-sm-8">
+								<input name="Add" type="submit" id="addOccurrence" value="<%=props.getProperty("set")%>" class="btn btn-sm editSurveyFormBtn" />
+							</div>
+						</div>
+					</form>					
+				</div>
+				<div class="col-xs-6 col-lg-6">
+					<br>
+				</div>
+			</div>
+		<%
+			}
+		%>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+<div class="row">	
+	<div class="col-xs-12">
+	<br/>
+	<p><%=props.getProperty("groupBehavior") %>: 
+		<%if(occ.getGroupBehavior()!=null){%>
+			<%=occ.getGroupBehavior() %>
+		<%}%>
+		&nbsp; 
+		<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
+			<a id="groupB" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
+		<%}%>
+	</p>
+	<div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
+		<table border="1">
+		  <tr>
+		    <td align="left" valign="top">
+		      <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
+		            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
+		            <%=props.getProperty("groupBehavior") %>:
+		        
+			        <%if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){%>
+			        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
+			        <%} else { %>
+			        	<select name="behaviorComment" id="behaviorComment">
+			        		<option value=""></option>
+			   
+			   				<%
+			   				boolean hasMoreStages=true;
+			   				int taxNum=0;
+			   				while(hasMoreStages){
+			   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
+			   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
+				   	  		%>
+				   	  	 
+				   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
+				   	  		<%
+				   					taxNum++;
+			      				} else {
+			         				hasMoreStages=false;
+			      				}
+			   				}%>
+			  			</select>
+			        <%}%>
+		        	<input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
+		        </form>
+		    </td>
+		  </tr>
+		</table>
+	</div>
+  
 <script>
-var dlgIndies = $("#dialogIndies").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+	var dlgGroupB = $("#dialogGroupB").dialog({
+	  autoOpen: false,
+	  draggable: false,
+	  resizable: false,
+	  width: 600
+	});
+	
+	$("a#groupB").click(function() {
+	  dlgGroupB.dialog("open");
+	});
+</script>  
 
-$("a#indies").click(function() {
-  dlgIndies.dialog("open");
-});
+	<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
+	
+	<p>
+		<%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
+		<%if(occ.getIndividualCount()!=null){%>
+			<%=occ.getIndividualCount() %>
+		<%}%>
+		&nbsp; 
+		<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) { %>
+			<a id="indies" style="color:blue;cursor: pointer;">
+				<img width="20px" height="20px" style="border-style: none; align: center;" src="images/Crystal_Clear_action_edit.png"/>
+			</a>	
+		<%}%>
+	</p>
+	
+  	<div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">           
+		<table border="1" >
+		  <tr>
+		    <td align="left" valign="top">
+		      <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
+		        <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
+		            <%=props.getProperty("newIndividualCount") %>:
+		
+		        <input name="count" type="text" id="count" size="5" maxlength="7"></input> 
+		        <input name="individualCountButton" type="submit" id="individualCountName" value="<%=props.getProperty("set") %>">
+		      </form>
+		    </td>
+		  </tr>
+		</table>
+	</div>
+	
+	
+<script>
+	var dlgIndies = $("#dialogIndies").dialog({
+	  autoOpen: false,
+	  draggable: false,
+	  resizable: false,
+	  width: 600
+	});
+	
+	$("a#indies").click(function() {
+	  dlgIndies.dialog("open");
+	});
 </script>
 
 
@@ -619,7 +824,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
       ArrayList<JSONObject> photoObjectArray = occ.getExemplarImages(request);
       String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
       int numPhotos=photoObjectArray.size();
-	if(numPhotos>0){
+	  if (numPhotos>0) {
 	      for (int extraImgNo=0; extraImgNo<numPhotos; extraImgNo++) {
 	        JSONObject newMaJson = new JSONObject();
 	        newMaJson = photoObjectArray.get(extraImgNo);
@@ -633,12 +838,11 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 	        </div>
 	        <%
 	      }
-    }
-	else{
+      } else {
 		%>
-		<p><%=props.getProperty("noImages") %></p>
+		  <p class="text-center"><%=props.getProperty("noImages") %></p>
 		<%
-	}
+	  }
       %>
     </div>
 
@@ -800,6 +1004,120 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 </form>
 </div> <!--row -->
 
+  <div class="row">
+      <div class="col-xs-6">
+      <!-- Observations Column -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".editFormObservation").hide();
+    var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
+      buttons.toggle();
+    });
+    $("#editDynamic").click(function() {
+      $("#editInstructions, .editFormObservation").show();
+    });
+    $("#closeEditDynamic").click(function() {
+      $("#editInstructions, .editFormObservation").hide();
+    });
+  });
+</script>
+          <%
+          if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+          %>
+            <h2>
+              <img src="../images/lightning_dynamic_props.gif" />
+              <%=props.getProperty("dynamicProperties")%>
+              <button class="btn btn-md" type="button" name="button"
+                id="editDynamic">Edit</button>
+              <button class="btn btn-md" type="button" name="button"
+                id="closeEditDynamic" style="display: none;">Close Edit</button>
+            </h2>
+            <p id="editInstructions" style="display:none;"><small>Set an empty value field to remove an observation.</small></p>
+          <%
+          } else {
+          %>
+          <h2>
+            <img src="../images/lightning_dynamic_props.gif" />
+            <%=props.getProperty("dynamicProperties")%>
+          </h2>
+          <br/>
+          <%
+          }
+              // Let's make a list of editable Observations... Dynamically!
+              
+          if (occ.getObservationArrayList() != null) {
+            ArrayList<Observation> obs = occ.getObservationArrayList();
+            System.out.println("Observations ... "+obs);
+            int numObservations = occ.getObservationArrayList().size();
+            for (Observation ob : obs) {
+              
+              String nm = ob.getName();
+              String vl = ob.getValue();
+          %>
+              
+              <p><em><%=nm%></em>:&nbsp<%=vl%></p>
+              <!-- Start dynamic (Observation) form. -->
+              <div style="display:none;" id="dialogDP<%=nm%>" class="editFormObservation" title="<%=props.getProperty("set")%> <%=nm%>">
+                <p class="editFormObservation">
+                  <strong><%=props.getProperty("set")%> <%=nm%></strong>
+                </p>
+                <form name="editFormObservation" action="../OccurrenceSetObservation" method="post" class="editFormDynamic">
+                  <input name="name" type="hidden" value="<%=nm%>" /> 
+                  <input name="number" type="hidden" value="<%=number%>" />
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <label><%=props.getProperty("propertyValue")%></label>
+                    </div>
+                    <div class="col-sm-5">
+                      <input name="value" type="text" class="form-control" id="dynInput" value="<%=vl%>"/>
+                    </div>
+                    <div class="col-sm-4">
+                      <input name="Set" type="submit" id="dynEdit" value="<%=props.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn" />
+                    </div>
+                  </div>
+                </form>
+              </div>
+              
+        <%} 
+            if (numObservations == 0) {%>
+              <p><%=props.getProperty("none")%></p>
+        <%}
+        } else {
+        %>
+        <p><%=props.getProperty("none")%></p>
+        <%}%>
+      <div style="display: none;" id="dialogDPAdd"
+        title="<%=props.getProperty("addDynamicProperty")%>"
+        class="editFormObservation">
+        <p class="editFormObservation">
+          <strong><%=props.getProperty("addDynamicProperty")%></strong>
+        </p>
+        <form name="addDynProp" action="../OccurrenceSetObservation"
+          method="post" class="editFormObservation">
+          <input name="number" type="hidden" value="<%=number%>" />
+          <input name="type" type="hidden" value="Occurrence" />
+          <div class="form-group row">
+            <div class="col-sm-3">
+              <label><%=props.getProperty("propertyName")%></label>
+            </div>
+            <div class="col-sm-5">
+              <input name="name" type="text" class="form-control" id="addDynPropInput" />
+            </div>
+          </div>
+          <div class="form-group row">
+            <div class="col-sm-3">    
+              <label><%=props.getProperty("propertyValue")%></label>
+            </div>
+            <div class="col-sm-5">
+              <input name="value" type="text" class="form-control" id="addDynPropInput2" />
+            </div>
+            <div class="col-sm-4">
+              <input name="Set" type="submit" id="addDynPropBtn" value="<%=props.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn" />
+            </div>
+          </div>
+        </form>
+      </div>    
+    </div>        
 
 
 
@@ -819,9 +1137,6 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
     	<%
     }
 
-
-
-
   }
 
   catch (Exception eSharks_jsp) {
@@ -829,11 +1144,16 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
     eSharks_jsp.printStackTrace();
   }
 
-
-
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
-%>
-</div>
+
+  %>	 
+	<hr/>
+	<br/>
+	
+	<!-- Begin dual column for tags and observations -->
+		<br/><br/>
+</div> <!-- End Maincontent Div --> 
+
 <jsp:include page="footer.jsp" flush="true"/>

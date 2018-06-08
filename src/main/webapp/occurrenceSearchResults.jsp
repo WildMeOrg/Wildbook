@@ -153,7 +153,7 @@
         <li><a class="active"><%=occProps.getProperty("table")%>
         </a></li>
             <li><a
-           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
+           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("permitExport")%>
          </a></li>
 
       </ul>
@@ -235,7 +235,7 @@ $(document).keydown(function(k) {
 
 // functor!
 function _notUndefined(fieldName) {
-  function _helperFunc(o) {
+  function _helperFunc(o) {	
     if (o[fieldName] == undefined) return '';
     return o[fieldName];
   }
@@ -277,7 +277,10 @@ var colDefn = [
     key: 'imageSet',
     label: '<%=occProps.getProperty("imageSet")%>',
     value: _notUndefined('imageSet'),
-  },*/
+  },
+  
+*/
+ 
   {
     key: 'ID',
     label: 'ID',
@@ -324,6 +327,12 @@ var colDefn = [
   },
 
   /*
+  {
+    key: 'individualCount',
+    label: 'Encounters',
+    value: _notUndefined('individualCount'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
 	{
 		key: 'individual',
 		label: '<%=props.getProperty("markedIndividual")%>',
@@ -332,12 +341,6 @@ var colDefn = [
 		//sortFunction: function(a,b) {},
 	},
 
-	{
-		key: 'numberEncounters',
-		label: '<%=props.getProperty("numEncounters")%>',
-		value: _colNumberEncounters,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
 	{
 		key: 'maxYearsBetweenResightings',
 		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
@@ -355,7 +358,6 @@ var colDefn = [
 	}*/
 
 ];
-
 
 var howMany = 30;
 var start = 0;
@@ -650,9 +652,12 @@ function _colIndividual(o) {
 
 
 function _colNumberEncounters(o) {
-	if (o.numberEncounters == undefined) return '';
-	return o.numberEncounters;
+	if (o.encounters == undefined) return '';
+	//console.log("Here's the encs: "+JSON.stringify(o.encounters));
+	//console.log("Here's th length: "+o.encounters.length);
+	return o.encounters.length;
 }
+
 
 /*
 function _colYearsBetween(o) {
@@ -703,7 +708,6 @@ function _colThumb(o) {
 	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
 }
 
-
 function _colModified(o) {
 	var m = o.get('modified');
 	if (!m) return '';
@@ -731,7 +735,7 @@ function _textExtraction(n) {
 
 function applyFilter() {
 	var t = $('#filter-text').val();
-console.log(t);
+	console.log(t);
 	sTable.filter(t);
 	start = 0;
 	newSlice(1);

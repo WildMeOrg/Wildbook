@@ -202,6 +202,7 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     }
 */
 
+/*  this is deprecated, methinks
     public static JSONObject saveEntitiesAsMediaAssetsToSheperdDatabaseAndSendEachToImageAnalysis(List<MediaAsset> mas, Long tweetID, Shepherd myShepherd, JSONObject tj, HttpServletRequest request){
         if ((mas == null) || (mas.size() < 1)) {
         } else {
@@ -232,7 +233,7 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
         }
         return tj;
     }
-
+*/
 
     public static void sendDetectionAndIdentificationTweet(String context, String screenName, String imageId, String whaleId, boolean detected, boolean identified, String info){
         Map<String,String> vars = new HashMap<String,String>();  //%SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV, %URL_SUBMIT
