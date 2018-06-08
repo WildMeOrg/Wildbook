@@ -1145,6 +1145,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public void setMetadata(MediaAssetMetadata md) {
         metadata = md;
     }
+    public void setMetadata() throws IOException {
+        setMetadata(updateMetadata());
+    }
     public MediaAssetMetadata updateMetadata() throws IOException {  //TODO should this overwrite existing, or append?
         if (store == null) return null;
         metadata = store.extractMetadata(this);
