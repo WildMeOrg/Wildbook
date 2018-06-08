@@ -10,7 +10,6 @@ import org.ecocean.*;
 import org.ecocean.genetics.BiologicalMeasurement;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.HiddenIndividualReporter;
-import org.springframework.mock.web.MockHttpServletRequest;
 
 import jxl.write.*;
 import jxl.*;

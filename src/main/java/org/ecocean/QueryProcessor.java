@@ -63,12 +63,6 @@ public abstract class QueryProcessor {
     System.out.println("filterWithBasicStringField: field "+fieldName+" made subFilter "+subFilter);
     return filterWithSubfilter(filter, subFilter);
   }
-  // same as above, but also does bad practice of modifying inpnut variable prettyPrint (this makes for nice 'n' readable code!)
-  protected static String filterWithBasicStringField(String filter, String fieldName, HttpServletRequest request, StringBuffer prettyPrint) {
-    prettyPrint.append(prettyPrintUpdateForBasicString(fieldName, request));
-    return filterWithBasicStringField(filter, fieldName, request);
-  }
-
   protected static String filterWithExactStringField(String filter, String fieldName, HttpServletRequest request) {
     String subFilter = stringFieldExactSubFilter(request, fieldName);
     System.out.println("filterWithExactStringField: field "+fieldName+" made subFilter "+subFilter);
@@ -81,6 +75,7 @@ public abstract class QueryProcessor {
   protected static String filterWithExactStringField(String filter, String fieldName, HttpServletRequest request, StringBuffer prettyPrint) {
     prettyPrint.append(prettyPrintUpdateForExactString(fieldName, request));
     return filterWithExactStringField(filter, fieldName, request);
+  }
   // same as above, but also does bad practice of modifying input variable prettyPrint (this makes for nice 'n' readable code!)
   protected static String filterWithBasicStringField(String filter, String fieldName, HttpServletRequest request, StringBuffer prettyPrint) {
     prettyPrint.append(prettyPrintUpdateForBasicString(fieldName, request));
