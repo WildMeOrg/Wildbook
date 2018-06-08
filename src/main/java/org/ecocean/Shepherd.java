@@ -804,7 +804,16 @@ public class Shepherd {
       return null;
     }
   }
-
+  public SexAnalysis getSexAnalysis(String analysisID) {
+    try {
+      SexAnalysis mtDNA = (SexAnalysis)getGeneticAnalysis(analysisID, "SexAnalysis");
+      return mtDNA;
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+}
   public BiologicalMeasurement getBiologicalMeasurement(String sampleID, String encounterNumber, String analysisID) {
     try {
       BiologicalMeasurement mtDNA = (BiologicalMeasurement)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "BiologicalMeasurement");
@@ -820,6 +829,16 @@ public class Shepherd {
   public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MicrosatelliteMarkers");
+      return msDNA;
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+  }
+  public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String analysisID) {
+    try {
+      MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(analysisID, "MicrosatelliteMarkers");
       return msDNA;
     }
     catch (Exception nsoe) {
@@ -967,6 +986,14 @@ public class Shepherd {
   return null;
 
   }
+  public Keyword getOrCreateKeyword(String name) {
+    Keyword kw = getKeyword(name);
+    if (kw==null) {
+      kw = new Keyword(name);
+      storeNewKeyword(kw);
+    }
+    return kw;
+  }
 
 
 
@@ -1090,6 +1117,33 @@ public class Shepherd {
     }
     return false;
   }
+  public boolean isGeneticAnalysis(String analysisID) {
+    return (getGeneticAnalysis(analysisID)!=null);
+  }
+
+  public GeneticAnalysis getGeneticAnalysis(String analysisID) {
+    String filter = "this.analysisID == \""+analysisID+"\"";
+
+    Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+    try {
+
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+      GeneticAnalysis gen=(GeneticAnalysis)it.next();
+      acceptedEncounters.closeAll();
+        return gen;
+      }
+      acceptedEncounters.closeAll();
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      acceptedEncounters.closeAll();
+      return null;
+    }
+    return null;
+  }
 
   public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
     String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
@@ -1114,7 +1168,28 @@ public class Shepherd {
     }
     return null;
   }
+  public GeneticAnalysis getGeneticAnalysis(String analysisID, String type) {
+    String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\"";
+        Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+    try {
 
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+      GeneticAnalysis gen=(GeneticAnalysis)it.next();
+      acceptedEncounters.closeAll();
+        return gen;
+      }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      acceptedEncounters.closeAll();
+      return null;
+    }
+    acceptedEncounters.closeAll();
+    return null;
+}
   public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
     String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
 	      Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
@@ -1184,6 +1259,9 @@ public class Shepherd {
     }
     return true;
   }
+  public boolean isMarkedIndividual(MarkedIndividual ind) {
+    return (ind!=null && isMarkedIndividual(ind.getIndividualID()));
+  }
 
   public boolean isOccurrence(String name) {
     try {
@@ -1192,6 +1270,9 @@ public class Shepherd {
       return false;
     }
     return true;
+  }
+  public boolean isOccurrence(Occurrence occ) {
+    return (occ!=null && isOccurrence(occ.getOccurrenceID()));
   }
   
   public boolean isPath(String name) {
@@ -2413,6 +2494,14 @@ public class Shepherd {
     }
     return tempShark;
   }
+  public Occurrence getOrCreateOccurrence(String id) {
+      if (id==null) return new Occurrence(Util.generateUUID());
+      Occurrence occ = getOccurrence(id);
+      if (occ != null) return occ;
+      occ = new Occurrence(id);
+      return occ;
+  }
+
   
   public Survey getSurvey(String id) {
     Survey srv = null;

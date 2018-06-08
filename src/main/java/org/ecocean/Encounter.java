@@ -991,6 +991,10 @@ public class Encounter implements java.io.Serializable {
     this.year=year;
     resetDateInMilliseconds();
   }
+  // this does not reset year/month/etc
+  public void setDateInMillisOnly(long ms) {
+      this.dateInMilliseconds = ms;
+  }
 
 
   public int getDay() {

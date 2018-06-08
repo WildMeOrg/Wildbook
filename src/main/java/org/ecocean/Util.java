@@ -649,6 +649,15 @@ public class Util {
       return num;
     }
 
+    // replaces wrong-slashes with right-slashes
+    public static String windowsFileStringToLinux(String windowsFileString) {
+      return windowsFileString.replaceAll("\\\\","/");
+    }
+    public static boolean fileExists(String filepath) {
+      File f = new File(filepath);
+      return (f.exists() && !f.isDirectory());
+    } 
+
 
     
     public static String basicSanitize(String input) {
