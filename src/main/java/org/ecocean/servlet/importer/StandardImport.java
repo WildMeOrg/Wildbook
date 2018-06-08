@@ -82,7 +82,7 @@ public class StandardImport extends HttpServlet {
     // photoDirectory = "/data/oman_import/photos/";
     // String filename = "/data/oman_import/ASWN_secondExport.xlsx";
     photoDirectory = "/data/indocet/";
-    String filename = "/data/indocet/indocet_blended-globicefixed.xlsx"; //"/data/indocet/indocet_blended.xlsx";
+    String filename = "/data/indocet/indocet_blended.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
     File dataFile = new File(filename);
     boolean dataFound = dataFile.exists();
@@ -153,7 +153,23 @@ public class StandardImport extends HttpServlet {
         mark = loadIndividual(row, enc);
 
         if (committing) {
-        	myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+
+          for (Annotation ann: annotations) {
+            try {
+              MediaAsset ma = ann.getMediaAsset();
+              if (ma!=null) {
+                myShepherd.storeNewAnnotation(ann);
+                ma.setMetadata();
+                ma.updateStandardChildren(myShepherd);
+              }
+            }
+            catch (Exception e) {
+              System.out.println("EXCEPTION on annot/ma persisting!");
+              e.printStackTrace();
+            }
+          }
+
+          myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
         	if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
         	if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
         	myShepherd.commitDBTransaction();
@@ -231,6 +247,10 @@ public class StandardImport extends HttpServlet {
     return myShepherd.getOrCreateTaxonomy(sciName);
   }
 
+  public static boolean validLatLon(Double lat, Double lon) {
+    return ((lat!=null) && (lon!=null) && ((lat!=0.0)&&(lon!=0.0)) );
+  }
+
   public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
   	
   	Occurrence occ = getCurrentOccurrence(oldOcc, row);
@@ -246,10 +266,12 @@ public class StandardImport extends HttpServlet {
   	if (decimalLatitiude!=null) occ.setDecimalLatitude(decimalLatitiude);
 
   	Double decimalLatitude = getDouble(row, "Encounter.decimalLatitude");
-  	if (decimalLatitude!=null) occ.setDecimalLatitude(decimalLatitude);
-
   	Double decimalLongitude = getDouble(row, "Encounter.decimalLongitude");
-  	if (decimalLongitude!=null) occ.setDecimalLongitude(decimalLongitude);
+
+    if (validLatLon(decimalLatitude,decimalLongitude)) {
+      occ.setDecimalLatitude(decimalLatitude);
+      occ.setDecimalLongitude(decimalLongitude);
+    }
 
   	String fieldStudySite = getString(row, "Occurrence.fieldStudySite");
   	if (fieldStudySite!=null) occ.setFieldStudySite(fieldStudySite);
@@ -376,12 +398,16 @@ public class StandardImport extends HttpServlet {
   	Double latitude = getDouble(row,"Encounter.latitude");
     if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitude");
     if (latitude==null) latitude = getDouble(row,"Occurrence.decimalLatitude");
-  	if (latitude!=null) enc.setDecimalLatitude(latitude);
 
   	Double longitude = getDouble(row, "Encounter.longitude");
     if (longitude==null) longitude = getDouble(row,"Encounter.decimalLongitude");
     if (longitude==null) longitude = getDouble(row,"Occurrence.decimalLongitude");
-  	if (longitude!=null) enc.setDecimalLongitude(longitude);
+
+    if (validLatLon(latitude,longitude)) {
+      enc.setDecimalLatitude(latitude);
+      enc.setDecimalLongitude(longitude);
+    }
+
 
   	String locationID = getString(row, "Encounter.locationID");
   	if (locationID!=null) enc.setLocationID(locationID);
@@ -699,15 +725,6 @@ public class StandardImport extends HttpServlet {
 	  // String keywordOI = getString(row, keywordOIKey);
 	  // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
 	  // if (keyword!=null) ma.addKeyword(keyword);
-
-    try {
-      if (ma!=null && committing) {
-        ma.setMetadata();
-        ma.updateStandardChildren(myShepherd);
-      }
-    } catch (IOException e) {
-      System.out.println("StandardImport: IOException on MediaAsset.setMetadata");
-    }
 
 	  return ma;
   }
@@ -1120,7 +1137,8 @@ public class StandardImport extends HttpServlet {
 
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
-    return AssetStore.getDefault(myShepherd);
+    //return AssetStore.getDefault(myShepherd);
+    return AssetStore.get(myShepherd, 5);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook
