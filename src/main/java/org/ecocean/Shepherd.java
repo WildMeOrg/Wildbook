@@ -25,6 +25,8 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
+import org.ecocean.movement.Path;
+import org.ecocean.movement.SurveyTrack;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +34,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.io.File;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -175,7 +180,7 @@ public class Shepherd {
   }
 
 
-    public void storeNewOccurrence(Occurrence enc) {
+  public void storeNewOccurrence(Occurrence enc) {
       //enc.setOccurrenceID(uniqueID);
       beginDBTransaction();
       try {
@@ -187,9 +192,67 @@ public class Shepherd {
         e.printStackTrace();
 
       }
-
   }
 
+  public void storeNewSurvey(Survey svy) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(svy);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Survey in shepherd.storeNewSurvey().");
+      e.printStackTrace();
+    }
+  }
+  
+  public void storeNewSurveyTrack(SurveyTrack stk) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(stk);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new SurveyTrack in shepherd.storeNewSurveyTrack().");
+      e.printStackTrace();
+    }
+  }
+  
+  public void storeNewPath(Path pth) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(pth);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Path in shepherd.storeNewPath().");
+      e.printStackTrace();
+    }
+  }
+  
+  public void storeNewPointLocation(PointLocation plc ) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(plc);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new PointLocation in shepherd.storeNewPointLocation().");
+      e.printStackTrace();
+    }
+  }
+
+  public void storeNewObservation(Observation ob ) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(ob);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Observation in shepherd.storeNewObservation().");
+      e.printStackTrace();
+    }
+  }
 
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
 
@@ -262,6 +325,8 @@ public class Shepherd {
       return false;
     }
   }
+  
+  
 
 
   /**
@@ -391,7 +456,6 @@ public class Shepherd {
     }
     return tempMA;
   }
-
 
   public Workspace getWorkspace(int id) {
     Workspace tempWork = null;
@@ -984,6 +1048,23 @@ public class Shepherd {
     return inCommon;
   }
 
+  public boolean isSurvey(String num) {
+    try {
+      Survey tempSvy = ((org.ecocean.Survey) (pm.getObjectById(pm.newObjectIdInstance(Survey.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
+  
+  public boolean isSurveyTrack(String num) {
+    try {
+      SurveyTrack tempTrack = ((org.ecocean.movement.SurveyTrack) (pm.getObjectById(pm.newObjectIdInstance(SurveyTrack.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
 
   public boolean isEncounter(String num) {
     try {
@@ -1198,6 +1279,15 @@ public class Shepherd {
     }
     return true;
   }
+  
+  public boolean isPath(String name) {
+    try {
+      Path tempPath = ((org.ecocean.movement.Path) (pm.getObjectById(pm.newObjectIdInstance(Path.class, name.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
 
   public boolean isOccurrence(Occurrence occ) {
     return (occ!=null && isOccurrence(occ.getOccurrenceID()));
@@ -1332,6 +1422,21 @@ public class Shepherd {
     }
   }
 
+<<<<<<< HEAD
+=======
+  public Iterator<Occurrence> getAllOccurrencesNoQuery() {
+    try {
+      Extent encClass = pm.getExtent(Occurrence.class, true);
+      Iterator it = encClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllOccurrencesNoQuery. Returning a null iterator.");
+      return null;
+    }
+  }
+
+
+>>>>>>> master
   public Iterator<Taxonomy> getAllTaxonomies() {
     try {
       Extent taxClass = pm.getExtent(Taxonomy.class, true);
@@ -1366,6 +1471,24 @@ public class Shepherd {
       Extent maClass = pm.getExtent(MediaAsset.class, true);
       Iterator it = maClass.iterator();
       return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllMediaAssets. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+  
+  public ArrayList<MediaAsset> getAllMediaAssetsAsArray() {
+    try {
+      Extent maClass = pm.getExtent(MediaAsset.class, true);
+      ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+      MediaAsset ma = null;
+      Iterator it = maClass.iterator();
+      while (it.hasNext()) {
+        ma = (MediaAsset) it.next();
+        mas.add(ma);
+      }
+      return mas;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllMediaAssets. Returning a null iterator.");
       npe.printStackTrace();
@@ -1548,7 +1671,22 @@ public class Shepherd {
       return null;
     }
   }
-
+  
+  public Iterator<Survey> getAllSurveys(Query acceptedSurveys, Map<String, Object> paramMap) {
+    Collection c;
+    try {
+      System.out.println("getAllOccurrences is called on query "+acceptedSurveys+" and paramMap "+paramMap);
+      c = (Collection) (acceptedSurveys.executeWithMap(paramMap));
+      ArrayList list = new ArrayList(c);
+      System.out.println("getAllSurveys got "+list.size()+" surveys");
+      Iterator it = list.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
   public List<PatterningPassport> getPatterningPassports() {
     int num = 0;
@@ -1920,8 +2058,23 @@ public class Shepherd {
     query.closeAll();
     return null;
   }
+  
+  public Occurrence getOccurrenceForSurvey(Survey svy) {
+    String svyID = svy.getID();
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE correspondingSurveyID == \""+svyID+"\"";
+    Query q = getPM().newQuery(filter);
+    Collection c = (Collection) (q.execute());
+    Iterator obArr = c.iterator();
+    q.closeAll();
+    if (obArr.hasNext()) {
+      return (Occurrence) obArr.next();      
+    }
+    return null;
+  }
+  
+  
 
-  //
+  
 
 
 
@@ -2011,7 +2164,6 @@ public class Shepherd {
       return as;
   }
 
-
   public List<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(TissueSample.class, true);
@@ -2020,6 +2172,15 @@ public class Shepherd {
     ArrayList al=new ArrayList<TissueSample>(c);
     samples.closeAll();
     return (al);
+  }
+  
+  public ArrayList<TissueSample> getAllTissueSamplesNoQuery() {
+    Extent tsClass = pm.getExtent(TissueSample.class, true);
+    Query tsQuery = pm.newQuery(tsClass, "");
+    
+    Collection col = (Collection) (tsQuery.execute());
+    ArrayList<TissueSample> samples = new ArrayList<>(col);
+    return samples;
   }
 
   public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
@@ -2174,6 +2335,74 @@ public class Shepherd {
       samples.closeAll();
       return myArray;
     }
+  
+  public ArrayList<Encounter> getEncountersArrayWithMillis(long millis) {
+    String milliString = String.valueOf(millis);
+    
+    String up = milliString.substring(0, milliString.length() - 6) + 999999;
+    String down = milliString.substring(0, milliString.length() - 6) + 000000;
+    
+    
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+down+" && dateInMilliseconds <= "+up+" ";
+    Query encQuery = pm.newQuery(keywordQueryString);
+    Collection col = null;
+    try {
+      encQuery = pm.newQuery(keywordQueryString);
+      if (encQuery.execute() != null) {
+        col = (Collection) encQuery.execute();              
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Exception on query : "+keywordQueryString);    
+      return null;
+    }
+    ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
+    encQuery.closeAll();
+    if (encs != null) {
+      return encs;
+    } else {
+      return null;
+    }
+  }
+  
+  public ArrayList<Encounter> getEncounterArrayWithShortDate(String sd) {
+    sd = sd.replace("/", "-");
+    sd = sd.replace(".", "-");
+    sd = sd.trim();
+    DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
+    Date d = null;
+    try {
+      d = (Date)fm.parse(sd);    
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+    }
+    DateTime dt = new DateTime(d);
+    DateTime nextDay = dt.plusDays(1).toDateTime();
+    // Since the query involves a date but no time, we need to get the millis of the next day at 12:00AM as well and find all encounters that occurred in between.
+    String milliString = String.valueOf(dt.getMillis());
+    String millisNext = String.valueOf(nextDay.getMillis());
+    System.out.println("Trying to get encounter with date in Millis : "+milliString);
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+milliString+" && dateInMilliseconds <= "+millisNext+"";
+    Collection col = null;
+    Query encQuery = null; 
+    try {
+      encQuery = pm.newQuery(keywordQueryString);
+      if (encQuery.execute() != null) {
+        col = (Collection) encQuery.execute();              
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Exception on query : "+keywordQueryString);    
+      return null;
+    }
+    ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
+    encQuery.closeAll();
+    if (encs != null) {
+      return encs;
+    } else {
+      return null;
+    }
+  }
 
   public int getNumSinglePhotoVideosForEncounter(String encNum) {
 	    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
@@ -2280,7 +2509,6 @@ public class Shepherd {
     return it;
   }
 
-
   public MarkedIndividual getMarkedIndividual(String name) {
     MarkedIndividual tempShark = null;
     try {
@@ -2356,6 +2584,50 @@ public class Shepherd {
       return null;
     }
     return tempShark;
+  }
+  
+  public Survey getSurvey(String id) {
+    Survey srv = null;
+    try {
+      srv = ((org.ecocean.Survey) (pm.getObjectById(pm.newObjectIdInstance(Survey.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return srv;
+  }
+  
+  public SurveyTrack getSurveyTrack(String id) {
+    SurveyTrack stk = null;
+    try {
+      stk = ((org.ecocean.movement.SurveyTrack) (pm.getObjectById(pm.newObjectIdInstance(SurveyTrack.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return stk;
+  }
+  
+  public Path getPath(String id) {
+    Path pth = null;
+    try {
+      pth = ((org.ecocean.movement.Path) (pm.getObjectById(pm.newObjectIdInstance(Path.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return pth;
+  }
+  
+  public PointLocation getPointLocation(String id) {
+    PointLocation pl = null;
+    try {
+      pl = ((org.ecocean.PointLocation) (pm.getObjectById(pm.newObjectIdInstance(PointLocation.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return pl;
   }
 
   public Occurrence getOccurrence(Encounter enc) {
@@ -2657,6 +2929,22 @@ public class Shepherd {
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       acceptedEncounters.closeAll();
+      return 0;
+    }
+  }
+
+  public int getNumSurveys() {
+    pm.getFetchPlan().setGroup("count");
+    Extent svyClass = pm.getExtent(Survey.class, true);
+    Query acceptedSurveys = pm.newQuery(svyClass);
+    try {
+      Collection c = (Collection) (acceptedSurveys.execute());
+      int num = c.size();
+      acceptedSurveys.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedSurveys.closeAll();
       return 0;
     }
   }
@@ -3714,6 +4002,21 @@ public class Shepherd {
     ArrayList al=new ArrayList(results);
 	    q.closeAll();
     return al;
+  }
+  
+  public ArrayList<Survey> getAllSurveys() {
+    ArrayList<Survey> svs = new ArrayList<Survey>();
+    Extent svyClass = pm.getExtent(Survey.class, true);
+    Iterator svsIt = svyClass.iterator();
+    Survey sv = null;
+    while (svsIt.hasNext()) {
+      sv = (Survey) svsIt.next();
+      svs.add(sv);
+    }
+    if (!svs.isEmpty()) {
+      return svs;
+    }
+    return null;      
   }
 
   public List<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {

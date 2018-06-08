@@ -275,20 +275,21 @@ td.tdw:hover div {
 <script type="text/javascript">
 
 	var needIAStatus = false;
+
 /*
-
-
 
     <strong><%=encprops.getProperty("markedIndividual")%>
     <strong><%=encprops.getProperty("number")%>
-  if (CommonConfiguration.showProperty("showTaxonomy",context)) {
-    <strong><%=encprops.getProperty("taxonomy")%>
-    <strong><%=encprops.getProperty("submitterName")%>
-    <strong><%=encprops.getProperty("date")%>
-    <strong><%=encprops.getProperty("location")%>
-    <strong><%=encprops.getProperty("locationID")%>
-    <strong><%=encprops.getProperty("occurrenceID")%>
+    if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
+    	
+	    <strong><%=encprops.getProperty("taxonomy")%>
+	    <strong><%=encprops.getProperty("submitterName")%>
+	    <strong><%=encprops.getProperty("date")%>
+	    <strong><%=encprops.getProperty("location")%>
+	    <strong><%=encprops.getProperty("locationID")%>
+	    <strong><%=encprops.getProperty("occurrenceID")%>
 */
+
 
 <%
 	String encsJson = "false";
@@ -318,15 +319,6 @@ var searchResults = <%=encsJson%>;
 
 var jdoql = '<%= filter.replaceAll("'", "\\\\'") %>';
 
-var testColumns = {
-};
-
-
-
-
-
-
-
 $(document).keydown(function(k) {
 	if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
 	if (k.which == 38) return tableDn();
@@ -337,6 +329,7 @@ $(document).keydown(function(k) {
 
 
 var colDefn = [
+
 	{
 		key: 'individualID',
 		label: 'ID',
@@ -363,10 +356,10 @@ var colDefn = [
 		key: 'verbatimLocality',
 		label: '<%=encprops.getProperty("location")%>',
 	},
-	{
-		key: 'locationID',
-		label: '<%=encprops.getProperty("locationID")%>',
-	},
+//	{
+//		key: 'locationID',
+// 		label: '<%=encprops.getProperty("locationID")%>',
+//	},
 	{
 		key: 'taxonomy',
 		label: '<%=encprops.getProperty("taxonomy")%>',
@@ -588,9 +581,9 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
-		var private = searchResults[results[i]].get('_sanitized') || false;
+		var privateResults = searchResults[results[i]].get('_sanitized') || false;
 		var title = 'Encounter ' + searchResults[results[i]].id;
-		if (private) {
+		if (privateResults) {
 			title += ' [private]';
 			$($('#results-table tbody tr')[i]).addClass('collab-private');
 		} else {
@@ -755,8 +748,10 @@ function _colNumberLocations(o) {
 
 
 function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
+	var animal = 'n/a';
+	if (o.get('genus')) return o.get('genus');
+	if (o.get('specificEpithet')) return o.get('specificEpithet');
+	return 'n/a';
 }
 
 function _occurrenceID(o) {
@@ -812,7 +807,7 @@ var tableContents = document.createDocumentFragment();
 
 function xdoTable() {
 	resultsTable = new pageableTable({
-		columns: testColumns,
+		columns: colDefn,
 		tableElement: $('#results-table'),
 		sliderElement: $('#results-slider'),
 		tablesorterOpts: {
@@ -984,7 +979,7 @@ function _colIA(o) {
 
 function _colAnnIASummary(annId, sum) {
 	console.log('%s ------> %o', annId, sum);
-	var mostRecent = 0;
+		var mostRecent = 0;
 	var mostRecentTaskId = false;
 	var flav = ['success-match', 'success-miss', 'pending', 'error', 'unknown'];
 	var r = {};
@@ -1213,10 +1208,7 @@ console.log(t);
     </td>
   </tr>
 </table>
-
-
-</p>
-
+</div>
 
 <%
   }
@@ -1228,5 +1220,7 @@ console.log(t);
   //rEncounters = null;
 
 %>
-</div>
+
+
+
 <jsp:include page="../footer.jsp" flush="true"/>
