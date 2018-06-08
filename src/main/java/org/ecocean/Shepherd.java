@@ -1422,21 +1422,6 @@ public class Shepherd {
     }
   }
 
-<<<<<<< HEAD
-=======
-  public Iterator<Occurrence> getAllOccurrencesNoQuery() {
-    try {
-      Extent encClass = pm.getExtent(Occurrence.class, true);
-      Iterator it = encClass.iterator();
-      return it;
-    } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllOccurrencesNoQuery. Returning a null iterator.");
-      return null;
-    }
-  }
-
-
->>>>>>> master
   public Iterator<Taxonomy> getAllTaxonomies() {
     try {
       Extent taxClass = pm.getExtent(Taxonomy.class, true);
@@ -4004,19 +3989,10 @@ public class Shepherd {
     return al;
   }
   
-  public ArrayList<Survey> getAllSurveys() {
-    ArrayList<Survey> svs = new ArrayList<Survey>();
+  public Iterator<Survey> getAllSurveys() {
     Extent svyClass = pm.getExtent(Survey.class, true);
     Iterator svsIt = svyClass.iterator();
-    Survey sv = null;
-    while (svsIt.hasNext()) {
-      sv = (Survey) svsIt.next();
-      svs.add(sv);
-    }
-    if (!svs.isEmpty()) {
-      return svs;
-    }
-    return null;      
+    return svsIt;      
   }
 
   public List<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {
