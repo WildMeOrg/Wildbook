@@ -2770,12 +2770,18 @@ public class Shepherd {
   }
 
   public List<User> getAllUsers() {
+    return getAllUsers("username ascending NULLS LAST");
+  }
+  
+  public List<User> getAllUsers(String ordering) {
     Collection c;
     ArrayList<User> list = new ArrayList<User>();
     System.out.println("Shepherd.getAllUsers() called in context "+getContext());
     Extent userClass = pm.getExtent(User.class, true);
     Query users = pm.newQuery(userClass);
-    users.setOrdering("fullName ascending");
+    if(ordering!=null) {
+      users.setOrdering(ordering);
+    }
     try {
       c = (Collection) (users.execute());
       if(c!=null){
