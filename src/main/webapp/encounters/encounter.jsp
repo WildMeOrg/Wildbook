@@ -587,6 +587,7 @@ $(function() {
 								} //end while
 
 				String individuo=encprops.getProperty("unassigned");
+        out.println(enc.getIndividualID()+" <------ This is what I think I belong to! encounter.jsp");
 				if(enc.getIndividualID()!=null){
 					individuo=encprops.getProperty("of")+"&nbsp;<a href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
 				}
