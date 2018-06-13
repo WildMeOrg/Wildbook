@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenIndividualReporter;
 
 import java.lang.StringBuffer;
 
@@ -45,6 +46,8 @@ public class IndividualSearchExportCapture extends HttpServlet{
 
     MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
     rIndividuals = result.getResult();
+    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
+
     int numIndividuals=rIndividuals.size();
     int numSharks=0;
     out.println("<pre>");
@@ -83,6 +86,8 @@ public class IndividualSearchExportCapture extends HttpServlet{
       
       for(int i=0;i<numIndividuals;i++) {
         MarkedIndividual s=rIndividuals.get(i);
+
+        if (hiddenData.contains(s)) continue;
 
         boolean wasSightedInRequestedLocation=false;
         if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").trim().equals(""))){

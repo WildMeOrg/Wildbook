@@ -34,11 +34,9 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
       
-<!--
       <field name="endTime" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
--->
       
       <field name="effort" persistence-modifier="persistent" element-type="org.ecocean.Measurement" allows-null="true"/>
       
@@ -54,6 +52,11 @@
         <column jdbc-type="String" allows-null="true"/>
       </field>
       
+      <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Observation" dependent-element="true" />
+        <join/>
+      </field>
+
       <fetch-group name="count"/>
     </class> 
   
@@ -204,6 +207,13 @@
         <join/>
       </field>
 
+      <field name="taxonomies" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Taxonomy" dependent-element="false"/>
+        <join/><!--
+          <join column="OCCURRENCE_ID_OID" default-value="-1"/>
+          <element column="TAXONOMY_ID_EID"/>-->
+      </field>
+
       <field name="comments" persistence-modifier="persistent" default-fetch-group="false">
         <column jdbc-type="LONGVARCHAR"/>
       </field>
@@ -224,6 +234,11 @@
 
       <field name="individualCount" persistence-modifier="persistent">
         <column jdbc-type="INTEGER" allows-null="true"/>
+      </field>
+
+      <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Observation" dependent-element="true" />
+        <join/>
       </field>
 
       <field name="assets" persistence-modifier="persistent" default-fetch-group="false" mapped-by="occurrence" >
@@ -250,11 +265,9 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
 
-<!--
       <field name="endDateInMilliseconds" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
--->
       
       <field name="decimalLatitude" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
@@ -264,7 +277,6 @@
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
       
-<!--
       <field name="endDecimalLatitude" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
@@ -272,7 +284,6 @@
       <field name="endDecimalLongitude" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
--->
       
       <field name="dwcDateAddedLong" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
@@ -302,6 +313,10 @@
         <column length="512"/>
       </field>
       
+      <field name="sightNo" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
+
       <field name="genus" persistence-modifier="persistent">
         <column length="128"/>
       </field>
@@ -419,17 +434,17 @@
         <join/>
       </field>
 
-<!--
       <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.Observation" dependent-element="true" />
         <join/>
       </field>
--->
 
       <field name="acousticTag" persistence-modifier="persistent"></field>
 
       <field name="satelliteTag" persistence-modifier="persistent"></field>
       
+      <field name="digitalArchiveTag" persistence-modifier="persistent"></field>
+
       <fetch-group name="allSharks_min">
         <field name="approved"/>
       </fetch-group>

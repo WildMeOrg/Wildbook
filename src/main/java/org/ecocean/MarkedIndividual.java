@@ -652,6 +652,29 @@ public class MarkedIndividual implements java.io.Serializable {
     Arrays.sort(encs2, dc);
     return encs2;
   }
+  public Encounter[] getDateSortedEncounters(int limit) {
+    return (getDateSortedEncounters(false, limit));
+  }
+
+  // for the scenario where you don't have permission to view this, but you'd like to
+  public String getAnEncounterOwner() {
+    for (Encounter enc: encounters) {
+      if (Util.stringExists(enc.getAssignedUsername())) return enc.getAssignedUsername();
+    }
+    return null;
+  }
+
+  public Encounter[] getDateSortedEncounters(boolean reverse, int limit) {
+    Encounter[] allEncs = getDateSortedEncounters(reverse);
+    return (Arrays.copyOfRange(allEncs, 0, Math.min(limit,allEncs.length)));
+  }
+  
+  public static String getWebUrl(String individualID, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/individuals.jsp?number="+individualID);
+  }
+  public String getWebUrl(HttpServletRequest req) {
+    return getWebUrl(this.getIndividualID(), req);
+  }
 
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters() {return getDateSortedEncounters(false);}
@@ -1957,6 +1980,86 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return al;
 
   }
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImagesWithKeywords(HttpServletRequest req, List<String> kwNames) throws JSONException {
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+
+    List<String> kwNamesLeft = new ArrayList<String>(kwNames); // a copy of kwNames
+    //boolean haveProfilePhoto=false;
+    for (Encounter enc : this.getDateSortedEncounters()) {
+      //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+        ArrayList<Annotation> anns = enc.getAnnotations();
+        if ((anns == null) || (anns.size() < 1)) {
+          continue;
+        }
+        for (Annotation ann: anns) {
+          //if (!ann.isTrivial()) continue;
+          MediaAsset ma = ann.getMediaAsset();
+          if (ma != null) {
+            //JSONObject j = new JSONObject();
+            JSONObject j = ma.sanitizeJson(req, new JSONObject());
+
+            //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
+            // we have a throw-away shepherd here which is fine since we only care about the url ultimately
+            URL midURL = null;
+            String context = ServletUtilities.getContext(req);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MarkedIndividual.getExemplarImages");
+            myShepherd.beginDBTransaction();
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+            if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+            if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+
+            if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+              
+              //here is the keyword filtering logic
+              String removeThisName=null; // awkward to avoid concurrent modification by removing kwName in the loop
+              for (String kwName: kwNamesLeft) {
+                if (ma.hasKeyword(kwName)) {
+                  // position variable & logic ensures the keywords are returned in the same order
+                  int position = kwNames.indexOf(kwName);
+                  if (position>al.size()) position = al.size();
+                  al.add(position, j); // we can ensure the first listed keyword is returned first
+                  removeThisName=kwName;
+                  break; // breaks the loop on this ma only
+                }
+              }
+              if (removeThisName!=null) kwNamesLeft.remove(removeThisName);
+            }
+          }
+        }
+    //}
+    }
+    return al;
+
+  }
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames) throws JSONException {
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+    Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
+
+    for (String kwName: kwNames) {
+      MediaAsset ma = myShepherd.getBestKeywordPhoto(this, kwName);
+      if (ma==null) continue;
+      JSONObject j = ma.sanitizeJson(req, new JSONObject());
+      ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+      URL midURL = null;
+      if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+      if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+      if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+        al.add(j);
+      }
+    }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+
+    return al;
+  }
+
+
   
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
     

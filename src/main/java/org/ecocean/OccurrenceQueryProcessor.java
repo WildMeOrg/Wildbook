@@ -22,6 +22,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
   public static final String[] SIMPLE_STRING_FIELDS = new String[]{"fieldStudySite", "fieldSurveyCode", "sightingPlatform", "groupComposition", "groupBehavior", "humanActivityNearby","initialCue","seaState","observer","comments"};
 
+  public static final String[] CATEGORICAL_STRING_FIELDS = new String[]{"submitterID"};
 
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
@@ -46,9 +47,24 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
       filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
     }
 
-    // GPS box
-    filter = QueryProcessor.filterWithGpsBox(filter, request, prettyPrint);
+    // filter for exact string fields
+    for (String fieldName : CATEGORICAL_STRING_FIELDS) {
+      System.out.println("   parsing occurrence query for field "+fieldName);
+      System.out.println("           current filter = "+filter);
+      filter = QueryProcessor.filterWithExactStringField(filter, fieldName, request, prettyPrint);
+    }
 
+    // GPS box
+    filter = QueryProcessor.filterWithGpsBox("decimalLatitude", "decimalLongitude", filter, request, prettyPrint);
+    filter = QueryProcessor.filterDateRanges(request, filter, prettyPrint);    
+    
+    //Observations
+    filter = QueryProcessor.filterObservations(filter, request, prettyPrint, "Occurrence");
+    int numObs = QueryProcessor.getNumberOfObservationsInQuery(request);
+    for (int i = 1;i<=numObs;i++) {
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);      
+    }
+    
     // make sure no trailing ampersands
     filter = QueryProcessor.removeTrailingAmpersands(filter);
     filter += jdoqlVariableDeclaration;
@@ -93,4 +109,34 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     System.out.println("about to return OccurrenceQueryResult with filter "+filter+" and nOccs="+rOccurrences.size());
     return (new OccurrenceQueryResult(rOccurrences,filter,prettyPrint.toString()));
   }
+  
+  public static String filterDateRanges(HttpServletRequest request, String filter) {
+    String filterAddition = "";
+    String startTimeFrom = null;
+    String startTimeTo = null;
+    filter = prepForNext(filter);
+    if (request.getParameter("startTimeFrom")!=null) {
+      startTimeFrom = request.getParameter("startTimeFrom");
+      
+      //Process date to millis... for survey too... 
+      // yuck.
+      
+      filter += " 'millis' >=  "+startTimeFrom+" ";
+    }
+    filter = prepForNext(filter);
+    if (request.getParameter("startTimeTo")!=null) {
+      startTimeTo = request.getParameter("startTimeTo");
+      filter += " 'millis' <=  "+startTimeFrom+" ";
+    }
+    filter = prepForNext(filter);
+    return filter;
+  }
+  
+ public static String prepForNext(String filter) {
+   if (!QueryProcessor.endsWithAmpersands(filter)) {
+     QueryProcessor.prepForCondition(filter);
+   }
+   return filter;
+ }
+  
 }

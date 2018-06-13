@@ -195,7 +195,7 @@ if(compareAgainst.getGeneticSex()!=null){
 </strong></em></p>
 
 
-<form action="<%=formAction %>" method="get" name="search" id="search">
+<form action="<%=formAction %>" method="get" name="individualSearch" id="search">
     <%
 	if(request.getParameter("individualDistanceSearch")!=null){
 	%>
@@ -208,9 +208,8 @@ if(compareAgainst.getGeneticSex()!=null){
 <tr>
   <td width="810px">
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a> <a
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><span class="el el-chevron-down"></span></a> <a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
       color="#000000"><%=props.getProperty("locationFilter") %></font></a></h4>
   </td>
@@ -239,7 +238,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 1;
+	var mapZoom = 1.5;
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -434,9 +433,8 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("locationFilterText") %></font></a></h4>
 
     <div id="location" style="display:none; ">
@@ -497,9 +495,8 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
   </td>
 </tr>
@@ -897,9 +894,8 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("observationFilters") %></font></a></h4>
   </td>
 </tr>
@@ -1216,9 +1212,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
   <tr>
     <td>
-      <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-        src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+      <h4 class="intro search-collapse-header"><a
+        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
         color="#000000"><%=props.getProperty("tagsTitle") %></font></a></h4>
     </td>
   </tr>
@@ -1284,9 +1279,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:if>
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; ">
+    <h4 class="intro search-collapse-header">
     	<a href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none">
-    		<img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+    		<span class="el el-chevron-down"></span>
     		<font color="#000000"><%=props.getProperty("biologicalSamples") %></font>
     	</a>
     </h4>
@@ -1499,9 +1494,8 @@ else {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("identityFilters") %></font></a></h4>
   </td>
 </tr>
@@ -1616,9 +1610,8 @@ else {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("socialFilters") %></font></a></h4>
   </td>
 </tr>
@@ -1730,9 +1723,8 @@ else {
 <tr>
   <td>
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down"></span>
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
   </td>
 </tr>
@@ -1801,7 +1793,11 @@ inShepherd.closeDBTransaction();
 <br>
 </div>
 
+<script type="text/javascript" src="javascript/formNullRemover.js"></script>
+
 <jsp:include page="footer.jsp" flush="true"/>
+
+
 
 
 <%

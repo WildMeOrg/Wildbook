@@ -134,10 +134,18 @@
 		 
 		 </ul>
 		 
-		<% if (blocked.size() < 1) { %>
+		<%
+		 //if (blocked.size() < 1) {
+		 if (true) {
+		  %>
 		 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 		
+		<p>Encounter Metadata Export <a href="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+		</p>
+		
+
+
 		<p>CRC Excel Matching Summary <a href="//<%=CommonConfiguration.getURLLocation(request)%>/CRCExportReport?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 		

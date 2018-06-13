@@ -62,6 +62,9 @@ public class ImportAccess extends HttpServlet {
 
   private String photoLocation;
 
+  private final String profileKwName = "ProfilePhoto"; // sadly a soft-standard used on wildbook
+  private Keyword profilePicKeyword;
+
   private AssetStore astore;
   public static final String DEFAULT_ASSETSTORE_NAME = "Oman-Asset-Store";
 
@@ -115,6 +118,7 @@ public class ImportAccess extends HttpServlet {
     myShepherd.beginDBTransaction();
     for (Occurrence indy : generatedOccurrences.values()) {
       indy.setLatLonFromEncs();
+      if (indy.getDateTimeLong()==null) indy.setDateFromEncounters();
       if (!myShepherd.isOccurrence(indy.getOccurrenceID())) {
         myShepherd.storeNewOccurrence(indy);
       }
@@ -185,6 +189,8 @@ public class ImportAccess extends HttpServlet {
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
     myShepherd.beginDBTransaction();
+
+    profilePicKeyword = myShepherd.getOrCreateKeyword("ProfilePhoto");
 
     String dbName = "omanData2017.07.04.mdb";
     if (request.getParameter("file") != null) dbName = request.getParameter("file");
@@ -480,12 +486,12 @@ public class ImportAccess extends HttpServlet {
     System.out.println("    PROCIDPHOTOS Now to load the columns of the table into our boy");
     
 
-    System.out.println("    ** PROCIDPHOTOS about to set date");
+    System.out.println("PROCIDPHOTOS about to set date");
     Date encTime = null;
     try {encTime = thisRow.getDate("Date");}
     catch (Exception e) {
       try {encTime = new Date(thisRow.get("Date").toString());}
-      catch (Exception f) {}
+      catch (Exception f) {System.out.println("PROCIDPHOTOS about to set date");}
     }
     if (encTime!=null) {
       enc.setDateInMilliseconds(encTime.getTime());
@@ -545,7 +551,7 @@ public class ImportAccess extends HttpServlet {
   // each row in idphotos is an annotation, but you can deduce which encounter it is by the individual_id and date fields
   private String getEncounterCodeForIDPhotoRow(Row thisRow) {
     try {
-      String indivDayCode = getDailyGroupNameForIDPhotoRow(thisRow);
+      String indivDayCode = getDailyIndivNameForIDPhotoRow(thisRow);
       Date rowDate = getDateForIDPhotoRow(thisRow);
       if ((indivDayCode == null || "".equals(indivDayCode)) && rowDate == null) return null;
       return indivDayCode + rowDate.toString();
@@ -575,8 +581,7 @@ public class ImportAccess extends HttpServlet {
   private String getDailyIndivNameForIDPhotoRow(Row thisRow) {
     // since "Individual_designation" of A2^2 means the second member of group A2 on that day...
     String individualDesignation = thisRow.get("Individual_designation").toString();
-    if (individualDesignation == null || individualDesignation.equals("") || (individualDesignation.split("^").length==0)) return null;
-    return individualDesignation.split("^")[1];
+    return individualDesignation;
   }
 
   private Date getDateForIDPhotoRow(Row thisRow) {
@@ -617,7 +622,7 @@ public class ImportAccess extends HttpServlet {
       if (omcd!=null) return "OMCD"+omcd; // label the omcd row
     } catch (Exception e) {
       try {
-        return getDateForIDPhotoRow(thisRow).toString() + getDailyGroupNameForIDPhotoRow(thisRow);
+        return (getDateForIDPhotoRow(thisRow).toString() +"-group"+ getDailyGroupNameForIDPhotoRow(thisRow));
       }
       catch (Exception f) {
         System.out.println("    +getOccurrenceCodeForIDPhotoRow: no occurrence code found for row "+loggingRefForIDPhotoRow(thisRow)+"; returning a UUID");
@@ -626,12 +631,11 @@ public class ImportAccess extends HttpServlet {
     return Util.generateUUID();
   }
 
-
   private Annotation getAnnotationForIDPhotoRow(Row thisRow, AssetStore astore, Shepherd myShepherd) {
     MediaAsset ma = getMediaAssetForIDPhotoRow(thisRow, astore, myShepherd);
     if (ma==null) return null;
     Annotation ann = new Annotation("Megaptera novaeangliae", ma);
-    if (isIDPhotoRowExemplar(thisRow)) ann.setIsExemplar(true);
+    ann.setIsExemplar(true);
     return ann;
   }
 
@@ -714,6 +718,12 @@ public class ImportAccess extends HttpServlet {
 
       // MA processing
       ma.setUserDateTime(getDateTimeForIDPhotoRow(thisRow));
+      if (committing) {
+        ma.setMetadata();
+        ma.updateStandardChildren(myShepherd);
+      }
+
+      if (isIDPhotoRowExemplar(thisRow)) ma.addKeyword(profilePicKeyword);
 
       String keywordName = thisRow.getString("Photo_category");
       Keyword keyword;
@@ -744,8 +754,9 @@ public class ImportAccess extends HttpServlet {
       if (filmTypeKeyword != null) {
         ma.addToMetadata("Film type", filmTypeKeyword);
         System.out.println("    PROCIDPHOTOS: added metadata to mediaAsset: (Film type: "+filmTypeKeyword+")");
-
       }
+
+      if (ma!=null) System.out.println("MEDIA ASSET height parsed at "+ma.getHeight());
 
       return ma;
     } catch (Exception e) {

@@ -3,9 +3,10 @@ package org.ecocean;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import org.ecocean.Util;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class Taxonomy implements java.io.Serializable {
 
@@ -53,7 +54,7 @@ public class Taxonomy implements java.io.Serializable {
     return commonNames;
   }
   public void addCommonName(String commonName) {
-    this.commonNames.add(commonName);
+    if (!this.commonNames.contains(commonName)) this.commonNames.add(commonName);
   }
   public String getCommonName() {
     return getCommonName(0);
@@ -63,17 +64,21 @@ public class Taxonomy implements java.io.Serializable {
     return commonNames.get(i);
   }
 
-    public boolean equals(Taxonomy other) {
-        if ((other == null) || (scientificName == null) || (other.getScientificName() == null)) return false;
-        return scientificName.toLowerCase().equals(other.getScientificName().toLowerCase());
-    }
+  public boolean equals(Taxonomy other) {
+      if ((other == null) || (scientificName == null) || (other.getScientificName() == null)) return false;
+      return scientificName.toLowerCase().equals(other.getScientificName().toLowerCase());
+  }
 
 
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("id", id)
-                .append("scientificName", scientificName)
-                .toString();
-    }
-
+  public String toString() {
+    return new ToStringBuilder(this)
+      .append("id", id)
+      .append("scientificName", scientificName)
+      .toString();
+  }
 }
+
+
+
+
+

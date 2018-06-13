@@ -22,12 +22,15 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import java.util.Iterator;
-import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 
-//import javax.jdo.JDOException;
-//import javax.jdo.JDOHelper;
+// java sucks for making us add four import lines just to use a multimap. INELEGANT. NEXT!
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
+
 import javax.jdo.Query;
 //import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.http.HttpServlet;
@@ -49,6 +52,8 @@ public class Util {
   private static final String BIOLOGICALMEASUREMENTUNITS = BIOLOGICALMEASUREMENT.replaceAll("Type", "Units");
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
+  private static final String VESSEL = "vessel";
+  private static final String GENUS_SPECIES = "genusSpecies";
 
     public static final double INVALID_LAT_LON = 999.0;  //sometimes you need a bad coordinate!
 
@@ -70,6 +75,29 @@ public class Util {
     }
     return list;
   }
+  
+  public static ArrayList<String> findVesselNames(String langCode,String context) {
+    ArrayList<String> list = new ArrayList<String>();
+    List<String> types = CommonConfiguration.getIndexedPropertyValues(VESSEL,context);
+    if (types.size() > 0) {
+      for (int i = 0; i < types.size(); i++) {
+        String type = types.get(i);
+        list.add(type);
+      }
+    }
+    return list;
+  }
+  
+  public static ArrayList<String> findSpeciesNames(String langCode, String context) {
+    ArrayList<String> nameArr = new ArrayList<>();
+    List<String> nameList = CommonConfiguration.getIndexedPropertyValues(GENUS_SPECIES,context);
+    if (nameList.size() > 0) {
+      for  (String name : nameList) {
+        nameArr.add(name);
+      }  
+    }
+    return nameArr;
+  } 
 
   public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
@@ -558,7 +586,7 @@ public class Util {
     }
 
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals(""));
+      return (str!=null && !str.equals("") && !str.equals("None"));
     }
     
     public static boolean hasProperty(String key, Properties props) {
@@ -606,4 +634,30 @@ public class Util {
       return num;
     }
 
+
+    
+    public static String basicSanitize(String input) {
+      String sanitized = null;
+      if (input!=null) {
+        sanitized = input;
+        sanitized = input.replace(":", "");
+        sanitized = input.replace(";", "");
+        sanitized = sanitized.replace("\"", "");
+        sanitized = sanitized.replace("'", "");
+        sanitized = sanitized.replace("(", "");
+        sanitized = sanitized.replace(")", "");
+        sanitized = sanitized.replace("*", "");
+        sanitized = sanitized.replace("%", "");        
+      }
+      return sanitized;
+    }
+
+  public static <KeyType, ValType> void addToMultimap(Map<KeyType, Set<ValType>> multimap, KeyType key, ValType val) {
+    if (!multimap.containsKey(key)) multimap.put(key, new HashSet<ValType>());
+    multimap.get(key).add(val);
+  }
+
+
 }
+
+

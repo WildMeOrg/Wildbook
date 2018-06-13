@@ -33,15 +33,18 @@ import org.ecocean.media.AssetStoreType;
  * @author Jason Holmberg
  *
  */
-public class Occurrence implements java.io.Serializable{
+public class Occurrence implements java.io.Serializable {
 
   /**
    *
    */
   private static final long serialVersionUID = -7545783883959073726L;
+  private String occurrenceID;
   private ArrayList<Encounter> encounters;
   private List<MediaAsset> assets;
-  private String occurrenceID;
+  private ArrayList<Observation> observations = new ArrayList<Observation>();
+  // Old ID. Getters and setters now use ID from base class.
+  //private String ID;
   private Integer individualCount;
   private String groupBehavior;  // categorical
     private List<Instant> behaviors; //more structured than above
@@ -63,6 +66,10 @@ public class Occurrence implements java.io.Serializable{
   private Double swellHeight;
   private Double visibilityIndex; // 1-5 with 5 indicating horizon visible
   
+  // Variables used in the Survey, SurveyTrack, Path, Location model
+  
+  private String correspondingSurveyTrackID;
+  private String correspondingSurveyID;
   //social media registration fields for AI-created occurrences
   private String socialMediaSourceID;
   private String socialMediaQueryCommentID;
@@ -112,12 +119,15 @@ public class Occurrence implements java.io.Serializable{
    * @param enc The first encounter to add to this occurrence.
    */
   public Occurrence(String occurrenceID, Encounter enc){
-    this.occurrenceID=occurrenceID;
+    this.occurrenceID = occurrenceID;
     encounters=new ArrayList<Encounter>();
     encounters.add(enc);
     assets = new ArrayList<MediaAsset>();
     setDWCDateLastModified();
     setDateTimeCreated();
+    //if(encounters!=null){
+    //  updateNumberOfEncounters();
+    //}
     //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
   }
 
@@ -134,7 +144,7 @@ public class Occurrence implements java.io.Serializable{
   }
 
   public Occurrence(List<MediaAsset> assets, Shepherd myShepherd){
-    this.occurrenceID = Util.generateUUID();
+    occurrenceID = Util.generateUUID();
 
     this.encounters = new ArrayList<Encounter>();
     this.assets = assets;
@@ -158,13 +168,20 @@ public class Occurrence implements java.io.Serializable{
         return false;
       }
     }
-
-    if(isNew){encounters.add(enc);}
-
+    if(isNew){
+      encounters.add(enc);
+      //updateNumberOfEncounters();
+    }
     //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     return isNew;
 
   }
+  
+  //private void updateNumberOfEncounters() {
+  //  if (individualCount!=null) {
+  //    individualCount = encounters.size();      
+  //  }
+  //}
 
   // like addEncounter but adds backwards link to this enc
   public void addEncounterAndUpdateIt(Encounter enc){
@@ -175,6 +192,16 @@ public class Occurrence implements java.io.Serializable{
 
   public ArrayList<Encounter> getEncounters(){
     return encounters;
+  }
+  public List<String> getEncounterIDs(){
+    List<String> res = new ArrayList<String>();
+    for (Encounter enc: encounters) {res.add(enc.getCatalogNumber());}
+    return res;
+  }
+  public List<String> getEncounterWebUrls(HttpServletRequest request){
+    List<String> res = new ArrayList<String>();
+    for (Encounter enc: encounters) {res.add(enc.getWebUrl(request));}
+    return res;
   }
 
   public boolean addAsset(MediaAsset ma){
@@ -195,7 +222,10 @@ public class Occurrence implements java.io.Serializable{
     return isNew;
 
   }
-
+  public void setSubmitterIDFromEncs(boolean overwrite) {
+    if (!overwrite && Util.stringExists(getSubmitterID())) return;
+    setSubmitterIDFromEncs();
+  }
   public void setSubmitterIDFromEncs(){
     for (Encounter enc: encounters) {
       if (Util.stringExists(enc.getSubmitterID())) {
@@ -222,6 +252,7 @@ public class Occurrence implements java.io.Serializable{
   public void removeEncounter(Encounter enc){
     if(encounters!=null){
       encounters.remove(enc);
+      //updateNumberOfEncounters();
     }
   }
 
@@ -247,6 +278,11 @@ public class Occurrence implements java.io.Serializable{
   }
 
 
+
+  public void setLatLonFromEncs(boolean overwrite) {
+    if (!overwrite && hasLatLon()) return;
+    setLatLonFromEncs();
+  }
   public void setLatLonFromEncs() {
     for (Encounter enc: getEncounters()) {
       String lat = enc.getDecimalLatitude();
@@ -283,14 +319,27 @@ public class Occurrence implements java.io.Serializable{
     return names;
   }
 
-    public void setOccurrenceID(String id) {
+    public void setID(String id) {
         occurrenceID = id;
     }
 
-  public String getOccurrenceID(){return occurrenceID;}
+  public String getID(){
+    return occurrenceID;
+  }
 
+  public static String getWebUrl(String occId, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+occId);
+  }
   public String getWebUrl(HttpServletRequest req) {
-    return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+getOccurrenceID());
+    return getWebUrl(getOccurrenceID(), req);
+  }
+  
+  public String getOccurrenceID(){
+    return occurrenceID;
+  }
+
+  public void setOccurrenceID(String id){
+    occurrenceID = id;
   }
 
   public Integer getIndividualCount(){return individualCount;}
@@ -375,6 +424,47 @@ public class Occurrence implements java.io.Serializable{
     } else {
       comments = newComments;
     }
+  }
+
+
+  public void setMillis(Long millis) {this.millis = millis;}
+  public Long getMillis() {return this.millis;}
+
+  public void setMillisFromEncounters() {
+    this.millis = getMillisFromEncounters();
+  }
+
+  public Long getMillisFromEncounters() {
+    for (Encounter enc: encounters) {
+      if (enc.getDateInMilliseconds()!=null) {
+        return enc.getDateInMilliseconds();
+      }
+    }
+    return null;
+  }
+
+
+  public void setMillisFromEncounterAvg() {
+    this.millis = getMillisFromEncounterAvg();
+  }
+
+  public Long getMillisFromEncounterAvg() {
+    Long total = 1L;
+    int numAveraged = 0;
+    for (Encounter enc: encounters) {
+      if (enc.getDateInMilliseconds()!=null) {
+        total += enc.getDateInMilliseconds();
+        numAveraged++;
+      }
+    }
+    if (numAveraged == 0) return null;
+    return (total / numAveraged);
+  }
+  public Long getMillisRobust() {
+    if (this.millis!=null) return this.millis;
+    if (getMillisFromEncounterAvg()!=null) return getMillisFromEncounterAvg();
+    if (getMillisFromEncounters()!=null) return getMillisFromEncounters();
+    return null;
   }
 
   public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
@@ -505,6 +595,59 @@ public class Occurrence implements java.io.Serializable{
     }
     return null;
   }
+  
+  public void setCorrespondingSurveyTrackID(String id) {
+    if (id != null && !id.equals("")) {
+      correspondingSurveyTrackID = id;
+    }
+  }
+
+  public String getCorrespondingSurveyTrackID() {
+    if (correspondingSurveyTrackID != null) {
+      return correspondingSurveyTrackID;
+    }
+    return null;
+  }
+  
+  public void setCorrespondingSurveyID(String id) {
+    if (id != null && !id.equals("")) {
+      correspondingSurveyID = id;
+    }
+  }
+  
+  public String getCorrespondingSurveyID() {
+    if (correspondingSurveyID != null) {
+      return correspondingSurveyID;
+    }
+    return null;
+  }
+  
+  public Survey getSurvey(Shepherd myShepherd) {
+    Survey sv = null;
+    if (correspondingSurveyID!=null) {
+      try {
+        sv = myShepherd.getSurvey(correspondingSurveyID);
+        return sv;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    } else {
+      try {
+        for (Encounter enc : encounters) {
+          if (correspondingSurveyID!=null) {
+            if (enc.getOccurrenceID().length()>1) {
+              correspondingSurveyID = enc.getOccurrenceID();
+              sv = myShepherd.getSurvey(enc.getOccurrenceID());
+              return sv;
+            }
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return null;
+  }
 
   //public void setLocationID(String newLocID){this.locationID=newLocID;}
 
@@ -577,7 +720,7 @@ public class Occurrence implements java.io.Serializable{
 
     JSONObject encounterInfo = new JSONObject();
     for (Encounter enc : this.encounters) {
-      encounterInfo.put(enc.getCatalogNumber(), new JSONObject("{url: "+enc.getUrl(request)+"}"));
+      encounterInfo.put(enc.getOccurrenceID(), new JSONObject("{url: "+enc.getUrl(request)+"}"));
     }
     jobj.put("encounters", encounterInfo);
     jobj.put("assets", this.assets);
@@ -594,7 +737,7 @@ public class Occurrence implements java.io.Serializable{
         }
 
   public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
-    jobj.put("occurrenceID", this.occurrenceID);
+    jobj.put("ID", this.ID);
     jobj.put("encounters", this.encounters);
     if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
         JSONArray jarr = new JSONArray();
@@ -602,7 +745,7 @@ public class Occurrence implements java.io.Serializable{
         //but for *now* (see note way above) this is all we need for gallery/image display js:
         for (Encounter enc : this.getEncounters()) {
             JSONObject je = new JSONObject();
-            je.put("id", enc.getCatalogNumber());
+            je.put("id", enc.getID());
             if (enc.hasMarkedIndividual()) je.put("individualID", enc.getIndividualID());
             if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
                 JSONArray ja = new JSONArray();
@@ -770,6 +913,9 @@ public class Occurrence implements java.io.Serializable{
     public Double getDecimalLongitude() {
       return decimalLongitude;
     }
+    public boolean hasLatLon() {
+      return (decimalLongitude!=null && decimalLatitude!=null);
+    }
     public void setDecimalLongitude(Double decimalLongitude) {
       this.decimalLongitude = decimalLongitude;
     }
@@ -803,6 +949,8 @@ public class Occurrence implements java.io.Serializable{
     public Integer getMinGroupSizeEstimate() {
       return minGroupSizeEstimate;
     }
+
+
     public void setMinGroupSizeEstimate(Integer minGroupSizeEstimate) {
       this.minGroupSizeEstimate = minGroupSizeEstimate;
     }
@@ -922,48 +1070,72 @@ public class Occurrence implements java.io.Serializable{
       catch(Exception e){e.printStackTrace();}
       return false;
     }
-
-
-    public void setMillis(Long millis) {this.millis = millis;}
-    public Long getMillis() {return this.millis;}
-
-    public void setMillisFromEncounters() {
-      this.millis = getMillisFromEncounters();
+    public ArrayList<Observation> getObservationArrayList() {
+      return observations;
     }
-
-    public Long getMillisFromEncounters() {
-      for (Encounter enc: encounters) {
-        if (enc.getDateInMilliseconds()!=null) {
-          return enc.getDateInMilliseconds();
+    public void addObservationArrayList(ArrayList<Observation> arr) {
+      if (observations.isEmpty()) {
+        observations=arr;      
+      } else {
+       observations.addAll(arr); 
+      }
+    }
+    public void addObservation(Observation obs) {
+      boolean found = false;
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(obs.getName().toLowerCase().trim())) {
+               found = true;
+               this.removeObservation(obs.getName());
+               observations.add(obs);
+               break;
+            }
+          }
+        } 
+        if (!found) {
+          observations.add(obs);        
+        }
+      } else {
+        observations.add(obs);
+      }
+    }
+    public Observation getObservationByName(String obName) {
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
+              return ob;            
+            }
+          }
         }
       }
       return null;
     }
-
-
-    public void setMillisFromEncounterAvg() {
-      this.millis = getMillisFromEncounterAvg();
-    }
-
-    public Long getMillisFromEncounterAvg() {
-      Long total = 0L;
-      int numAveraged = 0;
-      for (Encounter enc: encounters) {
-        if (enc.getDateInMilliseconds()!=null) {
-          total += enc.getDateInMilliseconds();
-          numAveraged++;
+    public Observation getObservationByID(String obId) {
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getID() != null && ob.getID().equals(obId)) {
+            return ob;
+          }
         }
       }
-      if (numAveraged == 0) return null;
-      return (total / numAveraged);
-    }
-    public Long getMillisRobust() {
-      if (this.millis!=null) return this.millis;
-      if (getMillisFromEncounterAvg()!=null) return getMillisFromEncounterAvg();
-      if (getMillisFromEncounters()!=null) return getMillisFromEncounters();
       return null;
     }
-
-
-
+    public void removeObservation(String name) {
+      int counter = 0;
+      if (observations != null && observations.size() > 0) {
+        System.out.println("Looking for the Observation to delete...");
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(name.toLowerCase().trim())) {
+               System.out.println("Match! Trying to delete Observation "+name+" at index "+counter);
+               observations.remove(counter);
+               break;
+            }
+          }
+          counter++;
+        }
+      }  
+    } 
 }

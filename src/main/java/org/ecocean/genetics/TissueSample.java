@@ -24,7 +24,13 @@ public class TissueSample extends DataCollectionEvent {
   private String sampleID;
   private String alternateSampleID;
   private List<GeneticAnalysis> analyses;
+  
+  // Legal permit info for data gathering..
+  private String permit;
 
+  // State of the biopsy.
+  private String state;
+  
 
   /**
    * Empty constructor required for JDO persistence.
@@ -74,6 +80,22 @@ public class TissueSample extends DataCollectionEvent {
 
   public String getAlternateSampleID(){return alternateSampleID;}
   public void setAlternateSampleID(String newID){this.alternateSampleID=newID;}
+  
+  public String getPermit() {
+    return permit;
+  }
+  
+  public void setPermit(String newPermit) {
+    this.permit = newPermit;
+  }
+  
+  public String getState() {
+    return state;
+  }
+  
+  public void setState(String newState) {
+    this.state = newState;
+  }
 
   public int getNumAnalyses(){return analyses.size();}
 
