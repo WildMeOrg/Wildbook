@@ -1094,7 +1094,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public ArrayList<Keyword> getKeywords() {
         return keywords;
     }
-    
+    public boolean hasKeywords(){
+        return (keywords!=null && (keywords.size()>0));
+    }
     public boolean hasKeyword(String keywordName){
       if(keywords!=null){
         int numKeywords=keywords.size();

@@ -482,7 +482,44 @@ public class Encounter implements java.io.Serializable {
 
   public Integer getFlukeType() {return this.flukeType;}
   public void setFlukeType(Integer flukeType) {this.flukeType=flukeType;}
+  // this averages all the fluketypes
+  public void setFlukeTypeFromKeywords() {
+    int totalFlukeType=0;
+    int numFlukes=0;
+    for (Annotation ann: getAnnotations()) {
+      Integer thisFlukeType = getFlukeTypeFromAnnotation(ann);
+      if (thisFlukeType!=null) {
+        totalFlukeType+=thisFlukeType;
+        numFlukes++;
+      }
+    }
+    if (numFlukes==0) return;
+    setFlukeType(totalFlukeType/numFlukes);
+  }
 
+  public static Integer getFlukeTypeFromAnnotation(Annotation ann) {
+    return getFlukeTypeFromAnnotation(ann, 5);
+  }
+
+  // int maxScore is used because some people store flukeType on a 5 point (most standard), some on a 9 point scale
+  public static Integer getFlukeTypeFromAnnotation(Annotation ann, int maxScore) {
+    MediaAsset ma = ann.getMediaAsset();
+    if (ma==null || !ma.hasKeywords()) return null;
+    String flukeTypeKwPrefix = "fluke"+maxScore+":";
+    for (Keyword kw: ma.getKeywords()) {
+      String kwName = kw.getReadableName();
+      if (kwName.contains(flukeTypeKwPrefix)) {
+        String justScore = kwName.split(flukeTypeKwPrefix)[1];
+        try {
+          Integer score = Integer.parseInt(justScore);
+          if (score!=null) return score;
+        } catch (NumberFormatException nfe) {
+          System.out.println("NFE on getFlukeTypeFromAnnotation! For ann "+ann+" and kwPrefix "+flukeTypeKwPrefix);
+        }
+      }
+    }
+    return null;
+  }
 
 
     //yes, there "should" be only one of each of these, but we be thorough!
