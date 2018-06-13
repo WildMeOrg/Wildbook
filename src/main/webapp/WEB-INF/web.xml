@@ -1082,11 +1082,6 @@
     <servlet-class>org.ecocean.servlet.EncounterRemoveSpots</servlet-class>
   </servlet>
   
-    <servlet>
-    <servlet-name>EncounterCreate</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterCreate</servlet-class>
-  </servlet>
-
 <!--
       <servlet>
            <servlet-name>MozPradel</servlet-name>
@@ -2088,11 +2083,6 @@
     <url-pattern>/EncounterSetScarring</url-pattern>
   </servlet-mapping>
   
-    <servlet-mapping>
-    <servlet-name>EncounterCreate</servlet-name>
-    <url-pattern>/EncounterCreate</url-pattern>
-  </servlet-mapping>
-
   <servlet-mapping>
       <servlet-name>EncounterSetState</servlet-name>
       <url-pattern>/EncounterSetState</url-pattern>
