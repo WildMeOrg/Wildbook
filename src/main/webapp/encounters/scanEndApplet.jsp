@@ -45,7 +45,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
 	}
 	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
+  myShepherd.closeDBTransaction();
   }	
   String encSubdir = Encounter.subdir(num);
 
@@ -68,6 +68,30 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String Sizelim = "";
   String maxTriangleRotation = "";
   String side2 = "";
+
+  // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+  boolean usaUser = false;
+  String userName = "";
+  Shepherd userShepherd = new Shepherd(context);
+  if (request.getUserPrincipal()!=null) {
+    userName = request.getUserPrincipal().getName();
+    userShepherd.beginDBTransaction();
+    List<Role> roles = userShepherd.getAllRolesForUser(userName);
+    for (Role role : roles) {
+      if (role.getRolename().equals("spotasharkusa")) {
+        usaUser = true;
+      }
+    }
+    userShepherd.rollbackDBTransaction();
+    userShepherd.closeDBTransaction();
+  }
+
+  // Part Two hackety hack to switch URLs for US users
+  String linkURLBase = CommonConfiguration.getURLLocation(request);
+  if (usaUser) {
+    linkURLBase = "ncaquariums.wildbook.org";
+  }
+
 %>
 <jsp:include page="../header.jsp" flush="true"/>
 
@@ -131,7 +155,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <ul id="tabmenu">
   <li><a
-    href="encounter.jsp?number=<%=num%>">Encounter
+    href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=num%>">Encounter
     <%=num%>
   </a></li>
   <li><a class="active">Modified Groth</a></li>
@@ -235,7 +259,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 </p>
 <p>The following encounter(s) received the highest
   match values against a <%=side%>-side scan of encounter <a
-    href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
+    href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
 <%
@@ -254,6 +278,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 <%
+
     String feedURL = "//" + "www.spotashark.com" + "/TrackerFeed?number=" + num;
     String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
@@ -275,12 +300,12 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
           codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
           height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
     <PARAM NAME="movie"
-           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
+           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=linkURLBase%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
     <PARAM NAME="qualidty" VALUE="high">
     <PARAM NAME="scale" VALUE="exactfit">
     <PARAM NAME="bgcolor" VALUE="#ddddff">
     <EMBED
-      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=linkURLBase%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
       quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
       WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
       TYPE="application/x-shockwave-flash"
@@ -316,14 +341,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
         <tr>
           <td>
             <a
-                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
+            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
           </a></td>
           <%
             }
@@ -373,7 +398,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
         
         <tr align="left" valign="top">
           <td>
-            <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            <a href="//<%=linkURLBase%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
             	<%=enc1.attributeValue("assignedToShark")%>
             </a>
           </td>
@@ -381,7 +406,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
+            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
             }
