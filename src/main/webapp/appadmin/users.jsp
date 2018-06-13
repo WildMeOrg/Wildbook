@@ -19,13 +19,12 @@
 	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
 	int numRoles=roles.size();
   	int numRoleDefinitions=roleDefinitions.size();
-    
-    
     int numResults = 0;
-
 
     List<User> users = new ArrayList<User>();
     myShepherd.beginDBTransaction();
+
+	String currentEmail = request.getParameter("email")	;
     
     try{
 	    String order ="username ASC NULLS LAST";	    
@@ -444,6 +443,37 @@
 		return myRoles.replace('<br>','');
 		
 	}
+
+	//Checkbox switch for delete user
+	function deleteUser() {
+		if (document.getElementById("deleteCheck").checked) {
+			$('#deleteButton').show();
+			$('#Create').hide();
+		} else {
+			$('#deleteButton').hide();
+			$('#Create').show();
+		}
+	}
+
+	$(document).ready(function() {
+		var email = "";
+		$("#deleteButton").click(function(event) {
+			event.preventDefault();
+
+			email = "<%=currentEmail%>";
+
+			$.post("../UserDelete", {"email": email},
+			function() {
+				$('#deleteButton').hide();
+				$('#Create').show();
+				$('#deleteMessage').text('Success! Refresh to see removed from list.');
+			})
+			.fail(function(response) {
+				$('#deleteMessage').text('I failed to delete the user.');
+			});
+		});
+	});
+
 	
 	</script>
 	
@@ -603,7 +633,14 @@
                     <tr><td colspan="3">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
 		     <tr><td colspan="3" valign="top">User Statement (255 char. max): <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
                     
-                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
+                    <tr>
+						<td colspan="3">
+							<input class="alterOrCreateUser" name="Create" type="submit" id="Create" value="Create" />
+							<input class="deleteUser" name="Delete" type="button" id="deleteButton" value="Delete" style="display:none;"/>
+							<input class="deleteUser" name="Delete" onchange="deleteUser()" type="checkbox" id="deleteCheck" value="deleteCheck"/>
+							<label id="deleteMessage">Delete User?</label>
+						</td>
+					</tr>
             </table>
             </td>
             <td>
