@@ -153,7 +153,7 @@
         <li><a class="active"><%=occProps.getProperty("table")%>
         </a></li>
             <li><a
-           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
+           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("permitExport")%>
          </a></li>
 
       </ul>
@@ -235,11 +235,33 @@ $(document).keydown(function(k) {
 
 // functor!
 function _notUndefined(fieldName) {
-  function _helperFunc(o) {
+  function _helperFunc(o) {	
     if (o[fieldName] == undefined) return '';
     return o[fieldName];
   }
   return _helperFunc;
+}
+
+function _notZero(fieldName) {
+  function _helperFunc(o) {
+    if (o[fieldName] == undefined || o[fieldName] == 0) return '';
+    return o[fieldName];
+  }
+  return _helperFunc;
+}
+function _species(o) {
+	var taxonomies = o['taxonomies'];
+	console.log("occ "+o['occurrenceID']+" taxonomies "+taxonomies);
+	if (o['taxonomies']==null || o['taxonomies'].length==0 || o['taxonomies'][0]['scientificName']==undefined) return '';
+	return o['taxonomies'][0]['scientificName'];
+}
+function _date(o) {
+	var millis = o['dateTimeLong'];
+	if (millis==null) return '';
+	var date = new Date(millis);
+	if (date==null) return '';
+	var dateStr = date.toISOString();
+	return dateStr.split('T')[0];
 }
 
 
@@ -255,34 +277,46 @@ var colDefn = [
     key: 'imageSet',
     label: '<%=occProps.getProperty("imageSet")%>',
     value: _notUndefined('imageSet'),
-  },*/
+  },
+  
+*/
+ 
   {
     key: 'ID',
     label: 'ID',
     value: _notUndefined('occurrenceID'),
   },
   {
-    key: 'bestGroupSizeEstimate',
-    label: 'group size estimate',
-    value: _notUndefined('bestGroupSizeEstimate'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+    key: 'dateTimeLong',
+    label: 'Date',
+    value: _date,
+  },
+  {
+    key: 'sightingPlatform',
+    label: 'Sighting Platform',
+    value: _notUndefined('sightingPlatform'),
+  },
+  {
+    key: 'taxonomies',
+    label: 'Species',
+    value: _species,
   },
   {
     key: 'individualCount',
-    label: 'num Id\'d individuals',
+    label: '# Individuals',
     value: _notUndefined('individualCount'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
   {
 		key: 'decimalLatitude',
 		label: 'latitude',
-    value: _notUndefined('decimalLatitude'),
+    value: _notZero('decimalLatitude'),
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   {
 		key: 'decimalLongitude',
 		label: 'longitude',
-    value: _notUndefined('decimalLongitude'),
+    value: _notZero('decimalLongitude'),
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   {
@@ -293,6 +327,12 @@ var colDefn = [
   },
 
   /*
+  {
+    key: 'individualCount',
+    label: 'Encounters',
+    value: _notUndefined('individualCount'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
 	{
 		key: 'individual',
 		label: '<%=props.getProperty("markedIndividual")%>',
@@ -301,12 +341,6 @@ var colDefn = [
 		//sortFunction: function(a,b) {},
 	},
 
-	{
-		key: 'numberEncounters',
-		label: '<%=props.getProperty("numEncounters")%>',
-		value: _colNumberEncounters,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
 	{
 		key: 'maxYearsBetweenResightings',
 		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
@@ -324,7 +358,6 @@ var colDefn = [
 	}*/
 
 ];
-
 
 var howMany = 30;
 var start = 0;
@@ -619,9 +652,12 @@ function _colIndividual(o) {
 
 
 function _colNumberEncounters(o) {
-	if (o.numberEncounters == undefined) return '';
-	return o.numberEncounters;
+	if (o.encounters == undefined) return '';
+	//console.log("Here's the encs: "+JSON.stringify(o.encounters));
+	//console.log("Here's th length: "+o.encounters.length);
+	return o.encounters.length;
 }
+
 
 /*
 function _colYearsBetween(o) {
@@ -672,7 +708,6 @@ function _colThumb(o) {
 	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
 }
 
-
 function _colModified(o) {
 	var m = o.get('modified');
 	if (!m) return '';
@@ -681,6 +716,15 @@ function _colModified(o) {
 	return d.toLocaleDateString();
 }
 
+function _colDate(o) {
+	var millis = o.dateAsString();
+}
+
+function _colDateSort(o) {
+	var d = o.date();
+	if (!d) return 0;
+	return d.getTime();
+}
 
 function _textExtraction(n) {
 	var s = $(n).text();
@@ -691,7 +735,7 @@ function _textExtraction(n) {
 
 function applyFilter() {
 	var t = $('#filter-text').val();
-console.log(t);
+	console.log(t);
 	sTable.filter(t);
 	start = 0;
 	newSlice(1);

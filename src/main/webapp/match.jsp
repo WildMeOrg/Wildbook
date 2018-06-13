@@ -599,8 +599,8 @@ function processEncounter(data, id) {
 	encIds[id] = data.encounterId;
 	$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>created <b><a target="_new" title="' + data.encounterId +
 		'" href="encounters/encounter.jsp?number=' + data.encounterId + '&accessKey=' + accessKey + '">new encounter</a></b>.</div>');
-	waitOn('Starting identification...');
-	startIdentify(data.annotations, id);
+	////waitOn('Starting identification...');
+	////startIdentify(data.annotations, id);  //not any more, cuz IA kicked off via EncounterCreate
 return;
 //////////////////////////// the rest is historic cruft (now in _identCallback() )
 	$.ajax({
@@ -819,7 +819,8 @@ console.warn('assetsArr = %o', assetsArr);
         data: JSON.stringify({
           "MediaAssetCreate": [
             {"assets": assetsArr}
-           ]
+           ],
+          "skipIA": true
         }),
 		complete: function(x) {
 			waitOff();

@@ -210,6 +210,14 @@ public class Annotation implements java.io.Serializable {
     public void setTheta(double t) {
         theta = t;
     }
+
+    public boolean isIAReady() {
+        MediaAsset ma = this.getMediaAsset();
+        if (ma==null) return false;
+        if (ma.getHeight()==0 && ma.getWidth()==0) return false;
+        return true;
+    }
+
 //FIXME this all needs to be deprecated once deployed sites are migrated
     public MediaAsset __getMediaAsset() {
         return mediaAsset;

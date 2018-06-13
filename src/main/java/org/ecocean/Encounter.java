@@ -30,6 +30,7 @@ import java.util.Calendar;
 import java.util.StringTokenizer;
 import java.text.SimpleDateFormat;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.HashMap;
 import java.util.SortedMap;
@@ -44,13 +45,15 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;
+import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
-
+import org.ecocean.PointLocation;
+import org.ecocean.Survey;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -58,6 +61,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.ecocean.security.Collaboration;
@@ -106,6 +110,10 @@ public class Encounter implements java.io.Serializable {
   private int year = 0;
   private Double decimalLatitude;
   private Double decimalLongitude;
+  
+  private Double endDecimalLatitude;
+  private Double endDecimalLongitude;
+  
   private String verbatimLocality;
   private String occurrenceRemarks = "";
   private String modified;
@@ -134,6 +142,8 @@ public class Encounter implements java.io.Serializable {
   private Double immunoglobin;
   private Boolean sampleTakenForDiet;
   private Boolean injured;
+
+  private ArrayList<Observation> observations = new ArrayList<Observation>();
 
   public String getSoil() {return soil;}
   public void setSoil(String soil) {this.soil = soil;}
@@ -222,11 +232,15 @@ public class Encounter implements java.io.Serializable {
   //the globally unique identifier (GUID) for this Encounter
   private String guid;
 
+  
+  
+  private Long endDateInMilliseconds;
   private Long dateInMilliseconds;
   //describes how the shark was measured
   private String size_guess = "none provided";
   //String reported GPS values for lat and long of the encounter
   private String gpsLongitude = "", gpsLatitude = "";
+  private String gpsEndLongitude = "", gpsEndLatitude = "";
   //whether this encounter has been rejected and should be hidden from public display
   //unidentifiable encounters generally contain some data worth saving but not enough for accurate photo-identification
   //private boolean unidentifiable = false;
@@ -291,8 +305,22 @@ public class Encounter implements java.io.Serializable {
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
   private SatelliteTag satelliteTag;
+  private DigitalArchiveTag digitalArchiveTag;
 
   private Boolean mmaCompatible = false;
+  
+  // Variables used in the Survey, SurveyTrack, Path, Location model
+  
+  private String correspondingSurveyTrackID = null;
+  private String correspondingSurveyID = null;
+  
+  
+  // This is the eventual replacement for the old decimal lat lon and other location data.
+  private PointLocation pointLocation;
+  
+  // This is the number used to cross reference with dates to find occurances. (Read Lab)
+  private String sightNo = "";
+  
 
   // This is what researchers eyeball is the individual's ID in the field
   // it could be a name that only has meaning in the context of that day's work
@@ -536,6 +564,7 @@ public class Encounter implements java.io.Serializable {
   public Double getSizeAsDouble() {
     return size;
   }
+  
 
   /**
    * Sets the units of the recorded size and depth of the shark for this encounter.
@@ -736,6 +765,13 @@ public class Encounter implements java.io.Serializable {
    */
   public String getPhotographerPhone() {
     return photographerPhone;
+  }
+
+  public String getWebUrl(HttpServletRequest req) {
+    return getWebUrl(this.getCatalogNumber(), req);
+  }
+  public static String getWebUrl(String encId, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/encounters/encounter.jsp?number="+encId);
   }
 
   /**
@@ -1623,6 +1659,54 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setReleaseDate(Long releaseDate) {
     this.releaseDateLong = releaseDate;
   }
+  
+  // Survey ect associations...
+  
+  public void setSurveyTrackID(String id) {
+    if (id != null && !id.equals("")) {
+      this.correspondingSurveyTrackID = id;
+    }
+  }
+
+  public String getSurveyTrackID() {
+    if (correspondingSurveyTrackID != null) {
+      return correspondingSurveyTrackID;
+    }
+    return null;
+  }
+  
+  public void setPointLocation(PointLocation loc) {
+    if (loc.getID() != null) {
+      this.pointLocation = loc;
+    }
+  }
+  
+  public PointLocation getPointLocation() {
+    if (pointLocation != null) {
+      return pointLocation;
+    }
+    return null;
+  }
+  
+  public String getSurveyID() {
+    if (correspondingSurveyID != null && !correspondingSurveyID.equals("")) {
+      return correspondingSurveyID;
+    }  
+    return null;
+  }
+  
+  public void setSurveyID(String id) {
+    if (id != null && !id.equals("")) {
+      this.correspondingSurveyID = id;
+    }
+  }
+  
+  
+  public void setSurvey() {
+    
+  }
+  
+  // TODO Get all this lat lon over to Locations
 
   public void setDWCDecimalLatitude(double lat) {
     if (lat == -9999.0) {
@@ -1631,8 +1715,6 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       decimalLatitude = (new Double(lat));
     }
   }
-
-
 
   public void setDWCDecimalLatitude(Double lat){
     if((lat!=null)&&(lat<=90)&&(lat>=-90)){
@@ -1721,6 +1803,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     this.catalogNumber = newNumber;
   }
 
+  public String getID() {
+    return catalogNumber;
+  }
+
+  public void setID(String newNumber) {
+    this.catalogNumber = newNumber;
+  }
+
   public String getVerbatimLocality() {
     return verbatimLocality;
   }
@@ -1746,18 +1836,31 @@ some strings and decimal (double, er Double?) values -- so i am doing my best to
 the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
   public Double getDecimalLatitudeAsDouble(){return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();}
 
-    public void setDecimalLatitude(Double lat){
-        this.decimalLatitude = lat;
-        gpsLatitude = Util.decimalLatLonToString(lat);
-     }
+  public void setDecimalLatitude(Double lat){
+      this.decimalLatitude = lat;
+      gpsLatitude = Util.decimalLatLonToString(lat);
+   }
 
   public Double getDecimalLongitudeAsDouble(){return (decimalLongitude == null) ? null : decimalLongitude.doubleValue();}
 
-    public void setDecimalLongitude(Double lon) {
-        this.decimalLongitude = lon;
-        gpsLongitude = Util.decimalLatLonToString(lon);
-    }
+  public void setDecimalLongitude(Double lon) {
+      this.decimalLongitude = lon;
+      gpsLongitude = Util.decimalLatLonToString(lon);
+  }
+  
+  public Double getEndDecimalLatitudeAsDouble(){return (endDecimalLatitude == null) ? null : endDecimalLatitude.doubleValue();}
 
+  public void setEndDecimalLatitude(Double lat){
+      this.endDecimalLatitude = lat;
+      gpsEndLatitude = Util.decimalLatLonToString(lat);
+   }
+
+  public Double getEndDecimalLongitudeAsDouble(){return (endDecimalLongitude == null) ? null : endDecimalLongitude.doubleValue();}
+
+  public void setEndDecimalLongitude(Double lon) {
+      this.endDecimalLongitude = lon;
+      gpsEndLongitude = Util.decimalLatLonToString(lon);
+  } 
 
   public String getOccurrenceRemarks() {
     return occurrenceRemarks;
@@ -1879,6 +1982,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       }
     }
     return null;
+  }
+  public boolean hasDynamicProperty(String name) {
+    return ( this.getDynamicPropertyValue(name) != null );
   }
 
   public void removeDynamicProperty(String name) {
@@ -2055,6 +2161,34 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (this.minutes.length() == 1) this.minutes = "0" + this.minutes;
         this.dateInMilliseconds = ms;
     }
+    
+    
+  public Long getEndDateInMilliseconds() {
+    return endDateInMilliseconds;
+  }  
+  
+  public void setEndDateInMilliseconds(long ms) {
+    this.endDateInMilliseconds = ms;
+  }
+  
+  private String milliToMonthDayYear(Long millis) {
+    DateTime dt = new DateTime(millis);
+    DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
+    return dtf.print(dt); 
+  }
+  
+  public String getStartDateTime() {
+    return milliToMonthDayYear(dateInMilliseconds);
+  }
+  
+  public String getEndDateTime() {
+    return milliToMonthDayYear(endDateInMilliseconds);
+  }
+
+    // this does not reset year/month/etc
+    public void setDateInMillisOnly(long ms) {
+        this.dateInMilliseconds = ms;
+    }
 
 
   public String getDecimalLatitude(){
@@ -2065,6 +2199,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
   public String getDecimalLongitude(){
     if(decimalLongitude!=null){return Double.toString(decimalLongitude);}
+    return null;
+  }
+  
+  public String getEndDecimalLongitude(){
+    if(endDecimalLongitude!=null){return Double.toString(endDecimalLongitude);}
+    return null;
+  }
+
+  public String getEndDecimalLatitude(){
+    if(endDecimalLatitude!=null){return Double.toString(endDecimalLatitude);}
     return null;
   }
 
@@ -2248,6 +2392,14 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
     public void setSatelliteTag(SatelliteTag satelliteTag) {
       this.satelliteTag = satelliteTag;
+    }
+    
+    public DigitalArchiveTag getDTag() {
+      return digitalArchiveTag;
+    }
+
+    public void setDTag(DigitalArchiveTag dt) {
+      this.digitalArchiveTag = dt;
     }
 
     public String getLifeStage(){return lifeStage;}
@@ -2801,7 +2953,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 		return blk;
 	}
 
-
 /*
 in short, this rebuilds (or builds for the first time) ALL *derived* images (etc?) for this encounter.
 it is a baby step into the future of MediaAssets that hopefully will provide a smooth(er) transition to that.
@@ -3084,6 +3235,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         return new ToStringBuilder(this)
                 .append("catalogNumber", catalogNumber)
                 .append("individualID", (hasMarkedIndividual() ? individualID : null))
+                .append("occurrenceID", getOccurrenceID())
                 .append("species", getTaxonomyString())
                 .append("sex", getSex())
                 .append("shortDate", getShortDate())
@@ -3112,5 +3264,73 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       System.out.println("Exiting Encounter.getMediaAssetsOfType with this num results: "+results.size());
       return results;
     }
+
+    public ArrayList<Observation> getObservationArrayList() {
+      return observations;
+    }
+    public void addObservationArrayList(ArrayList<Observation> arr) {
+      if (observations.isEmpty()) {
+        observations=arr;      
+      } else {
+       observations.addAll(arr); 
+      }
+    }
+    public void addObservation(Observation obs) {
+      boolean found = false;
+      //System.out.println("Adding Observation in Base Class... : "+obs.toString());
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(obs.getName().toLowerCase().trim())) {
+               found = true;
+               break;
+            }
+          }
+        } 
+        if (!found) {
+          observations.add(obs);        
+        }
+      } else {
+        observations.add(obs);
+      }
+    }
+    public Observation getObservationByName(String obName) {
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
+              return ob;            
+            }
+          }
+        }
+      }
+      return null;
+    }
+    public Observation getObservationByID(String obId) {
+      if (observations != null && observations.size() > 0) {
+        for (Observation ob : observations) {
+          if (ob.getID() != null && ob.getID().equals(obId)) {
+            return ob;
+          }
+        }
+      }
+      return null;
+    }
+    public void removeObservation(String name) {
+      int counter = 0;
+      if (observations != null && observations.size() > 0) {
+        System.out.println("Looking for the Observation to delete...");
+        for (Observation ob : observations) {
+          if (ob.getName() != null) {
+            if (ob.getName().toLowerCase().trim().equals(name.toLowerCase().trim())) {
+               System.out.println("Match! Trying to delete Observation "+name+" at index "+counter);
+               observations.remove(counter);
+               break;
+            }
+          }
+          counter++;
+        }
+      }  
+    } 
 
 }

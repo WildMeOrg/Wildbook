@@ -62,7 +62,33 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 </head>
 
-<style type="text/css">v\:* {
+<style type="text/css">
+/* this .search-collapse-header .rotate-chevron logic doesn't work
+ because animatedcollapse.js is eating the click event (I think.).
+ It's unclear atm where/whether to modify animatedcollapse.js to
+ rotate this chevron.
+*/
+.search-collapse-header .rotate-chevron {
+    -moz-transition: transform 0.5s;
+    -webkit-transition: transform 0.5s;
+    transition: transform 0.5s;
+}
+.search-collapse-header .rotate-chevron.down {
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+</style>
+<script>
+$(".search-collapse-header a").click(function(){
+    console.log("LOG!: collapse-header is clicked!");
+    $(this).children(".rotate-chevron").toggleClass("down");
+});
+</script>
+
+
+<style type="text/css"> {
   behavior: url(#default#VML);  
    .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
@@ -96,6 +122,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
 }
 </style>
+
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 
@@ -210,7 +237,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 
-<form action="searchResults.jsp" method="get" name="search" id="search">
+<form action="searchResults.jsp" method="get" name="encounterSearch" id="search">
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
@@ -300,11 +327,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <tr>
   <td width="810px">
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a>
-      <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
-        color="#000000"><%=encprops.getProperty("locationFilter") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><span class="el el-lg el-chevron-down rotate-chevron"></span> <%=encprops.getProperty("locationFilter") %></a></h4>
 
 
     
@@ -329,7 +353,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 1;
+	var mapZoom = 1.5;
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -438,10 +462,9 @@ function useData(doc){
 </tr>
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.get("locationFilterText") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.get("locationFilterText") %></a></h4>
 
     <div id="location" style="display:none; ">
       <p><%=encprops.getProperty("locationInstructions") %></p>
@@ -542,10 +565,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("dateFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("dateFilters") %></a></h4>
   </td>
 </tr>
 
@@ -636,10 +658,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("observationFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("observationFilters") %></a></h4>
   </td>
 </tr>
 
@@ -712,8 +733,42 @@ if(CommonConfiguration.showProperty("showCountry",context)){
           </td>
         </tr>
         
-
-
+        <!-- Begin search code for Observations -->
+        
+		<tr>
+			<td>
+				<br/>
+				<!-- Allow a key and value for each observation, allow user to add additional fields. -->
+				<p>
+					<label><%=encprops.getProperty("obSearchHeader")%></label>
+				</p>
+        </br>
+        
+				<p>
+					<input name="observationKey1" type="text" id="observationKey1" value="" placeholder="Observation Name">
+					<input name="observationValue1" type="text" id="observationValue1" value="" placeholder="Observation Value">
+				</p>
+      
+				<div id="additionalObsFields"></div>
+        </br>
+				<input name="numSearchedObs" type="hidden" id="numSearchedObs" value="1" >
+				<input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=encprops.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
+			</td>
+			<br/>
+		</tr>	
+		<script>
+			$(document).ready(function(){
+				var num = 2;
+				$('#addAnotherObBtn').click(function(){
+					var obField = '<p><input name="observationKey'+num+'" type="text" id="observationKey'+num+'" value="" placeholder="Observation Name"><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value="" placeholder="Observation Value"></p>';	
+					$('#additionalObsFields').append(obField);	
+					$('#numSearchedObs').val(num); 
+					num++;		
+				});
+			});
+		</script>
+		<!-- End Search Code For Observations -->
+		
         <tr>
           <td valign="top"><strong><%=encprops.getProperty("behavior")%>:</strong>
             <em> <span class="para">
@@ -932,10 +987,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("identityFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("identityFilters") %></a></h4>
   </td>
 </tr>
 <tr>
@@ -999,10 +1053,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <c:if test="${showMetalTags or showAcousticTag or showSatelliteTag}">
  <tr>
      <td>
-     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-       <font color="#000000"><%=encprops.getProperty("tagsTitle") %></font></a></h4>
+     <h4 class="intro search-collapse-header"><a
+       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+       <%=encprops.getProperty("tagsTitle") %></a></h4>
      </td>
  </tr>
  <tr>
@@ -1054,10 +1107,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("biologicalSamples") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("biologicalSamples") %></a></h4>
   </td>
 </tr>
 <tr>
@@ -1246,10 +1298,9 @@ else {
 <tr>
   <td>
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("metadataFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("metadataFilters") %></a></h4>
   </td>
 </tr>
 
@@ -1360,6 +1411,9 @@ inShepherd.closeDBTransaction();
 </table>
 <br />
 </div>
+
+<script type="text/javascript" src="../javascript/formNullRemover.js"></script>
+
 <jsp:include page="../footer.jsp" flush="true"/>
 
 

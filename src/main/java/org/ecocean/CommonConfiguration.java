@@ -385,6 +385,14 @@ public class CommonConfiguration {
     return getProperty("googleSearchKey",context);
   }
 
+  public static String getDefaultGoogleMapsCenter(String context) {
+    if (getProperty("googleMapsCenter",context)!=null) {
+      return getProperty("googleMapsCenter",context);
+    } else {
+      return "{lat: 35.2195, lng: -75.6903}";
+    }
+  }
+
   public static String getProperty(String name, String context) {
     return initialize(context).getProperty(name);
   }
@@ -770,7 +778,6 @@ public class CommonConfiguration {
   public static boolean isWildbookInitialized(Shepherd myShepherd) {
     List<User> users = myShepherd.getAllUsers();
     if (users.size() == 0) return false;
-
     return true;
   }
 

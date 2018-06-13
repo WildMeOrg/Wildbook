@@ -90,7 +90,7 @@ public class ShepherdProperties {
     //System.out.println("Starting loadOverrideProps");
 
     Properties myProps=new Properties();
-    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
+    File configDir = new File(System.getProperty("catalina.base") + "/webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
     //System.out.println(configDir.getAbsolutePath());
     //sometimes this ends up being the "bin" directory of the J2EE container
     //we need to fix that

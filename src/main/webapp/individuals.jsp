@@ -2,12 +2,15 @@
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
-org.datanucleus.ExecutionContext,
+org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 
+<jsp:include page="header.jsp" flush="true"/>
+
 <%
+
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -95,8 +98,10 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individuals.jsp");
 
-
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+
+
+
 
 %>
 
@@ -111,10 +116,31 @@ if (request.getParameter("number")!=null) {
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
 
-
 			boolean visible = indie.canUserAccess(request);
 
+      System.out.println("");
+      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+      String ipAddress = request.getHeader("X-FORWARDED-FOR");
+      if (ipAddress == null) ipAddress = request.getRemoteAddr();
+      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
+      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+      System.out.println("    From IP: "+ipAddress);
+      System.out.println("    "+currentTimeString);
+      System.out.println("    Individual: "+indie);
+      System.out.println("    is visible: "+visible);
+      System.out.println("    request.getAuthType(): "+request.getAuthType());
+      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
+      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
+      System.out.println("");
+
+
 			if (!visible) {
+
+        // remove any potentially-sensitive data, labeled with the secure-field class
+        System.out.println("Not visible! Printing stuff!");
+        %>
+        <script src="/javascript/hide-secure-fields.js"></script>
+        <%
   			ArrayList<String> uids = indie.getAllAssignedUsers();
 				ArrayList<String> possible = new ArrayList<String>();
 				for (String u : uids) {
@@ -149,7 +175,6 @@ if (request.getParameter("number")!=null) {
 	}
 }
 %>
-<jsp:include page="header.jsp" flush="true"/>
 
 
 
@@ -208,10 +233,6 @@ if (request.getParameter("number")!=null) {
 </style>
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
-
-  <link rel="stylesheet" href="css/createadoption.css">
-
-
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
@@ -346,14 +367,14 @@ $(document).ready(function() {
 </script>
 
 <%---------- Main Div ----------%>
-<div class="container maincontent">
+<div class="container maincontent secure-field">
   <%=blocker%>
   <%
   myShepherd.beginDBTransaction();
   try {
     if (myShepherd.isMarkedIndividual(name)) { %>
   <%-- Header Row --%>
-  <div class="row mainHeader" style="position:relative;">
+  <div class="row mainHeader secure-field" style="position:relative;">
     <div class="col-sm-6">
 
           <%

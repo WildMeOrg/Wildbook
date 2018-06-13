@@ -264,6 +264,13 @@
 		},
 	
 		{
+			key: 'nickName',
+			label: '<%=props.getProperty("nickNameCol")%>',
+			value: _colNickname,
+			sortValue: function(o) { return o.nickName.toLowerCase(); },
+		},
+	
+		{
 			key: 'numberEncounters',
 			label: '<%=props.getProperty("numEncounters")%>',
 			value: _colNumberEncounters,
@@ -577,6 +584,11 @@
 		var fi = o.dateFirstIdentified;
 		if (fi) i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
 		return i;
+	}
+
+	function _colNickname(o) {
+		if (o.nickName == undefined) return '';
+		return o.nickName;
 	}
 	
 	

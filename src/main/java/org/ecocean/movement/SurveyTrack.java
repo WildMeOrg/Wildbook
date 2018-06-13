@@ -143,6 +143,7 @@ public class SurveyTrack implements java.io.Serializable{
     public ArrayList<Occurrence> getOccurrences() {
         return getAllOccurrences();
     }
+
   public ArrayList<Occurrence> getAllOccurrences() {
     if (!occurrences.isEmpty()) {
       return occurrences; 

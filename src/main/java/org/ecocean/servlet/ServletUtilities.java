@@ -504,6 +504,16 @@ return result.toString();
 }
 */
 
+public static String getEncounterUrl(String encID, HttpServletRequest request) {
+  return (CommonConfiguration.getServerURL(request)+"/encounters/encounter.jsp?number="+encID);
+}
+public static String getIndividualUrl(String indID, HttpServletRequest request) {
+  return (CommonConfiguration.getServerURL(request)+"/individuals.jsp?number="+indID);
+}
+public static String getOccurrenceUrl(String occID, HttpServletRequest request) {
+  return (CommonConfiguration.getServerURL(request)+"/occurrence.jsp?number="+occID);
+}
+
 public static String preventCrossSiteScriptingAttacks(String description) {
   description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   description = description.replaceAll("eval\\((.*)\\)", "");

@@ -14,6 +14,20 @@ public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp
   out.println("</tr>");
 
 }
+public static void printStringFieldSearchRow(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+  out.println("<tr id=\""+fieldName+"Row\">");
+  out.println("  <td id=\""+fieldName+"Title\">"+displayName+"</td>");
+  out.println("  <td> <select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
+  out.println("    <option value=\"None\" selected=\"selected\"></option>");
+  for (String val: valueOptions) {
+    out.println("    <option value=\""+val+"\">"+val+"</option>");
+  }
+  out.println("  </select></td>");
+  out.println("</tr>");
+
+}
 
 public static String getDisplayName(String fieldName, Properties nameLookup) throws IOException, IllegalAccessException {
   // Tries to lookup a translation and defaults to some string manipulation
@@ -54,6 +68,8 @@ context=ServletUtilities.getContext(request);
   Properties occProps = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
 
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
+  
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 %>
 
@@ -66,15 +82,9 @@ context=ServletUtilities.getContext(request);
   <script type="text/javascript">
     //animatedcollapse.addDiv('location', 'fade=1')
     animatedcollapse.addDiv('map', 'fade=1')
-    animatedcollapse.addDiv('date', 'fade=1')
-    animatedcollapse.addDiv('observation', 'fade=1')
-    animatedcollapse.addDiv('tags', 'fade=1')
-    animatedcollapse.addDiv('identity', 'fade=1')
+    animatedcollapse.addDiv('observations', 'fade=1')
     animatedcollapse.addDiv('metadata', 'fade=1')
-    animatedcollapse.addDiv('export', 'fade=1')
-    animatedcollapse.addDiv('genetics', 'fade=1')
-	animatedcollapse.addDiv('social', 'fade=1')
-	animatedcollapse.addDiv('patternrecognition', 'fade=1')
+  	animatedcollapse.addDiv('patternrecognition', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -85,16 +95,12 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="javascript/geoxml3.js"></script>
 <script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
 
   <!-- /STEP2 Place inside the head section -->
-
-
-
-
 <style type="text/css">v\:* {
   behavior: url(#default#VML);
 }</style>
@@ -222,9 +228,8 @@ if(compareAgainst.getGeneticSex()!=null){
 <tr>
   <td width="810px">
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a> <a
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><span class="el el-chevron-down"></span></a> <a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
       color="#000000"><%=props.getProperty("locationFilter") %></font></a></h4>
   </td>
@@ -253,7 +258,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 1;
+	var mapZoom = 1.5;
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -450,12 +455,10 @@ function FSControl(controlDiv, map) {
 
 </tr>
 
-
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
   </td>
 </tr>
@@ -504,14 +507,12 @@ function FSControl(controlDiv, map) {
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 %>
-
-
-
   <tr id="FieldsTitleRow">
+  </tr>
+  <tr>
     <td>
-      <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-        src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+      <h4 class="intro search-collapse-header"><a
+        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
         color="#000000"><%=occProps.getProperty("fieldsTitle") %></font></a></h4>
     </td>
   </tr>
@@ -530,7 +531,19 @@ function FSControl(controlDiv, map) {
               <table>
 
               <%
+              // should make listVals logic contingent on if user is logged in
+              List<String> listVals = new ArrayList<String>();
+              listVals.add("groupBehavior");
+              listVals.add("fieldStudySite");
+              listVals.add("fieldSurveyCode");
+              listVals.add("sightingPlatform");
+              for (String fieldName : listVals) {
+                List<String> posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
+                printStringFieldSearchRow(fieldName,posVals,out, occProps);
+              }
+
               for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
+                if (listVals.contains(fieldName)) continue; // already printed
                 printStringFieldSearchRow(fieldName, out, occProps);
               }
               %>
@@ -538,14 +551,45 @@ function FSControl(controlDiv, map) {
               </table>
            </div>
            </td>
-           </tr>
+		<td>
+      <div id="observations" style="display:none; ">
+        <!-- Allow a key and value for each observation, allow user to add additional fields. -->
+        <p>
+          <label><%=props.getProperty("obSearchHeader")%></label>
+          <label><small><%=props.getProperty("obSearchDesc")%></small></label>
+          <label><%=props.getProperty("propertyName")%></label><label><%=props.getProperty("propertyValue")%></label>
+        </p>
+        <p>
+          <input name="observationKey1" type="text" id="observationKey1" value="" placeholder="Observation Name">
+          <input name="observationValue1" type="text" id="observationValue1" value="" placeholder="Observation Value">
+        </p>
+        <input name="numSearchedObs" type="hidden" id="numSearchedObs" value="1">
+        <div id="additionalObsFields">
+        
+        </div>
+        <input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=props.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
+  		  <br/>
+      </div>
+		</td>
+	</tr>	
+	<script>
+		$(document).ready(function(){
+			var num = 2;
+			$('#addAnotherObBtn').click(function(){
+				var obField = '<p><input name="observationKey'+num+'" type="text" id="observationKey'+num+'" value="" placeholder="Observation Name"><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value="" placeholder="Observation Value"></p>';	
+				$('#additionalObsFields').append(obField);	
+				$('#numSearchedObs').val(num); 
+				num++;		
+			});
+		});
+	</script>
 
 <tr>
   <td>
-
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+>>>>>>> master
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
   </td>
 </tr>
@@ -553,18 +597,28 @@ function FSControl(controlDiv, map) {
 <tr>
 <td>
   <div id="metadata" style="display:none; ">
-  <p><%=props.getProperty("metadataInstructions") %></p>
+    <p><%=props.getProperty("metadataInstructions") %></p>
 
-	<strong><%=props.getProperty("username")%></strong><br />
-      <%
-      	Shepherd inShepherd=new Shepherd("context0");
-      //inShepherd.setAction("individualSearch.jsp2");
-        List<User> users = inShepherd.getAllUsers();
-        int numUsers = users.size();
+    <strong><%=props.getProperty("username")%></strong><br />
+        <%
+          Shepherd inShepherd=new Shepherd("context0");
+        //inShepherd.setAction("individualSearch.jsp2");
+          List<User> users = inShepherd.getAllUsers();
+          int numUsers = users.size();
+        %>
 
-      %>
+        <select multiple size="5" name="username" id="username">
+          <option value="None"></option>
+          <%
+            for (int n = 0; n < numUsers; n++) {
+              String username = users.get(n).getUsername();
+              String userFullName=username;
+              if(users.get(n).getFullName()!=null){
+                userFullName=users.get(n).getFullName();
+              }
+              %>
 
-      <select multiple size="5" name="username" id="username">
+      <select multiple size="5" name="submitterID" id="submitterID">
         <option value="None"></option>
         <%
           for (int n = 0; n < numUsers; n++) {
@@ -572,20 +626,18 @@ function FSControl(controlDiv, map) {
             String userFullName=username;
             if(users.get(n).getFullName()!=null){
             	userFullName=users.get(n).getFullName();
+            %>
+            <option value="<%=username%>"><%=userFullName%></option>
+            <%
             }
+          %>
+        </select>
+    <%
+    inShepherd.rollbackDBTransaction();
+    inShepherd.closeDBTransaction();
 
-        	%>
-        	<option value="<%=username%>"><%=userFullName%></option>
-        	<%
-          }
-        %>
-      </select>
-<%
-inShepherd.rollbackDBTransaction();
-inShepherd.closeDBTransaction();
-
-%>
-</div>
+    %>
+  </div>
 </td>
 </tr>
 
@@ -614,19 +666,7 @@ inShepherd.closeDBTransaction();
 <br>
 </div>
 
-<script>
-/* the below function removes any blank-valued params from the form just before submitting, making the searchResults.jsp url MUCH cleaner and more readable */
-$('#submitSearch').submit(function() {
-  $(this)
-    .find('input[name]')
-    .filter(function () {
-        return !this.value;
-    })
-    .prop('name', '');
-  });
-</script>
-
-
+<script type="text/javascript" src="javascript/formNullRemover.js"></script>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
