@@ -188,10 +188,7 @@ public class PointLocation implements java.io.Serializable {
   }
 
   private boolean latLonCheck(Double lat, Double lon) {
-    if (lat!=null&&lon!=null&&lat>=-90&&lat<=90&&lon>-180&&lon<180) {
-      return true;
-    }
-    return false;
+    return Util.isValidDecimalLatitude(lat) && Util.isValidDecimalLongitude(lon);
   }
 
     public String toString() {
