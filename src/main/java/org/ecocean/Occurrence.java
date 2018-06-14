@@ -18,6 +18,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
+import org.ecocean.datacollection.Instant;
 
 import org.joda.time.DateTime;
 
@@ -46,6 +47,7 @@ public class Occurrence implements java.io.Serializable {
   //private String ID;
   private Integer individualCount;
   private String groupBehavior;  // categorical
+    private List<Instant> behaviors; //more structured than above
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
@@ -359,6 +361,13 @@ public class Occurrence implements java.io.Serializable {
       this.groupBehavior=null;
     }
   }
+
+    public List<Instant> getBehaviors() {
+        return behaviors;
+    }
+    public void setBehaviors(List<Instant> bhvs) {
+        behaviors = bhvs;
+    }
 
   public ArrayList<SinglePhotoVideo> getAllRelatedMedia(){
     int numEncounters=encounters.size();
