@@ -597,10 +597,6 @@ finally{
 
                 <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("contributors") %></i></p>
             </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> researchers and volunteers</i></p>
-            </section>
         </div>
 
         <hr/>
