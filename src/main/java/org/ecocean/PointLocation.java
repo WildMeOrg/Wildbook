@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import org.ecocean.*;
 import org.joda.time.DateTime;
@@ -61,12 +62,12 @@ public class PointLocation implements java.io.Serializable {
   }
 
   public PointLocation(Double lat, Double lon, Long date, Measurement el) {
-    if (latLonCheck(lat, lon)&&date!=null&& elevation!= null) {
+    //if (latLonCheck(lat, lon)&&date!=null&& elevation!= null) {
       this.longitude = lon;
       this.latitude = lat;
       this.dateTime = date;
       this.elevation = el;
-    }
+    //}
     generateUUID();
   }
 
@@ -187,10 +188,17 @@ public class PointLocation implements java.io.Serializable {
   }
 
   private boolean latLonCheck(Double lat, Double lon) {
-    if (lat!=null&&lon!=null&&lat>=-90&&lat<=90&&lon>-180&&lon<180) {
-      return true;
-    }
-    return false;
+    return Util.isValidDecimalLatitude(lat) && Util.isValidDecimalLongitude(lon);
   }
+
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("id", getID())
+            .append("bearing", bearing)
+            .append("(" + latitude + "," + longitude + ")")
+            .append("elev", elevation)
+            .append("dateTime", new DateTime(dateTime))
+            .toString();
+    }
 
 }

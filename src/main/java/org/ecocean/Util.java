@@ -55,6 +55,8 @@ public class Util {
   private static final String VESSEL = "vessel";
   private static final String GENUS_SPECIES = "genusSpecies";
 
+    public static final double INVALID_LAT_LON = 999.0;  //sometimes you need a bad coordinate!
+
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
 
@@ -614,6 +616,14 @@ public class Util {
       return (stringExists(val1) && !stringExists(val2));
     }
 
+    public static boolean isValidDecimalLatitude(Double lat) {
+        if (lat == null) return false;
+        return ((lat >= -90.0) && (lat <= 90.0));
+    }
+    public static boolean isValidDecimalLongitude(Double lon) {
+        if (lon == null) return false;
+        return ((lon >= -180.0) && (lon <= 180.0));
+    }
 
     public static int count(Iterator it) {
       int num = 0;

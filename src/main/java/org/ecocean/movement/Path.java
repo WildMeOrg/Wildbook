@@ -47,11 +47,7 @@ public class Path implements java.io.Serializable {
   
   public Path(ArrayList<PointLocation> pts) {
     generateUUID();
-    if (pts.size() >= 1) {
-      for (int i=0; i<pts.size(); i++ ) {
-        this.pointLocations.add(pts.get(i));
-      }
-    }
+    pointLocations = pts;
   }  
   
   public String getID() {
@@ -157,3 +153,4 @@ public class Path implements java.io.Serializable {
   }
   
 }
+
