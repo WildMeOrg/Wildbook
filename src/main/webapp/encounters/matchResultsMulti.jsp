@@ -721,6 +721,8 @@ function annotCheckbox(el) {
 	var h;
 	if (!queryAnnotation.encId || !jel.data('encid')) {
 		h = '<i>Insuffient encounter data for any actions</i>';
+	} else if (jel.data('individ')==queryAnnotation.indivId) {
+		h = 'The target and candidate are already assigned to the <b>same individual ID</b>. No further action is needed to confirm this match.'
 	} else if (jel.data('individ') && queryAnnotation.indivId) {
 		h = 'The two encounters have <b>different individuals</b> already assigned and must be handled manually.';
 	} else if (jel.data('individ')) {
