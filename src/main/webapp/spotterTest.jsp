@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
-java.util.Map,
+java.util.ArrayList,
 java.io.BufferedReader,
 java.io.IOException,
 java.io.InputStream,
@@ -11,6 +11,7 @@ java.nio.file.Files,
 org.json.JSONObject,
 org.json.JSONArray,
 org.apache.commons.lang3.StringUtils,
+org.ecocean.movement.SurveyTrack,
 org.ecocean.servlet.ServletUtilities,
 
 org.ecocean.media.*
@@ -38,6 +39,38 @@ if (!SpotterConserveIO.hasBeenInitialized()) {
 }
 
 out.println("<p><i>Successful init.</i> Using: <b>" + SpotterConserveIO.apiUrlPrefix + "</b></p>");
+
+String idString = request.getParameter("id");
+if (idString != null) {
+    myShepherd.beginDBTransaction();
+    FeatureType.initAll(myShepherd);
+    int id = Integer.parseInt(idString);
+    JSONObject tripData = SpotterConserveIO.getTrip(id);
+
+    String flavor = tripData.optString("_tripFlavor", "__FAIL__");
+    if (flavor.equals("ci")) {
+        Survey surv = SpotterConserveIO.ciToSurvey(tripData);
+        out.println("<p><a target=\"_new\" href=\"foo?" + surv.getID() + "\">" + surv + "</a></p><ul>");
+        ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
+        if (tracks != null) {
+            for (SurveyTrack t : tracks) {
+                out.println("<li>" + t + "</li>");
+    //public ArrayList<Occurrence> getOccurrences() {
+            }
+        }
+        out.println("</ul>");
+
+    } else if (flavor.equals("wa")) {
+        //List<Occurrence> occs = SpotterConserveIO.waToOccurrences(tripData, myShepherd);
+
+    } else {
+        out.println("<p>ERROR: Unknown trip flavor <b>" + flavor + "</b></p>");
+    }
+
+    out.println("<p><hr /></p><xmp style=\"font-size: 0.8em; color: #888;\">" + tripData.toString(1) + "</xmp>");
+    myShepherd.commitDBTransaction();
+    return;
+}
 
 long sinceWA = (long)SpotterConserveIO.waGetLastSync(context);
 long sinceCI = (long)SpotterConserveIO.ciGetLastSync(context);
@@ -69,7 +102,7 @@ for (int i = 0 ; i < trips.length() ; i++) {
 }
 out.println("</ul>");
 
-int resetTime = 1528416000;  //2018-06-08
+int resetTime = 1528761600;  //2018-06-12
 SpotterConserveIO.waSetLastSync(context, resetTime);
 SpotterConserveIO.ciSetLastSync(context, resetTime);
 
