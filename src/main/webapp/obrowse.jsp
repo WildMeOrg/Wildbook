@@ -149,8 +149,6 @@ java.util.Properties" %>
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
 		h += "<li>" + showMediaAsset(f.getMediaAsset(), req) + "</li>";
 		h += "<li>" + showAnnotation(f.getAnnotation(), req) + "</li>";
-		h += "<li>" + showMediaAsset(f.getMediaAsset()) + "</li>";
-		h += "<li>" + showAnnotation(f.getAnnotation()) + "</li>";
         h += "<script>addFeature('" + f.getId() + "', " + f.getParametersAsString() + ");</script>";
 		h += "<li>parameters: " + niceJson(f.getParameters()) + "</li>";
 		return h + "</ul></div>";
