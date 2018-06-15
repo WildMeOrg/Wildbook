@@ -3,6 +3,7 @@ package org.ecocean.movement;
 import org.ecocean.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /** 
 *
@@ -150,6 +151,11 @@ public class SurveyTrack implements java.io.Serializable{
     }
     return null;
   }
+
+    public int numOccurrences() {
+        if (occurrences == null) return 0;
+        return occurrences.size();
+    }
   
   public Occurrence getOccurenceByID(String id) {
     for (int i=0; i<occurrences.size(); i++) {
@@ -286,7 +292,19 @@ public class SurveyTrack implements java.io.Serializable{
   private void generateUUID() {
     this.surveyTrackID = Util.generateUUID();
   }
-  
+
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("id", getID())
+            .append("occs", this.numOccurrences())
+/*
+    TODO path (.toString() )
+            .append("tracks", this.numSurveyTracks())
+            .append("startTime", new DateTime(startTime))
+            .append("endTime", new DateTime(endTime))
+*/
+            .toString();
+    }
 }
 
 
