@@ -63,17 +63,17 @@ public class SpotterConserveIO {
 
     //this is the "starting point" for JSON from the API
     public static Survey ciToSurvey(JSONObject jin) {
-        Survey survey = new Survey();
         DateTime startDate = toDateTime(jin.optString("start_date", null));
         DateTime endDate = toDateTime(jin.optString("end_date", null));
         DateTime createDate = toDateTime(jin.optString("create_date", null));
+        Survey survey = new Survey(startDate);
 
-        if (startDate != null) survey.setStartTimeMilli(startDate.getMillis());
+        //if (startDate != null) survey.setStartTimeMilli(startDate.getMillis());
         if (endDate != null) survey.setEndTimeMilli(endDate.getMillis());
         if (createDate != null) survey.addComments("<p>Created on source: <b>" + createDate.toString() + "</b></p>");
 
         survey.setProjectType("Channel Island Spotter conserve.IO");
-        survey.addComments("<p>Observer Names: <b>" + jin.optString("Observer Names", "<i>none provided</i>") + "</b></p>");
+        survey.addComments("<p>Observer Names: <b>" + jin.optString("Observer Names", "<i>none provided</i>") + "</b>, Channel Island trip ID: <b>" + jin.optInt("_tripId", 0) + "</b></p>");
         survey.setProjectName("Channel Island");
         survey.setOrganization("conserve.io");
 
@@ -262,16 +262,22 @@ System.out.println("MADE " + enc);
         if (jocc.length() % 2 == 1) throw new RuntimeException("sightings JSONArray is odd length=" + jocc.length());
         int halfSize = (int) jocc.length() / 2;
         for (int i = 0 ; i < halfSize ; i++) {
-            Occurrence occ = waToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), myShepherd);
+            Occurrence occ = waToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin.optInt("_tripId", 0), myShepherd);
             if (occ != null) occs.add(occ);
         }
         return occs;
     }
 
-    public static Occurrence waToOccurrence(JSONObject jin, JSONObject jin2, Shepherd myShepherd) {
+    public static Occurrence waToOccurrence(JSONObject jin, JSONObject jin2, int tripId, Shepherd myShepherd) {
         Occurrence occ = new Occurrence();
         occ.setOccurrenceID(Util.generateUUID());
-        occ.addComments(jin.optString("Comments", null));
+        String comments = jin.optString("Comments", null);
+        if (comments == null) {
+            comments = "<p>Whale Alert trip ID: <b>" + tripId + "</b></p>";
+        } else {
+            comments = "<p>" + comments + "</p><p>Whale Alert trip ID: <b>" + tripId + "</b></p>";
+        }
+        occ.addComments(comments);
         occ.setDateTimeCreated(jin.optString("create_date", null));
         occ.setBearing(findDouble(jin, "device_bearing"));
         occ.setDecimalLatitude(resolveLatLon(jin, "device_latitude", "Latitude"));
@@ -514,9 +520,20 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         return apiGet("/project/" + PROJECT_ID_WA + "/trip_data/" + since + "/0");
     }
 
+    //right now will return one of "wa" or "ci"
+    public static String tripFlavor(JSONObject tripData) {
+        if (tripData == null) return null;
+        if ((tripData.optJSONObject("track") != null) || (tripData.optJSONArray("CINMS Weather") != null) || (tripData.optString("CINMS Vessel", null) != null)) return "ci";
+        return "wa";
+    }
+
     //CI & WA trips use same call
     public static JSONObject getTrip(int tripId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        return apiGet("/trip/" + tripId + "/data");
+        JSONObject data = apiGet("/trip/" + tripId + "/data");
+        if (data == null) return null;
+        data.put("_tripId", tripId);
+        data.put("_tripFlavor", tripFlavor(data));
+        return data;
     }
 
     //init() must be called once before this
