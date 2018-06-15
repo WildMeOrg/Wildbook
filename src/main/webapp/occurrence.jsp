@@ -32,7 +32,7 @@ context=ServletUtilities.getContext(request);
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
-  String number = request.getParameter("number").trim();
+  String name = request.getParameter("number").trim();
   
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("occurrence.jsp");
@@ -219,157 +219,7 @@ context=ServletUtilities.getContext(request);
 				}
 			}
 			out.println(blocker);
-
-%>
-
-<table><tr>
-
-<td valign="middle">
- <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <span class="secure-field"><%=occ.getOccurrenceID()%></span></h1>
-<p class="caption"><em><%=props.getProperty("description") %></em></p>
- <table><tr valign="middle">
-  <td>
-    <!-- Google PLUS-ONE button -->
-<g:plusone size="small" annotation="none"></g:plusone>
-</td>
-<td>
-<!--  Twitter TWEET THIS button -->
-<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-</td>
-<td>
-<!-- Facebook LIKE button -->
-<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
-</td>
-</tr></table> </td></tr></table>
-
-
-<div class="secure-field occurrence-fields">
-
-<p><%=props.getProperty("groupBehavior") %>:
-<%
-if(occ.getGroupBehavior()!=null){
-%>
-	<%=occ.getGroupBehavior() %>
-<%
-}
-%>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%><a id="groupB" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-</p>
-
-
-<div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
-
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-  <tr>
-    <td align="left" valign="top">
-      <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
-            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" />
-            <%=props.getProperty("groupBehavior") %>:
-
-        <%
-        if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){
-        %>
-        <textarea name="behaviorComment" type="text" id="behaviorComment" maxlength="500"></textarea>
-        <%
-        }
-        else{
-        %>
-
-        	<select name="behaviorComment" id="behaviorComment">
-        		<option value=""></option>
-
-   				<%
-   				boolean hasMoreStages=true;
-   				int taxNum=0;
-   				while(hasMoreStages){
-   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
-   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-   	  				%>
-
-   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-   	  				<%
-   					taxNum++;
-      				}
-      				else{
-         				hasMoreStages=false;
-      				}
-
-   				}
-   			%>
-  			</select>
-
-
-        <%
-        }
-        %>
-        <input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
-        </form>
-    </td>
-  </tr>
-</table>
-
-                         		</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgGroupB = $("#dialogGroupB").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#groupB").click(function() {
-  dlgGroupB.dialog("open");
-});
-</script>
-
-
-<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
-
-<p><%=props.getProperty("estimatedNumMarkedIndividuals") %>:
-<%
-if(occ.getIndividualCount()!=null){
-%>
-	<%=occ.getIndividualCount() %>
-<%
-}
-%>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%><a id="indies" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-</p>
-
-
-
-
-
-<div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">
-
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
-
-  <tr>
-    <td align="left" valign="top">
-      <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
-            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" />
-            <%=props.getProperty("newIndividualCount") %>:
-
-        <input name="count" type="text" id="count" size="5" maxlength="7"></input>
-        <input name="individualCountButton" type="submit" id="individualCountName" value="<%=props.getProperty("set") %>">
-        </form>
-    </td>
-  </tr>
-</table>
-</div>
-  
-  <%
-  Occurrence occ = null;
-  boolean hasAuthority = false;
-  myShepherd.beginDBTransaction();
-  if (myShepherd.isOccurrence(number)) {
-      occ = myShepherd.getOccurrence(number);
-      hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
-	  List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
-	  boolean visible = occ.canUserAccess(request);
+    myShepherd.beginDBTransaction();
 
 	  if (!visible) {
   		ArrayList<String> uids = occ.getAllAssignedUsers();
@@ -378,7 +228,6 @@ if(occ.getIndividualCount()!=null){
 			Collaboration c = null;
 			if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
 			if ((c == null) || (c.getState() == null)) {
-				User user = myShepherd.getUser(u);
 				String fullName = u;
 				if (user.getFullName()!=null) fullName = user.getFullName();
 					possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
@@ -396,8 +245,9 @@ if(occ.getIndividualCount()!=null){
 			}
 		}
 	out.println(blocker);
-  }
+
 %>
+  <div class="secure-field">
 	<table>
 		<tr>
 			<td valign="middle">
@@ -493,7 +343,7 @@ if(occ.getIndividualCount()!=null){
 				<div class="col-xs-6 col-lg-6">
 					<div class="highlight resultMessageDiv" id="addSurveyErrorDiv"></div>
 					<form name="addSurveyToOccurrence" class="editFormSurvey">
-						<input name="number" type="hidden" value="<%=number%>" id="addOccNumber" />
+						<input name="number" type="hidden" value="<%=name%>" id="addOccNumber" />
 						<div class="form-group row">
 							<div class="col-sm-8" id="addDiv">
 								<label><%=props.getProperty("addSurvey")%>: </label>
@@ -1063,7 +913,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
                 </p>
                 <form name="editFormObservation" action="../OccurrenceSetObservation" method="post" class="editFormDynamic">
                   <input name="name" type="hidden" value="<%=nm%>" /> 
-                  <input name="number" type="hidden" value="<%=number%>" />
+                  <input name="number" type="hidden" value="<%=name%>" />
                   <div class="form-group row">
                     <div class="col-sm-3">
                       <label><%=props.getProperty("propertyValue")%></label>
@@ -1094,7 +944,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
         </p>
         <form name="addDynProp" action="../OccurrenceSetObservation"
           method="post" class="editFormObservation">
-          <input name="number" type="hidden" value="<%=number%>" />
+          <input name="number" type="hidden" value="<%=name%>" />
           <input name="type" type="hidden" value="Occurrence" />
           <div class="form-group row">
             <div class="col-sm-3">
@@ -1119,7 +969,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
       </div>    
     </div>        
 
-
+</div>
 
 <br />
 
