@@ -8,6 +8,7 @@ import org.ecocean.movement.SurveyTrack;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import org.ecocean.movement.*;
 /**
@@ -48,6 +49,17 @@ public class Survey implements java.io.Serializable{
   //empty constructor used by the JDO enhancer
   public Survey(){}
   
+    public Survey(DateTime startTime) {
+        if (startTime != null) {
+            this.date = startTime.toString();
+            this.startTime = startTime.getMillis();
+        }
+        generateID();
+        this.surveyTracks = new ArrayList<SurveyTrack>();
+        setDateTimeCreated();
+        setDWCDateLastModified();
+    }
+
   public Survey(String date){
     this.date=date;
     generateID();
@@ -137,6 +149,11 @@ public class Survey implements java.io.Serializable{
   
     public ArrayList<SurveyTrack> getSurveyTracks() {
         return surveyTracks;
+    }
+
+    public int numSurveyTracks() {
+        if (surveyTracks == null) return 0;
+        return surveyTracks.size();
     }
 
   public ArrayList<SurveyTrack> getAllSurveyTracks() {
@@ -385,6 +402,17 @@ public class Survey implements java.io.Serializable{
       }
     }  
   } 
+
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("id", getID())
+            .append("type", type)
+            .append("tracks", this.numSurveyTracks())
+            .append("startTime", new DateTime(startTime))
+            .append("endTime", new DateTime(endTime))
+            .toString();
+    }
+
 
 }
 
