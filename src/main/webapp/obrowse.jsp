@@ -68,6 +68,7 @@ function drawFeature(id) {
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
+org.ecocean.movement.*,
 java.util.Vector,
 java.util.ArrayList,
 org.json.JSONObject,
@@ -214,6 +215,15 @@ java.util.Properties" %>
 		}
 		return h + "</ul></div>";
 	}
+
+        private String showSurvey(Survey surv, HttpServletRequest req) {
+            String h = surv.toString();
+            return h;
+        }
+        private String showSurveyTrack(SurveyTrack st, HttpServletRequest req) {
+            String h = st.toString();
+            return h;
+        }
 %><%
 
 myShepherd = new Shepherd("context0");
@@ -312,6 +322,27 @@ if (type.equals("Encounter")) {
 		ex.printStackTrace();
 		needForm = true;
 	}
+
+} else if (type.equals("Survey")) {
+	try {
+		Survey surv = ((Survey) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Survey.class, id), true)));
+		out.println(showSurvey(surv, request));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
+		needForm = true;
+	}
+
+} else if (type.equals("SurveyTrack")) {
+	try {
+		SurveyTrack st = ((SurveyTrack) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(SurveyTrack.class, id), true)));
+		out.println(showSurveyTrack(st, request));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
+		needForm = true;
+	}
+
 
 } else {
 	out.println("<p>unknown type</p>>");
