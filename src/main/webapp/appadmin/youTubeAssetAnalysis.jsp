@@ -4,7 +4,8 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.ai.nmt.google.*,
-java.io.*,org.json.JSONObject,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.*,org.json.JSONObject,java.util.*, java.io.FileInputStream,org.ecocean.identity.IBEISIA,
+ java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%!
 private String translateIfNotEnglish(String text){
@@ -17,6 +18,23 @@ private String translateIfNotEnglish(String text){
 		System.out.println("Translated to: "+text);
 	}
 	return text;
+}
+
+%>
+
+<%!
+private static boolean hasRunDetection(MediaAsset ma, Shepherd myShepherd){
+	List<MediaAsset> children=YouTubeAssetStore.findFrames(ma, myShepherd);
+	if(children!=null){
+		int numChildren=children.size();
+		for(int i=0;i<numChildren;i++){
+			MediaAsset child=children.get(i);
+			if((child.getDetectionStatus()!=null)&&(child.getDetectionStatus().equals(IBEISIA.STATUS_COMPLETE))){
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 %>
@@ -62,6 +80,20 @@ try{
 		//Long result=(Long)query.execute();
 		//int numResults=result.intValue();
 		query.closeAll();
+		
+		ArrayList<MediaAsset> notRunYoutubeAssets=new ArrayList<MediaAsset>();
+		
+		for(int i=0;i<results.size();i++){
+			MediaAsset mas=results.get(i);
+			if(!hasRunDetection(mas,myShepherd)){
+				results.remove(i);
+				notRunYoutubeAssets.add(mas);
+				i--;
+			}				
+			
+		}
+		
+		
 		int numResults=results.size();
 		
 		%>

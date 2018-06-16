@@ -46,7 +46,7 @@ public class SUTime {
     try {
       rulesDir = request.getSession().getServletContext().getRealPath("/WEB-INF/data/sutime/rules");
     }
-    catch(NullPointerException npe) {
+    catch(Exception npe) {
       //OK, we couldn't find a servlet context, so let's try to get the files from a hardcoded override directory
       rulesDir="/data/wildbook_data_dir/WEB-INF/data/sutime/rules";
       
@@ -105,9 +105,9 @@ public class SUTime {
       try {
         props.setProperty("sutime.binder.1.xml", request.getSession().getServletContext().getRealPath("/WEB-INF/data/holidays/Holidays_sutime.xml"));
       }
-      catch(NullPointerException npe) {
+      catch(Exception npe) {
         props.setProperty("sutime.binder.1.xml", "/data/wildbook_data_dir/WEB-INF/data/holidays/Holidays_sutime.xml");
-        
+        npe.printStackTrace();
       }
       
       props.setProperty("sutime.binder.1.pathtype", "file");
@@ -210,12 +210,12 @@ public class SUTime {
       dataDir=request.getSession().getServletContext().getRealPath("/WEB-INF/data");
       System.setProperty("de.jollyday.config", request.getSession().getServletContext().getRealPath("/WEB-INF/classes/holidays/jollyday.properties"));
     }
-    catch(NullPointerException npe) {
+    catch(Exception npe) {
       
       //OK, we couldn't find a servlet context, so let's try to get the files from a hardcoded override directory
       dataDir="/data/wildbook_data_dir/WEB-INF/data";
       System.setProperty("de.jollyday.config", ("/data/wildbook_data_dir/WEB-INF/classes/holidays/jollyday.properties"));
-      
+      npe.printStackTrace();
     }
     String taggerFilename = dataDir + "/english-left3words-distsim.tagger";
     Properties pipelineProps = new Properties();
