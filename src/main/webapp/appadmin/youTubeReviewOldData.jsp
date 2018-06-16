@@ -22,7 +22,7 @@ weka.core.Instance,
 weka.core.Attribute,
 weka.core.DenseInstance, org.ecocean.ai.weka.Classify,
 weka.core.Instances,
-java.util.concurrent.atomic.AtomicInteger"%>
+java.util.concurrent.atomic.AtomicInteger,org.ecocean.identity.IBEISIA"%>
 
 <%!
 private static String translateIfNotEnglish(String text){
@@ -38,6 +38,23 @@ private static String translateIfNotEnglish(String text){
 	}
 	catch(Exception e){}
 	return text;
+}
+
+%>
+
+<%!
+private static boolean hasRunDetection(MediaAsset ma, Shepherd myShepherd){
+	List<MediaAsset> children=YouTubeAssetStore.findFrames(ma, myShepherd);
+	if(children!=null){
+		int numChildren=children.size();
+		for(int i=0;i<numChildren;i++){
+			MediaAsset child=children.get(i);
+			if((child.getDetectionStatus()!=null)&&(child.getDetectionStatus().equals(IBEISIA.STATUS_COMPLETE))){
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 %>
@@ -568,8 +585,23 @@ try{
 		//Long result=(Long)query.execute();
 		//int numResults=result.intValue();
 		query.closeAll();
-		int numResults=results.size();
 		
+		//let's make each one considered has actually been run
+		ArrayList<MediaAsset> notRunYoutubeAssets=new ArrayList<MediaAsset>();
+		
+		for(int i=0;i<results.size();i++){
+			MediaAsset mas=results.get(i);
+			if(!hasRunDetection(mas,myShepherd)){
+				results.remove(i);
+				notRunYoutubeAssets.add(mas);
+				i--;
+			}				
+			
+		}
+		
+		
+		//reset counter
+		int numResults=results.size();
 		%>
 %		
 %Num YouTube MediaAssets (videos) cataloged: <%=numResults %><br>
@@ -618,6 +650,31 @@ try{
 <p>Num commented videos with replies: <%=numCommentedVideosReplies.intValue() %></p>
 <p>Percentage responding: <%=(new Double((double)numCommentedVideosReplies.intValue()/numCommentedVideos.intValue()*100)).toString() %>% </p>
 	
+	<hr></hr>
+	<p>Unrun/failed MediaAssets for detection:<br>
+	
+	
+	<ol>
+	<%
+	int numNotRun=notRunYoutubeAssets.size();
+	for(int q=0;q<numNotRun;q++){
+		
+		MediaAsset nra=notRunYoutubeAssets.get(q);
+		%>
+		<li><%=nra.getId() %></li>
+		<%
+	}
+	
+	
+	%>
+	
+	
+	</ul>
+	
+	
+	
+	
+	</p>
 	
 	<%
 	
