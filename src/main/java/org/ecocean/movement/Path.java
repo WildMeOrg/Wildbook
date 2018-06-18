@@ -6,6 +6,7 @@ import org.ecocean.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
 * @author Colin Kingen
@@ -31,11 +32,6 @@ public class Path implements java.io.Serializable {
   private ArrayList<PointLocation> pointLocations; 
   
   public Path(){};
-  
-  public Path(SurveyTrack st) {
-    generateUUID();
-    st.setPathID(pathID);
-  }
   
   public Path(PointLocation pnt) {
     this.pointLocations = new ArrayList<PointLocation>();
@@ -71,9 +67,17 @@ public class Path implements java.io.Serializable {
     return null;
   }
   
+    public ArrayList<PointLocation> getPointLocations() {  //just for consistency with other classes
+        return pointLocations;
+    }
+
   public ArrayList<PointLocation> getAllPointLocations() {
     return pointLocations;
   }
+
+    public int getNumPointLocations() {
+        return (pointLocations == null) ? 0 : pointLocations.size();
+    }
   
   public Long getStartTimeMillis() {
     if (pointLocations!=null&&!pointLocations.isEmpty()) {
@@ -152,5 +156,14 @@ public class Path implements java.io.Serializable {
     this.pathID = Util.generateUUID();
   }
   
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("id", getID())
+            .append("numPts", this.getNumPointLocations())
+            .append("startTime", new DateTime(this.getStartTimeMillis()))
+            .append("endTime", new DateTime(this.getEndTimeMillis()))
+            .toString();
+    }
+
 }
 

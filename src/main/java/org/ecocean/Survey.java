@@ -46,18 +46,20 @@ public class Survey implements java.io.Serializable{
   
   private ArrayList<Observation> observations = new ArrayList<Observation>();
   
-  //empty constructor used by the JDO enhancer
-  public Survey(){}
-  
-    public Survey(DateTime startTime) {
-        if (startTime != null) {
-            this.date = startTime.toString();
-            this.startTime = startTime.getMillis();
-        }
+
+    public Survey() {
         generateID();
         this.surveyTracks = new ArrayList<SurveyTrack>();
         setDateTimeCreated();
         setDWCDateLastModified();
+    }
+
+    public Survey(DateTime startTime) {
+        this();
+        if (startTime != null) {
+            this.date = startTime.toString();
+            this.startTime = startTime.getMillis();
+        }
     }
 
   public Survey(String date){
@@ -179,6 +181,12 @@ public class Survey implements java.io.Serializable{
   public void addSurveyTrack(SurveyTrack thisTrack) {
     if (surveyTracks == null) surveyTracks = new ArrayList<SurveyTrack>();
     if (thisTrack != null) {
+        //little wonky, but arguable the "occ.correspondingSurvey" itself is wonky, see FK rants etc
+        if (thisTrack.getOccurrences() != null) {
+            for (Occurrence occ : thisTrack.getOccurrences()) {
+                occ.setCorrespondingSurveyID(this.getID());
+            }
+        }
       surveyTracks.add(thisTrack);
       setDWCDateLastModified();
     }

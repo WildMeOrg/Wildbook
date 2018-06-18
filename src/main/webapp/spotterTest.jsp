@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
 java.util.ArrayList,
+java.util.List,
 java.io.BufferedReader,
 java.io.IOException,
 java.io.InputStream,
@@ -50,18 +51,32 @@ if (idString != null) {
     String flavor = tripData.optString("_tripFlavor", "__FAIL__");
     if (flavor.equals("ci")) {
         Survey surv = SpotterConserveIO.ciToSurvey(tripData);
+        myShepherd.getPM().makePersistent(surv);
         out.println("<p><a target=\"_new\" href=\"foo?" + surv.getID() + "\">" + surv + "</a></p><ul>");
         ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
         if (tracks != null) {
-            for (SurveyTrack t : tracks) {
-                out.println("<li>" + t + "</li>");
-    //public ArrayList<Occurrence> getOccurrences() {
+            for (SurveyTrack trk : tracks) {
+                out.println("<li>" + trk + "<ul>");
+                ArrayList<Occurrence> occs = trk.getOccurrences();
+                if (occs == null) {
+                    out.println("<li>(no Occurrences)</li>");
+                } else {
+                    for (Occurrence occ : occs) {
+                        out.println("<li>" + occ + "</li>");
+                    }
+                }
+                out.println("</ul></li>");
+                out.println("<p>Path: " + trk.getPath() + "</p>");
             }
         }
         out.println("</ul>");
 
     } else if (flavor.equals("wa")) {
-        //List<Occurrence> occs = SpotterConserveIO.waToOccurrences(tripData, myShepherd);
+        List<Occurrence> occs = SpotterConserveIO.waToOccurrences(tripData, myShepherd);
+        for (Occurrence occ : occs) {
+            myShepherd.getPM().makePersistent(occ);
+            out.println("<p>" + occ + "</p>");
+        }
 
     } else {
         out.println("<p>ERROR: Unknown trip flavor <b>" + flavor + "</b></p>");
@@ -69,6 +84,7 @@ if (idString != null) {
 
     out.println("<p><hr /></p><xmp style=\"font-size: 0.8em; color: #888;\">" + tripData.toString(1) + "</xmp>");
     myShepherd.commitDBTransaction();
+    //myShepherd.rollbackDBTransaction();
     return;
 }
 
@@ -102,7 +118,16 @@ for (int i = 0 ; i < trips.length() ; i++) {
 }
 out.println("</ul>");
 
-int resetTime = 1528761600;  //2018-06-12
+out.println("<p><b>Channel Island trips</b> (click to import)<ul>");
+trips = ciTripList.optJSONArray("trips");
+for (int i = 0 ; i < trips.length() ; i++) {
+    JSONObject t = trips.optJSONObject(i);
+    int id = t.optInt("id");
+    out.println("<li><a target=\"_new\" href=\"?id=" + id + "\">" + id + "</a> (" + t.optString("start_date") + ")</li>");
+}
+out.println("</ul>");
+
+int resetTime = 1529107200;  //2018-06-16
 SpotterConserveIO.waSetLastSync(context, resetTime);
 SpotterConserveIO.ciSetLastSync(context, resetTime);
 

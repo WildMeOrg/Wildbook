@@ -215,12 +215,58 @@ java.util.Properties" %>
 	}
 
         private String showSurvey(Survey surv, HttpServletRequest req) {
-            String h = surv.toString();
+            if (surv == null) return "(null Survey)";
+            String h = "<p>[<a target=\"_new\" href=\"surveys/survey.jsp?surveyID=" + surv.getID() + "\">" + surv.getID() + "</a>] " + surv.toString() + "</p><b>SurveyTracks:</b><ul>";
+            ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
+            if (tracks == null) {
+                h += "<li>(no Tracks)</li>";
+            } else {
+                for (SurveyTrack tr : tracks) {
+                    h += "<li>" + showSurveyTrack(tr, req) + "</li>";
+                }
+            }
+            h += "</ul>";
             return h;
         }
+
         private String showSurveyTrack(SurveyTrack st, HttpServletRequest req) {
-            String h = st.toString();
+            if (st == null) return "(null SurveyTrack)";
+            String h = "<p>" + st.toString() + "</p>";
+            h += "<ul><b>Path:</b> <li>" + showPath(st.getPath(), req) + "</li></ul>";
+            h += "<ul><b>Occurrences:</b> ";
+            ArrayList<Occurrence> occs = st.getOccurrences();
+            if (occs == null) {
+                h += "<li>(no Occurrences)</li>";
+            } else {
+                for (Occurrence occ : occs) {
+                    h += "<li>" + showOccurrence(occ, req) + "</li>";
+                }
+            }
+            h += "</ul>";
             return h;
+        }
+
+        private String showPath(Path p, HttpServletRequest req) {
+            if (p == null) return "(no Path)";
+            String h = "<p>" + p.toString() + "</p>";
+            int showPts = p.getNumPointLocations();
+            if (showPts > 0) {
+                h += "<ul><b>PointLocations</b> ";
+                if (showPts > 10) {
+                    h += "<i>Showing only 10 of " + showPts + "</i>";
+                    showPts = 10;  //just a sampling!  this can get ridiculously huge...
+                }
+                for (int i = 0 ; i < showPts ; i++) {
+                    h += "<li>" + p.getPointLocations().get(i).toString() + "</li>";
+                }
+                h += "</ul>";
+            }
+            return h;
+        }
+
+        private String showOccurrence(Occurrence occ, HttpServletRequest req) {
+            if (occ == null) return "(no Occurrence)";
+            return "[<a target=\"_new\" href=\"occurrence.jsp?number=" + occ.getID() + "\">" + occ.getID() + "</a>] " + occ.toString();
         }
 %><%
 

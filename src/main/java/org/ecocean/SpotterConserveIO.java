@@ -78,15 +78,15 @@ public class SpotterConserveIO {
         survey.setOrganization("conserve.io");
 
         //there will be only one SurveyTrack pulled from this data, fwiw
-        SurveyTrack st = ciToSurveyTrack(jin, survey);  //TODO survey should get dropped in future when FK stuff gets fixed
+        SurveyTrack st = ciToSurveyTrack(jin);
+        survey.addSurveyTrack(st);
 ///TODO do we .setEffort based on survey track lengths or what???
         return survey;
     }
 
 
-    public static SurveyTrack ciToSurveyTrack(JSONObject jin, Survey survey) {
-        SurveyTrack st = new SurveyTrack(survey);
-        survey.addSurveyTrack(st);  //TODO combine these two re: FK etc etc
+    public static SurveyTrack ciToSurveyTrack(JSONObject jin) {
+        SurveyTrack st = new SurveyTrack();
 
         if (jin.optJSONArray("sightings") != null) {
             ArrayList<Occurrence> occs = new ArrayList<Occurrence>();
@@ -404,11 +404,20 @@ System.out.println("MADE " + enc);
                                 ele: "-3.248924"
                 .......
 
+        NOTE2!  also trkseg can be a JSONArray or a (singleton) JSONObject!!  grrffff...
+        NOTE3:  JP asks "what if it is empty?" ... ARGH. haha
+
     */
 
     public static Path trkToPath(JSONObject trk) {
         if (trk == null) return null;
-        JSONArray segs = trk.optJSONArray("trkseg");  //see note above about single-element trkseg TODO
+        JSONArray segs = trk.optJSONArray("trkseg");
+        //we may have single-element here! (see note above), so lets force into a JSONArray
+        JSONObject segSingle = trk.optJSONObject("trkseg");
+        if ((segs == null) && (segSingle != null)) {
+            segs = new JSONArray();
+            segs.put(segSingle);
+        }
         if (segs == null) return null;
         ArrayList<PointLocation> pts = new ArrayList<PointLocation>();
         for (int i = 0 ; i < segs.length() ; i++) {
