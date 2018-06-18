@@ -3839,27 +3839,6 @@ $(document).ready(function() {
 						</td>
 					</tr>
 				</table>
-				<%
-					String queryString = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \"" + num + "\"";
-				%>
-				<%-- START IMAGES --%>
-				<jsp:include page="encounterMediaGallery.jsp" flush="true">
-					<jsp:param name="encounterNumber" value="<%=num%>" />
-					<jsp:param name="queryString" value="<%=queryString%>" />
-
-					<jsp:param name="isOwner" value="<%=isOwner%>" />
-					<jsp:param name="loggedIn" value="<%=loggedIn%>" />
-				</jsp:include>
-				<%
-					if (isOwner) {
-				%>
-				<div id="add-image-zone" class="bc4">
-
-					<h2 style="text-align: left"><%=encprops.getProperty("addImage")%></h2>
-
-    </td>
-    </tr>
-    </table>
 <%
 String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
 %>
@@ -3888,9 +3867,6 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 						</div>
 					</div>
 				</div>
-				<%
-					}
-				%>
 				<%-- END IMAGES --%>
 				
 				<%
