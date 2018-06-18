@@ -234,7 +234,7 @@
 
   var map;
   var marker;
-  var center = new google.maps.LatLng(0, 0);
+  var center = new google.maps.LatLng(<%=sitey.getLatitude()%>, <%=sitey.getLongitude()%>);
 
   function placeMarker(location) {
 
@@ -254,7 +254,6 @@
 
   function initialize() {
     var mapZoom = 1;
-    var center = new google.maps.LatLng(0, 0);
     map = new google.maps.Map(document.getElementById('map_canvas'), {
       zoom: mapZoom,
       center: center,
@@ -282,6 +281,7 @@
 
   var markers = [];
   var latLng = new google.maps.LatLng(<%=sitey.getLatitude()%>, <%=sitey.getLongitude()%>);
+  console.log("We have lat/long! ")
 
 
   <%
@@ -310,7 +310,7 @@
 </script>
 
 <%
-if((request.getUserPrincipal()!=null)){
+if(sitey.hasGps()){
 %>
   <div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
 <%
