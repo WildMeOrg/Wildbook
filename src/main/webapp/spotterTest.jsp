@@ -52,6 +52,7 @@ if (idString != null) {
     if (flavor.equals("ci")) {
         Survey surv = SpotterConserveIO.ciToSurvey(tripData);
         myShepherd.getPM().makePersistent(surv);
+        System.out.println("spotterTest: created " + surv.toString());
         out.println("<p><a target=\"_new\" href=\"foo?" + surv.getID() + "\">" + surv + "</a></p><ul>");
         ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
         if (tracks != null) {
@@ -75,7 +76,7 @@ if (idString != null) {
         List<Occurrence> occs = SpotterConserveIO.waToOccurrences(tripData, myShepherd);
         for (Occurrence occ : occs) {
             myShepherd.getPM().makePersistent(occ);
-            out.println("<p>" + occ + "</p>");
+            out.println("<p><a target=\"_new\" href=\"occurrence.jsp?number=" + occ.getID() + "\">[" + occ.getID() + "]</a> " + occ + "</p>");
         }
 
     } else {
