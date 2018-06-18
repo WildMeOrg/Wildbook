@@ -51,6 +51,7 @@ import org.ecocean.Util;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Keyword;
 import org.ecocean.Encounter;
+import org.ecocean.Occurrence;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
 import org.ecocean.media.*;
@@ -696,6 +697,22 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
             } else {
                 ind.addEncounter(enc, myShepherd.getContext());
                 System.out.println("        ENCOUNTERFORM: added enc to individual "+indID);
+
+            }
+        }
+
+
+      if (fv.get("occurrenceID") != null && fv.get("occurrenceID").toString().length() > 0) {
+            String occID = fv.get("occurrenceID").toString();
+            enc.setOccurrenceID(occID);
+            Occurrence occ = myShepherd.getOccurrence(occID);
+            if (occ==null) {
+                occ = new Occurrence(occID, enc);
+                myShepherd.storeNewOccurrence(occ);
+                System.out.println("        ENCOUNTERFORM: created new Occurrence "+occID);
+            } else {
+                occ.addEncounter(enc);
+                System.out.println("        ENCOUNTERFORM: added enc to Occurrence "+occID);
 
             }
         }

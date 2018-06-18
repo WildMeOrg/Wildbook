@@ -1,4 +1,4 @@
-
+s
 <%@ page contentType="text/html; charset=utf-8"
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
@@ -871,6 +871,17 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
+        
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("manual_id") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="manualID" type="text" id="manualID" size="75">
+          </div>
+        </div>
+
 
 				<div class="form-group">
 					<div class="col-xs-6 col-md-4">
@@ -882,6 +893,15 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 					</div>
 				</div>
 
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("occurrence_id") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
+          </div>
+        </div>
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -892,6 +912,27 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="behavior" type="text" id="behavior" size="75">
           </div>
         </div>
+
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
+          </div>
+        </div>
+
+
 
 
            <div class="form-group">
