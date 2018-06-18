@@ -51,12 +51,25 @@ public class GeocoordConverter {
      epsgCodeToUtmZone.put("EPSG:23030", 30); // Eastern Spain/Britain
      // this is a pan-european projection used
      epsgCodeToUtmZone.put("EPSG:3035", null); // Western Spain/Britain
+     // new code anton asked for:
+     epsgCodeToUtmZone.put("EPSG:4326", null);
   }
 
   public static String[] epsgCodes() {
-    Set<String> codeSet = epsgCodeToUtmZone.keySet();
-    return (codeSet.toArray(new String[codeSet.size()]));
+    return epsgCodes;
   }
+
+  // a literal array makes keeping order easy
+  public static final String[] epsgCodes = {
+    "EPSG:3035",
+    "EPSG:4326",
+    "EPSG:23029",
+    "EPSG:23030",
+    "EPSG:25829",
+    "EPSG:25830"
+  };
+
+
 
 
 
