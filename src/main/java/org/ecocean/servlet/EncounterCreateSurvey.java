@@ -112,9 +112,11 @@ public class EncounterCreateSurvey extends HttpServlet {
       }
       
       try {
-        st = new SurveyTrack(svy);
+        st = new SurveyTrack();
+        svy.addSurveyTrack(st);
         myShepherd.beginDBTransaction();
-        myShepherd.storeNewSurveyTrack(st);
+        myShepherd.getPM().makePersistent(svy);
+        //myShepherd.storeNewSurveyTrack(st);
         myShepherd.commitDBTransaction();
         out.println("Success!");
       } catch (Exception e) {

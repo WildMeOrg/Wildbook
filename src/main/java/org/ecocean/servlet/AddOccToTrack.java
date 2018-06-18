@@ -76,7 +76,7 @@ public class AddOccToTrack extends HttpServlet {
             occ = myShepherd.getOccurrence(occID);
             if (!st.hasOccurrence(occ)) {
                 occ.setCorrespondingSurveyTrackID(st.getID());
-                occ.setCorrespondingSurveyID(st.getParentSurveyID());
+                occ.setCorrespondingSurveyID(surveyID);
                 st.addOccurrence(occ);
                 myShepherd.commitDBTransaction();
                 message += "<p><strong>Success: </strong>The occurrence was added to the selected survey track.</p>";

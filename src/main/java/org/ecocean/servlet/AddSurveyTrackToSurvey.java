@@ -69,10 +69,12 @@ public class AddSurveyTrackToSurvey extends HttpServlet {
     try {
       if (sv!=null) {
         
-        SurveyTrack st = new SurveyTrack(surveyID);
+        SurveyTrack st = new SurveyTrack();
+/*
         myShepherd.getPM().makePersistent(st);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
+*/
         
         String locationID = null;
         if (request.getParameter("locationID")!=null) {
@@ -109,7 +111,6 @@ public class AddSurveyTrackToSurvey extends HttpServlet {
         }
         
         try {
-          st.setParentSurveyID(sv.getID());
           sv.addSurveyTrack(st);
         } catch (Exception e) {
           myShepherd.rollbackDBTransaction();
@@ -161,7 +162,8 @@ public class AddSurveyTrackToSurvey extends HttpServlet {
   }
   
   private Path createPath(HttpServletRequest request, SurveyTrack st) {
-    Path pth = new Path(st);
+    Path pth = new Path();
+    st.setPath(pth);
     return pth;
   }
   
