@@ -299,7 +299,7 @@ System.out.println("MADE " + enc);
             JSONArray je = jin2.getJSONArray("photos");
             for (int i = 0 ; i < je.length() ; i++) {
                 //basically we get one Encounter per photo here and let the Occurrence group it together
-                Encounter enc = waToEncounter(je.optString(i, null), jin, occ.getOccurrenceID(), myShepherd);
+                Encounter enc = waToEncounter(je.optString(i, null), jin, occ, myShepherd);
                 if (enc != null) encs.add(enc);
             }
             occ.setEncounters(encs);
@@ -309,21 +309,34 @@ System.out.println("MADE " + enc);
     }
 
 
-    public static Encounter waToEncounter(String photoUrl, JSONObject occJson, String occId, Shepherd myShepherd) {
+    public static Encounter waToEncounter(String photoUrl, JSONObject occJson, Occurrence occ, Shepherd myShepherd) {
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);
         if (urlStore == null) throw new RuntimeException("Could not find a URLAssetStore to store images");
         //// ????? User sub = waToUser(jin);
         Encounter enc = new Encounter();
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(???)
-        enc.setOccurrenceID(occId);
+        enc.setOccurrenceID(occ.getID());
+
+        //we have a start_date and end_date in *very top level* (not occJson!) but it seems (!??) to always be the
+        //  same timestamp throughout as create_date as well!!  so we are going to use this value for:
+        //  enc.DWCDateAdded as well as enc *date of encounter*.  :/   TODO figure out whats up here!
 
         String dc = occJson.optString("create_date", null);
         if (dc != null) {
             enc.setDWCDateAdded(dc);
             DateTime dt = toDateTime(dc);
-            if (dt != null) enc.setDWCDateAdded(dt.getMillis());  //sets the millis version on enc.  SIGH!!!!!!!!!!!
+            if (dt != null) {
+                enc.setDWCDateAdded(dt.getMillis());  //sets the millis version on enc.  SIGH!!!!!!!!!!!
+                enc.setDateInMilliseconds(dt.getMillis());  //sets the real date (.month, etc)
+            }
         }
+
+        //we also just grab the Occurrence lat/lon too
+        enc.setDecimalLatitude(occ.getDecimalLatitude());
+        enc.setDecimalLongitude(occ.getDecimalLongitude());
+
+        String waSpecies = occJson.optString("Whale Alert Species", null);
 /*
         /// TODO FIX FOR Taxonomy class!!! String tax[] = ciSpeciesSplit(occJson.optString("Whale Alert Species", null));
         if ((tax != null) && (tax.length > 1)) {
@@ -331,9 +344,13 @@ System.out.println("MADE " + enc);
             enc.setSpecificEpithet(tax[1]);
         }
 */
-        String species = "annot_species";
+        String annotSpecies = "annot_species";
         enc.setGenus("test");
         enc.setSpecificEpithet("test");
+        if (waSpecies != null) {
+            annotSpecies = waSpecies;
+            enc.setSpecificEpithet(waSpecies);
+        }
 
         if (photoUrl != null) {
             JSONObject params = new JSONObject();
@@ -349,7 +366,7 @@ System.out.println("MADE " + enc);
             }
             MediaAssetFactory.save(ma, myShepherd);
             ma.updateStandardChildren(myShepherd);
-            Annotation ann = new Annotation(species, ma);
+            Annotation ann = new Annotation(annotSpecies, ma);
             myShepherd.getPM().makePersistent(ann);
             enc.addAnnotation(ann);
         }
