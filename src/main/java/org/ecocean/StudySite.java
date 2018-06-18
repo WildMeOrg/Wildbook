@@ -195,13 +195,23 @@ public class StudySite implements java.io.Serializable {
 
 
   // a little hackey, but these allow for both UTM and GPS coords
+  // calling setGpsFromUtm() in the Utm setter enforces that these
+  // two sets of fields stay consistent
   public void setUtmX(Double utmX) {
+    setUtmXOnly(utmX);
+    setGpsFromUtm(true);
+  }
+  public void setUtmXOnly(Double utmX) {
     this.utmX = utmX;
   }
   public Double getUtmX() {
     return this.utmX;
   }
   public void setUtmY(Double utmY) {
+    setUtmYOnly(utmY);
+    setGpsFromUtm(true);
+  }
+  public void setUtmYOnly(Double utmY) {
     this.utmY = utmY;
   }
   public Double getUtmY() {
@@ -209,6 +219,7 @@ public class StudySite implements java.io.Serializable {
   }
   public void setEpsgProjCode(String epsgProjCode) {
     this.epsgProjCode = epsgProjCode;
+    setGpsFromUtm(true);
   }
   public String getEpsgProjCode() {
     return this.epsgProjCode;
@@ -219,9 +230,25 @@ public class StudySite implements java.io.Serializable {
   public boolean hasGps() {
     return (getLatitude()!=null && getLongitude()!=null);
   }
+  public void setGpsFromUtm(boolean overwrite) {
+    if (overwrite) setGpsFromUtmForce();
+    else setGpsFromUtm();
+  }
+  // assumed overwrite=false
   public void setGpsFromUtm() {
+    System.out.println("Starting setGpsFromUtm");
+    if (!hasGps()) setGpsFromUtmForce();
+  }
+  public void setGpsFromUtmForce() {
+    System.out.println("Starting setGpsFromUtmForce");
     if (this.hasUtm()) {
+      System.out.println("We have UTM, starting to convert:");
       double[] latLon = GeocoordConverter.utmToGps(utmX, utmY, epsgProjCode);
+      if (latLon[0]==GeocoordConverter.ERROR_dOUBLE_TUPLE[0]) {
+        System.out.println("StudySite.setGpsFromUtm is doing nothing because we got the Error Tuple from GeocoordConverter.");
+        return;
+      }
+      System.out.println("We have GPS, storing: "+latLon);
       this.setLatitude(latLon[0]);
       this.setLongitude(latLon[1]);
     }
@@ -237,8 +264,8 @@ public class StudySite implements java.io.Serializable {
   public void setUtmFromGpsForce() {
     if (hasGps()) {
       double[] doubleUTMs = GeocoordConverter.gpsToUtm(getLatitude(), getLongitude());
-      setUtmX(doubleUTMs[0]);
-      setUtmY(doubleUTMs[1]);
+      setUtmXOnly(doubleUTMs[0]);
+      setUtmYOnly(doubleUTMs[1]);
     }
   }
 
