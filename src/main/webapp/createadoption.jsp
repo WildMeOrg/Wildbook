@@ -112,10 +112,12 @@ context=ServletUtilities.getContext(request);
 			<div class="input-group">
 				<span class="input-group-addon">Adoption Type</span>
 				<select id='planName' class="input-l-width" name="planName">
-					<option value="prod_CxRthjOs1L9TIc">Fry $2/Month</option>
-					<option value="prod_CxRuk59PoS9Occ" selected="selected">Whopper - $5/Month</option>
-					<option value="prod_CxRwIrXLLSuQEu">Behemoth - $250/Year</option>
-					<option value="prod_CxRxC5Ha0c91nz">Legend - $1000/Year</option>
+					<option value="prod_CxRthjOs1L9TIc">Pup $2/Month</option>
+					<option value="prod_CxRuk59PoS9Occ" selected="selected">Yearling - $5/Month</option>
+					<option value="prod_D4dkosdrg8b3wB">Juvenile - $20/Month</option>
+					<option value="prod_D4dm87FEWLuLAe">Teenager - $50/Month</option>
+					<option value="prod_CxRxC5Ha0c91nz">Adult - $1000/Year</option>
+					<option value="prod_D4dpsTUKGAsbtf">Big Momma - $1500/Year</option>
 			</select>
 			</div>
 			<div class="input-group">

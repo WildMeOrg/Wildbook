@@ -38,7 +38,7 @@ context=ServletUtilities.getContext(request);
 		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
 	<section id="custom-donation-image">
-		<img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" />
+		<img src="images/ncaquariums/adoption_levels_trimmed.png" alt="donation options" />
 	</section>
 	<%--If you dont want to use a custom image for your donation scale, comment out #custom-donation-image above and use the code below for some simple circles with price options  --%>
 	<%-- <section class="donations">
@@ -94,7 +94,6 @@ context=ServletUtilities.getContext(request);
 
 
 	<section class="adopters-featured">
-			<h2>Join the Family!</h2>
 			<article class="adopter-feature-gallery">
 			
 				<%
