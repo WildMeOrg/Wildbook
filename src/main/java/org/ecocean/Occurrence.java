@@ -777,6 +777,7 @@ public class Occurrence implements java.io.Serializable {
                 .append("decimalLatitude",decimalLatitude)
                 .append("decimalLongitude",decimalLongitude)
                 .append("individualCount",individualCount)
+                .append("numEncounters", (encounters == null) ? 0 : encounters.size())
                 .toString();
     }
 
