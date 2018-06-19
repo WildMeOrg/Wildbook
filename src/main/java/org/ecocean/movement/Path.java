@@ -79,6 +79,15 @@ public class Path implements java.io.Serializable {
         return (pointLocations == null) ? 0 : pointLocations.size();
     }
   
+
+/*
+    //returns a "representative" -- but much more manageable -- subset of points (i.e. not thousands of points)
+    public List<PointLocation> getPointLocationsSubsampled() {
+        //MAGIC GOES HERE!
+        //e.g. suggested by virgil -- https://github.com/hgoebl/simplify-java
+    }
+*/
+
   public Long getStartTimeMillis() {
     if (pointLocations!=null&&!pointLocations.isEmpty()) {
       Long startLong = null;
