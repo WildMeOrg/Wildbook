@@ -355,6 +355,7 @@ if(request.getUserPrincipal()!=null){
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
                             <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
+                            <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp">Bulk Import</a></li>
                         </ul>
                       </li>                      
                       <li class="dropdown">
