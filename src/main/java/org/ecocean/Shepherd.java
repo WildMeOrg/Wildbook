@@ -765,18 +765,20 @@ public class Shepherd {
     }
     return user;
   }
-
-  public User getUser(HttpServletRequest request) {
+  public String getUsername(HttpServletRequest request) {
     String username=null;
     try {
       username = request.getUserPrincipal().toString();
     } catch (Exception e) {
-      System.out.println("Shepherd.getUser(HttpServletRequest) called with no user logged in");
-      return null;
+      System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
     }
+    return username;
+  }
+  public User getUser(HttpServletRequest request) {
+    String username = getUsername(request);
+    if (username == null) return null;
     return getUser(username);
   }
-
 
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
