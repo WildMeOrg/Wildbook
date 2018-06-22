@@ -110,13 +110,27 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         qjob.put("taskId", task.getId());
         qjob.put("__context", context);
         qjob.put("__baseUrl", CommonConfiguration.getServerURL(context));
-        boolean sent = false;
-        try {
-            sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
-        } catch (java.io.IOException iox) {
-            System.out.println("ERROR: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
+
+        /*
+            NOTE!  if you are seeing this section, this should be in Flukebook only (for now)
+            this handles our two-algorithm matching, by sending two jobs and making one meta-task that points to the two tasks made
+            . . . . obviously we desparately need a way to generalize this!!!  TODO
+        */
+        for (int i = 0 ; i < 2 ; i++) {
+            Task subTask = new Task();
+            subTask.setObjectAnnotations(anns);
+            qjob.put("taskId", subTask.getId());  //override the parent taskId originally set
+            if (i > 0) qjob.getJSONObject("identify").put("OC_WDTW", true);  //set this on 2nd iteration .... trailing edge!
+            boolean sent = false;
+            try {
+                sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+            } catch (java.io.IOException iox) {
+                System.out.println("ERROR: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
+            }
+            System.out.println("INFO: [" + i + "] IA.intakeAnnotations() accepted " + anns.size() + " annots; queued? = " + sent + "; " + subTask);
+            //TODO we dont yet support subtasks.... grrrr... do this?
         }
-System.out.println("INFO: IA.intakeAnnotations() accepted " + anns.size() + " annots; queued? = " + sent + "; " + task);
+
         return task;
     }
 
