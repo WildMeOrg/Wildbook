@@ -1126,11 +1126,16 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 
         JSONObject fparams = new JSONObject();
         fparams.put("detectionConfidence", iaResult.optDouble("confidence", -2.0));
+        //TODO add "theta" (double) to Feature!!
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
                                                 iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0), fparams);
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
-//TODO get rid of convertSpecies stuff re: Taxonomy!!!!
-        return new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
+        //Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);  //old way
+        Annotation ann = new Annotation(tax.getScientificName(), ft);
+        String annId = fromFancyUUID(iaResult.optJSONObject("uuid"));  //we adopt IA's annot id!  TODO should we check that this doesnt already exist? too much edge-case?
+System.out.println("ANNID => " + annId);
+        if (annId != null) ann.setId(annId);
+        return ann;
     }
 
     public static String convertSpeciesToString(String iaClassLabel) {
