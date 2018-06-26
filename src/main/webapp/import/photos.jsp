@@ -116,7 +116,7 @@ div.file-item div {
 <div id="upcontrols" style="padding: 20px;">
 	<input type="file" id="file-chooser" webkitdirectory directory multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
 	<button id="upload-button">begin upload</button>
-<% System.out.println("Done with uploader.jsp. About to print footer."); %>
+<% System.out.println("Done with photos.jsp. About to print footer."); %>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
 </body>
