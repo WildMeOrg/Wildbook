@@ -2293,6 +2293,10 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public boolean hasAnnotations() {
         return (annotations!=null && annotations.size()>0);
     }
+    public int numAnnotations() {
+      if (annotations==null) return 0;
+      return annotations.size();
+    }
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
