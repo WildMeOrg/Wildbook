@@ -289,7 +289,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 			catch(Exception e){
 				e.printStackTrace();
 			}
-			if(!newDetectedDate.equals("")){numDatesFound.incrementAndGet();}
+			if(goodDataVideos.contains(ma)&& !newDetectedDate.equals("")){numDatesFound.incrementAndGet();}
 			
 			//determine new LocationID, including comments
 			String newLocationID="";
@@ -323,7 +323,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
                 e.printStackTrace();
               }
               if(newLocationID==null)newLocationID="";
-              if(!newLocationID.equals("")){numLocationIDsFound.incrementAndGet();}
+              if(goodDataVideos.contains(ma) && !newLocationID.equals("")){numLocationIDsFound.incrementAndGet();}
               
               //predict if this is a good video
               /*
@@ -550,12 +550,18 @@ try{
 
 <h2>About the Agent</h2>
 <p>Num videos processed: <%=numVideos.intValue() %></p>
-<p>How many videos have been marked approved/unidentifiable? <%=goodDataVideos.size() %></p>
+<p>How many videos have been marked approved/unidentifiable? <%=goodDataVideos.size() %>
+	<ul>
+		<li>How many videos resulted in IDs? <%=numVideosWithID.intValue() %></li>
+		<li>How many videos had detectable dates? <%=numDatesFound %></li>
+		<li>How many videos had locationIDs? <%=numLocationIDsFound %></li>
+	</ul>
+</p>
 <p>How many videos were deemed to have no valuable data? <%=poorDataVideos.size() %></p>
-<p>How many videos resulted in IDs? <%=numVideosWithID.intValue() %></p>
+
 <p>How many videos are still uncurated? <%=numUncuratedVideos.intValue() %></p>
-<p>How many videos had detectable dates? <%=numDatesFound %></p>
-<p>How many videos had locationIDs? <%=numLocationIDsFound %></p>
+
+
 
 <p>Sanity check: <%=numUncuratedVideos.intValue() %> uncurated + <%=poorDataVideos.size() %> worthless + <%=goodDataVideos.size() %>curated = <%=(goodDataVideos.size()+poorDataVideos.size() + numUncuratedVideos.intValue()) %> of <%=numVideos %> total videos possible</p>
 
