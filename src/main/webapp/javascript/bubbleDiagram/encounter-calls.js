@@ -307,13 +307,14 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   var encounterData = [];
-  var occurringWith = "";
+  
     d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
       if(error) {
         console.log("error")
       }
       jsonData = json;
       for(var i=0; i < jsonData.encounters.length; i++) {
+    	  var occurringWith = "";
         for(var j = 0; j < occurrenceObjectArray.length; j++) {
           if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
             if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
