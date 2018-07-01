@@ -1774,6 +1774,7 @@ System.out.println("need " + annId + " from IA, i guess?");
             ma.copyIn(file);
             ma.addDerivationMethod("pulledFromIA", System.currentTimeMillis());
             ma.updateMetadata();
+            MediaAssetFactory.save(ma, myShepherd);
             ma.updateStandardChildren(myShepherd);
         } catch (IOException ioe) {
             throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
