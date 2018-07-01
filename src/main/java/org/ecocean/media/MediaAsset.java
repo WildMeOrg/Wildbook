@@ -652,6 +652,8 @@ public class MediaAsset implements java.io.Serializable {
      */
     public URL webURL() {
 
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
+        System.out.println("Container Name: "+containerName);
         if (store == null) {
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
@@ -659,10 +661,25 @@ public class MediaAsset implements java.io.Serializable {
 
         try {
             int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
-            if (i == 0) return new URL(store.getUsage().substring(16));
+            if (i == 0) {
+                String localURL = store.getUsage().substring(16);
+                if (containerName==null||"".equals(containerName)||"none".equals(containerName)) {
+                    return new URL(localURL);
+                } else {
+                    return new URL(localURL.replace("localhost",containerName));
+                }  
+            } 
         } catch (java.net.MalformedURLException ex) {}
 
-        return store.webURL(this);
+        if (containerName==null||"".equals(containerName)||"none".equals(containerName)) { 
+            return store.webURL(this);
+        } else {
+            try {
+                System.out.println("Using containerName for MediaAsset URL domain..");
+                return new URL(store.webURL(this).getProtocol(), containerName, 8080, store.webURL(this).getFile());
+            } catch (java.net.MalformedURLException ex) {}
+        }
+        return null;
     }
 
 /*    has been deprecated, cuz you should make a better choice about what you want the url of. see: safeURL() and friends
@@ -1144,6 +1161,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     }
     public void setMetadata(MediaAssetMetadata md) {
         metadata = md;
+    }
+    public void setMetadata() throws IOException {
+        setMetadata(updateMetadata());
     }
     public MediaAssetMetadata updateMetadata() throws IOException {  //TODO should this overwrite existing, or append?
         if (store == null) return null;

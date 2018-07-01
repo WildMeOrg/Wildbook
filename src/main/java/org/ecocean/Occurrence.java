@@ -154,6 +154,14 @@ public class Occurrence implements java.io.Serializable {
     setDWCDateLastModified();
     setDateTimeCreated();
   }
+  public Occurrence(String occurrenceID){
+    this.occurrenceID=occurrenceID;
+    encounters=new ArrayList<Encounter>();
+    assets = new ArrayList<MediaAsset>();
+    setDWCDateLastModified();
+    setDateTimeCreated();
+    System.out.println("Created new occurrence with only ID"+this.occurrenceID);
+  }
 
 
   public boolean addEncounter(Encounter enc){
@@ -238,8 +246,13 @@ public class Occurrence implements java.io.Serializable {
     }
     return indivIds;
   }
-
-
+  public boolean hasLatLon() {
+    return (decimalLongitude!=null && decimalLatitude!=null);
+  }
+  public void setLatLonFromEncs(boolean overwrite) {
+    if (!overwrite && hasLatLon()) return;
+    setLatLonFromEncs();
+  }
   public void setLatLonFromEncs() {
     for (Encounter enc: getEncounters()) {
       String lat = enc.getDecimalLatitude();
@@ -522,7 +535,9 @@ public class Occurrence implements java.io.Serializable {
   public void setDateTime(DateTime dt) {
     this.dateTime = dt;
   }
-
+  public void setDateTimeLong(Long dateTimeLong) {
+    this.dateTime = new DateTime(dateTimeLong);
+  }
 	public Double getDistance() {
 		return this.distance;
 	}
