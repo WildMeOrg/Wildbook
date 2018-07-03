@@ -60,6 +60,7 @@ function drawFeature(id) {
     f.css('height', (bbox.height * scale) + 'px');
     f.css('left', (bbox.x * scale) + 'px');
     f.css('top', (bbox.y * scale) + 'px');
+    if (bbox.theta) f.css('transform', 'rotate(' +  bbox.theta + 'rad)');
 }
 </script>
 
