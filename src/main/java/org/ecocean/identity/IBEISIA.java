@@ -655,7 +655,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 //System.out.println("=================== mediaAssetToUri " + ma + "\n" + ma.getParameters() + ")\n");
         if (ma.getStore() instanceof LocalAssetStore) {
             //return ma.localPath().toString(); //nah, lets skip local and go for "url" flavor?
-            return ma.webURL().toString();
+            return ma.containerURLIfPresent().toString();
         } else if (ma.getStore() instanceof S3AssetStore) {
             return ma.getParameters();
 /*
@@ -668,7 +668,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             return b;
 */
         } else {
-            return ma.webURL().toString();  //a better last gasp hope
+            return ma.containerURLIfPresent().toString();  //a better last gasp hope
         }
     }
 
