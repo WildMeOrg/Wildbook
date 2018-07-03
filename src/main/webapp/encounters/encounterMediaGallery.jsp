@@ -288,6 +288,24 @@ for (int i=0; i<captionLinks.size(); i++) {
 	cursor: auto;
 }
 
+
+.image-enhancer-feature {
+    position: absolute;
+    outline: dotted rgba(255,255,0,0.5) 1px;
+}
+.image-enhancer-feature-focused {
+    outline: dashed rgba(255,100,0,0.7) 2px;
+}
+
+.image-enhancer-wrapper:hover .image-enhancer-feature {
+    background-color: rgba(255,255,255,0.05);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6);
+}
+.image-enhancer-wrapper:hover .image-enhancer-feature-focused {
+    background-color: rgba(255,255,10,0.3);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
+}
+
 	.match-tools {
 		padding: 5px 15px;
 		background-color: #DDD;
@@ -499,6 +517,7 @@ console.info(' ===========>   %o %o', el, enh);
 	if (!opt.init) opt.init = []; //maybe created if logged in?
 
 	opt.init.push(
+		function(el, enh) { enhancerDisplayAnnots(el, enh); },
 		function(el, enh) { enhancerCaption(el, enh); }
 	);
 
@@ -540,7 +559,41 @@ console.info(timeDisp);
 	$(el).append(ycap);
 }
 
+function enhancerDisplayAnnots(el, opt) {
+    if (opt.skipDisplayAnnots) return;
+    var mid = el.context.id.substring(11);
+    var ma = assetById(mid);
+console.warn("====== enhancerDisplayAnnots %o ", ma);
+    if (!ma || !ma.features || !ma.annotationId) return;
+    for (var i = 0 ; i < ma.features.length ; i++) {
+        enhancerDisplayFeature(el, opt, ma.annotationId, ma.features[i]);
+    }
+}
+
+function enhancerDisplayFeature(el, opt, focusAnnId, feat) {
+    if (!feat.type) return;  //unity, skip
+    //TODO other than boundigBox
+    var scale = el.data('enhancerScale') || 1;
+console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
+    var focused = (feat.annotationId == focusAnnId);
+    var fel = $('<div class="image-enhancer-feature" />');
+    fel.prop('id', feat.id);
+    if (focused) {
+        fel.addClass('image-enhancer-feature-focused');
+    } else {
+    }
+    fel.css({
+        left: feat.parameters.x * scale,
+        top: feat.parameters.y * scale,
+        width: feat.parameters.width * scale,
+        height: feat.parameters.height * scale
+    });
+    if (feat.parameters.theta) fel.css('transform', 'rotate(' + feat.parameters.theta + 'rad)');
+    el.append(fel);
+}
+
 function checkImageEnhancerResize() {
+//TODO update enhancerScale when this happens!
 	var needUpdate = false;
 	$('.image-enhancer-wrapper').each(function(i,el) {
 		var imgW = $('#figure-img-' + el.id.substring(23)).width();
