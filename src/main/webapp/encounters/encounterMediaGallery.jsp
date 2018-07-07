@@ -506,6 +506,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 */
 
         opt.init = [
+	    function(el, enh) { enhancerDisplayAnnots(el, enh); },
             function(el, enh) {
 console.info(' ===========>   %o %o', el, enh);
 		imageLayerKeywords(el, enh);
@@ -517,7 +518,7 @@ console.info(' ===========>   %o %o', el, enh);
 	if (!opt.init) opt.init = []; //maybe created if logged in?
 
 	opt.init.push(
-		function(el, enh) { enhancerDisplayAnnots(el, enh); },
+		//function(el, enh) { enhancerDisplayAnnots(el, enh); },  //TODO fix for scaled/watermark image
 		function(el, enh) { enhancerCaption(el, enh); }
 	);
 
