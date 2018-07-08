@@ -288,10 +288,28 @@ for (int i=0; i<captionLinks.size(); i++) {
 	cursor: auto;
 }
 
+.image-enhancer-feature-zoom {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 103%;
+    outline: solid blue 4px;
+    overflow: hidden;
+display: none;
+}
+
+.image-enhancer-feature-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
 
 .image-enhancer-feature {
     position: absolute;
     outline: dotted rgba(255,255,0,0.5) 1px;
+    cursor: pointer !important;
 }
 .image-enhancer-feature-focused {
     outline: dashed rgba(255,100,0,0.7) 2px;
@@ -304,6 +322,13 @@ for (int i=0; i<captionLinks.size(); i++) {
 .image-enhancer-wrapper:hover .image-enhancer-feature-focused {
     background-color: rgba(255,255,10,0.3);
     box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
+}
+
+
+.image-enhancer-feature:hover {
+    z-index: 30;
+    outline: solid black 2px;
+    background-color: rgba(120,255,0,0.3) !important;
 }
 
 	.match-tools {
@@ -566,28 +591,55 @@ function enhancerDisplayAnnots(el, opt) {
     var ma = assetById(mid);
 console.warn("====== enhancerDisplayAnnots %o ", ma);
     if (!ma || !ma.features || !ma.annotationId) return;
+    var featwrap = $('<div class="image-enhancer-feature-wrapper" />');
+    featwrap.data('enhancerScale', el.data('enhancerScale'));
+    el.append(featwrap);
+    var featzoom = $('<div class="image-enhancer-feature-zoom" />');
+    el.append(featzoom);
     for (var i = 0 ; i < ma.features.length ; i++) {
-        enhancerDisplayFeature(el, opt, ma.annotationId, ma.features[i]);
+        enhancerDisplayFeature(featwrap, opt, ma.annotationId, ma.features[i]);
     }
 }
 
 function enhancerDisplayFeature(el, opt, focusAnnId, feat) {
     if (!feat.type) return;  //unity, skip
-    //TODO other than boundigBox
+    //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     var focused = (feat.annotationId == focusAnnId);
-    var fel = $('<div class="image-enhancer-feature" />');
+    var fel = $('<div title="Annot" class="image-enhancer-feature" />');
+
+    var tooltip;
+    if (feat.individualId) {
+        tooltip = 'Name: <b>' + feat.individualId + '</b>';
+    } else {
+        tooltip = '<i>Unnamed individual</i>';
+    }
+    if (feat.encounterId) {
+        tooltip += '<br />Enc ' + feat.encounterId.substr(-8);
+        fel.data('encounterId', feat.encounterId);
+    }
+
     fel.prop('id', feat.id);
     if (focused) {
         fel.addClass('image-enhancer-feature-focused');
+        fel.prop('data-tooltip', '<i>this encounter</i>');
     } else {
+        fel.prop('data-tooltip', tooltip);
     }
     fel.css({
         left: feat.parameters.x * scale,
         top: feat.parameters.y * scale,
         width: feat.parameters.width * scale,
         height: feat.parameters.height * scale
+    });
+    fel.tooltip({ content: function() { return $(this).prop('data-tooltip'); } });
+    fel.on('click', function(ev) {
+        ev.stopPropagation();
+        var encId = $(this).data('encounterId');
+        if (encId == encounterNumber) return;
+        document.body.innerHTML = '';
+        window.location.href = 'encounter.jsp?number=' + encId;
     });
     if (feat.parameters.theta) fel.css('transform', 'rotate(' + feat.parameters.theta + 'rad)');
     el.append(fel);
