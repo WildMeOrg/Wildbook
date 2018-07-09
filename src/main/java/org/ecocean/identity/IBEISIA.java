@@ -323,6 +323,14 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         }
         map.put("image_uuid_list", malist);
 
+        String modelTag = CommonConfiguration.getProperty("iaModelTag", context);
+        if (modelTag != null) {
+            System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
+            map.put("model_tag", modelTag);
+        } else {
+            System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
+        }
+
         return RestClient.post(url, new JSONObject(map));
     }
 
