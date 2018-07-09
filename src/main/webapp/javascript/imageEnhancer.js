@@ -30,13 +30,14 @@ console.log('?????????????????????????????????????????????? DELAYED IMG LOAD ???
         var mid = jel.data('enh-mediaassetid');
         var parEl = jel.parent();  //TODO what if there is none... oops???
         if (parEl.prop('tagName') == 'A') parEl = parEl.parent();
-console.info('imageEnhancer.apply to %o with opt %o (parEl=%o)', el, opt, parEl);
+console.info('imageEnhancer.apply to %o [%dx%d] with opt %o (parEl=%o)', el, jel.width(), jel.height(), opt, parEl);
         if (typeof opt != 'object') opt = {};
 
         if (parEl.css('position') == 'static') parEl.css('position', 'relative');
 
         //parEl.append('<div class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
         parEl.append('<div id="image-enhancer-wrapper-' + mid + '" class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
+        imageEnhancer.setEnhancerScale(el);
         imageEnhancer.wrapperSizeSetFromImg(parEl);
         var wrapper = parEl.find('.image-enhancer-wrapper');
 
@@ -80,7 +81,19 @@ console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
 //console.warn('%d x %d', img.width(), img.height());
             w.css('width', ji.width());
             w.css('height', ji.height());
+            //imageEnhancer.setEnhancerScale(this);  //not sure this is right!
         });
+    },
+
+    setEnhancerScale: function(img) {
+        var ji = $(img);
+        var id = ji.data('enh-mediaassetid');
+        var w = $('#image-enhancer-wrapper-' + id);
+        //var scale = ji.width() / img.naturalWidth;
+        var scale = ji.width() / 4000;
+        console.warn("########## [%s] scale = %o", id, scale);
+        w.data('enhancerScale', scale);
+        ji.data('enhancerScale', scale);
     },
 
     squareElement: function(el) {

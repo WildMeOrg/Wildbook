@@ -652,34 +652,18 @@ public class MediaAsset implements java.io.Serializable {
      */
     public URL webURL() {
 
-        String containerName = CommonConfiguration.getProperty("containerName","context0");
-        System.out.println("Container Name: "+containerName);
         if (store == null) {
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
         }
-
         try {
             int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
             if (i == 0) {
                 String localURL = store.getUsage().substring(16);
-                if (containerName==null||"".equals(containerName)||"none".equals(containerName)) {
-                    return new URL(localURL);
-                } else {
-                    return new URL(localURL.replace("localhost",containerName));
-                }  
+                return new URL(localURL);
             } 
         } catch (java.net.MalformedURLException ex) {}
-
-        if (containerName==null||"".equals(containerName)||"none".equals(containerName)) { 
-            return store.webURL(this);
-        } else {
-            try {
-                System.out.println("Using containerName for MediaAsset URL domain..");
-                return new URL(store.webURL(this).getProtocol(), containerName, 8080, store.webURL(this).getFile());
-            } catch (java.net.MalformedURLException ex) {}
-        }
-        return null;
+        return store.webURL(this);
     }
 
 /*    has been deprecated, cuz you should make a better choice about what you want the url of. see: safeURL() and friends
@@ -718,6 +702,22 @@ public class MediaAsset implements java.io.Serializable {
     public URL safeURL() {
         return safeURL((HttpServletRequest)null);
     }
+
+    public URL containerURLIfPresent() {
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
+        String localURL = store.getUsage().substring(16);
+        if (containerName!=null&&containerName!="") {
+            try {
+                System.out.println("Using containerName for MediaAsset URL domain..");
+                return new URL(store.webURL(this).getProtocol(), containerName, 80, store.webURL(this).getFile());
+            } catch (java.net.MalformedURLException ex) {}
+        }
+        try {
+            return new URL(localURL);
+        } catch (java.net.MalformedURLException mue) {}
+        return null;
+    }
+
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request, String bestType) {
         if (store == null) return null;
         //this logic is simplistic now, but TODO make more complex (e.g. configurable) later....
@@ -902,6 +902,7 @@ public class MediaAsset implements java.io.Serializable {
                     Annotation ann = ft.getAnnotation();
                     if (ann != null) {
                         jf.put("annotationId", ann.getId());
+                        jf.put("annotationIsOfInterest", ann.getIsOfInterest());
                         Encounter enc = ann.findEncounter(myShepherd);
                         if (enc != null) {
                             jf.put("encounterId", enc.getCatalogNumber());

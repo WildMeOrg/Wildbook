@@ -13,6 +13,7 @@
 
 
 .image-enhancer-menu {
+    z-index: 9;
     position: absolute;
     right: 4px;
     bottom: 4px;
@@ -32,7 +33,7 @@
 }
 
 .image-enhancer-menu-open {
-    z-index: 1;
+    z-index: 10;
     position: absolute;
     top: 95%;
     right: 10px;

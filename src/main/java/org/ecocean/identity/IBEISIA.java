@@ -655,7 +655,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 //System.out.println("=================== mediaAssetToUri " + ma + "\n" + ma.getParameters() + ")\n");
         if (ma.getStore() instanceof LocalAssetStore) {
             //return ma.localPath().toString(); //nah, lets skip local and go for "url" flavor?
-            return ma.webURL().toString();
+            return ma.containerURLIfPresent().toString();
         } else if (ma.getStore() instanceof S3AssetStore) {
             return ma.getParameters();
 /*
@@ -668,7 +668,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             return b;
 */
         } else {
-            return ma.webURL().toString();  //a better last gasp hope
+            return ma.containerURLIfPresent().toString();  //a better last gasp hope
         }
     }
 
@@ -1126,7 +1126,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 
         JSONObject fparams = new JSONObject();
         fparams.put("detectionConfidence", iaResult.optDouble("confidence", -2.0));
-        //TODO add "theta" (double) to Feature!!
+        fparams.put("theta", iaResult.optDouble("theta", 0.0));
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
                                                 iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0), fparams);
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
@@ -1679,6 +1679,7 @@ System.out.println("need " + annId + " from IA, i guess?");
             fparams.put("y", jbb.optInt(1, 0));
             fparams.put("width", jbb.optInt(2, -1));
             fparams.put("height", jbb.optInt(3, -1));
+            fparams.put("theta", iaThetaFromAnnotUUID(annId, context));  //now with vitamin THETA!
             Feature ft = new Feature("org.ecocean.boundingBox", fparams);
             ma.addFeature(ft);
 
@@ -1778,6 +1779,7 @@ System.out.println("need " + annId + " from IA, i guess?");
             ma.copyIn(file);
             ma.addDerivationMethod("pulledFromIA", System.currentTimeMillis());
             ma.updateMetadata();
+            MediaAssetFactory.save(ma, myShepherd);
             ma.updateStandardChildren(myShepherd);
         } catch (IOException ioe) {
             throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
@@ -2345,12 +2347,25 @@ System.out.println(map);
         if (t == -1) return null;
         return new DateTime(t * 1000);  //IA returns secs not millisecs
     }
+/// http://71.59.132.88:5007/api/annot/interest/json/?annot_uuid_list=[{"__UUID__":"8ddbb0fa-6eda-44ae-862a-c2ad333e7918"}]
+    public static Boolean iaIsOfInterestFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/interest/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get isOfInterest from annot uuid=" + uuid);
+        if (rtn.getJSONArray("response").isNull(0)) return null;
+        return rtn.getJSONArray("response").optBoolean(0);
+    }
 //http://52.37.240.178:5000/api/annot/image/gps/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
     public static Double[] iaLatLonFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from annot uuid=" + uuid);
         JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
         return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
+    }
+//http://71.59.132.88:5005/api/annot/theta/json/?annot_uuid_list=[{%22__UUID__%22:%224ec2f978-cb4d-48f8-adaf-8eecca120285%22}]
+    public static Double iaThetaFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/theta/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get theta from annot uuid=" + uuid);
+        return rtn.getJSONArray("response").optDouble(0, 0.0);
     }
 //http://52.37.240.178:5000/api/image/lat/json/?image_uuid_list=[{%22__UUID__%22:%22e985b3d4-bb2a-8291-07af-1ec4028d4649%22}]
     public static Double[] iaLatLonFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
