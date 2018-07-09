@@ -902,6 +902,7 @@ public class MediaAsset implements java.io.Serializable {
                     Annotation ann = ft.getAnnotation();
                     if (ann != null) {
                         jf.put("annotationId", ann.getId());
+                        jf.put("annotationIsOfInterest", ann.getIsOfInterest());
                         Encounter enc = ann.findEncounter(myShepherd);
                         if (enc != null) {
                             jf.put("encounterId", enc.getCatalogNumber());
