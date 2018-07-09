@@ -331,6 +331,8 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
             System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
         }
 
+//TODO sensitivity & nms_thresh  (floats)
+
         return RestClient.post(url, new JSONObject(map));
     }
 

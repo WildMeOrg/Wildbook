@@ -315,6 +315,10 @@ display: none;
     outline: dashed rgba(255,100,0,0.7) 2px;
 }
 
+.image-enhancer-feature-aoi {
+    border: solid rgba(0,20,255,0.6) 3px;
+}
+
 .image-enhancer-wrapper:hover .image-enhancer-feature {
     background-color: rgba(255,255,255,0.05);
     box-shadow: 0 0 0 1px rgba(0,0,0,0.6);
@@ -603,6 +607,7 @@ console.warn("====== enhancerDisplayAnnots %o ", ma);
 
 function enhancerDisplayFeature(el, opt, focusAnnId, feat) {
     if (!feat.type) return;  //unity, skip
+    if (!feat.parameters) return; //wtf???
     //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
@@ -619,14 +624,15 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         tooltip += '<br />Enc ' + feat.encounterId.substr(-8);
         fel.data('encounterId', feat.encounterId);
     }
+    if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
 
     fel.prop('id', feat.id);
-    if (focused) {
-        fel.addClass('image-enhancer-feature-focused');
-        fel.prop('data-tooltip', '<i>this encounter</i>');
-    } else {
-        fel.prop('data-tooltip', tooltip);
+    if (feat.annotationIsOfInterest) {
+        fel.addClass('image-enhancer-feature-aoi');
+        tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
     }
+    if (focused) fel.addClass('image-enhancer-feature-focused');
+    fel.prop('data-tooltip', tooltip);
     fel.css({
         left: feat.parameters.x * scale,
         top: feat.parameters.y * scale,
