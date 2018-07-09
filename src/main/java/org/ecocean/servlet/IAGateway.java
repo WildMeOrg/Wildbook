@@ -502,8 +502,15 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     res.put("taskId", taskId);
     String baseUrl = null;
     try {
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
         baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-    } catch (java.net.URISyntaxException ex) {}
+        if (containerName!=null&&containerName!="") { 
+            baseUrl = baseUrl.replace("localhost", containerName);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
 
     if (j.optBoolean("enqueue", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
         //TODO if queue is not active/okay, fallback to synchronous???
@@ -518,6 +525,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         } else {
             j.put("taskId", taskId);
         }
+
         boolean ok = addToQueue(context, j.toString());
         if (ok) {
             System.out.println("INFO: taskId=" + taskId + " enqueued successfully");

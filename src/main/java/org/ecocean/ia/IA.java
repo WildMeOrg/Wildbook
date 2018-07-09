@@ -79,7 +79,7 @@ public class IA {
         qjob.put("detect", dj);
         qjob.put("taskId", task.getId());
         qjob.put("__context", context);
-        qjob.put("__baseUrl", CommonConfiguration.getServerURL(context));
+        qjob.put("__baseUrl", getBaseURL(context));
         boolean sent = false;
         try {
             sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
@@ -109,7 +109,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         qjob.put("identify", aj);
         qjob.put("taskId", task.getId());
         qjob.put("__context", context);
-        qjob.put("__baseUrl", CommonConfiguration.getServerURL(context));
+        qjob.put("__baseUrl", getBaseURL(context));
         boolean sent = false;
         try {
             sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
@@ -118,6 +118,18 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         }
 System.out.println("INFO: IA.intakeAnnotations() accepted " + anns.size() + " annots; queued? = " + sent + "; " + task);
         return task;
+    }
+
+
+    public static String getBaseURL(String context) {
+        String url = CommonConfiguration.getServerURL(context);
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
+        url = CommonConfiguration.getServerURL(context);
+        if (containerName!=null&&containerName!="") { 
+            System.out.println("Wildbook is containerized: sending proper container name to IA instead of localhost.");
+            url = url.replace("localhost", containerName);
+        }
+        return url;
     }
 
 

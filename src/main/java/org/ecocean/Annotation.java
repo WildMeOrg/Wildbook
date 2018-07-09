@@ -29,6 +29,7 @@ public class Annotation implements java.io.Serializable {
     private String species;
     private String name;
     private boolean isExemplar = false;
+    private Boolean isOfInterest = null;  //aka AoI (Annotation of Interest)
     protected String identificationStatus;
     private ArrayList<Feature> features;
 
@@ -269,6 +270,13 @@ public class Annotation implements java.io.Serializable {
         isExemplar = b;
     }
 
+    public Boolean getIsOfInterest() {
+        return isOfInterest;
+    }
+    public void setIsOfInterest(Boolean b) {
+        isOfInterest = b;
+    }
+
     public String getIdentificationStatus() {
       return this.identificationStatus;
     }
@@ -357,6 +365,7 @@ public class Annotation implements java.io.Serializable {
             org.datanucleus.api.rest.orgjson.JSONObject jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
             jobj.put("id", id);
             jobj.put("isExemplar", this.getIsExemplar());
+            jobj.put("annotationIsOfInterest", this.getIsOfInterest());
             if (this.getFeatures() != null) {
                 org.datanucleus.api.rest.orgjson.JSONArray feats = new org.datanucleus.api.rest.orgjson.JSONArray();
                 for (Feature f : this.getFeatures()) {
