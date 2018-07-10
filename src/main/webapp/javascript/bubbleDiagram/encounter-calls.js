@@ -79,11 +79,10 @@ var makeCooccurrenceChart = function(items) {
 
 var getIndividualIDFromEncounterToString = function(encToString) {
   // return everything between "individualID=" and the next comma after that
-//console.log('encToString = %o', encToString);
-    var id = encToString.split("individualID=")[1].split(",")[0];
-    //var id = encToString.individualID;
-//console.log(id);
-    if (!id || (id == '<null>')) return false;
+console.log('encToString = %o', encToString);
+  //var id = encToString.split("individualID=")[1].split(",")[0];
+    var id = encToString.individualID;
+    if (!id) return false;
   return id;
 }
 
@@ -104,10 +103,10 @@ var getData = function(individualID) {
         var encounterSize = thisOcc.encounters.length;
         // make encounterArray, containing the individualIDs of every encounter in thisOcc;
         for(var j=0; j < encounterSize; j++) {
-//console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
+          //console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
           var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
           //var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
-//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
+          //console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
           if (!thisEncIndID) continue;  //unknown indiv -> false
           if(encounterArray.includes(thisEncIndID)) {
           } else {
@@ -176,7 +175,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     .enter().append("th").text(function(d){
       if(d === "text") {
         return dict['occurringWith'];
-      } if (d === "count"){
+      } if (d === "occurrenceNumber"){
         return dict['occurrenceNumber'];
       } if (d === "behavior") {
         return dict['behavior'];
@@ -308,13 +307,14 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   var encounterData = [];
-  var occurringWith = "";
-    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/?individualID=='" + individualID + "'", function(error, json) {
+  
+    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
       if(error) {
         console.log("error")
       }
-      jsonData = json[0];
+      jsonData = json;
       for(var i=0; i < jsonData.encounters.length; i++) {
+    	  var occurringWith = "";
         for(var j = 0; j < occurrenceObjectArray.length; j++) {
           if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
             if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
@@ -339,6 +339,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
           var location = "";
         }
         var catalogNumber = jsonData.encounters[i].catalogNumber;
+        console.log("Here's what we are working with : "+jsonData.encounters[i]);
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
           if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
             var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
@@ -484,12 +485,12 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 var getIndividualData = function(relationshipArray) {
   var relationshipTableData = [];
   for(var i=0; i < relationshipArray.length; i++) {
-    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/?individualID=='" + relationshipArray[i].relationshipWith[0] + '"', function(error, json) {
+    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + relationshipArray[i].relationshipWith[0], function(error, json) {
       if(error) {
         console.log("error")
       }
       
-      jsonData = json[0];
+      jsonData = json;
       var individualInfo = relationshipArray.filter(function(obj) {
         return obj.relationshipWith[0] === jsonData.individualID;
       })[0];
