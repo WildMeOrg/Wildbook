@@ -99,6 +99,8 @@ context=ServletUtilities.getContext(request);
 //get encounter number
 String num = request.getParameter("number").replaceAll("\\+", "").trim();
 
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 File webappsDir = new File(rootWebappPath).getParentFile();
@@ -156,7 +158,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&sensor=false&language=<%=langCode%>"></script>
 
 
   <style type="text/css">
@@ -971,7 +973,7 @@ if(enc.getLocation()!=null){
   });
 </script>
 
-<div>
+<div style="display: none;">
   <div class="highlight resultMessageDiv" id="depthErrorDiv"></div>
 
   <p class="editTextLocation"><strong><%=encprops.getProperty("setDepth")%></strong></p>
