@@ -312,7 +312,7 @@ display: none;
     cursor: pointer !important;
 }
 .image-enhancer-feature-focused {
-    outline: dashed rgba(255,100,0,0.7) 2px;
+    outline: dashed rgba(50,250,50,0.7) 4px;
 }
 
 .image-enhancer-feature-aoi {
@@ -600,19 +600,39 @@ console.warn("====== enhancerDisplayAnnots %o ", ma);
     el.append(featwrap);
     var featzoom = $('<div class="image-enhancer-feature-zoom" />');
     el.append(featzoom);
-    for (var i = 0 ; i < ma.features.length ; i++) {
-        enhancerDisplayFeature(featwrap, opt, ma.annotationId, ma.features[i]);
+    var ord = featureSortOrder(ma.features);
+    for (var i = 0 ; i < ord.length ; i++) {
+        enhancerDisplayFeature(featwrap, opt, ma.annotationId, ma.features[ord[i]], i);
     }
 }
 
-function enhancerDisplayFeature(el, opt, focusAnnId, feat) {
+//this sorts features such that smallest (by area) come earlier(?) so that they will lie on top of larger ones
+function featureSortOrder(feat) {
+    var ord = new Array();
+    for (var i = 0 ; i < feat.length ; i++) {
+        var area = 0;
+        if (feat[i] && feat[i].parameters && feat[i].parameters.width && feat[i].parameters.height) {
+            area = feat[i].parameters.width * feat[i].parameters.height;
+        }
+        ord.push({i: i, area: area});
+    }
+    ord.sort(function(a,b) { return (b.area - a.area); });  //reverse numerical sort on area
+    //now we need to return an array of the .i values (offset into original array)
+    var rtn = new Array();
+    for (var i = 0 ; i < ord.length ; i++) {
+        rtn.push(ord[i].i);
+    }
+    return rtn;
+}
+
+function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta) {
     if (!feat.type) return;  //unity, skip
     if (!feat.parameters) return; //wtf???
     //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     var focused = (feat.annotationId == focusAnnId);
-    var fel = $('<div title="Annot" class="image-enhancer-feature" />');
+    var fel = $('<div title="Annot" style="z-index: ' + (31 + (zdelta||0)) + ';" class="image-enhancer-feature" />');
 
     var tooltip;
     if (feat.individualId) {
