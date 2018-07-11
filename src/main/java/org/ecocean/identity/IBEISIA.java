@@ -1704,6 +1704,8 @@ System.out.println("need " + annId + " from IA, i guess?");
                 boolean exemplar = (rtn.getJSONArray("response").optInt(0, 0) == 1);
                 ann.setIsExemplar(exemplar);
             }
+            Boolean aoi = iaIsOfInterestFromAnnotUUID(annId, context);
+            ann.setIsOfInterest(aoi);
             System.out.println("INFO: " + ann + " pulled from IA");
             return ann;
 
