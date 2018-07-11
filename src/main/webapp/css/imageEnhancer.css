@@ -97,6 +97,9 @@
     /*height: 2.0em;*/
 	width: 150px;
 }
+.image-enhancer-keyword-wrapper:hover {
+    z-index: 200;  /* note: must be higher than highest possible annotation/feature */
+}
 .image-enhancer-keyword-wrapper:hover .image-enhancer-keyword {
     background-color: #FFF;
     border: solid 1px #333;
