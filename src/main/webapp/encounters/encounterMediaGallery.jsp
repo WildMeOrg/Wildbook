@@ -77,7 +77,7 @@ JSONArray all = new JSONArray();
 List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
-	//i am a bit confused here... will this ever be more than one encounter???
+	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
   	int numEncs=encs.size();
@@ -481,7 +481,7 @@ function doImageEnhancer(sel) {
         		return;
       		}
 			//var mid = enh.imgEl.context.id.substring(11);
-			var mid = enh.imgEl.data('enh-mediaassetid');
+			var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
       console.log('%o ?????', mid);
 			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid), '<p>starting matching; please wait...</p>');
 			startIdentify(assetById(mid), enh.imgEl);
@@ -494,7 +494,7 @@ function doImageEnhancer(sel) {
                 imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
                 return;
             }
-            var mid = enh.imgEl.data('enh-mediaassetid');
+            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
             window.location.href = 'encounterVM.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
         }]);
 
@@ -525,7 +525,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 				alert('could not determine id');
 				return;
 			}
-			var mid = enh.imgEl.context.id.substring(11);
+			var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
 			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
 		}
             ],
@@ -570,7 +570,7 @@ console.info(' ===========>   %o %o', el, enh);
 }
 
 function enhancerCaption(el, opt) {
-	var mid = el.context.id.substring(11);
+	var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
 	var ma = assetById(mid);
 console.warn("====== enhancerCaption %o ", ma);
 	if (!ma || !ma.sourceAsset || !ma.sourceAsset.store.type == 'YouTube') return;
@@ -603,7 +603,7 @@ console.info(timeDisp);
 
 function enhancerDisplayAnnots(el, opt) {
     if (opt.skipDisplayAnnots) return;
-    var mid = el.context.id.substring(11);
+    var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
     var ma = assetById(mid);
 console.warn("====== enhancerDisplayAnnots %o ", ma);
     if (!ma || !ma.features || !ma.annotationId) return;
@@ -688,8 +688,12 @@ function checkImageEnhancerResize() {
 //TODO update enhancerScale when this happens!
 	var needUpdate = false;
 	$('.image-enhancer-wrapper').each(function(i,el) {
-		var imgW = $('#figure-img-' + el.id.substring(23)).width();
-		var wrapW = $(el).width();
+            var jel = $(el);
+            var imgEl = jel.parent().find('img:first');
+//console.log('wtf: %o', el);
+//console.log('wtf: %o %o', imgEl, imgEl.width());
+		var imgW = imgEl.width();
+		var wrapW = jel.width();
 //console.warn('%o -> %o vs %o', el.id, imgW, wrapW);
 		if (imgW && wrapW && (imgW != wrapW)) needUpdate = true;
 	});
@@ -706,7 +710,7 @@ function addNewKeyword(el) {
 		console.error("could not find MediaAsset id from closest wrapper");
 		return;
 	}
-	var mid = wrapper.prop('id').substring(23);
+	var mid = imageEnhancer.mediaAssetIdFromElement(wrapper);   //wrapper.prop('id').substring(23);
 	if (!assetById(mid)) {
 		console.error("could not find MediaAsset byId(%o)", mid);
 		return;
@@ -808,7 +812,7 @@ function imageLayerKeywords(el, opt) {
 	if (opt && opt._mid) {  //hack!
 		mid = opt._mid;
 	} else {
- 		mid = el.context.id.substring(11);
+ 		mid = imageEnhancer.mediaAssetIdFromElement(el.context);
 	}
 	var ma = assetById(mid);
 console.info("############## mid=%s -> %o", mid, ma);
@@ -851,7 +855,7 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 function imagePopupInfo(obj) {
 	if (!obj || !obj.imgEl || !obj.imgEl.context) return;
-	var mid = obj.imgEl.context.id.substring(11);
+	var mid = imageEnhancer.mediaAssetIdFromElement(obj.imgEl);
 	var ma = assetById(mid);
 	if (!ma) return;
 	var h = '<div>media asset id: <b>' + mid + '</b><br />';
@@ -867,7 +871,7 @@ function imagePopupInfo(obj) {
 function imagePopupInfoMenuItem(obj) {
 //console.log('MENU!!!! ----> %o', obj);
 	if (!obj || !obj.imgEl || !obj.imgEl.context) return false;
-	var mid = obj.imgEl.context.id.substring(11);
+	var mid = imageEnhancer.mediaAssetIdFromElement(obj.imgEl);
 	var ma = assetById(mid);
 	if (!ma) return false;
 	return 'image info';
