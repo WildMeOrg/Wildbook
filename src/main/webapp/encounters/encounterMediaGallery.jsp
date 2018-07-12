@@ -84,7 +84,16 @@ try {
 
   %><script>
 function isGenusSpeciesSet() {
-	var check = <%=((encs.get(0).getGenus()!=null)&&(encs.get(0).getSpecificEpithet()!=null))%>;
+<%
+        boolean gsCheck = false;
+	if (numEncs < 1) {
+            System.out.println("WARNING: encounterMediaGallery.jsp isGenusSpeciesSet() has empty 'enc', which is kinda weird.");
+            gsCheck = false;
+        } else {
+            gsCheck = (encs.get(0).getGenus()!=null) && (encs.get(0).getSpecificEpithet()!=null);
+        }
+%>
+	var check = <%=gsCheck%>;
 	console.log("isGenusSpeciesSet() = "+check);
 	return check;
 }
@@ -293,10 +302,13 @@ for (int i=0; i<captionLinks.size(); i++) {
     height: 100%;
     position: absolute;
     top: 0;
-    left: 103%;
-    outline: solid blue 4px;
+    left: -103%;
+    outline: solid rgba(255,255,255,0.8) 8px;
     overflow: hidden;
-display: none;
+    display: none;
+}
+.image-enhancer-wrapper:hover .image-enhancer-feature-zoom {
+    xdisplay: block;
 }
 
 .image-enhancer-feature-wrapper {
@@ -599,6 +611,7 @@ console.warn("====== enhancerDisplayAnnots %o ", ma);
     featwrap.data('enhancerScale', el.data('enhancerScale'));
     el.append(featwrap);
     var featzoom = $('<div class="image-enhancer-feature-zoom" />');
+    featzoom.css('background-image', 'url(' + ma.url + ')');
     el.append(featzoom);
     var ord = featureSortOrder(ma.features);
     for (var i = 0 ; i < ord.length ; i++) {
