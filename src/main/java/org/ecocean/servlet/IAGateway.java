@@ -620,6 +620,7 @@ System.out.println(id);
                 IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new JSONObject("{\"_action\": \"initDetect\"}"), context);
             } catch (Exception ex) {
                 success = false;
+                ex.printStackTrace();
                 throw new IOException(ex.toString());
             }
             if (!success) {
