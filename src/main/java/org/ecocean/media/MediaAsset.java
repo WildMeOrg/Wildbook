@@ -705,8 +705,7 @@ public class MediaAsset implements java.io.Serializable {
 
     public URL containerURLIfPresent() {
         String containerName = CommonConfiguration.getProperty("containerName","context0");
-        URL localURL = store.getConfig().getURL("webroot");
-        String hostname = localURL.getHost();
+        String localURL = store.getUsage().substring(16);
         if (containerName!=null&&containerName!="") {
             try {
                 System.out.println("Using containerName for MediaAsset URL domain..");
@@ -714,7 +713,7 @@ public class MediaAsset implements java.io.Serializable {
             } catch (java.net.MalformedURLException ex) {}
         }
         try {
-            return new URL(hostname);
+            return new URL(localURL);
         } catch (java.net.MalformedURLException mue) {}
         return null;
     }
