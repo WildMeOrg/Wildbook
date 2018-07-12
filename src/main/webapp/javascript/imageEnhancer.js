@@ -27,7 +27,7 @@ console.log('?????????????????????????????????????????????? DELAYED IMG LOAD ???
     //el is expected to be completely loaded (e.g. img) right now fwiw
     apply: function(el, opt) {
         var jel = jQuery(el);
-        var mid = jel.data('enh-mediaassetid');
+        var mid = imageEnhancer.mediaAssetIdFromElement(jel);  //jel.data('enh-mediaassetid');
         var parEl = jel.parent();  //TODO what if there is none... oops???
         if (parEl.prop('tagName') == 'A') parEl = parEl.parent();
 console.info('imageEnhancer.apply to %o [%dx%d] with opt %o (parEl=%o)', el, jel.width(), jel.height(), opt, parEl);
@@ -172,6 +172,15 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
         if (i < 0) return imageEnhancer.debugMenuItem(enh);
         //ev.target.parentElement.parentElement.enhancer.opt.menu[i][1](ev.target.parentElement.parentElement.enhancer);
         enh.opt.menu[i][1](enh, enh.opt.menu[i][2]);
+    },
+
+    mediaAssetIdFromElement: function(el) {
+        var mid = (el instanceof jQuery) ? el.data('enh-mediaassetid') : el.getAttribute('data-enh-mediaassetid');
+        if (!mid) {
+            console.warn('imageEnhancer.mediaAssetIdFromElement() could not find mid on %o', el);
+            mid = -1;
+        }
+        return mid;
     },
 
     message: function(el, h) {
