@@ -399,7 +399,7 @@ if(request.getParameter("encounterNumber")!=null){
         data: JSON.stringify({"detach":"true","EncounterID":"<%=encNum%>","MediaAssetID":maId}),
         success: function(d) {
           console.info("I detached MediaAsset "+maId+" from encounter <%=encNum%>");
-          $('#image-enhancer-wrapper-' + maId).closest('figure').remove();
+          $('#image-enhancer-wrapper-' + maId).closest('figure').remove();  //TODO fix this to find it with annotation id now!
 /*
           $('#remove'+maId).prev('figure').remove();
           $('#remove'+maId).after('<p style=\"text-align:center;\"><i>Image removed from encounter.</i></p>');
@@ -482,8 +482,9 @@ function doImageEnhancer(sel) {
       		}
 			//var mid = enh.imgEl.context.id.substring(11);
 			var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+			var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
       console.log('%o ?????', mid);
-			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid), '<p>starting matching; please wait...</p>');
+			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid + ':' + aid), '<p>starting matching; please wait...</p>');
 			startIdentify(assetById(mid), enh.imgEl);
 		}]);
 	}
@@ -603,8 +604,11 @@ console.info(timeDisp);
 
 function enhancerDisplayAnnots(el, opt) {
     if (opt.skipDisplayAnnots) return;
-    var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
-    var ma = assetById(mid);
+    //var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
+    var aid = imageEnhancer.annotationIdFromElement(el.context);
+console.warn('foocontext --> %o', aid);
+    if (!aid) return;
+    var ma = assetByAnnotationId(aid);
 console.warn("====== enhancerDisplayAnnots %o ", ma);
     if (!ma || !ma.features || !ma.annotationId) return;
     var featwrap = $('<div class="image-enhancer-feature-wrapper" />');
@@ -772,6 +776,7 @@ console.info(d);
 				}
 				if (mainMid) {
 					$('#image-enhancer-wrapper-' + mainMid + ' .image-enhancer-keyword-wrapper').remove();
+//TODO fix to add annot id!!!
 					imageLayerKeywords($('#image-enhancer-wrapper-' + mainMid), { _mid: mainMid });
 				}
 			} else {
@@ -882,6 +887,13 @@ function assetById(mid) {
 	if (!assets || (assets.length < 1)) return false;
 	for (var i = 0 ; i < assets.length ; i++) {
 		if (assets[i].id == mid) return assets[i];
+	}
+	return false;
+}
+function assetByAnnotationId(aid) {
+	if (!assets || (assets.length < 1)) return false;
+	for (var i = 0 ; i < assets.length ; i++) {
+		if (assets[i].annotationId == aid) return assets[i];
 	}
 	return false;
 }
