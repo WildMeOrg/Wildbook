@@ -10,12 +10,13 @@ console.log('=============???? %o', ev);
         opt._count = jQuery(selector).length;
         jQuery(selector).each(function(i, el) {
             if (el.complete) {
+console.log('!!!! non-delayed apply on %o', el);
                 imageEnhancer.apply(el, opt);
                 opt._count--;
                 if (opt.callback && (opt._count < 1)) opt.callback();
             } else {
                 $(el).on('load', function(ev) {
-console.log('?????????????????????????????????????????????? DELAYED IMG LOAD ?????????? %o', ev);
+console.log('?????????????????????????????????????????????? DELAYED IMG LOAD ?????????? %o', ev.target);
                     imageEnhancer.apply(ev.target, opt);
                     opt._count--;
                     if (opt.callback && (opt._count < 1)) opt.callback();
@@ -27,16 +28,22 @@ console.log('?????????????????????????????????????????????? DELAYED IMG LOAD ???
     //el is expected to be completely loaded (e.g. img) right now fwiw
     apply: function(el, opt) {
         var jel = jQuery(el);
+        if (jel.data('enc-already-enhanced')) {
+            console.info('ALREADY ENHANCED %o; skipping', el);
+            return;
+        }
+        jel.data('enc-already-enhanced', true);
         var mid = imageEnhancer.mediaAssetIdFromElement(jel);  //jel.data('enh-mediaassetid');
+        var aid = imageEnhancer.annotationIdFromElement(jel);
         var parEl = jel.parent();  //TODO what if there is none... oops???
         if (parEl.prop('tagName') == 'A') parEl = parEl.parent();
-console.info('imageEnhancer.apply to %o [%dx%d] with opt %o (parEl=%o)', el, jel.width(), jel.height(), opt, parEl);
+console.info('imageEnhancer.apply to %o [%dx%d] (mid=%o|aid=%o) with opt %o (parEl=%o)', el, jel.width(), jel.height(), mid, aid, opt, parEl);
         if (typeof opt != 'object') opt = {};
 
         if (parEl.css('position') == 'static') parEl.css('position', 'relative');
 
         //parEl.append('<div class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
-        parEl.append('<div id="image-enhancer-wrapper-' + mid + '" class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
+        parEl.append('<div id="image-enhancer-wrapper-' + mid + '-' + aid+ '" class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
         imageEnhancer.setEnhancerScale(el);
         imageEnhancer.wrapperSizeSetFromImg(parEl);
         var wrapper = parEl.find('.image-enhancer-wrapper');
@@ -73,7 +80,8 @@ console.info('assigning event %s', e);
             var ji = $(ev.target);
 console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
             var id = ji.data('enh-mediaassetid');
-            var w = el.find('#image-enhancer-wrapper-' + id);
+            var aid = ji.data('enh-annotationid');
+            var w = el.find('#image-enhancer-wrapper-' + id + '-' + aid);
 //console.log('img = %o / w = %o', img, w);
 //console.log('img.length -----> %o', img.length);
 //console.log(' .complete? %o', img.prop('complete'));
@@ -88,7 +96,8 @@ console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
     setEnhancerScale: function(img) {
         var ji = $(img);
         var id = ji.data('enh-mediaassetid');
-        var w = $('#image-enhancer-wrapper-' + id);
+        var aid = ji.data('enh-annotationid');
+        var w = $('#image-enhancer-wrapper-' + id + '-' + aid);
         //var scale = ji.width() / img.naturalWidth;
         var scale = ji.width() / 4000;
         console.warn("########## [%s] scale = %o", id, scale);
@@ -181,6 +190,15 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
             mid = -1;
         }
         return mid;
+    },
+
+    annotationIdFromElement: function(el) {
+        var aid = (el instanceof jQuery) ? el.data('enh-annotationid') : el.getAttribute('data-enh-annotationid');
+        if (!aid) {
+            console.warn('imageEnhancer.annoationIdFromElement() could not find aid on %o', el);
+            aid = false;
+        }
+        return aid;
     },
 
     message: function(el, h) {
