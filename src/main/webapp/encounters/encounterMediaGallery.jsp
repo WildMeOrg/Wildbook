@@ -714,7 +714,7 @@ function addNewKeyword(el) {
 		console.error("could not find MediaAsset id from closest wrapper");
 		return;
 	}
-	var mid = imageEnhancer.mediaAssetIdFromElement(wrapper);   //wrapper.prop('id').substring(23);
+	var mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
 	if (!assetById(mid)) {
 		console.error("could not find MediaAsset byId(%o)", mid);
 		return;
@@ -761,6 +761,7 @@ console.info(d);
 					}
 				}
 				//the reality is we prob only have one, mid so we save that to update the menu of
+                                // TODO FIXME for gallery view, a MediaAsset likely appears more than once!  :/
 				var mainMid = false;
 				if (d.results) {
 					for (var mid in d.results) {
