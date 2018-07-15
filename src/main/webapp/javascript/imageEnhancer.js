@@ -184,7 +184,15 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
     },
 
     mediaAssetIdFromElement: function(el) {
-        var mid = (el instanceof jQuery) ? el.data('enh-mediaassetid') : el.getAttribute('data-enh-mediaassetid');
+        var mid = false;
+        if (el instanceof jQuery) {
+            mid = el.data('enh-mediaassetid')
+            if (!mid && el.prop('id') && el.prop('id').startsWith('image-enhancer-wrapper-')) {  //hack to get mid from our wrapper!
+                mid = el.prop('id').split('-')[3];
+            }
+        } else {
+            mid = el.getAttribute('data-enh-mediaassetid');
+        }
         if (!mid) {
             console.warn('imageEnhancer.mediaAssetIdFromElement() could not find mid on %o', el);
             mid = -1;
