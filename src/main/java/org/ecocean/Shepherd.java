@@ -1439,6 +1439,21 @@ public class Shepherd {
     Iterator taxis = getAllTaxonomies();
     return (Util.count(taxis));
   }
+  public List<String> getAllTaxonomyNames() {
+    Iterator<Taxonomy> allTaxonomies = getAllTaxonomies();
+    Set<String> allNames = new HashSet<String>();
+    while (allTaxonomies.hasNext()) {
+      Taxonomy taxy = allTaxonomies.next();
+      allNames.add(taxy.getScientificName());
+    }
+    List<String> configNames = CommonConfiguration.getIndexedPropertyValues("genusSpecies", getContext());
+    allNames.addAll(configNames);
+
+    List<String> allNamesList = new ArrayList<String>(allNames);
+    java.util.Collections.sort(allNamesList);
+    //return (allNamesList);
+    return (configNames);
+  }
 
   public Iterator getAllAnnotationsNoQuery() {
     try {
@@ -2271,6 +2286,13 @@ public class Shepherd {
       if (ann!=null && ann.getMediaAsset()!=null) assResults.add(ann.getMediaAsset());
     }
     return assResults;
+  }
+
+  public List<MediaAsset> getPhotosForIndividual(MarkedIndividual indy, int maxResults) {
+    // i hope this works?
+    String[] noKeywordNames = new String[0];
+    List<MediaAsset> results = getKeywordPhotosForIndividual(indy, noKeywordNames, maxResults);
+    return results;
   }
 
   // this method returns the MediaAsset on an Indy with the given keyword, with preference
@@ -3933,6 +3955,16 @@ public class Shepherd {
     List resList = new ArrayList(results);
     q.closeAll();
     return resList;
+  }
+
+  // gets properties vals, then all actual vals, and returns the combined list without repeats
+  public List<String> getAllPossibleVals(Class fromClass, String fieldName, Properties props) {
+    List<String> indexVals = Util.getIndexedPropertyValues(fieldName, props);
+    List<String> usedVals = getAllStrVals(fromClass, fieldName);
+    for (String usedVal: usedVals) {
+      if (!indexVals.contains(usedVal)) indexVals.add(usedVal);
+    }
+    return indexVals;
   }
 
 
