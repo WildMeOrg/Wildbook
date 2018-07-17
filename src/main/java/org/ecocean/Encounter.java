@@ -808,7 +808,10 @@ public class Encounter implements java.io.Serializable {
     return getWebUrl(this.getCatalogNumber(), req);
   }
   public static String getWebUrl(String encId, HttpServletRequest req) {
-    return (CommonConfiguration.getServerURL(req)+"/encounters/encounter.jsp?number="+encId);
+    return getWebUrl(encId, CommonConfiguration.getServerURL(req));
+  }
+  public static String getWebUrl(String encId, String serverUrl) {
+    return (serverUrl+"/encounters/encounter.jsp?number="+encId);
   }
 
   /**
@@ -2515,6 +2518,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
     public void setAnnotations(ArrayList<Annotation> anns) {
         annotations = anns;
+    }
+    public void addAnnotations(List<Annotation> anns) {
+      if (annotations == null) annotations = new ArrayList<Annotation>();
+      for (Annotation ann: anns) {
+        annotations.add(ann);
+      }
     }
     public void addAnnotation(Annotation ann) {
         if (annotations == null) annotations = new ArrayList<Annotation>();
