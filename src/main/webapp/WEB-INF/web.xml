@@ -942,7 +942,7 @@
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet>
 
-
+-->
 
 
   <servlet>
@@ -1123,7 +1123,7 @@
     	<servlet-class>org.ecocean.servlet.MozRobustByMonths</servlet-class>
   </servlet>
 
-
+-->
 
   <servlet>
     <servlet-name>ScanWorkItemResultsHandler</servlet-name>
