@@ -496,7 +496,7 @@ function doImageEnhancer(sel) {
                 return;
             }
             var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-            window.location.href = 'encounterVM.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
+            window.location.href = 'encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid;
         }]);
 
 /*   we dont really like the old tasks showing up in menu. so there.
@@ -680,7 +680,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     fel.on('click', function(ev) {
         ev.stopPropagation();
         var encId = $(this).data('encounterId');
-        if (encId == encounterNumber) return;
+        if (!inGalleryMode() && (encId == encounterNumber)) return;  //clicking on "this" encounter when in encounter.jsp
         document.body.innerHTML = '';
         window.location.href = 'encounter.jsp?number=' + encId;
     });
@@ -760,25 +760,11 @@ console.info(d);
 						wildbookGlobals.keywords[id] = d.newKeywords[id];
 					}
 				}
-				//the reality is we prob only have one, mid so we save that to update the menu of
-                                // TODO FIXME for gallery view, a MediaAsset likely appears more than once!  :/
 				var mainMid = false;
 				if (d.results) {
 					for (var mid in d.results) {
-						if (!mainMid) mainMid = mid;
-						assetById(mid).keywords = [];
-						for (var id in d.results[mid]) {
-							assetById(mid).keywords.push({
-								indexname: id,
-								readableName: d.results[mid][id]
-							});
-						}
+                                            refreshKeywordsForMediaAsset(mid, d.results[mid]);
 					}
-				}
-				if (mainMid) {
-					$('#image-enhancer-wrapper-' + mainMid + ' .image-enhancer-keyword-wrapper').remove();
-//TODO fix to add annot id!!!
-					imageLayerKeywords($('#image-enhancer-wrapper-' + mainMid), { _mid: mainMid });
 				}
 			} else {
 				var msg = d.error || 'ERROR could not make change';
@@ -812,6 +798,23 @@ console.info(d);
     }
 }
 */
+
+function refreshKeywordsForMediaAsset(mid, data) {
+    for (var i = 0 ; i < assets.length ; i++) {
+        if (assets[i].id != mid) continue;
+        for (var id in data.results[mid]) {
+            if (!assets[i].keywords) assets[i].keywords = [];
+            assets[i].keywords.push({
+                indexname: id,
+                readableName: data.results[mid][id]
+            });
+        }
+    }
+    $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {   //update the ui
+        $(el).find('.image-enhancer-keyword-wrapper').remove();
+        imageLayerKeywords($(el), { _mid: mid });
+    });
+}
 
 function imageLayerKeywords(el, opt) {
 	var mid;
@@ -892,11 +895,28 @@ function assetById(mid) {
 	return false;
 }
 function assetByAnnotationId(aid) {
-	if (!assets || (assets.length < 1)) return false;
+	if (!aid || !assets || (assets.length < 1)) return false;
 	for (var i = 0 ; i < assets.length ; i++) {
 		if (assets[i].annotationId == aid) return assets[i];
 	}
 	return false;
+}
+
+function encounterNumberFromAsset(asset) {
+    if (!asset || !asset.annotationId || !asset.features) return false;
+    for (var i = 0 ; i < asset.features.length ; i++) {
+        if (asset.features[i].annotationId == asset.annotationId) return asset.features[i].encounterId;
+    }
+    return false;
+}
+
+function encounterNumberFromElement(el) {  //should be img element
+    var aid = imageEnhancer.annotationIdFromElement(el);
+    return encounterNumberFromAsset(assetByAnnotationId(aid));
+}
+
+function inGalleryMode() {
+    return (typeof(encounterNumber) == 'undefined');
 }
 
 </script>
