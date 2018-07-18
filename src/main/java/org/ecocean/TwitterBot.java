@@ -548,4 +548,28 @@ System.out.println("processDetectionResults() -> " + mas);
         return "Failed to find any Annotations; sent tweet";
     }
 
+    // mostly for ContextDestroyed in StartupWildbook..... i think?
+    public static void cleanup() {
+/*
+        for (ScheduledExecutorService ses : runningSES) {
+            ses.shutdown();
+            try {
+                if (ses.awaitTermintation(20, TimeUnit.SECONDS)) {
+                    ses.shutdownNow();
+                    if (ses.awaitTermintation(20, TimeUnit.SECONDS)) {
+                        System.out.println("!!! QueueUtil.cleanup() -- ExecutorService did not terminate");
+                    }
+                }
+            } catch (InterruptedException ie) {
+                ses.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+        for (ScheduledFuture sf : runningSF) {
+            sf.cancel(true);
+        }
+*/
+        System.out.println("================ = = = = = = ===================== TwitterBot.cleanup() finished.");
+    }
+
 }
