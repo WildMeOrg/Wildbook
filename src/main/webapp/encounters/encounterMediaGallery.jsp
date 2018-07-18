@@ -474,7 +474,7 @@ function doImageEnhancer(sel) {
         		return;
       		    }
 		    imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid + ':' + aid), '<p>starting matching; please wait...</p>');
-		    startIdentify(assetById(mid), enh.imgEl);
+		    startIdentify(ma, enh.imgEl);  //this asset should now be annotationly correct
 		}]);
 	}
 
