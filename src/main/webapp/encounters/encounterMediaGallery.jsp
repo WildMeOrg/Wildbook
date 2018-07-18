@@ -83,19 +83,9 @@ try {
   	int numEncs=encs.size();
 
   %><script>
-function isGenusSpeciesSet() {
-<%
-        boolean gsCheck = false;
-	if (numEncs < 1) {
-            System.out.println("WARNING: encounterMediaGallery.jsp isGenusSpeciesSet() has empty 'enc', which is kinda weird.");
-            gsCheck = false;
-        } else {
-            gsCheck = (encs.get(0).getGenus()!=null) && (encs.get(0).getSpecificEpithet()!=null);
-        }
-%>
-	var check = <%=gsCheck%>;
-	console.log("isGenusSpeciesSet() = "+check);
-	return check;
+
+function isGenusSpeciesSet(asset) {
+	return (asset && asset.species);
 }
 
 var identTasks = [];
@@ -476,26 +466,27 @@ function doImageEnhancer(sel) {
 
 	if (wildbook.iaEnabled()) {  //TODO (the usual) needs to be genericized for IA plugin support (which doesnt yet exist)
 		opt.menu.push(['start new matching scan', function(enh) {
-      		if (!isGenusSpeciesSet()) {
+		    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+		    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
+                    var ma = assetByAnnotationId(aid);
+      		    if (!isGenusSpeciesSet(ma)) {
         		imageEnhancer.popup("You need full taxonomic classification to start identification!");
         		return;
-      		}
-			//var mid = enh.imgEl.context.id.substring(11);
-			var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-			var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-      console.log('%o ?????', mid);
-			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid + ':' + aid), '<p>starting matching; please wait...</p>');
-			startIdentify(assetById(mid), enh.imgEl);
+      		    }
+		    imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid + ':' + aid), '<p>starting matching; please wait...</p>');
+		    startIdentify(assetById(mid), enh.imgEl);
 		}]);
 	}
 
 
         opt.menu.push(['use visual matcher', function(enh) {
-      	    if (!isGenusSpeciesSet()) {
+	    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+	    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
+            var ma = assetByAnnotationId(aid);
+      	    if (!isGenusSpeciesSet(ma)) {
                 imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
                 return;
             }
-            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
             window.location.href = 'encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid;
         }]);
 
