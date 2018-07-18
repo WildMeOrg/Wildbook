@@ -20,7 +20,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
   private static final String BASE_FILTER = "SELECT FROM org.ecocean.Occurrence WHERE \"OCCURRENCEID\" != null && ";
 
-  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"soil","rain","activity","habitatOpenness","grassGreenness","grassHeight","weather","wind"};
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"ID","distance","groupBehavior"};
 
 
 
@@ -46,9 +46,19 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
       filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
     }
 
+    filter = QueryProcessor.filterDateRanges(request, filter, prettyPrint);
+    
     // GPS box
     filter = QueryProcessor.filterWithGpsBox(filter, request, prettyPrint);
-
+    
+    
+    //Observations
+    filter = QueryProcessor.filterObservations(filter, request, prettyPrint, "Occurrence");
+    int numObs = QueryProcessor.getNumberOfObservationsInQuery(request);
+    for (int i = 1;i<=numObs;i++) {
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);      
+    }
+    
     // make sure no trailing ampersands
     filter = QueryProcessor.removeTrailingAmpersands(filter);
     filter += jdoqlVariableDeclaration;
@@ -93,4 +103,34 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     System.out.println("about to return OccurrenceQueryResult with filter "+filter+" and nOccs="+rOccurrences.size());
     return (new OccurrenceQueryResult(rOccurrences,filter,prettyPrint.toString()));
   }
+  
+  public static String filterDateRanges(HttpServletRequest request, String filter) {
+    String filterAddition = "";
+    String startTimeFrom = null;
+    String startTimeTo = null;
+    filter = prepForNext(filter);
+    if (request.getParameter("startTimeFrom")!=null) {
+      startTimeFrom = request.getParameter("startTimeFrom");
+      
+      //Process date to millis... for survey too... 
+      // yuck.
+      
+      filter += " 'millis' >=  "+startTimeFrom+" ";
+    }
+    filter = prepForNext(filter);
+    if (request.getParameter("startTimeTo")!=null) {
+      startTimeTo = request.getParameter("startTimeTo");
+      filter += " 'millis' <=  "+startTimeFrom+" ";
+    }
+    filter = prepForNext(filter);
+    return filter;
+  }
+  
+ public static String prepForNext(String filter) {
+   if (!QueryProcessor.endsWithAmpersands(filter)) {
+     QueryProcessor.prepForCondition(filter);
+   }
+   return filter;
+ }
+  
 }

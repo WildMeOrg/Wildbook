@@ -106,7 +106,7 @@
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
                 roles.unauthorizedUrl = /accessDenied.jsp
-				authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
+				        authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
 
 
                 authc.loginUrl = /login.jsp
@@ -122,12 +122,12 @@
                 #only let authenticated users
                 #with the appropriate role
                 #view the web pages in the secure
-                #and admin areas
+                #and admin 
                 [urls]
 
-                /rest/** = authcBasicWildbook,roles[rest]
-				#/api/** = authcBasicWildbook,roles[rest-readonly]
-                /LightRest/** = authcBasicWildbook,roles[rest]
+                #/rest/** = authcBasicWildbook,roles[rest]
+				      #/api/** = authcBasicWildbook,roles[rest-readonly]
+                #/LightRest/** = authcBasicWildbook,roles[rest]
 
 
 
@@ -184,6 +184,11 @@
 		  /EncounterSetLifeStage = authc, roles[researcher]
 		  /EncounterSetCountry = authc, roles[researcher]
 		  /EncounterSetTissueSample = authc, roles[researcher]
+
+      /occurrenceSearch.jsp = authc, roles[researcher]
+      /occurrence.jsp = authc, roles[researcher]
+      /occurrenceSearchResults.jsp = authc, roles[researcher]
+
 		   /TissueSampleSetHaplotype = authc, roles[researcher]
 		   /TissueSampleSetMeasurement = authc, roles[researcher]
 		  /TissueSampleRemoveHaplotype = authc, roles[researcher]
@@ -193,6 +198,16 @@
 
 		   /RelationshipCreate  = authc, roles[researcher]
 		   /RelationshipDelete  = authc, roles[researcher]
+
+       /surveys/survey.jsp = authc, roles[researcher]
+       /surveys/createSurvey.jsp = authc, roles[researcher]
+       /surveys/surveySearch.jsp = authc, roles[researcher]
+       /surveys/surveySearchResults.jsp = authc, roles[researcher]
+       
+       /SurveyCreate = authc, roles[researcher]
+       /SubmitSurvey = authc, roles[researcher]
+       /SurveySetObservation = authc, roles[researcher]
+       /AddSurveyTrackToSurvey = authc, roles[researcher]
 
 		   /ImportSRGD = authc, roles[admin]
 		        /IndividualCreate = authc, roles[researcher]
@@ -287,6 +302,12 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+  
+  <servlet>
+    <description>SubmitSurvey</description>
+    <servlet-name>SubmitSurvey</servlet-name>
+    <servlet-class>org.ecocean.servlet.SubmitSurvey</servlet-class>
+  </servlet>
 
   <servlet>
     <description>StripePayment</description>
@@ -320,10 +341,10 @@
     <servlet-class>com.sunwesttek.image.servlet.ImgSyncServlet</servlet-class>
   </servlet>
 
-
-
-
-
+  <servlet>
+    <servlet-name>EncounterCreateSurvey</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterCreateSurvey</servlet-class>
+  </servlet>	
 
   <servlet>
     <servlet-name>WriteOutScanTask</servlet-name>
@@ -338,6 +359,16 @@
   <servlet>
     <servlet-name>IndividualSetAlternateID</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualSetAlternateID</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>EncounterSetSurveyAndTrack</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetSurveyAndTrack</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>OccurrenceSetSurveyAndTrack</servlet-name>
+    <servlet-class>org.ecocean.servlet.OccurrenceSetSurveyAndTrack</servlet-class>
   </servlet>
 
   <servlet>
@@ -354,9 +385,6 @@
       <servlet-name>EncounterSetVerbatimEventDate</servlet-name>
       <servlet-class>org.ecocean.servlet.EncounterSetVerbatimEventDate</servlet-class>
   </servlet>
-
-
-
 
   <servlet>
     <servlet-name>EncounterSetInformOthers</servlet-name>
@@ -529,6 +557,17 @@
 		<servlet-name>ResumableUpload</servlet-name>
 		<servlet-class>ec.com.mapache.ngflow.servlet.UploadServlet</servlet-class>
 	</servlet>
+	
+	<servlet>
+		<servlet-name>SurveyCreate</servlet-name>
+		<servlet-class>org.ecocean.servlet.SurveyCreate</servlet-class>
+	</servlet>
+
+  <servlet>
+		<servlet-name>AddOccToTrack</servlet-name>
+		<servlet-class>org.ecocean.servlet.AddOccToTrack</servlet-class>
+	</servlet>
+	
 	<servlet-mapping>
  		<servlet-name>ResumableUpload</servlet-name>
 		<url-pattern>/ResumableUpload</url-pattern>
@@ -590,6 +629,11 @@
   <servlet>
     <servlet-name>MediaAssetCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>EncounterCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterCreate</servlet-class>
   </servlet>
 
   <servlet>
@@ -873,11 +917,6 @@
   <servlet>
     <servlet-name>EncounterSetSex</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSex</servlet-class>
-  </servlet>
-
-    <servlet>
-    <servlet-name>EncounterDelete</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
 
     <servlet>
@@ -1275,6 +1314,21 @@
     <servlet-class>org.ecocean.servlet.OccurrenceClusterMASet</servlet-class>
   </servlet>
   
+  <servlet>
+    <servlet-name>OccurrenceSetObservation</servlet-name>
+    <servlet-class>org.ecocean.servlet.OccurrenceSetObservation</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>EncounterSetObservation</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetObservation</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>SurveySetObservation</servlet-name>
+    <servlet-class>org.ecocean.servlet.SurveySetObservation</servlet-class>
+  </servlet>
+  
     <servlet>
     <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportMetadataExcel</servlet-class>
@@ -1306,7 +1360,6 @@
     <url-pattern>/OccurrenceSearchExportMetadataExcel</url-pattern>
   </servlet-mapping>
 
-
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
 <url-pattern>/api/*</url-pattern>
@@ -1314,6 +1367,11 @@
 </servlet-mapping>
 
 <servlet-mapping>
+  <servlet-name>SubmitSurvey</servlet-name>
+  <url-pattern>/SubmitSurvey</url-pattern>
+</servlet-mapping>  
+  
+<servlet-mapping> 
   <servlet-name>CRCExportReport</servlet-name>
   <url-pattern>/CRCExportReport</url-pattern>
 </servlet-mapping>
@@ -1403,6 +1461,7 @@
         <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
         <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
   </servlet-mapping>
+  
 
 
       <servlet-mapping>
@@ -1463,6 +1522,11 @@
       <url-pattern>/MediaAssetCreate</url-pattern>
     </servlet-mapping>
 
+    <servlet-mapping>
+      <servlet-name>EncounterCreate</servlet-name>
+      <url-pattern>/EncounterCreate</url-pattern>
+    </servlet-mapping>
+
       <servlet-mapping>
              <servlet-name>MediaAssetsForUser</servlet-name>
              <url-pattern>/MediaAssetsForUser</url-pattern>
@@ -1487,6 +1551,16 @@
         <servlet-mapping>
           <servlet-name>TissueSampleRemoveMicrosatelliteMarkers</servlet-name>
           <url-pattern>/TissueSampleRemoveMicrosatelliteMarkers</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+      <servlet-name>EncounterSetSurveyAndTrack</servlet-name>
+      <url-pattern>/EncounterSetSurveyAndTrack</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+      <servlet-name>OccurrenceSetSurveyAndTrack</servlet-name>
+      <url-pattern>/OccurrenceSetSurveyAndTrack</url-pattern>
   </servlet-mapping>
 
     <servlet-mapping>
@@ -2119,12 +2193,7 @@
     <url-pattern>/IndividualRemoveDataFile</url-pattern>
   </servlet-mapping>
 
-      <servlet>
-      <servlet-name>UserCreateSocial</servlet-name>
-      <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
-  </servlet>
-
-      <servlet>
+  <servlet>
       	<servlet-name>LoginUserSocial</servlet-name>
       	<servlet-class>org.ecocean.servlet.LoginUserSocial</servlet-class>
    </servlet>
@@ -2138,11 +2207,35 @@
     <servlet-name>EncounterVMData</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterVMData</servlet-class>
   </servlet>
+  <servlet-mapping>
+    <servlet-name>EncounterSetObservation</servlet-name>
+    <url-pattern>/EncounterSetObservation</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterVMData</servlet-name>
     <url-pattern>/EncounterVMData</url-pattern>
   </servlet-mapping>
 
+
+  <servlet-mapping>
+    <servlet-name>OccurrenceSetObservation</servlet-name>
+    <url-pattern>/OccurrenceSetObservation</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>SurveySetObservation</servlet-name>
+    <url-pattern>/SurveySetObservation</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>SurveyCreate</servlet-name>
+    <url-pattern>/SurveyCreate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>AddOccToTrack</servlet-name>
+    <url-pattern>/AddOccToTrack</url-pattern>
+  </servlet-mapping>
 
 </web-app>

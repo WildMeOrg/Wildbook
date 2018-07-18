@@ -10,7 +10,7 @@ import org.ecocean.*;
 import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.genetics.BiologicalMeasurement;
 import org.ecocean.servlet.ServletUtilities;
-import org.springframework.mock.web.MockHttpServletRequest;
+//import org.springframework.mock.web.MockHttpServletRequest;
 
 import jxl.write.*;
 import jxl.*;
