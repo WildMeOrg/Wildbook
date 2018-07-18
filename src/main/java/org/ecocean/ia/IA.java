@@ -79,7 +79,7 @@ public class IA {
         qjob.put("detect", dj);
         qjob.put("taskId", task.getId());
         qjob.put("__context", context);
-        qjob.put("__baseUrl", CommonConfiguration.getServerURL(context));
+        qjob.put("__baseUrl", getBaseURL(context));
         boolean sent = false;
         try {
             sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
@@ -87,15 +87,49 @@ public class IA {
             System.out.println("ERROR: IA.intakeMediaAssets() addToQueue() threw " + iox.toString());
         }
 
-System.out.println("INFO: IA.intakeMediaAsset() accepted " + mas.size() + " assets; queued? = " + sent);
+System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " assets; queued? = " + sent + "; " + task);
         return task;
     }
+
+    //similar behavior to above: basically fake /ia api call, but via queue
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
         if ((anns == null) || (anns.size() < 1)) return null;
         Task task = new Task();
         task.setObjectAnnotations(anns);
-System.out.println("INFO: IA.intakeMediaAsset() accepted " + anns.size() + " annots");
+
+        //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
+        JSONArray annArr = new JSONArray();
+        for (Annotation ann : anns) {
+            annArr.put(ann.getId());
+        }
+        JSONObject aj = new JSONObject();
+        aj.put("annotationIds", annArr);
+        String context = myShepherd.getContext();
+        JSONObject qjob = new JSONObject();
+        qjob.put("identify", aj);
+        qjob.put("taskId", task.getId());
+        qjob.put("__context", context);
+        qjob.put("__baseUrl", getBaseURL(context));
+        boolean sent = false;
+        try {
+            sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("ERROR: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
+        }
+System.out.println("INFO: IA.intakeAnnotations() accepted " + anns.size() + " annots; queued? = " + sent + "; " + task);
         return task;
+    }
+
+
+    public static String getBaseURL(String context) {
+        String url = CommonConfiguration.getServerURL(context);
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
+        url = CommonConfiguration.getServerURL(context);
+        if (containerName!=null&&containerName!="") { 
+            System.out.println("Wildbook is containerized: sending proper container name to IA instead of localhost.");
+            url = url.replace("localhost", containerName);
+        }
+        return url;
     }
 
 

@@ -111,7 +111,10 @@ public class MediaAsset implements java.io.Serializable {
 
     protected DateTime userDateTime;
 
-
+    // Variables used in the Survey, SurveyTrack, Path, Location model
+    
+    private String correspondingSurveyTrackID;
+    private String correspondingSurveyID;
 
 
     //protected MediaAssetType type;
@@ -206,6 +209,32 @@ public class MediaAsset implements java.io.Serializable {
 
     public void setOccurrence(Occurrence occ) {
       this.occurrence = occ;
+    }
+    
+    public void setCorrespondingSurveyTrackID(String id) {
+      if (id != null && !id.equals("")) {
+        correspondingSurveyTrackID = id;
+      }
+    }
+
+    public String getCorrespondingSurveyTrackID() {
+      if (correspondingSurveyTrackID != null) {
+        return correspondingSurveyTrackID;
+      }
+      return null;
+    }
+    
+    public void setCorrespondingSurveyID(String id) {
+      if (id != null && !id.equals("")) {
+        correspondingSurveyID = id;
+      }
+    }
+    
+    public String getCorrespondingSurveyID() {
+      if (correspondingSurveyID != null) {
+        return correspondingSurveyID;
+      }
+      return null;
     }
 
     public String getDetectionStatus() {
@@ -627,12 +656,13 @@ public class MediaAsset implements java.io.Serializable {
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
         }
-
         try {
             int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
-            if (i == 0) return new URL(store.getUsage().substring(16));
+            if (i == 0) {
+                String localURL = store.getUsage().substring(16);
+                return new URL(localURL);
+            } 
         } catch (java.net.MalformedURLException ex) {}
-
         return store.webURL(this);
     }
 
@@ -672,6 +702,25 @@ public class MediaAsset implements java.io.Serializable {
     public URL safeURL() {
         return safeURL((HttpServletRequest)null);
     }
+
+    public URL containerURLIfPresent() {
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
+
+        URL localURL = store.getConfig().getURL("webroot"); 
+        String hostname = localURL.getHost(); 
+
+        if (containerName!=null&&containerName!="") {
+            try {
+                System.out.println("Using containerName for MediaAsset URL domain..");
+                return new URL(store.webURL(this).getProtocol(), containerName, 80, store.webURL(this).getFile());
+            } catch (java.net.MalformedURLException ex) {}
+        }
+        try {
+            return new URL(hostname);
+        } catch (java.net.MalformedURLException mue) {}
+        return null;
+    }
+
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request, String bestType) {
         if (store == null) return null;
         //this logic is simplistic now, but TODO make more complex (e.g. configurable) later....
@@ -856,6 +905,7 @@ public class MediaAsset implements java.io.Serializable {
                     Annotation ann = ft.getAnnotation();
                     if (ann != null) {
                         jf.put("annotationId", ann.getId());
+                        jf.put("annotationIsOfInterest", ann.getIsOfInterest());
                         Encounter enc = ann.findEncounter(myShepherd);
                         if (enc != null) {
                             jf.put("encounterId", enc.getCatalogNumber());
@@ -1115,6 +1165,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     }
     public void setMetadata(MediaAssetMetadata md) {
         metadata = md;
+    }
+    public void setMetadata() throws IOException {
+        setMetadata(updateMetadata());
     }
     public MediaAssetMetadata updateMetadata() throws IOException {  //TODO should this overwrite existing, or append?
         if (store == null) return null;
