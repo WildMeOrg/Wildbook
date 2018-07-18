@@ -2,9 +2,9 @@ SUBJECT: Email from Spotting Giant Sea Bass
 
 @EMAIL_CONTENT@
 
-Sincerely,
+Saludos,
 
-The Spotting Giant Sea Bass Team
+El equipo de Spotting Giant Sea Bass 
 
 
 @REMOVEME_START@
