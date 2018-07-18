@@ -429,7 +429,7 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                         if (jann == null) continue;
                         Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd, context, rootDir, false);
                         if (ann == null) continue;
-                        myShepherd.getPM().makePersistent(ann);
+                        //myShepherd.getPM().makePersistent(ann);  //done in createAnnotationFromIAResult
                         thisAnns.put(ann.getId());
                     }
                     if (thisAnns.length() > 0) annsMade.put(Integer.toString(ma.getId()), thisAnns);
@@ -502,8 +502,15 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     res.put("taskId", taskId);
     String baseUrl = null;
     try {
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
         baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-    } catch (java.net.URISyntaxException ex) {}
+        if (containerName!=null&&containerName!="") { 
+            baseUrl = baseUrl.replace("localhost", containerName);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
 
     if (j.optBoolean("enqueue", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
         //TODO if queue is not active/okay, fallback to synchronous???
@@ -518,6 +525,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         } else {
             j.put("taskId", taskId);
         }
+
         boolean ok = addToQueue(context, j.toString());
         if (ok) {
             System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
@@ -612,6 +620,7 @@ System.out.println(id);
                 IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new JSONObject("{\"_action\": \"initDetect\"}"), context);
             } catch (Exception ex) {
                 success = false;
+                ex.printStackTrace();
                 throw new IOException(ex.toString());
             }
             if (!success) {
@@ -687,6 +696,12 @@ System.out.println("anns -> " + anns);
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         for (Annotation ann : anns) {
+/*
+System.out.println(ann + " ############################ " + ann.getFeatures());
+for (Feature ft : ann.getFeatures()) {
+System.out.println("     >>> " + ft + " >> " + ft.getParameters());
+}
+*/
             JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getSpecies(), opt);
             JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize,
                                                          ((anns.size() == 1) ? taskId : null));  //we use passed taskId if only 1 ann but generate otherwise
@@ -1189,7 +1204,7 @@ System.out.println(" > taskId = " + jobj.getString("taskId"));
             String baseUrl = jobj.optString("__baseUrl", null);
 System.out.println("--- BEFORE _doIdentify() ---");
             try {
-                JSONObject rtn = IAGateway._doIdentify(jobj, res, myShepherd, context, baseUrl);
+                JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl);
                 System.out.println("INFO: IAGateway.processQueueMessage() 'identify' from successful --> " + rtn.toString());
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {

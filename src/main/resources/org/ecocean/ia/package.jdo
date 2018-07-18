@@ -9,6 +9,16 @@
 		<field name="id" primary-key="true">
         		<column length="36"/>
 		</field>
+
+		<!-- this points up to the parent -->
+      		<field name="parent" persistence-modifier="persistent" element-type="org.ecocean.ia.Task" recursion-depth="3"/>
+
+		<!-- this uses parent to find child tasks -->
+            	<field name="children" persistence-modifier="persistent" default-fetch-group="false" mapped-by="parent" >
+                	<collection element-type="org.ecocean.ia.Task" dependent-element="true" />
+                	<join />
+            	</field>
+
 <!--
 		<field name="id" field-type="java.util.UUID" primary-key="true" value-strategy="uuid">
                         <column sql-type="uuid" />

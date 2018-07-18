@@ -24,6 +24,8 @@ public class Task implements java.io.Serializable {
     //private List<Object> objects = null;  //in some perfect world i could figure out how to persist this.  :/  oh, for a wb base class.
     private List<MediaAsset> objectMediaAssets = null;
     private List<Annotation> objectAnnotations = null;
+    private Task parent = null;
+    private List<Task> children = null;
 
     public Task() {
         id = Util.generateUUID();
@@ -73,10 +75,54 @@ public class Task implements java.io.Serializable {
         return objectAnnotations;
     }
 
+    public List<Task> getChildren() {
+        return children;
+    }
+    public void setChildren(List<Task> kids) {
+        children = kids;
+    }
+    public List<Task> addChild(Task kid) {
+        if (children == null) children = new ArrayList<Task>();
+        if (!children.contains(kid)) children.add(kid);
+        return children;
+    }
+
+    public void setParent(Task t) {
+        parent = t;
+    }
+    public Task getParent() {
+        return parent;
+    }
+    public int numChildren() {
+        return (children == null) ? 0 : children.size();
+    }
+    public boolean hasChildren() {
+        return (this.numChildren() > 0);
+    }
+
+    //omg i am going to assume no looping
+    public List<Task> getLeafTasks() {
+        List<Task> leaves = new ArrayList<Task>();
+        if (!this.hasChildren()) {
+            leaves.add(this);
+            return leaves;
+        }
+        for (Task kid : children) {
+            leaves.addAll(kid.getLeafTasks());
+        }
+        return leaves;
+    }
+
+    public Task getRootTask() {
+        if (parent == null) return this;
+        return parent.getRootTask();
+    }
+
     public String toString() {
         return new ToStringBuilder(this)
                 .append(id)
                 .append("(" + new DateTime(created) + "|" + new DateTime(modified) + ")")
+                .append(numChildren() + "Kids")
                 .append(countMediaAssetObjects() + "MA")
                 .append(countAnnotationObjects() + "Ann")
                 .toString();
