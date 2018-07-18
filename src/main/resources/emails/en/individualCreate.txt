@@ -1,10 +1,10 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
-Hello!
+Hello,
 
 Just a quick e-mail to let you know that the encounter that you submitted
 has been added as a new, previously unidentified giant sea bass!
 
-You discovered a new giant sea bass for science!
+You discovered a new giant sea bass for science.
 
 Newly marked individual: @INDIVIDUAL_ID@
 @INDIVIDUAL_LINK@
@@ -12,10 +12,12 @@ Newly marked individual: @INDIVIDUAL_ID@
 Encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help!
+Thanks again for your critical help.
+
+Spotting Giant Seabass Research Team
 
 ~ ~ ~
-¡Hola!
+Hola,
 
 Nadamás un breve mensaje para avisarte que el encuentro que has enviado ha sido agregado a la base de datos como un individuo nuevo que no había sido identificado.
 
@@ -27,5 +29,5 @@ Individuo nuevo: @INDIVIDUAL_ID@
 Encuentro: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
   
-¡Gracias de nuevo por tu ayuda!
+Gracias de nuevo por tu ayuda
         
