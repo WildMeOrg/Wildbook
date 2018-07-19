@@ -28,7 +28,10 @@ public class Task implements java.io.Serializable {
     private List<Task> children = null;
 
     public Task() {
-        id = Util.generateUUID();
+        this(Util.generateUUID());
+    }
+    public Task(String id) {
+        this.id = id;
         created = System.currentTimeMillis();
         modified = System.currentTimeMillis();
     }
@@ -83,6 +86,7 @@ public class Task implements java.io.Serializable {
     }
     public List<Task> addChild(Task kid) {
         if (children == null) children = new ArrayList<Task>();
+        if (kid == null) return children;
         if (!children.contains(kid)) children.add(kid);
         return children;
     }
