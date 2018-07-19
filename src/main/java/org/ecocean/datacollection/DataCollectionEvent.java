@@ -49,7 +49,7 @@ public abstract class DataCollectionEvent implements java.io.Serializable {
  */
 private String correspondingEncounterNumber;
 private String type;
-protected String DataCollectionEventID;
+protected String dataCollectionEventID;
 
 private DateTime datetime;
 
@@ -160,9 +160,6 @@ public void setDataCollectionEventID(String id){this.dataCollectionEventID=id;}
 
 public DateTime getDateTime(){return datetime;}
 public void setDateTime(DateTime datetime){this.datetime = datetime;}
-
-public String getDataCollectionEventID(){return DataCollectionEventID;}
-public void setDataCollectionEventID(String id){this.DataCollectionEventID=id;}
 
 public String getSamplingProtocol(){return samplingProtocol;}
 public void setSamplingProtocol(String protocol){this.samplingProtocol=protocol;}

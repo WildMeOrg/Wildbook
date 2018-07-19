@@ -2321,6 +2321,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public List<SinglePhotoVideo> getSinglePhotoVideo(){return images;}
     public void removeSinglePhotoVideo(SinglePhotoVideo num){images.remove(num);}
 
+    public Measurement getMeasurement(String type) {
+      MeasurementEvent m=this.getMeasurementEvent(type);
+      Measurement oldMeas = new Measurement(this.catalogNumber,m.getType(),m.getValue(),m.getUnits(),"");
+      return oldMeas;
+    }
+
+    public void setMeasurement(Measurement measurement, Shepherd myShepherd) {
+      MeasurementEvent newMeas = new MeasurementEvent(this.catalogNumber, measurement.getType(), measurement.getValue(), measurement.getUnits(),""); 
+      setMeasurementEvent(newMeas,myShepherd);
+    }
 
     public void setMeasurementEvent(MeasurementEvent measurement, Shepherd myShepherd){
 

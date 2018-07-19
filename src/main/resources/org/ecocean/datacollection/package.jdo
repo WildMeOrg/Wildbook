@@ -12,8 +12,8 @@
       <column name="CORRESPONDINGENCOUNTERNUMBER"/>
     </field>
 
-    <field name="DataCollectionEventID" primary-key="true" value-strategy="native">
-      <column name="DataCollectionEventID"/>
+    <field name="dataCollectionEventID" primary-key="true" value-strategy="native">
+      <column name="dataCollectionEventID"/>
     </field>
     <field name="samplingProtocol">
       <column name="SAMPLINGPROTOCOL"/>

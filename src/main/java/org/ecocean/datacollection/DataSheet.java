@@ -46,7 +46,7 @@ public class DataSheet extends DataCollectionEvent {
     //this.setID(this.getDataCollectionEventID());
     ///this.setID(Util.generateUUID());
     this.data = new ArrayList<DataPoint>();
-    System.out.println("DataSheet.java: done initializing DataSheet "+this.getID()+" with super.DataCollectionEventID = "+this.getDataCollectionEventID());
+    System.out.println("DataSheet.java: done initializing DataSheet "+this.getID()+" with super.dataCollectionEventID = "+this.getDataCollectionEventID());
 
   }
 
@@ -163,7 +163,7 @@ public class DataSheet extends DataCollectionEvent {
   }
 
   private void setID(String id) {
-    this.DataCollectionEventID = id;
+    this.dataCollectionEventID = id;
   }
   public String getID() {
     return this.getDataCollectionEventID();
