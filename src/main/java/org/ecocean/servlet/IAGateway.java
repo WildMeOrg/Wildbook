@@ -32,6 +32,7 @@ import org.ecocean.Resolver;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
 import org.ecocean.queue.*;
+import org.ecocean.ia.IA;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -384,7 +385,7 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
     }
 
     if ("detectionReviewPost".equals(qstr)) {
-        String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
+        String url = IA.getProperty("context0", "IBEISIARestUrlDetectReview");
         if (url == null) throw new IOException("IBEISIARestUrlDetectReview url not set");
 System.out.println("attempting passthru to " + url);
         URL u = new URL(url);
@@ -451,7 +452,7 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
 
     if ((qstr != null) && (qstr.indexOf("identificationReviewPost") > -1)) {
         String taskId = qstr.substring(25);
-        String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0"); //note: cant set context above, cuz getContext() messes up postStream()!
+        String url = IA.getProperty("context0", "IBEISIARestUrlIdentifyReview"); //note: cant set context above, cuz getContext() messes up postStream()!
         if (url == null) throw new IOException("IBEISIARestUrlIdentifyReview url not set");
 System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         URL u = new URL(url);
@@ -502,7 +503,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     res.put("taskId", taskId);
     String baseUrl = null;
     try {
-        String containerName = CommonConfiguration.getProperty("containerName","context0");
+        String containerName = IA.getProperty("context0", "containerName");
         baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
         if (containerName!=null&&containerName!="") { 
             baseUrl = baseUrl.replace("localhost", containerName);
@@ -813,7 +814,7 @@ System.out.println("+ starting ident task " + annTaskId);
                 }
             }
 
-            String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
+            String url = IA.getProperty("context0", "IBEISIARestUrlDetectReview");
             if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
             url += "?image_uuid=" + ilist.getJSONObject(offset).toString() + "&";
             url += "result_list=" + rlist.getJSONArray(offset).toString() + "&";
@@ -867,7 +868,7 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
             return "<div error-code=\"552\" class=\"response-error\" title=\"error 2\">unable to obtain identification interface</div>";
         }
 
-        String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", context);
+        String url = IA.getProperty(context, "IBEISIARestUrlIdentifyReview");
         if (url == null) throw new IOException("IBEISIARestUrlIdentifyReview url not set");
         url += "?query_config_dict=" + res.getJSONObject("results").optJSONObject("query_config_dict").toString() + "&";
         url += "review_pair=" + rpair.toString() + "&";
@@ -1174,7 +1175,7 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
         //this must have a taskId coming in, cuz otherwise how would (detached, async) caller know what it is!
         // __context and __baseUrl should be set -- this is done automatically in IAGateway, but if getting here by some other method, do the work!
         if (jobj.optBoolean("v2", false)) {  //lets "new world" ia package do its thing
-            org.ecocean.ia.IA.handleRest(jobj);
+            IA.handleRest(jobj);
             return;
         }
 
