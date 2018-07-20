@@ -32,7 +32,6 @@ context=ServletUtilities.getContext(request);
 
 
 
-  int numResults = 0;
 
 
   //Vector rEncounters = new Vector();
