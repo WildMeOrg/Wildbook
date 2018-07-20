@@ -10,19 +10,21 @@ context=ServletUtilities.getContext(request);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
   GregorianCalendar cal = new GregorianCalendar();
-  int nowYear = cal.get(1);
+  int nowYear = cal.get(1)+1;
   int firstSubmissionYear=1980;
 
   int firstYear = 1980;
   myShepherd.beginDBTransaction();
   try {
     firstYear = myShepherd.getEarliestSightingYear();
-    nowYear = myShepherd.getLastSightingYear();
+    nowYear = myShepherd.getLastSightingYear()+1; // lol this was returning a result 2 off so i fixed it
     firstSubmissionYear=myShepherd.getFirstSubmissionYear();
   } 
   catch (Exception e) {
     e.printStackTrace();
   }
+
+  System.out.println("nowYear = "+nowYear);
 
 //let's load out properties
   Properties props = new Properties();
@@ -794,7 +796,7 @@ function FSControl(controlDiv, map) {
           </em> <select name="addedyear1" id="addedyear1">
             <% 
             
-            int currentYear=cal.get(1);
+            int currentYear=cal.get(1)+2;
             for (int q = firstSubmissionYear; q <= currentYear; q++) { %>
             <option value="<%=q%>"
 
