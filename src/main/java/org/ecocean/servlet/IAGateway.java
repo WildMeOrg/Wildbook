@@ -1173,6 +1173,11 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
 
         //this must have a taskId coming in, cuz otherwise how would (detached, async) caller know what it is!
         // __context and __baseUrl should be set -- this is done automatically in IAGateway, but if getting here by some other method, do the work!
+        if (jobj.optBoolean("v2", false)) {  //lets "new world" ia package do its thing
+            org.ecocean.ia.IA.handleRest(jobj);
+            return;
+        }
+
         if ((jobj.optJSONObject("detect") != null) && (jobj.optString("taskId", null) != null)) {
             JSONObject res = new JSONObject("{\"success\": false}");
             res.put("taskId", jobj.getString("taskId"));

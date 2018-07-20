@@ -106,7 +106,8 @@
         String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
         String getterName = "get" + methodName.substring(3);
         System.out.println("Nest.jsp: about to call ClassEditTemplate.updateObjectField("+nestie+", "+methodName+", "+value+");");
-        ClassEditTemplate.updateObjectField(nestie, methodName, value);
+        //ClassEditTemplate.updateObjectField(nestie, methodName, value);
+        ClassEditTemplate.invokeObjectMethod(nestie, methodName, value);
       }
       else if (pname.indexOf("dp-new:") >= 0) {
         String afterColon = pname.split(":")[1];

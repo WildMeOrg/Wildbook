@@ -134,7 +134,8 @@
         String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
         String getterName = "get" + methodName.substring(3);
         System.out.println("DataSheet.jsp: about to call ClassEditTemplate.updateObjectField("+dsheet+", "+methodName+", "+value+");");
-        ClassEditTemplate.updateObjectField(dsheet, methodName, value);
+        //ClassEditTemplate.updateObjectField(dsheet, methodName, value);
+        ClassEditTemplate.invokeObjectMethod(dsheet, methodName, value);
       }
 
       else if (pname.indexOf("dat-dp-") == 0) {
