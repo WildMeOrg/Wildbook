@@ -68,8 +68,6 @@ context=ServletUtilities.getContext(request);
   Properties occProps = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
 
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
-  
-  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 %>
 
@@ -82,9 +80,15 @@ context=ServletUtilities.getContext(request);
   <script type="text/javascript">
     //animatedcollapse.addDiv('location', 'fade=1')
     animatedcollapse.addDiv('map', 'fade=1')
-    animatedcollapse.addDiv('observations', 'fade=1')
+    animatedcollapse.addDiv('date', 'fade=1')
+    animatedcollapse.addDiv('observation', 'fade=1')
+    animatedcollapse.addDiv('tags', 'fade=1')
+    animatedcollapse.addDiv('identity', 'fade=1')
     animatedcollapse.addDiv('metadata', 'fade=1')
-  	animatedcollapse.addDiv('patternrecognition', 'fade=1')
+    animatedcollapse.addDiv('export', 'fade=1')
+    animatedcollapse.addDiv('genetics', 'fade=1')
+  animatedcollapse.addDiv('social', 'fade=1')
+  animatedcollapse.addDiv('patternrecognition', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -95,12 +99,19 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
+<%
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+%>
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="javascript/geoxml3.js"></script>
 <script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
 
   <!-- /STEP2 Place inside the head section -->
+
+
+
+
 <style type="text/css">v\:* {
   behavior: url(#default#VML);
 }</style>
@@ -144,29 +155,29 @@ String formAction="occurrenceSearchResults.jsp";
 
 
 <h1 class="intro"><strong><span class="para">
-		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+    <img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
   <%=titleString%>
 </h1>
 </p>
 
 <%
 if((request.getParameter("individualDistanceSearch")!=null)||(request.getParameter("encounterNumber")!=null)){
-	MarkedIndividual compareAgainst=new MarkedIndividual();
-	if((request.getParameter("individualDistanceSearch")!=null)&&(myShepherd.isMarkedIndividual(request.getParameter("individualDistanceSearch")))){
-		compareAgainst=myShepherd.getMarkedIndividual(request.getParameter("individualDistanceSearch"));
-	}
-	else if((request.getParameter("encounterNumber")!=null)&&(myShepherd.isEncounter(request.getParameter("encounterNumber")))){
-		Encounter enc=myShepherd.getEncounter(request.getParameter("encounterNumber"));
-		if((enc.getIndividualID()!=null)&&(myShepherd.isMarkedIndividual(enc.getIndividualID()))){
-			compareAgainst=myShepherd.getMarkedIndividual(enc.getIndividualID());
-		}
-	}
+  MarkedIndividual compareAgainst=new MarkedIndividual();
+  if((request.getParameter("individualDistanceSearch")!=null)&&(myShepherd.isMarkedIndividual(request.getParameter("individualDistanceSearch")))){
+    compareAgainst=myShepherd.getMarkedIndividual(request.getParameter("individualDistanceSearch"));
+  }
+  else if((request.getParameter("encounterNumber")!=null)&&(myShepherd.isEncounter(request.getParameter("encounterNumber")))){
+    Encounter enc=myShepherd.getEncounter(request.getParameter("encounterNumber"));
+    if((enc.getIndividualID()!=null)&&(myShepherd.isMarkedIndividual(enc.getIndividualID()))){
+      compareAgainst=myShepherd.getMarkedIndividual(enc.getIndividualID());
+    }
+  }
 
     List<String> loci=myShepherd.getAllLoci();
     int numLoci=loci.size();
     String[] theLoci=new String[numLoci];
     for(int q=0;q<numLoci;q++){
-    	theLoci[q]=loci.get(q);
+      theLoci[q]=loci.get(q);
     }
 
     String compareAgainstAllelesString=compareAgainst.getFomattedMSMarkersString(theLoci);
@@ -178,33 +189,33 @@ if((request.getParameter("individualDistanceSearch")!=null)||(request.getParamet
 <%
 String compareAgainstHaplotype="";
 if(compareAgainst.getHaplotype()!=null){
-	compareAgainstHaplotype=compareAgainst.getHaplotype();
+  compareAgainstHaplotype=compareAgainst.getHaplotype();
 }
 String compareAgainstGeneticSex="";
 if(compareAgainst.getGeneticSex()!=null){
-	compareAgainstGeneticSex=compareAgainst.getGeneticSex();
+  compareAgainstGeneticSex=compareAgainst.getGeneticSex();
 }
 %>
 <br/>Haplotype: <%=compareAgainstHaplotype %>
 <br/>Genetic sex: <%=compareAgainstGeneticSex %>
-		<table>
-			<tr><td colspan="<%=(numLoci*2)%>">Microsatellite markers</td></tr>
-				<tr>
-					<%
-					for(int y=0;y<numLoci;y++){
-					%>
-						<td><span style="font-style: italic"><%=theLoci[y] %></span></td><td><span style="font-style: italic"><%=theLoci[y] %></span></td>
-					<%
-					}
-					%>
-				</tr>
+    <table>
+      <tr><td colspan="<%=(numLoci*2)%>">Microsatellite markers</td></tr>
+        <tr>
+          <%
+          for(int y=0;y<numLoci;y++){
+          %>
+            <td><span style="font-style: italic"><%=theLoci[y] %></span></td><td><span style="font-style: italic"><%=theLoci[y] %></span></td>
+          <%
+          }
+          %>
+        </tr>
 
 
-				<tr>
-					<td><span style="color: #909090"><%=compareAgainstAllelesString.replaceAll(" ", "</span></td><td><span style=\"color: #909090\">") %></span></td>
-				</tr>
+        <tr>
+          <td><span style="color: #909090"><%=compareAgainstAllelesString.replaceAll(" ", "</span></td><td><span style=\"color: #909090\">") %></span></td>
+        </tr>
 
-			</table>
+      </table>
 
 </p>
 <%
@@ -217,11 +228,11 @@ if(compareAgainst.getGeneticSex()!=null){
 
 <form action="<%=formAction %>" method="get" name="search" id="search">
     <%
-	if(request.getParameter("individualDistanceSearch")!=null){
-	%>
-		<input type="hidden" name="individualDistanceSearch" value="<%=request.getParameter("individualDistanceSearch") %>" />
-	<%
-	}
+  if(request.getParameter("individualDistanceSearch")!=null){
+  %>
+    <input type="hidden" name="individualDistanceSearch" value="<%=request.getParameter("individualDistanceSearch") %>" />
+  <%
+  }
     %>
 <table width="810px">
 
@@ -256,22 +267,22 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 
 
   function initialize() {
-	//alert("initializing map!");
-	//overlaysSet=false;
-	var mapZoom = 1.5;
-	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+  //alert("initializing map!");
+  //overlaysSet=false;
+  var mapZoom = 1.5;
+  if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
-	  map = new google.maps.Map(document.getElementById('map_canvas'), {
-		  zoom: mapZoom,
-		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID
-		});
+    map = new google.maps.Map(document.getElementById('map_canvas'), {
+      zoom: mapZoom,
+      center: center,
+      mapTypeId: google.maps.MapTypeId.HYBRID
+    });
 
-	  //adding the fullscreen control to exit fullscreen
-	  var fsControlDiv = document.createElement('DIV');
-	  var fsControl = new FSControl(fsControlDiv, map);
-	  fsControlDiv.index = 1;
-	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+    //adding the fullscreen control to exit fullscreen
+    var fsControlDiv = document.createElement('DIV');
+    var fsControl = new FSControl(fsControlDiv, map);
+    fsControlDiv.index = 1;
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
 
 
@@ -310,10 +321,10 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 
 
   function setOverlays() {
-	  //alert("In setOverlays!");
-	  if(!overlaysSet){
-		//read in the KML
-		 geoXml = new geoXML3.parser({
+    //alert("In setOverlays!");
+    if(!overlaysSet){
+    //read in the KML
+     geoXml = new geoXML3.parser({
                     map: map,
                     markerOptions: {flat:true,clickable:false},
 
@@ -323,51 +334,51 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 
         geoXml.parse(filename);
 
-    	var iw = new google.maps.InfoWindow({
-    		content:'<%=props.getProperty("loadingMapData") %>',
-    		position:center});
+      var iw = new google.maps.InfoWindow({
+        content:'<%=props.getProperty("loadingMapData") %>',
+        position:center});
 
-    	iw.open(map);
+      iw.open(map);
 
-    	google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
+      google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
 
 
 
-		  overlaysSet=true;
+      overlaysSet=true;
       }
 
    }
 
 function useData(doc){
-	geoXmlDoc = doc;
-	kml = geoXmlDoc[0];
+  geoXmlDoc = doc;
+  kml = geoXmlDoc[0];
     if (kml.markers) {
-	 for (var i = 0; i < kml.markers.length; i++) {
-	     //if(i==0){alert(kml.markers[i].getVisible());
-	 }
+   for (var i = 0; i < kml.markers.length; i++) {
+       //if(i==0){alert(kml.markers[i].getVisible());
+   }
    }
 }
 
 function fullScreen(){
-	$("#map_canvas").addClass('full_screen_map');
-	$('html, body').animate({scrollTop:0}, 'slow');
-	initialize();
+  $("#map_canvas").addClass('full_screen_map');
+  $('html, body').animate({scrollTop:0}, 'slow');
+  initialize();
 
-	//hide header
-	$("#header_menu").hide();
+  //hide header
+  $("#header_menu").hide();
 
-	if(overlaysSet){overlaysSet=false;setOverlays();}
-	//alert("Trying to execute fullscreen!");
+  if(overlaysSet){overlaysSet=false;setOverlays();}
+  //alert("Trying to execute fullscreen!");
 }
 
 
 function exitFullScreen() {
-	$("#header_menu").show();
-	$("#map_canvas").removeClass('full_screen_map');
+  $("#header_menu").show();
+  $("#map_canvas").removeClass('full_screen_map');
 
-	initialize();
-	if(overlaysSet){overlaysSet=false;setOverlays();}
-	//alert("Trying to execute exitFullScreen!");
+  initialize();
+  if(overlaysSet){overlaysSet=false;setOverlays();}
+  //alert("Trying to execute exitFullScreen!");
 }
 
 
@@ -431,9 +442,9 @@ function FSControl(controlDiv, map) {
       <p><%=props.getProperty("useTheArrow") %></p>
 
       <div id="map_canvas" style="width: 770px; height: 510px; ">
-      		<div style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; z-index: 0; position: absolute; right: 95px; top: 0px; " >
+          <div style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; z-index: 0; position: absolute; right: 95px; top: 0px; " >
 
-      		</div>
+          </div>
       </div>
 
       <div id="map_overlay_buttons">
@@ -455,6 +466,7 @@ function FSControl(controlDiv, map) {
 
 </tr>
 
+
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
@@ -471,18 +483,18 @@ function FSControl(controlDiv, map) {
 <!--  date of birth and death -->
       <p><strong><%=occProps.getProperty("dateStart")+" "+occProps.getProperty("range")%>:</strong></p>
       <table>
-      	<tr>
-      		<td><%=occProps.getProperty("start") %> <input type="text" id="eventStartDate-From" name="eventStartDate-From" class="addDatePicker"/></td>
-      		<td><%=occProps.getProperty("end") %> <input type="text" id="eventStartDate-To" name="eventStartDate-To" class="addDatePicker"/></td>
-      	</tr>
+        <tr>
+          <td><%=occProps.getProperty("start") %> <input type="text" id="eventStartDate-From" name="eventStartDate-From" class="addDatePicker"/></td>
+          <td><%=occProps.getProperty("end") %> <input type="text" id="eventStartDate-To" name="eventStartDate-To" class="addDatePicker"/></td>
+        </tr>
       </table>
 
       <p><strong><%=occProps.getProperty("dateEnd")+" "+occProps.getProperty("range")%>:</strong></p>
       <table>
-      	<tr>
-      		<td><%=occProps.getProperty("start") %> <input type="text" id="eventEndDate-From" name="eventEndDate-From" class="addDatePicker"/></td>
-      		<td><%=occProps.getProperty("end") %> <input type="text" id="eventEndDate-To" name="eventEndDate-To" class="addDatePicker"/></td>
-      	</tr>
+        <tr>
+          <td><%=occProps.getProperty("start") %> <input type="text" id="eventEndDate-From" name="eventEndDate-From" class="addDatePicker"/></td>
+          <td><%=occProps.getProperty("end") %> <input type="text" id="eventEndDate-To" name="eventEndDate-To" class="addDatePicker"/></td>
+        </tr>
       </table>
 
       <script>
@@ -507,9 +519,10 @@ function FSControl(controlDiv, map) {
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 %>
+
+
+
   <tr id="FieldsTitleRow">
-  </tr>
-  <tr>
     <td>
       <h4 class="intro search-collapse-header"><a
         href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
@@ -532,15 +545,32 @@ function FSControl(controlDiv, map) {
 
               <%
               // should make listVals logic contingent on if user is logged in
+              List<String> categoricalFields = new ArrayList<String>();
+              categoricalFields.add("groupBehavior");
+              categoricalFields.add("groupComposition");
+              categoricalFields.add("initialCue");
+              categoricalFields.add("humanActivityNearby");
+
+              for (String fieldName: categoricalFields) {
+                ClassEditTemplate.printStringFieldSearchRowFullCategories(fieldName, out, occProps, myShepherd, Occurrence.class);
+              }
+
+
               List<String> listVals = new ArrayList<String>();
-              listVals.add("groupBehavior");
+              //listVals.add("groupBehavior");
               listVals.add("fieldStudySite");
               listVals.add("fieldSurveyCode");
               listVals.add("sightingPlatform");
+              listVals.add("seaState");
+
               for (String fieldName : listVals) {
                 List<String> posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
                 printStringFieldSearchRow(fieldName,posVals,out, occProps);
               }
+
+              List<String> allTaxonomyNames = myShepherd.getAllTaxonomyNames();
+              printStringFieldSearchRow("taxonomy0",allTaxonomyNames,out, occProps);
+
 
               for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
                 if (listVals.contains(fieldName)) continue; // already printed
@@ -551,45 +581,13 @@ function FSControl(controlDiv, map) {
               </table>
            </div>
            </td>
-		<td>
-      <div id="observations" style="display:none; ">
-        <!-- Allow a key and value for each observation, allow user to add additional fields. -->
-        <p>
-          <label><%=props.getProperty("obSearchHeader")%></label>
-          <label><small><%=props.getProperty("obSearchDesc")%></small></label>
-          <label><%=props.getProperty("propertyName")%></label><label><%=props.getProperty("propertyValue")%></label>
-        </p>
-        <p>
-          <input name="observationKey1" type="text" id="observationKey1" value="" placeholder="Observation Name">
-          <input name="observationValue1" type="text" id="observationValue1" value="" placeholder="Observation Value">
-        </p>
-        <input name="numSearchedObs" type="hidden" id="numSearchedObs" value="1">
-        <div id="additionalObsFields">
-        
-        </div>
-        <input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=props.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
-  		  <br/>
-      </div>
-		</td>
-	</tr>	
-	<script>
-		$(document).ready(function(){
-			var num = 2;
-			$('#addAnotherObBtn').click(function(){
-				var obField = '<p><input name="observationKey'+num+'" type="text" id="observationKey'+num+'" value="" placeholder="Observation Name"><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value="" placeholder="Observation Value"></p>';	
-				$('#additionalObsFields').append(obField);	
-				$('#numSearchedObs').val(num); 
-				num++;		
-			});
-		});
-	</script>
+           </tr>
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
->>>>>>> master
+
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down"></span>
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
   </td>
 </tr>
@@ -597,26 +595,16 @@ function FSControl(controlDiv, map) {
 <tr>
 <td>
   <div id="metadata" style="display:none; ">
-    <p><%=props.getProperty("metadataInstructions") %></p>
+  <p><%=props.getProperty("metadataInstructions") %></p>
 
-    <strong><%=props.getProperty("username")%></strong><br />
-        <%
-          Shepherd inShepherd=new Shepherd("context0");
-        //inShepherd.setAction("individualSearch.jsp2");
-          List<User> users = inShepherd.getAllUsers();
-          int numUsers = users.size();
-        %>
+  <strong><%=props.getProperty("username")%></strong><br />
+      <%
+        Shepherd inShepherd=new Shepherd("context0");
+      //inShepherd.setAction("individualSearch.jsp2");
+        List<User> users = inShepherd.getAllUsers();
+        int numUsers = users.size();
 
-        <select multiple size="5" name="username" id="username">
-          <option value="None"></option>
-          <%
-            for (int n = 0; n < numUsers; n++) {
-              String username = users.get(n).getUsername();
-              String userFullName=username;
-              if(users.get(n).getFullName()!=null){
-                userFullName=users.get(n).getFullName();
-              }
-              %>
+      %>
 
       <select multiple size="5" name="submitterID" id="submitterID">
         <option value="None"></option>
@@ -625,19 +613,21 @@ function FSControl(controlDiv, map) {
             String username = users.get(n).getUsername();
             String userFullName=username;
             if(users.get(n).getFullName()!=null){
-            	userFullName=users.get(n).getFullName();
-            %>
-            <option value="<%=username%>"><%=userFullName%></option>
-            <%
+              userFullName=users.get(n).getFullName();
             }
-          %>
-        </select>
-    <%
-    inShepherd.rollbackDBTransaction();
-    inShepherd.closeDBTransaction();
 
-    %>
-  </div>
+          %>
+          <option value="<%=username%>"><%=userFullName%></option>
+          <%
+          }
+        %>
+      </select>
+<%
+inShepherd.rollbackDBTransaction();
+inShepherd.closeDBTransaction();
+
+%>
+</div>
 </td>
 </tr>
 
