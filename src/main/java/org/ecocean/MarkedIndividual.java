@@ -2037,13 +2037,28 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   }
 
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames) throws JSONException {
+    return getBestKeywordPhotos(req, kwNames, false);
+  }
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
     myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
 
+    List<MediaAsset> assets = new ArrayList<MediaAsset>();
     for (String kwName: kwNames) {
       MediaAsset ma = myShepherd.getBestKeywordPhoto(this, kwName);
-      if (ma==null) continue;
+      if (ma!=null) assets.add(ma);
+    }
+
+    if (tryNoKeywords) {
+      int numMissingPhotos = 3-assets.size();
+      List<MediaAsset> leftovers = myShepherd.getPhotosForIndividual(this, numMissingPhotos);
+      for (MediaAsset assy: leftovers) {
+        if (!assets.contains(assy)) assets.add(assy);
+      }
+    }
+
+    for (MediaAsset ma: assets) {
       JSONObject j = ma.sanitizeJson(req, new JSONObject());
       ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
       URL midURL = null;
@@ -2053,12 +2068,11 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         al.add(j);
       }
     }
+
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
-
     return al;
   }
-
 
   
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
