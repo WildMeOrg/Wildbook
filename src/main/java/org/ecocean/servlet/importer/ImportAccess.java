@@ -26,7 +26,7 @@ import java.util.*;
 import org.json.JSONObject;
 
 import com.healthmarketscience.jackcess.Column;
-import com.healthmarketscience.jackcess.Database;
+import com.healthmarketscience.jackcess.Database; 
 import com.healthmarketscience.jackcess.DatabaseBuilder;
 import com.healthmarketscience.jackcess.Row;
 import com.healthmarketscience.jackcess.Table;
@@ -47,8 +47,12 @@ public class ImportAccess extends HttpServlet {
   // Hack. TODO: remove?
   private static boolean runOncePercompile = false;
 
-  private static boolean committing = false; // for developing w/o mucking up database
+  private static boolean committing = true; // for developing w/o mucking up database
   
+
+  private String testIndId = "OM00-003";
+  private Map<String,Integer> testIndEncounterCodes = new HashMap<String,Integer>();
+
   // Okay, we might need to build a hashmap out of every line in this table, so we can create multiple encounters 
   // for the date/sighting number pairs that occure multiple times. 
   HashMap<String,Integer> duplicatePairsMap = new HashMap<String,Integer>();
@@ -102,12 +106,25 @@ public class ImportAccess extends HttpServlet {
   private void commitEncounters(Shepherd myShepherd) {
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
+
     for (Encounter enc : generatedEncounters.values()) {
-      // for (Annotation ann: enc.getAnnotations) {
-      //   myShepherd.storeNewAnnotation(ann);
-      // }
       if (enc.getDateInMilliseconds()==null) enc.setDateFromAssets();
       if (enc.getDecimalLatitude()==null) enc.setLatLonFromAssets();
+
+      for (Annotation ann: enc.getAnnotations()) {
+        try {
+          MediaAsset ma = ann.getMediaAsset();
+          if (ma!=null) {
+            myShepherd.storeNewAnnotation(ann);
+            ma.setMetadata();
+            ma.updateStandardChildren(myShepherd);
+          }
+        }
+        catch (Exception e) {
+          System.out.println("EXCEPTION on annot/ma persisting on enc "+enc.getCatalogNumber());
+        }
+      }
+
       if (!myShepherd.isEncounter(enc.getCatalogNumber())) {
         myShepherd.storeNewEncounter(enc);
       }
@@ -133,7 +150,8 @@ public class ImportAccess extends HttpServlet {
 
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
-    return AssetStore.getDefault(myShepherd);
+    //return AssetStore.getDefault(myShepherd);
+    return AssetStore.get(myShepherd, 5);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook
@@ -154,6 +172,10 @@ public class ImportAccess extends HttpServlet {
     
   }
 
+  private static <T> void addToCount(Map<T,Integer> countMap, T elem) {
+    if (countMap.containsKey(elem)) countMap.put(elem, (countMap.get(elem)+1));
+    else countMap.put(elem, 1);
+  }
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -176,6 +198,9 @@ public class ImportAccess extends HttpServlet {
     context = ServletUtilities.getContext(request);
     out = response.getWriter();
 
+    committing =  (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
+
+
     boolean skipSightingsHistory = false;
     boolean skipIDPhotos = false;
 
@@ -192,7 +217,8 @@ public class ImportAccess extends HttpServlet {
 
     profilePicKeyword = myShepherd.getOrCreateKeyword("ProfilePhoto");
 
-    String dbName = "omanData2017.07.04.mdb";
+    //String dbName = "omanData2017.07.04.mdb";
+    String dbName = "OmanHumpbackPhotoID-2018-06-04-OLD-VersionNewData.mdb";    
     if (request.getParameter("file") != null) dbName = request.getParameter("file");
     
     String dbLocation = "/data/oman_import/";
@@ -214,9 +240,9 @@ public class ImportAccess extends HttpServlet {
     // Displaying full html with some jsp templating
     ServletUtilities.importJsp("header.jsp", request, response);
     // for alignment after header
-    out.println("<div class=\"container\"><div class=\"row\">");
+    out.println("<div class=\"container\"><div class=\"row\" style=\"margin-top:50px\">");
 
-    out.println("***** Beginning Access Database Import. *****\n");
+    out.println("***** Beginning Access Database Import. DB name = "+dbName+"*****\n");
     
     Set<String> tables = db.getTableNames();
     out.println("********************* Here's the tables : "+tables.toString()+"\n");
@@ -279,6 +305,19 @@ public class ImportAccess extends HttpServlet {
     out.println("<p> Number of unique, fresh Keywords created: "+numUniqueKeywords+"</p>");
 
     out.println("</div>");    
+
+
+
+    out.println("<div>");    
+    out.println("<h3>Looking at the Encounter codes for individual "+testIndId+"</h3><ul>");
+    int totalEncsOfTestInd = 0;
+    List<String> testIndEncCodesSorted = new ArrayList<String>(testIndEncounterCodes.keySet());
+    for (String entry: testIndEncounterCodes.keySet()) {
+      out.println("<li>"+entry+": "+testIndEncounterCodes.get(entry)+"</li>");
+      totalEncsOfTestInd += testIndEncounterCodes.get(entry);
+    }
+    out.println("</ul><p>"+totalEncsOfTestInd+" total rows covering "+testIndEncounterCodes.size()+" total encounters</p></div>");    
+
 
 
     if (committing) {
@@ -349,6 +388,7 @@ public class ImportAccess extends HttpServlet {
    System.out.println("    PROCIDPHOTOS: getting asset store");
     if (astore==null) astore = getAssetStore(myShepherd);
    System.out.println("    PROCIDPHOTOS: got asset store "+astore);
+   out.println("  <p> PROCIDPHOTOS: got asset store "+astore+"</p>");
 
     Row thisRow = null;
     int printPeriod = 1; // how often to print certain log statements
@@ -356,15 +396,23 @@ public class ImportAccess extends HttpServlet {
     boolean doOnceOnlyForTesting = true;
     int rowNum = 0;
    System.out.println("    PROCIDPHOTOS: entering row loop");
+   out.println("  <p> entering row loop</p>");
 
     for (;rowNum<table.getRowCount()&&rowLimitForTesting!=null&&rowNum<rowLimitForTesting;rowNum++) {
       boolean printing = true;//((rowNum%printPeriod)==0);
-      if (printing) System.out.println("    PROCIDPHOTOS: beginning row "+rowNum+".");
+      if (printing) {
+        System.out.println("    PROCIDPHOTOS: beginning row "+rowNum+".");
+      }
 
       // forgive me, god
       // if (i==1188) {
       //   System.out.println("Skipping sighting history row "+getStringSafe(thisRow,"RecID"));
       //   continue
+      //forgive me, god
+      // if (rowNum>562&&rowNum<600) {
+      //   System.out.println("Skipping IDPhoto row "+rowNum);
+      //   continue;
+      // }
 
       try {
         thisRow = table.getNextRow();
@@ -379,7 +427,7 @@ public class ImportAccess extends HttpServlet {
       }
 
 
-      processIDPhotosRow(thisRow, myShepherd, columnMasterList, astore, printing);
+      processIDPhotosRow(thisRow, myShepherd, columnMasterList, astore, printing, out);
       if (printing) System.out.println("---------PROCIDPHOTOS: Done with row "+rowNum+".");
     } 
     System.out.println("    PROCIDPHOTOS: Done with row Processing");
@@ -400,12 +448,12 @@ public class ImportAccess extends HttpServlet {
   }
 
 
-  private boolean processIDPhotosRow(Row thisRow, Shepherd myShepherd, ArrayList<String> columnMasterList, AssetStore astore, boolean print) {
+  private boolean processIDPhotosRow(Row thisRow, Shepherd myShepherd, ArrayList<String> columnMasterList, AssetStore astore, boolean print, PrintWriter out) {
     // have to manually enable comitting (ie no committing arg = no committing)
-    return processIDPhotosRow(thisRow,myShepherd,columnMasterList,astore,false,print);
+    return processIDPhotosRow(thisRow,myShepherd,columnMasterList,astore,false,print,out);
   }
   
-  private boolean processIDPhotosRow(Row thisRow, Shepherd myShepherd, ArrayList<String> columnMasterList, AssetStore astore, boolean commit, boolean print) {
+  private boolean processIDPhotosRow(Row thisRow, Shepherd myShepherd, ArrayList<String> columnMasterList, AssetStore astore, boolean commit, boolean print, PrintWriter out) {
 
     String occID = occurrenceCodeForIDPhotoRow(thisRow);
 
@@ -424,6 +472,10 @@ public class ImportAccess extends HttpServlet {
     if (committing) {
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
+    }
+
+    if (print && committing) {
+      out.println("<li> processIDPhotosRow got Encounter "+Encounter.getWebUrl(enc.getCatalogNumber(),"http://34.208.139.53")+"</li>");
     }
 
     return true;
@@ -462,7 +514,7 @@ public class ImportAccess extends HttpServlet {
 
     String encCode = getEncounterCodeForIDPhotoRow(thisRow);
     Encounter enc = null;
-
+    String indID = thisRow.get("Individual_id").toString();
     boolean newObj = false;
 
     System.out.println("    PROCIDPHOTOS got encCode " +encCode);
@@ -471,16 +523,45 @@ public class ImportAccess extends HttpServlet {
       enc = generatedEncounters.get(encCode);
       System.out.println("    PROCIDPHOTOS got our enc "+enc);
 
-      if (ann!=null) enc.addAnnotation(ann);
-      System.out.println("    PROCIDPHOTOS ... and loaded our boy's annotation");
-
     } else {
       System.out.println("    PROCIDPHOTOS making a new encounter");
-      if (ann!=null) enc = new Encounter(ann);
-      else enc = new Encounter(false);
-      generatedEncounters.put(encCode, enc);
-      newObj = true;
+      // commented out bc of mystifying bug on 565th row. Shouldn't matter if this runs *before* StandardImport
+      // enc = myShepherd.getEncounterByIndividualAndOccurrence(indID, occID);
+      // if (enc!=null) {
+      //   System.out.println("    PROCIDPHOTOS wait! we got the enc from shep!");
+      // } else {
+        enc = new Encounter(false);
+        System.out.println(" we're adding to generatedEncounters!");
+        generatedEncounters.put(encCode, enc);
+        newObj = true;
+      //}
     }
+    if (ann!=null) {
+      enc.addAnnotation(ann);
+      System.out.println("    PROCIDPHOTOS ... and loaded our boy's annotation");
+    } else {
+      System.out.println("    Nothing to add!");
+    }
+      // System.out.println("    PROCIDPHOTOS making a new encounter");
+      // enc = myShepherd.getEncounterByIndividualAndOccurrence(indID, occID);
+      // if (enc!=null) {
+      //   System.out.println("    PROCIDPHOTOS wait! we got the enc from shep!");
+      //   if (ann!=null) {
+      //     System.out.println("    Adding annotation!");
+      //     enc.addAnnotation(ann);
+      //     System.out.println("    We added annotation!");
+      //   } else {
+      //     System.out.println("    Nothing to add!");
+      //   }
+      // } else {
+      //   if (ann!=null) {
+      //     enc = new Encounter(ann);
+      //   } else {
+      //     enc = new Encounter(false);
+      //   }
+      // }
+
+    System.out.println(" we're continuing onward!");
 
     // Parse the various columns
     System.out.println("    PROCIDPHOTOS Now to load the columns of the table into our boy");
@@ -512,7 +593,6 @@ public class ImportAccess extends HttpServlet {
     System.out.println("    PROCIDPHOTOS set project "+project);
 
 
-    String indID = thisRow.get("Individual_id").toString();
     if (indID!=null) enc.setIndividualID(indID);
     System.out.println("    PROCIDPHOTOS set indID "+indID);
 
@@ -551,10 +631,14 @@ public class ImportAccess extends HttpServlet {
   // each row in idphotos is an annotation, but you can deduce which encounter it is by the individual_id and date fields
   private String getEncounterCodeForIDPhotoRow(Row thisRow) {
     try {
-      String indivDayCode = getDailyIndivNameForIDPhotoRow(thisRow);
+      //String indivDayCode = getDailyIndivNameForIDPhotoRow(thisRow);
+      String indID = thisRow.get("Individual_id").toString();
       Date rowDate = getDateForIDPhotoRow(thisRow);
-      if ((indivDayCode == null || "".equals(indivDayCode)) && rowDate == null) return null;
-      return indivDayCode + rowDate.toString();
+      if (!Util.stringExists(indID) && rowDate == null) return null;
+      String rowDateStr = rowDate.toString().substring(0,10)+rowDate.toString().substring(23);
+      String ans = indID + rowDateStr;
+      if (indID.equals(testIndId)) addToCount(testIndEncounterCodes, ans);
+      return ans;
     } catch (Exception e) {
       System.out.println("    PROCIDPHOTOS: getEncounterCodeForIDPhotoRow: no encounter code found for row "+loggingRefForIDPhotoRow(thisRow));
     }
@@ -718,10 +802,12 @@ public class ImportAccess extends HttpServlet {
 
       // MA processing
       ma.setUserDateTime(getDateTimeForIDPhotoRow(thisRow));
-      if (committing) {
-        ma.setMetadata();
-        ma.updateStandardChildren(myShepherd);
-      }
+
+      // now committing in the annotation logic on commitEncounters()
+      // if (committing) {
+      //   ma.setMetadata();
+      //   ma.updateStandardChildren(myShepherd);
+      // }
 
       if (isIDPhotoRowExemplar(thisRow)) ma.addKeyword(profilePicKeyword);
 
@@ -832,6 +918,10 @@ public class ImportAccess extends HttpServlet {
     String encCode = getEncounterCodeForIDPhotoRow(thisRow);
     Encounter enc = null;
 
+
+
+
+
     System.out.println("    SHROW-Proc got encCode " +encCode);
     // NOTE if we have to flush the generatedEncounters map for ram reasons, we'll need another way to grab the encounter (ie keep a map of encCode->encID and use myShepherd.getEncounter)
     if (generatedEncounters.containsKey(encCode)) {
@@ -842,6 +932,11 @@ public class ImportAccess extends HttpServlet {
 
     } else {
       System.out.println("    SHROW-Proc making a new encounter");
+
+    // TODO: try to load encounter by indID and occID, make a new one if it doesn't exist.
+      // nvm: there are no indIDs on the SHRows, so we couldn't resolve this
+
+
       enc = new Encounter((Annotation) null);
       generatedEncounters.put(encCode, enc);
     }
@@ -856,8 +951,6 @@ public class ImportAccess extends HttpServlet {
 
     enc.setCountry("Oman");
     enc.setSubmitterName("Oman Photo ID Catalog Bulk Import");
-
-
     String latStr = thisRow.get("Latitude").toString();
     try {enc.setDecimalLatitude(new Double(latStr));}
     catch (Exception e) {}
