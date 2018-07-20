@@ -586,7 +586,7 @@ public class Util {
     }
 
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals("") && !str.equals("None"));
+      return (str!=null && !str.equals("") && !str.equals("None") && !str.equals("unknown") && !str.equals(""));
     }
     
     public static boolean hasProperty(String key, Properties props) {
@@ -615,6 +615,42 @@ public class Util {
     public static boolean shouldReplace(String val1, String val2) {
       return (stringExists(val1) && !stringExists(val2));
     }
+    public static boolean doubleExists(Double val) {
+      return (val!=null && val!=0.0);
+    }
+    public static boolean shouldReplace(Double val1, Double val2) {
+      return (doubleExists(val1) && !doubleExists(val2));
+    }
+    public static boolean intExists(int val) {
+      // this feels so wrong... so wrong!!!
+      return (val!=0 && val!=-1);
+    }
+    public static boolean integerExists(Integer val) {
+      return (val!=null && intExists(val));
+    }
+
+    public static <T> List<T> combineListsInPlace(List<T> list, List<T> otherList) {
+      if (list==null) {
+        list = otherList;
+        return list;
+      }
+      for (T item: otherList) {
+        if (!list.contains(item)) list.add(item);
+      }
+      return list;
+    }
+    // kinda annoying, just for cases where we've (erroneously IMO) typed things as specifically ArrayLists
+    public static <T> ArrayList<T> combineArrayListsInPlace(ArrayList<T> list, ArrayList<T> otherList) {
+      if (list==null) {
+        list = otherList;
+        return list;
+      }
+      for (T item: otherList) {
+        if (!list.contains(item)) list.add(item);
+      }
+      return list;
+    }
+
 
     public static boolean isValidDecimalLatitude(Double lat) {
         if (lat == null) return false;

@@ -410,7 +410,7 @@
       </field>
 
       <field name="tissueSamples" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.genetics.TissueSample" dependent-element="true"/>
+        <collection element-type="org.ecocean.genetics.TissueSample" dependent-element="false"/>
         <join/>
       </field>
 
@@ -420,22 +420,22 @@
       </field>
 
       <field name="annotations" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Annotation" dependent-element="true"/>
+        <collection element-type="org.ecocean.Annotation" dependent-element="false"/>
         <join/>
       </field>
 
       <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Measurement" dependent-element="true"/>
+        <collection element-type="org.ecocean.Measurement" dependent-element="false"/>
         <join/>
       </field>
 
       <field name="metalTags" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.tag.MetalTag" dependent-element="true"/>
+        <collection element-type="org.ecocean.tag.MetalTag" dependent-element="false"/>
         <join/>
       </field>
 
       <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Observation" dependent-element="true" />
+        <collection element-type="org.ecocean.Observation" dependent-element="false" />
         <join/>
       </field>
 

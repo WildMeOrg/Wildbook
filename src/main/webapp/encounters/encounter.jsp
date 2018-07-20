@@ -5507,8 +5507,11 @@ dlgSample.dialog("open");
 	<p>
 		<%
 			//List<TissueSample> tissueSamples=enc.getTissueSamples();
+						// we need both of these methods bc tissue samples are by
+						List<TissueSample> encTissueSamples = enc.getTissueSamples();
 						List<TissueSample> tissueSamples = myShepherd
 								.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
+						for (TissueSample ts: encTissueSamples) {if (!tissueSamples.contains(ts)) tissueSamples.add(ts);}
 
 						if ((tissueSamples != null) && (tissueSamples.size() > 0)) {
 

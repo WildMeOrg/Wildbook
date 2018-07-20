@@ -3764,6 +3764,20 @@ public class Shepherd {
     return al;
   }
 
+  public List<Occurrence> getOccurrencesByIDSubstring(String altID) {
+    ArrayList al = new ArrayList();
+    try{
+      String filter = "this.occurrenceID.toLowerCase().indexOf('"+altID.toLowerCase()+"') != -1";
+      Extent encClass = pm.getExtent(Occurrence.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      al = new ArrayList(c);
+      acceptedEncounters.closeAll();
+    }
+    catch(Exception e){e.printStackTrace();}
+    return al;
+  }
+
   /**
    * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
    * @param myID The individual ID to return in any case.
@@ -3789,7 +3803,32 @@ public class Shepherd {
     acceptedEncounters.closeAll();
     return al;
   }
+  public      Encounter  getEncounterByIndividualAndOccurrence(String indID, String occID) {
+    List<Encounter> encs = getEncountersByIndividualAndOccurrence(indID, occID);
+    if (encs.size()>0) return encs.get(0);
+    return null;
+  }
+  public List<Encounter> getEncountersByIndividualAndOccurrence(String indID, String occID) {
+    String filter = "this.individualID == \""+indID+"\" && this.occurrenceID == \""+occID+"\"";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList al = new ArrayList(c);
+    acceptedEncounters.closeAll();
+    return al;
+  }
 
+  public Encounter resolveEncounterDuplicates(String indID, String occID) {
+    List<Encounter> encs = getEncountersByIndividualAndOccurrence(indID, occID);
+    if (encs.size()==0) return null;
+    if (encs.size()==1) return encs.get(0);
+    Encounter keeperEnc = Encounter.chooseFromDupes(encs);
+    for (Encounter otherEnc: encs) {
+      if (!otherEnc.getCatalogNumber().equals(keeperEnc.getCatalogNumber())) keeperEnc.mergeAndDelete(otherEnc, this);
+    }
+    return keeperEnc;
+  }
+  
   public List<MarkedIndividual> getMarkedIndividualsByNickname(String altID) {
     String filter = "this.nickName.toLowerCase() == \"" + altID.toLowerCase() + "\"";
     Extent encClass = pm.getExtent(MarkedIndividual.class, true);

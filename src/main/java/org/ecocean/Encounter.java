@@ -33,6 +33,8 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.SortedMap;
 import java.util.GregorianCalendar;
 import java.lang.Math;
@@ -402,6 +404,102 @@ public class Encounter implements java.io.Serializable {
              (this.annotations.size() == 1 && (this.annotations.get(0)==null)) );
     }
 
+    // space saver since we're about to use this hundreds of times
+    private boolean shouldReplace(String str1, String str2) {return Util.shouldReplace(str1, str2);}
+    // also returns true when str1 is a superstring of str2.
+    private boolean shouldReplaceSuperStr(String str1, String str2) {
+      return (shouldReplace(str1,str2)|| (Util.stringExists(str1) && str1.contains(str2)) );
+    }
+
+    public void mergeAndDelete(Encounter enc2, Shepherd myShepherd) {
+      mergeDataFrom(enc2);
+      MarkedIndividual ind = myShepherd.getMarkedIndividual(enc2);
+      if (ind!=null) {
+        ind.removeEncounter(enc2,myShepherd.getContext());
+        ind.addEncounter(this,myShepherd.getContext()); // duplicate-safe
+      }
+      Occurrence occ = myShepherd.getOccurrence(enc2);
+      if (occ!=null) {
+        occ.removeEncounter(enc2);        
+        occ.addEncounter(this); // duplicate-safe
+      }
+      // remove tissue samples because of bogus foreign key constraint that prevents deletion
+      int numTissueSamples = 0;
+      if (enc2.getTissueSamples()!=null) numTissueSamples = enc2.getTissueSamples().size();
+      for (int i=0; i<numTissueSamples; i++) {
+        enc2.removeTissueSample(0);
+      }
+      myShepherd.throwAwayEncounter(enc2);
+    }
+    // copies otherEnc's data into thisEnc, not overwriting anything
+    public void mergeDataFrom(Encounter enc2) {
+
+      // simple string fields
+      if (shouldReplace(enc2.getSex(), getSex())) setSex(enc2.getSex());
+      if (shouldReplace(enc2.getLocationID(), getLocationID())) setLocationID(enc2.getLocationID());
+      if (shouldReplace(enc2.getIndividualID(), getIndividualID())) setIndividualID(enc2.getIndividualID());
+      if (shouldReplace(enc2.getVerbatimLocality(), getVerbatimLocality())) setVerbatimLocality(enc2.getVerbatimLocality());
+      if (shouldReplace(enc2.getOccurrenceID(), getOccurrenceID())) setOccurrenceID(enc2.getOccurrenceID());
+      if (shouldReplace(enc2.getRecordedBy(), getRecordedBy())) setRecordedBy(enc2.getRecordedBy());
+      if (shouldReplace(enc2.getEventID(), getEventID())) setEventID(enc2.getEventID());
+      if (shouldReplace(enc2.getGenus(), getGenus())) setGenus(enc2.getGenus());
+      if (shouldReplace(enc2.getSpecificEpithet(), getSpecificEpithet())) setSpecificEpithet(enc2.getSpecificEpithet());
+      if (shouldReplace(enc2.getLifeStage(), getLifeStage())) setLifeStage(enc2.getLifeStage());
+      if (shouldReplace(enc2.getCountry(), getCountry())) setCountry(enc2.getCountry());
+      if (shouldReplace(enc2.getZebraClass(), getZebraClass())) setZebraClass(enc2.getZebraClass());
+      if (shouldReplace(enc2.getSoil(), getSoil())) setSoil(enc2.getSoil());
+      if (shouldReplace(enc2.getReproductiveStage(), getReproductiveStage())) setReproductiveStage(enc2.getReproductiveStage());
+      if (shouldReplace(enc2.getLivingStatus(), getLivingStatus())) setLivingStatus(enc2.getLivingStatus());
+      if (shouldReplace(enc2.getSubmitterEmail(), getSubmitterEmail())) setSubmitterEmail(enc2.getSubmitterEmail());
+      if (shouldReplace(enc2.getSubmitterPhone(), getSubmitterPhone())) setSubmitterPhone(enc2.getSubmitterPhone());
+      if (shouldReplace(enc2.getSubmitterAddress(), getSubmitterAddress())) setSubmitterAddress(enc2.getSubmitterAddress());
+      if (shouldReplace(enc2.getState(), getState())) setState(enc2.getState());
+      if (shouldReplace(enc2.getGPSLongitude(), getGPSLongitude())) setGPSLongitude(enc2.getGPSLongitude());
+      if (shouldReplace(enc2.getGPSLatitude(), getGPSLatitude())) setGPSLatitude(enc2.getGPSLatitude());
+      if (shouldReplace(enc2.getPatterningCode(), getPatterningCode())) setPatterningCode(enc2.getPatterningCode());
+      if (shouldReplace(enc2.getSubmitterOrganization(), getSubmitterOrganization())) setSubmitterOrganization(enc2.getSubmitterOrganization());
+      if (shouldReplace(enc2.getSubmitterProject(), getSubmitterProject())) setSubmitterProject(enc2.getSubmitterProject());
+      if (shouldReplace(enc2.getFieldID(), getFieldID())) setFieldID(enc2.getFieldID());
+      if (shouldReplace(enc2.getGroupRole(), getGroupRole())) setGroupRole(enc2.getGroupRole());
+
+      // now string fields that might need to be combined rather than replaced
+      if (shouldReplaceSuperStr(enc2.getDynamicProperties(), getDynamicProperties())) {
+        setDynamicProperties(enc2.getDynamicProperties());
+      } else if (Util.stringExists(enc2.getDynamicProperties())) { // shouldn't replace, should combine
+        addDynamicProperties(enc2.getDynamicProperties());
+      }
+      if (shouldReplaceSuperStr(enc2.getOccurrenceRemarks(), getOccurrenceRemarks())) {
+        setOccurrenceRemarks(enc2.getOccurrenceRemarks());
+      } else if (Util.stringExists(enc2.getOccurrenceRemarks())) { // shouldn't replace, should combine
+        setOccurrenceRemarks(getOccurrenceRemarks()+" "+enc2.getOccurrenceRemarks());
+      }
+
+      // now combine list fields making sure not to add duplicate entries
+      setAnnotations(Util.combineArrayListsInPlace(getAnnotations(), enc2.getAnnotations()));
+      setObservationArrayList(Util.combineArrayListsInPlace(getObservationArrayList(), enc2.getObservationArrayList()));
+      setSubmitterResearchers(Util.combineListsInPlace(getSubmitterResearchers(), enc2.getSubmitterResearchers()));
+      // custom no-duplicate logic bc the same sampleID may have been added on both encounters, but this would create unique tissuesample objects
+      Set<String> sampleIDs = getTissueSampleIDs();
+      for (TissueSample samp: enc2.getTissueSamples()) {
+        if (!sampleIDs.contains(samp.getSampleID())) addTissueSample(samp);
+      }
+      setMeasurements(Util.combineListsInPlace(getMeasurements(), enc2.getMeasurements()));
+      setMetalTags(Util.combineListsInPlace(getMetalTags(), enc2.getMetalTags()));
+
+      // spot lists
+      setSpots(Util.combineArrayListsInPlace(getSpots(), enc2.getSpots()));
+      setRightSpots(Util.combineArrayListsInPlace(getRightSpots(), enc2.getRightSpots()));
+      setLeftReferenceSpots(Util.combineArrayListsInPlace(getLeftReferenceSpots(), enc2.getLeftReferenceSpots()));
+      setRightReferenceSpots(Util.combineArrayListsInPlace(getRightReferenceSpots(), enc2.getRightReferenceSpots()));
+
+      // tags
+      if (enc2.getAcousticTag() !=null && getAcousticTag() ==null) setAcousticTag(enc2.getAcousticTag());
+      if (enc2.getSatelliteTag()!=null && getSatelliteTag()==null) setSatelliteTag(enc2.getSatelliteTag());
+      if (enc2.getDTag()        !=null && getDTag()        ==null) setDTag(enc2.getDTag());
+
+      // skip time stuff bc if the time is different we probably don't want to combine the encounters anyway.
+
+    }
 
 
     public String getZebraClass() {
@@ -496,6 +594,22 @@ public class Encounter implements java.io.Serializable {
     if (numFlukes==0) return;
     setFlukeType(totalFlukeType/numFlukes);
   }
+
+  // assuming the list is of erroneously-duplicated encounters, returns the one we want to keep
+  public static Encounter chooseFromDupes(List<Encounter> encs) {
+    int maxAnns=-1;
+    int encWithMax=0;
+    for (int i=0;i<encs.size();i++) {
+      Encounter enc = encs.get(i);
+      if (enc.numAnnotations()>maxAnns) {
+        maxAnns = enc.numAnnotations();
+        encWithMax = i;
+      }
+    }
+    return encs.get(encWithMax);
+  }
+
+
 
   public static Integer getFlukeTypeFromAnnotation(Annotation ann) {
     return getFlukeTypeFromAnnotation(ann, 5);
@@ -1970,7 +2084,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public String getDynamicProperties() {
     return dynamicProperties;
   }
-
+  public void setDynamicProperties(String allDynamicProperties) {
+    this.dynamicProperties = allDynamicProperties;
+  }
+  public void addDynamicProperties(String allDynamicProperties) {
+    this.dynamicProperties+=allDynamicProperties;
+  }
   public void setDynamicProperty(String name, String value){
     name=name.replaceAll(";", "_").trim().replaceAll("%20", " ");
     value=value.replaceAll(";", "_").trim();
@@ -2278,7 +2397,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 		submitterResearchers.add(researcher);
 	}
 	public void setSubmitterResearchers(Collection<String> researchers) {
-		this.submitterResearchers = new ArrayList<String>(researchers);
+		if (researchers!=null) this.submitterResearchers = new ArrayList<String>(researchers);
 	}
 
    // public List<DataCollectionEvent> getCollectedData(){return collectedData;}
@@ -2329,9 +2448,21 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public void addTissueSample(TissueSample dce){
       if(tissueSamples==null){tissueSamples=new ArrayList<TissueSample>();}
       if(!tissueSamples.contains(dce)){tissueSamples.add(dce);}
+      dce.setCorrespondingEncounterNumber(getCatalogNumber());
+    }
+    public void setTissueSamples(List<TissueSample> samps) {
+      this.tissueSamples = samps;
     }
     public void removeTissueSample(int num){tissueSamples.remove(num);}
     public List<TissueSample> getTissueSamples(){return tissueSamples;}
+    public Set<String> getTissueSampleIDs(){
+      Set<String> ids = new HashSet<String>();
+      for (TissueSample ts: tissueSamples) {
+        ids.add(ts.getSampleID());
+      }
+      return ids;
+    }
+
     public void removeTissueSample(TissueSample num){tissueSamples.remove(num);}
 
     public void addSinglePhotoVideo(SinglePhotoVideo dce){
@@ -2343,6 +2474,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public void removeSinglePhotoVideo(SinglePhotoVideo num){images.remove(num);}
 
 
+    public void setMeasurements(List<Measurement> measurements) {
+      this.measurements = measurements;
+    }
     public void setMeasurement(Measurement measurement, Shepherd myShepherd){
 
       //if measurements are null, set the empty list
@@ -2401,7 +2535,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public void removeMetalTag(MetalTag metalTag) {
       metalTags.remove(metalTag);
     }
-
+    public void setMetalTags(List<MetalTag> metalTags) {
+      this.metalTags = metalTags;
+    }
     public List<MetalTag> getMetalTags() {
       return metalTags;
     }
@@ -2506,6 +2642,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
     public List<SinglePhotoVideo> getImages(){return images;}
 
+    public boolean hasAnnotation(Annotation ann) {
+      return (annotations!=null && annotations.contains(ann));
+    }
     public boolean hasAnnotations() {
         return (annotations!=null && annotations.size()>0);
     }
@@ -3316,6 +3455,9 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       catch(Exception e){e.printStackTrace();}
       System.out.println("Exiting Encounter.getMediaAssetsOfType with this num results: "+results.size());
       return results;
+    }
+    public void setObservationArrayList(ArrayList<Observation> obs) {
+      this.observations = obs;
     }
 
     public ArrayList<Observation> getObservationArrayList() {
