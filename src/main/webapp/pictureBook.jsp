@@ -12,17 +12,7 @@ org.datanucleus.api.rest.RESTUtils,
 org.datanucleus.api.jdo.JDOPersistenceManager,
 org.datanucleus.api.rest.orgjson.JSONObject" %>
 
-<%!
-// basically imageDisplayTools.mkImg(maJson).
-// defining this func in javaland makes the server call take longer but the client has less work to do
-
-
-
-%>
-
-
-
-  <%
+<%
 
   String context="context0";
   context=ServletUtilities.getContext(request);
@@ -32,7 +22,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int maxPages = 300;
+  int maxPages = 100;
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
@@ -50,7 +40,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   String order ="";
   MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
   rIndividuals = result.getResult();
-  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(result, request);
+  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
   rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 	numResults = rIndividuals.size();
 	System.out.println("PictureBook: returned "+numResults+" individuals");
@@ -169,7 +159,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 	for (MarkedIndividual mark: rIndividuals) {
 
-		ArrayList<JSONObject> exemplarImages = mark.getBestKeywordPhotos(request, desiredKeywords);
+		ArrayList<JSONObject> exemplarImages = mark.getBestKeywordPhotos(request, desiredKeywords, true);
 		
 		boolean hasHeader = exemplarImages.size()>0;
 		boolean haspic2 = exemplarImages.size()>1;
