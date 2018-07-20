@@ -82,7 +82,7 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
 
 
     //set up the files
-    String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".xls";
+    String filename = "sightingSearchResults_export_" + request.getRemoteUser() + ".xls";
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -177,9 +177,15 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
 
         // Excel export =========================================================
 
+        int printPeriod = 10;
          for(int i=0;i<numMatchingOccurrences;i++){
+            boolean verbose = (i%printPeriod == 0);
             Occurrence occ=(Occurrence)rOccurrences.get(i);
-            if (hiddenData.contains(occ)) continue;
+            if (hiddenData.contains(occ)) {
+              if (verbose) System.out.println("OSEME: Hiding row "+i);
+              continue;
+            }
+
 
             numResults++;
 
@@ -222,6 +228,7 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
             writeCell("web link", occ.getWebUrl(request));
             writeCell("encounter web links", occ.getEncounterWebUrls(request));            
 
+            if (verbose) System.out.println("OccurrenceSearchExportMetadataExcel: done row "+currentRow);
             currentRow++;
          } //end for loop iterating encounters
 
