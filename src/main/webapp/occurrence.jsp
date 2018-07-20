@@ -719,10 +719,8 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
   if (isOwner) {
 %>
-<br />
 
-
-<br />
+<div id="researcherComments">
 <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=props.getProperty("researcherComments") %>
 </strong></p>
 
@@ -806,6 +804,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 
 </style>
+</div>
 
 <div class="row">
 <form method="post" action="occurrence.jsp?number=<%=occ.getOccurrenceID()%>" id="occform">
