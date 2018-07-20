@@ -129,12 +129,27 @@ public class ClassEditTemplate {
   public static void printStringFieldSearchRowCategories(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
   // note how fieldName is variously manipulated in this method to make element ids and contents
   String displayName = getDisplayName(fieldName, nameLookup);
-
   List<String> values=Util.getIndexedPropertyValues(fieldName,nameLookup);
+  printStringFieldSearchRowCategories(fieldName, displayName, out, values);
+}
+
+
+  public static void printStringFieldSearchRowFullCategories(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup, Shepherd myShepherd, Class fromClass) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+  List<String> values=myShepherd.getAllPossibleVals(fromClass,fieldName,nameLookup);
+  printStringFieldSearchRowCategories(fieldName, displayName, out, values);
+
+}
+
+public static void printStringFieldSearchRowCategories(String fieldName, String displayName, javax.servlet.jsp.JspWriter out, List<String> values) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
   System.out.println("ClassEditTemplate is printing a categorical variable with options "+values);
   out.println("<tr id=\""+fieldName+"Row\">");
-  out.println("  <td id=\""+fieldName+"Title\"><strong>"+displayName+"</strong>");
-  out.println("  <select name=\""+fieldName+"\"/>");
+  out.println("  <td id=\""+fieldName+"Title\">"+displayName+"</td>");
+  out.println("  <td> <select name=\""+fieldName+"\"/>");
+  boolean hasBlankValue = (values.size()>0 && !Util.stringExists(values.get(0)));
+  if (!hasBlankValue) out.println("<option></option>");
   for (String val: values) {
     out.println("<option>"+val+"</option>");
   }
