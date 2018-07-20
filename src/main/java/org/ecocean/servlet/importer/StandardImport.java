@@ -79,10 +79,10 @@ public class StandardImport extends HttpServlet {
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
 
-    // photoDirectory = "/data/oman_import/photos/";
-    // String filename = "/data/oman_import/ASWN_secondExport.xlsx";
-    photoDirectory = "/data/indocet/";
-    String filename = "/data/indocet/indocet_blended.xlsx";
+    photoDirectory = "/data/oman_import/photos/";
+    String filename = "/data/oman_import/ASWN_secondExport.xlsx";
+    //photoDirectory = "/data/indocet/";
+    //String filename = "/data/indocet/indocet_blended.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
     File dataFile = new File(filename);
     boolean dataFound = dataFile.exists();
@@ -354,11 +354,25 @@ public class StandardImport extends HttpServlet {
   }
 
   public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations) {
-  	Encounter enc = new Encounter (annotations);
+
+    // try to load encounter by indID and occID, make a new one if it doesn't exist.
+    String individualID = getIndividualID(row);
+    String occurrenceID = getOccurrenceID(row);
+    Encounter enc = null;
+    if (Util.stringExists(individualID) && Util.stringExists(occurrenceID)) enc = myShepherd.getEncounterByIndividualAndOccurrence(individualID, occurrenceID);
+
+    if (enc!=null) enc.addAnnotations(annotations);
+    else enc = new Encounter (annotations);
+
+    if (individualID!=null) enc.setIndividualID(individualID);
+    if (occurrenceID!=null) enc.setOccurrenceID(occurrenceID);
 
   	// since we need access to the encounter ID
-  	String encID = Util.generateUUID();
-  	enc.setEncounterNumber(encID);
+    String encID = enc.getCatalogNumber();
+  	if (!Util.stringExists(encID)) {
+      encID = Util.generateUUID();
+  	  enc.setEncounterNumber(encID);
+    }
 
   	// Time
   	Integer year = getInteger(row, "Encounter.year");
@@ -440,9 +454,6 @@ public class StandardImport extends HttpServlet {
   	String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
   	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
 
-  	String occurrenceID = getString(row, "Encounter.occurrenceID");
-  	if (occurrenceID==null) occurrenceID = getString(row, "Occurrence.occurrenceID");
-  	if (occurrenceID!=null) enc.setOccurrenceID(occurrenceID);
 
   	String submitterID = getString(row, "Encounter.submitterID");
   	if (submitterID!=null) enc.setSubmitterID(submitterID);
@@ -450,8 +461,6 @@ public class StandardImport extends HttpServlet {
   	String behavior = getString(row, "Encounter.behavior");
   	if (behavior!=null) enc.setBehavior(behavior);
 
-  	String individualID = getIndividualID(row);
-  	if (individualID!=null) enc.setIndividualID(individualID);
 
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);
@@ -898,7 +907,10 @@ public class StandardImport extends HttpServlet {
   }
 
   public String getOccurrenceID(Row row) {
-  	return (getString(row,"Occurrence.occurrenceID"));
+    // some custom data-fixing just for our aswn data blend
+    String occID = getString(row,"Occurrence.occurrenceID");
+    if (!Util.stringExists(occID)) occID = getString(row, "Encounter.occurrenceID");
+  	return (occID.replace("LiveVesselSighting","")); //removes LiveVesselSighting;
   }
 
   public boolean isOccurrenceOnRow(Occurrence occ, Row row) {
