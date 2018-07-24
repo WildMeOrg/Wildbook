@@ -21,7 +21,7 @@ javax.jdo.Query
 
 Shepherd myShepherd=null;
 myShepherd = new Shepherd("context0");
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 //WBQuery wbq = ((WBQuery) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(WBQuery.class, 1), true)));
 
