@@ -75,7 +75,7 @@ context=ServletUtilities.getContext(request);
               <td><img src="cool_screenshot.gif" width="150" hspace="10"
                        vspace="10" border="1" align="left"/></td>
               <td>
-                <p>The spot pattern recognition algorithms used in whale shark
+                <p>The spot pattern recognition algorithms used in Turtle
                   mark-recapture (Modified Groth and I3S) assume a flat, two-dimensional
                   surface when analyzing the relationships between spots. While each
                   algorithm has some tolerance for skew in an image, both quickly
@@ -83,11 +83,11 @@ context=ServletUtilities.getContext(request);
                   between those patterns increases.</p>
 
                 <p><strong>Spot!</strong> allows you to map a skewed 2D image to a
-                  3D whale shark model and obtain a properly-oriented left- or
+                  3D Turtle model and obtain a properly-oriented left- or
                   right-side pattern for use with the Modified Groth and I3S
                   algorithms.This perspective correction has been used in the ECOCEAN
                   Library to match images taken from very extreme angles to previously
-                  tagged whale sharks. For example, Spot! was used to make this match
+                  tagged Turtles. For example, Spot! was used to make this match
                   for shark <a
                     href="http://www.whaleshark.org/individuals.jsp?number=M-025">M-025</a>
                   in the ECOCEAN Library.</p>
@@ -162,13 +162,13 @@ context=ServletUtilities.getContext(request);
             future. But again...it's always going to be only as good as its user.</p>
 
           <p><em><strong>2. Can I use Spot! to identify new
-            whale sharks from skewed images?</strong></em></p>
+            Turtles from skewed images?</strong></em></p>
 
           <p>That's a longer discussion about misidentification in
             mark-recapture population modeling. At this point, Spot! is NOT being
-            used to identify new whale sharks in the ECOCEAN Library. However, we
+            used to identify new Turtles in the ECOCEAN Library. However, we
             may choose to do so in the future. We currently use it only to identify
-            previously marked whale sharks. In general, we HIGHLY recommend the
+            previously marked Turtles. In general, we HIGHLY recommend the
             tandem use of both the <a
               href="http://www.blackwell-synergy.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x?cookieSet=1">Modified
               Groth</a> and <a
@@ -191,23 +191,23 @@ context=ServletUtilities.getContext(request);
           <p>It will be as soon as our initial tests are complete. For now, it
             is freeware under license. Use it as you like.</p>
 
-          <p><em><strong>5. Is a single whale shark model
+          <p><em><strong>5. Is a single Turtle model
             representative of the long-term morphology of an individual? </strong></em></p>
 
-          <p>Probably not for very small (rare) and very large whale sharks,
+          <p>Probably not for very small (rare) and very large Turtles,
             such as those found in the Galapagos Islands. The truncated 3D whale
             shark model used in Spot! is based on the proportions of average sized
-            whale sharks, generally about 7 meters in total length (TL). We assume
+            Turtles, generally about 7 meters in total length (TL). We assume
             changes are proportional in all three dimensions for smaller and larger
             sharks (generally 5 m to 10 m in TL) within the range of most ecotourism
-            activity. As our understanding of whale shark biology increases, we may
+            activity. As our understanding of Turtle biology increases, we may
             use multiple models for different stages of growth.</p>
 
           <p><em><strong>6. Why is this model truncated at the
             front and back? Where are the fins?</strong></em></p>
 
           <p>The model focuses only on the fiducial region used for spot
-            pattern recognition of whale sharks: left- and right-side patterning
+            pattern recognition of Turtles: left- and right-side patterning
             behind the gills. This area does not distort as much as many other
             regions of the shark during normal motion. By using a truncated model,
             we focus the eye on only the region of interest and consider only he

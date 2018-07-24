@@ -560,6 +560,45 @@
       </field>
     </class>
 
+    <class name="Nest" identity-type="application">
+      <inheritance strategy="new-table"/>
+      <field name="id" primary-key="true">
+        <column name="ID"/>
+      </field>
+      <field name="name">
+        <column name="NAME"/>
+      </field>
+      <field name="locationID">
+        <column name="LOCATIONID"/>
+      </field>
+      <field name="locationNote">
+        <column name="LOCATIONNOTE"/>
+      </field>
+      <field name="latitude">
+        <column name="LATITUDE"/>
+      </field>
+      <field name="longitude">
+        <column name="LONGITUDE"/>
+      </field>
+      <field name="year">
+        <column name="YEAR"/>
+      </field>
+      <field name="species">
+        <column name="SPECIES"/>
+      </field>
+      <field name="country">
+        <column name="COUNTRY"/>
+      </field>
+      <field name="province">
+        <column name="PROVINCE"/>
+      </field>
+      <field name="organization">
+        <column name="ORGANIZATION"/>
+      </field>
+      <field name="beachName">
+        <column name="BEACHNAME"/>
+      </field>
+    </class>
 
     <class name="PatterningPassport" identity-type="datastore">
       <field name="timestampOfLastUpdate">

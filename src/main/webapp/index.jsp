@@ -566,7 +566,7 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified whale sharks</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified Turtles</i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>

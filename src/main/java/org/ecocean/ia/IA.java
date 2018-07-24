@@ -30,8 +30,11 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import java.util.Properties;
+import org.ecocean.ShepherdProperties;
 
 public class IA {
+    private static final String PROP_FILE = "IA.properties";
 
     /*  NOTE: methods for both intaking a single element or a list.  thoughts:
         - these should be treated as different in that an IA framework might batch together the list in some way
@@ -177,6 +180,26 @@ System.out.println("INFO: IA.intakeAnnotations() accepted " + anns.size() + " an
             url = url.replace("localhost", containerName);
         }
         return url;
+    }
+
+
+    public static String getProperty(String context, String label) {  //no-default flavor
+        return getProperty(context, label, null);
+    }
+    public static String getProperty(String context, String label, String def) {
+        Properties p = getProperties(context);
+        if (p == null) {
+            System.out.println("IA.getProperty(" + label + ") has no properties; IA.properties unavailable?");
+            return null;
+        }
+        return p.getProperty(label, def);
+    }
+    private static Properties getProperties(String context) {
+        try {
+            return ShepherdProperties.getProperties(PROP_FILE, "", context);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
 

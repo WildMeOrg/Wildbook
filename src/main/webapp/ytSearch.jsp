@@ -48,7 +48,7 @@ phrasesToIgnoreVideo.add("hungry shark evolution");
 phrasesToIgnoreVideo.add("dory");
 phrasesToIgnoreVideo.add("nemo");
 phrasesToIgnoreVideo.add("abyssrium");
-phrasesToIgnoreVideo.add("whale shark card");
+phrasesToIgnoreVideo.add("Turtle card");
 phrasesToIgnoreVideo.add("tarjeta tiburón ballena");
 phrasesToIgnoreVideo.add("octonaut");
 phrasesToIgnoreVideo.add("gta");

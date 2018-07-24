@@ -515,6 +515,22 @@ public class Encounter implements java.io.Serializable {
    }
 
 
+   public void setDWCGlobalUniqueIdentifier(String guid) {
+    this.guid = guid;
+  }
+
+  public String getDWCGlobalUniqueIdentifier() {
+    return guid;
+  }
+
+  // Generified for LightRest access ect
+  public void setGuid(String guid) {
+    this.guid = guid;
+  }
+
+  public String getGuid() {
+    return guid;
+  }
 
   /**
    * Returns an array of all of the superSpots for this encounter.
@@ -1618,15 +1634,6 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     numSpotsRight = numspots;
   }
 */
-
-
-  public void setDWCGlobalUniqueIdentifier(String guid) {
-    this.guid = guid;
-  }
-
-  public String getDWCGlobalUniqueIdentifier() {
-    return guid;
-  }
 
   public void setDWCImageURL(String link) {
     dwcImageURL = link;

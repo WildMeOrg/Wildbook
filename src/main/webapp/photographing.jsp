@@ -13,18 +13,18 @@
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
-		  <h2>Photographing A Whale Shark</h2>
+		  <h2>Photographing A Turtle</h2>
 	
 			
-			<p>Did you know that by photographing a whale shark you can directly contribute to a global effort to better understand and protect these amazing animals? 
+			<p>Did you know that by photographing a Turtle you can directly contribute to a global effort to better understand and protect these amazing animals? 
 
 
- The whale shark is listed as <em>vulnerable </em>to extinction  in the <em><a href="http://www.iucnredlist.org/search/details.php/19488/all">IUCN Red List of Threatened Species</a>. </em>Photographs showing the distinctive patterning and scarring on whale sharks are used to
+ The Turtle is listed as <em>vulnerable </em>to extinction  in the <em><a href="http://www.iucnredlist.org/search/details.php/19488/all">IUCN Red List of Threatened Species</a>. </em>Photographs showing the distinctive patterning and scarring on Turtles are used to
 			  uniquely identify individuals for long-term, mark-recapture analysis. Resulting population models can be used by local, regional, and international conservation and management authorities to understand the pressures on this species 
 	    and to take specific action to protect them.</p>
-			<p>The most important thing to remember when attempting to photograph a whale shark is to remain at least 3 meters (10 feet) away from the shark. Touching or blocking the path of a
-			whale shark may negatively influence its behavior and affect scientists' ability to photograph it again in the future.</p>
-			<p>The following types of photographs (or frame grabs from video), listed in order of importance, can be used to uniquely identify individual whale sharks.</p>
+			<p>The most important thing to remember when attempting to photograph a Turtle is to remain at least 3 meters (10 feet) away from the shark. Touching or blocking the path of a
+			Turtle may negatively influence its behavior and affect scientists' ability to photograph it again in the future.</p>
+			<p>The following types of photographs (or frame grabs from video), listed in order of importance, can be used to uniquely identify individual Turtles.</p>
 			<p><strong>1. Left-side spot patterning.</strong> This is the most important type of photograph to us. Notice that the photographer is perpendicular to the spot patterning area above the left pectoral fin. photographs of this area at this angle maximize our ability to use software pattern recognition algorithms to identify this animal within a catalog of thousands of images using its unique &quot;bodyprint&quot; as an identifier. </p>
 			<p><img src="images/whaleshark_example.jpg" width="444" height="293" border="1" /></p>
 			<p>This is how our computer database sees the natural patterning in this image:</p>
@@ -40,11 +40,11 @@
 				  <td>This visible caudal (tail) fin scar helps to identify shark <a href="//www.whaleshark.org/individuals.jsp?shark=A-001">A-001</a> (&quot;Stumpy&quot;) at Ningaloo Marine Park in Western Australia. </td>
 				</tr>
 		</table>
-			<p>Once you have your whale shark photographs or frame grabs from video, you can submit them directly to the Wildbook for Whale Sharks at:<br />
+			<p>Once you have your Turtle photographs or frame grabs from video, you can submit them directly to the Wildbook for Turtles at:<br />
 			  <a href="//www.whaleshark.org/submit.jsp">http://www.whaleshark.org/submit.jsp
             </a></p>
 			<p>Using  the email address you supply in your encounter report, our database can automatically keep you informed of how your data is used and can notify you whenever an identified shark that you reported is resighted.</p>
-			<p>Thank you for contributing to this global effort to protect the whale sharks! </p>
+			<p>Thank you for contributing to this global effort to protect the Turtles! </p>
 			<p>&nbsp;</p>
 		
 			<p>&nbsp;</p>
