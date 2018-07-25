@@ -1844,7 +1844,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
 
 <!--db: These are the necessary tools for photoswipe.-->
 <%-- <%
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String pswipedir = urlLoc+"/photoswipe";
 %>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
