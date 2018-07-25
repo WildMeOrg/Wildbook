@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <jnlp spec="1.0+" 
-      codebase="http://www.whaleshark.org/interconnect/mac/" 
+      codebase="http://ncaquariums.wildbook.org/interconnect/mac/" 
       href="interconnect.jnlp">
 
   <information>

@@ -69,7 +69,7 @@ context=ServletUtilities.getContext(request);
           The video requires the Free version of the <a
             href="http://www.real.com/">RealPlayer</a>. More information about
           Spot! can be found <a
-            href="http://www.whaleshark.org/onlinehelp/spot/index.jsp">here</a>.</p>
+            href="http://ncaquariums.wildbook.org/onlinehelp/spot/index.jsp">here</a>.</p>
 
         <p>
         <table border="0" cellpadding="0"

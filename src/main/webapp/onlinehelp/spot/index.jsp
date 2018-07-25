@@ -89,7 +89,7 @@ context=ServletUtilities.getContext(request);
                   Library to match images taken from very extreme angles to previously
                   tagged tiger sharks. For example, Spot! was used to make this match
                   for shark <a
-                    href="http://www.whaleshark.org/individuals.jsp?number=M-025">M-025</a>
+                    href="http://ncaquariums.wildbook.org/individuals.jsp?number=M-025">M-025</a>
                   in the ECOCEAN Library.</p>
               </td>
             </tr>
@@ -110,10 +110,10 @@ context=ServletUtilities.getContext(request);
           <p class="style1"><strong>Loading Spot!</strong></p>
 
           <p>Spot! can be loaded from within the <a
-            href="http://www.whaleshark.org/software.jsp">Client Software page</a>
+            href="http://ncaquariums.wildbook.org/software.jsp">Client Software page</a>
             of the ECOCEAN Library or directly from this link:</p>
 
-          <p><a href="http://www.whaleshark.org/spot/spot.jnlp">http://www.whaleshark.org/spot/spot.jnlp</a>
+          <p><a href="http://ncaquariums.wildbook.org/spot/spot.jnlp">http://ncaquariums.wildbook.org/spot/spot.jnlp</a>
           </p>
 
           <p class="style1"><strong>Basic Spot! Instructions </strong></p>
