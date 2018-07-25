@@ -90,8 +90,9 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 	       if(reservList.get(i).getInstances().size()>0)numInstances+=reservList.get(i).getInstances().size();
 	     }
 	     
-	     int numInstancesToLaunch=maxInstances-numInstances;
-	     System.out.println(".....There are already "+reservList.size()+" instances in the pending or running states. So I will launch: "+numInstancesToLaunch);
+	     //int numInstancesToLaunch=maxInstances-numInstances;
+	     int numInstancesToLaunch=1;
+	     //System.out.println(".....There are already "+reservList.size()+" instances in the pending or running states. So I will launch: "+numInstancesToLaunch);
 
 	     /*
 	     //first try the spot market
