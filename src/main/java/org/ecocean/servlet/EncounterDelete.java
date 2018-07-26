@@ -20,6 +20,8 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.grid.GridManager;
+import org.ecocean.grid.GridManagerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -131,6 +133,10 @@ public class EncounterDelete extends HttpServlet {
           //now delete for good
           myShepherd.beginDBTransaction();
           myShepherd.throwAwayEncounter(enc2trash);
+          
+          //remove from grid too
+          GridManager gm = GridManagerFactory.getGridManager();
+          gm.removeMatchGraphEntry(request.getParameter("number"));
 
 
         } catch (Exception edel) {
