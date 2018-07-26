@@ -43,7 +43,7 @@ console.info('imageEnhancer.apply to %o [%dx%d] (mid=%o|aid=%o) with opt %o (par
         if (parEl.css('position') == 'static') parEl.css('position', 'relative');
 
         //parEl.append('<div class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
-        parEl.append('<div id="image-enhancer-wrapper-' + mid + '-' + aid+ '" class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
+        parEl.append('<div id="image-enhancer-wrapper-' + mid + '-' + aid+ '" class="image-enhancer-wrapper-mid-' + mid + ' image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
         imageEnhancer.setEnhancerScale(el);
         imageEnhancer.wrapperSizeSetFromImg(parEl);
         var wrapper = parEl.find('.image-enhancer-wrapper');
@@ -203,7 +203,7 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
     annotationIdFromElement: function(el) {
         var aid = (el instanceof jQuery) ? el.data('enh-annotationid') : el.getAttribute('data-enh-annotationid');
         if (!aid) {
-            console.warn('imageEnhancer.annoationIdFromElement() could not find aid on %o', el);
+            console.warn('imageEnhancer.annotationIdFromElement() could not find aid on %o', el);
             aid = false;
         }
         return aid;
