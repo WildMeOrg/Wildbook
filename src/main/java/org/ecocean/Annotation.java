@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
-    private String species;
+    private String species;  //TODO change to Taxonomy object!  (note: or make it akin to "class" on IA... but better name?)
     private String name;
     private boolean isExemplar = false;
     private Boolean isOfInterest = null;  //aka AoI (Annotation of Interest)
@@ -365,6 +365,7 @@ public class Annotation implements java.io.Serializable {
             org.datanucleus.api.rest.orgjson.JSONObject jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
             jobj.put("id", id);
             jobj.put("isExemplar", this.getIsExemplar());
+            jobj.put("species", this.getSpecies());
             jobj.put("annotationIsOfInterest", this.getIsOfInterest());
             if (this.getFeatures() != null) {
                 org.datanucleus.api.rest.orgjson.JSONArray feats = new org.datanucleus.api.rest.orgjson.JSONArray();
