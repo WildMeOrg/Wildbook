@@ -525,7 +525,7 @@
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
     </class>
     
-    <class name="Observation" identity-type="data-store">
+    <class name="Observation" table="DPOBSERVATION" identity-type="data-store">
       <inheritance strategy="new-table"/>
       <field name="observationID" primary-key="true">
         <column length="100"/>
