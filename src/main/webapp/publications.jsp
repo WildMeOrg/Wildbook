@@ -38,6 +38,12 @@ context=ServletUtilities.getContext(request);
 		
 		<p>
 		
+		<p>
+		Araujo G, Rohner CA, Labaja J, Conales SJ, Snow SJ, Murray R, Pierce SJ, Ponzo A. (2018) Satellite tracking of juvenile whale sharks in the Sulu and Bohol Seas, Philippines. PeerJ 6:e5231 https://doi.org/10.7717/peerj.5231<br>
+		<a href="https://peerj.com/articles/5231/">Web link</a>
+		
+		</p>
+		
 		</p>
 		Diamant S. et al (2018) Movements and habitat use of satellite-tagged whale sharks off western Madagascar.<br>
 		<a href="https://www.int-res.com/articles/esr2018/36/n036p049.pdf">Web link</a>
