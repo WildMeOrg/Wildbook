@@ -112,7 +112,7 @@ public class IBEISIA {
     //other is a HashMap of additional properties to build lists out of (e.g. Encounter ids and so on), that do not live in/on MediaAsset
     public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, HashMap<MediaAsset,HashMap<String,Object>> other, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendMediaAssets() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlAddImages");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
         int ct = 0;
@@ -172,7 +172,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
 
     public static JSONObject sendAnnotations(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendAnnotations() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddAnnotations is not set");
         URL url = new URL(u);
 
@@ -221,7 +221,7 @@ System.out.println("sendAnnotations(): sending " + ct);
                                           JSONObject userConfidence, String baseUrl, String context)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
 
@@ -309,7 +309,7 @@ myShepherd.closeDBTransaction();
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartDetectImages", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlStartDetectImages");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
         URL url = new URL(u);
 
@@ -323,12 +323,22 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         }
         map.put("image_uuid_list", malist);
 
+        String modelTag = IA.getProperty(context, "modelTag");
+        if (modelTag != null) {
+            System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
+            map.put("model_tag", modelTag);
+        } else {
+            System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
+        }
+
+//TODO sensitivity & nms_thresh  (floats)
+
         return RestClient.post(url, new JSONObject(map));
     }
 
 
     public static JSONObject getJobStatus(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobStatus", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlGetJobStatus");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobStatus is not set");
         URL url = new URL(u + "?jobid=" + jobID);
         return RestClient.get(url);
@@ -337,7 +347,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     //note: this passes directly to IA so can be problematic! (ia down? and more importantly: ia restarted so job # is diff and old job is gone!)
     //  better(?) to use getJobResultLogged() below!
     public static JSONObject getJobResult(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobResult", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlGetJobResult");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobResult is not set");
         URL url = new URL(u + "?jobid=" + jobID);
         return RestClient.get(url);
@@ -1591,7 +1601,7 @@ System.out.println("identification most recent action found is " + action);
     //builds urls for IA, based on just one.  kinda hacky (as opposed to per-endpoint setting in CommonConfiguration); but can be useful
     public static URL iaURL(String context, String urlSuffix) {
         if (iaBaseURL == null) {
-            String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
+            String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
             if (u == null) throw new RuntimeException("configuration value IBEISIARestUrlAddAnnotations is not set");
             int i = u.indexOf("/", 9);  //9 should get us past "http://" to get to post-hostname /
             if (i < -1) throw new RuntimeException("could not parse IBEISIARestUrlAddAnnotations for iaBaseURL");
@@ -1694,6 +1704,8 @@ System.out.println("need " + annId + " from IA, i guess?");
                 boolean exemplar = (rtn.getJSONArray("response").optInt(0, 0) == 1);
                 ann.setIsExemplar(exemplar);
             }
+            Boolean aoi = iaIsOfInterestFromAnnotUUID(annId, context);
+            ann.setIsOfInterest(aoi);
             System.out.println("INFO: " + ann + " pulled from IA");
             return ann;
 
@@ -2414,16 +2426,16 @@ System.out.println(">>>>>>>> age -> " + rtn);
 
     public static boolean iaEnabled(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
-        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context) != null);
+        return (IA.getProperty(context,"IBEISIARestUrlAddAnnotations") != null);
     }
     public static boolean iaEnabled() {
-        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", ContextConfiguration.getDefaultContext()) != null);
+        return (IA.getProperty(ContextConfiguration.getDefaultContext(), "IBEISIARestUrlAddAnnotations") != null);
     }
 
     public static JSONObject iaStatus(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         JSONObject rtn = new JSONObject();
-        String utest = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
+        String utest = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         if (utest == null) {
             rtn.put("iaURL", (String)null);
             rtn.put("iaEnabled", false);
@@ -2445,7 +2457,7 @@ System.out.println(">>>>>>>> age -> " + rtn);
         }
         rtn.put("timestamp", System.currentTimeMillis());
         JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
-        settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
+        settings.put("IBEISIARestUrlAddAnnotations", IA.getProperty(context, "IBEISIARestUrlAddAnnotations"));
         rtn.put("settings", settings);
         return rtn;
     }
@@ -3079,9 +3091,9 @@ return Util.generateUUID();
         String sciName = "";
         int i = 0;
         while (sciName != null) {
-            sciName = CommonConfiguration.getProperty("iaTaxonomyScientificName" + i, context);
+            sciName = IA.getProperty(context, "taxonomyScientificName" + i);
             if (sciName == null) continue;
-            String iaClass = CommonConfiguration.getProperty("iaDetectionClass" + i, context);
+            String iaClass = IA.getProperty(context, "detectionClass" + i);
             if (iaClass == null) iaClass = sciName;  //tough love
             map.put(iaClass, myShepherd.getOrCreateTaxonomy(sciName, true));
             i++;
@@ -3089,6 +3101,23 @@ return Util.generateUUID();
         return map;
     }
 
+    // in IA.properties as stringified JSON objects, like:
+    //     IBEISIdentOpt1={"OC_WDTW": true}
+
+    public static List<JSONObject> identOpts(String context) {
+        List<JSONObject> opt = new ArrayList<JSONObject>();
+        int i = 0;
+        String jstring = "";
+        while (jstring != null) {
+            jstring = IA.getProperty(context, "IBEISIdentOpt" + i);
+            if (jstring == null) break;
+            JSONObject j = Util.stringToJSONObject(jstring);
+            if (j != null) opt.add(j);
+            i++;
+        }
+        if (opt.size() < 1) opt.add((JSONObject)null);  //we should always have *one* -- the default empty one
+        return opt;
+    }
 
     public static String callbackUrl(String baseUrl) {
         return baseUrl + "/ia?callback";
