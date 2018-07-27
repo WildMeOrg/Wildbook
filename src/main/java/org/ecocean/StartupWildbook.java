@@ -186,6 +186,7 @@ public class StartupWildbook implements ServletContextListener {
         ServletContext sContext = sce.getServletContext();
         System.out.println("* StartupWildbook destroyed called for: " + servletContextInfo(sContext));
         QueueUtil.cleanup();
+        TwitterBot.cleanup();
     }
 
 

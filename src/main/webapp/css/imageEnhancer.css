@@ -97,6 +97,9 @@
     /*height: 2.0em;*/
 	width: 150px;
 }
+.image-enhancer-keyword-wrapper:hover {
+    z-index: 200;  /* note: must be higher than highest possible annotation/feature */
+}
 .image-enhancer-keyword-wrapper:hover .image-enhancer-keyword {
     background-color: #FFF;
     border: solid 1px #333;
@@ -156,7 +159,7 @@
     border-radius: 8px;
     padding: 4px;
     background-color: rgba(255,255,255,0.8);
-    position: relative;
+    position: absolute;
     top: 50%;
     transform: translateY(-75%);
 }
