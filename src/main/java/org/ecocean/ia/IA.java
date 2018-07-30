@@ -25,6 +25,7 @@ import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
+import org.ecocean.servlet.ServletUtilities;
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -32,6 +33,9 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Properties;
 import org.ecocean.ShepherdProperties;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
 
 public class IA {
     private static final String PROP_FILE = "IA.properties";
@@ -99,34 +103,60 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
     //similar behavior to above: basically fake /ia api call, but via queue
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
         if ((anns == null) || (anns.size() < 1)) return null;
-        Task task = new Task();
-        task.setObjectAnnotations(anns);
+        Task topTask = new Task();
+        topTask.setObjectAnnotations(anns);
         String context = myShepherd.getContext();
 
-        //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
+        /*
+            what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
+            for this we use IBEISIA.identOpts to decide how many flavors of identification we need to do!   if have more than
+            one we need to make a set of subtasks
+        */
+        List<JSONObject> opts = IBEISIA.identOpts(context);
+        if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
+        List<Task> tasks = new ArrayList<Task>();
+        if (opts.size() == 1) {
+            tasks.add(topTask);  //topTask will be used as *the*(only) task -- no children
+        } else {
+            for (int i = 0 ; i < opts.size() ; i++) {
+                Task t = new Task();
+                t.setObjectAnnotations(anns);
+                topTask.addChild(t);
+                tasks.add(t);
+            }
+        }
+
+        //these are re-used in every task
         JSONArray annArr = new JSONArray();
         for (Annotation ann : anns) {
             annArr.put(ann.getId());
         }
         JSONObject aj = new JSONObject();
         aj.put("annotationIds", annArr);
-        JSONObject qjob = new JSONObject();
-        qjob.put("identify", aj);
-        qjob.put("taskId", task.getId());
-        qjob.put("__context", context);
-        qjob.put("__baseUrl", getBaseURL(context));
-        boolean sent = false;
-        try {
-            sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
-        } catch (java.io.IOException iox) {
-            System.out.println("ERROR: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
+        String baseUrl = getBaseURL(context);
+
+        for (int i = 0 ; i < opts.size() ; i++) {
+            JSONObject qjob = new JSONObject();
+            qjob.put("identify", aj);
+            qjob.put("taskId", tasks.get(i).getId());
+            qjob.put("__context", context);
+            qjob.put("__baseUrl", baseUrl);
+            if (opts.get(i) != null) qjob.put("opt", opts.get(i));
+            boolean sent = false;
+            try {
+                sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+            } catch (java.io.IOException iox) {
+                System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
+            }
+System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " + anns.size() + " annots; queued? = " + sent + "; " + tasks.get(i));
         }
-System.out.println("INFO: IA.intakeAnnotations() accepted " + anns.size() + " annots; queued? = " + sent + "; " + task);
-        return task;
+System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
+        return topTask;
     }
 
 
     //possibly (should?) have .taskId, and *definitely* should have .__context and .__baseUrl
+    //  note: this is processed *from the queue* and as such does not have "output"
     public static void handleRest(JSONObject jin) {
         if (jin == null) return;
         String context = jin.optString("__context", null);
@@ -169,6 +199,40 @@ System.out.println("INFO: IA.intakeAnnotations() accepted " + anns.size() + " an
         }
         myShepherd.getPM().makePersistent(topTask);
         myShepherd.commitDBTransaction();
+    }
+
+    //via IAGateway servlet, we handle the work
+    public static void handleGet(HttpServletRequest request, HttpServletResponse response) throws java.io.IOException {
+        //JSONObject rtn = queueCallback(request);
+        JSONObject rtn = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        String taskId = request.getParameter("taskId");
+
+        if (taskId != null) {
+            Task task = Task.load(taskId, myShepherd);
+            if (task == null) {
+                response.sendError(404, "Not found: taskId=" + taskId);
+                return;
+            }
+            rtn.put("success", true);
+            rtn.remove("error");
+            rtn.put("task", task.toJSONObject());
+            List<Task> leaves = task.getLeafTasks();
+            if (leaves.size() > 0) {
+                JSONArray jl = new JSONArray();
+                for (Task l : leaves) {
+                    if (l != null) jl.put(l.toJSONObject());
+                }
+                rtn.put("leafTasks", jl);
+            }
+        }
+
+        response.setContentType("text/plain");
+        PrintWriter out = response.getWriter();
+        out.println(rtn.toString());
+        out.close();
+        return;
     }
 
     public static String getBaseURL(String context) {

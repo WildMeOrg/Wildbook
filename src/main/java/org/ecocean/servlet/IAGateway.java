@@ -93,6 +93,12 @@ public class IAGateway extends HttpServlet {
         return;
     }
 
+    //"v2" is new IA package stuff -- so we just pass-thru and exit
+    if ((qstr != null) && (qstr.matches(".*\\bv2\\b.*"))) {
+        IA.handleGet(request, response);
+        return;
+    }
+
     String getOut = "";
     String context = ServletUtilities.getContext(request);
 
