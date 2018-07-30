@@ -237,10 +237,10 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
 
     public static String getBaseURL(String context) {
         String url = CommonConfiguration.getServerURL(context);
-        String containerName = CommonConfiguration.getProperty("containerName","context0");
+        String containerName = CommonConfiguration.getProperty("containerName","context0").trim();
         url = CommonConfiguration.getServerURL(context);
-        if (containerName!=null&&containerName!="") { 
-            System.out.println("Wildbook is containerized: sending proper container name to IA instead of localhost.");
+        if (containerName!=null&&!"".equals(containerName)) { 
+            System.out.println("Wildbook is containerized: sending container name: "+containerName+" to IA instead of localhost.");
             url = url.replace("localhost", containerName);
         }
         return url;
