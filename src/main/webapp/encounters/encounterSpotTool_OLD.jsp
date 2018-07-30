@@ -626,7 +626,7 @@ function allGood(d) {
   </script>
 
 
-    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold%7CInconsolata%7CPT+Sans:400,700">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Sans:regular,bold%7CInconsolata%7CPT+Sans:400,700">
     <link rel="stylesheet" href="https://inspirit.github.io/jsfeat/css/bootstrap.css">
     <link rel="stylesheet" href="https://inspirit.github.io/jsfeat/css/jsfeat.css">
     <script type="text/javascript" async="" src="../javascript/jsfeat/ga.js"></script>

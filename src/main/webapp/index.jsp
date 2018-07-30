@@ -68,7 +68,7 @@ myShepherd=new Shepherd(context);
 
 %>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="https://maps.google.com/maps/api/js?sensor=false"></script>
 
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
