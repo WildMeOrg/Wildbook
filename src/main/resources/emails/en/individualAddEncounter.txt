@@ -1,17 +1,17 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
-Hello!
 
-Just a quick email to let you know that the grey nurse shar encounter that you
-submitted has been matched to an identified manta in the MantaMatcher
-photo-identification library.
-Follow these links to find out more:
+Hi Spot A Shark USA contributor,
 
-Previously identified record: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@)
-@INDIVIDUAL_LINK@
+Exciting news! Spot A Shark USA researchers have matched the sand tiger shark in the photo that you 
+submitted to a previously identified sand tiger shark. This shark’s unique ‘animal ID’ is: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@). 
 
-New encounter: @ENCOUNTER_ID@
-@ENCOUNTER_LINK@
+You can now search for and follow this shark on Spot A Shark USA using its ‘animal ID.’ 
+If this shark has already been adopted, there are plenty more sand tigers ready for adoption. 
 
-Thanks again for your critical help. If you're interested in supporting our
-research to understand and protect animals like yours, please adopt and
-nickname your animal
+You will receive an email notification when other citizen-scientists observe this shark. To opt out of these
+emails, click ‘unsubscribe’ at the bottom of your email at any time. 
+
+Cheers, 
+
+Spot A Shark USA 
+

@@ -40,7 +40,7 @@ context=ServletUtilities.getContext(request);
 			</li>
 		</ol> 
 		<h3>
-			Method for photographing Grey Nurse Sharks
+			Method for photographing Sand Tiger Sharks
 		</h3>
 		<ol>
 			<li>
@@ -53,7 +53,7 @@ context=ServletUtilities.getContext(request);
 				Be patient, remain as still as possible in order to allow the sharks to swim past you in their natural pattern.
 			</li>
 			<li>
-				Do Not Chase or harm the shark. Refer to the Australian Department of the Environment's <a href="https://www.environment.gov.au/system/files/pages/0a19abf7-5f8d-46d1-a0ae-b11e58e47685/files/grey-nurse-code.pdf">Code of Conduct for diving with grey nurse sharks</a>.
+				Do Not Chase or harm the shark. Refer to the Australian Department of the Environment's <a href="https://www.environment.gov.au/system/files/pages/0a19abf7-5f8d-46d1-a0ae-b11e58e47685/files/grey-nurse-code.pdf">Code of Conduct for diving with Sand Tiger sharks</a>.
 			</li>
 		</ol>
 

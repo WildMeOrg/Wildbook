@@ -660,7 +660,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">
-                            <i>&ldquo;We aim to monitor and report on the health of the Australian Grey Nurse Shark by providing non-invasive tools to the dive community to record changes at their local aggregations sites. We also welcome similar groups from around the world to join this project.&rdquo;</i> </br>- Sean Barker, Project Leader</p>
+                            <i>&ldquo;We aim to monitor and report on the health of the Sand Tiger Shark by providing non-invasive tools to the dive community to record changes at their local aggregations sites. We also welcome similar groups from around the world to join this project.&rdquo;</i> </br>- Sean Barker, Project Leader</p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>

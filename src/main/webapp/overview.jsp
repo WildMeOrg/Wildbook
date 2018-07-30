@@ -6,13 +6,13 @@
   <h2>Overview of Our Project</h2>
 
   <p>
-		Spot a Shark is keen to move from a closed science-based model to an open citizen science approach, enabling greater engagement by the diving community in monitoring the populations of Grey Nurse Sharks (<em>C. taurus</em>). The system is also open to begin monitoring the population on the west coast, where little is known about the population.
+		Spot a Shark is keen to move from a closed science-based model to an open citizen science approach, enabling greater engagement by the diving community in monitoring the populations of Sand Tiger Sharks (<em>C. taurus</em>). The system is also open to begin monitoring the population on the west coast, where little is known about the population.
 	</p>
 	<p>
 		Our aim is to encourage community-based management of <em>C. taurus</em>&nbsp;&thinsp;by providing an on-line tool for both researchers and divers. We hope dive communities that regularly visit their local aggregation site and value the health of the population will use this tool. We also welcome other researchers from across Australia and around the world to take advantage of the online database created by <a href="http://www.wildme.org/">Wild Me</a>. The data gathered will feed into other global platforms, such as the Census of Marine Life, OBIS, Image Based Ecological Information System (IBEIS) and GBIF, contributing to global big data analytics.
 	</p>
 	<p>
-		Spot a Shark has been conducting regular surveys of the Grey Nurse Shark population along the east coast of Australia since 2000. We now have a substantial photographic database of well over 5,000 images, largely thanks to the diving community up and down the east coast of Australia. These divers are all driven by a sense of stewardship for this passive shark.
+		Spot a Shark has been conducting regular surveys of the Sand Tiger Shark population along the east coast of Australia since 2000. We now have a substantial photographic database of well over 5,000 images, largely thanks to the diving community up and down the east coast of Australia. These divers are all driven by a sense of stewardship for this passive shark.
 	</p>
 	<p>
 		Our research involves non-invasive photo identification of sharks using computerised pigmentation spot matching technology. This is used to determine site fidelity, migration patterns, and whether the population is stable, declining or increasing. Photo Identification can also be utilised to assess this species abundance, population structure, site fidelity and long-term distance movements. For more on our aims to improve policy, see <a href="">our conservation page</a>.
