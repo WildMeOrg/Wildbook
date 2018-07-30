@@ -61,6 +61,29 @@ context=ServletUtilities.getContext(request);
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
 	//String encSubdir = Encounter.subdir(num);
   //File thisEncounterDir = new File(encountersDir, encSubdir);   //never used??
+
+    // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+  boolean usaUser = false;
+  String userName = "";
+  Shepherd userShepherd = new Shepherd(context);
+  if (request.getUserPrincipal()!=null) {
+    userName = request.getUserPrincipal().getName();
+    userShepherd.beginDBTransaction();
+    List<Role> roles = userShepherd.getAllRolesForUser(userName);
+    for (Role role : roles) {
+      if (role.getRolename().equals("spotasharkusa")) {
+        usaUser = true;
+      }
+    }
+    userShepherd.rollbackDBTransaction();
+    userShepherd.closeDBTransaction();
+  }
+
+  // Part Two hackety hack to switch URLs for US users
+  String linkURLBase = CommonConfiguration.getURLLocation(request);
+  if (usaUser) {
+    linkURLBase = "ncaquariums.wildbook.org";
+  }
  
 %>
 
@@ -215,7 +238,7 @@ td, th {
 </p>
 <p>The following encounter(s) received the best
   match values using the I3S algorithm against a <%=side%>-side scan of
-  encounter <a href="encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
+  encounter <a href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
 <%
@@ -253,12 +276,12 @@ td, th {
 		          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
 		          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
 		    <PARAM NAME="movie"
-		           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
+		           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=linkURLBase%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
 		    <PARAM NAME="quality" VALUE="high">
 		    <PARAM NAME="scale" VALUE="exactfit">
 		    <PARAM NAME="bgcolor" VALUE="#ddddff">
 		    <EMBED
-		      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+		      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=linkURLBase%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
 		      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
 		      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
 		      TYPE="application/x-shockwave-flash"
@@ -290,14 +313,14 @@ td, th {
         <tr align="left" valign="top">
          
                 <td width="60" align="left"><a
-                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a></td>
              
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>">Link
+            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>">Link
           </a></td>
           <%
             }
@@ -335,14 +358,14 @@ td, th {
         <tr align="left" valign="top">
           
                 <td width="60" align="left"><a
-                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
+                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
                 </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>"><%=enc1.attributeValue("number")%>
+            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>"><%=enc1.attributeValue("number")%>
           </a></td>
           <%
             }
