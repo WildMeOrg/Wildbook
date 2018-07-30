@@ -2459,6 +2459,7 @@ System.out.println(">>>>>>>> age -> " + rtn);
         JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
         settings.put("IBEISIARestUrlAddAnnotations", IA.getProperty(context, "IBEISIARestUrlAddAnnotations"));
         rtn.put("settings", settings);
+        rtn.put("identOpts", identOpts(context));
         return rtn;
     }
 
