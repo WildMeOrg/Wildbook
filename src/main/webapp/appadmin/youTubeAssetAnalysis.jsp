@@ -8,7 +8,7 @@ java.io.*,org.json.JSONObject,java.util.*, java.io.FileInputStream,org.ecocean.i
  java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%!
-private String translateIfNotEnglish(String text){
+private String translateIfNotEnglish(String text) throws MalformedURLException {
 	String shortForm=text;
 	if(shortForm.length()>500){shortForm=shortForm.substring(0,499);}
 	String langCode=DetectTranslate.detectLanguage(shortForm);
