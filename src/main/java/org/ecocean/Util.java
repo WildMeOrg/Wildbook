@@ -658,6 +658,12 @@ public class Util {
       return (f.exists() && !f.isDirectory());
     } 
 
+    //handles fuzzy case where url?key=value wants to test that 'key' is "set" (namely exists *and* is not explicitely "false")
+    public static boolean requestParameterSet(String value) {
+        if (value == null) return false;
+        value = value.toLowerCase();
+        return !(value.equals("false") || value.equals("f") || value.equals("0"));
+    }
 
     
     public static String basicSanitize(String input) {
