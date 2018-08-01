@@ -28,6 +28,7 @@ public class Task implements java.io.Serializable {
     private List<Annotation> objectAnnotations = null;
     private Task parent = null;
     private List<Task> children = null;
+    private String parameters = null;
 
     public Task() {
         this(Util.generateUUID());
@@ -124,12 +125,36 @@ public class Task implements java.io.Serializable {
         return parent.getRootTask();
     }
 
+    public JSONObject getParameters() {  //only return as JSONObject!  TODO probably validate content below?
+        if (parameters == null) return null;
+        return Util.stringToJSONObject(parameters);
+    }
+    // see comment above: should this even be public?  (or exist)
+    public void setParameters(String s) {  //best be json, yo
+        parameters = s;
+    }
+    public void setParameters(JSONObject j) {
+        if (j == null) {
+            parameters = null;
+        } else {
+            parameters = j.toString();
+        }
+    }
+    //convenience method to construct the JSONObject from key/value
+    public void setParameters(String key, Object value) {
+        if (key == null) return;  //nope
+        JSONObject j = new JSONObject();
+        j.put(key, value);  //value object type better be kosher for JSONObject.  :/
+        parameters = j.toString();
+    }
+
     public JSONObject toJSONObject() {
         return this.toJSONObject(false);
     }
     public JSONObject toJSONObject(boolean includeChildren) {
         JSONObject j = new JSONObject();
         j.put("id", id);
+        j.put("parameters", this.getParameters());
         j.put("created", created);
         j.put("modified", modified);
         j.put("createdDate", new DateTime(created));
@@ -165,6 +190,7 @@ public class Task implements java.io.Serializable {
                 .append(numChildren() + "Kids")
                 .append(countMediaAssetObjects() + "MA")
                 .append(countAnnotationObjects() + "Ann")
+                .append("params=" + ((this.getParameters() == null) ? "(none)" : this.getParameters().toString()))
                 .toString();
     }
 
