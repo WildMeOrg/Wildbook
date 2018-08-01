@@ -663,9 +663,13 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
     private static Object mediaAssetToUri(MediaAsset ma) {
 //System.out.println("=================== mediaAssetToUri " + ma + "\n" + ma.getParameters() + ")\n");
+        URL curl = ma.containerURLIfPresent();
+        if (curl == null) curl = ma.webURL();
+
         if (ma.getStore() instanceof LocalAssetStore) {
             //return ma.localPath().toString(); //nah, lets skip local and go for "url" flavor?
-            return ma.containerURLIfPresent().toString();
+            if (curl == null) return null;
+            return curl.toString();
         } else if (ma.getStore() instanceof S3AssetStore) {
             return ma.getParameters();
 /*
@@ -678,7 +682,8 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             return b;
 */
         } else {
-            return ma.containerURLIfPresent().toString();  //a better last gasp hope
+            if (curl == null) return null;
+            return curl.toString();
         }
     }
 
@@ -1215,6 +1220,7 @@ System.out.println("**** type ---------------> [" + type + "]");
             Shepherd myShepherd2 = new Shepherd(context);
             myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
             myShepherd2.beginDBTransaction();
+            Task parentTask = Task.load(taskID, myShepherd2);
             Iterator<?> keys = newAnns.keys();
             while (keys.hasNext()) {
                 String maId = (String) keys.next();
@@ -1232,8 +1238,12 @@ System.out.println("     ---> " + annIds);
             if (needIdentifying.size() > 0) {
                 Task task = IA.intakeAnnotations(myShepherd2, needIdentifying);
                 rtn.put("identificationTaskId", task.getId());
+                if (parentTask != null) parentTask.addChild(task);
+                myShepherd2.getPM().makePersistent(task);
+                myShepherd2.commitDBTransaction();
+            } else {
+                myShepherd2.rollbackDBTransaction();
             }
-            myShepherd2.rollbackDBTransaction();
             myShepherd2.closeDBTransaction();
         }
 

@@ -33,6 +33,7 @@ import org.ecocean.media.*;
 import org.ecocean.identity.*;
 import org.ecocean.queue.*;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.Task;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -532,6 +533,13 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         } else {
             j.put("taskId", taskId);
         }
+System.out.println("A-LOAD");
+        Task task = Task.load(taskId, myShepherd);
+        if (task == null) task = new Task(taskId);
+System.out.println("A-LOADED");
+        myShepherd.getPM().makePersistent(task);
+        myShepherd.commitDBTransaction();  //hack
+        //myShepherd.closeDBTransaction();
 
         boolean ok = addToQueue(context, j.toString());
         if (ok) {
@@ -571,6 +579,9 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         if (res == null) throw new RuntimeException("IAGateway._doDetect() called without res passed in");
         String taskId = res.optString("taskId", null);
         if (taskId == null) throw new RuntimeException("IAGateway._doDetect() has no taskId passed in");
+System.out.println("PRELOADED");
+        Task task = Task.load(taskId, myShepherd);  //might be null in some cases, such as non-queued  ... maybe FIXME when we dump cruft?
+System.out.println("LOADED???? " + taskId + " --> " + task);
         String context = myShepherd.getContext();
         if (baseUrl == null) return res;
         if (jin == null) return res;
@@ -584,7 +595,6 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
             JSONArray ids = j.getJSONArray("mediaAssetIds");
             for (int i = 0 ; i < ids.length() ; i++) {
                 int id = ids.optInt(i, 0);
-System.out.println(id);
                 if (id < 1) continue;
                 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
                 if (ma != null) {
@@ -605,6 +615,10 @@ System.out.println(id);
         }
 
         if (mas.size() > 0) {
+            if (task != null) {
+                task.setObjectMediaAssets(mas);
+                task.setParameters("{\"ibeis.detection\": true}");
+            }
             for (MediaAsset ma : mas) {
                 validIds.add(Integer.toString(ma.getId()));
                 if (ma.getOccurrence() == null) needOccurrences.add(ma);
@@ -1168,6 +1182,7 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
 
     //TODO clean this up!  now that this is moved here, there is probably lots of redundancy with above no?
     public static void processQueueMessage(String message) {
+//System.out.println("DEBUG: IAGateway.processQueueMessage -> " + message);
         if (message == null) return;
         JSONObject jobj = null;
         try {
@@ -1194,7 +1209,7 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
             myShepherd.beginDBTransaction();
             String baseUrl = jobj.optString("__baseUrl", null);
             try {
-                JSONObject rtn = IAGateway._doDetect(jobj, res, myShepherd, baseUrl);
+                JSONObject rtn = _doDetect(jobj, res, myShepherd, baseUrl);
                 System.out.println("INFO: IAGateway.processQueueMessage() 'detect' successful --> " + rtn.toString());
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {

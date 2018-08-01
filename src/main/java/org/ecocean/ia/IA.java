@@ -116,11 +116,13 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
         if (opts.size() == 1) {
+            topTask.setParameters("ibeis.identification", opts.get(0));
             tasks.add(topTask);  //topTask will be used as *the*(only) task -- no children
         } else {
             for (int i = 0 ; i < opts.size() ; i++) {
                 Task t = new Task();
                 t.setObjectAnnotations(anns);
+                t.setParameters("ibeis.identification", opts.get(i));
                 topTask.addChild(t);
                 tasks.add(t);
             }
@@ -158,24 +160,29 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
     //possibly (should?) have .taskId, and *definitely* should have .__context and .__baseUrl
     //  note: this is processed *from the queue* and as such does not have "output"
     public static void handleRest(JSONObject jin) {
+System.out.println("JIN JIN JIN: " + jin);
         if (jin == null) return;
         String context = jin.optString("__context", null);
         if (context == null) throw new RuntimeException("IA.handleRest(): passed data has no __context");
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IA.handleRest");
         myShepherd.beginDBTransaction();
-        Task topTask = new Task(jin.optString("taskId", Util.generateUUID()));
+        String taskId = jin.optString("taskId", Util.generateUUID());
+        Task topTask = Task.load(taskId, myShepherd);
+        if (topTask == null) topTask = new Task(taskId);
         JSONObject opt = jin.optJSONObject("opt");  // should use this to decide how to branch differently than "default"
 
         //for now (TODO) we just send MAs off to detection and annots off to identification
 
         JSONArray mlist = jin.optJSONArray("mediaAssetIds");
         if ((mlist != null) && (mlist.length() > 0)) {
+System.out.println("MLIST: " + mlist);
             List<MediaAsset> mas = new ArrayList<MediaAsset>();
             for (int i = 0 ; i < mlist.length() ; i++) {
                 int mid = mlist.optInt(i, -1);
                 if (mid < 1) continue;
                 MediaAsset ma = MediaAssetFactory.load(mid, myShepherd);
+System.out.println(i + " -> " + ma);
                 if (ma == null) continue;
                 mas.add(ma);
             }
@@ -217,15 +224,7 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
             }
             rtn.put("success", true);
             rtn.remove("error");
-            rtn.put("task", task.toJSONObject());
-            List<Task> leaves = task.getLeafTasks();
-            if (leaves.size() > 0) {
-                JSONArray jl = new JSONArray();
-                for (Task l : leaves) {
-                    if (l != null) jl.put(l.toJSONObject());
-                }
-                rtn.put("leafTasks", jl);
-            }
+            rtn.put("task", task.toJSONObject(Util.requestParameterSet(request.getParameter("includeChildren"))));
         }
 
         response.setContentType("text/plain");
@@ -237,7 +236,8 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
 
     public static String getBaseURL(String context) {
         String url = CommonConfiguration.getServerURL(context);
-        String containerName = CommonConfiguration.getProperty("containerName","context0").trim();
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
+        if (containerName != null) containerName = containerName.trim();
         url = CommonConfiguration.getServerURL(context);
         if (containerName!=null&&!"".equals(containerName)) { 
             System.out.println("Wildbook is containerized: sending container name: "+containerName+" to IA instead of localhost.");
