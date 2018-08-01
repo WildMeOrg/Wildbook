@@ -707,6 +707,7 @@ public class MediaAsset implements java.io.Serializable {
         String containerName = CommonConfiguration.getProperty("containerName","context0");
 
         URL localURL = store.getConfig().getURL("webroot"); 
+        if (localURL == null) return null;
         String hostname = localURL.getHost(); 
 
         if (containerName!=null&&containerName!="") {
