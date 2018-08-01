@@ -1269,6 +1269,9 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
                   double sw_lat = (new Double(request.getParameter("sw_lat"))).doubleValue();
                   double sw_long=(new Double(request.getParameter("sw_long"))).doubleValue();
 
+                  //The latitude must be a number between -90 and 90 and the longitude between -180 and 180.
+                  
+                  
                   if((sw_long>0)&&(ne_long<0)){
                     //if(!((encLat<=ne_lat)&&(encLat>=sw_lat)&&((encLong<=ne_long)||(encLong>=sw_long)))){
 
@@ -1297,8 +1300,14 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
                   }
 
                   thisLocalFilter+=" )";
-                  if(filter.equals("")){filter=thisLocalFilter;}
-                  else{filter+=" && "+thisLocalFilter;}
+                  
+                  if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+                    filter += " && ";
+                  }
+                  filter+=thisLocalFilter;
+                  //if(filter.equals("")){filter=thisLocalFilter;}
+                  //else if(){filter+=" && "+thisLocalFilter;}
+                  //else{filter+=" && "+thisLocalFilter;}
 
                   prettyPrint.append("GPS Boundary NE: \""+request.getParameter("ne_lat")+", "+request.getParameter("ne_long")+"\".<br />");
                   prettyPrint.append("GPS Boundary SW: \""+request.getParameter("sw_lat")+", "+request.getParameter("sw_long")+"\".<br />");
