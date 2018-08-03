@@ -113,8 +113,7 @@ try{
 			sb.append("@RELATION YouTubeWhaleShark\n\n@ATTRIBUTE description String\n@ATTRIBUTE class {good,poor}\n\n@data\n");
 			
 		}
-		int gotLangCode = 0;
-		for(int i=0;i<numResults;i++){
+		for(int i=0;i<200;i++){
 			
 			//YouTubeAsset itself
 			MediaAsset ma=results.get(i);
@@ -149,8 +148,6 @@ try{
     			ArrayList<Encounter> encresults=new ArrayList<Encounter>(d);
     			newQ.closeAll();
     			int numEncs=encresults.size();
-
-
     			if(numEncs>0){
     				goodDataVideos.add(ma);
     				
@@ -160,10 +157,10 @@ try{
     				videoDescription=translateIfNotEnglish(videoDescription);		
     				
     				if(!concatenate){
-    					sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',good \n");
+    					sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',good\n");
     				}
     				else{
-    					sb.append("'"+videoTitle+" "+videoDescription+" "+videoTags+"',good \n");
+    					sb.append("'"+videoTitle+" "+videoDescription+" "+videoTags+"',good\n");
     	    			
     				}
     			}
@@ -207,7 +204,6 @@ try{
 			
 		
 		}
-		sb.append("\n Got a langCode for "+gotLangCode+"/"+numResults) 
 		
 	%>
 %Num discard assets (negative training data): <%=poorDataVideos.size() %><br>
