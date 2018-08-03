@@ -667,7 +667,12 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
         if (jin == null) return res;
         JSONObject j = jin.optJSONObject("identify");
         if (j == null) return res;  // "should never happen"
-        JSONObject opt = j.optJSONObject("opt");
+/*
+    TODO? right now this 'opt' is directly from IBEISIA.identOpts() ????? hmmmm....
+    note then that for IBEIS this effectively gets mapped via queryConfigDict to usable values
+    we also might consider incorporating j.opt (passed within identify:{} object itself, from the api/gateway) ???
+*/
+        JSONObject opt = jin.optJSONObject("opt");
         ArrayList<Annotation> anns = new ArrayList<Annotation>();  //what we ultimately run on.  occurrences are irrelevant now right?
         ArrayList<String> validIds = new ArrayList<String>();
         int limitTargetSize = j.optInt("limitTargetSize", -1);  //really "only" for debugging/testing, so use if you know what you are doing
