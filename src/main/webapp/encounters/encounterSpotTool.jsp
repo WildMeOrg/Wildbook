@@ -623,7 +623,6 @@ $(document).ready(function() {
 		
 <div id="imageTools-wrapper">
 	<div id="imageTools-wl-wrapper">
-		<div class="instruction">Place spots here</div>
 		<canvas id="imageTools-workCanvas"></canvas>
 		<canvas id="imageTools-layerCanvas"></canvas>
 	</div>
