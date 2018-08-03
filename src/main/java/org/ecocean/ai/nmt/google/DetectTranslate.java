@@ -1,4 +1,4 @@
-package org.ecocean.ai.nmt.google;
+package org.ecocean.ai.nmt.azure;
 
 
 import com.google.cloud.translate.Detection;

@@ -6,7 +6,7 @@ import java.util.Properties;
 import java.util.regex.*;
 import javax.servlet.http.HttpServletRequest;
 import org.ecocean.ShepherdProperties;
-import org.ecocean.ai.nmt.google.DetectTranslate;
+import org.ecocean.ai.nmt.azure.DetectTranslate;
 
 import java.util.*;
 import edu.stanford.nlp.pipeline.*;

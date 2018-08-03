@@ -38,7 +38,7 @@ import com.google.api.services.youtube.model.*;
 import com.google.api.services.youtube.YouTube.CommentThreads;
 
 import org.ecocean.ai.nlp.SUTime;
-import org.ecocean.ai.nmt.google.DetectTranslate;
+import org.ecocean.ai.nmt.azure.DetectTranslate;
 import org.ecocean.media.*;
 
 import java.util.ArrayList;

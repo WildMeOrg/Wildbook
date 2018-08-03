@@ -5,7 +5,7 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
-import org.ecocean.ai.nmt.google.DetectTranslate;
+import org.ecocean.ai.nmt.azure.DetectTranslate;
 import org.ecocean.ai.ocr.google.GoogleOcr;
 import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.media.YouTubeAssetStore;

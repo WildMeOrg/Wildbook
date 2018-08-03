@@ -19,7 +19,7 @@ weka.core.Attribute,
 weka.core.DenseInstance, 
 org.ecocean.ai.weka.Classify,
 weka.core.Instances,
-org.ecocean.ai.nmt.google.*
+org.ecocean.ai.nmt.azure.*
               "
 %>
 

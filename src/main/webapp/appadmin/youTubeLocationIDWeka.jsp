@@ -3,7 +3,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
-org.ecocean.grid.*,org.ecocean.ai.nmt.google.*,
+org.ecocean.grid.*,org.ecocean.ai.nmt.azure.*,
 java.io.*,org.json.JSONObject,java.util.*, 
 java.util.regex.Pattern,
 java.util.regex.Matcher,
