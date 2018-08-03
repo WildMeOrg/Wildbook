@@ -59,14 +59,20 @@ public class ParseDateLocation {
   }
 
   public static String detectLanguageAndTranslateToEnglish(String text, String context) throws RuntimeException{
-    String detectedLanguage = DetectTranslate.detectLanguage(text);
-    if(!detectedLanguage.toLowerCase().startsWith("en")){
-      text= DetectTranslate.translateToEnglish(text);
+    try{
+      String detectedLanguage = DetectTranslate.detectLanguage(text);
+      if(!detectedLanguage.toLowerCase().startsWith("en")){
+        text= DetectTranslate.translateToEnglish(text);
+      }
+      if(text !=null && !text.equals("")){
+        return text;
+      } else{
+        throw new RuntimeException("Translation failed: text started out as or became null or empty");
+      }
     }
-    if(text !=null && !text.equals("")){
-      return text;
-    } else{
-      throw new RuntimeException("Translation failed: text started out as or became null or empty");
+    catch(Exception e){
+      e.printStackTrace();
+      return null;
     }
   }
 
