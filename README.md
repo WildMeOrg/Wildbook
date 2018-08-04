@@ -61,9 +61,10 @@ HTML entity encoder/decoder: https://mothereff.in/html-entities
 
 <h2>Configuration changes</h2>
 
-**commonConfiguration.properties** here (for reference only, gets overridden): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
+Add new location ID names to **commonConfiguration.properties**, then request that changes be merged into the working version (not stored on GH):
+https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
 
-Add **new location IDs** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
+Add **new location ID coordinates** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
 
 <h2>Styling</h2>
 
