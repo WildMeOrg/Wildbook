@@ -132,67 +132,8 @@ new_message.append("<html><body>");
     myShepherd.closeDBTransaction();
     
   }
+  
 
-  String thumbLocation = "file-"+thisEncounterDir.getAbsolutePath() + "/thumb.jpg";
-  if (myShepherd.isAcceptableVideoFile(addText)) {
-    addText = rootWebappPath+"/images/video_thumb.jpg";
-  } 
-  else if(myShepherd.isAcceptableImageFile(addText)){
-    addText = thisEncounterDir.getAbsolutePath() + "/" + addText;
-  }
-  else if(addText.equals("")){
-	  addText = rootWebappPath+"/images/no_images.jpg";
-  }
-
-
-  //File file2process = new File(getServletContext().getRealPath(("/" + addText)));
-
-  File file2process = new File(addText);
-	File thumbFile = new File(thumbLocation.substring(5));
-
-
-  if(file2process.exists() && myShepherd.isAcceptableImageFile(file2process.getName())){
-  	int intWidth = 100;
-  	int intHeight = 75;
-  	int thumbnailHeight = 75;
-  	int thumbnailWidth = 100;
-
-
-  	String height = "";
-  	String width = "";
-
-  	Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
-
-  width = Double.toString(imageDimensions.getWidth());
-  height = Double.toString(imageDimensions.getHeight());
-
-  intHeight = ((new Double(height)).intValue());
-  intWidth = ((new Double(width)).intValue());
-
-  if (intWidth > thumbnailWidth) {
-    double scalingFactor = intWidth / thumbnailWidth;
-    intWidth = (int) (intWidth / scalingFactor);
-    intHeight = (int) (intHeight / scalingFactor);
-    if (intHeight < thumbnailHeight) {
-      thumbnailHeight = intHeight;
-    }
-  } else {
-    thumbnailWidth = intWidth;
-    thumbnailHeight = intHeight;
-  }
-
-
-%>
-
-
-<di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>" border="0" fillPaint="#ffffff"
-        output="<%=thumbLocation%>" expAfter="0" threading="limited" align="left" valign="left">
-  <di:image width="<%=Integer.toString(intWidth) %>" height="<%=Integer.toString(intHeight) %>"
-            srcurl="<%=addText%>"/>
-</di:img>
-
-<%
-}
 %>
 
 <h1 class="intro"><%=props.getProperty("success") %></h1>
@@ -220,7 +161,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   // Email new submission address(es) defined in commonConfiguration.properties
   Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
   List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
-  String mailSubj = "New encounter submission: " + number;
+  String mailSubj = props.getProperty("newEncounter") + number;
   for (String emailTo : mailTo) {
     NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo, "newSubmission-summary", tagMap);
     mailer.setUrlScheme(request.getScheme());
