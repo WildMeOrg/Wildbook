@@ -1,0 +1,68 @@
+hab pkg install chef/ci-studio-common >/dev/null
+source "$(hab pkg path chef/ci-studio-common)/bin/studio-common"
+
+# This removes the visual mode when select text with the mouse in vim. 
+echo "set mouse-=a" >> ~/.vimrc
+
+export POSTGRESQL_PORT=5432
+export WILDBOOK_PORT=8080
+
+function start() {
+  install_if_missing core/busybox-static netstat 2> /dev/null;
+  netstat -an | grep $WILDBOOK_PORT | grep LISTEN >/dev/null 2>/dev/null
+  if [ $? == 0 ]; then
+    echo "wildbook is already running";
+    return;
+  fi
+
+  hab pkg path $HAB_ORIGIN/wildbook 2> /dev/null > /dev/null
+  if [[ $? -ne 0 ]]; then
+    echo "Run 'build' before starting the service";
+    return;
+  fi
+
+  start_sup;
+
+  start_postgres;
+
+  mkdir -p /hab/user/wildbook/config/
+  printf "tomcat_port = $WILDBOOK_PORT\n" > /hab/user/wildbook/config/user.toml
+
+  hab svc load $HAB_ORIGIN/wildbook --bind postgresql:postgresql.default
+
+  wait_or_fail_for_port_to_listen $WILDBOOK_PORT
+}
+
+function start_postgres() {
+  install_if_missing core/busybox-static netstat;
+  netstat -an | grep $POSTGRESQL_PORT | grep LISTEN >/dev/null 2>/dev/null
+  if [ $? == 0 ]; then
+    echo "postgres is already running";
+    return;
+  fi
+
+  start_sup;
+
+  mkdir -p /hab/user/postgresql/config/
+  printf "port = $POSTGRESQL_PORT\n" > /hab/user/postgresql/config/user.toml
+
+  hab svc load core/postgresql 
+
+  wait_or_fail_for_port_to_listen $POSTGRESQL_PORT
+}
+
+function status() {
+ hab svc status | column -t;
+}
+
+function start_sup() {
+  hab svc status 2>/dev/null 1>&2
+  [[ $? == 0 ]] && return
+  mkdir -p /hab/sup/default
+  echo "=> Launching the Habitat Supervisor in the background..."
+  hab sup run $* > /hab/sup/default/sup.log &
+  while : ; do
+    hab svc status >/dev/null
+    [[ $? -eq 0 ]] && break || sleep 1
+  done
+}

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+exec 2>&1
+
+if path={{pkgPathFor "core/jdk8"}}; then
+  export JAVA_HOME=$path
+fi
+if [ -z ${JAVA_HOME+x} ]; then
+  echo "Cannot start without core/jdk8"
+  exit 1
+fi
+
+export TOMCAT_HOME="{{pkg.svc_data_path}}/"
+
+cp {{pkg.path}}/*.war $TOMCAT_HOME/webapps/wildbook.war
+
+exec ${TOMCAT_HOME}/bin/catalina.sh run
