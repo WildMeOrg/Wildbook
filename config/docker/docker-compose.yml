@@ -1,0 +1,22 @@
+version: '3'
+services:
+  wildbook:
+    image: wildbook
+    environment:
+      - DB_CONNECTION_URL=jdbc:postgresql://postgres:5432/wildbook
+    ports:
+      - "8080:8080"
+      - "8009:8009"
+    restart: always
+    links:
+      - postgres
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_USER=wildbook
+      - POSTGRES_PASSWORD=wildbook
+      - POSTGRES_DB=wildbook
+    restart: always

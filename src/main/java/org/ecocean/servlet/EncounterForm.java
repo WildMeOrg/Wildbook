@@ -833,7 +833,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       enc.setPhotographerAddress(getVal(fv, "photographerAddress"));
       enc.setPhotographerName(getVal(fv, "photographerName"));
       enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
-      enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + request.getRemoteHost() + "</p>");
+      enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + ServletUtilities.getRemoteHost(request) + "</p>");
       //enc.approved = false;
 
       enc.addComments(processingNotes.toString());
@@ -947,6 +947,9 @@ System.out.println("depth --> " + fv.get("depth").toString());
                 //enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
                 enc.refreshAssetFormats(myShepherd);
 
+                //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
+                //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
+                org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);

@@ -141,7 +141,7 @@ oh, and incidentally GPS block often has time in it too.  :( :( :(   @@
             try {
                 dt = new DateTime(dateParser.parse(val));
             } catch (java.text.ParseException ex) { }
-System.out.println("* MediaAssetMetadata.getDateTime(): " + key + "[" + val + "] -> " + dt);
+//System.out.println("* MediaAssetMetadata.getDateTime(): " + key + "[" + val + "] -> " + dt);
             if (dt == null) continue;
             if (count.get(dt) == null) {
                 count.put(dt, 1);
@@ -152,7 +152,7 @@ System.out.println("* MediaAssetMetadata.getDateTime(): " + key + "[" + val + "]
             if (key.toLowerCase().indexOf("original") > -1) count.put(dt, count.get(dt) + 2);
             if (key.toLowerCase().indexOf("digitized") > -1) count.put(dt, count.get(dt) + 1);
         }
-System.out.println("* MediaAssetMetadata.getDateTime(): summary => " + count);
+//System.out.println("* MediaAssetMetadata.getDateTime(): summary => " + count);
         if (count.size() < 1) return null;  //no such luck!
         DateTime bestest = null;
         int bestestCount = 0;

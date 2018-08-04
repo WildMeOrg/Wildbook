@@ -11,7 +11,6 @@ import java.lang.StringBuffer;
 
 import javax.jdo.Query;
 
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -66,7 +65,7 @@ public class GenePopExport extends HttpServlet{
 
       //start the query and get the results
       String order = "";
-      HttpServletRequest request1=(MockHttpServletRequest)request.getSession().getAttribute("locationSearch1");
+      HttpServletRequest request1=(HttpServletRequest)request.getSession().getAttribute("locationSearch1");
     
       if((request!=null)&&(request1!=null)){
     

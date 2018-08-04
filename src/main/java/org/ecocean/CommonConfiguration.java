@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.servlet.ServletContext;
+import org.json.JSONObject;
 
 
 
@@ -148,6 +149,92 @@ public class CommonConfiguration {
     return getServerURI(req, contextPath).toASCIIString();
   }
 
+    /* these are to provide equivalent URI as above, but *without* the need for the request object, via a bit of
+       magic and persistence in the db (hence the need for context or Shepherd)
+       also, for convenience (and since it seems unlikely that it should ever!), it does NOT throw an exception
+       (but can be null in weird extremes, e.g. very first time tomcat is run)
+    */
+    public static URI getServerURI(String context) {
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.beginDBTransaction();
+        URI u = getServerURI(myShepherd);
+        myShepherd.rollbackDBTransaction();
+        return u;
+    }
+    public static String getServerURL(String context) {
+        URI u = getServerURI(context);
+        if (u == null) return null;
+        return u.toASCIIString().replace(":80/", "/");  //hide :80 cuz its tacky
+    }
+    public static URI getServerURI(Shepherd myShepherd) {
+        JSONObject info = getServerInfo(myShepherd);
+        if (info == null) return null;
+        try {
+            return new URI(
+                info.optString("scheme", null),
+                null,
+                info.optString("serverName", null),
+                info.optInt("serverPort", 80),
+                info.optString("contextPath", null),
+                null, null
+            ).normalize();
+        } catch (URISyntaxException ex) {
+            System.out.println("CommonConfiguration.getServerURL() threw " + ex.toString());
+            return null;
+        }
+    }
+    public static String getServerURL(Shepherd myShepherd) {
+        URI u = getServerURI(myShepherd);
+        if (u == null) return null;
+        return u.toASCIIString().replace(":80/", "/");  //hide :80 cuz its tacky
+    }
+    //TODO maybe these should be private so as not to be overused
+    public static JSONObject getServerInfo(Shepherd myShepherd) {
+        return SystemValue.getJSONObject(myShepherd, "SERVER_INFO");
+    }
+    public static void setServerInfo(Shepherd myShepherd, JSONObject info) {
+        SystemValue.set(myShepherd, "SERVER_INFO", info);
+    }
+
+    public static void ensureServerInfo(Shepherd myShepherd, HttpServletRequest req) {
+      myShepherd.setAction("header_checkServerInfo.jsp");
+      myShepherd.beginDBTransaction();
+      boolean updated = checkServerInfo(myShepherd, req);
+      if (updated) {
+          myShepherd.commitDBTransaction();
+      } else {
+          myShepherd.rollbackDBTransaction();
+      }
+    }
+
+    //does the main sanity check to see if url-info is correct or needs updating
+    public static boolean checkServerInfo(Shepherd myShepherd, HttpServletRequest req) {
+        boolean updated = false;
+        JSONObject info = getServerInfo(myShepherd);
+        if (info == null) info = new JSONObject();
+        if (!info.optString("scheme", "__FAIL__").equals(req.getScheme())) {
+            info.put("scheme", req.getScheme());
+            updated = true;
+        }
+        if (!info.optString("serverName", "__FAIL__").equals(req.getServerName())) {
+            info.put("serverName", req.getServerName());
+            updated = true;
+        }
+        if (info.optInt("serverPort", -1) != req.getServerPort()) {
+            info.put("serverPort", req.getServerPort());
+            updated = true;
+        }
+        if (!info.optString("contextPath", "__FAIL__").equals(req.getContextPath())) {
+            info.put("contextPath", req.getContextPath());
+            updated = true;
+        }
+        if (!updated) return false;
+        info.put("timestamp", System.currentTimeMillis());
+        info.put("context", myShepherd.getContext());
+        setServerInfo(myShepherd, info);
+        System.out.println("INFO: CommonConfiguration.checkServerInfo() has update server info data to " + info.toString());
+        return true;
+    }
 
   public static String getMailHost(String context) {
     String s = getProperty("mailHost", context);
@@ -275,11 +362,19 @@ public class CommonConfiguration {
   }
 
   public static String getGoogleMapsKey(String context) {
-    return getProperty("googleMapsKey",context);
+    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleMapsKey");
   }
 
   public static String getGoogleSearchKey(String context) {
-    return getProperty("googleSearchKey",context);
+    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleSearchKey");
+  }
+
+  public static String getDefaultGoogleMapsCenter(String context) {
+    if (getProperty("googleMapsCenter",context)!=null) {
+      return getProperty("googleMapsCenter",context);
+    } else {
+      return "{lat: 35.2195, lng: -75.6903}";
+    }
   }
 
   public static String getProperty(String name, String context) {
