@@ -1,5 +1,9 @@
 # Dev Docs Readme
 
+Default 
+username: tomcat
+Password: tomcat123
+
 ## Habitat Development
 Developing with habitat allows the developer to not have to install tomcat or postgres to test their code changes. 
 The below steps are tested on Mac and Linux desktops. 
