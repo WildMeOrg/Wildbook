@@ -12,6 +12,4 @@ fi
 
 export TOMCAT_HOME="{{pkg.svc_data_path}}/"
 
-cp {{pkg.path}}/*.war $TOMCAT_HOME/webapps/wildbook.war
-
 exec ${TOMCAT_HOME}/bin/catalina.sh run
