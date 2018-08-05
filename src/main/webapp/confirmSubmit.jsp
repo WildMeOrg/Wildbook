@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.Dimension, java.io.File, java.util.*, java.util.concurrent.ThreadPoolExecutor, javax.servlet.http.HttpSession" %>
-<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
+         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, 
+         java.io.File, java.util.*, javax.servlet.http.HttpSession" %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
@@ -59,14 +59,14 @@ new_message.append("<html><body>");
     "/encounters/encounter" +
     ".jsp?number="+ number);
   new_message.append("<br><br>Quick stats:<br>");
-  String photographer = "None";
-  boolean emailPhoto = false;
+  //String photographer = "None";
+  //boolean emailPhoto = false;
   //get all needed DB reads out of the way in case Dynamic Image fails
   String addText = "";
-  boolean hasImages = true;
-  String submitter = "";
-  String informOthers = "";
-  String informMe = "";
+  //boolean hasImages = true;
+  //String submitter = "";
+  //String informOthers = "";
+  //String informMe = "";
 
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir);
@@ -97,39 +97,39 @@ new_message.append("<html><body>");
     	  //informMe = email_props.getProperty(enc.getLocationCode());
         
         //the new way loads email addresses based on User object roles matching location ID
-        informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+
         
-        
-      } else {
-        hasImages = false;
-      }
+      } 
+      //else {
+      //  hasImages = false;
+      //}
       new_message.append("Location: " + enc.getLocation() + "<br>");
       new_message.append("Date: " + enc.getDate() + "<br>");
       if(enc.getSex()!=null){
       	new_message.append("Sex: " + enc.getSex() + "<br>");
       }
-      new_message.append("Submitter: " + enc.getSubmitterName() + "<br>");
-      new_message.append("Email: " + enc.getSubmitterEmail() + "<br>");
-      new_message.append("Photographer: " + enc.getPhotographerName() + "<br>");
-      new_message.append("Email: " + enc.getPhotographerEmail() + "<br>");
+      //new_message.append("Submitter: " + enc.getSubmitterName() + "<br>");
+      //new_message.append("Email: " + enc.getSubmitterEmail() + "<br>");
+      //new_message.append("Photographer: " + enc.getPhotographerName() + "<br>");
+      //new_message.append("Email: " + enc.getPhotographerEmail() + "<br>");
       new_message.append("Comments: " + enc.getComments() + "<br>");
       new_message.append("</body></html>");
-      submitter = enc.getSubmitterEmail();
+      //submitter = enc.getSubmitterEmail();
+     /*
       if ((enc.getPhotographerEmail() != null) && (!enc.getPhotographerEmail().equals("None")) && (!enc.getPhotographerEmail().equals(""))) {
         photographer = enc.getPhotographerEmail();
         emailPhoto = true;
       }
+	*/
+     
 
-      if ((enc.getInformOthers() != null) && (!enc.getInformOthers().equals(""))) {
-        informOthers = enc.getInformOthers();
-      }
 
     } catch (Exception e) {
       System.out.println("Error encountered in confirmSubmit.jsp:");
       e.printStackTrace();
     }
     myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
+    //myShepherd.closeDBTransaction();
     
   }
   
@@ -153,70 +153,7 @@ new_message.append("<html><body>");
 <%
 
 
-if(CommonConfiguration.sendEmailNotifications(context)){
-
-  // Retrieve background service for processing emails
-  ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-
-  // Email new submission address(es) defined in commonConfiguration.properties
-  Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
-  List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
-  String mailSubj = props.getProperty("newEncounter") + number;
-  for (String emailTo : mailTo) {
-    NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo, "newSubmission-summary", tagMap);
-    mailer.setUrlScheme(request.getScheme());
-    es.execute(mailer);
-  }
-
-  // Email those assigned this location code
-  if (informMe != null) {
-    List<String> cOther = NotificationMailer.splitEmails(informMe);
-    for (String emailTo : cOther) {
-    	NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
-    	mailer.setUrlScheme(request.getScheme());
-      	es.execute(mailer);
-    }
-  }
-
-  // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
-  tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc.getCatalogNumber());
-
-  // Email submitter and photographer
-  if (submitter != null) {
-    List<String> cOther = NotificationMailer.splitEmails(submitter);
-    for (String emailTo : cOther) {
-      String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
-      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
-      mailer.setUrlScheme(request.getScheme());
-      es.execute(mailer);
-    }
-  }
-  if (emailPhoto && photographer != null) {
-    List<String> cOther = NotificationMailer.splitEmails(photographer);
-    for (String emailTo : cOther) {
-      String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
-      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
-      mailer.setUrlScheme(request.getScheme());
-      es.execute(mailer);
-    }
-  }
-
-  // Email interested others
-  if (informOthers != null) {
-    List<String> cOther = NotificationMailer.splitEmails(informOthers);
-    for (String emailTo : cOther) {
-      String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
-      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
-      mailer.setUrlScheme(request.getScheme());
-      es.execute(mailer);
-    }
-  }
-  es.shutdown();
-}
-
+myShepherd.closeDBTransaction();
 myShepherd=null;
 
 %>
