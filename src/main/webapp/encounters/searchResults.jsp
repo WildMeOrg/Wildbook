@@ -372,11 +372,11 @@ var colDefn = [
 		key: 'locationID',
 		label: '<%=encprops.getProperty("locationID")%>',
 	},
-	{
-		key: 'taxonomy',
-		label: '<%=encprops.getProperty("taxonomy")%>',
-		value: _colTaxonomy,
-	},
+// {
+// key: 'taxonomy',
+// label: '<%=encprops.getProperty("taxonomy")%>',
+// value: _colTaxonomy,
+// },
 	{
 		key: 'submitterID',
 		label: '<%=encprops.getProperty("submitterName")%>',
