@@ -336,12 +336,12 @@ $(document).keydown(function(k) {
 
 
 var colDefn = [
-	{
-		key: 'thumb',
-		label: 'Thumb',
-		value: _colThumb,
-		nosort: true,
-	},
+// {
+// key: 'thumb',
+// label: 'Thumb',
+// value: _colThumb,
+// nosort: true,
+// },
 	{
 		key: 'individualID',
 		label: 'ID',
