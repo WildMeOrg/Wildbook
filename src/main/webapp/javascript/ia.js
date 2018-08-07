@@ -76,7 +76,7 @@ console.log(' . . . . getPluginType[%d] trying %s | %s', i, IA.plugins[i].code, 
         if (IA.addDebug) {
             var type = IA.getPluginType(task);
             var gt = IA.getGeneralType(task);
-            res += '<div class="ia-debug" style="display:none;">';
+            res += '<div class="ia-debug" style="display:none;" id="task-debug-' + task.id + '">';
             res += '<i>type:</i> <b>' + type + '</b>\n';
             res += '<i>general type:</i> <b>' + gt + '</b>\n';
             res += '<i>task contents:</i>\n\n' + JSON.stringify(task, null, 4);
