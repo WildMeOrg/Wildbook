@@ -57,7 +57,7 @@ props = ShepherdProperties.getProperties("photographing.properties", langCode, c
 			<br>
 			<h3><%=props.getProperty("ownershipHeader")%></h3>
 			<p><%=props.getProperty("ownershipBody")%></p>
-		
+	                <p><%=props.getProperty("photographerNote")%></p>
 			<p>&nbsp;</p>
 	</div>
 	
