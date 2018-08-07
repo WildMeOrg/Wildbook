@@ -75,6 +75,15 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 <style type="text/css">
 
+.ia-debug {
+    font-size: 0.7em;
+    color: #AAA;
+    margin: 20px 0 0 2em;
+    padding: 10px;
+    background-color: #FEE;
+    white-space: pre;
+}
+
 .task-title {
 	background-color: #FAA;
 	margin: 10px 0;
@@ -409,7 +418,8 @@ console.info('!!>> got %o', d);
 function processTask(task) {
     IA.processTask(task, function(t, res) {
 
-console.log('============= processTask(%s) -> %s', t.id, res);
+        $('.maincontent').append(res);
+//console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>============= processTask(%s) -> %s', t.id, res);
 
     });
 }
