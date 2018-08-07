@@ -10,6 +10,7 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 
 String context = ServletUtilities.getContext(request);
 
+//this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("annotId") != null) {
 	String annId = request.getParameter("annotId");
 	Shepherd myShepherd = new Shepherd(context);
@@ -73,256 +74,6 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 %>
 
 
-<style type="text/css">
-
-.ia-debug {
-    font-size: 0.7em;
-    color: #AAA;
-    margin: 20px 0 0 2em;
-    padding: 10px;
-    background-color: #FEE;
-    white-space: pre;
-}
-
-.task-title {
-	background-color: #FAA;
-	margin: 10px 0;
-	padding: 8px;
-}
-.task-title-id {
-	font-size: 0.8em;
-}
-
-.task-content {
-	height: 520px;
-}
-.annot-wrapper {
-	width: 48%;
-}
-
-.summary-column {
-	display: inline-block;
-	width: 32%;
-	vertical-align: top;
-}
-
-.annot-summary {
-	padding: 1px 10px;
-	margin: 4px 0;
-}
-
-.annot-summary:hover {
-	background-color: #8E8;
-}
-
-.annot-wrapper {
-	position: relative;
-}
-.annot-wrapper img {
-	width: 100%;
-}
-
-.annot-wrapper .img-info {
-	position: absolute;
-	bottom: 2px;
-	left: 2px;
-	font-size: 0.8em;
-	background-color: rgba(255,255,255,0.7);
-	padding: 1px 3px;
-	border-radius: 2px;
-}
-
-.annot-wrapper-query .annot-info {
-	display: none;
-}
-.annot-info-num {
-	font-size: 0.8em;
-	color: #666;
-	display: inline-block;
-	margin-right: 10px;
-	text-align: right;
-	width: 1.3em;
-}
-
-.annot-wrapper-query {
-	float: left;
-}
-.annot-wrapper-dict {
-	float: right;
-	display: none;
-}
-
-.annot-info {
-	display: inline-block;
-}
-
-.enc-link, .indiv-link {
-	vertical-align: middle;
-	font-size: 0.8em;
-	padding: 0 3px;
-	border-radius: 4px;
-	margin: 0 3px 0 15px;
-	background-color: #DDD;
-	overflow: hidden;
-	display: inline-block;
-	white-space: nowrap;
-	max-width: 120px;
-}
-.enc-link:hover, .indiv-link:hover {
-	background-color: #DD4;
-	text-decoration: none;
-}
-
-.task-title .enc-link, .task-title .indiv-link {
-	max-width: none !important;
-}
-
-#approval-buttons {
-	height: 5em;
-}
-
-#link {
-	clear: both;
-}
-
-#results {
-	display: inline-block;
-}
-
-#result-images {
-	margin-bottom: 100px;
-}
-
-td.ptcol-overall_score,
-td.ptcol-score_holmbergIntersection,
-td.ptcol-score_fastDTW,
-td.ptcol-score_I3S,
-td.ptcol-score_proportion {
-	text-align: right;
-}
-
-.ptcol-adaboost_match {
-        display: none !important;
-}
-
-/*
-td.ptcol-encounterID:hover, td.ptcol-individualID:hover {
-	background-color: #FF0 !important;
-	outline: solid black 2px;
-}
-*/
-
-td.ptcol-encounterID, td.ptcol-individualID {
-	position: relative !important;
-}
-tr.clickable:hover .link-button {
-	display: inline-block;
-}
-
-.indiv-button {
-	display: none;
-}
-.enc-button {
-	display: inline-block;
-}
-.link-button, .link-button:hover {
-	position: absolute;
-	right: 2px;
-	bottom: 2px;
-	background-color: #FFA;
-	padding: 1px 4px;
-	border: solid #444 1px;
-	border-radius: 4px;
-	margin: 0 3px;
-	color: #444;
-	text-decoration: none;
-}
-.link-button:hover {
-	color: #000;
-	background-color: #FF0;
-}
-
-#result-images {
-	height: 300px;
-	position: relative;
-}
-
-#image-main {
-	background-color: #02F;
-}
-#image-compare {
-	background-color: #FAFA00;
-}
-.result-image-wrapper {
-	padding: 9px;
-	border-radius: 6px;
-	width: 47%;
-	margin: 4px;
-	float: left;
-	top: 0;
-}
-
-.result-image-wrapper img {
-	top: 0;
-	left: 0;
-	width: 100%;
-}
-
-.result-image-wrapper .note, #chart .note {
-	background-color: rgba(0,0,0,0.5);
-	border-radius: 10px;
-	padding: 5px;
-	margin: 50px 10px 0 10px;
-	text-align: center;
-	color: #FFF;
-	font-size: 0.9em;
-}
-
-
-.image-info {
-	padding: 5px;
-	margin: 8px;
-	margin-bottom: -75px;
-	width: 43%;
-	background-color: rgba(255,255,255,0.7);
-	font-size: 0.8em;
-	position: absolute;
-	bottom: 0;
-}
-
-
-#image-meta {
-	width: 100%;
-	text-align:center;
-}
-#image-meta #score {
-	display: inline-block;
-	padding: 3px 15px;
-	border-radius: 12px;
-	background-color: rgba(0,0,0,0.7);
-	color: #FFF;
-	z-index: 9999 !important;
-	position: relative;
-	margin-bottom: -25px;
-}
-
-
-/* makes up for nudging of chart */
-#chart .note {
-	width: 80%;
-}
-
-#chart {
-	margin: 75px 0 -30px 70px;
-	height: 400px;
-}
-
-
-</style>
-
-
-
-
 <jsp:include page="header.jsp" flush="true" />
 
 <div class="container maincontent">
@@ -344,6 +95,7 @@ tr.clickable:hover .link-button {
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="css/pageableTable.css" />
+<link rel="stylesheet" href="css/ia.css" type="text/css" />
 <script src="javascript/tsrt.js"></script>
 <script src="javascript/flukeScanEnd.js"></script>
 
@@ -384,15 +136,28 @@ function tryTaskId(tid) {
     });
 return;///////
 
-	$('.maincontent').append('<div class="task-content" id="task-' + tid + '"><div class="task-title"><span class="task-title-id"><b>Task ' + tid + '</b></span></div><div class="task-summary"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div></div>');
+}
+
+
+function processTask(task) {
+    IA.processTask(task, function(t, res) {
+        $('.maincontent').append(res);
+        getTaskResult(t);
+    });
+}
+
+
+function getTaskResult(task) {
 	var mostRecent = false;
 	var gotResult = false;
-console.warn('------------------- %s', tid);
+console.warn('------------------- getTaskResult(%s)', task.id);
 	$.ajax({
-		url: 'iaLogs.jsp?taskId=' + tid,
+		url: 'iaLogs.jsp?taskId=' + task.id,
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
+console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, task.id);
+                    $('#task-debug-' + task.id).append('<b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
 			for (var i = 0 ; i < d.length ; i++) {
 				//console.log('d[i].status._action --> %o', d[i].status._action);
 				if (d[i].status && d[i].status._action == 'getJobResult') {
@@ -403,26 +168,16 @@ console.warn('------------------- %s', tid);
 					if (!mostRecent && d[i].status && d[i].status._action) mostRecent = d[i].status._action;
 				}
 			}
-			if (!gotResult) $('#task-' + tid).append('<p title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
-console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on tid=%s', d, tid);
+			if (!gotResult) $('#task-' + task.id).append('<p title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
 		},
 		error: function(a,b,c) {
 console.info('!!>> got %o', d);
 			console.error(a, b, c);
-			$('#task-' + tid).append('<p class="error">there was an error with task ' + tid + '</p>');
+			$('#task-' + task.id).append('<p class="error">there was an error with task ' + task.id + '</p>');
 		}
 	});
 }
 
-
-function processTask(task) {
-    IA.processTask(task, function(t, res) {
-
-        $('.maincontent').append(res);
-//console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>============= processTask(%s) -> %s', t.id, res);
-
-    });
-}
 
 var RESMAX = 12;
 function showTaskResult(res) {
@@ -470,7 +225,7 @@ console.info('%d ===> %s', num, annId);
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 	$('#task-' + taskId).append(h);
 	$.ajax({
-		url: 'matchResultsMulti.jsp?annotId=' + annId,
+		url: 'iaResults.jsp?annotId=' + annId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
 		complete: function(d) { displayAnnotDetails(taskId, d, (num < 0)); }
