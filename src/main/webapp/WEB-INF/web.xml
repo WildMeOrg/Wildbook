@@ -430,12 +430,12 @@
 
 
 
-
+<!--
   <servlet>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSubmitterPhotographerContactInfo</servlet-class>
   </servlet>
-
+-->
 
     <servlet>
       <servlet-name>UserResetAcceptedUserAgreement</servlet-name>
@@ -1769,12 +1769,12 @@
         <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
         <url-pattern>/OccurrenceSetGroupBehavior</url-pattern>
   </servlet-mapping>
-
+<!--
   <servlet-mapping>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
     <url-pattern>/EncounterSetSubmitterPhotographerContactInfo</url-pattern>
   </servlet-mapping>
-
+-->
 <!--  
   
    <servlet-mapping>
