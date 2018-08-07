@@ -2064,9 +2064,12 @@ $(document).ready(function() {
 	    	   int numSubmitters=submitters.size();
 			   for(int f=0;f<numSubmitters;f++){
 			    	   User user=submitters.get(f);
+			    	   %>
+			    	   <p id="<%=user.getUUID() %>">
+			    	   <%
 			          if(user.getFullName()!=null){
 			            %>
-			            <br/><span id="displaySubmitName"><%=user.getFullName()%></span>
+			            <span id="displaySubmitName"><%=user.getFullName()%></span>
 			            <%
 			          }
 			          if (isOwner) {
@@ -2090,6 +2093,9 @@ $(document).ready(function() {
 				                 }
 			
 			         } //end if isOwner
+				         %>
+				         </p>
+				         <%
 			   	} //submitters for loop               	
 	 		} //end if submitters!=null
 			%>
@@ -2102,9 +2108,12 @@ $(document).ready(function() {
 	    	   int numSubmitters=photographers.size();
 			   for(int f=0;f<numSubmitters;f++){
 			    	   User user=photographers.get(f);
+			    	   %>
+			    	   <p id="<%=user.getUUID() %>">
+			    	   <%
 			          if(user.getFullName()!=null){
 			            %>
-			            <br/><span id="displaySubmitName"><%=user.getFullName()%></span>
+			            <p id="<%=user.getUUID() %>"><span id="displaySubmitName"><%=user.getFullName()%></span>
 			            <%
 			          }
 			          if (isOwner) {
@@ -2128,6 +2137,9 @@ $(document).ready(function() {
 				                 }
 			
 			         } //end if isOwner
+			         %>
+			         </p>
+			         <%
 			   	} //photographers for loop               	
 	 		} //end if photographers!=null
 			%>

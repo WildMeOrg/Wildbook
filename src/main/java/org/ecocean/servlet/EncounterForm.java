@@ -627,9 +627,9 @@ System.out.println("enc ?= " + enc.toString());
               StringTokenizer str=new StringTokenizer(subE,",");
               int numTokens=str.countTokens();
               for(int y=0;y<numTokens;y++) {
-                String tok=str.nextToken();
-                if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
-                  User user=myShepherd.getUserByEmailAddress(subE.trim());
+                String tok=str.nextToken().trim();
+                if(myShepherd.getUserByEmailAddress(tok)!=null) {
+                  User user=myShepherd.getUserByEmailAddress(tok);
                   submitters.add(user);
                 }
                 else {
@@ -656,9 +656,9 @@ System.out.println("enc ?= " + enc.toString());
               StringTokenizer str=new StringTokenizer(photoE,",");
               int numTokens=str.countTokens();
               for(int y=0;y<numTokens;y++) {
-                String tok=str.nextToken();
+                String tok=str.nextToken().trim();
                 if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
-                  User user=myShepherd.getUserByEmailAddress(photoE.trim());
+                  User user=myShepherd.getUserByEmailAddress(tok);
                   photographers.add(user);
                 }
                 else {
