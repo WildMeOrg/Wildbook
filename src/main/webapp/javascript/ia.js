@@ -1,4 +1,6 @@
 var IA = {
+    addDebug: true,  //should we append debug div(s) to output????
+
     fetchTaskResponse: function(taskId, callback) {
         $.ajax({
             type: 'GET',
@@ -51,7 +53,7 @@ console.log(' . . . . getPluginType[%d] trying %s | %s', i, IA.plugins[i].code, 
         }
         var p = IA.getPluginByType(type);
         if (!p || (typeof p[funcName] != 'function')) {
-            console.warn('IA.processTask(): task %s of unsupported pluginType %s [no getResult() method]; skipping', task.id, type);
+            console.warn('IA.callPlugin(): task %s of unsupported pluginType %s [no %s() method]; skipping', task.id, type, funcName);
             return undefined;
         }
         //ok, lets try!
@@ -70,19 +72,20 @@ console.log(' . . . . getPluginType[%d] trying %s | %s', i, IA.plugins[i].code, 
         }
 
         var res = IA.callPlugin('getResult', task, [task]);
-/*
-        var type = IA.getPluginType(task);
-        if (!type) {
-            console.info('IA.processTask(): task %s null pluginType, skipping (parameters %o)', task.id, task.parameters);
-        } else if (!IA[type] || (typeof IA[type].getResult != 'function')) {
-            console.warn('IA.processTask(): task %s of unsupported pluginType %s [no getResult() method]; skipping', task.id, type);
-        } else {
-            var res = IA[type].getResult(task);
-    console.log('IA.%s.getResult(%s) -> %s', type, task.id, res);
-            resCallback(task, res);
-        }
-*/
 
+        if (IA.addDebug) {
+            var type = IA.getPluginType(task);
+            var gt = IA.getGeneralType(task);
+            res += '<div class="ia-debug" style="display:none;">';
+            res += '<i>type:</i> <b>' + type + '</b>\n';
+            res += '<i>general type:</i> <b>' + gt + '</b>\n';
+            res += '<i>task contents:</i>\n\n' + JSON.stringify(task, null, 4);
+            res += '</div>';
+        }
+
+        resCallback(task, res);
+
+        //now recurse thru the kids
         if (task.children && Array.isArray(task.children) && (task.children.length > 0)) {
             //TODO not sure if this whole .parent thing is a good idea, but for now.........
             var parentTask = Object.assign({}, task);  //a shallow copy, but sufficient since we want to lose the children for this purpose
@@ -103,7 +106,7 @@ console.info('>>> iterating on child %d of task %s', i, task.id);
         isMyTask: function(task) { return false; },  //gets set specifically only when no parameters (for now)
         getGeneralType: function() { return 'unknown'; },
         getResult: function(task) {
-            return '<!-- __NULL__ : ' + task.id + ' -->';
+            return '<!-- __NULL__.getResult(' + task.id + ') -->';
         }
     }]
 };
