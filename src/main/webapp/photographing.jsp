@@ -21,7 +21,7 @@ props = ShepherdProperties.getProperties("photographing.properties", langCode, c
 <div class="container maincontent">
 		  <h2><%=props.getProperty("mainHeader")%></h2>
 		  <h3><%=props.getProperty("subHeader")%></h3>
-			
+		  <p><%=props.getProperty("welcomePhotos")%></p>
 			<br>
 			<h5><%=props.getProperty("list1Header")%></h5>
 			<ol>
