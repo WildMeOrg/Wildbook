@@ -214,49 +214,34 @@
  		 }
  			
  		//calculate the number of submitter contributors
- 		if((thisEnc.getSubmitterEmail()!=null)&&(!thisEnc.getSubmitterEmail().equals(""))) {
- 				//check for comma separated list
- 				if(thisEnc.getSubmitterEmail().indexOf(",")!=-1) {
- 					//break up the string
- 					StringTokenizer stzr=new StringTokenizer(thisEnc.getSubmitterEmail(),",");
- 					while(stzr.hasMoreTokens()) {
- 						String token=stzr.nextToken();
+ 		if(thisEnc.getSubmitterEmails()!=null) {
+ 				List<String> emails=thisEnc.getSubmitterEmails();
+ 				int numEmails=emails.size();
+ 				for(int q=0;q<numEmails;q++){
+ 						String token=emails.get(q);
  						if (contributors.indexOf(token)==-1) {
  							contributors.append(token);
  							numContributors++;
  						}
- 					}
  				}
- 				else if (contributors.indexOf(thisEnc.getSubmitterEmail())==-1) {
- 					contributors.append(thisEnc.getSubmitterEmail());
- 					numContributors++;
- 				}
- 			}
- 			
+ 		}
 
- 			
- 			
- 			//calculate the number of photographer contributors
- 			if((thisEnc.getPhotographerEmail()!=null)&&(!thisEnc.getPhotographerEmail().equals(""))) {
- 				//check for comma separated list
- 				if(thisEnc.getPhotographerEmail().indexOf(",")!=-1) {
- 					//break up the string
- 					StringTokenizer stzr=new StringTokenizer(thisEnc.getPhotographerEmail(),",");
- 					while(stzr.hasMoreTokens()) {
- 						String token=stzr.nextToken();
+
+ 		//calculate the number of photographer contributors
+ 		if(thisEnc.getPhotographerEmails()!=null) {
+ 				List<String> emails=thisEnc.getPhotographerEmails();
+ 				int numEmails=emails.size();
+ 				for(int q=0;q<numEmails;q++){
+ 						String token=emails.get(q);
  						if (contributors.indexOf(token)==-1) {
  							contributors.append(token);
  							numContributors++;
  						}
- 					}
  				}
- 				else if (contributors.indexOf(thisEnc.getPhotographerEmail())==-1) {
- 					contributors.append(thisEnc.getPhotographerEmail());
- 					numContributors++;
- 				}
- 			}
+ 		}
  		 
- 			if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){numIdentified++;}
+ 		//caluclate number encounters identified
+ 		if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){numIdentified++;}
  		 
  		//calculate marked individuals	 
  		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){
