@@ -99,9 +99,9 @@ public class IndividualCreate extends HttpServlet {
       setDateLastModified(enc2make);
 
       String belongsTo = enc2make.getIndividualID();
-      String submitter = enc2make.getSubmitterEmail();
-      String photographer = enc2make.getPhotographerEmail();
-      String informers = enc2make.getInformOthers();
+      //String submitter = enc2make.getSubmitterEmail();
+      //String photographer = enc2make.getPhotographerEmail();
+      //String informers = enc2make.getInformOthers();
       
       boolean ok2add=true;
 
@@ -188,12 +188,9 @@ public class IndividualCreate extends HttpServlet {
 
       			  // Notify submitters, photographers, and informOthers values
               Set<String> cSubmitters = new HashSet<>();
-              if (submitter != null)
-                cSubmitters.addAll(NotificationMailer.splitEmails(submitter));
-              if (photographer != null)
-                cSubmitters.addAll(NotificationMailer.splitEmails(photographer));
-              if (informers != null)
-                cSubmitters.addAll(NotificationMailer.splitEmails(informers));
+              if (enc2make.getSubmitterEmails() != null)cSubmitters.addAll(enc2make.getSubmitterEmails());
+              if (enc2make.getPhotographerEmails() != null)cSubmitters.addAll(enc2make.getPhotographerEmails());
+
               if (newShark != null)
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "individual=" + newShark.getIndividualID());
               for (String emailTo : cSubmitters) {

@@ -1810,18 +1810,24 @@ public class Shepherd {
 
 
   public User getUserByEmailAddress(String email){
+    ArrayList<User> users=new ArrayList<User>();
     String filter="SELECT FROM org.ecocean.User WHERE emailAddress == \""+email+"\"";
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
-    Iterator it = c.iterator();
-
-    while(it.hasNext()){
-      User myUser=(User)it.next();
-      query.closeAll();
-      return myUser;
-    }
+    if(c!=null){users=new ArrayList<User>(c);}
     query.closeAll();
+    if(users.size()>0){return users.get(0);}
     return null;
+  }
+  
+  public List<User> getUsersWithEmailAddresses(){
+    ArrayList<User> users=new ArrayList<User>();
+    String filter="SELECT FROM org.ecocean.User WHERE emailAddress != null";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null)users=new ArrayList<User>(c);
+    query.closeAll();
+    return users;
   }
   
   public User getUserByAffiliation(String affil){
@@ -2776,7 +2782,7 @@ public class Shepherd {
   public List<User> getAllUsers(String ordering) {
     Collection c;
     ArrayList<User> list = new ArrayList<User>();
-    System.out.println("Shepherd.getAllUsers() called in context "+getContext());
+    //System.out.println("Shepherd.getAllUsers() called in context "+getContext());
     Extent userClass = pm.getExtent(User.class, true);
     Query users = pm.newQuery(userClass);
     if(ordering!=null) {
@@ -2801,7 +2807,7 @@ public class Shepherd {
 
   public String getAllUserEmailAddressesForLocationID(String locationID, String context){
     String addresses="";
-    List<User> users = getAllUsers();
+    List<User> users = getUsersWithEmailAddresses();
     int numUsers=users.size();
     for(int i=0;i<numUsers;i++){
       User user=users.get(i);

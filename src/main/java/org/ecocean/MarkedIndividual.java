@@ -1563,7 +1563,7 @@ public boolean hasGeneticSex(){
 *@return ArrayList of all emails to inform
 */
 public List<String> getAllEmailsToUpdate(){
-	ArrayList notifyUs=new ArrayList();
+	ArrayList<String> notifyUs=new ArrayList<String>();
 
 	int numEncounters=encounters.size();
 	//int numUnidetifiableEncounters=unidentifiableEncounters.size();
@@ -1571,6 +1571,9 @@ public List<String> getAllEmailsToUpdate(){
 	//process encounters
 	for(int i=0;i<numEncounters;i++){
 		Encounter enc=(Encounter)encounters.get(i);
+		
+		
+		/*
 		if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().trim().equals(""))){
 			String submitter = enc.getSubmitterEmail();
 			if (submitter.indexOf(",") != -1) {
@@ -1593,6 +1596,20 @@ public List<String> getAllEmailsToUpdate(){
 					}
 					else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
 		}
+		*/
+		
+		List<User> allUsers=new ArrayList<User>();
+		if(enc.getSubmitters()!=null)allUsers.addAll(enc.getSubmitters());
+		if(enc.getPhotographers()!=null)allUsers.addAll(enc.getPhotographers());
+		int numUsers=allUsers.size();
+		for(int k=0;k<numUsers;k++){
+		  User use=allUsers.get(k);
+		  if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+		    notifyUs.add(use.getEmailAddress());
+		  }
+		}
+		
+		
 		if((enc.getInformOthers()!=null)&&(!enc.getInformOthers().trim().equals(""))){
 							String photog = enc.getInformOthers();
 							if (photog.indexOf(",") != -1) {
