@@ -7,6 +7,7 @@ import org.ecocean.Util;
 import org.ecocean.YouTube;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
 import org.ecocean.ai.ocr.google.GoogleOcr;
+import org.ecocean.ai.ocr.azure.AzureOcr;
 import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.Shepherd;
@@ -2794,14 +2795,19 @@ return Util.generateUUID();
                   ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
                   if((frames!=null)&&(frames.size()>0)){
                       
+
                       //Google OCR
-                      ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
-                      ocrRemarks = GoogleOcr.detectText(bytesFrames);
+                      //ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
+                      //ocrRemarks = GoogleOcr.detectText(bytesFrames);
+                      //if(ocrRemarks==null)ocrRemarks="";
+                      //System.out.println("I found Google OCR remarks: "+ocrRemarks);
+
+                      //Azure OCR 
+                      ocrRemarks = AzureOcr.detectText(frames, detectedLanguage);
                       if(ocrRemarks==null)ocrRemarks="";
-                        System.out.println("I found OCR remarks: "+ocrRemarks);
+                      System.out.println("I found Azure OCR remarks: "+ocrRemarks);
                     }
-                  }
-                  else{
+                  } else {
                     System.out.println("I could not find any frames from YouTubeAssetStore.findFrames for asset:"+myAsset.getId()+" from Encounter "+myEnc.getCatalogNumber());
                   }
               }
