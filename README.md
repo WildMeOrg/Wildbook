@@ -75,10 +75,6 @@ Most important emails:
 * html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.html
 * plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.txt
 
-<h2> Quick reference </h2>
-
-HTML entity encoder/decoder: https://mothereff.in/html-entities
-
 <h2>Configuration changes</h2>
 
 Add new location ID names to **commonConfiguration.properties**, then request that changes be merged into the working version (not stored on GH):
@@ -123,3 +119,6 @@ and here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust
   
  </ul>
 
+<h2> Quick reference </h2>
+
+HTML entity encoder/decoder: https://mothereff.in/html-entities
