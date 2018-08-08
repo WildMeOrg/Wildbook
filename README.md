@@ -58,6 +58,11 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 **Emails** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
 
+**Email template** (header and footer content used by other emails): 
+
+* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/email-template.html
+* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/email-template.txt
+
 Most important emails:
 
 **New encounter submission (submission confirmation)**
