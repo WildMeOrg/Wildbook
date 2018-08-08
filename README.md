@@ -60,20 +60,20 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 Most important emails:
 
-New encounter submission (submission confirmation)
+**New encounter submission (submission confirmation)**
 
-*html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/newSubmission.html
-*plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/newSubmission.txt
+* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/newSubmission.html
+* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/newSubmission.txt
 
-Encounter update (match notification)
+**Encounter update (match notification)**
 
-*html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.html
-*plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.txt 
+* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.html
+* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.txt 
 
-Individual update (resighting notification)
+**Individual update (resighting notification)**
 
-*html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.html
-*plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.txt
+* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.html
+* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.txt
 
 <h2> Quick reference </h2>
 
