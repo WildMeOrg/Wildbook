@@ -1087,10 +1087,32 @@ public class IndividualQueryProcessor {
     //submitter or photographer name filter------------------------------------------
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
-      String filterString="((enc.recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(enc.submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(enc.photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(enc.photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1))";
+      
+      
+      //String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
+      String filterString=""+
+         "("
+             + "(enc.submitters.contains(submitter) && ((submitter.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) "
+             + "(enc.photographers.contains(photographer) && ((photographer.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographer.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) "
+             +"||(enc.informothers.toLowerCase().indexOf('"+nameString+"') != -1)"
+          
+          +")";
+      
+      
+      
+      if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter;org.ecocean.User photographer";}
+      else{
+        if(!jdoqlVariableDeclaration.contains("org.ecocean.User submitter")){jdoqlVariableDeclaration+=";org.ecocean.User submitter";}
+        if(!jdoqlVariableDeclaration.contains("org.ecocean.User photographer")){jdoqlVariableDeclaration+=";org.ecocean.User photographer";}
+
+      }
+      
+      
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
-      prettyPrint.append("nameField contains: \""+nameString+"\"<br />");
+      
+      prettyPrint.append("Related fullName or emailAddress contains: \""+nameString+"\"<br />");
+      
     }
     //end name and email filter--------------------------------------------------------------------------------------
 

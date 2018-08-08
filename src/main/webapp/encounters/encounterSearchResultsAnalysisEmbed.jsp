@@ -194,14 +194,14 @@
  					
  		
  	int numPhotos=0;
- 	int numContributors=0;
+ 	//int numContributors=0;
  	int numIdentified=0;
  	
  	//citsci vs research users
  	ArrayList<User> researchStaff=new ArrayList<User>();
  	ArrayList<User> publicContributors=new ArrayList<User>();
  	
- 	StringBuffer contributors=new StringBuffer();
+ 	//StringBuffer contributors=new StringBuffer();
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
  	int numUniqueEncounters=0;
@@ -224,13 +224,6 @@
  				int numU=users.size();
  				for(int q=0;q<numU;q++){
  						User user=users.get(q);
- 						if(user.getHashedEmailAddress()!=null){
- 							String token=user.getHashedEmailAddress();
-	 						if (contributors.indexOf(token)==-1) {
-	 							contributors.append(token);
-	 							numContributors++;
-	 						}
- 						}
  						//check public vs research staff
  						if((user.getUsername()!=null)&&(!researchStaff.contains(user))){researchStaff.add(user);}
  						else if(!publicContributors.contains(user)){publicContributors.add(user);}
@@ -244,13 +237,6 @@
  				int numU=users.size();
  				for(int q=0;q<numU;q++){
  						User user=users.get(q);
- 						if(user.getHashedEmailAddress()!=null){
- 							String token=user.getHashedEmailAddress();
-	 						if (contributors.indexOf(token)==-1) {
-	 							contributors.append(token);
-	 							numContributors++;
-	 						}
- 						}
  						//check public vs research staff
  						if((user.getUsername()!=null)&&(!researchStaff.contains(user))){researchStaff.add(user);}
  						else if(!publicContributors.contains(user)){publicContributors.add(user);}
@@ -885,7 +871,7 @@
  	<li><%=encprops.getProperty("numberIdentified") %> <%=numIdentified %></li>
  	<li><%=encprops.getProperty("numberMarkedIndividuals") %> <%=markedIndividuals.size() %></li>
  	<li><%=encprops.getProperty("numMediaAssets") %> <%=numPhotos %></li>
- 	<li><%=encprops.getProperty("numContributors") %> <%=numContributors %></li>
+ 	<li><%=encprops.getProperty("numContributors") %> <%=(publicContributors.size()+researchStaff.size()) %></li>
  </ul>
 
 <p><strong><%=encprops.getProperty("measurements") %></strong></p>
