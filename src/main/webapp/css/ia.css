@@ -8,12 +8,45 @@
     white-space: pre;
 }
 
+#encounter-info {
+	padding: 2px 10px;
+	background-color: rgba(255,255,0,0.7);
+}
+
+#encounter-info .enc-title {
+	color: #333;
+	font-size: 1.5em;
+}
+
+#encounter-info .enc-link {
+	color: #777;
+}
+
+#enc-action {
+	position: relative;
+	top: -5px;
+	left: 20px;
+	display: inline-block;
+	font-size: 0.7em;
+}
+
+#enc-action input[type="button"] {
+	line-height: 1em;
+	padding: auto;
+	margin: 0;
+}
+
+.throbbing {
+	background: url(../images/throbber.gif) no-repeat left top !important;
+}
+
 .task-title {
 	background-color: #FAA;
 	margin: 10px 0;
 	padding: 8px;
 }
 .task-title-id {
+	color: #555;
 	font-size: 0.8em;
 }
 
@@ -28,6 +61,11 @@
 	display: inline-block;
 	width: 32%;
 	vertical-align: top;
+}
+
+
+.annot-summary-checked {
+	background-color: #FE8;
 }
 
 .annot-summary {
@@ -46,14 +84,35 @@
 	width: 100%;
 }
 
+.annot-action-checkbox-active, .annot-action-checkbox-inactive {
+	margin-right: 10px !important;
+	float: right;
+	transform: scale(1.2);
+}
+
+.annot-action-checkbox-inactive {
+	display: none;
+}
+
+.annot-summary:hover .annot-action-checkbox-inactive {
+	cursor: pointer;
+	display: inline-block;
+}
+
 .annot-wrapper .img-info {
 	position: absolute;
-	bottom: 2px;
-	left: 2px;
+	top: 4px;
+	left: 4px;
 	font-size: 0.8em;
 	background-color: rgba(255,255,255,0.7);
 	padding: 1px 3px;
 	border-radius: 2px;
+}
+.annot-wrapper .img-info-type {
+	background-color: #4F8;
+	color: #222;
+	margin-right: 8px;
+	padding: 1px 4px 2px 4px;
 }
 
 .annot-wrapper-query .annot-info {

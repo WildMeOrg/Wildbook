@@ -44,28 +44,84 @@ if (request.getParameter("annotId") != null) {
 	return;
 }
 
-//quick hack to set id & approve
 
-/*
+//TODO security for this stuff, obvs?
 //quick hack to set id & approve
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
+	JSONObject res = new JSONObject("{\"success\": false}");
+	res.put("encounterId", request.getParameter("number"));
+	res.put("encounterId2", request.getParameter("enc2"));
+	res.put("individualId", request.getParameter("individualID"));
+	//note: short circuiting for now!  needs more testing
+
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
+
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
 	if (enc == null) {
-		out.println("{\"success\": false, \"error\": \"no such encounter\"}");
+		res.put("error", "no such encounter: " + request.getParameter("number"));
+		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
-	} else {
-		enc.setIndividualID(request.getParameter("individualID"));
-		enc.setState("approved");
-		myShepherd.commitDBTransaction();
-		out.println("{\"success\": true}");
+		myShepherd.closeDBTransaction();
+		return;
 	}
+
+	Encounter enc2 = null;
+	if (request.getParameter("enc2") != null) {
+		enc2 = myShepherd.getEncounter(request.getParameter("enc2"));
+		if (enc == null) {
+			res.put("error", "no such encounter: " + request.getParameter("enc2"));
+			out.println(res.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
+	}
+
+	/* now, making an assumption here (and the UI does as well):
+	   basically, we only allow a NEW INDIVIDUAL when both encounters are unnamed;
+	   otherwise, we are assuming we are naming one based on the other.  thus, we MUST
+	   use an *existing* indiv in those cases (but allow a new one in the other)
+	*/
+
+	MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(request.getParameter("individualID"));
+	if ((indiv == null) && (enc != null) && (enc2 != null)) {
+//TODO make actual individual yo!!!!
+//indiv.addComment(????)
+		res.put("error", "Creating a new MarkedIndividual currently not supported. YET! Sorry.");
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	}
+
+	if (indiv == null) {
+		res.put("error", "Unknown individual " + request.getParameter("individualID"));
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	}
+
+// TODO enc.setMatchedBy() + comments + etc?????
+	enc.setIndividualID(indiv.getIndividualID());
+	enc.setState("approved");
+	indiv.addEncounter(enc, context);
+	if (enc2 != null) {
+		enc2.setIndividualID(indiv.getIndividualID());
+		enc2.setState("approved");
+		indiv.addEncounter(enc2, context);
+	}
+	myShepherd.getPM().makePersistent(indiv);
+	
+	myShepherd.commitDBTransaction();
 	myShepherd.closeDBTransaction();
+	res.put("success", true);
+	out.println(res.toString());
 	return;
 }
-*/
+
 
 
   //session.setMaxInactiveInterval(6000);
@@ -88,7 +144,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 <script src="javascript/core.js"></script>
 <script src="javascript/classes/Base.js"></script>
 <script src="javascript/ia.js"></script>
-<script src="javascript/ia.IBEIS.js"></script>
+<script src="javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
 
 <script src="javascript/tablesorter/jquery.tablesorter.js"></script>
 <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
@@ -109,8 +165,16 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 
 <script>
+var serverTimestamp = <%= System.currentTimeMillis() %>;
+var pageStartTimestamp = new Date().getTime();
 var taskIds = [];
+var tasks = {};
+var jobIdMap = {};
+var timers = {};
+var matchInstructions = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
+
 function init2() {   //called from wildbook.init() when finished
+	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div>');
 	parseTaskIds();
 	for (var i = 0 ; i < taskIds.length ; i++) {
 		tryTaskId(taskIds[i]);
@@ -139,48 +203,125 @@ return;///////
 }
 
 
+function getCachedTask(tid) {
+    return tasks[tid];
+}
+
 function processTask(task) {
     IA.processTask(task, function(t, res) {
+        if (t && t.id) tasks[t.id] = t;
         $('.maincontent').append(res);
-        getTaskResult(t);
+        grabTaskResult(t.id);
     });
 }
 
 
-function getTaskResult(task) {
+function grabTaskResult(tid) {
 	var mostRecent = false;
 	var gotResult = false;
-console.warn('------------------- getTaskResult(%s)', task.id);
+console.warn('------------------- grabTaskResult(%s)', tid);
 	$.ajax({
-		url: 'iaLogs.jsp?taskId=' + task.id,
+		url: 'iaLogs.jsp?taskId=' + tid,
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
-console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, task.id);
-                    $('#task-debug-' + task.id).append('<b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
+		    $('#wait-message-' + tid).remove();  //in case it already exists from previous
+console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
+                    $('#task-debug-' + tid).append('<b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
 			for (var i = 0 ; i < d.length ; i++) {
+				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
+					if (!jobIdMap[tid]) jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
+				}
 				//console.log('d[i].status._action --> %o', d[i].status._action);
 				if (d[i].status && d[i].status._action == 'getJobResult') {
-					showTaskResult(d[i]);
+					showTaskResult(d[i], tid);
 					i = d.length;
 					gotResult = true;
 				} else {
 					if (!mostRecent && d[i].status && d[i].status._action) mostRecent = d[i].status._action;
 				}
 			}
-			if (!gotResult) $('#task-' + task.id).append('<p title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
+			if (!gotResult) {
+				//$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</span></p>');
+				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
+				if (jobIdMap[tid]) {
+					var tooLong = 15 * 60 * 1000;
+					var elapsed = approxServerTime() - jobIdMap[tid].timestamp;
+					console.warn("elapsed = %.1f min", elapsed / 60000);
+					if (elapsed > tooLong) {
+						if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+						$('#wait-message-' + tid).removeClass('throbbing').html('attempting to fetch results');
+						manualCallback(tid);
+					} else {
+						if (!timers[tid]) timers[tid] = { attempts: 0 };
+						if (timers[tid].attempts > 1000) {
+							if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+							$('#wait-message-' + tid).html('gave up trying to obtain results').removeClass('throbbing');;
+						} else {
+							timers[tid].attempts++;
+							timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+						}
+					}
+				} else {
+					if (!timers[tid]) timers[tid] = { attempts: 0 };
+					timers[tid].attempts++;
+					timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+				}
+			} else {
+				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+			}
 		},
 		error: function(a,b,c) {
 console.info('!!>> got %o', d);
 			console.error(a, b, c);
-			$('#task-' + task.id).append('<p class="error">there was an error with task ' + task.id + '</p>');
+			$('#task-' + tid).append('<p class="error">there was an error with task ' + tid + '</p>');
 		}
 	});
 }
 
 
+function approxServerTime() {
+	return serverTimestamp + (new Date().getTime() - pageStartTimestamp);
+}
+
+function manualCallback(tid) {
+	var m = jobIdMap[tid];
+	if (!m || !m.jobId) return alert('Could not find jobid for ' + tid);
+	if (jobIdMap[tid].manualAttempts > 3) {
+		//$('#wait-message-' + tid).html('failed to obtain results').removeClass('throbbing');
+		$('#wait-message-' + tid).html('Still waiting on results. Please try again later. IA is most likely ingesting a large amount of data.').removeClass('throbbing');
+		return;
+	}
+	jobIdMap[tid].manualAttempts++;
+	$('#wait-message-' + tid).html('<i>attempting to manually query IA</i>').removeClass('throbbing');;
+	console.log(m);
+
+	$.ajax({
+		url: 'IBEISIAGetJobStatus.jsp?jobid=' + m.jobId,
+		type: 'GET',
+		dataType: 'json',
+		complete: function(x, stat) {
+			console.log('status = %o; xhr=%o', stat, x);
+/*
+			var msg = '<i>unknown results</i>';
+			if (x.responseJSON && x.responseJSON.continue) {
+				msg = '<b>tried to get results (<i>reload</i> to check)</b>';
+			} else if (x.responseJSON && !x.responseJSON.continue) {
+				msg = '<b>disallowed getting results (already tried and failed)</b>';
+			}
+			$('#wait-message-' + tid).html(msg + ' [returned status=<i title="' + x.responseText + '">' + stat + '</i>]');
+*/
+		}
+	});
+	$('#wait-message-' + tid).remove();
+	grabTaskResult(tid);
+
+	//$('#wait-message-' + tid).html(m.jobId);
+	//alert(m.jobId);
+}
+
 var RESMAX = 12;
-function showTaskResult(res) {
+function showTaskResult(res, taskId) {
 	console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRESULT showTaskResult() %o on %s", res, res.taskId);
 	if (res.status && res.status._response && res.status._response.response && res.status._response.response.json_result &&
 			res.status._response.response.json_result.cm_dict) {
@@ -190,13 +331,22 @@ function showTaskResult(res) {
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
-		$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
+		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
+		var h = 'Matches based on <b>' + (isEdgeMatching ? 'trailing edge' : 'pattern') + '</b>';
+		if (res.timestamp) {
+			var d = new Date(res.timestamp);
+			h += '<span style="color: #FFF; margin: 0 11px; font-size: 0.7em;">' + d.toLocaleString() + '</span>';
+		}
+
+		h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" style="margin-left: 30px; font-size: 0.8em; color: #777;">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
+		$('#task-' + res.taskId + ' .task-title-id').html(h);
 		displayAnnot(res.taskId, qannotId, -1, -1);
 
 		var sorted = score_sort(res.status._response.response.json_result['cm_dict'][qannotId]);
 		if (!sorted || (sorted.length < 1)) {
 			//$('#task-' + res.taskId + ' .waiting').remove();  //shouldnt be here (cuz got result)
-			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
+			//$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
+			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">Image Analysis has returned and no match was found.</p>');
 			return;
 		}
 		var max = sorted.length;
@@ -221,19 +371,19 @@ console.info('%d ===> %s', num, annId);
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
 	//now the image guts
-	h = '<div class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + annId + '">';
+	h = '<div title="annotId=' + annId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + annId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 	$('#task-' + taskId).append(h);
 	$.ajax({
 		url: 'iaResults.jsp?annotId=' + annId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, (num < 0)); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num); }
 	});
 }
 
-function displayAnnotDetails(taskId, res, isQueryAnnot) {
-console.warn('+++++++ isQueryAnnot %o', isQueryAnnot);
+function displayAnnotDetails(taskId, res, num) {
+	var isQueryAnnot = (num < 0);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error) {
 		console.warn('error on (task %s) res = %o', taskId, res);
 		return;
@@ -259,21 +409,78 @@ console.warn('+++++++ isQueryAnnot %o', isQueryAnnot);
 		if (res.responseJSON.asset.features && (res.responseJSON.asset.features.length > 0)) {
 			encId = res.responseJSON.asset.features[0].encounterId;
 			indivId = res.responseJSON.asset.features[0].individualId;
-			var h = '';
+			var h = 'Matching results';
 			if (encId) {
-				h += '<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
+				h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
+				//h += '<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
 				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
 			}
 			if (indivId) {
-				h += '<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
+				h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
 				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>');
 			}
-			if (isQueryAnnot && h) $('#task-' + taskId + ' .task-title').append(h);
+			if (encId || indivId) {
+				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + res.responseJSON.annId +'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+			}
+
+			h += '<div id="enc-action">' + matchInstructions + '</div>';
+			if (isQueryAnnot) {
+				if (h) $('#encounter-info .enc-title').html(h);
+				if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
+                                var qdata = {
+					annotId: res.responseJSON.annId,
+					encId: encId,
+					indivId: indivId
+                                };
+console.info('qdata[%s] = %o', taskId, qdata);
+                                $('#task-' + taskId).data(qdata);
+			} else {
+				if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
+			}
 		}
 	}
 	if (imgInfo) $('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
+
+function annotCheckbox(el) {
+	var jel = $(el);
+	var taskId = jel.closest('.task-content').attr('id').substring(5);
+        var task = getCachedTask(taskId);
+        var queryAnnotation = jel.closest('.task-content').data();
+console.info('taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAnnotation);
+	annotCheckboxReset();
+        if (!taskId || !task) return;
+	if (!el.checked) return;
+	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
+	jel.parent().addClass('annot-summary-checked');
+
+	var h;
+	if (!queryAnnotation.encId || !jel.data('encid')) {
+		h = '<i>Insufficient encounter data for any actions</i>';
+	} else if (jel.data('individ')==queryAnnotation.indivId) {
+		h = 'The target and candidate are already assigned to the <b>same individual ID</b>. No further action is needed to confirm this match.'
+	} else if (jel.data('individ') && queryAnnotation.indivId) {
+		h = 'The two encounters have <b>different individuals</b> already assigned and must be handled manually.';
+	} else if (jel.data('individ')) {
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\');" type="button" value="Set to individual ' + jel.data('individ') + '" />';
+	} else if (queryAnnotation.indivId) {
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
+	} else {
+		h = '<input onChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
+		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
+		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
+		h += ' /> <input type="button" value="Set individual on both encounters" />'
+	}
+	$('#enc-action').html(h);
+	return true;
+}
+
+function annotCheckboxReset() {
+	$('.annot-action-checkbox-active').removeClass('annot-action-checkbox-active').addClass('annot-action-checkbox-inactive').prop('checked', false);
+	$('.annot-summary-checked').removeClass('annot-summary-checked');
+	$('#enc-action').html(matchInstructions);
+}
 
 function annotClick(ev) {
 	//console.log(ev);
@@ -299,6 +506,7 @@ console.warn('score_sort() cm_dict %o', cm_dict);
 	return sorta;
 }
 
+/*
 function foo() {
     	$('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
     	$('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
@@ -307,6 +515,7 @@ function foo() {
 	jQuery('#image-compare').append('<img style="height: 11px; width: 50%; margin: 40px 25%;" src="images/image-processing.gif" />');
 	checkForResults();
 }
+*/
 
 function checkForResults() {
 	jQuery.ajax({
@@ -399,7 +608,9 @@ function fakeEncounter(e, ma) {
 }
 
 
+/////// these are disabled now, as matching results "bar" handles actions
 function approvalButtons(qann, manns) {
+	return '';
 	if (!manns || (manns.length < 1) || !qann || !qann.encounter) return '';
 console.info(qann);
 	var inds = [];
@@ -420,29 +631,43 @@ console.warn(inds);
 }
 
 
-function approvalButtonClick(encID, indivID) {
-	console.info('approvalButtonClick(%s, %s)', encID, indivID);
-	jQuery('#approval-buttons').html('<i>sending request...</i>');
+function approvalButtonClick(encID, indivID, encID2) {
+	var msgTarget = '#enc-action';  //'#approval-buttons';
+	console.info('approvalButtonClick: id(%s) => %s %s', indivID, encID, encID2);
+	if (!indivID || !encID) {
+		jQuery(msgTarget).html('Argument errors');
+		return;
+	}
+	jQuery(msgTarget).html('<i>saving changes...</i>');
+	var url = 'matchResultsMulti.jsp?number=' + encID + '&individualID=' + indivID;
+	if (encID2) url += '&enc2=' + encID2;
 	jQuery.ajax({
-		url: 'matchResults.jsp?number=' + encID + '&individualID=' + indivID,
+		url: url,
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
+console.warn(d);
 			if (d.success) {
-				window.location.href = 'encounter.jsp?number=' + encID;
+				jQuery(msgTarget).html('<i><b>Update successful</b> - please wait....</i>');
+				//////window.location.href = 'encounter.jsp?number=' + encID;
 			} else {
-				console.warn(d);
-				jQuery('#approval-buttons').html('error');
-				alert('Error updating encounter: ' + d.error);
+				console.warn('error returned: %o', d);
+				jQuery(msgTarget).html('Error updating encounter: <b>' + d.error + '</b>');
 			}
 		},
 		error: function(x,y,z) {
 			console.warn('%o %o %o', x, y, z);
-			jQuery('#approval-buttons').html('error');
-			alert('Error updating encounter');
+			jQuery(msgTarget).html('<b>Error updating encounter</b>');
 		}
 	});
 	return true;
+}
+
+
+function approveNewIndividual(el) {
+	var jel = $(el);
+	console.info('name=%s; qe=%s, me=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'));
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'));
 }
 
 
