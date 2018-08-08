@@ -27,7 +27,7 @@ public class AzureOcr {
     private static final String host = "https://westus2.api.cognitive.microsoft.com/vision/v2.0/ocr";
 
     public static String detectText(ArrayList<MediaAsset> mas) {
-        return detectText(mas, "ukn");
+        return detectText(mas, "unk");
     }
         
     public static String detectText(ArrayList<MediaAsset> mas, String language) {
@@ -35,11 +35,11 @@ public class AzureOcr {
         
         for (MediaAsset ma : mas) {
             if (language.length()<2) {
-                language = "ukn";
+                language = "unk";
             }
             String responseString = postSingleAsset(ma.webURL().toString(), language);
             results += responseString;
-            System.out.println("Response String: "+responseString);
+            //System.out.println("Response String: "+responseString);
         }
         return results;
     }
@@ -91,7 +91,7 @@ public class AzureOcr {
     }
 
     private static String formatWords(String wordString) {
-        String formatted = wordString.replaceAll("\"", "").toLowerCase().trim();
+        String formatted = wordString.replaceAll("\"", "").toLowerCase();
         return formatted;
     }
 

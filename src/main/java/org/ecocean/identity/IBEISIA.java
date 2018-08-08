@@ -2803,7 +2803,7 @@ return Util.generateUUID();
                       //System.out.println("I found Google OCR remarks: "+ocrRemarks);
 
                       //Azure OCR 
-                      ocrRemarks = AzureOcr.detectText(frames, detectedLanguage);
+                      ocrRemarks = AzureOcr.detectText(frames);
                       if(ocrRemarks==null)ocrRemarks="";
                       System.out.println("I found Azure OCR remarks: "+ocrRemarks);
                     }
