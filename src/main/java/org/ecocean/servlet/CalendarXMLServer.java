@@ -70,7 +70,7 @@ public class CalendarXMLServer extends HttpServlet {
     myShepherd.setAction("CalendarXMLServer.class");
     
     
-    int numResults=0;
+    //int numResults=0;
 
     
     Vector rEncounters=new Vector();      

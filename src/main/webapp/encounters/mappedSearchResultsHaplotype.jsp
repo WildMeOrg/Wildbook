@@ -8,6 +8,8 @@
 
     String langCode=ServletUtilities.getLanguageCode(request);
     
+    String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+    
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
     encprops=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode, context);
@@ -132,7 +134,7 @@
   
   <jsp:include page="../header.jsp" flush="true"/>
 
-  <script src="//maps.google.com/maps/api/js?sensor=false"></script>
+  <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 
 

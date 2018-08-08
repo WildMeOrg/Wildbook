@@ -111,7 +111,10 @@ public class MediaAsset implements java.io.Serializable {
 
     protected DateTime userDateTime;
 
-
+    // Variables used in the Survey, SurveyTrack, Path, Location model
+    
+    private String correspondingSurveyTrackID;
+    private String correspondingSurveyID;
 
 
     //protected MediaAssetType type;
@@ -207,6 +210,32 @@ public class MediaAsset implements java.io.Serializable {
     public void setOccurrence(Occurrence occ) {
       this.occurrence = occ;
     }
+    
+    public void setCorrespondingSurveyTrackID(String id) {
+      if (id != null && !id.equals("")) {
+        correspondingSurveyTrackID = id;
+      }
+    }
+
+    public String getCorrespondingSurveyTrackID() {
+      if (correspondingSurveyTrackID != null) {
+        return correspondingSurveyTrackID;
+      }
+      return null;
+    }
+    
+    public void setCorrespondingSurveyID(String id) {
+      if (id != null && !id.equals("")) {
+        correspondingSurveyID = id;
+      }
+    }
+    
+    public String getCorrespondingSurveyID() {
+      if (correspondingSurveyID != null) {
+        return correspondingSurveyID;
+      }
+      return null;
+    }
 
     public String getDetectionStatus() {
       return this.detectionStatus;
@@ -271,11 +300,16 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public MediaAsset getParentRoot(Shepherd myShepherd) {
-        Integer pid = this.getParentId();
-        if (pid == null) return this;
-        MediaAsset par = MediaAssetFactory.load(pid, myShepherd);
-        if (par == null) return this;  //orphaned!  fail!!
+        MediaAsset par = this.getParent(myShepherd);
+        if (par == null) return this;  //reached the root!
         return par.getParentRoot(myShepherd);
+    }
+
+    //returns null if no parent
+    public MediaAsset getParent(Shepherd myShepherd) {
+        Integer pid = this.getParentId();
+        if (pid == null) return null;
+        return MediaAssetFactory.load(pid, myShepherd);
     }
 
     public JSONObject getParameters() {
@@ -392,6 +426,13 @@ public class MediaAsset implements java.io.Serializable {
             f.asset = this;
         }
     }
+    //note: this will outright deletes feature (from db, blame datanucleus), and thus will
+    // break the reference from Annotation-Feature that (likely) existed ... oops?
+    public void removeFeature(Feature f) {
+        if (features == null) return;
+        System.out.println("INFO: removeFeature() killing off " + f + " from " + this);
+        features.remove(f);
+    }
 
     //kinda sorta really only for Encounter.findAllMediaByFeatureId()
     public boolean hasFeatures(String[] featureIds) {
@@ -452,9 +493,15 @@ public class MediaAsset implements java.io.Serializable {
      human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
      FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string),
               then (b) crawl metadata.exif for something date-y
+
+        TODO maybe someday this actually should be *only* punting to store.getDateTime() ????
     */
     public DateTime getDateTime() {
         if (this.userDateTime != null) return this.userDateTime;
+        if (this.store != null) {
+            DateTime dt = this.store.getDateTime(this);
+            if (dt != null) return dt;
+        }
         if (getMetadata() == null) return null;
         String adt = getMetadata().getAttributes().optString("dateTime", null);
         if (adt != null) return DateTime.parse(adt);  //lets hope it is in iso8601 format like it should be!
@@ -519,17 +566,19 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     //if unity feature is appropriate, generates that; otherwise does a boundingBox one
-    public Feature generateFeatureFromBbox(double w, double h, double x, double y) {
+    //   'params' is extra params to use, and can be null
+    public Feature generateFeatureFromBbox(double w, double h, double x, double y, JSONObject params) {
         Feature f = null;
         if ((x != 0) || (y != 0) || (w != this.getWidth()) || (h != this.getHeight())) {
-            JSONObject p = new JSONObject();
-            p.put("width", w);
-            p.put("height", h);
-            p.put("x", x);
-            p.put("y", y);
-            f = new Feature("org.ecocean.boundingBox", p);
+            if (params == null) params = new JSONObject();
+            params.put("width", w);
+            params.put("height", h);
+            params.put("x", x);
+            params.put("y", y);
+            f = new Feature("org.ecocean.boundingBox", params);
             this.addFeature(f);
         } else {
+            //oopsy this ignores extra params!   TODO FIXME should we change this?
             f = this.generateUnityFeature();
         }
         return f;
@@ -607,12 +656,13 @@ public class MediaAsset implements java.io.Serializable {
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
         }
-
         try {
             int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
-            if (i == 0) return new URL(store.getUsage().substring(16));
+            if (i == 0) {
+                String localURL = store.getUsage().substring(16);
+                return new URL(localURL);
+            } 
         } catch (java.net.MalformedURLException ex) {}
-
         return store.webURL(this);
     }
 
@@ -652,6 +702,26 @@ public class MediaAsset implements java.io.Serializable {
     public URL safeURL() {
         return safeURL((HttpServletRequest)null);
     }
+
+    public URL containerURLIfPresent() {
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
+
+        URL localURL = store.getConfig().getURL("webroot"); 
+        if (localURL == null) return null;
+        String hostname = localURL.getHost(); 
+
+        if (containerName!=null&&containerName!="") {
+            try {
+                System.out.println("Using containerName for MediaAsset URL domain..");
+                return new URL(store.webURL(this).getProtocol(), containerName, 80, store.webURL(this).getFile());
+            } catch (java.net.MalformedURLException ex) {}
+        }
+        try {
+            return new URL(hostname);
+        } catch (java.net.MalformedURLException mue) {}
+        return null;
+    }
+
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request, String bestType) {
         if (store == null) return null;
         //this logic is simplistic now, but TODO make more complex (e.g. configurable) later....
@@ -670,6 +740,10 @@ public class MediaAsset implements java.io.Serializable {
         if (parentId != null) {
             top = MediaAssetFactory.load(parentId, myShepherd);
             if (top == null) throw new RuntimeException("bestSafeAsset() failed to find parent on " + this);
+            if (!top.hasLabel("_original")) {
+                //System.out.println("INFO: " + this + " had a non-_original parent of " + top + "; so using this");
+                return this;  //we stick with this cuz we are kinda at a dead end
+            }
         }
 
         boolean gotBest = false;
@@ -832,6 +906,7 @@ public class MediaAsset implements java.io.Serializable {
                     Annotation ann = ft.getAnnotation();
                     if (ann != null) {
                         jf.put("annotationId", ann.getId());
+                        jf.put("annotationIsOfInterest", ann.getIsOfInterest());
                         Encounter enc = ann.findEncounter(myShepherd);
                         if (enc != null) {
                             jf.put("encounterId", enc.getCatalogNumber());
@@ -854,7 +929,8 @@ public class MediaAsset implements java.io.Serializable {
             URL u = safeURL(myShepherd, request);
             if (u != null) jobj.put("url", u.toString());
 
-            ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
+            ArrayList<MediaAsset> kids = null;
+            if (!jobj.optBoolean("_skipChildren", false)) kids = this.findChildren(myShepherd);
             myShepherd.rollbackDBTransaction();
             if ((kids != null) && (kids.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray k = new org.datanucleus.api.rest.orgjson.JSONArray();
@@ -1037,6 +1113,12 @@ System.out.println(">> updateStandardChildren(): type = " + type);
       }
       return false;
     }
+    
+    public void removeKeyword(Keyword k) {
+      if (keywords != null) {
+        if (keywords.contains(k)) keywords.remove(k);
+      }
+    }
 
 
     //if we dont have the Annotation... which kinda sucks but okay
@@ -1084,6 +1166,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     }
     public void setMetadata(MediaAssetMetadata md) {
         metadata = md;
+    }
+    public void setMetadata() throws IOException {
+        setMetadata(updateMetadata());
     }
     public MediaAssetMetadata updateMetadata() throws IOException {  //TODO should this overwrite existing, or append?
         if (store == null) return null;
@@ -1150,6 +1235,8 @@ System.out.println(">> updateStandardChildren(): type = " + type);
             throw new IOException("copyInBase64() could not parse: " + ex.toString());
         }
         File file = (this.localPath() != null) ? this.localPath().toFile() : File.createTempFile("b64-" + Util.generateUUID(), ".tmp");
+        File parentDir = file.getParentFile();
+        if (!parentDir.exists()) parentDir.mkdirs();
         FileOutputStream stream = new FileOutputStream(file);
         try {
             stream.write(imgBytes);

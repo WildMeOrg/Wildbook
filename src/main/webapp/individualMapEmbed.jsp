@@ -103,7 +103,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
           zoom: mapZoom,
           fullscreenControl: true,
           center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID,
+          mapTypeId: google.maps.MapTypeId.TERRAIN,
           zoomControl: true,
           scaleControl: false,
           scrollwheel: false,
@@ -172,7 +172,7 @@ String lastLatLong="";
 					              var encDate1 = '<br/><table><tr><td>' + '<%=props.getProperty("date")%><%=indieEnc.getDate()%>';
 
 					              var encSex2 = '<%if(indieEnc.getSex()!=null){%>'+'<br/>' + '<%=props.getProperty("sex")%><%=indieEnc.getSex()%><%}%>';
-					              var encSize3 = '<%if(indieEnc.getSizeAsDouble()!=null){%>'+'<br/>Size:'+<%=indieEnc.getSize()%>+'m'+<%}%>'+'<br/>';
+					              var encSize3 = '<%if(indieEnc.getSizeAsDouble()!=null){%>'+'<br/>Size:'+<%=indieEnc.getSize()%>+'m'+'<%}%><br/>';
 					              var encURL4 = '<br/><a target=\"_blank\" href=\"http:\/\/'+'<%=CommonConfiguration.getURLLocation(request)%>'+'/encounters/encounter.jsp?number='+'<%=indieEnc.getEncounterNumber()%>'+'\" >'+'<%=props.getProperty("gotoEncounter")%>'+'</a></td></tr></table>';
 					              var indyURL5 = '<strong><a target=\"_blank\" href=\"\/\/'+'<%=CommonConfiguration.getURLLocation(request)%>'+'/individuals.jsp?number='+'<%=indieEnc.getIndividualID()%>'+'\">'+'<%=indieEnc.getIndividualID()%>'+'</a></strong>';
 					             
@@ -306,12 +306,13 @@ var markerCluster = new MarkerClusterer(map, markers, options)
     </script>
 
 
-<p><%=mappingnote %></p>
 <%
 if(request.getParameter("occurrence_number")!=null){
 %>
 	<p><%=props.getProperty("occurrenceAdditionalMappingNote") %></p>
 <%
+} else {
+  %><p><%=mappingnote %></p><%
 }
 %>
 

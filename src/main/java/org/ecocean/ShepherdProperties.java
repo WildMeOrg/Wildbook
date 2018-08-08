@@ -22,7 +22,7 @@ public class ShepherdProperties {
   public static Properties getProperties(String fileName, String langCode, String context){
     Properties props=new Properties();
 
-    String shepherdDataDir="shepherd_data_dir";
+    String shepherdDataDir="wildbook_data_dir";
     if(!langCode.equals("")){
       langCode=langCode+"/";
     }
@@ -53,7 +53,18 @@ public class ShepherdProperties {
         inputStream.close();
       }
       catch (IOException ioe) {
-        ioe.printStackTrace();
+        
+        //OK, we couldn't find the overridden file, and we couldn't find the local file in the webapp
+        //default to the English version
+        if(!langCode.equals("en")) {
+          props=getProperties(fileName, "en", context);
+        }
+        else {
+          ioe.printStackTrace();
+        }
+        
+        
+        
       }
     }
 
@@ -79,7 +90,7 @@ public class ShepherdProperties {
     //System.out.println("Starting loadOverrideProps");
 
     Properties myProps=new Properties();
-    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
+    File configDir = new File(System.getProperty("catalina.base") + "/webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
     //System.out.println(configDir.getAbsolutePath());
     //sometimes this ends up being the "bin" directory of the J2EE container
     //we need to fix that

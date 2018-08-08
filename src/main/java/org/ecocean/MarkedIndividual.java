@@ -170,6 +170,33 @@ public class MarkedIndividual implements java.io.Serializable {
 
  }
 
+   public boolean addEncounterNoCommit(Encounter newEncounter) {
+
+      newEncounter.assignToMarkedIndividual(individualID);
+
+      //get and therefore set the haplotype if necessary
+      getHaplotype();
+
+      boolean isNew=true;
+      for(int i=0;i<encounters.size();i++) {
+        Encounter tempEnc=(Encounter)encounters.get(i);
+        if(tempEnc.getEncounterNumber().equals(newEncounter.getEncounterNumber())) {
+          isNew=false;
+        }
+      }
+
+      //prevent duplicate addition of encounters
+      if(isNew){
+        encounters.add(newEncounter);
+        numberEncounters++;
+        //refreshDependentProperties(context);
+      }
+      setTaxonomyFromEncounters();  //will only set if has no value
+      setSexFromEncounters();       //likewise
+      return isNew;
+
+  }
+
    /**Removes an encounter from this MarkedIndividual.
    *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
    *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
@@ -230,7 +257,7 @@ public class MarkedIndividual implements java.io.Serializable {
 	}
 	
 	 public String refreshDateLastestSighting() {
-	    Encounter[] sorted = this.getDateSortedEncounters(true);
+	    Encounter[] sorted = this.getDateSortedEncounters();
 	    if (sorted.length < 1) return null;
 	    Encounter last = sorted[0];
 	    if (last.getYear() < 1) return null;

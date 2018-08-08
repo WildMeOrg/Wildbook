@@ -14,6 +14,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -25,9 +26,10 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
-    private String species;
+    private String species;  //TODO change to Taxonomy object!  (note: or make it akin to "class" on IA... but better name?)
     private String name;
     private boolean isExemplar = false;
+    private Boolean isOfInterest = null;  //aka AoI (Annotation of Interest)
     protected String identificationStatus;
     private ArrayList<Feature> features;
 
@@ -179,6 +181,10 @@ public class Annotation implements java.io.Serializable {
     public boolean isTrivial() {
         MediaAsset ma = this.getMediaAsset();
         if (ma == null) return false;
+        for (Feature ft : getFeatures()) {
+            if (ft.isUnity()) return true;  //TODO what *really* of multiple features?? does "just one unity" make sense?
+        }
+        //see note above. this is to attempt to be backwards-compatible.  :/  "untested"
         return (!needsTransform() && (getWidth() == (int)ma.getWidth()) && (getHeight() == (int)ma.getHeight()));
     }
 
@@ -221,6 +227,28 @@ public class Annotation implements java.io.Serializable {
     }
 */
 
+
+    //detaches this Annotation from MediaAsset by removing the corresponding feature *from the MediaAsset*
+    // (the Feature is deleted forever, tho!)
+    public MediaAsset detachFromMediaAsset() {
+        ArrayList<Feature> fts = getFeatures();
+        if ((fts == null) || (fts.size() < 1) || (fts.get(0) == null)) return null;
+        MediaAsset ma = fts.get(0).getMediaAsset();
+        if (ma == null) return null;
+        ma.removeFeature(fts.get(0));
+        return ma;
+    }
+
+    //returns null if not MediaAsset (whaaa??), otherwise a list (possibly empty) of siblings on the MediaAsset
+    public List<Annotation> getSiblings() {
+        if (this.getMediaAsset() == null) return null;
+        List<Annotation> sibs = new ArrayList<Annotation>();
+        for (Annotation ann : this.getMediaAsset().getAnnotations()) {  //fyi .getAnnotations() doesnt return null
+            if (!ann.getId().equals(this.getId())) sibs.add(ann);
+        }
+        return sibs;
+    }
+
     public String getSpecies() {
         return species;
     }
@@ -240,6 +268,13 @@ public class Annotation implements java.io.Serializable {
     }
     public void setIsExemplar(boolean b) {
         isExemplar = b;
+    }
+
+    public Boolean getIsOfInterest() {
+        return isOfInterest;
+    }
+    public void setIsOfInterest(Boolean b) {
+        isOfInterest = b;
     }
 
     public String getIdentificationStatus() {
@@ -330,6 +365,8 @@ public class Annotation implements java.io.Serializable {
             org.datanucleus.api.rest.orgjson.JSONObject jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
             jobj.put("id", id);
             jobj.put("isExemplar", this.getIsExemplar());
+            jobj.put("species", this.getSpecies());
+            jobj.put("annotationIsOfInterest", this.getIsOfInterest());
             if (this.getFeatures() != null) {
                 org.datanucleus.api.rest.orgjson.JSONArray feats = new org.datanucleus.api.rest.orgjson.JSONArray();
                 for (Feature f : this.getFeatures()) {
@@ -407,6 +444,110 @@ public class Annotation implements java.io.Serializable {
         return Encounter.findByAnnotation(this, myShepherd);
     }
 
+/* untested!
+    public Encounter findEncounterDeep(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+System.out.println(">>>> findEncounterDeep(" + this + ") -> enc1 = " + enc);
+        if (enc != null) return enc;
+        MediaAsset ma = this.getMediaAsset();
+System.out.println("  >> findEncounterDeep() -> ma = " + ma + " .... getting Annotations:");
+        if (ma == null) return null;
+        ArrayList<Annotation> anns = ma.getAnnotations();
+        for (Annotation ann : anns) {
+System.out.println("  >> findEncounterDeep() -> ann = " + ann);
+            //question: do we *only* look for trivial here? seems like we would want that... cuz we crawl hierarchy only in weird video cases etc
+            if (ann.isTrivial()) return ann.findEncounterDeep(myShepherd); //recurse! (and effectively bottom-out here... do or die
+        }
+        return null;  //fall thru, no luck!
+    }
+*/
+
+    //this is a little tricky. the idea is the end result will get us an Encounter, which *may* be new
+    // if it is new, its pretty straight forward (uses findEncounter) .. if not, creation is as follows:
+    // look for "sibling" Annotations on same MediaAsset.  if one of them has an Encounter, we clone that.
+    // additionally, if one is a trivial annotation, we drop it after.  if no siblings are found, we create
+    // an Encounter based on this Annotation (which may get us something, e.g. species, date, loc)
+    public Encounter toEncounter(Shepherd myShepherd) {
+        // fairly certain this will *never* happen as code currently stands.  this (Annotation) is always new, and
+        //  therefore unattached to any Encounter for sure.   so skipping this for now!
+        ////Encounter enc = this.findEncounter(myShepherd);
+
+        //rather, we straight up find sibling Annotations, and look at them...
+        List<Annotation> sibs = this.getSiblings();
+        if ((sibs == null) || (sibs.size() < 1)) return new Encounter(this);  //no sibs, we make a new Encounter!
+        /*
+            ok, we have sibling Annotations.  if one is trivial, we just go for it and replace that one.
+            is this wise?   well, if it is the *only* sibling then probably the MediaAsset was attached to the
+            Annotation using legacy (non-IA) methods, and we are "zooming in" on the actual animal.  or *one of* the
+            actual animals -- if there are others, they should get added in subsequent iterations of toEncounter().
+            in theory.
+
+            the one case that is still to be considered ( TODO ) is when (theoretically) detection *improves* and we will
+            want a new detection to replace a *non-trivial* Annotation.  but we arent considering that just now!
+        */
+
+        //so now we look for a trivial annot to replace.  *in theory* we "shouldnt have" a trivial annot *along with* some
+        //  non-trivial siblings (since it should have been replaced on the first iteration); but we allow for that anyway!
+        Encounter someEnc = null;  //this is in case we fall thru (no trivial annot), we can clone some of this for new one
+        for (Annotation ann : sibs) {
+            Encounter enc = ann.findEncounter(myShepherd);
+            if (ann.isTrivial()) {
+                if (enc == null) {  //weird case, but yneverknow (trivial annot with no encounter?)
+                    ann.detachFromMediaAsset();  //but this.annot is now on asset, so we are good: kill ann!
+                } else {
+                    //this also does the detachFromMediaAsset() for us
+                    enc.replaceAnnotation(ann, this);
+                    return enc;  //our work is done here
+                }
+                break;  //found trivial, done  TODO: what if there was (bug, weirdness, etc) more than one trivial. gasp!
+            }
+            if (someEnc == null) someEnc = enc;  //use the first one we find to base new one (below) off of, if necessary
+        }
+        //if we fall thru, we have no trivial annot, so just get a new Encounter for this Annotation
+        Encounter newEnc = null;
+        if (someEnc == null) {
+            newEnc = new Encounter(this);
+        } else {  //copy some stuff from sibling
+            newEnc = someEnc.cloneWithoutAnnotations();
+            newEnc.addAnnotation(this);
+            newEnc.setDWCDateAdded();
+            newEnc.setDWCDateLastModified();
+            newEnc.resetDateInMilliseconds();
+            newEnc.setSpeciesFromAnnotations();
+        }
+        return newEnc;
+
+/*   NOTE: for now i am snipping out this sibling stuff!  youtube-sourced frames used this but now doesnt... here for prosperity...
+System.out.println(".toEncounter() on " + this + " found no Encounter.... trying to find one on siblings or make one....");
+        List<Annotation> sibs = this.getSiblings();
+        Annotation sourceSib = null;
+        Encounter sourceEnc = null;
+        if (sibs != null) {
+            //we look for one that has an Encounter, favoring the trivial one (so we can replace it) otherwise any will do
+            for (Annotation sib : sibs) {
+                sourceEnc = sib.findEncounter(myShepherd);
+                if (sourceEnc == null) continue;
+                sourceSib = sib;
+                if (sib.isTrivial()) break;  //we have a winner
+            }
+        }
+
+System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc);
+        if (sourceSib == null) return new Encounter(this);  //from scratch it is then!
+
+        if (sourceSib.isTrivial()) {
+            System.out.println("INFO: annot.toEncounter() replaced trivial " + sourceSib + " with " + this + " on " + sourceEnc);
+            sourceEnc.addAnnotationReplacingUnityFeature(this);
+            sourceEnc.setSpeciesFromAnnotations();
+            return sourceEnc;
+        }
+
+        enc = sourceEnc.cloneWithoutAnnotations();
+        enc.addAnnotation(this);
+        enc.setSpeciesFromAnnotations();
+        return enc;
+*/
+    }
 
 /*  deprecated, maybe?
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
@@ -414,5 +555,17 @@ public class Annotation implements java.io.Serializable {
         return mediaAsset.toHtmlElement(request, myShepherd, this);
     }
 */
+
+    //creates a new Annotation with the basic properties duplicated (but no "linked" objects, like Features etc)
+    public Annotation shallowCopy() {
+        Annotation ann = new Annotation();
+        ann.id = Util.generateUUID();
+        ann.species = this.species;
+        ann.name = this.name;
+        ann.isExemplar = this.isExemplar;
+        ann.identificationStatus = this.identificationStatus;
+        return ann;
+    }
+
 
 }

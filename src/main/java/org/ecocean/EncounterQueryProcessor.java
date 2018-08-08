@@ -2,9 +2,10 @@ package org.ecocean;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.GregorianCalendar;
+//import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -15,19 +16,17 @@ import java.util.Vector;
 import java.io.*;
 
 import javax.jdo.Query;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+import javax.measure.quantity.Length;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+
 
 import org.ecocean.Util.MeasurementDesc;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.Collaboration;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 public class EncounterQueryProcessor {
 
@@ -78,7 +77,7 @@ public class EncounterQueryProcessor {
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
-            prettyPrint.append("<br />");
+            prettyPrint.append("<br/>");
     }
     //end username filters-----------------------------------------------
 
@@ -294,6 +293,78 @@ public class EncounterQueryProcessor {
     }
     //end behavior filters-----------------------------------------------
     //------------------------------------------------------------------
+    
+    //begin observation filters -----------------------------------------
+    boolean hasValue = false;
+    if (request.getParameter("numSearchedObs")!=null) {
+      if (request.getParameter("observationKey1")!=null&&!request.getParameter("observationKey1").equals("")) {
+        hasValue = true;
+      }
+    }  
+    Enumeration<String> allParams = request.getParameterNames();
+    if (allParams!=null&&hasValue) {
+      String keyID = "observationKey";
+      String valID = "observationValue";
+      HashMap<String,String> obKeys = new HashMap<>();
+      HashMap<String,String> obVals = new HashMap<>();
+      StringBuilder obQuery = new StringBuilder();
+      int numObsSearched = 0;
+      while (allParams.hasMoreElements()) {
+        String thisParam = allParams.nextElement();
+        if (thisParam!=null&&thisParam.startsWith(keyID)) {
+          numObsSearched++;
+          System.out.println("Num Obs Searched? "+numObsSearched);
+          String keyParam = request.getParameter(thisParam);
+          String keyNum = thisParam.replace(keyID,"");
+          if (keyParam!=null&&!keyParam.equals("")) {
+            obKeys.put(keyNum,keyParam);            
+          }
+        }
+        if (thisParam!=null&&thisParam.startsWith(valID)) {
+          String valParam = request.getParameter(thisParam);
+          String valNum = thisParam.replace(valID,"");
+          if (valParam!=null&&!valParam.equals("")) {
+            obVals.put(valNum,valParam);            
+          }
+        }
+      }  
+      for (int i=1;i<=numObsSearched;i++) {
+        String num = String.valueOf(i);
+        if (Util.basicSanitize(obKeys.get(num))!=null) {
+          String thisKey = Util.basicSanitize(obKeys.get(num));
+          prettyPrint.append("observation ");
+          prettyPrint.append(thisKey);
+          prettyPrint.append("<br/>");
+          String qAsString = obQuery.toString().trim();
+          System.out.println("Query As String"+qAsString);
+          if (qAsString.length()>=2&&!qAsString.substring(qAsString.length()-2).equals("&&")) {
+            obQuery.append("&&");
+          }
+          obQuery.append("(observations.contains(observation"+num+") && ");
+          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
+          if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
+            String thisVal = Util.basicSanitize(obVals.get(num));
+            prettyPrint.append(" is ");
+            prettyPrint.append(thisVal);              
+            obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim())); 
+          }
+          obQuery.append(")");
+        }
+        if (obQuery.length() > 0) {
+          if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+            filter += " && ";
+          }
+          filter += obQuery.toString();
+          for (int j = 0; j < numObsSearched; j++) {
+            updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + j);
+          }
+          System.out.println("ObQuery: "+obQuery);
+          System.out.println("Filter? "+filter);
+        }
+      }  
+    }
+    
+    //-------------------------------------------------------------------
 
     //Tag Filters--------------------------------------------------------
 
@@ -1019,7 +1090,7 @@ public class EncounterQueryProcessor {
     //submitter or photographer name filter------------------------------------------
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
-      String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1))";
+      String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
       prettyPrint.append("nameField contains: \""+nameString+"\"<br />");
@@ -1071,182 +1142,73 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
     //start date filter----------------------------
-    if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
+    if((request.getParameter("datepicker1")!=null)&&(!request.getParameter("datepicker1").trim().equals(""))&&(request.getParameter("datepicker2")!=null)&&(!request.getParameter("datepicker2").trim().equals(""))){
+        
       try{
+          DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
+          DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
+          DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
+    
+          prettyPrint.append("Dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
 
-    //get our date values
-    int day1=(new Integer(request.getParameter("day1"))).intValue();
-    int day2=(new Integer(request.getParameter("day2"))).intValue();
-    int month1=(new Integer(request.getParameter("month1"))).intValue();
-    int month2=(new Integer(request.getParameter("month2"))).intValue();
-    int year1=(new Integer(request.getParameter("year1"))).intValue();
-    int year2=(new Integer(request.getParameter("year2"))).intValue();
-
-    prettyPrint.append("Dates between: "+year1+"-"+month1+"-"+day1+" and "+year2+"-"+month2+"-"+day2+"<br />");
-
-    //order our values
-    int minYear=year1;
-    int minMonth=month1;
-    int minDay=day1;
-    int maxYear=year2;
-    int maxMonth=month2;
-    int maxDay=day2;
-    if(year1>year2) {
-      minDay=day2;
-      minMonth=month2;
-      minYear=year2;
-      maxDay=day1;
-      maxMonth=month1;
-      maxYear=year1;
-    }
-    else if(year1==year2) {
-      if(month1>month2) {
-        minDay=day2;
-        minMonth=month2;
-        minYear=year2;
-        maxDay=day1;
-        maxMonth=month1;
-        maxYear=year1;
-      }
-      else if(month1==month2) {
-        if(day1>day2) {
-          minDay=day2;
-          minMonth=month2;
-          minYear=year2;
-          maxDay=day1;
-          maxMonth=month1;
-          maxYear=year1;
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+          filter+="((dateInMilliseconds >= "+date1.getMillis()+") && (dateInMilliseconds <= "+date2.getMillis()+"))";
+        }
+        else{filter+=" && ((dateInMilliseconds >= "+date1.getMillis()+") && (dateInMilliseconds <= "+date2.getMillis()+"))";
         }
       }
-    }
-
-    //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
-    //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
-
-    //let's do some month and day checking to avoid exceptions
-    org.joda.time.DateTime testMonth1=new org.joda.time.DateTime(minYear,minMonth,1,0,0);
-    if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();    
-    org.joda.time.DateTime testMonth2=new org.joda.time.DateTime(maxYear,maxMonth,1,0,0);
-    if(testMonth2.dayOfMonth().getMaximumValue()<maxDay) maxDay=testMonth2.dayOfMonth().getMaximumValue();
-    
-    
-    org.joda.time.DateTime gcMin =new org.joda.time.DateTime(minYear, (minMonth), minDay, 0, 0);
-    org.joda.time.DateTime gcMax =new org.joda.time.DateTime(maxYear, (maxMonth), maxDay, 23, 59);
-    
-    
-    if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-      filter+="((dateInMilliseconds >= "+gcMin.getMillis()+") && (dateInMilliseconds <= "+gcMax.getMillis()+"))";
-    }
-    else{filter+=" && ((dateInMilliseconds >= "+gcMin.getMillis()+") && (dateInMilliseconds <= "+gcMax.getMillis()+"))";
-    }
-      
+      catch(Exception e){e.printStackTrace();}
+      }  
     //end date filter------------------------------------------
     
     
     //start date added filter----------------------------
-    if((request.getParameter("addedday1")!=null)&&(request.getParameter("addedmonth1")!=null)&&(request.getParameter("addedyear1")!=null)&&(request.getParameter("addedday2")!=null)&&(request.getParameter("addedmonth2")!=null)&&(request.getParameter("addedyear2")!=null)) {
+    if((request.getParameter("dateaddedpicker1")!=null)&&(!request.getParameter("dateaddedpicker1").trim().equals(""))&&(request.getParameter("dateaddedpicker2")!=null)&&(!request.getParameter("dateaddedpicker2").trim().equals(""))){
+      
       try{
-
-        //get our date values
-        int addedday1=(new Integer(request.getParameter("addedday1"))).intValue();
-        int addedday2=(new Integer(request.getParameter("addedday2"))).intValue();
-        int addedmonth1=(new Integer(request.getParameter("addedmonth1"))).intValue();
-        int addedmonth2=(new Integer(request.getParameter("addedmonth2"))).intValue();
-        int addedyear1=(new Integer(request.getParameter("addedyear1"))).intValue();
-        int addedyear2=(new Integer(request.getParameter("addedyear2"))).intValue();
-
-        prettyPrint.append("Encounter creation dates between: "+addedyear1+"-"+addedmonth1+"-"+addedday1+" and "+addedyear2+"-"+addedmonth2+"-"+addedday2+"<br />");
-
-        //order our values
-        int addedminYear=addedyear1;
-        int addedminMonth=addedmonth1;
-        int addedminDay=addedday1;
-        int addedmaxYear=addedyear2;
-        int addedmaxMonth=addedmonth2;
-        int addedmaxDay=addedday2;
-        if(addedyear1>addedyear2) {
-          addedminDay=addedday2;
-          addedminMonth=addedmonth2;
-          addedminYear=addedyear2;
-          addedmaxDay=addedday1;
-          addedmaxMonth=addedmonth1;
-          addedmaxYear=addedyear1;
-        }
-        else if(addedyear1==addedyear2) {
-          if(addedmonth1>addedmonth2) {
-              addedminDay=addedday2;
-              addedminMonth=addedmonth2;
-              addedminYear=addedyear2;
-              addedmaxDay=addedday1;
-              addedmaxMonth=addedmonth1;
-              addedmaxYear=addedyear1;
-          }
-          else if(addedmonth1==addedmonth2) {
-            if(addedday1>addedday2) {
-              addedminDay=addedday2;
-              addedminMonth=addedmonth2;
-              addedminYear=addedyear2;
-              addedmaxDay=addedday1;
-              addedmaxMonth=addedmonth1;
-              addedmaxYear=addedyear1;
-            }
-          }
-        }
-
-        //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
-        //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
-
-        //let's do some month and day checking to avoid exceptions
-        org.joda.time.DateTime addedtestMonth1=new org.joda.time.DateTime(addedminYear,addedminMonth,1,0,0);
-        if(addedtestMonth1.dayOfMonth().getMaximumValue()<addedminDay) addedminDay=addedtestMonth1.dayOfMonth().getMaximumValue();    
-        org.joda.time.DateTime addedtestMonth2=new org.joda.time.DateTime(addedmaxYear,addedmaxMonth,1,0,0);
-        if(addedtestMonth2.dayOfMonth().getMaximumValue()<addedmaxDay) addedmaxDay=addedtestMonth2.dayOfMonth().getMaximumValue();
+          DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
+          DateTime date1 = parser.parseDateTime(request.getParameter("dateaddedpicker1"));
+          DateTime date2 = parser.parseDateTime(request.getParameter("dateaddedpicker2"));
     
-    
-        org.joda.time.DateTime addedgcMin =new org.joda.time.DateTime(addedminYear, (addedminMonth), addedminDay, 0, 0);
-        org.joda.time.DateTime addedgcMax =new org.joda.time.DateTime(addedmaxYear, (addedmaxMonth), addedmaxDay, 23, 59);
-    
+          prettyPrint.append("Encounter creation dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
     
         
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-          filter+="((dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
+          filter+="((dwcDateAddedLong >= "+date1.getMillis()+") && (dwcDateAddedLong <= "+date2.getMillis()+"))";
         }
         else{
-          filter+=" && ((dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
+          filter+=" && ((dwcDateAddedLong >= "+date1.getMillis()+") && (dwcDateAddedLong <= "+date2.getMillis()+"))";
     
         }
         
-    //end date added filter------------------------------------------
+    
       } catch(NumberFormatException nfe) {
         //do nothing, just skip on
         nfe.printStackTrace();
           }
         }
-    
+  //end date added filter------------------------------------------
     
 
     //filter for sex------------------------------------------
-
-    if(request.getParameter("male")==null) {
-      filter+=" && !sex.startsWith('male')";
-      prettyPrint.append("Sex is not male.<br />");
-    }
-    if(request.getParameter("female")==null) {
-      filter+=" && !sex.startsWith('female')";
-      prettyPrint.append("Sex is not female.<br />");
-    }
-    if(request.getParameter("unknown")==null) {
-      filter+=" && !sex.startsWith('unknown') && sex != null";
-      prettyPrint.append("Sex is not unknown.<br />");
+    if((request.getParameter("male")!=null)||(request.getParameter("female")!=null)||(request.getParameter("unknown")!=null)){
+      if(request.getParameter("male")==null) {
+        filter+=" && !sex.startsWith('male')";
+        prettyPrint.append("Sex is not male.<br />");
+      }
+      if(request.getParameter("female")==null) {
+        filter+=" && !sex.startsWith('female')";
+        prettyPrint.append("Sex is not female.<br />");
+      }
+      if(request.getParameter("unknown")==null) {
+        filter+=" && !sex.startsWith('unknown') && sex != null";
+        prettyPrint.append("Sex is not unknown.<br />");
+      }
     }
 
     //filter by sex--------------------------------------------------------------------------------------
 
-      } catch(NumberFormatException nfe) {
-        //do nothing, just skip on
-        nfe.printStackTrace();
-          }
-        }
+
  
 
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
@@ -1307,6 +1269,9 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
                   double sw_lat = (new Double(request.getParameter("sw_lat"))).doubleValue();
                   double sw_long=(new Double(request.getParameter("sw_long"))).doubleValue();
 
+                  //The latitude must be a number between -90 and 90 and the longitude between -180 and 180.
+                  
+                  
                   if((sw_long>0)&&(ne_long<0)){
                     //if(!((encLat<=ne_lat)&&(encLat>=sw_lat)&&((encLong<=ne_long)||(encLong>=sw_long)))){
 
@@ -1335,8 +1300,14 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
                   }
 
                   thisLocalFilter+=" )";
-                  if(filter.equals("")){filter=thisLocalFilter;}
-                  else{filter+=" && "+thisLocalFilter;}
+                  
+                  if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+                    filter += " && ";
+                  }
+                  filter+=thisLocalFilter;
+                  //if(filter.equals("")){filter=thisLocalFilter;}
+                  //else if(){filter+=" && "+thisLocalFilter;}
+                  //else{filter+=" && "+thisLocalFilter;}
 
                   prettyPrint.append("GPS Boundary NE: \""+request.getParameter("ne_lat")+", "+request.getParameter("ne_long")+"\".<br />");
                   prettyPrint.append("GPS Boundary SW: \""+request.getParameter("sw_lat")+", "+request.getParameter("sw_long")+"\".<br />");

@@ -20,6 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.ia.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.ecocean.media.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.net.URL;
@@ -62,6 +64,7 @@ public class MediaAssetCreate extends HttpServlet {
         myShepherd.beginDBTransaction();
         myShepherd.getPM().makePersistent(maSet);
         myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
 
         response.setContentType("text/plain");
         JSONObject res = new JSONObject();
@@ -88,6 +91,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 ....
             ]
         },
+    "skipIA": false,  //default is do-not-skipIA, but you may want off when done later (e.g. match.jsp which does in CreateEncounter)
 .... (other types) ...
     ]
 
@@ -97,8 +101,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         String context="context0";
         //context=ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.beginDBTransaction();
+
         //set up for response
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
@@ -111,9 +114,44 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
             out.close();
             return;
         }
+        
+        JSONObject res=new JSONObject();
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MediaAssetCreate.class_nonum");
+        myShepherd.beginDBTransaction();
+        try{
+          res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
+          myShepherd.commitDBTransaction();
+        }
+        catch(IOException ioe){
+          ioe.printStackTrace();
+          myShepherd.rollbackDBTransaction();}
+        finally{
+          myShepherd.closeDBTransaction();
+        }
 
-        JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
-        myShepherd.commitDBTransaction();
+        //this has to be after commit (so queue can find them from different thread), so we do a little work here
+        if (!j.optBoolean("skipIA", false)) {
+            JSONArray ids = res.optJSONArray("allMediaAssetIds");
+            if ((ids != null) && (ids.length() > 0)) {
+                myShepherd = new Shepherd(context);
+                myShepherd.setAction("MediaAssetCreate.class_IA.intake");
+                myShepherd.beginDBTransaction();
+                List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+                for (int i = 0 ; i < ids.length() ; i++) {
+                    int id = ids.optInt(i, -1);
+                    if (id < 0) continue;
+                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                    if (ma != null) allMAs.add(ma);
+                }
+                if (allMAs.size() > 0) {
+                    Task task = IA.intakeMediaAssets(myShepherd, allMAs);
+                    res.put("IATaskId", task.getId());
+                }
+                myShepherd.rollbackDBTransaction();
+            }
+        }
+
         out.println(res.toString());
         out.close();
     }
@@ -272,6 +310,7 @@ System.out.println("no MediaAssetSet; created " + targetMA);
         }
 
         JSONObject js = new JSONObject();
+        JSONArray allMAIds = new JSONArray();
         for (MediaAssetSet s : sets.values()) {
             JSONArray jmas = new JSONArray();
             if ((s.getMediaAssets() != null) && (s.getMediaAssets().size() > 0)) {
@@ -285,6 +324,7 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                     jma.put("_debug", ma.toString());
                     jma.put("_params", ma.getParameters().toString());
                     jmas.put(jma);
+                    allMAIds.put(ma.getId());
                 }
             }
             if (jmas.length() > 0) js.put(s.getId(), jmas);
@@ -306,10 +346,12 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                 jma.put("_debug", ma.toString());
                 jma.put("_params", ma.getParameters().toString());
                 jmas.put(jma);
+                allMAIds.put(ma.getId());
             }
             rtn.put("withoutSet", jmas);
         }
 
+        rtn.put("allMediaAssetIds", allMAIds);
         rtn.put("success", true);
         return rtn;
     }
