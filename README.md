@@ -70,6 +70,11 @@ Most important emails:
 * html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.html
 * plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.txt 
 
+**Encounter update (new individual)**
+
+* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualCreate.html
+* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualCreate.txt
+
 **Individual update (resighting notification)**
 
 * html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.html
