@@ -44,8 +44,6 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 **Property files (most copy, and translations/localizations)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
 
-**Emails** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
-
 **Images** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
 
 <ul>
@@ -54,6 +52,28 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 <li>Specify header logos here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap-overrides.less</li>
 
  </ul>
+
+
+<h2>Emails</h2>
+
+**Emails** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
+
+Most important emails:
+
+New encounter submission (submission confirmation)
+
+--html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/newSubmission.html
+--plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/newSubmission.txt
+
+Encounter update (match notification)
+
+--html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.html
+--plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.txt 
+
+Individual update (resighting notification)
+
+--html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.html
+--plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.txt
 
 <h2> Quick reference </h2>
 
