@@ -33,7 +33,7 @@ myShepherd.beginDBTransaction();
 try{
 	
     List<User> users=null;
-    String filter="SELECT * FROM org.ecocean.User";  
+    String filter="SELECT FROM org.ecocean.User";  
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     users=new ArrayList<User>(c);
@@ -41,9 +41,15 @@ try{
     int numUsers=users.size();
     for(int i=0;i<numUsers;i++){
     	User user=users.get(i);
-    	user.setPassword(user.getPassword());
-    	myShepherd.commitDBTransaction();
-    	myShepherd.beginDBTransaction();
+    	if(user.getEmailAddress()!=null){
+	    	user.setEmailAddress(user.getEmailAddress());
+	    	myShepherd.commitDBTransaction();
+	    	myShepherd.beginDBTransaction();
+	    	%>
+	    	<li>Set email hash for: <%=user.getEmailAddress() %></li>
+	    	<%
+    	}
+
     }
 
 
