@@ -3318,6 +3318,20 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
+    public List<String> getHashedSubmitterEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getSubmitters()!=null)subs.addAll(getSubmitters());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getHashedEmailAddress()!=null)&&(!use.getHashedEmailAddress().trim().equals(""))){
+          listy.add(use.getHashedEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
     public List<User> getPhotographers(){
       return photographers;
     }
@@ -3331,6 +3345,20 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         User use=subs.get(k);
         if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
           listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
+    public List<String> getHashedPhotographerEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getPhotographers()!=null)subs.addAll(getPhotographers());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getHashedEmailAddress()!=null)&&(!use.getHashedEmailAddress().trim().equals(""))){
+          listy.add(use.getHashedEmailAddress());
         }
       }
       return listy;

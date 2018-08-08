@@ -196,6 +196,11 @@
  	int numPhotos=0;
  	int numContributors=0;
  	int numIdentified=0;
+ 	
+ 	//citsci vs research users
+ 	ArrayList<User> researchStaff=new ArrayList<User>();
+ 	ArrayList<User> publicContributors=new ArrayList<User>();
+ 	
  	StringBuffer contributors=new StringBuffer();
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
@@ -214,29 +219,41 @@
  		 }
  			
  		//calculate the number of submitter contributors
- 		if(thisEnc.getSubmitterEmails()!=null) {
- 				List<String> emails=thisEnc.getSubmitterEmails();
- 				int numEmails=emails.size();
- 				for(int q=0;q<numEmails;q++){
- 						String token=emails.get(q);
- 						if (contributors.indexOf(token)==-1) {
- 							contributors.append(token);
- 							numContributors++;
+ 		if(thisEnc.getSubmitters()!=null) {
+ 				List<User> users=thisEnc.getSubmitters();
+ 				int numU=users.size();
+ 				for(int q=0;q<numU;q++){
+ 						User user=users.get(q);
+ 						if(user.getHashedEmailAddress()!=null){
+ 							String token=user.getHashedEmailAddress();
+	 						if (contributors.indexOf(token)==-1) {
+	 							contributors.append(token);
+	 							numContributors++;
+	 						}
  						}
+ 						//check public vs research staff
+ 						if((user.getUsername()!=null)&&(!researchStaff.contains(user))){researchStaff.add(user);}
+ 						else if(!publicContributors.contains(user)){publicContributors.add(user);}
  				}
  		}
 
 
  		//calculate the number of photographer contributors
- 		if(thisEnc.getPhotographerEmails()!=null) {
- 				List<String> emails=thisEnc.getPhotographerEmails();
- 				int numEmails=emails.size();
- 				for(int q=0;q<numEmails;q++){
- 						String token=emails.get(q);
- 						if (contributors.indexOf(token)==-1) {
- 							contributors.append(token);
- 							numContributors++;
+ 		if(thisEnc.getPhotographers()!=null) {
+ 				List<User> users=thisEnc.getPhotographers();
+ 				int numU=users.size();
+ 				for(int q=0;q<numU;q++){
+ 						User user=users.get(q);
+ 						if(user.getHashedEmailAddress()!=null){
+ 							String token=user.getHashedEmailAddress();
+	 						if (contributors.indexOf(token)==-1) {
+	 							contributors.append(token);
+	 							numContributors++;
+	 						}
  						}
+ 						//check public vs research staff
+ 						if((user.getUsername()!=null)&&(!researchStaff.contains(user))){researchStaff.add(user);}
+ 						else if(!publicContributors.contains(user)){publicContributors.add(user);}
  				}
  		}
  		 
@@ -491,6 +508,30 @@
       }
       
       
+      //pubic contributors versus research staff chart
+      google.setOnLoadCallback(drawCitSciChart);
+      function drawCitSciChart() {
+          var citscidata = new google.visualization.DataTable();
+          citscidata.addColumn('string', '<%=encprops.getProperty("contributorType") %>');
+          citscidata.addColumn('number', '<%=encprops.getProperty("number") %>');
+          citscidata.addRows([
+            
+            ['<%=encprops.getProperty("researchStaff")%>',    <%=researchStaff.size() %>],
+            ['<%=encprops.getProperty("publicContributors")%>',    <%=publicContributors.size() %>],
+
+          ]);
+
+          var citscioptions = {
+            width: 450, height: 300,
+            title: '<%=encprops.getProperty("citsciTitle") %>',
+
+          };
+
+          var citscichart = new google.visualization.PieChart(document.getElementById('citsci_div'));
+          citscichart.draw(citscidata, citscioptions);
+        }
+      
+      //State chart
       google.setOnLoadCallback(drawStateChart);
       function drawStateChart() {
         var statesdata = new google.visualization.DataTable();
@@ -948,6 +989,7 @@
  	<div id="frequency_div"></div>
  	<div id="userschart_div"></div>
  	<div id="states_div"></div>
+ 	<div id="citsci_div"></div>
  	<div id="yearadded_div"></div>
  	<div id="yeartotals_div"></div>
  <%
