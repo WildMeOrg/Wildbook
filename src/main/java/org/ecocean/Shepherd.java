@@ -2108,6 +2108,18 @@ public class Shepherd {
     return null;
   }
   
+  public User getUserByHashedEmailAddress(String hashedEmail){
+    ArrayList<User> users=new ArrayList<User>();
+    String filter="SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \""+hashedEmail+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){users=new ArrayList<User>(c);}
+    query.closeAll();
+    if(users.size()>0){return users.get(0);}
+    return null;
+  }
+  
+  
   public List<User> getUsersWithEmailAddresses(){
     ArrayList<User> users=new ArrayList<User>();
     String filter="SELECT FROM org.ecocean.User WHERE emailAddress != null";

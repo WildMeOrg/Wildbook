@@ -628,14 +628,16 @@ System.out.println("enc ?= " + enc.toString());
               int numTokens=str.countTokens();
               for(int y=0;y<numTokens;y++) {
                 String tok=str.nextToken().trim();
-                if(myShepherd.getUserByEmailAddress(tok)!=null) {
-                  User user=myShepherd.getUserByEmailAddress(tok);
+                String hashedTok=ServletUtilities.hashString(tok);
+                if(myShepherd.getUserByHashedEmailAddress(tok)!=null) {
+                  User user=myShepherd.getUserByHashedEmailAddress(tok);
                   submitters.add(user);
                 }
                 else {
                   User user=new User(tok);
                   user.setAffiliation(subO);
                   user.setUserProject(subP);
+                  if((numTokens==1)&&(subN!=null)){user.setFullName(subN);}
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
                   myShepherd.beginDBTransaction();

@@ -20,6 +20,7 @@ public class User implements Serializable {
   private String fullName;
   //Primary email address
   private String emailAddress;
+  private String hashedEmailAddress;
   // User's snail-mail address/location
   private String physicalAddress;
   //Primary phone number
@@ -115,11 +116,19 @@ public class User implements Serializable {
   {
     return this.emailAddress;
   }
+  public String getHashedEmailAddress ()
+  {
+    return this.hashedEmailAddress;
+  }
   public void setEmailAddress (String emailAddress){
     if(emailAddress!=null){
       this.emailAddress = emailAddress;
+      this.hashedEmailAddress=ServletUtilities.hashString(emailAddress);
     }
-    else{this.emailAddress=null;}
+    else{
+      this.emailAddress=null;
+      //NOTE: we intentionally do NOT null the hashed email address. the hash is a reflection that someone was there, allowing us to count users even if we acknowledge a right-to-forget (GDPR) and remove the email address itself
+    }
     RefreshDate();
   }
 

@@ -664,6 +664,10 @@
       <field name="emailAddress">
         <column name="EMAILADDRESS"/>
       </field>
+	  
+	        <field name="hashedEmailAddress">
+        <column name="HASHEDEMAILADDRESS"/>
+      </field>
 
       <field name="physicalAddress">
         <column name="PHYSICALADDRESS"/>
