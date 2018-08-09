@@ -123,6 +123,12 @@ public class UserCreate extends HttpServlet {
         }
         else{
           newUser=myShepherd.getUserByEmailAddress(email);
+          if((!password.equals(""))&(password.equals(password2))){
+            String salt=ServletUtilities.getSalt().toHex();
+            String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
+            newUser.setPassword(hashedPassword);
+            newUser.setSalt(salt);
+          }
         }
         
         //here handle all of the other User fields (e.g., email address, etc.)
