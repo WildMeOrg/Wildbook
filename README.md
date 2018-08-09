@@ -85,7 +85,7 @@ Most important emails:
 * html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.html
 * plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.txt
 
-<h2>Configuration changes</h2>
+<h2>Location IDs</h2>
 
 Add new location ID names to **commonConfiguration.properties**, then request that changes be merged into the working version (not stored on GH):
 https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
