@@ -984,7 +984,7 @@ if(enc.getLocation()!=null){
     <input name="action" type="hidden" value="setEncounterDepth" />
     <div class="form-group row">
       <div class="col-sm-5" id="depthDiv">
-        <input name="depth" type="text" id="depthInput" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
+        <input name="depth" type="text" id="depthInput" class="form-control"/><span><%=encprops.getProperty("feet")%></span>
         <span class="form-control-feedback" id="depthCheck">&check;</span>
         <span class="form-control-feedback" id="depthError">X</span>
       </div>
