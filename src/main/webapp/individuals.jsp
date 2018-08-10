@@ -492,21 +492,21 @@ $(document).ready(function() {
                   </form>
                   <%-- End edit nickname form --%>
 
-              <%
-            }
-            %>
-          <%
-            if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-            String genusSpeciesFound=props.getProperty("notAvailable");
-            if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
-            %>
-            <p>
-              <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
-            </p>
-            <%
-              }
-              %>
+//            <%
+//          }
+//          %>
+//        <%
+//          if(CommonConfiguration.showProperty("showTaxonomy",context)){
+//
+//          String genusSpeciesFound=props.getProperty("notAvailable");
+//          if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
+//          %>
+//          <p>
+//            <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
+//          </p>
+//          <%
+//            }
+//            %>
 
         </div>
 
