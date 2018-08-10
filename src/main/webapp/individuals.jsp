@@ -788,7 +788,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       <%-- End of Relationship Graphs --%>
       <br>
       <%-- Start Encounter Table --%>
-      <p><strong><%=props.getProperty("tissueSamples") %> &amp; <%=numencounters %></strong></p>
+      <p><strong><%=numencounters %></strong></p>
       <div class="encountersBioSamples">
         <div role="navigation">
           <ul class="nav nav-tabs">
