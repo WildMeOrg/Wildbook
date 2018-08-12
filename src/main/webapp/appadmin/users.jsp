@@ -37,7 +37,8 @@ String context="context0";
      <%
      
      myShepherd.beginDBTransaction();
-     List<User> allUsers=myShepherd.getAllUsers();
+     //List<User> allUsers=myShepherd.getAllUsers();
+     List<String> allUsers=myShepherd.getAllUsernamesWithRoles();
      int numUsers=allUsers.size();
      
      %>
@@ -60,62 +61,69 @@ String context="context0";
       <%
       
       for(int i=0;i<numUsers;i++){
-      	User user=allUsers.get(i);
-      	String affiliation="&nbsp;";
-      	if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-      	String fullName="&nbsp;";
-      	if(user.getFullName()!=null){fullName=user.getFullName();}
-      	String emailAddress="&nbsp;";
-      	if(user.getEmailAddress()!=null){emailAddress=user.getEmailAddress();}
-      	%>
-      	<tr>
-      		<td>
-      		<%
-      		if(user.getUserImage()!=null){
-      			String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-      		%>
-      		<img src="<%=profilePhotoURL %>" width="75px" height="*"/>
-      		<%
-      		}
-      		else{
-      		%>
-      		&nbsp;
-      		<%
-      		}
-      		%>
-      		</td>
-      		<td style="font-size:small"><%=StringEscapeUtils.escapeHtml4(user.getUsername())%></td>
-      		<td style="font-size:small"><%=StringEscapeUtils.escapeHtml4(fullName)%></td>
-      		<td style="font-size:small"><a href="mailto:<%=emailAddress%>"><img height="20px" width="20px" src="../images/Crystal_Clear_app_email.png" /></a></td>
-      		<td style="font-size:small"><%=affiliation%></td>
-      		<td style="font-size:x-small"><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()).replaceAll("\r","<br />") %></em></td>
-      		<td><a href="users.jsp?context=context0&username=<%=user.getUsername()%>&isEdit=true#editUser"><img width="20px" height="20px" src="../images/Crystal_Clear_action_edit.png" /></a></td>   	
-      		<td>
-      			<%
-      			if(!user.getUsername().equals(request.getUserPrincipal().getName())){
-      			%>
-      			<form onsubmit="return confirm('Are you sure you want to delete this user?');" action="../UserDelete?context=context0&username=<%=user.getUsername()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
-      			<%
-      			}
-      			else {
-      			%>
-      			&nbsp;
-      			<%
-      			}
-      			%>
-      		</td>
-      		<td style="font-size:small">
-      		<% 
-      		if(user.getLastLoginAsDateString()!=null){
-      		%>
-      			<em><%=user.getLastLoginAsDateString().substring(0,user.getLastLoginAsDateString().indexOf("T")) %></em>
-      		<%
-      		}
-      		%>
-      		</td>
-      	</tr>
-      	<%
-      
+    	  System.out.println("Username: "+allUsers.get(i));
+    	if(myShepherd.getUser(allUsers.get(i))!=null){  
+	      	User user=myShepherd.getUser(allUsers.get(i));
+	      	String affiliation="&nbsp;";
+	      	if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+	      	String fullName="&nbsp;";
+	      	if(user.getFullName()!=null){fullName=user.getFullName();}
+	      	String emailAddress="&nbsp;";
+	      	if(user.getEmailAddress()!=null){emailAddress=user.getEmailAddress();}
+	      	String username = "&nbsp;";
+	      	if(user.getUsername()!=null){
+	      		username=user.getUsername();
+	      	}
+	      	
+	      	%>
+	      	<tr>
+	      		<td>
+	      		<%
+	      		if(user.getUserImage()!=null){
+	      			String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+	      		%>
+	      		<img src="<%=profilePhotoURL %>" width="75px" height="*"/>
+	      		<%
+	      		}
+	      		else{
+	      		%>
+	      		&nbsp;
+	      		<%
+	      		}
+	      		%>
+	      		</td>
+	      		<td style="font-size:small"><%=StringEscapeUtils.escapeHtml4(user.getUsername())%></td>
+	      		<td style="font-size:small"><%=StringEscapeUtils.escapeHtml4(fullName)%></td>
+	      		<td style="font-size:small"><a href="mailto:<%=emailAddress%>"><img height="20px" width="20px" src="../images/Crystal_Clear_app_email.png" /></a></td>
+	      		<td style="font-size:small"><%=affiliation%></td>
+	      		<td style="font-size:x-small"><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()).replaceAll("\r","<br />") %></em></td>
+	      		<td><a href="users.jsp?context=context0&username=<%=user.getUsername()%>&isEdit=true#editUser"><img width="20px" height="20px" src="../images/Crystal_Clear_action_edit.png" /></a></td>   	
+	      		<td>
+	      			<%
+	      			if(!user.getUsername().equals(request.getUserPrincipal().getName())){
+	      			%>
+	      			<form onsubmit="return confirm('Are you sure you want to delete this user?');" action="../UserDelete?context=context0&username=<%=user.getUsername()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
+	      			<%
+	      			}
+	      			else {
+	      			%>
+	      			&nbsp;
+	      			<%
+	      			}
+	      			%>
+	      		</td>
+	      		<td style="font-size:small">
+	      		<% 
+	      		if(user.getLastLoginAsDateString()!=null){
+	      		%>
+	      			<em><%=user.getLastLoginAsDateString().substring(0,user.getLastLoginAsDateString().indexOf("T")) %></em>
+	      		<%
+	      		}
+	      		%>
+	      		</td>
+	      	</tr>
+	      	<%
+      	}
       }
       
       %>
