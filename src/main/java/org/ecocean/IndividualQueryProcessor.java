@@ -1084,6 +1084,8 @@ public class IndividualQueryProcessor {
 	}
     //filter by alive/dead status--------------------------------------------------------------------------------------
 
+    /**
+     * Try this again with DataNucleus 5.x+. JDOQL does not compile correctly.
     //submitter or photographer name filter------------------------------------------
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
@@ -1091,19 +1093,29 @@ public class IndividualQueryProcessor {
       
       //String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
       String filterString=""+
-         "("
-             + "(enc.submitters.contains(submitter) && ((submitter.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) || "
-             + "(enc.photographers.contains(photographer) && ((photographer.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographer.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) "
-             +"||(enc.informothers.toLowerCase().indexOf('"+nameString+"') != -1)"
+         //" ( " +
+              "("
+                   +" (enc.submitters.contains(submitter)) "
+                   +" && ( "
+
+                       +" (submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1)"
+                         //+" || (submitter.fullName.toLowerCase().indexOf('"+nameString+"') != -1)"
+                         
+                       +")"
+                +") "
+         //   + " || (enc.photographers.contains(submitter) && (submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1)) "
+         //    +"||(enc72.informothers.toLowerCase().indexOf('"+nameString+"') != -1)"
           
-          +")";
+         //+" ) "
+         ;
       
       
       
-      if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter;org.ecocean.User photographer";}
+      if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter";}
       else{
         if(!jdoqlVariableDeclaration.contains("org.ecocean.User submitter")){jdoqlVariableDeclaration+=";org.ecocean.User submitter";}
-        if(!jdoqlVariableDeclaration.contains("org.ecocean.User photographer")){jdoqlVariableDeclaration+=";org.ecocean.User photographer";}
+        //if(!jdoqlVariableDeclaration.contains("org.ecocean.User photographer")){jdoqlVariableDeclaration+=";org.ecocean.User photographer";}
+        //if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc72")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc72";}
 
       }
       
@@ -1115,7 +1127,7 @@ public class IndividualQueryProcessor {
       
     }
     //end name and email filter--------------------------------------------------------------------------------------
-
+    */
 
 
 
