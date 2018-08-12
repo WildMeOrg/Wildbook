@@ -12,14 +12,22 @@ Newly marked individual: @INDIVIDUAL_ID@
 Encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
+Researchers at UC Santa Barbara will continue to track whether your giant sea 
+bass is sighted again by other users of Spotting Giant Sea Bass. This information 
+helps us track populations trends for this endangered fish and understand more about 
+what habitats are important to this species. Thank you for this contribution and we 
+encourage you to continue to submit more images to help improve this research project.
+
 Thanks again for your critical help.
 
+Regards,
 Spotting Giant Seabass Research Team
 
 ~ ~ ~
 Hola,
 
-Nadamás un breve mensaje para avisarte que el encuentro que has enviado ha sido agregado a la base de datos como un individuo nuevo que no había sido identificado.
+Nadamás un breve mensaje para avisarte que el encuentro que has enviado ha sido 
+agregado a la base de datos como un individuo nuevo que no había sido identificado.
 
 Has descubierto un mero gigante nuevo para la ciencia.
 
@@ -29,5 +37,5 @@ Individuo nuevo: @INDIVIDUAL_ID@
 Encuentro: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
   
-Gracias de nuevo por tu ayuda
+Gracias de nuevo por tu ayuda.
         
