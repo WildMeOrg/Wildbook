@@ -747,10 +747,25 @@ public class Shepherd {
     return rolesFound;
   }
 
+  
+  
   public User getUser(String username) {
     User user= null;
+    String filter="SELECT FROM org.ecocean.User WHERE username == \""+username.trim()+"\"";   
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      user=(User)it.next();
+    }
+    query.closeAll();
+    return user;
+  }
+  
+  public User getUserByUUID(String uuid) {
+    User user= null;
     try {
-      user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, username.trim()), true)));
+      user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, uuid.trim()), true)));
     }
     catch (Exception nsoe) {
       return null;
@@ -758,6 +773,9 @@ public class Shepherd {
     return user;
   }
 
+  
+  
+  
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
     String filter = "this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";

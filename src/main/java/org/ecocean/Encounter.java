@@ -49,7 +49,7 @@ import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
-import org.ecocean.servlet.ServletUtilities;
+//import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
@@ -172,6 +172,10 @@ public class Encounter implements java.io.Serializable {
 
   // for searchability
   private String imageNames;
+  
+  
+  private List<User> submitters;
+  private List<User> photographers;
 
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
@@ -1307,6 +1311,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return submitterID;
   }
 
+  
   public Vector getInterestedResearchers() {
     return interestedResearchers;
   }
@@ -1314,6 +1319,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void addInterestedResearcher(String email) {
     interestedResearchers.add(email);
   }
+  
 
  /*
   public boolean isApproved() {
@@ -1321,6 +1327,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
   */
 
+  /*
   public void removeInterestedResearcher(String email) {
     for (int i = 0; i < interestedResearchers.size(); i++) {
       String rName = (String) interestedResearchers.get(i);
@@ -1329,7 +1336,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
     }
   }
-
+*/
 
   public double getRightmostSpot() {
     double rightest = 0;
@@ -3246,4 +3253,17 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }  
     } 
 
+    
+    public List<User> getSubmitters(){
+      return submitters;
+    }
+    
+    public List<User> getPhotographer(){
+      return photographers;
+    }
+    
+    public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
+    public void setPhoographers(List<User> photographers) {this.photographers=photographers;}
+    
+    
 }

@@ -43,6 +43,7 @@ public class User implements Serializable {
   	private String username;
   	private String password ;
   	private String salt;
+  	private String uuid;
   	
   	//String currentContext;
   	
@@ -57,6 +58,7 @@ public class User implements Serializable {
   	public User(){}
   	
   	public User(String fullName, String emailAddress, String physicalAddress, String phoneNumber, String affiliation, String notes) {
+  	  uuid=Util.generateUUID();
   	  setFullName(fullName);
   	  setEmailAddress(emailAddress);
   	  setPhysicalAddress(physicalAddress);
@@ -68,6 +70,7 @@ public class User implements Serializable {
   	}
   	
   	public User(String username,String password, String salt){
+  	  uuid=Util.generateUUID();
   	  setUsername(username);
   	  setPassword(password);
   	  setSalt(salt);
@@ -261,5 +264,7 @@ public class User implements Serializable {
 
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
+		
+		public String getUUID() {return uuid;}
 
 }
