@@ -105,23 +105,24 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	//fetch all collabs for the user
-	public static ArrayList collaborationsForCurrentUser(HttpServletRequest request) {
+	public static List<Collaboration> collaborationsForCurrentUser(HttpServletRequest request) {
 		return collaborationsForCurrentUser(request, null);
 	}
 
 	//like above, but can specify a state
-	public static ArrayList collaborationsForCurrentUser(HttpServletRequest request, String state) {
+	public static List<Collaboration> collaborationsForCurrentUser(HttpServletRequest request, String state) {
 		String context = ServletUtilities.getContext(request);
 		if (request.getUserPrincipal() == null) return null;  //TODO is this cool?
 		String username = request.getUserPrincipal().getName();
 		return collaborationsForUser(context, username, state);
 	}
 
-	public static ArrayList collaborationsForUser(String context, String username) {
+	public static List<Collaboration> collaborationsForUser(String context, String username) {
 		return collaborationsForUser(context, username, null);
 	}
 
-	public static ArrayList collaborationsForUser(String context, String username, String state) {
+  @SuppressWarnings("unchecked")
+	public static List<Collaboration> collaborationsForUser(String context, String username, String state) {
 //TODO cache!!!  (may be hit a lot)
 		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username + "') || (username2 == '" + username + "'))";
 		if (state != null) {
@@ -129,15 +130,21 @@ public class Collaboration implements java.io.Serializable {
 		}
 //System.out.println("qry -> " + queryString);
 		Shepherd myShepherd = new Shepherd(context);
+		myShepherd.setAction("Collaboration.class1");
+		myShepherd.beginDBTransaction();
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
-    return myShepherd.getAllOccurrences(query);
+		List returnMe=myShepherd.getAllOccurrences(query);
+		query.closeAll();
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+    return returnMe;
 	}
 
 	public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
 		return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
 /*
-		ArrayList<Collaboration> all = collaborationsForUser(context, u1);
+		List<Collaboration> all = collaborationsForUser(context, u1);
 		for (Collaboration c : all) {
 			if (c.username1.equals(u2) || c.username2.equals(u2)) return c;
 		}
@@ -154,9 +161,9 @@ public class Collaboration implements java.io.Serializable {
 		return false;
 	}
 
-	public static Collaboration findCollaborationWithUser(String username, ArrayList all) {
+	public static Collaboration findCollaborationWithUser(String username, List<Collaboration> all) {
 		if (all == null) return null;
-		ArrayList<Collaboration> collabs = all;
+		List<Collaboration> collabs = all;
 		for (Collaboration c : collabs) {
 			if (c.username1.equals(username) || c.username2.equals(username)) return c;
 		}
@@ -175,7 +182,7 @@ public class Collaboration implements java.io.Serializable {
 		if (request.getUserPrincipal() == null) return notif;
 		String username = request.getUserPrincipal().getName();
 
-		ArrayList<Collaboration> collabs = collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = collaborationsForCurrentUser(request);
 		int n = 0;
 		for (Collaboration c : collabs) {
 			if (c.username2.equals(username) && c.getState().equals(STATE_INITIALIZED)) n++;

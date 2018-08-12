@@ -48,6 +48,7 @@ public class GenePopExport extends HttpServlet{
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("GenePopExport.class");
 
 
 
@@ -91,13 +92,13 @@ public class GenePopExport extends HttpServlet{
         //Lines 2+: write the loci
         //let's calculate Fst for each of the loci
         //iterate through the loci
-        ArrayList<String> loci=myShepherd.getAllLoci();
+        List<String> loci=myShepherd.getAllLoci();
         int numLoci=loci.size();
         for(int r=0;r<numLoci;r++){
           String locus=loci.get(r);
           out.println(locus+"<br />");
         }
-        ArrayList<String> haplos=myShepherd.getAllHaplotypes();
+        List<String> haplos=myShepherd.getAllHaplotypes();
         int numHaplos=haplos.size();
         if(numHaplos>0){
           out.println("mtDNA<br/>");

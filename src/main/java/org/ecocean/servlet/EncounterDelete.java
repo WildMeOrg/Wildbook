@@ -28,8 +28,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.slf4j.Logger;
@@ -57,26 +59,15 @@ public class EncounterDelete extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    Map<String, String> mapI18n = CommonConfiguration.getI18nPropertiesMap("encounterState", langCode, context, false);
-
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    //String langCode = ServletUtilities.getLanguageCode(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterDelete.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
-    actionResult.setMessageParams(request.getParameter("number"));
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -86,7 +77,7 @@ public class EncounterDelete extends HttpServlet {
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdirs();}
     
-    boolean isOwner = true;
+    //boolean isOwner = true;
 
 
     if (request.getParameter("number") != null) {
@@ -96,11 +87,9 @@ public class EncounterDelete extends HttpServlet {
       Encounter enc2trash = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2trash);
 
-      if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
-        myShepherd.commitDBTransaction();
-        actionResult.setSucceeded(false).setMessageOverrideKey("delete-assignedToOccurrence");
-      }
-      else if ((enc2trash.getIndividualID()==null)||(enc2trash.isAssignedToMarkedIndividual().equals("Unassigned"))) {
+
+      if (enc2trash.getIndividualID()==null) {
+        myShepherd.beginDBTransaction();
 
         try {
 
@@ -119,6 +108,21 @@ public class EncounterDelete extends HttpServlet {
           ObjectOutputStream oos = new ObjectOutputStream(fout);
           oos.writeObject(backUpEnc);
           oos.close();
+          
+          if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
+            Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
+            occur.removeEncounter(enc2trash);
+            enc2trash.setOccurrenceID(null);
+            
+            //delete Occurrence if it's last encounter has been removed.
+            if(occur.getNumberEncounters()==0){
+              myShepherd.throwAwayOccurrence(occur);
+            }
+            
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+     
+          }
 
           //record who deleted this encounter
           enc2trash.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Deleted this encounter from the database.");
@@ -143,16 +147,21 @@ public class EncounterDelete extends HttpServlet {
 
           //log it
           Logger log = LoggerFactory.getLogger(EncounterDelete.class);
-		  log.info("Click to restore deleted encounter: <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/ResurrectDeletedEncounter?number=" + request.getParameter("number")+"\">"+request.getParameter("number")+"</a>");
+		  log.info("Click to restore deleted encounter: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/ResurrectDeletedEncounter?number=" + request.getParameter("number")+"\">"+request.getParameter("number")+"</a>");
 
-          actionResult.setMessageOverrideKey("delete");
-          List<String> linkParams = new ArrayList<>();
-          Map<String, String> states = CommonConfiguration.getIndexedValuesMap("encounterState", context);
-          for (Map.Entry<String, String> me : states.entrySet()) {
-            linkParams.add(mapI18n.get(me.getValue()));
-            linkParams.add(String.format("encounters/searchResults.jsp?state=%s", me.getValue()));
+
+          out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
+          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
           }
-          actionResult.setLink("#").setLinkOverrideKey("delete").setLinkParams(linkParams.toArray());
+          
+          out.println(ServletUtilities.getFooter(context));
 
           // Notify new-submissions address
           Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc2trash);
@@ -165,19 +174,37 @@ public class EncounterDelete extends HttpServlet {
           es.shutdown();
         } 
         else {
-          actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+          out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Failure:</strong> I have NOT removed encounter " + request.getParameter("number") + " from the database. An exception occurred in the deletion process.");
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
+          
+          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
+          }
+          out.println(ServletUtilities.getFooter(context));
+
+
         }
       } else {
-        myShepherd.commitDBTransaction();
-        actionResult.setSucceeded(false).setMessageOverrideKey("delete-assignedToIndividual");
+        myShepherd.rollbackDBTransaction();
+        out.println(ServletUtilities.getHeader(request));
+        out.println("Encounter " + request.getParameter("number") + " is assigned to a Marked Individual and cannot be deleted until it has been removed from that individual.");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
+        
+        out.println(ServletUtilities.getFooter(context));
       }
     } else {
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I don't know which encounter you're trying to remove.");
+      out.println(ServletUtilities.getFooter(context));
+
     }
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();

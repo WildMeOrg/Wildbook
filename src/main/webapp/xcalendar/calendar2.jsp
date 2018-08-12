@@ -1,13 +1,18 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.Calendar" %>
-<%@ page import="java.util.Properties" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,
+         org.ecocean.*,
+         java.util.Calendar, 
+         java.util.Properties,
+         org.joda.time.format.DateTimeFormatter,
+		 org.joda.time.format.ISODateTimeFormat,
+		 org.joda.time.DateTime" %>
+
+
 <%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
-  Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -21,6 +26,17 @@
   if ((request.getParameter("locCode") != null) && (!request.getParameter("locCode").equals(""))) {
     locCode = request.getParameter("locCode");
   }
+
+//let's load encounterSearch.properties
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
+  Properties calprops = new Properties();
+  //calprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/calendar.properties"));
+  calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
+
+
+
 %>
 
 <style type="text/css">
@@ -42,7 +58,7 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -75,16 +91,22 @@
  <jsp:include page="../header.jsp" flush="true"/>
 
 
-<script src="codebase/dhtmlxscheduler.js?v=091201" type="text/javascript" charset="utf-8"></script>
-<script src="codebase/ext/dhtmlxscheduler_agenda_view.js?v=091201" type="text/javascript" charset="utf-8"></script>
-<script src="codebase/ext/dhtmlxscheduler_year_view.js?v=091201" type="text/javascript" charset="utf-8"></script>
-<script src="codebase/ext/dhtmlxscheduler_readonly.js" type="text/javascript" charset="utf-8"></script>
-<script src="sources/locale/locale_<%=langCode%>.js" type="text/javascript" charset="utf-8"></script>
+<script src="codebase/dhtmlxscheduler.js?v=091201"
+        type="text/javascript" charset="utf-8"></script>
+<script src="codebase/ext/dhtmlxscheduler_agenda_view.js?v=091201"
+        type="text/javascript" charset="utf-8"></script>
+<script src="codebase/ext/dhtmlxscheduler_year_view.js?v=091201"
+        type="text/javascript" charset="utf-8"></script>
+<script src="codebase/ext/dhtmlxscheduler_readonly.js"
+        type="text/javascript" charset="utf-8"></script>
 
 
-<link rel="stylesheet" href="codebase/dhtmlxscheduler.css" type="text/css" media="screen" title="no title" charset="utf-8">
-<link rel="stylesheet" href="codebase/ext/dhtmlxscheduler_ext.css" type="text/css" title="no title" charset="utf-8">
-<script type="text/javascript" charset="utf-8">
+<link rel="stylesheet" href="codebase/dhtmlxscheduler.css"
+      type="text/css" media="screen" title="no title" charset="utf-8">
+<link rel="stylesheet" href="codebase/ext/dhtmlxscheduler_ext.css"
+      type="text/css" title="no title" charset="utf-8">
+<script
+  type="text/javascript" charset="utf-8">
   function init() {
 
     var format = scheduler.date.date_to_str("");
@@ -103,7 +125,7 @@
       return false;
     });
     scheduler.attachEvent("onClick", function (event_id, native_event_object) {
-      var myLink = 'http://' + '<%=CommonConfiguration.getURLLocation(request)%>' + '/encounters/encounter.jsp?number=' + event_id;
+      var myLink = '//' + '<%=CommonConfiguration.getURLLocation(request)%>' + '/encounters/encounter.jsp?number=' + event_id;
       window.open(myLink, 'mywindow', '')
     });
 
@@ -115,8 +137,13 @@
      if(request.getParameter("scDate")!=null){
        dateString=request.getParameter("scDate");
      }
-     else if((request.getParameter("year1")!=null)&&(request.getParameter("month1")!=null)){
-    	 dateString=request.getParameter("month1")+"/1/"+request.getParameter("year1");
+     else if(((request.getParameter("datepicker1")!=null))&&(!request.getParameter("datepicker1").trim().equals(""))){
+    	 DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
+         org.joda.time.DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
+        
+    	 int thisMonth=1;
+    	 if(date1.getMonthOfYear()>1){thisMonth=date1.getMonthOfYear();}
+    	 dateString=thisMonth+"/1/"+date1.getYear();
        }
      else{
        Calendar cal=Calendar.getInstance();
@@ -144,21 +171,38 @@
 
     
 
-      <h1><%=calprops.getProperty("title") %></h1>
+      <h1><%=calprops.getProperty("titleSearch") %></h1>
 
-
+<%
+if(request.getParameter("scDate")==null){
+%>
 
       <ul id="tabmenu">
 
-        <li><a href="../encounters/searchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("table")%></a></li>
-        <li><a href="../encounters/thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("matchingImages")%></a></li>
-        <li><a href="../encounters/mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("mappedResults")%></a></li>
-        <li><a class="active"><%=propsShared.getProperty("resultsCalendar")%></a></li>
-        <li><a href="../encounters/searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("analysis")%></a></li>
-        <li><a href="../encounters/exportSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("export")%></a></li>
+        <li><a
+          href="../encounters/searchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("table")%>
+        </a></li>
+        <li><a
+          href="../encounters/thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("matchingImages")%>
+        </a></li>
+        <li><a
+          href="../encounters/mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("mappedResults")%>
+        </a></li>
+        <li><a class="active"><%=calprops.getProperty("resultsCalendar")%>
+        </a></li>
+              <li><a
+     href="../encounters/searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("analysis")%>
+   </a></li>
+        <li><a
+     href="../encounters/exportSearchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("export")%>
+   </a></li>
 
       </ul>
       <p></p>
+      
+      <%
+}
+      %>
 
       <div id="maincol-calendar" style='overflow: auto; z-index: 0;'>
         <div id="maintext" style='overflow: auto; z-index: 0;'>

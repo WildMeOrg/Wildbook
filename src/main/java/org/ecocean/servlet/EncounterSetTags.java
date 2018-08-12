@@ -2,16 +2,20 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Measurement;
+import org.ecocean.Shepherd;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
@@ -28,31 +32,20 @@ public class EncounterSetTags extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    Properties encProps = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-    Map<String, String> mapI18nTagLocs = CommonConfiguration.getI18nPropertiesMap("metalTagLocation", langCode, context, false);
-
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("EncounterSetTags.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked=false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("encounter"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link)
-            .setParams(request.getParameter("encounter"));
+    String encNum="None";
 
-    String encNum = request.getParameter("encounter");
+    encNum=request.getParameter("encounter");
     myShepherd.beginDBTransaction();
-    StringBuilder sb = new StringBuilder().append("<ul>");
+    StringBuilder sb = new StringBuilder();
     if (myShepherd.isEncounter(encNum)) {
       Encounter enc=myShepherd.getEncounter(encNum);
       try {
@@ -69,7 +62,7 @@ public class EncounterSetTags extends HttpServlet {
               enc.addMetalTag(metalTag);
             }
             metalTag.setTagNumber(getParam(request, metalTagParamName));
-            sb.append(String.format("<li>%s = %s</li>", MessageFormat.format(encProps.getProperty("metalTag_loc"), mapI18nTagLocs.get(location)), getParam(request, metalTagParamName)));
+            sb.append(MessageFormat.format("<br/>Metal Tag {0} set to {1}", location, getParam(request, metalTagParamName)));
           }
         }
         else if ("acousticTag".equals(tagType)) {
@@ -80,8 +73,8 @@ public class EncounterSetTags extends HttpServlet {
           }
           acousticTag.setIdNumber(getParam(request, ACOUSTIC_TAG_ID));
           acousticTag.setSerialNumber(getParam(request, ACOUSTIC_TAG_SERIAL));
-          sb.append(String.format("<li>%s = %s</li>", encProps.getProperty("acousticTag_serial"), getParam(request, ACOUSTIC_TAG_SERIAL)));
-          sb.append(String.format("<li>%s = %s</li>", encProps.getProperty("acousticTag_id"), getParam(request, ACOUSTIC_TAG_ID)));
+          sb.append(MessageFormat.format("<br/>{0} set to {1}", ACOUSTIC_TAG_ID, getParam(request, ACOUSTIC_TAG_ID)));
+          sb.append(MessageFormat.format("<br/>{0} set to {1}", ACOUSTIC_TAG_SERIAL, getParam(request, ACOUSTIC_TAG_SERIAL)));
         }
         else if ("satelliteTag".equals(tagType)) {
           SatelliteTag satelliteTag = enc.getSatelliteTag();
@@ -92,9 +85,12 @@ public class EncounterSetTags extends HttpServlet {
           satelliteTag.setArgosPttNumber(getParam(request, SATELLITE_TAG_ARGOS_PTT_NUMBER));
           satelliteTag.setSerialNumber(getParam(request, SATELLITE_TAG_SERIAL));
           satelliteTag.setName(getParam(request, SATELLITE_TAG_NAME));
-          sb.append(String.format("<li>%s = %s</li>", encProps.getProperty("satelliteTag_name"), getParam(request, SATELLITE_TAG_NAME)));
-          sb.append(String.format("<li>%s = %s</li>", encProps.getProperty("satelliteTag_serial"), getParam(request, SATELLITE_TAG_SERIAL)));
-          sb.append(String.format("<li>%s = %s</li>", encProps.getProperty("satelliteTag_argos"), getParam(request, SATELLITE_TAG_ARGOS_PTT_NUMBER)));
+          sb.append(MessageFormat.format("<br/>{0} set to {1}", SATELLITE_TAG_ARGOS_PTT_NUMBER, getParam(request, SATELLITE_TAG_ARGOS_PTT_NUMBER)));
+          sb.append(MessageFormat.format("<br/>{0} set to {1}", SATELLITE_TAG_SERIAL, getParam(request, SATELLITE_TAG_SERIAL)));
+          sb.append(MessageFormat.format("<br/>{0} set to {1}", SATELLITE_TAG_NAME, getParam(request, SATELLITE_TAG_NAME)));
+        }
+        else {
+          
         }
       } catch(Exception ex) {
         ex.printStackTrace();
@@ -105,23 +101,28 @@ public class EncounterSetTags extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        sb.append("</ul>");
-        actionResult.setMessageOverrideKey("tags").addParams(sb.toString());
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<p><strong>Success!</strong> I have successfully set the following tag values:");
+        out.println(sb.toString());
+        out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
       }
       else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.");
+
+        out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
       }
       
     }
     else {
       myShepherd.rollbackDBTransaction();
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to set the tag. I cannot find the encounter that you intended in the database.");
+      out.println(ServletUtilities.getFooter(context));
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
     myShepherd.closeDBTransaction();
   }

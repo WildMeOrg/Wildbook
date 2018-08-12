@@ -1,23 +1,31 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.Properties" %>
-<%@ page import="java.util.Vector" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
-<%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties props = ShepherdProperties.getProperties("socialunit.properties", langCode, context);
+
+  <%
+  String context="context0";
+  context=ServletUtilities.getContext(request);
+
+    //let's load out properties
+    Properties props = new Properties();
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
+    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/socialunit.properties"));
+    props = ShepherdProperties.getProperties("socialunit.properties", langCode,context);
+
+
+
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("socialUnit.jsp");
 
 
 
     int numResults = 0;
 
 
-    ArrayList<MarkedIndividual> rIndividuals = new ArrayList<MarkedIndividual>();
+    List<MarkedIndividual> rIndividuals = new ArrayList<MarkedIndividual>();
     myShepherd.beginDBTransaction();
     String order ="";
 
@@ -152,7 +160,7 @@
                             	%>
       </td>
     <td class="lineitem"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
+      href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
     </a>
       <%
         if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None")) && (!indie.getAlternateID().equals(""))) {
@@ -208,6 +216,7 @@ if(indie.getSex()!=null){sexValue=indie.getSex();}
 
 <%
   myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
 
 %>
 

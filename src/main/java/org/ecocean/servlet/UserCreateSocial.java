@@ -3,14 +3,11 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import java.util.Date;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -18,9 +15,7 @@ import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 
-import org.pac4j.core.client.*;
 import org.pac4j.core.context.*;
-import org.pac4j.oauth.*;
 import org.pac4j.oauth.client.*;
 import org.pac4j.oauth.credentials.*;
 import org.pac4j.oauth.profile.facebook.*;
@@ -29,8 +24,6 @@ import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.*;
 import org.ecocean.security.SocialAuth;
 
-import org.scribe.builder.*;
-import org.scribe.builder.api.*;
 import org.scribe.model.*;
 import org.scribe.oauth.*;
 
@@ -75,6 +68,7 @@ import org.scribe.oauth.*;
     PrintWriter out = response.getWriter();
 		String context = "context0";
 		Shepherd myShepherd = new Shepherd(context);
+		myShepherd.setAction("UserCreateSocial.class");
 		//myShepherd.beginDBTransaction();
 
 		String socialType = request.getParameter("type");
@@ -91,9 +85,11 @@ import org.scribe.oauth.*;
         } catch (Exception ex) {
             System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
         }
+      
 			WebContext ctx = new J2EContext(request, response);
+			
 			//String callbackUrl = "http://localhost.wildme.org/a/UserCreateSocial?type=facebook";
-			String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=facebook";
+			String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=facebook";
 			fbclient.setCallbackUrl(callbackUrl);
 
 			OAuthCredentials credentials = null;
@@ -102,9 +98,14 @@ import org.scribe.oauth.*;
 			} catch (Exception ex) {
 				System.out.println("caught exception on facebook credentials: " + ex.toString());
 			}
-
+			FacebookProfile facebookProfile = null;
 			if (credentials != null) {
-				FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
+			  try {
+			    facebookProfile = fbclient.getUserProfile(credentials, ctx);			    
+			  } catch (Exception e) {
+			    e.printStackTrace();
+			  }
+			  
 				User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
 				System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
 
@@ -152,7 +153,7 @@ System.out.println("email: " + facebookProfile.getEmail());
 
 //System.out.println("*** trying redirect?");
 				try {
-					fbclient.redirect(ctx, false, false);
+					fbclient.redirect(ctx);
 				} catch (Exception ex) {
 					System.out.println("caught exception on facebook processing: " + ex.toString());
 				}
@@ -165,7 +166,7 @@ System.out.println("email: " + facebookProfile.getEmail());
             String otoken = request.getParameter("oauth_token");
 
             OAuthService service = null;
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=flickr";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=flickr";
             try {
                 service = SocialAuth.getFlickrOauth(context, callbackUrl);
             } catch (Exception ex) {

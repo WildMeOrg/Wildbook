@@ -33,51 +33,21 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-
-</head>
-
-<body>
-<div id="wrapper">
-  <div id="page">
-    <jsp:include page="../header.jsp" flush="true">
-<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-    </jsp:include>
-    <div id="main">
-
-      <div id="maincol-wide">
-
-        <div id="maintext">
-          <h1 class="intro">Client Software</h1>
-        </div>
-        <p>Click on a link below to download the appropriate software
-          client.</p>
+<jsp:include page="../header.jsp" flush="true"/>
+<div class="container maincontent">
+          <h1>Client Software</h1>
+     
+        <p>Click on a link below to download the appropriate software client for use with Wildbook.</p>
 
 
 
         <p><a href="GridClient.zip"><strong>Grid Client</strong></a><br/>
-          <em>Purpose</em>: Spot pattern comparison in the Wildbook Framework<br/>
+          <em>Purpose</em>: Pattern comparison in the Wildbook Framework<br/>
           <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 7</a>
         </p>
 
 
       </div>
-      <!-- end maintext --></div>
-    <!-- end maincol -->
+    
     <jsp:include page="../footer.jsp" flush="true"/>
-  </div>
-  <!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+  

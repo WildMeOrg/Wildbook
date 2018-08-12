@@ -20,7 +20,9 @@
 package org.ecocean.servlet;
 
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -30,10 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Properties;
+import java.util.List;
 
 
 public class EncounterSetBehavior extends HttpServlet {
@@ -55,25 +54,16 @@ public class EncounterSetBehavior extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetBehavior.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
     boolean isOwner = true;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     //--------------------------------
     //edit behavior note
@@ -83,7 +73,9 @@ public class EncounterSetBehavior extends HttpServlet {
       Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(changeMe);
       String comment = request.getParameter("behaviorComment");
-      String oldComment = encprops.getProperty("noValue");
+      String oldComment = "None";
+
+
       try {
 
         oldComment = changeMe.getBehavior();
@@ -102,27 +94,38 @@ public class EncounterSetBehavior extends HttpServlet {
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-
-        String com = comment;
-        if (changeMe.getBehavior() == null)
-          com = encprops.getProperty("noValue");
-        actionResult.setMessageOverrideKey("behavior").setMessageParams(request.getParameter("number"), com, oldComment);
-
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success:</strong> Encounter behavior observation was updated from:<br><i>" + oldComment + "</i><br>to:<br><i>" + comment + "</i>");
+       // out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+        response.setStatus(HttpServletResponse.SC_OK);
+       //out.println(ServletUtilities.getFooter(context));
         String message = "Encounter #" + request.getParameter("number") + " submitted comments have been updated from \"" + oldComment + "\" to \"" + comment + "\".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+      } 
+      else {
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure:</strong> Encounter behavior observation was NOT updated because another user is currently modifying this record. Please press the Back button in your browser and try to edit the comments again in a few seconds.");
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        //out.println(ServletUtilities.getFooter(context));
+
       }
-    } else {
-      out.println(ServletUtilities.getHeader(request));
-      actionResult.setSucceeded(false);
+    } 
+    else {
+      //out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+      //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+      //out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+      //out.println(ServletUtilities.getFooter(context));
+
     }
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
 }
+
+

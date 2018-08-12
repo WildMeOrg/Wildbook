@@ -35,7 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 
 import java.util.Properties;
 
@@ -85,6 +84,7 @@ public class UserSelfUpdate extends HttpServlet {
       
       
       Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("UserSelfUpdate.class");
       
       User newUser=myShepherd.getUser(username);
       
@@ -150,7 +150,7 @@ public class UserSelfUpdate extends HttpServlet {
         //now handle roles
         /*
         //if this is not a new user, we need to blow away all old roles
-        ArrayList<Role> preexistingRoles=new ArrayList<Role>();
+        List<Role> preexistingRoles=new ArrayList<Role>();
         if(!createThisUser){
           //get existing roles for this existing user
           preexistingRoles=myShepherd.getAllRolesForUser(username);
@@ -160,7 +160,7 @@ public class UserSelfUpdate extends HttpServlet {
         
         //start role processing
         
-        ArrayList<String> contexts=ContextConfiguration.getContextNames();
+        List<String> contexts=ContextConfiguration.getContextNames();
         int numContexts=contexts.size();
         //System.out.println("numContexts is: "+numContexts);
         for(int d=0;d<numContexts;d++){
@@ -204,7 +204,7 @@ public class UserSelfUpdate extends HttpServlet {
           
               out.println("<strong>Success:</strong> User '" + username + "' was successfully updated.");
          
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to Your Account" + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to Your Account" + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
             
     }
@@ -214,7 +214,7 @@ public class UserSelfUpdate extends HttpServlet {
         //output failure statement
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> User was NOT found.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to our Account" + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to our Account" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
         
         

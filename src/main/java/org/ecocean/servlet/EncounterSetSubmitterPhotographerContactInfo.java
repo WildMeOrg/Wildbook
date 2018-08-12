@@ -19,7 +19,6 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -32,9 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
+import java.util.List;
 
 
 public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
@@ -56,25 +53,17 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    request.setCharacterEncoding("UTF-8");
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetSubmitterPhotographerContactInfo.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
     boolean isOwner = true;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link)
-            .setParams(request.getParameter("number"));
 
     //reset photographer/submitter contact info
     if ((request.getParameter("number") != null) && (request.getParameter("contact") != null)) {
@@ -157,7 +146,6 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
           if (request.getParameter("phone") != null) {
             newContact += request.getParameter("phone");
           }
-          actionResult.addParams(newContact, oldContact);
 
           changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed photographer contact info from<br>" + oldContact + "<br>to<br>" + newContact + ".</p>");
         }
@@ -171,22 +159,32 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        actionResult.setMessageOverrideKey("contactInfo");
-
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
+        out.println("<strong>Success:</strong> Encounter contact information has been updated from:<br><i>" + oldContact + "</i><br>to<br><i>" + newContact + "</i>.");
         String message = "The photographer or submitter contact information for encounter #" + request.getParameter("number") + "has been updated from " + oldContact + " to " + newContact + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+      } 
+      else {
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure:</strong> Encounter contact information was NOT updated because another user is currently modifying the record for this encounter.");
+       
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
       }
-    } else {
-      actionResult.setSucceeded(false);
+    } 
+    else {
+      //out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+     
+
     }
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
 }
+
+

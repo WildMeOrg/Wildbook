@@ -16,30 +16,52 @@
 	~ along with this program; if not, write to the Free Software
 	~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 --%>
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.io.IOException" %>
-<%@ page import="java.text.MessageFormat" %>
-<%@ page import="java.util.*" %>
-<%@ page import="org.ecocean.servlet.BatchUpload" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ page import="org.ecocean.*" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-</jsp:include>
-<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@page contentType="text/html; charset=iso-8859-1" language="java"
+        import="org.ecocean.CommonConfiguration"
+        import="org.ecocean.Shepherd"
+        import="org.ecocean.Keyword"
+        import="org.ecocean.servlet.BatchUpload"
+        import="org.ecocean.servlet.ServletUtilities"
+        import="org.ecocean.batch.BatchProcessor"
+        import="java.io.File"
+        import="java.io.IOException"
+        import="java.text.MessageFormat"
+        import="java.util.*"
+        import="org.slf4j.Logger"
+        import="org.slf4j.LoggerFactory"
+%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties bundle = new Properties();
-  bundle.load(getClass().getResourceAsStream("/bundles/batchUpload_" + langCode + ".properties"));
-  Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
+
+String context="context0";
+context=ServletUtilities.getContext(request);
 
 	Shepherd myShepherd = new Shepherd(context);
 	response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 	response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
 	response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 	response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+
+  // --------------------------------------------------------------------------
+  // Page internationalization.
+  // Code is use below is a compromise to fit in with the current i18n mechanism.
+  // Ideally it should use the proper ResourceBundle lookup mechanism, and when
+  // not explicitly chosen by the user, find supported languages/variants from
+  // the browser configuration.
+  String langCode = "en";
+  if (session.getAttribute("langCode") != null) {
+    langCode = (String)session.getAttribute("langCode");
+  } else {
+    Locale loc = request.getLocale();
+    langCode = loc.getLanguage();
+  }
+//  Locale locale = new Locale(langCode);
+//  ResourceBundle bundle = ResourceBundle.getBundle("/bundles/batchUpload", locale);
+  Properties bundle = new Properties();
+  bundle.load(getClass().getResourceAsStream("/bundles/batchUpload_" + langCode + ".properties"));
+  // --------------------------------------------------------------------------
 
   List<String> errors = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_ERRORS);
   boolean hasErrors = errors != null && !errors.isEmpty();
@@ -61,40 +83,40 @@
    * (e.g. gui.step2.enums.list0), and the {0} parameter is filled with the
    * resulting string from this method.
    */
-  private final String createOptionsList(int i, Properties cciProps, String langCode, String context) throws IOException {
-    Collection<String> list = new ArrayList<String>();
-    List<String> temp = null;
-    Set<String> set = null;
+  private final String createOptionsList(int i, String langCode, String context) throws IOException {
+    List<String> list = new ArrayList<String>();
+    List<String> temp = new ArrayList<String>();
+    TreeSet<String> set = null;
     switch (i) {
       case 0:
       case 1:
-        list = Util.getIndexedValuesMap(cciProps, "sex").values();
+        list = CommonConfiguration.getIndexedPropertyValues("sex", context);
         break;
       case 2:
-        temp = CommonConfiguration.getSequentialPropertyValues("genusSpecies", context);
-        set = new LinkedHashSet<String>();
+        temp = CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+        set = new TreeSet<String>();
         for (String s : temp)
           set.add(s.substring(0, s.indexOf(" ")));
         list.addAll(set);
         break;
       case 3:
-        temp = CommonConfiguration.getSequentialPropertyValues("genusSpecies", context);
-        set = new LinkedHashSet<String>();
+        temp = CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+        set = new TreeSet<String>();
         for (String s : temp)
           set.add(s.substring(s.indexOf(" ") + 1));
         list.addAll(set);
         break;
       case 4:
-        list = Util.getIndexedValuesMap(cciProps, "locationID").values();
+        list = CommonConfiguration.getIndexedPropertyValues("locationID", context);
         break;
       case 5:
-        list = Util.getIndexedValuesMap(cciProps, "livingStatus").values();
+        list = CommonConfiguration.getIndexedPropertyValues("livingStatus", context);
         break;
       case 6:
-        list = Util.getIndexedValuesMap(cciProps, "lifeStage").values();
+        list = CommonConfiguration.getIndexedPropertyValues("lifeStage", context);
         break;
       case 7:
-        list = Util.getIndexedValuesMap(cciProps, "patterningCode").values();
+        list = CommonConfiguration.getIndexedPropertyValues("patterningCode", context);
         break;
       case 8:
         Properties props = new Properties();
@@ -104,26 +126,26 @@
         list.add(props.getProperty("patternMatch"));
         break;
       case 9:
-        list = Util.getIndexedValuesMap(cciProps, "measurement").values();
+        list = CommonConfiguration.getIndexedPropertyValues("measurement", context);
         break;
       case 10:
-        list = Util.getIndexedValuesMap(cciProps, "measurementUnits").values();
+        list = CommonConfiguration.getIndexedPropertyValues("measurementUnits", context);
         break;
       case 11:
-        list = Util.getIndexedValuesMap(cciProps, "samplingProtocol").values();
+        list = CommonConfiguration.getIndexedPropertyValues("samplingProtocol", context);
         break;
       case 12:
         Shepherd shep = new Shepherd(context);
-        for (Iterator iter = shep.getAllKeywords(); iter.hasNext();)
-          list.add(((Keyword)iter.next()).getReadableName());
+        for (Iterator<Keyword> iter = shep.getAllKeywords(); iter.hasNext();)
+          list.add(iter.next().getReadableName());
         shep.closeDBTransaction();
         shep = null;
         break;
       case 13:
-        list = Util.getIndexedValuesMap(cciProps, "tissueType").values();
+        list = CommonConfiguration.getIndexedPropertyValues("tissueType", context);
         break;
       case 14: // FIXME
-        list = Util.getIndexedValuesMap(cciProps, "preservationMethod").values();
+        list = CommonConfiguration.getIndexedPropertyValues("preservationMethod", context);
         break;
       default:
     }
@@ -143,9 +165,25 @@
     return sb.toString();
   }
 %>
+<html>
+<head>
+	<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
+	<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+	<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
+	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
+</head>
 
-  <div class="container maincontent">
-
+<body>
+<div id="wrapper">
+	<div id="page">
+		<jsp:include page="../header.jsp" flush="true">
+			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+		</jsp:include>
+		<div id="main">
 
       <h1><%=bundle.getProperty("gui.title")%></h1>
 			<p><%=bundle.getProperty("gui.overview")%></p>
@@ -196,7 +234,7 @@
       <% } %>
       <li><%=MessageFormat.format(bundle.getProperty("gui.step2.maxMediaSize"), CommonConfiguration.getMaxMediaSizeInMegabytes(context))%></li>
       <% for (int i = 0; i <= 14; i++) { %>
-      <li><%=MessageFormat.format(bundle.getProperty("gui.step2.enums.list" + i), createOptionsList(i, cciProps, langCode, context))%></li>
+      <li><%=MessageFormat.format(bundle.getProperty("gui.step2.enums.list" + i), createOptionsList(i, langCode, context))%></li>
       <% } %>
       </ul>
 			<p><%=bundle.getProperty("gui.step2.text2")%></p>
@@ -241,6 +279,12 @@
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 %>
+			<jsp:include page="../footer.jsp" flush="true"/>
+		</div>
+	</div>
+	<!-- end page --></div>
+<!--end wrapper -->
+</body>
+</html>
 
-  </div>
-<jsp:include page="../footer.jsp" flush="true"/>
+

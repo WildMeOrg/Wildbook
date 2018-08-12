@@ -39,6 +39,7 @@
           <p><%=props.getProperty("grantedRole")%><br />
 			<%
 			Shepherd myShepherd=new Shepherd("context0");
+			myShepherd.setAction("welcome.jsp");
 			myShepherd.beginDBTransaction();
 			%>
              <em><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser()).replaceAll("\r","<br />")%></em></p>

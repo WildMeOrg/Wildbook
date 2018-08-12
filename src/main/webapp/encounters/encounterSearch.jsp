@@ -1,15 +1,17 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.*" %>
-<%@ page import="javax.jdo.Extent" %>
-<%@ page import="javax.jdo.Query" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
+<%@ page import="java.util.GregorianCalendar" %>
+<%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Properties" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties encprops = ShepherdProperties.getProperties("encounterSearch.properties", langCode, context);
-  Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+String langCode=ServletUtilities.getLanguageCode(request);
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -28,6 +30,7 @@
     animatedcollapse.addDiv('metadata', 'fade=1')
     animatedcollapse.addDiv('export', 'fade=1')
     animatedcollapse.addDiv('genetics', 'fade=1')
+    animatedcollapse.addDiv('patternrecognition', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -38,29 +41,63 @@
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="http://maps.google.com/maps/api/js?language=<%=langCode%>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
+<script type="text/javascript" src="../javascript/geoxml3.js"></script>
+<script type="text/javascript" src="../javascript/ProjectedOverlay.js"></script>
+ <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
+<script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+
+ <%
+ if(!langCode.equals("en")){
+ %>
+
+<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
+<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+
+ <%
+ }
+ %>
+
 
 </head>
 
 <style type="text/css">v\:* {
-  behavior: url(#default#VML);
-  
-}</style>
+  behavior: url(#default#VML);  
+   .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; }
+.ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 40%; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+.ui-timepicker-div .ui_tpicker_unit_hide{ display: none; }
 
-<style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
+.ui-timepicker-rtl{ direction: rtl; }
+.ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
+.ui-timepicker-rtl dl dt{ float: right; clear: right; }
+.ui-timepicker-rtl dl dd { margin: 0 40% 10px 10px; }
+
+/* Shortened version style */
+.ui-timepicker-div.ui-timepicker-oneLine { padding-right: 2px; }
+.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_time,
+.ui-timepicker-div.ui-timepicker-oneLine dt { display: none; }
+.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_time_label { display: block; padding-top: 2px; }
+.ui-timepicker-div.ui-timepicker-oneLine dl { text-align: right; }
+.ui-timepicker-div.ui-timepicker-oneLine dl dd,
+.ui-timepicker-div.ui-timepicker-oneLine dl dd > div { display:inline-block; margin:0; }
+.ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_minute:before,
+.ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_second:before { content:':'; display:inline-block; }
+.ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_millisec:before,
+.ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_microsec:before { content:'.'; display:inline-block; }
+.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_unit_hide,
+.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_unit_hide:before{ display: none; }
+    /*customizations*/
+    .ui_tpicker_hour_label {margin-bottom:5px !important;}
+    .ui_tpicker_minute_label {margin-bottom:5px !important;}
+}
 </style>
+<link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
+
 
 <script>
   function resetMap() {
@@ -75,27 +112,89 @@ margin-bottom: 8px !important;
     sw_long_element.value = "";
 
   }
+  
+  $( function() {
+	  $( "#datepicker1" ).datetimepicker({
+	      changeMonth: true,
+	      changeYear: true,
+	      dateFormat: 'yy-mm-dd',
+	      maxDate: '+1d',
+	      controlType: 'select',
+	      alwaysSetTime: false,
+	      showTimepicker: false,
+	      showSecond:false,
+	      showMillisec:false,
+	      showMicrosec:false,
+	      showTimezone:false
+	    });
+	    $( "#datepicker1" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+	
+	    $( "#datepicker2" ).datetimepicker({
+	        changeMonth: true,
+	        changeYear: true,
+	        dateFormat: 'yy-mm-dd',
+	        maxDate: '+1d',
+	        controlType: 'select',
+	        alwaysSetTime: false,
+	        showTimepicker: false,
+	        showSecond:false,
+	        showMillisec:false,
+	        showMicrosec:false,
+	        showTimezone:false
+	      });
+	      $( "#datepicker2" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+		
+	      //date added pickers
+	      $( "#dateaddedpicker1" ).datetimepicker({
+		      changeMonth: true,
+		      changeYear: true,
+		      dateFormat: 'yy-mm-dd',
+		      maxDate: '+1d',
+		      controlType: 'select',
+		      alwaysSetTime: false,
+		      showTimepicker: false,
+		      showSecond:false,
+		      showMillisec:false,
+		      showMicrosec:false,
+		      showTimezone:false
+		    });
+		    $( "#dateaddedpicker1" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+		
+		    $( "#dateaddedpicker2" ).datetimepicker({
+		        changeMonth: true,
+		        changeYear: true,
+		        dateFormat: 'yy-mm-dd',
+		        maxDate: '+1d',
+		        controlType: 'select',
+		        alwaysSetTime: false,
+		        showTimepicker: false,
+		        showSecond:false,
+		        showMillisec:false,
+		        showMicrosec:false,
+		        showTimezone:false
+		      });
+		      $( "#dateaddedpicker2" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+
+  } );
 </script>
 
 <body onload="resetMap()" onunload="resetMap()">
 
 <%
-  GregorianCalendar cal = new GregorianCalendar();
-  int nowYear = cal.get(1);
-  int firstYear = 1980;
-  int firstSubmissionYear=1980;
+
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("encounterSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();
-  try {
-    firstYear = myShepherd.getEarliestSightingYear();
-    nowYear = myShepherd.getLastSightingYear();
-    firstSubmissionYear=myShepherd.getFirstSubmissionYear();
-  } catch (Exception e) {
-    e.printStackTrace();
-  }
+
+
+  Properties encprops = new Properties();
+  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
+  encprops=ShepherdProperties.getProperties("encounterSearch.properties", langCode, context);
+
+  
 %>
 
 <div class="container maincontent">
@@ -226,7 +325,7 @@ var overlaysSet=false;
 var geoXml = null;
 var geoXmlDoc = null;
 var kml = null;
-var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
+var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
  
 
   function initialize() {
@@ -238,28 +337,20 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
 		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID
+		  mapTypeId: google.maps.MapTypeId.HYBRID,
+		  fullscreenControl: true
 		});
-
-	  //adding the fullscreen control to exit fullscreen
-	  var fsControlDiv = document.createElement('DIV');
-	  var fsControl = new FSControl(fsControlDiv, map);
-	  fsControlDiv.index = 1;
-	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
-
-
 
    map.enableKeyDragZoom({
           visualEnabled: true,
           visualPosition: google.maps.ControlPosition.LEFT,
           visualPositionOffset: new google.maps.Size(35, 0),
           visualPositionIndex: null,
-          visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
+          visualSprite: "//maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
           visualSize: new google.maps.Size(20, 20),
           visualTips: {
-            off: "<%=encprops.getProperty("turnOn")%>",
-            on: "<%=encprops.getProperty("turnOff")%>"
+            off: "Turn on",
+            on: "Turn off"
           }
         });
 
@@ -304,9 +395,7 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
     	iw.open(map);
     	
     	google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
-         
-         
-         
+
 		  overlaysSet=true;
       }
 	    
@@ -323,78 +412,6 @@ function useData(doc){
    } 
 }
 
-function fullScreen(){
-	$("#map_canvas").addClass('full_screen_map');
-	$('html, body').animate({scrollTop:0}, 'slow');
-	initialize();
-	
-	//hide header
-	$("#header_menu").hide();
-	
-	if(overlaysSet){overlaysSet=false;setOverlays();}
-	//alert("Trying to execute fullscreen!");
-}
-
-
-function exitFullScreen() {
-	$("#header_menu").show();
-	$("#map_canvas").removeClass('full_screen_map');
-
-	initialize();
-	if(overlaysSet){overlaysSet=false;setOverlays();}
-	//alert("Trying to execute exitFullScreen!");
-}
-
-
-//making the exit fullscreen button
-function FSControl(controlDiv, map) {
-
-  // Set CSS styles for the DIV containing the control
-  // Setting padding to 5 px will offset the control
-  // from the edge of the map
-  controlDiv.style.padding = '5px';
-
-  // Set CSS for the control border
-  var controlUI = document.createElement('DIV');
-  controlUI.style.backgroundColor = '#f8f8f8';
-  controlUI.style.borderStyle = 'solid';
-  controlUI.style.borderWidth = '1px';
-  controlUI.style.borderColor = '#a9bbdf';;
-  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-  controlUI.style.cursor = 'pointer';
-  controlUI.style.textAlign = 'center';
-  controlUI.title = '<%=encprops.getProperty("toggleFullscreen")%>';
-  controlDiv.appendChild(controlUI);
-
-  // Set CSS for the control interior
-  var controlText = document.createElement('DIV');
-  controlText.style.fontSize = '12px';
-  controlText.style.fontWeight = 'bold';
-  controlText.style.color = '#000000';
-  controlText.style.paddingLeft = '4px';
-  controlText.style.paddingRight = '4px';
-  controlText.style.paddingTop = '3px';
-  controlText.style.paddingBottom = '2px';
-  controlUI.appendChild(controlText);
-  //toggle the text of the button
-   if($("#map_canvas").hasClass("full_screen_map")){
-      controlText.innerHTML = '<%=encprops.getProperty("exitFullscreen")%>';
-    } else {
-      controlText.innerHTML = '<%=encprops.getProperty("fullscreen")%>';
-    }
-
-  // Setup the click event listeners: toggle the full screen
-
-  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-   if($("#map_canvas").hasClass("full_screen_map")){
-    exitFullScreen();
-    } else {
-    fullScreen();
-    }
-  });
-
-}
 
 
   google.maps.event.addDomListener(window, 'load', initialize);
@@ -445,23 +462,24 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
-        Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
-        ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
+        List<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
+
         if (totalLocIDs >= 1) {
       %>
 
-      <select multiple="multiple" name="locationCodeField" id="locationCodeField" size="10">
+      <select multiple name="locationCodeField" id="locationCodeField" size="10">
         <option value="None"></option>
-      <%
-        for (Map.Entry<String, String> me : locMap.entrySet()) {
-          if (locIDs.contains(me.getValue()) && !"".equals(me.getValue())) {
-      %>
-        <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
-      <%
+        <%
+          for (int n = 0; n < totalLocIDs; n++) {
+            String word = locIDs.get(n);
+            if (!word.equals("")&&(!word.equals("None"))) {
+        %>
+        <option value="<%=word%>"><%=word%></option>
+        <%
+            }
           }
-        }
-      %>
+        %>
       </select>
       <%
       } else {
@@ -541,140 +559,15 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <strong><%=encprops.getProperty("sightingDates")%></strong><br/>
       
 
-      
       <table width="720">
         <tr>
-          <td width="670"><label><em>
-            &nbsp;<%=encprops.getProperty("day")%>
-          </em> <em> <select name="day1" id="day1">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31">31</option>
-          </select> <%=encprops.getProperty("month")%>
-          </em> <em> <select name="month1" id="month1">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-          </select> <%=encprops.getProperty("year")%>
-          </em> <select name="year1" id="year1">
-            <% for (int q = firstYear; q <= nowYear; q++) { %>
-            <option value="<%=q%>"
-
-              <%
-                if (q == firstYear) {
-              %>
-                    selected
-              <%
-                }
-              %>
-              ><%=q%>
-            </option>
-
-            <% } %>
-          </select> &nbsp;to <em>&nbsp;<%=encprops.getProperty("day")%>
-          </em> <em> <select name="day2"
-                             id="day2">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31" selected>31</option>
-          </select> <%=encprops.getProperty("month")%>
-          </em> <em> <select name="month2" id="month2">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12" selected>12</option>
-          </select> <%=encprops.getProperty("year")%>
-          </em>
-            <select name="year2" id="year2">
-              <% for (int q = nowYear; q >= firstYear; q--) { %>
-              <option value="<%=q%>"
-
-                <%
-                  if (q == nowYear) {
-                %>
-                      selected
-                <%
-                  }
-                %>
-                ><%=q%>
-              </option>
-
-              <% } %>
-            </select>
-          </label></td>
+          <td width="720"> 
+	          <%=encprops.get("start") %>&nbsp;
+	          <input  class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="datepicker1" name="datepicker1" size="20" />
+	           &nbsp;<%=encprops.get("end") %>&nbsp;
+	          <input class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="datepicker2" name="datepicker2" size="20" />
+	          
+          </td>
         </tr>
       </table>
 
@@ -684,14 +577,14 @@ if(CommonConfiguration.showProperty("showCountry",context)){
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 
       <%
-        ArrayList<String> vbds = myShepherd.getAllVerbatimEventDates();
+        List<String> vbds = myShepherd.getAllVerbatimEventDates();
         int totalVBDs = vbds.size();
 
 
         if (totalVBDs > 1) {
       %>
 
-      <select multiple="multiple" name="verbatimEventDateField" id="verbatimEventDateField" size="5">
+      <select multiple name="verbatimEventDateField" id="verbatimEventDateField" size="5">
         <option value="None"></option>
         <%
           for (int f = 0; f < totalVBDs; f++) {
@@ -727,147 +620,17 @@ if(CommonConfiguration.showProperty("showCountry",context)){
      
       <p><strong><%=encprops.getProperty("addedsightingDates")%></strong></p>
 
-      <table width="720">
+       <table width="720">
         <tr>
-          <td width="670"><label><em>
-          
-          
-          
-            &nbsp;<%=encprops.getProperty("day")%>
-          </em> <em> <select name="addedday1" id="addedday1">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31">31</option>
-          </select> <%=encprops.getProperty("month")%>
-          </em> <em> <select name="addedmonth1" id="addedmonth1">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-          </select> <%=encprops.getProperty("year")%>
-          </em> <select name="addedyear1" id="addedyear1">
-            <% 
-            
-            int currentYear=cal.get(1);
-            for (int q = firstSubmissionYear; q <= currentYear; q++) { %>
-            <option value="<%=q%>"
-
-              <%
-                if (q == firstSubmissionYear) {
-              %>
-                    selected
-              <%
-                }
-              %>
-              ><%=q%>
-            </option>
-
-            <% } %>
-          </select> &nbsp;to <em>&nbsp;<%=encprops.getProperty("day")%>
-          </em> <em> <select name="addedday2"
-                             id="addedday2">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31" selected>31</option>
-          </select> <%=encprops.getProperty("month")%>
-          </em> <em> <select name="addedmonth2" id="addedmonth2">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12" selected>12</option>
-          </select> <%=encprops.getProperty("year")%>
-          </em>
-            <select name="addedyear2" id="addedyear2">
-              <% for (int q = currentYear; q >= firstSubmissionYear; q--) { %>
-              <option value="<%=q%>"
-
-                <%
-                  if (q == nowYear) {
-                %>
-                      selected
-                <%
-                  }
-                %>
-                ><%=q%>
-              </option>
-
-              <% } %>
-            </select>
-          </label></td>
+          <td width="720"> 
+	          <%=encprops.get("start") %>&nbsp;
+	          <input  class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="dateaddedpicker1" name="dateaddedpicker1" size="20" />
+	           &nbsp;<%=encprops.get("end") %>&nbsp;
+	          <input class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="dateaddedpicker2" name="dateaddedpicker2" size="20" />
+	          
+          </td>
         </tr>
-		</table>
+      </table>
 		</div>
 		</td>
 </tr>
@@ -891,9 +654,19 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <table align="left">
         <tr>
           <td><strong><%=encprops.getProperty("sex")%>: </strong>
-            <label> <input name="male" type="checkbox" id="male" value="male" checked> <%=encprops.getProperty("male")%></label>
-            <label> <input name="female" type="checkbox" id="female" value="female" checked> <%=encprops.getProperty("female")%></label>
-            <label> <input name="unknown" type="checkbox" id="unknown" value="unknown" checked> <%=encprops.getProperty("unknown")%></label></td>
+            <label> <input name="male"
+                           type="checkbox" id="male" value="male"
+                           checked> <%=encprops.getProperty("male")%>
+            </label>
+
+            <label> <input name="female"
+                           type="checkbox" id="female" value="female" checked>
+              <%=encprops.getProperty("female")%>
+            </label>
+            <label> <input name="unknown"
+                           type="checkbox" id="unknown" value="unknown" checked>
+              <%=encprops.getProperty("unknown")%>
+            </label></td>
         </tr>
         <%
         if(CommonConfiguration.showProperty("showTaxonomy",context)){
@@ -931,10 +704,13 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	%>
 
         <tr>
-          <td>
-            <strong><%=encprops.getProperty("status")%>: </strong>
-            <label><input name="alive" type="checkbox" id="alive" value="alive" checked> <%=encprops.getProperty("alive")%></label>
-            <label><input name="dead" type="checkbox" id="dead" value="dead" checked> <%=encprops.getProperty("dead")%></label>
+          <td><strong><%=encprops.getProperty("status")%>: </strong><label>
+            <input name="alive" type="checkbox" id="alive" value="alive"
+                   checked> <%=encprops.getProperty("alive")%>
+          </label><label>
+            <input name="dead" type="checkbox" id="dead" value="dead"
+                   checked> <%=encprops.getProperty("dead")%>
+          </label>
           </td>
         </tr>
         
@@ -944,19 +720,20 @@ if(CommonConfiguration.showProperty("showCountry",context)){
           <td valign="top"><strong><%=encprops.getProperty("behavior")%>:</strong>
             <em> <span class="para">
 								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
-                  <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
+                  <img src="../images/information_icon_svg.gif" alt="Help" border="0"
+                       align="absmiddle"/>
                 </a>
 							</span>
             </em><br/>
               <%
-				ArrayList<String> behavs = myShepherd.getAllBehaviors();
+				List<String> behavs = myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
 				
 				if(totalBehavs>1){
 				%>
 
-            <select multiple="multiple" name="behaviorField" id="behaviorField" style="width: 500px">
+            <select multiple name="behaviorField" id="behaviorField" style="width: 500px">
               <option value="None"></option>
               <%
                 for (int f = 0; f < totalBehavs; f++) {
@@ -989,7 +766,6 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <%
 
 if(CommonConfiguration.showProperty("showLifestage",context)){
-  Map<String, String> map = CommonConfiguration.getIndexedValuesMap("lifeStage", context);
 
 %>
 <tr valign="top">
@@ -997,20 +773,29 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   
   <select name="lifeStageField" id="lifeStageField">
   	<option value="None" selected="selected"></option>
-<%
-  if (map.size() == 0) {
-%>
-    <p><em><%=encprops.getProperty("noStages")%></em></p>
-<%
-}
-else {
-  for (Map.Entry<String, String> me : map.entrySet()) {
-%>
-    <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
-<%
-    }
-  }
-%>
+  <%
+  			       boolean hasMoreStages=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMoreStages){
+  			       	  String currentLifeStage = "lifeStage"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMoreStages=false;
+  			          }
+  			          
+			       }
+			       if(stageNum==0){%>
+			    	   <p><em><%=encprops.getProperty("noStages")%></em></p>
+			       <% }
+			       
+ %>
   </select></td>
 </tr>
 <%
@@ -1018,7 +803,6 @@ else {
 
 
 if(CommonConfiguration.showProperty("showPatterningCode",context)){
-  Map<String, String> map = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
 
 %>
 <tr valign="top">
@@ -1026,20 +810,29 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   
   <select name="patterningCodeField" id="patterningCodeField">
   	<option value="None" selected="selected"></option>
-<%
-  if (map.size() == 0) {
-%>
-    <p><em><%=encprops.getProperty("noPatterningCodes")%></em></p>
-<%
-}
-else {
-  for (Map.Entry<String, String> me : map.entrySet()) {
-%>
-    <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
-<%
-    }
-  }
-%>
+  <%
+  			       boolean hasMorePatterningCodes=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMorePatterningCodes){
+  			       	  String currentLifeStage = "patterningCode"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMorePatterningCodes=false;
+  			          }
+  			          
+			       }
+			       if(stageNum==0){%>
+			    	   <p><em><%=encprops.getProperty("noPatterningCodes")%></em></p>
+			       <% }
+			       
+ %>
   </select></td>
 </tr>
 <%
@@ -1086,14 +879,14 @@ else {
       if (totalKeywords > 0) {
     %>
 
-    <select multiple="multiple" size="10" name="keyword" id="keyword" >
+    <select multiple size="10" name="keyword" id="keyword" >
       <option value="None"></option>
       <%
 
 
-        Iterator keys = myShepherd.getAllKeywords(kwQuery);
+        Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
         for (int n = 0; n < totalKeywords; n++) {
-          Keyword word = (Keyword) keys.next();
+          Keyword word = keys.next();
       %>
       <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
       </option>
@@ -1284,14 +1077,14 @@ else {
    </p>
 
       <%
-        ArrayList<String> haplos = myShepherd.getAllHaplotypes();
+        List<String> haplos = myShepherd.getAllHaplotypes();
         int totalHaplos = haplos.size();
 		System.out.println(haplos.toString());
 
         if (totalHaplos >= 1) {
       %>
 
-      <select multiple="multiple" size="10" name="haplotypeField" id="haplotypeField">
+      <select multiple size="10" name="haplotypeField" id="haplotypeField">
         <option value="None" ></option>
         <%
           for (int n = 0; n < totalHaplos; n++) {
@@ -1322,14 +1115,14 @@ else {
    </p>
 
       <%
-        ArrayList<String> genSexes = myShepherd.getAllGeneticSexes();
+        List<String> genSexes = myShepherd.getAllGeneticSexes();
         int totalSexes = genSexes.size();
 		//System.out.println(haplos.toString());
 
         if (totalSexes >= 1) {
       %>
 
-      <select multiple="multiple" size="10" name="geneticSexField" id="geneticSexField">
+      <select multiple size="10" name="geneticSexField" id="geneticSexField">
         <option value="None" ></option>
         <%
           for (int n = 0; n < totalSexes; n++) {
@@ -1386,7 +1179,7 @@ else {
 <p>
 
       <%
-        ArrayList<String> loci = myShepherd.getAllLoci();
+        List<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
 		
         if (totalLoci >= 1) {
@@ -1464,17 +1257,19 @@ else {
         <tr>
           <td width="154">
           <p><strong><%=encprops.getProperty("types2search")%></strong></p>
-        <%
-          Map<String, String> map = CommonConfiguration.getIndexedValuesMap("encounterState", context);
-        %>
-            <p><select size="<%=(map.size()+1) %>" multiple="multiple" name="state" id="state">
-              <option value="None"></option>
      		<%
-        for (Map.Entry<String, String> me : map.entrySet()) {
-        %>
-              <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
-        <%
-        }
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+     		int numProps=values.size();
+     		%>
+     		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">
+     		<option value="None"></option>
+     		<%
+     		
+     		for(int y=0;y<numProps;y++){
+     		%>
+     			<option value="<%=values.get(y) %>"><%=values.get(y) %></option>
+     		<%
+     		}
      		%>
      		</select>
 			</p>
@@ -1488,14 +1283,9 @@ else {
   </td>
 </tr>
 
-<tr>
-  <td><br /><strong><%=encprops.getProperty("filenameField")%></strong>
-    <input name="filenameField" type="text" size="60"> <br /> <em><%=encprops.getProperty("filenamesBlank")%>
-    </em>
-  </td>
-</tr>
 
-		<tr>
+
+<tr>
   <td><br /><strong><%=encprops.getProperty("additionalComments")%></strong>
     <input name="additionalCommentsField" type="text" size="60"> <br> <em><%=encprops.getProperty("commentsBlank")%>
     </em>
@@ -1507,12 +1297,14 @@ else {
 
       <%
       	Shepherd inShepherd=new Shepherd("context0");
-        ArrayList<User> users = inShepherd.getAllUsers();
+      inShepherd.setAction("encounterSearch.jsp2");
+      myShepherd.beginDBTransaction();
+        List<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
       %>
 	<br /><strong><%=encprops.getProperty("username")%></strong><br />
-      <select multiple="multiple" size="5" name="username" id="username">
+      <select multiple size="5" name="username" id="username">
         <option value="None"></option>
         <%
           for (int n = 0; n < numUsers; n++) {
@@ -1536,12 +1328,12 @@ inShepherd.closeDBTransaction();
 
 </td>
 </tr>
-
-		
-      </table>
+    </table>
     </div>
   </td>
 </tr>
+
+
 
 
 <%

@@ -1,0 +1,75 @@
+---
+subject: Animal Adopted, Wildbook for Whale Sharks
+---
+
+<!--Certificate-->
+<spacer size="16"></spacer>
+<container>
+  <wrapper class="certificate">
+    <spacer size="32"></spacer>
+    <row>
+      <columns small="12">
+        <h2 class="text-center">@ADOPTER_NAME@</h2>
+        <h1 class="text-center">Whale Shark Adopter</h1>
+        <center>
+          <img src="http://www.whaleshark.org/cust/mantamatcher/img/dive-helmet.jpeg"/>
+        </center>
+      </columns>
+    </row>
+    <spacer size="16"></spacer>
+    <row>
+    <columns large="2"></columns>
+      <columns large="8">
+        <callout>
+          <p>@ADOPTER_QUOTE@</p>
+        </callout>
+      </columns>
+      <columns large="2"></columns>
+    </row>
+    <row>
+      <columns small="1"></columns>
+      <columns small="10">
+        <p>
+          @ADOPTER_NAME@ adopted @INDIVIDUAL_NICKNAME@ the whale shark on @ADOPTION_START@.
+        </p>
+      </columns>
+      <columns small="1"></columns>
+    </row>
+    <row>
+      <columns small="8"></columns>
+      <columns small="2">
+        <img class="cert-stamp" src="http://www.wildme.org/wp-content/uploads/2015/09/wild-me-logo-high-resolution_512.png"/>
+      </columns>
+      <columns small="2">
+        <img class="cert-stamp" src="http://ibeis.org/wordpress/wp-content/uploads/2016/09/WildBook_logo_72dpi-02_white.png"/>
+      </columns>
+    </row>
+    <spacer size="32"></spacer>
+  </wrapper>
+
+  <wrapper class="secondary">
+    <spacer size="16"></spacer>
+  </wrapper>
+
+  <!--Email Body-->
+  <wrapper>
+    <spacer size="30"></spacer>
+    <row>
+      <columns small="12">
+        <p>Thank you for your support @ADOPTER_NAME@. We hope to spot @INDIVIDUAL_NICKNAME@ again soon. You'll be the first to know when we do. If you would ever like to discontinue your support, please <strong>RETAIN THIS EMAIL</strong> and click the link below to stop you contributions.</p>
+        <spacer size="30">
+          <p>Many thanks,</p>
+        </spacer>
+        <p id="email-signature">The Wildbook for Whale Sharks Family</p>
+        <spacer size="16"></spacer>
+        <p>Adoption Details:</p>
+        <ul>
+          <li>Adoption Start: @ADOPTION_START@</li>
+          <li><a href="@ADOPTION_ALTERATION_LINK@">Change donation info</a></li>
+          <li><a href="@ADOPTION_CANCELLATION_LINK@">Stop donations</a></li>
+        </ul>
+      </columns>
+    </row>
+    <spacer size="16"></spacer>
+  </wrapper>
+</container>

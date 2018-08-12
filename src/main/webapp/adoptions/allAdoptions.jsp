@@ -1,37 +1,31 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.*" %>
-<%@ page import="javax.jdo.Extent" %>
-<%@ page import="javax.jdo.Query" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ page import="org.joda.time.DateTime" %>
-<%@ page import="org.joda.time.format.DateTimeFormatter" %>
-<%@ page import="org.joda.time.format.ISODateTimeFormat" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities, org.joda.time.DateTime, org.joda.time.format.DateTimeFormatter, org.joda.time.format.ISODateTimeFormat, javax.jdo.Extent,javax.jdo.Query,java.util.Iterator, java.util.Properties" %>
+
+
 <%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Locale locale = new Locale(langCode);
-  Properties props = ShepherdProperties.getProperties("allAdoptions.properties", langCode, context);
+String context="context0";
+context=ServletUtilities.getContext(request);
   //set up dateTime
   DateTime dt = new DateTime();
   DateTimeFormatter fmt = ISODateTimeFormat.date();
   String strOutputDateTime = fmt.print(dt);
 
+//setup our Properties object to hold all properties
+ // Properties props = new Properties();
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
+
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("allAdoptions.jsp");
   String currentSort = "nosort";
-  List<String> displaySortList = new ArrayList<String>();
+  String displaySort = "";
   if (request.getParameter("sort") != null) {
     currentSort = request.getParameter("sort");
     if (request.getParameter("sort").startsWith("name")) {
-      displaySortList.add("sort.name");
+      displaySort = " sorted by Name";
     }
   }
-  String displaySort = "";
-  if (!displaySortList.isEmpty()) {
-    displaySort = StringUtils.collateStrings(displaySortList, props, "sort.%s", null, null, ",");
-    displaySort = StringUtils.format(locale, props.getProperty("sortedBy"), displaySort);
-  }
-
   currentSort = "&amp;sort=" + currentSort;
   int lowCount = 1, highCount = 10;
   if ((request.getParameter("start") != null) && (request.getParameter("end") != null)) {
@@ -66,11 +60,16 @@
           <table id="results" border="0">
             <tr>
               <td colspan="4">
-                <h1><%=props.getProperty("title")%></h1>
+                <h1>View All Adoptions</h1>
               </td>
             </tr>
             <tr>
-              <th class="caption" colspan="4"><%=StringUtils.format(locale, props.getProperty("subtitle"), totalCount)%></th>
+              <th class="caption" colspan="4">Below are some of the <strong><%=totalCount%>
+              </strong>
+                adoptions currently stored in the database. Click <strong>Next</strong>
+                to view the next set of encounters. Click <strong>Previous</strong> to
+                see the previous set of encounters.
+                </td>
             </tr>
           </table>
 
@@ -79,17 +78,18 @@
             <tr class="paging">
               <td align="left">
                 <%
+
                   String rejectsLink = "";
                   String unapprovedLink = "";
                   String userLink = "";
 
                   if (highCount < totalCount) {%> <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
+                href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
                 <%
                   }
                   if ((lowCount - 10) >= 1) {
                 %> | <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
+                href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
                 <%}%>
               </td>
               <td colspan="6" align="right">
@@ -112,21 +112,31 @@
                   }
 
 
-                %> <%=StringUtils.format(locale, props.getProperty("viewing"), lowCount, highCount, displaySort)%>
+                %> Viewing: <%=lowCount%> - <%=highCount%><%=displaySort%>
               </td>
             </tr>
 
             <tr class="lineitem">
               <td bgcolor="#99CCFF" class="lineitem">&nbsp;</td>
-              <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=props.getProperty("column.number")%></strong></td>
-              <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=props.getProperty("column.name")%></strong></td>
-              <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=props.getProperty("column.type")%></strong></td>
-              <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=props.getProperty("column.adopted")%></strong></td>
-              <td width="60" align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=props.getProperty("column.startDate")%></strong></td>
-              <td width="60" align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=props.getProperty("column.endDate")%></strong></td>
+              <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem">
+                <strong>Number</strong></td>
+
+              <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong>Name</strong>
+              </td>
+              <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong>Type</strong>
+              </td>
+              <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem">
+                <strong>Adopted</strong></td>
+              <td width="60" align="left" valign="top" bgcolor="#99CCFF"
+                  class="lineitem"><strong>Start date</strong></td>
+              <td width="60" align="left" valign="top" bgcolor="#99CCFF"
+                  class="lineitem"><strong>End date</strong></td>
+
             </tr>
             <%
-              Iterator allAdoptions;
+
+              Iterator<Adoption> allAdoptions;
+
               int total = totalCount;
               int iterTotal = totalCount;
               query = ServletUtilities.setRange(query, iterTotal, highCount, lowCount);
@@ -136,22 +146,31 @@
               int countMe = 0;
               while (allAdoptions.hasNext()) {
                 countMe++;
-                Adoption enc = (Adoption) allAdoptions.next();
+                Adoption enc = allAdoptions.next();
+
+
             %>
             <tr class="lineitems">
               <td width="102" height="60" class="lineitems"><a
-                href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?individual=<%=enc.getID()%>"><img
+                href="//<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?individual=<%=enc.getID()%>"><img
                 src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=(enc.getID()+"/thumb.jpg")%>"
-                width="100" height="75" alt="<%=props.getProperty("adopterPhoto")%>" border="0"/></a></td>
+                width="100" height="75" alt="adopter photo" border="0"/></a></td>
 
               <td class="lineitems"><a
-                href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?number=<%=enc.getID()%>"><%=enc.getID()%>
+                href="//<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?number=<%=enc.getID()%>"><%=enc.getID()%>
               </a></td>
-              <td class="lineitems"><%=enc.getAdopterName()%></td>
-              <td class="lineitems"><%=enc.getAdoptionType()%></td>
-              <td class="lineitems"><%=enc.getMarkedIndividual()%></td>
-              <td class="lineitems"><%=enc.getAdoptionStartDate()%></td>
-              <td class="lineitems"><%=enc.getAdoptionEndDate()%></td>
+              <td class="lineitems"><%=enc.getAdopterName()%>
+              </td>
+              <td class="lineitems"><%=enc.getAdoptionType()%>
+              </td>
+              <td class="lineitems"><%=enc.getMarkedIndividual()%>
+              </td>
+              <td class="lineitems"><%=enc.getAdoptionStartDate()%>
+              </td>
+              <td class="lineitems"><%=enc.getAdoptionEndDate()%>
+              </td>
+
+
             </tr>
             <%
               }
@@ -162,15 +181,15 @@
               <td align="left">
                 <%
                   if (highCount < totalCount) {%> <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
+                href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
                 <%
                   }
                   if ((lowCount - 10) >= 0) {
                 %> | <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
+                href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
                 <%}%>
               </td>
-              <td colspan="6" align="right"><%=StringUtils.format(locale, props.getProperty("viewing"), lowCount, highCount, displaySort)%>
+              <td colspan="6" align="right">Viewing: <%=lowCount%> - <%=highCount%><%=displaySort%>
 
               </td>
             </tr>

@@ -24,9 +24,12 @@ import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
+import org.ecocean.SinglePhotoVideo;
+import org.ecocean.User;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -36,8 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
@@ -56,10 +57,10 @@ public class UserAddProfileImage extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    String context="context0";
+    //context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("UserAddProfileImage.class");
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -142,27 +143,33 @@ public class UserAddProfileImage extends HttpServlet {
           myShepherd.closeDBTransaction();
         }
 
-        String link = null;
-        try {
-          if (request.getRequestURL().indexOf("MyAccount") >= 0)
-            link = CommonConfiguration.getServerURL(request, request.getContextPath()) + "/myAccount.jsp";
-          else
-            link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/appadmin/users.jsp?context=%s&isEdit=true&username=%s#editUser", context, username);
-        }
-        catch (URISyntaxException ex) {
-          throw new ServletException(ex);
-        }
 
         if (!locked) {
           myShepherd.commitDBTransaction();
           myShepherd.closeDBTransaction();
-          ActionResult actRes = new ActionResult(locale, "addProfileImage", true, link);
-          request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
-          getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+          out.println(ServletUtilities.getHeader(request));
+          
+          
+          out.println("<strong>Success!</strong> I have successfully uploaded the user profile image file.");
+
+          if(request.getRequestURL().indexOf("MyAccount")!=-1){
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp\">Return to My Account.</a></p>\n");
+            
+          }
+          else{
+          
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0&isEdit=true&username=" + username + "#editUser\">Return to User Management.</a></p>\n");
+          }
+          out.println(ServletUtilities.getFooter(context));
+          //String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
+          //ServletUtilities.informInterestedParties(request, encounterNumber, message);
         } else {
-          ActionResult actRes = new ActionResult(locale, "addProfileImage", false, link);
-          request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
-          getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+
+          out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Failure!</strong> This User account is currently being modified by another user. Please wait a few seconds before trying to add this image again.");
+          out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0\">Return to User Management</a></p>\n");
+          out.println(ServletUtilities.getFooter(context));
+
         }
       } else {
         myShepherd.rollbackDBTransaction();

@@ -532,8 +532,7 @@ public final class BatchProcessor implements Runnable {
           // Add comment to reflect batch upload.
           enc.addComments("<p><em>" + username + " on " + (new Date()).toString() + "</em><br>" + "Imported via batch upload.</p>");
           // Finally, if IndividualID for encounter is null, set it to "Unassigned".
-          if (enc.getIndividualID() == null)
-            enc.setIndividualID("Unassigned");
+          //if (enc.getIndividualID() == null)enc.setIndividualID("Unassigned");
           // Persist encounter.
           try {
             pm.makePersistent(enc);

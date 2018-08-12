@@ -41,6 +41,7 @@ public class SOCPROGExport extends HttpServlet{
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("SOCPROGExport.class");
     
 
     //set up the files
@@ -253,7 +254,7 @@ public class SOCPROGExport extends HttpServlet{
                     
                     
                     //
-                    if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){
+                    if(enc.getIndividualID()!=null){
                       Label popLabel4a1 = new Label(5, count, enc.getIndividualID().replaceAll("[^a-zA-Z0-9]", ""));
                       sheet.addCell(popLabel4a1);
                       
@@ -270,7 +271,7 @@ public class SOCPROGExport extends HttpServlet{
                       
                     }
                     
-                    ArrayList<String> mySocialUnits=myShepherd.getAllSocialUnitsForMarkedIndividual(indy.getIndividualID());
+                    List<String> mySocialUnits=myShepherd.getAllSocialUnitsForMarkedIndividual(indy.getIndividualID());
                     if(mySocialUnits.size()>0){
                       Label popLabel7c = new Label(2, count, mySocialUnits.get(0));
                       sheet2.addCell(popLabel7c);

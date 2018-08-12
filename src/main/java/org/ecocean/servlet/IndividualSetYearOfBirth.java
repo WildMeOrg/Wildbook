@@ -19,7 +19,6 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
@@ -32,17 +31,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 //Set alternateID for the individual
 public class IndividualSetYearOfBirth extends HttpServlet {
-  private static final Logger log = LoggerFactory.getLogger(IndividualSetYearOfBirth.class);
+
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
@@ -54,46 +49,29 @@ public class IndividualSetYearOfBirth extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualSetYearOfBorth.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/individuals.jsp?number=%s", request.getParameter("individual"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "individual.editField", true, link)
-            .setParams(request.getParameter("individual"), request.getParameter("timeOfBirth"));
 
     String sharky = "None";
     sharky = request.getParameter("individual");
     
     String timeOfBirth="";
     long longTime=-1;
-    boolean badFormat = false;
     if((request.getParameter("timeOfBirth")!=null)&&(!request.getParameter("timeOfBirth").equals(""))){
       timeOfBirth=request.getParameter("timeOfBirth");
-      try {
-        longTime = (new DateTime(timeOfBirth)).getMillis();
-      }
-      catch (IllegalArgumentException ex) {
-        badFormat = true;
-      }
+      longTime=(new DateTime(timeOfBirth)).getMillis();
     }
 
     myShepherd.beginDBTransaction();
-
     if (myShepherd.isMarkedIndividual(sharky)) {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
-
+      
       try {
         //Long myTime=new Long(longTime);
         myShark.setTimeOfBirth(longTime);
@@ -108,21 +86,28 @@ public class IndividualSetYearOfBirth extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        actionResult.setMessageOverrideKey("dateOfBirth");
-        if (badFormat)
-          actionResult.setSucceeded(false);
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success!</strong> I have successfully changed the time of birth for individual " + sharky + " to " + timeOfBirth + ".</p>");
+
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "#birthdate\">Return to " + sharky + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+        String message = "The time of birth for " + sharky + " was set to " + timeOfBirth + ".";
       } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> This individual is currently being modified by another user. Please wait a few seconds before trying to modify this individual again.");
+
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+
       }
     } else {
       myShepherd.rollbackDBTransaction();
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to set the individual's time of birth. I cannot find the individual that you intended it for in the database, or the time was not specified.");
+      out.println(ServletUtilities.getFooter(context));
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
     myShepherd.closeDBTransaction();
   }

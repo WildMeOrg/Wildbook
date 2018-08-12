@@ -69,9 +69,10 @@ public class CalendarXMLServer extends HttpServlet {
         
     //establish a shepherd to manage DB interactions
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("CalendarXMLServer.class");
     
     
-    int numResults=0;
+    //int numResults=0;
 
     
     Vector rEncounters=new Vector();      
@@ -111,10 +112,10 @@ public class CalendarXMLServer extends HttpServlet {
               String thisEncounter=(String)matches.get(i);
               Encounter tempEnc=myShepherd.getEncounter(thisEncounter);
               if(tempEnc!=null){
-                if(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
+                if(tempEnc.getIndividualID()!=null){
                 
                   String sex="-";
-                  MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
+                  MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.getIndividualID());
                   if((sharky.getSex()!=null)&&(!sharky.getSex().toLowerCase().equals("unknown"))) {
                     if(sharky.getSex().equals("male")){
                       sex="M";
@@ -124,10 +125,13 @@ public class CalendarXMLServer extends HttpServlet {
                     }
                   }
 
+                  String individualID="-";
+                  if(tempEnc.getIndividualID()!=null)individualID=tempEnc.getIndividualID();
+                  
                   String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
                   outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
                   outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</end_date>";
-                  outputXML+="<text><![CDATA["+tempEnc.getIndividualID()+"("+sex+")]]></text>";
+                  outputXML+="<text><![CDATA["+individualID+"("+sex+")]]></text>";
                   outputXML+="<details></details></event>";
                   out.println(outputXML);
                 } 

@@ -1,12 +1,13 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.Properties" %>
+<%@ page contentType="text/html; charset=iso-8859-1" language="java"
+         import="org.ecocean.CommonConfiguration,org.ecocean.servlet.ServletUtilities" %>
 <%@ page import="org.ecocean.Shepherd" %>
-<%@ page import="org.ecocean.ShepherdProperties" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+
+
 <%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties props = ShepherdProperties.getProperties("admin.properties", langCode, context);
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
 
 //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -24,13 +25,13 @@
 <div class="container maincontent">
  
 
-      <h1><%=props.getProperty("logs.title")%></h1>
+      <h1>Logs</h1>
      
 
 <ul>
-<li><a href="../logs/user-access.htm"><%=props.getProperty("logs.userAccess")%></a></li>
-<li><a href="../logs/encounter-submission.htm"><%=props.getProperty("logs.submissions")%></a></li>
-<li><a href="../logs/encounter-delete.htm"><%=props.getProperty("logs.deletedEncounters")%></a></li>
+<li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/user-access.htm">User access log</a></li>
+<li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/encounter-submission.htm">Encounter submissions log</a></li>
+<li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/encounter-delete.htm">Deleted encounters log</a></li>
 </ul>
 
 </div>

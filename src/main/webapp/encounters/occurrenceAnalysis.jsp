@@ -56,13 +56,13 @@
     if(request.getParameter("locationID")!=null){queryString+=(" WHERE "+"locationID == \""+request.getParameter("locationID")+"\"");}
     
     Query query=myShepherd.getPM().newQuery(queryString);
-    ArrayList matchingOccurs = myShepherd.getAllOccurrences(query);
+    List<Occurrence> matchingOccurs = myShepherd.getAllOccurrences(query);
     int numMatchingOccurs = matchingOccurs.size();
     
     Hashtable<String,Integer> pieHashtable = new Hashtable<String,Integer>();
     
     for(int y=0;y<numMatchingOccurs;y++){
-    	Occurrence occur=(Occurrence)matchingOccurs.get(y);
+    	Occurrence occur=matchingOccurs.get(y);
     	
     	ArrayList<String> pairs=occur.getCorrespondingHaplotypePairsForMarkedIndividuals(myShepherd);
     	int numPairs = pairs.size();

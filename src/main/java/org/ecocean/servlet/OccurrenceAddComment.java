@@ -53,6 +53,7 @@ public class OccurrenceAddComment extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("OccurrenceAddComment.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -81,12 +82,12 @@ public class OccurrenceAddComment extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         out.println("<strong>Success:</strong> I have successfully added your comments.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to eoccurrence " + request.getParameter("number") + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to eoccurrence " + request.getParameter("number") + "</a></p>\n");
         String message = "A new comment has been added to occurrence " + request.getParameter("number") + ". The new comment is: \n" + request.getParameter("comments");
        } 
       else {
         out.println("<strong>Failure:</strong> I did NOT add your comments. Another user is currently modifying the entry. Please try to add your comments again in a few seconds.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence" + request.getParameter("number") + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence" + request.getParameter("number") + "</a></p>\n");
       }
       out.println(ServletUtilities.getFooter(context));
 
@@ -94,7 +95,7 @@ public class OccurrenceAddComment extends HttpServlet {
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to add your comments.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence " + request.getParameter("number") + "</a></p>\n");
+      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence " + request.getParameter("number") + "</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
     }
     myShepherd.closeDBTransaction();

@@ -88,6 +88,7 @@
 
   // Get encounter number
   String num = request.getParameter("number").replaceAll("\\+", "").trim();
+  String mediaAssetId = request.getParameter("mediaAssetId");
 
   // Set up references to our file system components
   String rootWebappPath = getServletContext().getRealPath("/");
@@ -138,17 +139,27 @@
 
 
 <script>
+        var mediaAssetId = <%=((mediaAssetId == null) ? "false" : mediaAssetId)%>;
 	var patterningCodes = [
-		'<%=CommonConfiguration.getProperty("patterningCode0", context)%>',
-		'<%=CommonConfiguration.getProperty("patterningCode1", context)%>',
-		'<%=CommonConfiguration.getProperty("patterningCode2", context)%>'
+<%
+    List<String> pcodes = myShepherd.getAllPatterningCodes();
+    for (String c : pcodes) {
+        if ((c == null) || c.equals("")) continue;
+        out.println("'" + c + "',\n");
+    }
+%>
 	];
 
 <%
-	String locs = "";
-	for (int i = 0 ; i < 31 ; i++) {
-		locs += "\t'" + CommonConfiguration.getProperty("locationID" + i, context) + "',\n";
-	}
+    /* note: used to use commonconfig, e.g.
+		String l = CommonConfiguration.getProperty("locationID" + i, context);
+        but now getting this way (from encounter fields)
+    */
+    String locs = "";
+    List<String> lids = myShepherd.getAllLocationIDs();
+    for (String l : lids) {
+        locs += "\t'" + l + "',\n";
+    }
 %>
 
 	var regions = [

@@ -19,10 +19,23 @@
 
 package org.ecocean.grid;
 
+import org.apache.commons.math.stat.descriptive.SummaryStatistics;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 
+
+import org.ecocean.servlet.ServletUtilities;
+
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.servlet.http.HttpServletRequest;
+
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Enumeration;
+
+import org.apache.commons.math.stat.descriptive.SummaryStatistics;
+
 
 public class GridManager {
 
@@ -44,14 +57,21 @@ public class GridManager {
   private int numCollisions = 0;
   public int maxGroupSize = 100;
   public int numCompletedWorkItems = 0;
+  
+  //public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
   //Modified Groth algorithm parameters
   private String epsilon = "0.01";
-  private String R = "8";
-  private String Sizelim = "0.85";
+  private String R = "50";
+  private String Sizelim = "0.9999";
   private String maxTriangleRotation = "10";
   private String C = "0.99";
   private String secondRun = "true";
+  
+  private static ConcurrentHashMap<String,EncounterLite> matchGraph=new ConcurrentHashMap<String, EncounterLite>();
+  private static int numRightPatterns=0;
+  private static int numLeftPatterns=0;
+
 
   //hold uncompleted scanWorkItems
   private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -290,6 +310,7 @@ public class GridManager {
     //refresh the grid stats if necessary
     if ((lastGridStatsQuery == 1) || ((currenTime - lastGridStatsQuery) > gridStatsRefreshPeriod)) {
       Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("GridManager.class");
       myShepherd.beginDBTransaction();
       numScanTasks = myShepherd.getNumScanTasks();
       myShepherd.rollbackDBTransaction();
@@ -427,41 +448,54 @@ public class GridManager {
 
   public void removeCompletedWorkItemsForTask(String taskID) {
     //int iter=done.size();
-    for (int i = 0; i < done.size(); i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        done.remove(i);
-        i--;
-        //iter--;
+    try{
+      for (int i = 0; i < done.size(); i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          done.remove(i);
+          i--;
+          //iter--;
+        }
       }
     }
+    catch(Exception e){e.printStackTrace();}
   }
 
   public synchronized void checkinResult(ScanWorkItemResult swir) {
-
-    if (!doneContains(swir)) {
-      done.add(swir);
-      numCompletedWorkItems++;
-    } else {
-      numCollisions++;
+    try{
+    
+      //System.out.println("GM checking in a scan result!");
+  
+      if (!doneContains(swir)) {
+        done.add(swir);
+        numCompletedWorkItems++;
+      } 
+      else {
+        numCollisions++;
+      }
+      //if(!done.contains(swir)){done.add(swir);}
+  
+      if ((!swir.getUniqueNumberTask().equals("TuningTask")) && (!swir.getUniqueNumberTask().equals("FalseMatchTask"))) {
+        removeWorkItem(swir.getUniqueNumberWorkItem());
+      } 
+      else {
+        ScanWorkItem swi = getWorkItem(swir.getUniqueNumberWorkItem());
+        swi.setDone(true);
+      }
     }
-    //if(!done.contains(swir)){done.add(swir);}
-
-    if ((!swir.getUniqueNumberTask().equals("TuningTask")) && (!swir.getUniqueNumberTask().equals("FalseMatchTask"))) {
-      removeWorkItem(swir.getUniqueNumberWorkItem());
-    } else {
-      ScanWorkItem swi = getWorkItem(swir.getUniqueNumberWorkItem());
-      swi.setDone(true);
-    }
+    catch(Exception e){e.printStackTrace();}
   }
 
   public boolean doneContains(ScanWorkItemResult swir) {
     boolean hasit = false;
-    int iter = done.size();
-    for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberWorkItem().equals(swir.getUniqueNumberWorkItem())) {
-        hasit = true;
+    try{
+      int iter = done.size();
+      for (int i = 0; i < iter; i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberWorkItem().equals(swir.getUniqueNumberWorkItem()))) {
+          hasit = true;
+        }
       }
-    }
+      }
+    catch(Exception e){}
     return hasit;
   }
 
@@ -478,13 +512,16 @@ public class GridManager {
 
   public int getNumWorkItemsCompleteForTask(String taskID) {
     int num = 0;
-    if(done==null){done = new ArrayList<ScanWorkItemResult>();}
-    int iter = done.size();
-    for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        num++;
+    try{
+      if(done==null){done = new ArrayList<ScanWorkItemResult>();}
+      int iter = done.size();
+      for (int i = 0; i < iter; i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          num++;
+        }
       }
-    }
+      }
+    catch(Exception e){}
     return num;
   }
 
@@ -493,8 +530,8 @@ public class GridManager {
     try{
       if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
     	int iter = toDo.size();
-    	for (int i = 0; i < iter; i++) {
-      		if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
+    	for (int i = 0; i < toDo.size(); i++) {
+      		if ((toDo.get(i)!=null)&&(toDo.get(i).getTaskIdentifier().equals(taskID))) {
       		  	num++;
       		}
     	}
@@ -520,8 +557,13 @@ public class GridManager {
     ArrayList<MatchObject> list = new ArrayList<MatchObject>();
     int iter = done.size();
     for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        list.add(done.get(i).getResult());
+      try{
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          list.add(done.get(i).getResult());
+        }
+      }
+      catch(Exception e) {
+        //do nothing for now
       }
     }
     return list;
@@ -574,6 +616,69 @@ public class GridManager {
     return numProcessors;
 
   }
+  
+  /*
+  public static SummaryStatistics getDTWStats(HttpServletRequest request){
+    if(dtwStats==null){dtwStats=TrainNetwork.getDTWStats(request);}
+    return dtwStats;
+  }
+  
+  public static SummaryStatistics getI3SStats(HttpServletRequest request){
+    if(i3sStats==null){i3sStats=TrainNetwork.getI3SStats(request);}
+    return i3sStats;
+  }
+  
+  public static SummaryStatistics getIntersectionStats(HttpServletRequest request){
+    if(intersectionStats==null){intersectionStats=TrainNetwork.getIntersectionStats(request);}
+    return intersectionStats;
+  }
+  
+  public static SummaryStatistics getProportionStats(HttpServletRequest request){
+    if(proportionStats==null){proportionStats=TrainNetwork.getProportionStats(request);}
+    return proportionStats;
+  }
+  */
+  
+  //public void addScanTaskSize(String scanTaskID, int size){
+  //  scanTaskSizes.put(scanTaskID, new Integer(size));
+  //}
+  
+  //public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
+  
+  public static ConcurrentHashMap<String,EncounterLite> getMatchGraph(){return matchGraph;}
+  public static void addMatchGraphEntry(String elID,EncounterLite el){
+    matchGraph.put(elID, el);
+    resetPatternCounts();
+  }
+  public static void removeMatchGraphEntry(String elID){
+    if(matchGraph.containsKey(elID)){
+      matchGraph.remove(elID);
+    }
+    resetPatternCounts();
+   }
+  public static EncounterLite getMatchGraphEncounterLiteEntry(String elID){
+    return matchGraph.get(elID);
+  }
+  public static synchronized int getNumRightPatterns(){return numRightPatterns;}
+  public static synchronized int getNumLeftPatterns(){return numLeftPatterns;}
+  
+  /*
+   * Convenience method to speed ScanWorkItemCreationThread by always maintaining and recalculating accurate counts of potential patterns to compare against.
+   */
+  private static synchronized void resetPatternCounts(){
+    numLeftPatterns=0;
+    numRightPatterns=0;
+    Enumeration<String> keys=getMatchGraph().keys();
+    while(keys.hasMoreElements()){
+      String key=keys.nextElement();
+      EncounterLite el=getMatchGraphEncounterLiteEntry(key);
+      if((el.getSpots()!=null)&&(el.getSpots().size()>0)){numLeftPatterns++;}
+      if((el.getRightSpots()!=null)&&(el.getRightSpots().size()>0)){numRightPatterns++;}
+    }
+    
+  }
+  
+  public void clearDoneItems(){done = new ArrayList<ScanWorkItemResult>();}
+    
 
 }
-

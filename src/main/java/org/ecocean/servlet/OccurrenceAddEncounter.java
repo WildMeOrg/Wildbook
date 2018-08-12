@@ -30,9 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -56,24 +54,15 @@ public class OccurrenceAddEncounter extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("OccurrenceAddEncounter.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false, isOwner = true;
     boolean isAssigned = false;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     //String action = request.getParameter("action");
 
@@ -85,7 +74,6 @@ public class OccurrenceAddEncounter extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2add);
-      //String tempName = enc2add.isAssignedToMarkedIndividual();
       if ((myShepherd.isOccurrence(request.getParameter("occurrence")))&&(myShepherd.getOccurrenceForEncounter(request.getParameter("number"))==null)) {
         try {
 
@@ -117,34 +105,63 @@ public class OccurrenceAddEncounter extends HttpServlet {
 
             myShepherd.commitDBTransaction();
             myShepherd.rollbackDBTransaction();
-            actionResult.setMessageOverrideKey("addToOccurrence").setMessageParams(request.getParameter("number"), request.getParameter("occurrence"));
+
+
+            //print successful result notice
+            //out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_OK);
+            out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully added to occurrence " + request.getParameter("occurrence") + ".");
+
+            //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
+            //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("occurrence") + "\">View occurrence " + request.getParameter("occurrence") + ".</a></p>\n");
+            //out.println(ServletUtilities.getFooter(context));
+
           }
 
           //if lock exception thrown
           else {
-            actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+            //out.println(ServletUtilities.getHeader(request));
+            out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT added to occurrence " + request.getParameter("occurrence") + ". Please try to add the encounter again after a few seconds.");
+            //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("occurrence") + "\">View occurrence " + request.getParameter("occurrence") + ".</a></p>\n");
+            //out.println(ServletUtilities.getFooter(context));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
           }
 
 
         } catch (Exception e) {
-          actionResult.setSucceeded(false);
+
+          //out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Error:</strong> No such record exists in the database.");
+          //out.println(ServletUtilities.getFooter(context));
+          myShepherd.rollbackDBTransaction();
+          e.printStackTrace();
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+          //myShepherd.closeDBTransaction();
         }
       } 
       else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("addToOccurrence-assigned");
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Error:</strong> You can't add this encounter to an occurrence when it's already assigned to another one, or you may be trying to add this encounter to a nonexistent occurrence.");
+        //out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        myShepherd.rollbackDBTransaction();
+        //myShepherd.closeDBTransaction();
       }
 
 
     } 
     else {
-      actionResult.setSucceeded(false);
+      //out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I didn't receive enough data to add this encounter to an occurrence.");
+      //out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
+
 }

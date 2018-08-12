@@ -57,10 +57,10 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     Properties localeprops = new Properties();
    localeprops=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
 
-   List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
+   List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
    int numSpecies=allSpecies.size();
   
-   List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor",context);
+   List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
    int numSpeciesColors=allSpeciesColors.size();
    
    Hashtable<String, String> speciesTable=new Hashtable<String,String>();
@@ -72,6 +72,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("GetIndividualSearchGoogleMapsPoints.class");
 
   Random ran= new Random();
 
@@ -186,7 +187,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              point.put("catalogNumber",enc.getCatalogNumber());
              point.put("encSubdir",enc.subdir());
              point.put("rootURL",CommonConfiguration.getURLLocation(request));
-             point.put("individualID",enc.getIndividualID());
+             point.put("individualID",ServletUtilities.handleNullString(enc.getIndividualID()));
              point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
              point.put("date",enc.getDate());
              

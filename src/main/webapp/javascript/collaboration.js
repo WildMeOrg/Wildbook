@@ -70,7 +70,7 @@ return;
 
 function _collaborateMultiHtml(users) {
 	var cancelButton = '<input type="button" value="Cancel" onClick="$(\'.popup\').remove();" />';
-	if (inBlockedPage()) cancelButton = '<input type="button" value="Cancel" onClick="window.history.back();" />';
+	if (inBlockedPage()) cancelButton = '<input type="button" value="Cancel" onClick="blockerCancel()" />';
 	var num = users.length;
 
 	var h = '';
@@ -109,7 +109,7 @@ function collaborateClick(el) {
 
 function _collaborateHtml(uid, name) {
 	var cancelButton = '<input type="button" value="Cancel" onClick="$(\'.popup\').remove();" />';
-	if (inBlockedPage()) cancelButton = '<input type="button" value="Cancel" onClick="window.history.back();" />';
+	if (inBlockedPage()) cancelButton = '<input type="button" value="Cancel" onClick="blockerCancel()" />';
 	var num = $.map(allCollab, function(n, i) { return i; }).length;
 	if (num < 1) {
 		allCollab[uid] = { name: name };
@@ -177,7 +177,7 @@ function collaborateCallMulti() {
 
 function collaborateCallDone(data, callback) {
 	if (!callback) callback = '$(\'.popup\').remove();';
-	if (inBlockedPage()) callback = 'window.history.back()';
+	if (inBlockedPage()) callback = 'blockerCancel()';
 	console.log('invite sent reponse: %o', data);
 	var h = '';
 	h += '<p><input type="button" value="OK" onClick="' + callback + '" /></p>';
@@ -225,7 +225,7 @@ console.log(d);
 //TODO some day this should be general, i guess
 function showNotifications(el) {
 	var p = popup();
-	p.css({width: '50%', left: '25%', top: '10%'});
+	p.css({width: '50%', left: '25%', top: '200px'});
 	p.append('<div class="scroll throbbing" />');
 	p.show();
 	$.ajax({
@@ -305,3 +305,21 @@ console.log('ok?');
 		type: 'GET'
 	});
 }
+
+
+function collabBackOrCloseButton() {
+    if (!window.history || (window.history.length == 1)) {
+        return '<input type="button" value="CLOSE" onClick="window.close()" />';
+    } else {
+        return '<input type="button" value="BACK" onClick="window.history.back()" />';
+    }
+}
+
+function blockerCancel() {
+    if (!window.history || (window.history.length == 1)) {
+        window.close();
+    } else {
+        window.history.back();
+    }
+}
+

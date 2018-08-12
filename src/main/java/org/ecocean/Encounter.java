@@ -22,14 +22,23 @@ package org.ecocean;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Calendar;
 import java.util.StringTokenizer;
+import java.text.SimpleDateFormat;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.HashMap;
+import java.util.SortedMap;
 import java.util.GregorianCalendar;
+import java.lang.Math;
 import java.io.*;
+import java.lang.reflect.Field;
+import javax.jdo.Query;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -39,20 +48,28 @@ import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.identity.IBEISIA;
+import org.ecocean.media.*;
+
 
 import javax.servlet.http.HttpServletRequest;
 
 
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-import org.json.JSONObject;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 
 import javax.servlet.http.HttpServletRequest;
 
+//note these are different.  so be explicit if you need the org.json.JSONObject flavor
+//import org.json.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONArray;
+import org.datanucleus.api.rest.orgjson.JSONException;
 
 
 /**
@@ -66,6 +83,11 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class Encounter implements java.io.Serializable {
   static final long serialVersionUID = -146404246317385604L;
+
+    public static final String STATE_MATCHING_ONLY = "matching_only";
+    //at least one frame/image (e.g. from YouTube detection) must have this confidence or encounter will be ignored
+    public static final double ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF = 0.7;
+    public static final String STATE_AUTO_SOURCED = "auto_sourced";
 
   /**
    * The following attributes are described in the Darwin Core quick reference at:
@@ -100,6 +122,49 @@ public class Encounter implements java.io.Serializable {
   public String specificEpithet;
   public String lifeStage;
   public String country;
+  public String zebraClass ="";  //via lewa: lactating female, territorial male, etc etc
+
+  // fields from Dan's sample csv
+  private String imageSet;
+  private String soil;
+
+  private String reproductiveStage;
+  private Double bodyCondition;
+  private Double parasiteLoad;
+  private Double immunoglobin;
+  private Boolean sampleTakenForDiet;
+  private Boolean injured;
+
+  public String getSoil() {return soil;}
+  public void setSoil(String soil) {this.soil = soil;}
+
+  public String getReproductiveStage() {return reproductiveStage;}
+  public void setReproductiveStage(String reproductiveStage) {this.reproductiveStage = reproductiveStage;}
+
+  public Double getBodyCondition() {return bodyCondition;}
+  public void setBodyCondition(Double bodyCondition) {this.bodyCondition = bodyCondition;}
+
+  public Double getParasiteLoad() {return parasiteLoad;}
+  public void setParasiteLoad(Double parasiteLoad) {this.parasiteLoad = parasiteLoad;}
+
+  public Double getImmunoglobin() {return immunoglobin;}
+  public void setImmunoglobin(Double immunoglobin) {this.immunoglobin = immunoglobin;}
+
+  public Boolean getSampleTakenForDiet() {return sampleTakenForDiet;}
+  public void setSampleTakenForDiet(Boolean sampleTakenForDiet) {this.sampleTakenForDiet = sampleTakenForDiet;}
+
+  public Boolean getInjured() {return injured;}
+  public void setInjured(Boolean injured) {this.injured = injured;}
+
+
+
+
+
+  // for searchability
+  private String imageNames;
+
+
+    private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
 
   /*
@@ -114,13 +179,16 @@ public class Encounter implements java.io.Serializable {
   //Currently supported values are: "alive" and "dead".
   private String livingStatus;
 
+    //observed age (if any) via IBEIS zebra projects
+    private Double age;
+
   //Date the encounter was added to the library.
   private String dwcDateAdded;
   private Long dwcDateAddedLong;
-  
+
   // If Encounter spanned more than one day, date of release
   private Date releaseDate;
-  
+
   private Long releaseDateLong;
 
   //Size of the individual in meters
@@ -132,7 +200,7 @@ public class Encounter implements java.io.Serializable {
   //username of the logged in researcher assigned to the encounter
   //this STring is matched to an org.ecocean.User object to obtain more information
   private String submitterID;
-  
+
   //name, email, phone, address of the encounter reporter
   private String submitterEmail, submitterPhone, submitterAddress;
   private String hashedSubmitterEmail;
@@ -148,9 +216,9 @@ public class Encounter implements java.io.Serializable {
   //time metrics of the report
   private int hour = 0;
   private String minutes = "00";
-  
+
   private String state="";
-  
+
   //the globally unique identifier (GUID) for this Encounter
   private String guid;
 
@@ -161,15 +229,15 @@ public class Encounter implements java.io.Serializable {
   private String gpsLongitude = "", gpsLatitude = "";
   //whether this encounter has been rejected and should be hidden from public display
   //unidentifiable encounters generally contain some data worth saving but not enough for accurate photo-identification
-  private boolean unidentifiable = false;
+  //private boolean unidentifiable = false;
   //whether this encounter has a left-side spot image extracted
-  public boolean hasSpotImage = false;
+  //public boolean hasSpotImage = false;
   //whether this encounter has a right-side spot image extracted
-  public boolean hasRightSpotImage = false;
+  //public boolean hasRightSpotImage = false;
   //Indicates whether this record can be exposed via TapirLink
   private boolean okExposeViaTapirLink = false;
   //whether this encounter has been approved for public display
-  private boolean approved = true;
+  //private boolean approved = true;
   //integers of the latitude and longitude degrees
   //private int lat=-1000, longitude=-1000;
   //name of the stored file from which the left-side spots were extracted
@@ -181,8 +249,9 @@ public class Encounter implements java.io.Serializable {
   public String distinguishingScar = "None";
   //describes how this encounter was matched to an existing shark - by eye, by pattern recognition algorithm etc.
 
-  private int numSpotsLeft = 0;
-  private int numSpotsRight = 0;
+  //DEPRECATING OLD DATA CONSTRUCT
+  //private int numSpotsLeft = 0;
+  //private int numSpotsRight = 0;
 
 
   //SPOTS
@@ -215,13 +284,18 @@ public class Encounter implements java.io.Serializable {
   //private List<DataCollectionEvent> collectedData;
   private List<TissueSample> tissueSamples;
   private List<SinglePhotoVideo> images;
+  //private ArrayList<MediaAsset> media;
+  private ArrayList<Annotation> annotations;
   private List<Measurement> measurements;
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
   private SatelliteTag satelliteTag;
 
   private Boolean mmaCompatible = false;
-  
+
+//
+
+
   //start constructors
 
   /**
@@ -234,8 +308,10 @@ public class Encounter implements java.io.Serializable {
    * Use this constructor to add the minimum level of information for a new encounter
    * The Vector <code>additionalImages</code> must be a Vector of Blob objects
    *
+   * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
    */
   public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
+    if (images != null) System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
     this.verbatimLocality = location;
     this.recordedBy = submitterName;
     this.submitterEmail = submitterEmail;
@@ -250,10 +326,61 @@ public class Encounter implements java.io.Serializable {
     this.hour = hour;
     this.minutes = minutes;
     this.size_guess = size_guess;
-    this.individualID = "Unassigned";
 
-    resetDateInMilliseconds();
+    this.setDWCDateAdded();
+    this.setDWCDateLastModified();
+    this.resetDateInMilliseconds();
   }
+
+    public Encounter(Annotation ann) {
+        this(new ArrayList<Annotation>(Arrays.asList(ann)));
+    }
+
+    public Encounter(ArrayList<Annotation> anns) {
+        this.catalogNumber = Util.generateUUID();
+        this.annotations = anns;
+        this.setDateFromAssets();
+        this.setSpeciesFromAnnotations();
+        this.setLatLonFromAssets();
+        this.setDWCDateAdded();
+        this.setDWCDateLastModified();
+        this.resetDateInMilliseconds();
+    }
+
+
+    public String getZebraClass() {
+        return zebraClass;
+    }
+    public void setZebraClass(String c) {
+        zebraClass = c;
+    }
+
+    public String getImageNames() {
+        return imageNames;
+    }
+    public void addImageName(String name) {
+      if  (imageNames==null) imageNames = name;
+      else if (name != null) imageNames += (", "+name);
+    }
+    public String addAllImageNamesFromAnnots(boolean overwrite) {
+      if (overwrite) imageNames = null;
+      return addAllImageNamesFromAnnots();
+    }
+    public String addAllImageNamesFromAnnots() {
+      for (Annotation ann : getAnnotations()) {
+        for (Feature feat : ann.getFeatures()) {
+          try {
+            MediaAsset ma = feat.getMediaAsset();
+            addImageName(ma.getFilename());
+          }
+          catch (Exception e) {
+            System.out.println("exception parsing image name from feature "+feat);
+          }
+        }
+      }
+      return imageNames;
+    }
+
 
 
   /**
@@ -262,10 +389,12 @@ public class Encounter implements java.io.Serializable {
    * @return the array of superSpots, taken from the croppedImage, that make up the digital fingerprint for this encounter
    */
   public ArrayList<SuperSpot> getSpots() {
+    //return HACKgetSpots();
     return spots;
   }
 
   public ArrayList<SuperSpot> getRightSpots() {
+    //return HACKgetRightSpots();
     return rightSpots;
   }
 
@@ -274,6 +403,7 @@ public class Encounter implements java.io.Serializable {
    *
    * @return the array of superSpots, taken from the croppedImage, that make up the digital fingerprint for this encounter
    */
+/*   these have gone away!  dont be setting spots on Encounter any more .... NOT SO FAST... we regress for whaleshark.org... */
   public void setSpots(ArrayList<SuperSpot> newSpots) {
     spots = newSpots;
   }
@@ -281,6 +411,7 @@ public class Encounter implements java.io.Serializable {
   public void setRightSpots(ArrayList<SuperSpot> newSpots) {
     rightSpots = newSpots;
   }
+
 
   /**
    * Removes any spot data
@@ -293,6 +424,22 @@ public class Encounter implements java.io.Serializable {
     rightSpots = null;
   }
 
+    //yes, there "should" be only one of each of these, but we be thorough!
+    public void removeLeftSpotMediaAssets(Shepherd myShepherd) {
+    	ArrayList<MediaAsset> spotMAs = this.findAllMediaByLabel(myShepherd, "_spot");
+        for (MediaAsset ma : spotMAs) {
+            System.out.println("INFO: removeLeftSpotMediaAsset() detaching " + ma + " from parent id=" + ma.getParentId());
+            ma.setParentId(null);
+        }
+    }
+    public void removeRightSpotMediaAssets(Shepherd myShepherd) {
+    	ArrayList<MediaAsset> spotMAs = this.findAllMediaByLabel(myShepherd, "_spotRight");
+        for (MediaAsset ma : spotMAs) {
+            System.out.println("INFO: removeRightSpotMediaAsset() detaching " + ma + " from parent id=" + ma.getParentId());
+            ma.setParentId(null);
+        }
+    }
+
   public void nukeAllSpots() {
     leftReferenceSpots = null;
     rightReferenceSpots = null;
@@ -300,25 +447,38 @@ public class Encounter implements java.io.Serializable {
     rightSpots = null;
   }
 
+
   /**
    * Returns the number of spots in the cropped image stored for this encounter.
    *
    * @return the number of superSpots that make up the digital fingerprint for this encounter
    */
+
+
   public int getNumSpots() {
-    return spots.size();
+    return (spots == null) ? 0 : spots.size();
+/*
+    ArrayList<SuperSpot> fakeSpots = HACKgetSpots();
+    if(fakeSpots!=null){return fakeSpots.size();}
+    else{return 0;}
+*/
   }
 
   public int getNumRightSpots() {
-    return rightSpots.size();
+    return (rightSpots == null) ? 0 : rightSpots.size();
+/*
+    ArrayList<SuperSpot> fakeRightSpots = HACKgetRightSpots();
+    if(fakeRightSpots!=null){return fakeRightSpots.size();}
+    else{return 0;}
+*/
   }
 
   public boolean hasLeftSpotImage() {
-    return hasSpotImage;
+    return (this.getNumSpots() > 0);
   }
 
   public boolean hasRightSpotImage() {
-    return hasRightSpotImage;
+    return (this.getNumRightSpots() > 0);
   }
 
 
@@ -403,6 +563,7 @@ public class Encounter implements java.io.Serializable {
    */
 
 	public boolean getMmaCompatible() {
+                if (mmaCompatible == null) return false;
 		return mmaCompatible;
 	}
 	public void setMmaCompatible(boolean b) {
@@ -598,7 +759,7 @@ public class Encounter implements java.io.Serializable {
    */
   public Vector getAdditionalImageNames() {
     Vector imageNamesOnly=new Vector();
-    
+
     //List<SinglePhotoVideo> images=getCollectedDataOfClass(SinglePhotoVideo.class);
     if((images!=null)&&(images.size()>0)){
       int imagesSize=images.size();
@@ -608,6 +769,12 @@ public class Encounter implements java.io.Serializable {
       }
     }
     return imageNamesOnly;
+  }
+
+  public String getImageOriginalName() {
+    MediaAsset ma = getPrimaryMediaAsset();
+    if (ma == null) return null;
+    return ma.getFilename();
   }
 
   /**
@@ -632,8 +799,8 @@ public class Encounter implements java.io.Serializable {
     //additionalImageNames.add(fileName);
   }
 */
-  
-  
+
+
   /**
    * Removes the specified additional image from this encounter.
    *
@@ -643,20 +810,20 @@ public class Encounter implements java.io.Serializable {
   public void removeAdditionalImageName(String imageFile) {
 
     for (int i = 0; i < collectedData.size(); i++) {
-   
-        
+
+
       String thisName = images.get(i).getFilename();
       if ((thisName.equals(imageFile)) || (thisName.indexOf("#") != -1)) {
         images.remove(i);
         i--;
       }
-    
+
     }
 
 
   }
   */
-  
+
   /*
   public void removeDataCollectionEvent(DataCollectionEvent dce) {
    collectedData.remove(dce);
@@ -731,7 +898,7 @@ public class Encounter implements java.io.Serializable {
 
     if (day > 0) {
       date = String.format("%04d-%02d-%02d %s", year, month, day, time);
-    } 
+    }
     else if(month>-1) {
       date = String.format("%04d-%02d %s", year, month, time);
     }
@@ -824,8 +991,8 @@ public class Encounter implements java.io.Serializable {
 
   /**
    * A legacy method replaced by setLocationID(...).
-   * 
-   * 
+   *
+   *
    */
   public void setLocationCode(String newLoc) {
     setLocationID(newLoc);
@@ -864,7 +1031,7 @@ public class Encounter implements java.io.Serializable {
   public void setMatchedBy(String matchType) {
     identificationRemarks = matchType;
   }
-  
+
   public void setIdentificationRemarks(String matchType) {
     identificationRemarks = matchType;
   }
@@ -881,11 +1048,13 @@ public class Encounter implements java.io.Serializable {
     catalogNumber = num;
   }
 
-  public String isAssignedToMarkedIndividual() {
 
-    return individualID;
 
-  }
+    //this is probably what you wanted above to do.  :/
+    public boolean hasMarkedIndividual() {
+        if ((individualID == null) || individualID.toLowerCase().equals("unassigned")) return false;
+        return true;
+    }
 
   public void assignToMarkedIndividual(String sharky) {
     individualID = sharky;
@@ -966,18 +1135,144 @@ public class Encounter implements java.io.Serializable {
   //----------------
 
 
+    //really only intended to convert legacy SinglePhotoVideo to MediaAsset/Annotation world
+    public ArrayList<Annotation> generateAnnotations(String baseDir, Shepherd myShepherd) {
+        if ((annotations != null) && (annotations.size() > 0)) return annotations;
+        if ((images == null) || (images.size() < 1)) return null;  //probably pointless, so...
+        if (annotations == null) annotations = new ArrayList<Annotation>();
+        boolean thumbDone = false;
+        ArrayList<MediaAsset> haveMedia = new ArrayList<MediaAsset>();  //so we dont add duplicates!
+        for (SinglePhotoVideo spv : images) {
+            MediaAsset ma = spv.toMediaAsset(myShepherd);
+            if (ma == null) {
+                System.out.println("WARNING: Encounter.generateAnnotations() could not create MediaAsset from SinglePhotoVideo " + spv.getDataCollectionEventID() + "; skipping");
+                continue;
+            }
+            if (haveMedia.contains(ma)) {
+                System.out.println("WARNING: Encounter.generateAnnotations() found a duplicate MediaAsset in the SinglePhotoVideo images; skipping -- " + ma);
+                continue;
+            }
+
+            //note: we need at least minimal metadata (w,h) in order to make annotation, so if this fails, we are no-go
+            try {
+                ma.updateMetadata();
+            } catch (IOException ioe) {
+                System.out.println("WARNING: Encounter.generateAnnotations() failed to updateMetadata() on original MediaAsset " + ma + " (skipping): " + ioe.toString());
+                continue;
+            }
+
+            ma.addLabel("_original");
+            haveMedia.add(ma);
+
+            annotations.add(new Annotation(getTaxonomyString(), ma));
+            //if (!media.contains(ma)) media.add(ma);
+            //File idir = new File(this.dir(baseDir));
+            File idir = new File(spv.getFullFileSystemPath()).getParentFile();
+            //now we iterate through flavors that could be derived
+            //TODO is it bad to assume ".jpg" ? i forget!
+            addMediaIfNeeded(myShepherd, new File(idir, spv.getDataCollectionEventID() + ".jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + ".jpg", ma, "_watermark");
+            addMediaIfNeeded(myShepherd, new File(idir, spv.getDataCollectionEventID() + "-mid.jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + "-mid.jpg", ma, "_mid");
+
+            // note: we "assume" thumb was created from 0th spv, cuz we simply dont know but want it living somewhere
+            if (!thumbDone) addMediaIfNeeded(myShepherd, new File(idir, "/thumb.jpg"), "spv/" + spv.getDataCollectionEventID() + "/thumb.jpg", ma, "_thumb");
+            thumbDone = true;
+        }
+
+        //we need to have the spot image as a child under *some* MediaAsset from above, but unfortunately we do not know its lineage.  so we just pick one.  :/
+        MediaAsset sma = spotImageAsMediaAsset(((annotations.size() < 1) ? null : annotations.get(0).getMediaAsset()), baseDir, myShepherd);
+        return annotations;
+    }
+
+
+    //utility method for created MediaAssets
+    // note: also will check for existence of mpath and fail silently if doesnt exist
+    private MediaAsset addMediaIfNeeded(Shepherd myShepherd, File mpath, String key, MediaAsset parentMA, String label) {
+        if ((mpath == null) || !mpath.exists()) return null;
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        org.json.JSONObject sp = astore.createParameters(mpath);
+        if (key != null) sp.put("key", key);  //will use default from createParameters() (if there was one even)
+        MediaAsset ma = astore.find(sp, myShepherd);
+        if (ma != null) {
+            ma.addLabel(label);
+            if (parentMA != null) ma.setParentId(parentMA.getId());
+            return ma;
+        }
+System.out.println("creating new MediaAsset for key=" + key);
+        try {
+            ma = astore.copyIn(mpath, sp);
+        } catch (IOException ioe) {
+            System.out.println("Could not create MediaAsset for key=" + key + ": " + ioe.toString());
+            return null;
+        }
+        if (parentMA != null) {
+            ma.setParentId(parentMA.getId());
+            ma.updateMinimalMetadata();  //for children (ostensibly derived?) MediaAssets, really only need minimal metadata or so i claim
+        } else {
+            try {
+                ma.updateMetadata();  //root images get the whole deal (guess this sh/could key off label=_original ?)
+            } catch (IOException ioe) {
+                //we dont care (well sorta) ... since IOException usually means we couldnt open file or some nonsense that we cant recover from
+            }
+        }
+        ma.addLabel(label);
+        MediaAssetFactory.save(ma, myShepherd);
+        return ma;
+    }
+
+
+    //this makes assumption (for flukes) that both right and left image files are identical
+    //  TODO handle that they are different
+    //  TODO also maybe should reuse addMediaIfNeeded() for some of this where redundant
+    public MediaAsset spotImageAsMediaAsset(MediaAsset parent, String baseDir, Shepherd myShepherd) {
+        if ((spotImageFileName == null) || spotImageFileName.equals("")) return null;
+        File fullPath = new File(this.dir(baseDir) + "/" + spotImageFileName);
+//System.out.println("**** * ***** looking for spot file " + fullPath.toString());
+        if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
+        if (parent == null) {
+            System.out.println("seems like we do not have a parent MediaAsset on enc " + this.getCatalogNumber() + ", so cannot add spot MediaAsset for " + fullPath.toString());
+            return null;
+        }
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        if (astore == null) {
+            System.out.println("No AssetStore in Encounter.spotImageAsMediaAsset()");
+            return null;
+        }
+System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());
+        org.json.JSONObject sp = astore.createParameters(fullPath);
+        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);  //note: this really only applies to S3 AssetStores, but shouldnt hurt others?
+        MediaAsset ma = astore.find(sp, myShepherd);
+        if (ma == null) {
+System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
+            try {
+                ma = astore.copyIn(fullPath, sp);
+                ma.addDerivationMethod("historicSpotImageConversion", true);
+                ma.updateMinimalMetadata();
+//System.out.println("params? " + ma.getParameters());
+                ma.addLabel("_spot");
+                ma.addLabel("_annotation");
+                MediaAssetFactory.save(ma, myShepherd);
+//System.out.println("params? " + ma.getParameters());
+            } catch (java.io.IOException ex) {
+                System.out.println("spotImageAsMediaAsset threw IOException " + ex.toString());
+            }
+        }
+        ma.setParentId(parent.getId());
+        return ma;
+    }
+
+
   public void setSubmitterID(String username) {
     if(username!=null){submitterID = username;}
     else{submitterID=null;}
   }
-  
+
 
 
   //old method. use getAssignedUser() instead
   public String getSubmitterID() {
     return getAssignedUsername();
   }
-  
+
   public String getAssignedUsername() {
     return submitterID;
   }
@@ -990,10 +1285,11 @@ public class Encounter implements java.io.Serializable {
     interestedResearchers.add(email);
   }
 
-  
+ /*
   public boolean isApproved() {
     return approved;
   }
+  */
 
   public void removeInterestedResearcher(String email) {
     for (int i = 0; i < interestedResearchers.size(); i++) {
@@ -1007,6 +1303,7 @@ public class Encounter implements java.io.Serializable {
 
   public double getRightmostSpot() {
     double rightest = 0;
+    ArrayList<SuperSpot> spots = getSpots();
     for (int iter = 0; iter < spots.size(); iter++) {
       if (spots.get(iter).getTheSpot().getCentroidX() > rightest) {
         rightest = spots.get(iter).getTheSpot().getCentroidX();
@@ -1017,6 +1314,7 @@ public class Encounter implements java.io.Serializable {
 
   public double getLeftmostSpot() {
     double leftest = getRightmostSpot();
+    ArrayList<SuperSpot> spots = getSpots();
     for (int iter = 0; iter < spots.size(); iter++) {
       if (spots.get(iter).getTheSpot().getCentroidX() < leftest) {
         leftest = spots.get(iter).getTheSpot().getCentroidX();
@@ -1027,6 +1325,7 @@ public class Encounter implements java.io.Serializable {
 
   public double getHighestSpot() {
     double highest = getLowestSpot();
+    ArrayList<SuperSpot> spots = getSpots();
     for (int iter = 0; iter < spots.size(); iter++) {
       if (spots.get(iter).getTheSpot().getCentroidY() < highest) {
         highest = spots.get(iter).getTheSpot().getCentroidY();
@@ -1037,6 +1336,7 @@ public class Encounter implements java.io.Serializable {
 
   public double getLowestSpot() {
     double lowest = 0;
+    ArrayList<SuperSpot> spots = getSpots();
     for (int iter = 0; iter < spots.size(); iter++) {
       if (spots.get(iter).getTheSpot().getCentroidY() > lowest) {
         lowest = spots.get(iter).getTheSpot().getCentroidY();
@@ -1091,6 +1391,7 @@ public class Encounter implements java.io.Serializable {
 
   public double getRightmostRightSpot() {
     double rightest = 0;
+    ArrayList<SuperSpot> rightSpots = getRightSpots();
     for (int iter = 0; iter < rightSpots.size(); iter++) {
       if (rightSpots.get(iter).getTheSpot().getCentroidX() > rightest) {
         rightest = rightSpots.get(iter).getTheSpot().getCentroidX();
@@ -1102,6 +1403,7 @@ public class Encounter implements java.io.Serializable {
 
   public double getLeftmostRightSpot() {
     double leftest = getRightmostRightSpot();
+    ArrayList<SuperSpot> rightSpots = getRightSpots();
     for (int iter = 0; iter < rightSpots.size(); iter++) {
       if (rightSpots.get(iter).getTheSpot().getCentroidX() < leftest) {
         leftest = rightSpots.get(iter).getTheSpot().getCentroidX();
@@ -1112,6 +1414,7 @@ public class Encounter implements java.io.Serializable {
 
   public double getHighestRightSpot() {
     double highest = getLowestRightSpot();
+    ArrayList<SuperSpot> rightSpots = getRightSpots();
     for (int iter = 0; iter < rightSpots.size(); iter++) {
       if (rightSpots.get(iter).getTheSpot().getCentroidY() < highest) {
         highest = rightSpots.get(iter).getTheSpot().getCentroidY();
@@ -1122,6 +1425,7 @@ public class Encounter implements java.io.Serializable {
 
   public double getLowestRightSpot() {
     double lowest = 0;
+    ArrayList<SuperSpot> rightSpots = getRightSpots();
     for (int iter = 0; iter < rightSpots.size(); iter++) {
       if (rightSpots.get(iter).getTheSpot().getCentroidY() > lowest) {
         lowest = rightSpots.get(iter).getTheSpot().getCentroidY();
@@ -1132,13 +1436,16 @@ public class Encounter implements java.io.Serializable {
 
 
   public ArrayList<SuperSpot> getLeftReferenceSpots() {
+    //return HACKgetAnyReferenceSpots();
     return leftReferenceSpots;
   }
 
   public ArrayList<SuperSpot> getRightReferenceSpots() {
+    //return HACKgetAnyReferenceSpots();
     return rightReferenceSpots;
   }
 
+/*  gone! no more setting spots on encounters!  ... whoa there, yes there is for whaleshark.org */
   public void setLeftReferenceSpots(ArrayList<SuperSpot> leftReferenceSpots) {
     this.leftReferenceSpots = leftReferenceSpots;
   }
@@ -1146,6 +1453,7 @@ public class Encounter implements java.io.Serializable {
   public void setRightReferenceSpots(ArrayList<SuperSpot> rightReferenceSpots) {
     this.rightReferenceSpots = rightReferenceSpots;
   }
+
 
 
   /**
@@ -1178,6 +1486,7 @@ public class Encounter implements java.io.Serializable {
   }
 
 
+/*  GONE!  no more spots on encounters
   public void setNumLeftSpots(int numspots) {
     numSpotsLeft = numspots;
   }
@@ -1185,8 +1494,9 @@ public class Encounter implements java.io.Serializable {
   public void setNumRightSpots(int numspots) {
     numSpotsRight = numspots;
   }
+*/
 
-  
+
   public void setDWCGlobalUniqueIdentifier(String guid) {
     this.guid = guid;
   }
@@ -1198,7 +1508,10 @@ public class Encounter implements java.io.Serializable {
   public void setDWCImageURL(String link) {
     dwcImageURL = link;
   }
-
+  // lmao, we have this capitalization of the getter for reflexivity purposes
+  public String getModified() {
+    return modified;
+  }
   public String getDWCDateLastModified() {
     return modified;
   }
@@ -1206,11 +1519,20 @@ public class Encounter implements java.io.Serializable {
   public void setDWCDateLastModified(String lastModified) {
     modified = lastModified;
   }
+    public void setDWCDateLastModified() {
+        modified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+    }
 
   public String getDWCDateAdded() {
     return dwcDateAdded;
   }
-  
+
+  // lmao, we have this capitalization of the getter for reflexivity purposes
+  public String getDwcDateAdded() {
+    return dwcDateAdded;
+  }
+
+
   public Long getDWCDateAddedLong(){
     return dwcDateAddedLong;
   }
@@ -1218,8 +1540,13 @@ public class Encounter implements java.io.Serializable {
   public void setDWCDateAdded(String m_dateAdded) {
     dwcDateAdded = m_dateAdded;
   }
-  
-  
+    public void setDWCDateAdded() {
+        Date myDate=new Date();
+        dwcDateAddedLong=new Long(myDate.getTime());
+        dwcDateAdded = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(myDate);
+    }
+
+
  public void setDWCDateAdded(Long m_dateAdded) {
     dwcDateAddedLong = m_dateAdded;
     //org.joda.time.DateTime dt=new org.joda.time.DateTime(dwcDateAddedLong.longValue());
@@ -1233,7 +1560,7 @@ public class Encounter implements java.io.Serializable {
   public Date getReleaseDateDONOTUSE() {
     return releaseDate;
   }
-  
+
    public Date getReleaseDate() {
     if((releaseDateLong!=null)&&(releaseDateLong>0)){
       Date mDate=new Date(releaseDateLong);
@@ -1241,7 +1568,7 @@ public class Encounter implements java.io.Serializable {
     }
     return null;
   }
-   
+
    public Long getReleaseDateLong(){return releaseDateLong;}
 
   public void setReleaseDate(Long releaseDate) {
@@ -1358,14 +1685,29 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setIndividualID(String indy) {
+    if(indy==null){
+      individualID=null;
+      return;
+    }
     this.individualID = indy;
   }
 
-  public double getDecimalLatitudeAsDouble(){return decimalLatitude.doubleValue();}
-  public void setDecimalLatitude(Double lat){this.decimalLatitude=lat;}
+/* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
+some strings and decimal (double, er Double?) values -- so i am doing my best to standardize on
+the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
+  public Double getDecimalLatitudeAsDouble(){return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();}
 
-  public double getDecimalLongitudeAsDouble(){return decimalLongitude.doubleValue();}
-  public void setDecimalLongitude(Double longy){this.decimalLongitude=longy;}
+    public void setDecimalLatitude(Double lat){
+        this.decimalLatitude = lat;
+        gpsLatitude = Util.decimalLatLonToString(lat);
+     }
+
+  public Double getDecimalLongitudeAsDouble(){return (decimalLongitude == null) ? null : decimalLongitude.doubleValue();}
+
+    public void setDecimalLongitude(Double lon) {
+        this.decimalLongitude = lon;
+        gpsLongitude = Util.decimalLatLonToString(lon);
+    }
 
 
   public String getOccurrenceRemarks() {
@@ -1400,6 +1742,12 @@ public class Encounter implements java.io.Serializable {
     this.livingStatus = status;
   }
 
+    public void setAge(Double a) {
+        age = a;
+    }
+    public Double getAge() {
+        return age;
+    }
 
   public String getBehavior() {
     return behavior;
@@ -1525,6 +1873,7 @@ public class Encounter implements java.io.Serializable {
   }
 
   public static String getHashOfEmailString(String hashMe) {
+    if (hashMe == null) return null;
     String returnString = "";
     StringTokenizer tokenizer = new StringTokenizer(hashMe, ",");
     while (tokenizer.hasMoreTokens()) {
@@ -1548,6 +1897,7 @@ public class Encounter implements java.io.Serializable {
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
 	else{genus=null;}
+    updateAnnotationTaxonomy();
   }
 
   public String getSpecificEpithet() {
@@ -1557,10 +1907,73 @@ public class Encounter implements java.io.Serializable {
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
 	else{specificEpithet=null;}
+    updateAnnotationTaxonomy();
   }
+
+    private void updateAnnotationTaxonomy() {
+        if ((getAnnotations() == null) || (getAnnotations().size() < 1)) return;
+        for (Annotation ann : getAnnotations()) {
+            ann.setSpecies(getTaxonomyString());  //TODO in some perfect world this would use IA-specific mapping calls and/or yet-to-be-made Taxonomy class etc
+        }
+    }
+
+    public String getTaxonomyString() {
+        return Util.taxonomyString(getGenus(), getSpecificEpithet());
+    }
 
   public String getPatterningCode(){ return patterningCode;}
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
+
+
+    //crawls thru assets and sets date.. in an ideal world would do some kinda avg or whatever if more than one  TODO?
+    public void setDateFromAssets() {
+        //FIXME if you dare.  i can *promise you* there are some timezone problems here.  ymmv.
+        if ((annotations == null) || (annotations.size() < 1)) return;
+        DateTime dt = null;
+        for (Annotation ann : annotations) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma == null) continue;
+            dt = ma.getDateTime();
+            if (dt != null) break;  //we just take the first one
+        }
+        if (dt != null) setDateInMilliseconds(dt.getMillis());
+    }
+
+    public void setSpeciesFromAnnotations() {
+        if ((annotations == null) || (annotations.size() < 1)) return;
+        String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
+        this.setGenus(null);  //we reset these no matter what, so only parts get set as available
+        this.setSpecificEpithet(null);
+        if (sp == null) return;
+        if (sp.length > 0) this.setGenus(sp[0]);
+        if (sp.length > 1) this.setSpecificEpithet(sp[1]);
+    }
+
+    //find the first one(s) we can
+    public void setLatLonFromAssets() {
+        if ((annotations == null) || (annotations.size() < 1)) return;
+        Double lat = null;
+        Double lon = null;
+        for (Annotation ann : annotations) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma == null) continue;
+            if (lat == null) lat = ma.getLatitude();
+            if (lon == null) lon = ma.getLongitude();
+            if ((lat != null) && (lon != null)) break;
+        }
+        if (lat != null) this.setDecimalLatitude(lat);
+        if (lon != null) this.setDecimalLongitude(lon);
+    }
+
+    //sets date to the closes we have to "not set" :)
+    public void zeroOutDate() {
+        year = 0;
+        month = 0;
+        day = 0;
+        hour = -1;
+        minutes = "00";
+        resetDateInMilliseconds();  //should set that to null as well
+    }
 
   public void resetDateInMilliseconds(){
     if(year>0){
@@ -1580,7 +1993,20 @@ public class Encounter implements java.io.Serializable {
   }
 
   public java.lang.Long getDateInMilliseconds(){return dateInMilliseconds;}
-  
+
+    // this will set all date stuff based on ms since epoch
+    public void setDateInMilliseconds(long ms) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(ms);
+        this.year = cal.get(Calendar.YEAR);
+        this.month = cal.get(Calendar.MONTH) + 1;
+        this.day = cal.get(Calendar.DAY_OF_MONTH);
+        this.hour = cal.get(Calendar.HOUR);
+        this.minutes = Integer.toString(cal.get(Calendar.MINUTE));
+        if (this.minutes.length() == 1) this.minutes = "0" + this.minutes;
+        this.dateInMilliseconds = ms;
+    }
+
 
   public String getDecimalLatitude(){
     if(decimalLatitude!=null){return Double.toString(decimalLatitude);}
@@ -1637,7 +2063,7 @@ public class Encounter implements java.io.Serializable {
       }
       return result;
     }
-    
+
     public <T extends DataCollectionEvent> List<T> getCollectedDataOfClassAndType(Class<T> clazz, String type) {
       List<T> collectedDataOfClass = getCollectedDataOfClass(clazz);
       List<T> result = new ArrayList<T>();
@@ -1648,14 +2074,14 @@ public class Encounter implements java.io.Serializable {
       }
       return result;
     }
-    
+
     public void addCollectedDataPoint(DataCollectionEvent dce){
       if(collectedData==null){collectedData=new ArrayList<DataCollectionEvent>();}
       if(!collectedData.contains(dce)){collectedData.add(dce);}
     }
     public void removeCollectedDataPoint(int num){collectedData.remove(num);}
     */
-    
+
     public void addTissueSample(TissueSample dce){
       if(tissueSamples==null){tissueSamples=new ArrayList<TissueSample>();}
       if(!tissueSamples.contains(dce)){tissueSamples.add(dce);}
@@ -1671,15 +2097,15 @@ public class Encounter implements java.io.Serializable {
     public void removeSinglePhotoVideo(int num){images.remove(num);}
     public List<SinglePhotoVideo> getSinglePhotoVideo(){return images;}
     public void removeSinglePhotoVideo(SinglePhotoVideo num){images.remove(num);}
-    
+
 
     public void setMeasurement(Measurement measurement, Shepherd myShepherd){
-      
+
       //if measurements are null, set the empty list
       if(measurements==null){measurements=new ArrayList<Measurement>();}
-      
+
       //now start checking for existence of a previous measurement
-      
+
       //if we have it but the new value is null, remove the measurement
       if((this.hasMeasurement(measurement.getType()))&&(measurement.getValue()==null)){
         Measurement m=this.getMeasurement(measurement.getType());
@@ -1688,14 +2114,14 @@ public class Encounter implements java.io.Serializable {
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
       }
-      
+
       //just add the measurement it if we did not have it before
       else if(!this.hasMeasurement(measurement.getType())){
         measurements.add(measurement);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
       }
-      
+
       //if we had it before then just update the value
       else if((this.hasMeasurement(measurement.getType()))&&(measurement!=null)){
         Measurement m=this.getMeasurement(measurement.getType());
@@ -1704,7 +2130,7 @@ public class Encounter implements java.io.Serializable {
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
       }
-      
+
     }
     public void removeMeasurement(int num){measurements.remove(num);}
     public List<Measurement> getMeasurements(){return measurements;}
@@ -1720,22 +2146,22 @@ public class Encounter implements java.io.Serializable {
       }
       return null;
     }
-    
+
     public void addMetalTag(MetalTag metalTag) {
       if (metalTags == null) {
         metalTags = new ArrayList<MetalTag>();
       }
       metalTags.add(metalTag);
     }
-    
+
     public void removeMetalTag(MetalTag metalTag) {
       metalTags.remove(metalTag);
     }
-    
+
     public List<MetalTag> getMetalTags() {
       return metalTags;
     }
-    
+
     public MetalTag findMetalTagForLocation(String location) {
       List<MetalTag> metalTags = getMetalTags();
       if (metalTags != null) {
@@ -1747,7 +2173,7 @@ public class Encounter implements java.io.Serializable {
       }
       return null;
     }
-    
+
     public AcousticTag getAcousticTag() {
       return acousticTag;
     }
@@ -1769,11 +2195,11 @@ public class Encounter implements java.io.Serializable {
       if(newStage!=null){lifeStage = newStage;}
       else{lifeStage=null;}
     }
-    
-    
+
+
     /**
-     * A convenience method that returns the first haplotype found in the TissueSamples for this Encounter. 
-     * 
+     * A convenience method that returns the first haplotype found in the TissueSamples for this Encounter.
+     *
      *@return a String if found or null if no haplotype is found
      */
     public String getHaplotype(){
@@ -1797,10 +2223,10 @@ public class Encounter implements java.io.Serializable {
       }
       return null;
     }
-    
+
     /**
-     * A convenience method that returns the first genetic sex found in the TissueSamples for this Encounter. 
-     * 
+     * A convenience method that returns the first genetic sex found in the TissueSamples for this Encounter.
+     *
      *@return a String if found or null if no genetic sex is found
      */
     public String getGeneticSex(){
@@ -1825,31 +2251,246 @@ public class Encounter implements java.io.Serializable {
       }
       return null;
     }
-    
+
     public List<SinglePhotoVideo> getImages(){return images;}
-    
+
+    public ArrayList<Annotation> getAnnotations() {
+        return annotations;
+    }
+    public void setAnnotations(ArrayList<Annotation> anns) {
+        annotations = anns;
+    }
+    public void addAnnotation(Annotation ann) {
+        if (annotations == null) annotations = new ArrayList<Annotation>();
+        annotations.add(ann);
+    }
+
+    public void addAnnotationReplacingUnityFeature(Annotation ann) {
+        int unityAnnotIndex = -1;
+        if (annotations == null) annotations = new ArrayList<Annotation>();
+        System.out.println("n annotations = "+annotations.size());
+
+        for (int i=0; i<annotations.size(); i++) {
+          if (annotations.get(i).isTrivial()) {
+            System.out.println("annotation "+i+" is unity!");
+            unityAnnotIndex = i;
+            break;
+          }
+        }
+        System.out.println("unityAnnotIndex = "+unityAnnotIndex);
+        if (unityAnnotIndex > -1) { // there is a unity annot; replace it
+          annotations.set(unityAnnotIndex, ann);
+        } else {
+          annotations.add(ann);
+        }
+    }
+
+    //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
+    public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
+        if ((anns == null) || (anns.size() < 1)) return null;
+        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
+        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+        MediaAsset parentRoot = null;
+        for (Annotation ann : anns) {
+System.out.println("========================== >>>>>> " + ann);
+            if (ann.getFeatures().get(0).isUnity()) continue; //makes big assumption there is one-and-only-one feature btw (detection should have bbox)
+            MediaAsset ma = ann.getMediaAsset();
+            if (parentRoot == null) parentRoot = ma.getParentRoot(myShepherd);
+System.out.println("   -->>> ma = " + ma);
+            if (!ma.hasLabel("_frame") || (ma.getParentId() == null)) continue;  //nope thx
+            int offset = ma.getParameters().optInt("extractOffset", -1);
+System.out.println("   -->>> offset = " + offset);
+            if (offset < 0) continue;
+            ordered.put(offset, ann);
+        }
+        if (ordered.size() < 1) return null;  //none used!
+
+        //now construct Encounters based upon spacing of frame-clusters
+        List<Encounter> newEncs = new ArrayList<Encounter>();
+        int prevOffset = -1;
+        int groupsMade = 1;
+        ArrayList<Annotation> tmpAnns = new ArrayList<Annotation>();
+        for (Integer i : ordered.keySet()) {
+            if ((prevOffset > -1) && ((i - prevOffset) >= minGapSize)) {
+                Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
+                if (newEnc != null) {  //null means none of the frames met minimum detection confidence
+                    newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                    newEncs.add(newEnc);
+System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
+                    groupsMade++;
+                    tmpAnns = new ArrayList<Annotation>();
+                }
+            }
+            prevOffset = i;
+            tmpAnns.add(ordered.get(i));
+        }
+        //deal with dangling tmpAnns content
+        if (tmpAnns.size() > 0) {
+            Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
+            if (newEnc != null) {
+                newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
+                //newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
+                newEncs.add(newEnc);
+System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
+                groupsMade++;
+            }
+        }
+        return newEncs;
+    }
+
+    //this is really only for above method
+    private static Encounter __encForCollate(ArrayList<Annotation> tmpAnns, MediaAsset parentRoot) {
+        if ((tmpAnns == null) || (tmpAnns.size() < 1)) return null;
+
+        //make sure we even can use these annots first
+        double bestConfidence = 0.0;
+        for (Annotation ann : tmpAnns) {
+            if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1) || (ann.getFeatures().get(0).getParameters() == null)) continue;
+            double conf = ann.getFeatures().get(0).getParameters().optDouble("detectionConfidence", -1.0);
+            if (conf > bestConfidence) bestConfidence = conf;
+        }
+        if (bestConfidence < ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF) {
+            System.out.println("[INFO] bestConfidence=" + bestConfidence + " below threshold; rejecting 1 enc from " + parentRoot);
+            return null;
+        }
+
+        Encounter newEnc = new Encounter(tmpAnns);
+        newEnc.setState(STATE_AUTO_SOURCED);
+        newEnc.zeroOutDate();  //do *not* want it using the video source date
+        newEnc.setDynamicProperty("bestDetectionConfidence", Double.toString(bestConfidence));
+        if (parentRoot == null) {
+            newEnc.setSubmitterName("Unknown video source");
+            newEnc.addComments("<i>unable to determine video source - possibly YouTube error?</i>");
+        } else {
+            newEnc.addComments("<p>YouTube ID: <b>" + parentRoot.getParameters().optString("id") + "</b></p>");
+            String consolidatedRemarks="<p>Auto-sourced from YouTube Parent Video: <a href=\"https://www.youtube.com/watch?v="+parentRoot.getParameters().optString("id")+"\">"+parentRoot.getParameters().optString("id")+"</a></p>";
+            //set the video ID as the EventID for distinct access later
+            newEnc.setEventID("youtube:"+parentRoot.getParameters().optString("id"));
+            if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
+                
+                if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
+                    newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
+                    consolidatedRemarks+="<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>";
+                    newEnc.addComments(consolidatedRemarks);
+                    
+                    //add a dynamic property to make a quick link to the video
+                }
+                if (parentRoot.getMetadata().getData().optJSONObject("detailed") != null) {
+                    String desc = "<p>" + parentRoot.getMetadata().getData().getJSONObject("detailed").optString("description", "[no description]") + "</p>";
+                    if (parentRoot.getMetadata().getData().getJSONObject("detailed").optJSONArray("tags") != null) {
+                        desc += "<p><b>tags:</b> " + parentRoot.getMetadata().getData().getJSONObject("detailed").getJSONArray("tags").toString() + "</p>";
+                    }
+                    consolidatedRemarks+=desc;
+                    
+                }
+            }
+            newEnc.setOccurrenceRemarks(consolidatedRemarks);
+        }
+        return newEnc;
+    }
+
+
+    //convenience method
+    public ArrayList<MediaAsset> getMedia() {
+        ArrayList<MediaAsset> m = new ArrayList<MediaAsset>();
+        if ((annotations == null) || (annotations.size() < 1)) return m;
+        for (Annotation ann : annotations) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma != null) m.add(ma);
+        }
+        return m;
+    }
+
+    // only checks top-level MediaAssets, not children or resized images
+    public boolean hasTopLevelMediaAsset(int id) {
+      return (indexOfMediaAsset(id)>=0);
+    }
+
+    // finds the index of the MA we're looking for
+    public int indexOfMediaAsset(int id) {
+      if (annotations == null) return -1;
+      for (int i=0; i < annotations.size(); i++) {
+        MediaAsset ma = annotations.get(i).getMediaAsset();
+        if (ma == null) continue;
+        if (ma.getId() == id) return i;
+      }
+      return -1;
+    }
+
+    // creates a new annotation and attaches the asset
+    public void addMediaAsset(MediaAsset ma) {
+      Annotation ann = new Annotation(getTaxonomyString(), ma);
+      annotations.add(ann);
+    }
+
+    public void removeAnnotation(int index) {
+      annotations.remove(index);
+    }
+
+    public void removeMediaAsset(MediaAsset ma) {
+      removeAnnotation(indexOfMediaAsset(ma.getId()));
+    }
+
+    //this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
+    public ArrayList<MediaAsset> findAllMediaByFeatureId(Shepherd myShepherd, String[] featureIds) {
+        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        for (MediaAsset ma : getMedia()) {
+            if (ma.hasFeatures(featureIds)) mas.add(ma);
+            ArrayList<MediaAsset> kids = ma.findChildren(myShepherd); //note: does not recurse, but... meh?
+            if ((kids == null) || (kids.size() < 1)) continue;
+            for (MediaAsset kma : kids) {
+                if (kma.hasFeatures(featureIds)) mas.add(kma);
+            }
+        }
+        return mas;
+    }
+
+    //down-n-dirty with no myShepherd passed!  :/
+    public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");  
+        myShepherd.beginDBTransaction();
+        ArrayList<MediaAsset> all = findAllMediaByFeatureId(myShepherd, featureIds);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        return all;
+    }
+
+    public ArrayList<MediaAsset> findAllMediaByLabel(Shepherd myShepherd, String label) {
+        return MediaAsset.findAllByLabel(getMedia(), myShepherd, label);
+    }
+
+/*
+    public MediaAsset findOneMediaByLabel(Shepherd myShepherd, String label) {
+        return MediaAsset.findOneByLabel(media, myShepherd, label);
+    }
+*/
+
     public boolean hasKeyword(Keyword word){
      int imagesSize=images.size();
      for(int i=0;i<imagesSize;i++){
        SinglePhotoVideo image=images.get(i);
        if(image.getKeywords().contains(word)){return true;}
      }
-     return false; 
+     return false;
     }
 
     public String getState(){return state;}
-    
+
     public void setState(String newState){this.state=newState;}
-    
+
     //DO NOT USE - LEGACY MIGRATION ONLY
+   /*
     public boolean getApproved(){return approved;}
     public boolean getUnidentifiable(){return unidentifiable;}
-    
+    */
+
+
     public Vector getOldAdditionalImageNames(){return additionalImageNames;}
-    
+
     public Double getLatitudeAsDouble(){return decimalLatitude;}
     public Double getLongitudeAsDouble(){return decimalLongitude;}
-    
+
     public boolean hasMeasurements(){
       if((measurements!=null)&&(measurements.size()>0)){
         int numMeasurements=measurements.size();
@@ -1860,7 +2501,7 @@ public class Encounter implements java.io.Serializable {
       }
       return false;
     }
-    
+
     public boolean hasMeasurement(String type){
       if((measurements!=null)&&(measurements.size()>0)){
         int numMeasurements=measurements.size();
@@ -1871,9 +2512,9 @@ public class Encounter implements java.io.Serializable {
       }
       return false;
     }
-    
+
     public boolean hasBiologicalMeasurement(String type){
-      if((tissueSamples!=null)&&(tissueSamples.size()>0)){  
+      if((tissueSamples!=null)&&(tissueSamples.size()>0)){
         int numTissueSamples=tissueSamples.size();
         for(int i=0;i<numTissueSamples;i++){
           TissueSample ts=tissueSamples.get(i);
@@ -1885,9 +2526,9 @@ public class Encounter implements java.io.Serializable {
       }
       return false;
     }
-    
-    
-    
+
+
+
     /**
      * Returns the first measurement of the specified type
      * @param type
@@ -1903,9 +2544,9 @@ public class Encounter implements java.io.Serializable {
       }
       return null;
     }
-    
+
     public BiologicalMeasurement getBiologicalMeasurement(String type){
-      
+
       if(tissueSamples!=null){int numTissueSamples=tissueSamples.size();
       for(int y=0;y<numTissueSamples;y++){
         TissueSample ts=tissueSamples.get(y);
@@ -1924,21 +2565,21 @@ public class Encounter implements java.io.Serializable {
 
       return null;
     }
-    
+
     public String getCountry(){return country;}
-    
+
     public void setCountry(String newCountry) {
       if(newCountry!=null){country = newCountry;}
       else{country=null;}
     }
-    
+
     public void setOccurrenceID(String vet) {
       if(vet!=null){this.occurrenceID = vet;}
       else{this.occurrenceID=null;}
   }
-    
+
     public String getOccurrenceID(){return occurrenceID;}
-    
+
     public boolean hasSinglePhotoVideoByFileName(String filename){
         int numImages=images.size();
         for(int i=0;i<numImages;i++){
@@ -1954,9 +2595,101 @@ public class Encounter implements java.io.Serializable {
 		return Collaboration.canUserAccessEncounter(this, request);
 	}
 
+	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+            jobj.put("location", this.getLocation());
+            boolean fullAccess = this.canUserAccess(request);
+
+            //these are for convenience, like .hasImages above (for use in table building e.g.)
+            if ((this.getTissueSamples() != null) && (this.getTissueSamples().size() > 0)) jobj.put("hasTissueSamples", true);
+            if (this.hasMeasurements()) jobj.put("hasMeasurements", true);
+/*
+            String context="context0";
+            context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            if ((myShepherd.getAllTissueSamplesForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasTissueSamples", true);
+            if ((myShepherd.getMeasurementsForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasMeasurements", true);
+*/
+
+            jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
+            //jobj.remove("images");  //TODO uncomment after debugging
+/*
+            if ((this.getImages() != null) && (this.getImages().size() > 0)) {
+                jobj.put("hasImages", true);
+                JSONArray jarr = new JSONArray();
+                for (SinglePhotoVideo spv : this.getImages()) {
+                    jarr.put(spv.sanitizeJson(request, fullAccess));
+                }
+                jobj.put("images", jarr);
+            }
+*/
+            if ((this.getAnnotations() != null) && (this.getAnnotations().size() > 0)) {
+                jobj.put("hasAnnotations", true);
+                JSONArray jarr = new JSONArray();
+                for (Annotation ann : this.getAnnotations()) {
+                    jarr.put(ann.sanitizeJson(request, fullAccess));
+                }
+                jobj.put("annotations", jarr);
+            }
+
+            if (fullAccess) return jobj;
+
+            jobj.remove("gpsLatitude");
+            jobj.remove("location");
+            jobj.remove("gpsLongitude");
+            jobj.remove("verbatimLocality");
+            jobj.remove("locationID");
+            jobj.remove("gpsLongitude");
+            jobj.put("_sanitized", true);
+
+            return jobj;
+        }
+
+        public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+          JSONObject jobj = new JSONObject();
+          jobj.put("individualID", this.getIndividualID());
+          jobj.put("url", this.getUrl(request));
+          jobj.put("year", this.getYear());
+          jobj.put("month", this.getMonth());
+          jobj.put("day", this.getDay());
+          jobj.put("gpsLatitude", this.getGPSLatitude());
+          jobj.put("gpsLongitude", this.getGPSLongitude());
+          jobj.put("location", this.getLocation());
+          jobj.put("locationID", this.getLocationID());
+
+          jobj = sanitizeJson(request, jobj);
+          // we don't want annotations, which are added by sanitizeJson
+          jobj.remove("annotations");
+          return jobj;
+        }
+
+        public String getUrl(HttpServletRequest request) {
+          return request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + this.getCatalogNumber();
+        }
+
+        /**
+        * returns an array of the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query),
+        * all they want in return are MediaAssets
+        * TODO: decorate with metadata
+        **/
+
+        public org.datanucleus.api.rest.orgjson.JSONArray sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
+
+          org.datanucleus.api.rest.orgjson.JSONArray jarr = new org.datanucleus.api.rest.orgjson.JSONArray();
+          boolean fullAccess = this.canUserAccess(request);
+
+          if ((this.getAnnotations() != null) && (this.getAnnotations().size() > 0)) {
+              for (Annotation ann : this.getAnnotations()) {
+                  jarr.put(ann.sanitizeMedia(request, fullAccess));
+              }
+          }
+          return jarr;
+
+        }
+
+
 
 	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
-	public String collaborationLockHtml(ArrayList<Collaboration> collabs) {
+	public String collaborationLockHtml(List<Collaboration> collabs) {
 		Collaboration c = Collaboration.findCollaborationWithUser(this.getAssignedUsername(), collabs);
 		String collabClass = "pending";
 		if ((c == null) || (c.getState() == null)) {
@@ -1987,11 +2720,20 @@ it should be considered an asyncronous action that happens in the background mag
 */
 /////other possiblity: only pass basedir??? do we need context if we do that?
 
+                public boolean refreshAssetFormats(Shepherd myShepherd) {
+                    ArrayList<MediaAsset> mas = this.getMedia();
+                    if ((mas == null) || (mas.size() < 1)) return true;
+                    for (MediaAsset ma : mas) {
+                        ma.updateStandardChildren(myShepherd);
+                    }
+                    return true;
+                }
 /*
 NOTE on "thumb.jpg" ... we only get one of these per encounter; and we do not have stored (i dont think?) which SPV it came from!
 this is a problem, as we cant make a thumb in refreshAssetFormats(req, spv) since we dont know if that is the "right" spv.
 thus, we have to treat it as a special case.
 */
+/*
 		public boolean refreshAssetFormats(String context, String baseDir) {
 			boolean ok = true;
 			//List<SinglePhotoVideo> allSPV = this.getImages();
@@ -2020,14 +2762,43 @@ thus, we have to treat it as a special case.
 		}
 
 
+*/
 	//see also: future, MediaAssets
 	public String getThumbnailUrl(String context) {
-		List<SinglePhotoVideo> spvs = this.images;
-		if (spvs == null || spvs.size() < 1) return null;
-		return "/" + CommonConfiguration.getDataDirectoryName(context) + "/encounters/" + this.subdir() + "/thumb.jpg";
+                MediaAsset ma = getPrimaryMediaAsset();
+                if (ma == null) return null;
+                String url = null;
+                Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("Encounter.class.getThumbnailUrl");
+                myShepherd.beginDBTransaction();
+                ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_thumb");
+                if ((kids == null) || (kids.size() <= 0)) {
+                  myShepherd.rollbackDBTransaction();
+                  myShepherd.closeDBTransaction();
+                  return null;
+                }
+                ma = kids.get(0);
+                if (ma.webURL() == null) {
+                  myShepherd.rollbackDBTransaction();
+                  myShepherd.closeDBTransaction();
+                  return null;
+                }
+                url = ma.webURL().toString();
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                return url;
 	}
 
-	public boolean restAccess(HttpServletRequest request, JSONObject jsonobj) throws Exception {
+        //this probably needs a better name and should allow for something more like an ordered list; that said,
+        //  knowing we can always try to get THE ONE is probably useful too
+        public MediaAsset getPrimaryMediaAsset() {
+            ArrayList<MediaAsset> mas = getMedia();
+            if (mas.size() < 1) return null;
+            //here we could walk thru and find keywords, for example
+            return mas.get(0);
+        }
+
+	public boolean restAccess(HttpServletRequest request, org.json.JSONObject jsonobj) throws Exception {
 		ApiAccess access = new ApiAccess();
 System.out.println("hello i am in restAccess() on Encounter");
 
@@ -2046,6 +2817,55 @@ throw new Exception();
 		return true;
 	}
 
+///////// these are bunk now - dont use Features  TODO fix these - perhaps by crawlng thru ma.getAnnotations() ?
+        public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
+            String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
+            Encounter returnEnc=null;
+            Query query = myShepherd.getPM().newQuery(queryString);
+            List results = (List)query.execute();
+            if ((results!=null)&&(results.size() >=1)){
+              returnEnc=(Encounter)results.get(0);
+            }
+            query.closeAll();
+            return returnEnc;
+        }
+
+        public static List<Encounter> findAllByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
+            List<Encounter> returnEncs = new ArrayList<Encounter>();
+            try {
+                String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
+                //String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.features.contains(mAsset) && mAsset.id ==" + ma.getId();
+                Query query = myShepherd.getPM().newQuery(queryString);
+                Collection results = (Collection) query.execute();
+                returnEncs = new ArrayList<Encounter>(results);
+                query.closeAll();
+            }
+            catch (Exception e) {
+
+            }
+            return returnEncs;
+        }
+
+
+        public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
+            String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id =='" + annot.getId() + "'";
+            Encounter returnEnc=null;
+            Query query = myShepherd.getPM().newQuery(queryString);
+            List results = (List)query.execute();
+            if ((results!=null) && (results.size() >= 1)) {
+                if (results.size() > 1) System.out.println("WARNING: Encounter.findByAnnotation() found " + results.size() + " Encounters that contain Annotation " + annot.getId());
+                returnEnc = (Encounter)results.get(0);
+            }
+            query.closeAll();
+            return returnEnc;
+        }
+
+        public static Encounter findByAnnotationId(String annid, Shepherd myShepherd) {
+            Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annid), true)));
+            if (ann == null) return null;
+            return findByAnnotation(ann, myShepherd);
+        }
+
 
 /*  not really sure we need this now/yet
 
@@ -2056,7 +2876,143 @@ throw new Exception();
 
 */
 
+    public static ArrayList<Encounter> getEncountersForMatching(String taxonomyString, Shepherd myShepherd) {
+        if (_matchEncounterCache.get(taxonomyString) != null) return _matchEncounterCache.get(taxonomyString);
+        ArrayList<Encounter> encs = new ArrayList<Encounter>();
+        String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE !features.isEmpty()";
+        Query query = myShepherd.getPM().newQuery(queryString);
+        List results = (List)query.execute();
+        for (int i = 0 ; i < results.size() ; i++) {
+            MediaAsset ma = (MediaAsset)results.get(i);
+            MediaAsset top = ma.getParentRoot(myShepherd);
+            if (top == null) continue;
+            Encounter enc = Encounter.findByMediaAsset(top, myShepherd);
+            if (enc == null) System.out.println("could not find enc for ma " + ma);
+            if (enc == null) continue;
+            if (!enc.getTaxonomyString().equals(taxonomyString)) continue;
+            if (!encs.contains(enc)) encs.add(enc);
+        }
+        query.closeAll();
+        _matchEncounterCache.put(taxonomyString, encs);
+        return encs;
+    }
 
+
+/*
+    this section are intentionally hacky backwards-compatible ways to get spots on an encounter in the new world of Features/Annotations/MediaAssets ... do not use
+    these, of course... and SOON we must weed out all the encounter-based-spot calls from everywhere and clean all this mess up!
+*/
+
+    public ArrayList<SuperSpot> HACKgetSpots() {
+        return HACKgetAnySpots("spotsLeft");
+    }
+    public ArrayList<SuperSpot> HACKgetRightSpots() {
+        return HACKgetAnySpots("spotsRight");
+    }
+    public ArrayList<SuperSpot> HACKgetAnySpots(String which) {
+/*
+        RuntimeException ex = new RuntimeException(" ===== DEPRECATED ENCOUNTER SPOT BEHAVIOR! PLEASE FIX =====");
+        System.out.println(ex.toString());
+        ex.printStackTrace();
+*/
+        ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.edgeSpots", "org.ecocean.dorsalEdge.edgeSpots"});
+        if ((mas == null) || (mas.size() < 1)) return new ArrayList<SuperSpot>();
+        for (Feature f : mas.get(0).getFeatures()) {
+            if (f.isType("org.ecocean.flukeEdge.edgeSpots") || f.isType("org.ecocean.dorsalEdge.edgeSpots")) {
+                if (f.getParameters() != null) return SuperSpot.listFromJSONArray(f.getParameters().optJSONArray(which));
+            }
+        }
+        return new ArrayList<SuperSpot>();
+    }
+
+    //err, i think ref spots are the same right or left.... at least for flukes/dorsals.  :/  good luck with mantas and whalesharks!
+    public ArrayList<SuperSpot> HACKgetAnyReferenceSpots() {
+/*
+        RuntimeException ex = new RuntimeException(" ===== DEPRECATED ENCOUNTER SPOT BEHAVIOR! PLEASE FIX =====");
+        System.out.println(ex.toString());
+        ex.printStackTrace();
+*/
+        ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.referenceSpots", "org.ecocean.referenceEdge.edgeSpots"});
+        if ((mas == null) || (mas.size() < 1)) return new ArrayList<SuperSpot>();
+        for (Feature f : mas.get(0).getFeatures()) {
+            if (f.isType("org.ecocean.flukeEdge.referenceSpots") || f.isType("org.ecocean.dorsalEdge.referenceSpots")) {
+                if (f.getParameters() != null) return SuperSpot.listFromJSONArray(f.getParameters().optJSONArray("spots"));
+            }
+        }
+        return new ArrayList<SuperSpot>();
+    }
+
+
+    //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
+    public Encounter cloneWithoutAnnotations() {
+        Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
+        enc.setCatalogNumber(Util.generateUUID());
+        enc.setGenus(this.getGenus());
+        enc.setSpecificEpithet(this.getSpecificEpithet());
+        enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
+        enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
+        return enc;
+    }
+
+    //this is a special state only used now for match.jsp but basically means the data should be mostly hidden and soon deleted, roughly speaking???
+    //  TODO figure out what this really means
+    public void setMatchingOnly() {
+        this.setState(STATE_MATCHING_ONLY);
+    }
+
+    //ann is the Annotation that was created after IA detection.  mostly this is just to notify... someone
+    //  note: this is for singly-made encounters; see also Occurrence.fromDetection()
+    public void detectedAnnotation(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
+System.out.println(">>>>> detectedAnnotation() on " + this);
+    }
+
+    /*
+       note: these are baby steps into proper ownership of Encounters.  a similar (but cleaner) attempt is done in MediaAssets... however, really
+       this probably should be upon some (mythical) BASE CLASS!!!! ... for now, this Encounter variation kinda fudges with existing "ownership" stuff,
+       namely, the submitterID - which maps (in theory!) to a User username.
+       TODO much much much  ... incl call via constructor maybe ??  etc.
+    */
+    // NOTE: not going to currently persist the AccessControl object yet, but create on the fly...  clever? stupid?
+    public AccessControl getAccessControl() {
+        if ((submitterID == null) || submitterID.equals("")) return new AccessControl();  //not sure if we really have some "" but lets be safe
+        return new AccessControl(submitterID);
+    }
+    public void setAccessControl(HttpServletRequest request) {   //really just setting submitterID duh
+        this.submitterID = AccessControl.simpleUserString(request);  //null if anon
+    }
+
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("catalogNumber", catalogNumber)
+                .append("individualID", (hasMarkedIndividual() ? individualID : null))
+                .append("species", getTaxonomyString())
+                .append("sex", getSex())
+                .append("shortDate", getShortDate())
+                .append("numAnnotations", ((annotations == null) ? 0 : annotations.size()))
+                .toString();
+    }
+    
+    public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
+      System.out.println("Entering Encounter.hasMediaFromAssetStoreType");
+      if(getMediaAssetsOfType(aType).size()>0){return true;}
+      return false;
+    }
+    
+    public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
+      System.out.println("Entering Encounter.getMediaAssetsOfType");
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      try{
+        ArrayList<MediaAsset> assets=getMedia();
+        int numAssets=assets.size();
+        for(int i=0;i<numAssets;i++){
+          MediaAsset ma=assets.get(i);
+          if(ma.getStore().getType()==aType){results.add(ma);}
+        }
+      }
+      catch(Exception e){e.printStackTrace();}
+      System.out.println("Exiting Encounter.getMediaAssetsOfType with this num results: "+results.size());
+      return results;
+    }
 
 }
-

@@ -1,0 +1,2 @@
+#!/bin/bash
+java -cp .:/opt/tomcat7/webapps/caribwhale/WEB-INF/classes:/home/webadmin/caribwhale/jexcelapi/jxl.jar:/opt/tomcat7/webapps/caribwhale/WEB-INF/lib/*:/opt/tomcat7/webapps/caribwhale/WEB-INF/classes:/opt/tomcat7/webapps/caribwhale/WEB-INF/classes/bundles com.jholmberg.CaribwhaleMigratorApp

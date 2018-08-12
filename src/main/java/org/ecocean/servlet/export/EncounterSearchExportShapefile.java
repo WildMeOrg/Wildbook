@@ -65,6 +65,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
     //if(!encountersDir.exists()){encountersDir.mkdirs();}
     
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSearchExportShapefile.class");
     Vector rEncounters = new Vector();
     
     //set up the files
@@ -126,7 +127,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
               featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
             }
             featureBuilder.add(enc.getCatalogNumber());
-            featureBuilder.add(enc.isAssignedToMarkedIndividual());
+            featureBuilder.add(ServletUtilities.handleNullString(enc.getIndividualID()));
             if(enc.getSex()!=null){
               featureBuilder.add(enc.getSex());
             }

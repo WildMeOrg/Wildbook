@@ -29,8 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 
 public class OccurrenceRemoveEncounter extends HttpServlet {
@@ -51,23 +49,16 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("OccurrenceRemoveEncounter.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
+
 
     //remove Encounter from Occurrence
 
@@ -79,7 +70,6 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
         String old_name = myShepherd.getOccurrenceForEncounter(enc2remove.getCatalogNumber()).getOccurrenceID();
         boolean wasRemoved = false;
         String name_s = "";
-        actionResult.setMessageParams(request.getParameter("number"), old_name).setCommentParams(request.getParameter("number"), old_name);
         try {
           Occurrence removeFromMe = myShepherd.getOccurrenceForEncounter(enc2remove.getCatalogNumber());
           name_s = removeFromMe.getOccurrenceID();
@@ -112,30 +102,41 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
 
         if (!locked) {
           myShepherd.commitDBTransaction();
-          actionResult.setMessageOverrideKey("removeFromOccurrence").setMessageParams(request.getParameter("number"), old_name);
+          //out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully removed from occurrence " + old_name + ".");
+          response.setStatus(HttpServletResponse.SC_OK);
+          //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
           if (wasRemoved) {
-            actionResult.setCommentOverrideKey("removeFromOccurrence-lastEnc");
+            out.println("Occurrence <strong>" + name_s + "</strong> was also removed because it contained no encounters.");
           }
+          //out.println(ServletUtilities.getFooter(context));
 
-        } else {
-          actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+        } 
+        else {
+          //out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT removed from occurrence " + old_name + ". Another user is currently modifying this record entry. Please try again in a few seconds.");
+          //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
+          //out.println(ServletUtilities.getFooter(context));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
         }
 
       } else {
         myShepherd.rollbackDBTransaction();
-        actionResult.setSucceeded(false).setMessageOverrideKey("removeFromOccurrence-unassigned");
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Error:</strong> You can't remove this encounter from an occurrence because it is not assigned to one.");
+        //out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
 
 
     } else {
-      actionResult.setSucceeded(false);
+      out.println("I did not receive enough data to remove this encounter from an occurrence.");
     }
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
+
 }

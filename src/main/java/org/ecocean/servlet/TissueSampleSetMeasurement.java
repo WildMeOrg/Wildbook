@@ -2,9 +2,12 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,7 +16,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Measurement;
+import org.ecocean.Shepherd;
 import org.ecocean.genetics.*;
 
 public class TissueSampleSetMeasurement extends HttpServlet {
@@ -27,26 +33,20 @@ public class TissueSampleSetMeasurement extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("TissueSampleSetMeasurement.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked=false;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("encounter"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link)
-            .setParams(request.getParameter("encounter"), request.getParameter("sampleID"), request.getParameter("analysisID"));
-
+    
     myShepherd.beginDBTransaction();
+    
+    
+    
     if((request.getParameter("encounter")!=null)&&(request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("encounter")))) {
       
       String encNum=request.getParameter("encounter");
@@ -58,7 +58,7 @@ public class TissueSampleSetMeasurement extends HttpServlet {
        try {
     
           BiologicalMeasurement measurement=new BiologicalMeasurement();
-          if((request.getParameter("measurementType")!=null)&&(request.getParameter("value")!=null)&&(request.getParameter("samplingProtocol")!=null)){
+          if((request.getParameter("measurementType")!=null)&&(request.getParameter("value")!=null)){
             
             if ((!myShepherd.isGeneticAnalysis(sampleID, encNum, analysisID, "BiologicalMeasurement"))) {
             
@@ -80,7 +80,8 @@ public class TissueSampleSetMeasurement extends HttpServlet {
               if(request.getParameter("processingLabName")!=null){measurement.setProcessingLabName(request.getParameter("processingLabName"));}
               if(request.getParameter("processingLabContactName")!=null){measurement.setProcessingLabContactName(request.getParameter("processingLabContactName"));}
               if(request.getParameter("processingLabContactDetails")!=null){measurement.setProcessingLabContactDetails(request.getParameter("processingLabContactDetails"));}
-
+              if(request.getParameter("samplingProtocol")!=null){measurement.setSamplingProtocol(request.getParameter("samplingProtocol"));}
+              
               enc.addGeneticAnalysis(measurement);
               //log the new measurement addition
               myEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added tissue sample "+sampleID+" biological\\chemical measurement:<br><i>" + request.getParameter("measurementType") + " "+request.getParameter("value")+" "+units+" ("+request.getParameter("samplingProtocol")+")</i></p>");
@@ -138,22 +139,34 @@ public class TissueSampleSetMeasurement extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        actionResult.setMessageOverrideKey("tissueSampleMeasurement");
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<p><strong>Success!</strong> I have successfully set a biological\\chemical measurement value for tissue sample "+sampleID+".");
+
+        out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
       }
       else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.");
+
+        out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
       }
+      
     }
     else {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to set the measurements. I cannot find the encounter or tissue sample that you intended in the database.");
+      out.println(ServletUtilities.getFooter(context));
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
-  }
+    
+  } 
+  
+
+
+
 }

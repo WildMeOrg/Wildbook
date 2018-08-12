@@ -80,6 +80,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("InterconnectSubmitSpots.class");
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     String num = " ";
@@ -99,8 +100,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
       Encounter enc = myShepherd.getEncounter(num);
       try {
 
-        if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
-          //System.out.println("Yes, shark is unassigned!");
+        if (enc.getIndividualID()==null) {
           ok2add = true;
           for (int i = 0; i < 200; i++) {
             if ((request.getParameter("spotx" + (new Integer(i)).toString()) != null) && (request.getParameter("spoty" + (new Integer(i)).toString()) != null)) {
@@ -141,6 +141,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
             refs.add(new SuperSpot(ref3x, ref3y));
 
 
+/*  TODO no more spots on Encounter -- FIXME
             if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
               side = "right";
               enc.setRightSpots(superSpotArray2);
@@ -152,6 +153,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
               enc.setLeftReferenceSpots(refs);
               enc.setNumLeftSpots(superSpotArray2.size());
             }
+*/
             String user = "Unknown User";
             if (request.getRemoteUser() != null) {
               user = request.getRemoteUser();

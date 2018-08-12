@@ -24,7 +24,10 @@ import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.MarkedIndividual;
+import org.ecocean.Shepherd;
+import org.ecocean.SuperSpot;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -35,8 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 //import javax.jdo.*;
 //import com.poet.jdo.*;
@@ -59,10 +60,12 @@ public class IndividualAddFile extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    
+    //set up our Shepherd
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualAddFile.class");
     
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -77,17 +80,10 @@ public class IndividualAddFile extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/individuals.jsp?number=%s", request.getParameter("individual"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "individual.editField", true, link).setParams(request.getParameter("individual"));
 
     String fileName = "None";
     String individualName = "None";
+
 
     try {
       MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576));
@@ -154,24 +150,38 @@ public class IndividualAddFile extends HttpServlet {
 
         if (!locked) {
           myShepherd.commitDBTransaction();
-          actionResult.setMessageOverrideKey("addFile");
+          out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Success:</strong> I have successfully uploaded your data file.");
+          out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
+          out.println(ServletUtilities.getFooter(context));
+          //String message="A new data file named "+fileName+" has been added to "+request.getParameter("individual")+".";
         } else {
-          actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+
+          out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Failure:</strong> I failed to add your file. This record is currently being modified by another user. Please try to add the file again in a few seconds.");
+          out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
+          out.println(ServletUtilities.getFooter(context));
         }
       } else {
         myShepherd.rollbackDBTransaction();
-        actionResult.setSucceeded(false);
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Error:</strong> I was unable to upload your file. I cannot find the record that you intended it for in the database.");
+        out.println(ServletUtilities.getFooter(context));
+
       }
     } catch (IOException lEx) {
       lEx.printStackTrace();
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to upload your file.");
+      out.println(ServletUtilities.getFooter(context));
+
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
     myShepherd.closeDBTransaction();
   }
+
+
 }
+	
+	

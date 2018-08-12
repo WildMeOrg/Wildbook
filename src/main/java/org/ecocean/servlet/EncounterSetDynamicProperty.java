@@ -19,7 +19,6 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -32,9 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
+import java.util.List;
 
 
 //Set alternateID for this encounter/sighting
@@ -58,23 +55,14 @@ public class EncounterSetDynamicProperty extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetDynamicProperty.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     //-------------------------------
     //set a dynamic property
@@ -121,25 +109,66 @@ public class EncounterSetDynamicProperty extends HttpServlet {
       if (!locked) {
         setDateLastModified(changeMe);
         myShepherd.commitDBTransaction();
-        actionResult.setMessageOverrideKey("dynamicProperty").setMessageParams(request.getParameter("number"), name, newValue, oldValue);
-        if (newValue.equals("")) {
-          actionResult.setMessageOverrideKey("dynamicProperty-remove");
+        out.println(ServletUtilities.getHeader(request));
+
+        if (!newValue.equals("")) {
+          out.println("<strong>Success:</strong> Encounter dynamic property " + name + " has been updated from <i>" + oldValue + "</i> to <i>" + newValue + "</i>.");
+        } else {
+          out.println("<strong>Success:</strong> Encounter dynamic property " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
+
         }
 
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+        int allStatesSize=allStates.size();
+        if(allStatesSize>0){
+          for(int i=0;i<allStatesSize;i++){
+            String stateName=allStates.get(i);
+            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+          }
+        }
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all marked individuals</a></font></p>");
+        out.println(ServletUtilities.getFooter(context));
         String message = "Encounter " + request.getParameter("number") + " dynamic property " + name + " has been updated from \"" + oldValue + "\" to \"" + newValue + "\".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure:</strong> Encounter dynamic property " + name + " was NOT updated because another user is currently modifying this reconrd. Please try to reset the value again in a few seconds.");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+        int allStatesSize=allStates.size();
+        if(allStatesSize>0){
+          for(int i=0;i<allStatesSize;i++){
+            String stateName=allStates.get(i);
+            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+          }
+        }
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all marked individuals</a></font></p>");
+        out.println(ServletUtilities.getFooter(context));
+
       }
     } else {
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+      List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+      int allStatesSize=allStates.size();
+      if(allStatesSize>0){
+        for(int i=0;i<allStatesSize;i++){
+          String stateName=allStates.get(i);
+          out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+        }
+      }out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+      out.println(ServletUtilities.getFooter(context));
+
     }
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
+
+
 }
+  
+  

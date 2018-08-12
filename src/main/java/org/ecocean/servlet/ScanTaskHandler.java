@@ -64,6 +64,7 @@ public class ScanTaskHandler extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("ScanTaskHandler.class");
     GridManager gm = GridManagerFactory.getGridManager();
     //set up for response
     response.setContentType("text/html");
@@ -207,7 +208,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
               st = new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
-              st.setNumComparisons(numComparisons - 1);
+              //st.setNumComparisons(numComparisons - 1);
               if (request.getRemoteUser() != null) {
                 st.setSubmitter(request.getRemoteUser());
               }
@@ -262,7 +263,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context));
+            es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context,""));
 
 
           } catch (Exception e) {
@@ -410,9 +411,9 @@ public class ScanTaskHandler extends HttpServlet {
             st = new ScanTask(myShepherd, taskIdentifier, props2, "TuningTask", writeThis);
 
             if (numComparisons < (2 * maxNumWorkItems)) {
-              st.setNumComparisons(numComparisons);
+              //st.setNumComparisons(numComparisons);
             } else {
-              st.setNumComparisons((2 * maxNumWorkItems));
+              //st.setNumComparisons((2 * maxNumWorkItems));
             }
 
 
@@ -581,7 +582,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             st = new ScanTask(myShepherd, taskIdentifier, props2, "FalseMatchTask", writeThis);
-            st.setNumComparisons(numComparisons);
+            //st.setNumComparisons(numComparisons);
             if (request.getRemoteUser() != null) {
               st.setSubmitter(request.getRemoteUser());
             }
@@ -634,7 +635,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            es.execute(new FalseMatchCreationThread(maxNumWorkItems, taskIdentifier,context));
+            //es.execute(new FalseMatchCreationThread(maxNumWorkItems, taskIdentifier,context));
 
 
           } catch (Exception e) {

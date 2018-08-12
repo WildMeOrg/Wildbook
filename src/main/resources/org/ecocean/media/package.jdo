@@ -1,0 +1,139 @@
+<!DOCTYPE jdo PUBLIC
+    "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN"
+    "http://java.sun.com/dtd/jdo_2_0.dtd">
+
+<jdo>
+    <package name="org.ecocean.media">
+
+	<class name="MediaAsset" identity-type="application">
+		<field name="id" primary-key="true" value-strategy="identity"/>
+		<field name="uuid">
+			<index name="MEDIAASSET_UUID_INDEX" unique="true" />
+		</field>
+		<field name="store" persistence-modifier="persistent" element-type="org.ecocean.media.AssetStore" />
+		<field name="parentId" persistence-modifier="persistent">
+			<column jdbc-type="INT" allows-null="true"/>
+		</field>
+            	<field name="revision" persistence-modifier="persistent">
+                	<column jdbc-type="BIGINT" allows-null="false"/>
+            	</field>
+		<field name="metadata" persistence-modifier="persistent" cacheable="false" element-type="org.ecocean.media.MediaAssetMetadata" default-fetch-group="true" />
+		<field name="parametersAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="parameters" />
+		</field>
+		<property name="derivationMethodAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="derivationMethod" />
+		</property>
+
+    <field name="occurrence"/>
+
+<!--
+		<field name="annotations" mapped-by="mediaAsset">
+			<collection element-type="org.ecocean.Annotation"/>
+			<join />
+		</field>
+-->
+
+		<field name="hashCode">
+			<column length="75" />
+		</field>
+
+		<field name="labels" serialized="true" column="LABELS" />
+
+            	<field name="features" persistence-modifier="persistent" default-fetch-group="false" mapped-by="asset" >
+                	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
+                	<join />
+            	</field>
+
+            	<field name="keywords" persistence-modifier="persistent" default-fetch-group="true">
+                	<collection element-type="org.ecocean.Keyword" dependent-element="false" />
+                	<join />
+            	</field>
+	</class>
+
+
+	<class name="MediaAssetMetadata">
+		<property name="dataAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="data" />
+		</property>
+	</class>
+
+	<class name="AssetStore" identity-type="application">
+		<field name="id" primary-key="true" value-strategy="identity"/>
+            	<field name="config" persistence-modifier="persistent" serialized="true" />
+    		<inheritance>
+        		<discriminator strategy="value-map">
+				<column name="TYPE"/>
+			</discriminator>
+    		</inheritance>
+		<field name="type" persistence-modifier="none" />
+	</class>
+
+	<class name="LocalAssetStore">
+		<inheritance strategy="superclass-table">
+			<discriminator value="LOCAL"/>
+		</inheritance>
+	</class>
+
+	<class name="S3AssetStore">
+		<inheritance strategy="superclass-table">
+			<discriminator value="S3"/>
+		</inheritance>
+	</class>
+
+ 	<class name="URLAssetStore">
+ 		<inheritance strategy="superclass-table">
+ 			<discriminator value="URL"/>
+ 		</inheritance>
+ 	</class>
+
+ 	<class name="YouTubeAssetStore">
+ 		<inheritance strategy="superclass-table">
+ 			<discriminator value="YouTube"/>
+ 		</inheritance>
+ 	</class>
+
+ 	<class name="TwitterAssetStore">
+ 		<inheritance strategy="superclass-table">
+ 			<discriminator value="Twitter"/>
+ 		</inheritance>
+ 	</class>
+
+
+	<class name="MediaAssetSet">
+		<field name="id" primary-key="true">
+			<column length="36" />
+		</field>
+            	<field name="assets" persistence-modifier="persistent" default-fetch-group="false">
+                	<collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
+                	<join />
+            	</field>
+	</class>
+
+	<class name="Feature" identity-type="application">
+		<field name="id" primary-key="true">
+			<column length="36" />
+		</field>
+		<field name="type" persistence-modifier="persistent" element-type="org.ecocean.media.FeatureType" allows-null="true" />
+            	<field name="revision" persistence-modifier="persistent">
+                	<column jdbc-type="BIGINT" allows-null="false"/>
+            	</field>
+		<property name="parametersAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="parameters" />
+		</property>
+
+		<field name="annotation" />
+		<field name="asset" />
+	</class>
+
+	<class name="FeatureType" identity-type="application">
+		<field name="id" primary-key="true">
+			<column length="255" />
+		</field>
+		<field name="description" persistence-modifier="persistent" />
+	</class>
+
+
+
+    </package>
+</jdo>

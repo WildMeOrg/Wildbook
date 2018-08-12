@@ -19,6 +19,7 @@
 
 package org.ecocean.servlet;
 
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
@@ -32,9 +33,18 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import javax.net.ssl.HttpsURLConnection;
+import java.io.DataOutputStream;
+import java.nio.charset.Charset;
 import java.util.Vector;
 import java.util.ArrayList;
 
@@ -71,11 +81,13 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    
+    //System.out.println("Starting scanWorkItemResultsHandler!!");
 
     //set up a shepherd for DB transactions
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
+    //Shepherd myShepherd = new Shepherd(context);
     String nodeIdentifier = request.getParameter("nodeIdentifier");
     GridManager gm = GridManagerFactory.getGridManager();
     
@@ -110,18 +122,61 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       }
 
 
-      int returnedSize = returnedResults.size();
+      int returnedSize = 0;
+      
+      if(returnedResults!=null){returnedSize=returnedResults.size();}
 
+      //System.out.println(".....trying to check in # results:  "+returnedSize);
 
-      //ArrayList<String> affectedScanTasks=new ArrayList<String>();
-      //String affectedTask="";
+      //int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
+      int numComplete=0;
+      //int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
+      int numGenerated=0;
+      //int numTaskTot = numComplete + numGenerated;
+      int numTaskTot=0;
+      String scanTaskID="";
+      
+      ArrayList<String> tasksCompleted=new ArrayList<String>();
+      
       for (int m = 0; m < returnedSize; m++) {
         ScanWorkItemResult wir = (ScanWorkItemResult) returnedResults.get(m);
+        
+        if(!wir.getUniqueNumberTask().equals(scanTaskID)){
+          scanTaskID=wir.getUniqueNumberTask();
+        }
+
+        
         //String swiUniqueNum = wir.getUniqueNumberWorkItem();
         String taskNum = wir.getUniqueNumberTask();
         if(!affectedScanTasks.contains(taskNum)){affectedScanTasks.add(taskNum);}
 
         gm.checkinResult(wir);
+        
+        //auto-generate XML file of results if appropriate
+        numComplete = gm.getNumWorkItemsCompleteForTask(scanTaskID);
+        //numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
+        //numTaskTot = numComplete + numGenerated;
+        
+        //ScanTask st=myShepherd.getScanTask(scanTaskID);
+        
+        //if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
+        if ((numComplete > 0)  && (gm.getNumWorkItemsIncompleteForTask(scanTaskID)==0)) {
+          
+          
+          
+          if(!tasksCompleted.contains(scanTaskID)){
+          
+            Shepherd myShepherd=new Shepherd(context);
+            myShepherd.setAction("ScanWorkItemResultsHandler.class");
+            myShepherd.beginDBTransaction();
+            ScanTask st=myShepherd.getScanTask(scanTaskID);
+            if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            tasksCompleted.add(scanTaskID);
+          }
+          
+        }
 
 
       }
@@ -132,7 +187,9 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
 
       if (returnedSize > 0) {
         GridNode node = gm.getGridNode(nodeIdentifier);
-        node.checkin(returnedSize);
+        if(node!=null){
+          node.checkin(returnedSize);
+        }
         gm.incrementCompletedWorkItems(returnedSize);
       }
       
@@ -163,14 +220,13 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       }
       */
       
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+      //myShepherd.rollbackDBTransaction();
+      //myShepherd.closeDBTransaction();
 
 
     } 
     catch (Exception e) {
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+      
       System.out.println("scanWorkItemResultsHandler registered the following error...");
       e.printStackTrace();
       inputFromApplet.close();
@@ -179,6 +235,104 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
 
 
   }
+  
+  
+private void finishScanTask(String scanTaskID, HttpServletRequest request) {
+    
+    
+    //prep our streaming variables
+    URL u=null;
+    //InputStream inputStreamFromServlet=null;
+    //BufferedReader in=null;
+    HttpURLConnection finishConnection=null;
+    DataOutputStream wr=null;
+    
+    try {
+      
+      
+      u = new URL(request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/"+CommonConfiguration.getProperty("patternMatchingEndPointServletName", ServletUtilities.getContext(request)));
+      String urlParameters  = "number=" + scanTaskID;
+      byte[] postData       = urlParameters.getBytes( Charset.forName( "UTF-8" ));
+      int    postDataLength = postData.length;
+
+      
+      
+      
+      System.out.println("...writing out scanTask result: "+scanTaskID+" to URL: "+u.toString());
+      
+      if(request.getScheme().equals("https")){
+        finishConnection = (HttpsURLConnection)u.openConnection();
+      }
+      else{
+        finishConnection = (HttpURLConnection)u.openConnection();
+      }
+      
+      finishConnection.setDoOutput( true );
+      finishConnection.setDoInput ( true );
+      finishConnection.setInstanceFollowRedirects( false );
+      finishConnection.setRequestMethod( "POST" );
+      finishConnection.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded"); 
+      finishConnection.setRequestProperty( "charset", "utf-8");
+      finishConnection.setRequestProperty( "Content-Length", Integer.toString( postDataLength ));
+      finishConnection.setUseCaches( false );
+      wr = new DataOutputStream( finishConnection.getOutputStream());
+      //wr.write( postData );
+      wr.writeBytes(urlParameters);
+      wr.flush();
+      //wr.close();
+   
+      int responseCode = finishConnection.getResponseCode();
+
+      //System.out.println("     Post parameters : " + urlParameters);
+      System.out.println("     Response Code : " + responseCode);
+   
+      BufferedReader in = new BufferedReader(
+              new InputStreamReader(finishConnection.getInputStream()));
+      String inputLine;
+      StringBuffer response = new StringBuffer();
+   
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+   
+      //print result
+      System.out.println("     "+response.toString());
+      
+
+      //process the returned line however needed
+
+
+    } 
+    catch (MalformedURLException mue) {
+      System.out.println("!!!!!I hit a MalformedURLException in ScanWorkItemResultsHandler: "+u.toString());
+      mue.printStackTrace();
+
+    } 
+    catch (IOException ioe) {
+      System.out.println("!!!!!I hit an IO exception in ScanWorkItemResultsHandler: "+u.toString());
+      ioe.printStackTrace();
+    } 
+    catch (Exception e) {
+      System.out.println("!!!!!I hit an Exception in ScanWorkItemResultsHandler: "+u.toString());
+      e.printStackTrace();
+    }
+    finally{
+      try{
+        wr.close();
+        finishConnection.disconnect();
+        finishConnection=null;
+        wr=null;
+        //inputStreamFromServlet.close();
+        //in.close();
+      }
+      catch(Exception ex){
+        ex.printStackTrace();
+      }
+    }
+  }
+  
+  
 
 
 }

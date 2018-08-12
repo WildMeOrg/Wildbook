@@ -82,6 +82,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
     Locale locale = new Locale(langCode);
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterAddMantaPattern.class");
     myShepherd.beginDBTransaction();
     
     //setup data dir

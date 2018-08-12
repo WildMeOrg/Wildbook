@@ -16,6 +16,7 @@
   Properties props = ShepherdProperties.getProperties("admin.properties", langCode, context);
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("kwAdmin.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
@@ -66,9 +67,9 @@
 
                 <%
                   int totalKeywords = myShepherd.getNumKeywords();
-                  Iterator keys = myShepherd.getAllKeywords(kwQuery);
+                  Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
                   for (int n = 0; n < totalKeywords; n++) {
-                    Keyword word = (Keyword) keys.next();
+                    Keyword word = keys.next();
                 %>
 
                 <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
@@ -95,7 +96,7 @@
 
                   keys = myShepherd.getAllKeywords(kwQuery);
                   for (int w = 0; w < totalKeywords; w++) {
-                    Keyword word = (Keyword) keys.next();
+                    Keyword word = keys.next();
                 %>
 
                 <option value="<%=word.getReadableName()%>"><%=word.getReadableName()%>

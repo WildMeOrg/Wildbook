@@ -19,7 +19,9 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,11 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.List;
 
 
 //Set alternateID for this encounter/sighting
@@ -56,26 +54,15 @@ public class EncounterSetLocationID extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    Map<String, String> mapI18n = CommonConfiguration.getI18nPropertiesMap("locationID", langCode, context, false);
-
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetLocationID.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
     boolean isOwner = true;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     /**
      if(request.getParameter("number")!=null){
@@ -122,22 +109,42 @@ public class EncounterSetLocationID extends HttpServlet {
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        actionResult.setMessageOverrideKey("locationId").setMessageParams(request.getParameter("number"), mapI18n.get(request.getParameter("code")), mapI18n.get(oldCode));
-
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success:</strong> Encounter location has been updated from " + oldCode + " to " + request.getParameter("code") + ".");
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+        response.setStatus(HttpServletResponse.SC_OK);
+       
+        //out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+        //out.println(ServletUtilities.getFooter(context));
         String message = "Encounter #" + request.getParameter("number") + " location code has been updated from " + oldCode + " to " + request.getParameter("code") + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+      } 
+      else {
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure:</strong> Encounter location code was NOT updated because the record for this encounter is currently being modified by another user. Please try to add the location code again in a few seconds.");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+        
+        //out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+        //out.println(ServletUtilities.getFooter(context));
+
       }
-    } else {
-      actionResult.setSucceeded(false);
+    } 
+    else {
+      //out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+      //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+     
+      //out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+      //out.println(ServletUtilities.getFooter(context));
+
     }
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
 }
+	
+	

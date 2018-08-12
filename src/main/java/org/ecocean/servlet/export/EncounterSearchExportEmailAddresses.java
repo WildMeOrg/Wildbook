@@ -37,6 +37,7 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
     context=ServletUtilities.getContext(request);
     
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSearchExportEmailAddresses.class");
     
 
     

@@ -69,6 +69,7 @@ import org.ecocean.*;
 		String context="context0";
     //context=ServletUtilities.getContext(request);
 		Shepherd myShepherd=new Shepherd(context);
+		myShepherd.setAction("LoginUser.class1");
 		myShepherd.beginDBTransaction();
 		
 		try{
@@ -93,7 +94,7 @@ import org.ecocean.*;
 		  myShepherd.rollbackDBTransaction();
 		}
 		
-		myShepherd.closeDBTransaction();
+		//myShepherd.closeDBTransaction();
     String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
     //System.out.println("Authenticating hashed password: "+hashedPassword+" including salt "+salt);
 		
@@ -155,7 +156,7 @@ import org.ecocean.*;
 		    }
 		    
 		    myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         
         if(redirectUser){url=CommonConfiguration.getProperty("userAgreementURL",context);}
         
@@ -172,15 +173,11 @@ import org.ecocean.*;
 			//username provided was not found
 			ex.printStackTrace();
 			request.setAttribute("error", ex.getMessage() );
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
 			
 		} 
 		catch (IncorrectCredentialsException ex) {
 			//password provided did not match password found in database
 			//for the username provided
-		  myShepherd.rollbackDBTransaction();
-		  myShepherd.closeDBTransaction();
 			ex.printStackTrace();
 			request.setAttribute("error", ex.getMessage());
 		}
@@ -188,9 +185,14 @@ import org.ecocean.*;
 		catch (Exception ex) {
 			
 			ex.printStackTrace();
+			 
 			
 			request.setAttribute("error", "Login NOT SUCCESSFUL - cause not known!");
 			
+		}
+		finally{
+		  myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
 		}
 		
 		

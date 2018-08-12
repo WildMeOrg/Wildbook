@@ -4,6 +4,7 @@ var wildbook = {
         'Encounter',
         'MarkedIndividual',
         'SinglePhotoVideo',
+        'MediaAsset',
         'Measurement',
     ],
 
@@ -56,6 +57,11 @@ console.log('is %o', ajax);
     },
 */
 
+
+    iaEnabled: function() {
+        //FIXME when IBEISIA is caught up to current
+        return (wildbookGlobals && wildbookGlobals.iaStatus && wildbookGlobals.iaStatus.map && wildbookGlobals.iaStatus.map.iaEnabled);
+    },
 
     // h/t http://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
     isValidDate: function(d) {
@@ -198,7 +204,29 @@ console.log('is %o', ajax);
 				};
 				return wildbookGlobals.social[svc].auth[keyMap[svc]] || wildbook.social.SERVICE_NOT_SUPPORTED;
 			}
-		} //end social.
+		}, //end social.
+
+    cleanUrl: function (url) {
+        return encodeURI(url).replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+    },
+
+// h/t http://stackoverflow.com/a/105074
+    uuid: function() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    },
+
+    isValidEmailAddress: function(addr) {
+        var regex = new RegExp(wildbookGlobals.validEmailRegexPattern);
+        return regex.test(addr);
+    },
+
+    openInTab: function(url) {
+        var win = window.open(url, '_blank');
+        win.focus();
+    }
 
 };
 

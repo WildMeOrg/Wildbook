@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.List" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -24,7 +24,9 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd adoptShepherd = new Shepherd(context);
+  adoptShepherd.setAction("individualAdoptionEmbed.jsp");
   String name = request.getParameter("name");
+  adoptShepherd.beginDBTransaction();
 
   try {
 %>
@@ -75,16 +77,18 @@ context=ServletUtilities.getContext(request);
   -->
 </style>
 
-<table class="adopter" bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
 
-
+<div style="width: 100%;">
   <%
-    ArrayList adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name,context);
+    List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name,context);
     int numAdoptions = adoptions.size();
     int ia = 0;
     for (ia = 0; ia < numAdoptions; ia++) {
-      Adoption ad = (Adoption) adoptions.get(ia);
+      Adoption ad = adoptions.get(ia);
   %>
+  <div style="float:left; margin: 5px;">
+  <table style="background-color:#D7E0Ed " width="190px">
+  
   <tr>
     <td class="image"><img border="0" src="images/meet-adopter-frame.gif"/></td>
   </tr>
@@ -95,7 +99,7 @@ context=ServletUtilities.getContext(request);
   <tr>
     <td class="image" style="padding-top: 0px;">
       <center><img width="188px"
-                   src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
+                   src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/adopter.jpg"/></center>
     </td>
   </tr>
   <%
@@ -148,7 +152,7 @@ context=ServletUtilities.getContext(request);
   </tr>
   <tr>
     <td align="left"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
+      href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
       this adoption]</a></td>
   </tr>
   <tr>
@@ -160,11 +164,8 @@ context=ServletUtilities.getContext(request);
   <tr>
     <td>&nbsp;</td>
   </tr>
-
   <%
-    }
-
-    if (ia > 0) {
+      if (ia > 0) {
   %>
 
 
@@ -176,11 +177,21 @@ context=ServletUtilities.getContext(request);
     }
   %>
 </table>
+</div>
+
+  <%
+    }
+%>
+</div>
+<div style="float:left; margin: 5px;">
+<a href="createadoption.jsp?number=<%=name%>"><button class="btn btn-md">Adopt Me<span class="button-icon" aria-hidden="true"></button></a>
+</div>
 <p>&nbsp;</p>
 
 
 <%
-  } catch (Exception e) {
+  }
+  catch (Exception e) {
   }
   adoptShepherd.rollbackDBTransaction();
   adoptShepherd.closeDBTransaction();

@@ -30,8 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 
 //Set alternateID for this encounter/sighting
@@ -46,24 +44,16 @@ public class TissueSampleSetSexAnalysis extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("TissueSampleSetSexAnalysis.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link)
-            .setParams(request.getParameter("number"), request.getParameter("sampleID"), request.getParameter("sex"), request.getParameter("analysisID"));
 
     myShepherd.beginDBTransaction();
     if ( (request.getParameter("analysisID") != null) && (request.getParameter("sampleID") != null) && (request.getParameter("number")!=null) && (request.getParameter("sex")!=null) && (!request.getParameter("sex").equals("")) && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))&&(myShepherd.isEncounter(request.getParameter("number")))) {
@@ -113,21 +103,33 @@ public class TissueSampleSetSexAnalysis extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        actionResult.setMessageOverrideKey("tissueSampleSexAnalysis");
-      }
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success!</strong> I have successfully set the genetic sex for tissue sample " + request.getParameter("sampleID") + " for encounter "+encounterNumber+".</p>");
+
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+        } 
       else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user or is inaccessible. Please wait a few seconds before trying to modify this encounter again.");
+
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+
       }
     } else {
       myShepherd.rollbackDBTransaction();
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to set the genetic sex. I cannot find the encounter or tissue sample that you intended it for in the database.");
+      out.println(ServletUtilities.getFooter(context));
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
     myShepherd.closeDBTransaction();
   }
+
+
 }
+  
+  

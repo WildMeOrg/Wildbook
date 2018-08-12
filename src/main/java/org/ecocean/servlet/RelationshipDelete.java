@@ -64,6 +64,7 @@ public class RelationshipDelete extends HttpServlet {
       
     
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RelationshipDelete.class");
         
         Relationship rel=new Relationship();
         
@@ -101,8 +102,8 @@ public class RelationshipDelete extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
              out.println("<strong>Success:</strong> The relationship of type " + request.getParameter("type") + " between " + request.getParameter("markedIndividualName1")+" and "+request.getParameter("markedIndividualName2")+" was deleted.");
           
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
 
 }
@@ -110,8 +111,8 @@ else{
   out.println(ServletUtilities.getHeader(request));
   out.println("<strong>Failure:</strong> I did not have all of the information required.");
 
- out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
- out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
+ out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
+ out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
  out.println(ServletUtilities.getFooter(context));
   
   

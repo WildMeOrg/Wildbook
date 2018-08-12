@@ -19,7 +19,6 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -32,8 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 
 public class EncounterAddComment extends HttpServlet {
@@ -55,25 +52,17 @@ public class EncounterAddComment extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    request.setCharacterEncoding("UTF-8");
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterAddComment.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
     boolean isOwner = true;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     /**
      if(request.getParameter("number")!=null){
@@ -106,33 +95,45 @@ public class EncounterAddComment extends HttpServlet {
       try {
 
         commentMe.addComments("<p><em>" + request.getParameter("user") + " on " + (new java.util.Date()).toString() + "</em><br>" + request.getParameter("autocomments") + "</p>");
-      } catch (Exception le) {
+      } 
+      catch (Exception le) {
         locked = true;
         le.printStackTrace();
         myShepherd.rollbackDBTransaction();
       }
 
 
-      out.println(ServletUtilities.getHeader(request));
+      //out.println(ServletUtilities.getHeader(request));
       if (!locked) {
         myShepherd.commitDBTransaction();
-        actionResult.setMessageOverrideKey("addComment").setMessageParams(request.getParameter("number"), commentMe);
-
+        out.println("<strong>Success:</strong> I have successfully added your comments.");
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         String message = "A new comment has been added to encounter #" + request.getParameter("number") + ". The new comment is: \n" + request.getParameter("autocomments");
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+      } 
+      else {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        out.println("<strong>Failure:</strong> I did NOT add your comments. Another user is currently modifying the entry for this encounter. Please try to add your comments again in a few seconds.");
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       }
-    } else {
-      actionResult.setSucceeded(false);
+      //out.println(ServletUtilities.getFooter(context));
+
+
+    } 
+    else {
+      //out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      myShepherd.rollbackDBTransaction();
+      out.println("<strong>Error:</strong> I don't have enough information to add your comments.");
+      //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+      //out.println(ServletUtilities.getFooter(context));
     }
     myShepherd.closeDBTransaction();
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
-    myShepherd.closeDBTransaction();
+    
   }
 }
+	
+	

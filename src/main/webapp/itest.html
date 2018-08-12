@@ -1,0 +1,755 @@
+<html>
+<head>
+	<title>imagetest</title>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+<script src="javascript/jsfeat/jsfeat-min.js"></script>
+
+<script src="javascript/imageTools2.js"></script>
+
+<script>
+
+var CTX;
+	var t;
+	var defaultCursor = 'crosshair';
+
+	var spotStyle = {
+		null: {
+			strokeStyle: 'blue',
+			fillStyle: 'rgba(0,0,0,0.4)'
+		},
+		tip: {
+		},
+		_line: {
+			xstrokeStyle: 'rgba(255,255,0,0.4)',
+			strokeStyle: 'white',
+			lineWidth: 25,
+			lineCap: 'round'
+		},
+		_dim: {
+			strokeStyle: 'none',
+			fillStyle: 'rgba(255,255,255,0.6)'
+		},
+		_ghost: {
+			strokeStyle: 'black',
+			fillStyle: 'rgba(255,255,255,0.7)',
+			lineWidth: 3,
+			setLineDash: [4,4]
+		},
+		_hilite: {
+			strokeStyle: '#FCA',
+			fillStyle: 'rgba(255,200,0,0.4)'
+		}
+	};
+
+// mode, bits -> RST
+function setTool() {
+	var opts = {
+		el: document.getElementById('fluke-img'),
+		eventListeners: {
+			contextmenu: function(ev) {
+	console.log('menu!!!');
+				t._addingSpot = false;
+				ev.preventDefault();
+				ev.stopPropagation();
+			},
+
+			mousemove: function(ev) {
+				ev.preventDefault();
+
+				//t._insideSpot refers to if mouse went *down* on a spot
+				if (t._insideSpot > -1) {
+					clearLabelCanvas();
+					t.imageElement.style.cursor = 'grabbing';
+					t.imageElement.style.cursor = '-moz-grabbing';
+					t.imageElement.style.cursor = '-webkit-grabbing';
+console.log('dragging spot %d', t._insideSpot);
+					t._labelCanvasNeedsClearing = true;
+
+					drawSpot(t.lctx, t.spots[t._insideSpot], '_ghost');
+					drawSpot(t.lctx, [ev.offsetX, ev.offsetY], '_hilite');
+					return;
+				}
+
+				var s = t.isNearSpot(ev.offsetX, ev.offsetY);
+				if (s > -1) {
+console.log(s);
+					//t.imageElement.style.cursor = 'context-menu';
+					t.imageElement.style.cursor = 'grab';
+					t.imageElement.style.cursor = '-moz-grab';
+					t.imageElement.style.cursor = '-webkit-grab';
+				} else {
+					t.imageElement.style.cursor = defaultCursor;
+				}
+
+				clearLabelCanvas();
+				if (!t._mouseDown) return;
+				t.imageElement.style.cursor = 'move';
+//console.log('(%d,%d)', ev.offsetX, ev.offsetY);
+//console.log(ev);
+				//note: never ever do translate with either rotate/scale. i.e. no odd numbers other than 1
+				if (t._mode & 4) {
+					var r = t.angleFromCenter(ev.offsetX, ev.offsetY) - t._startAngle;
+				//if (r < 0) r += 360;
+console.log('%.1f (%.3f)', r * (180/Math.PI), r);
+					t.rotate(t._originalRotation + r);
+				}
+				if (t._mode & 2) {
+					var c = t.getCenter();
+					var d = t.dist(c[0], c[1], ev.offsetX, ev.offsetY);
+					t.scale(d / t._startDist);// * t._originalScale);
+				}
+				if (t._mode & 1) {
+					t.translate(ev.offsetX - t._mouseDown[0], ev.offsetY - t._mouseDown[1]);
+				}
+				if (!t._moved) clearCanvas();  //only on first move
+				t._moved = true;
+			},
+/*
+			mouseover: function(ev) {
+				console.log('over!');
+			},
+*/
+			mousedown: function(ev) {
+				t._addingSpot = false;
+				t._insideSpot = t.isNearSpot(ev.offsetX, ev.offsetY);
+if (t._insideSpot > -1) {
+	console.log('spot=%d', t._insideSpot);
+	return false;
+}
+				t._addingSpot = true;
+				if (!t._mode) return;
+				t._mouseDown = [ev.offsetX, ev.offsetY];
+				t._startAngle = t.angleFromCenter(ev.offsetX, ev.offsetY);
+				t._originalRotation = t.getRotation();
+				var c = t.getCenter();
+				t._startDist = t.dist(c[0], c[1], ev.offsetX, ev.offsetY);
+				t._originalScale = t.getScale();
+			},
+			mouseup: function(ev) {
+				t.imageElement.style.cursor = defaultCursor;
+
+				if (t._insideSpot > -1) {
+					var s = -2;
+					//var s = t.isNearSpot(ev.offsetX, ev.offsetY);
+					if (s != t._insideSpot) {
+						t.spots[t._insideSpot][0] = ev.offsetX;
+						t.spots[t._insideSpot][1] = ev.offsetY;
+if (t.spots.length == 3) doEdge();
+					}
+					clearLabelCanvas();
+				}
+				if (t._addingSpot && !t._moved) {
+					addSpot(ev.offsetX, ev.offsetY);
+				}
+				refreshCanvas();
+				t._addingSpot = false;
+				t._insideSpot = -1;
+				t._mouseDown = false;
+				t._moved = false;
+			},
+/*
+			mouseout: function(ev) {
+				t._mouseDown = false;
+				//t.rotate(t._originalRotation);
+			},
+*/
+				
+		}
+	};
+
+
+
+	t= new ImageTools(opts);
+	t.spots = [];
+	t._mode = 4;
+//t.imageElement.addEventListener('mousemove', function() { console.log('mm'); }, false);
+	console.info('created imageTools t');
+	//CTX = doEdge();
+}
+
+
+function save() {
+	$.ajax({
+		url: 'SinglePhotoVideoTransform',
+		type: 'POST',
+		data: JSON.stringify({
+			id: 'ff8081814f87d20f014f87d20f000000',
+			name: 'foo.jpg',
+			clientWidth: t.imageElement.width,
+			transform: t.matrixToTransform(t.transform)
+		}),
+		complete: function(d) {
+			if (d.responseJSON && d.responseJSON.success) {
+				console.info('looks like it worked');
+			} else if (d.responseJSON && d.responseJSON.error) {
+				alert('ERROR saving: ' + d.responseJSON.error);
+			} else {
+				alert('ERROR ' + d.status + ' saving: ' + d.statusText);
+			}
+console.log('ok! %o', d);
+		},
+		dataType: 'json',
+		contentType: 'application/json'
+	});
+}
+
+var currentSpotType = null;
+function addSpot(x,y,type) {
+	if (!type) type = currentSpotType;
+	t.spots.push([x, y, type]);
+/*
+	var s = t.matrixMultiply(t.transformInverse(), [x, y, 1]);
+console.log('(%d,%d) -> (%d,%d)', x, y, s[0], s[1]);
+	t.spots.push([s[0], s[1], type]);
+*/
+console.info('addSpots(%d,%d) -> %o', x, y, t.spots);
+	if (t.spots.length == 3) doEdge();
+}
+
+
+function refreshCanvas() {
+	clearCanvas();
+	drawSpots();
+}
+
+function clearCanvas() {
+	t.ctx.clearRect(0, 0, t.canvasElement.width, t.canvasElement.height);
+}
+
+function clearLabelCanvas() {
+	if (!t._labelCanvasNeedsClearing) return;
+	t.lctx.clearRect(0, 0, t.labelCanvasElement.width, t.labelCanvasElement.height);
+	t._labelCanvasNeedsClearing = false;
+}
+
+function drawSpots() {
+	for (var i = 0 ; i < t.spots.length ; i++) {
+/*
+//var m = t.computeTransformMatrix(2 * Math.PI - t.getRotation(), 1, 0, 0);
+//var m = t.computeTransformMatrix(t.getRotation(), 1, 0, 0);
+//var m = t.transformInverse();
+var m = t.transform;
+		var p = t.matrixMultiply(m, [t.spots[i][0] - 150, t.spots[i][1] - 150, 1]);
+console.log('%d,%d -> %o', t.spots[i][0], t.spots[i][1], p);
+*/
+		drawSpot(t.ctx, t.spots[i], t.spots[i][2]);
+/*
+		contextSetStyles(t.ctx, 
+		t.ctx.beginPath();
+		var p = t.toCanvasPoint(t.spots[i]);
+		t.ctx.arc(p[0], p[1], 20, 0, 2 * Math.PI);
+		t.ctx.fill();
+		t.ctx.stroke();
+*/
+	}
+}
+
+
+function contextSetStyles(ctx, style) {
+	if (!style) return;
+	for (var s in style) {
+		if (s == 'setLineDash') {
+			ctx.setLineDash(style[s]);
+		} else {
+			ctx[s] = style[s];
+		}
+	}
+}
+
+
+function drawSpot(ctx, p, styleKey, r) {
+	if (!r) r = 8;
+	contextSetStyles(ctx, spotStyle[styleKey]);
+	ctx.beginPath();
+	var cp = t.toCanvasPoint(p);
+	ctx.arc(cp[0], cp[1], r, 0, 2 * Math.PI);
+	if (spotStyle[styleKey].fillStyle != 'none') ctx.fill();
+	if (spotStyle[styleKey].strokeStyle != 'none') ctx.stroke();
+}
+
+
+var fctx;
+var PATH;
+var edgeCanvas;
+
+var edgeA = 20;
+var edgeB = 50;
+var edgeScrubbing = false;
+
+function doEdge() {
+	if (!edgeCanvas) {
+		edgeCanvas = document.createElement('canvas');
+		edgeCanvas.width = t.imageElement.naturalWidth;
+		edgeCanvas.height = t.imageElement.naturalHeight;
+        	document.getElementsByTagName('body')[0].appendChild(edgeCanvas);
+		$('#edge-scrub').on('mousedown', function() { edgeScrubbing = true; });
+		$('#edge-scrub').on('mouseup', function(ev) {
+			ev.preventDefault();
+			edgeScrubbing = false;
+			doEdge();
+		});
+		$('#edge-scrub').on('mousemove', function(ev) {
+			ev.preventDefault();
+			if (!edgeScrubbing) return;
+			edgeA = 0 + 120 * (ev.offsetX / ev.target.offsetWidth);
+			edgeB = 0 + 200 * (ev.offsetY / ev.target.offsetHeight);
+			var ctx = edgeCanvas.getContext('2d');
+			var ctx2 = edgeDetect(ctx);
+			var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+			ctx.putImageData(imageData, 0, 0);
+		});
+		
+	}
+	var ctx = edgeCanvas.getContext('2d');
+fctx = ctx;
+	//ctx.drawImage(t.imageElement, 0, 0);
+	var ctx2 = edgeDetect(ctx);
+/*
+var spots = [  //-mid
+	[255,129],
+	[402,191],
+	[604,136]
+];
+*/
+
+/*
+var spots = [   // -B
+	[239,111],
+	[374,211],
+	[563,119]
+];
+*/
+
+	var scale = t.imageElement.naturalWidth / t.imageElement.width;
+	var spots = [];
+	for (var i = 0 ; i < 3 ; i++) {
+		spots[i] = [Math.floor(t.spots[i][0] * scale), Math.floor(t.spots[i][1] * scale)];
+	}
+	spots.sort(function(a,b) { return a[0] - b[0]; });  //sorts based on x value
+console.log('spots %o', spots);
+	var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+	var pathLeft = bestPath(imageData, spots[0], spots[1]);
+PATH = pathLeft;
+console.log('left path -> %o', pathLeft);
+	drawPath(imageData, pathLeft, [255,255,100]);
+	var pathRight = bestPath(imageData, spots[2], spots[1]);
+console.log('right path -> %o', pathRight);
+	drawPath(imageData, pathRight, [100,200,255]);
+	ctx.putImageData(imageData, 0, 0);
+
+/*
+	var s = findSpotsOnLine(spots[0], spots[1], imageData);
+	var s2 = findSpotsOnLine(spots[1], spots[2], imageData);
+	var foundSpots = s.concat(s2);
+
+console.log(imageData);
+	var m = (spots[1][1] - spots[0][1]) / (spots[1][0] - spots[0][0]);
+	var b = spots[0][1] - m * spots[0][0];
+	var step = 4;
+console.log('slope = %f, b = %f, step = %d', m, b, step);
+	for (var x = spots[0][0] + step ; x < spots[1][0] ; x += step) {
+		y = m * x + b;
+console.warn('===(%d,%d)===================', x,y);
+		var p = checkAround(imageData, x, y, m, 1);
+		if (p) foundSpots.push(p);
+	}
+*/
+
+	for (var i = 0 ; i < spots.length ; i++) {
+		drawSpot(ctx2, spots[i], '_hilite', 9);
+	}
+/*
+	for (var i = 0 ; i < foundSpots.length ; i++) {
+		drawSpot(ctx2, foundSpots[i], '_dim', 3);
+	}
+*/
+
+	return ctx2;
+}
+
+function bestPath(imageData, p1, p2, skipped) {
+	if (!skipped) skipped = 0;
+	if ((p1[0] < 0) || (p1[0] >= imageData.width) || (p1[1] < 0) || (p1[1] >= imageData.height)) return false;  //out of bounds
+	var offset = (p1[1] * imageData.width + p1[0]) * 4;
+//console.log('(%d,%d) %d [%d]', p1[0], p1[1], imageData.data[offset], skipped);
+	if ((imageData.data[offset+1] > 0) && (imageData.data[offset+1] < 255)) return false;  //already visited
+	imageData.data[offset+1] = 128;  //mark visited
+	imageData.data[offset+2] = 128;
+
+if (t.dist(p1[0],p1[1],p2[0],p2[1]) < 8) {
+console.warn('found a near-end! %d,%d', p1[0], p1[1]);
+return [p1];
+}
+
+	var thisPt = false;
+	if (imageData.data[offset]) {
+//console.log('(%d,%d) -> %d [%d]', p1[0], p1[1], imageData.data[offset], skipped);
+		thisPt = p1;
+	} else if (skipped > 8) {  //too big a gap
+		return false;
+	} else {
+		skipped++; //we are skipping a point, but will keep trying
+	}
+	var bestScore = false;
+	var bPath = false;
+	for (var y = -1 ; y < 2 ; y++) {
+		for (var x = -1 ; x < 2 ; x++) {
+//console.warn('%d,%d', x, y);
+			if ((x == 0) && (y == 0)) continue;
+			var s = skipped;
+			var path = bestPath(imageData, [p1[0] + x, p1[1] + y], p2, s);
+			if (!path || !path.length) continue;
+			//if (!bestScore || (path.length > best.length)) best = path;
+			var d = t.dist(path[path.length-1][0], path[path.length-1][1], p2[0], p2[1]);
+			if (!bestScore || (d < bestScore)) {
+				bestScore = d;
+				bPath = path;
+			}
+/*
+console.log('(%d,%d) -> (%d,%d) = %.4f', x, y,
+path[path.length-1][0], path[path.length-1][1], d);
+*/
+
+		}
+/*
+if (pts.length > 800) {
+console.info('bailing');
+	console.log(pts);
+	return pts;
+}
+*/
+	}
+
+	if (bPath) {
+		if (thisPt) bPath.unshift(thisPt);
+		return bPath;
+	} else {
+		return false;
+	}
+	//return pts;
+}
+
+
+function drawPath(imageData, path, rgb) {
+	for (var i = 0 ; i < path.length ; i++) {
+		var offset = (path[i][1] * imageData.width + path[i][0]) * 4;
+		for (var c = 0 ; c < 3 ; c++) {
+			imageData.data[offset + c] = rgb[c];
+		}
+	}
+}
+
+function MEHtrace(imageData, p1, p2) {
+	var pts = crawl(imageData, p1, p2, 3);
+	fctx.putImageData(imageData, 0, 0);
+console.log(pts);
+}
+
+function crawl(imageData, p1, p2, lvl) {
+	var offset = (p1[1] * imageData.width + p1[0]) * 4;
+	if ((imageData.data[offset+2] > 0) && (imageData.data[offset+2] < 255)) return false;
+	var score = 0;
+	if (imageData.data[offset+2] == 255) score = 1;
+
+	if (score) {
+		imageData.data[offset] = 255;
+		imageData.data[offset+2] = 28;
+		//imageData.data[offset+3] = 255;
+	} else {
+		imageData.data[offset+1] = 255;
+		imageData.data[offset+2] = 200;
+	}
+//console.log('%d: (%d,%d) = %d', lvl, p1[0], p1[1], score);
+	if (lvl < 1) return [[score, p1]];
+
+	var outPts = [];
+	var r = 10;
+	for (var y = p1[1] - 1 ; y < p1[1] + 2 ; y++) {
+		for (var x = p1[0] - 1 ; x < p1[0] + 2 ; x++) {
+			if (x == y == 2) continue;
+			var pts = crawl(imageData, [x, y], p2, lvl - 1);
+//console.info('%d: (%d,%d) got %o [%o]', lvl - 1, x, y, pts, score);
+			if (!pts) continue;
+			for (var i = 0 ; i < pts.length ; i++) {
+//console.log(' --- %o', pts);
+				pts[i][0] += score;
+				pts[i].push(p1);
+				outPts = outPts.concat(pts);
+			}
+		}
+	}
+//console.warn('outPts -> %o', outPts);
+	return outPts;
+}
+
+
+function quickLine(ctx, p1, p2, color, size) {
+	size = size | 3;
+	ctx.strokeStyle = color;
+	ctx.lineWidth = size;
+        ctx.beginPath();
+        ctx.moveTo(p1[0], p1[1]);
+        ctx.lineTo(p2[0], p2[1]);
+        ctx.stroke();
+}
+
+
+function findSpotsOnLine(p1, p2, imageData) {
+	var found = [];
+	var m = (p2[1] - p1[1]) / (p2[0] - p1[0]);
+	var b = p1[1] - m * p1[0];
+	var step = 7;
+console.log('slope = %f, b = %f, step = %d', m, b, step);
+//quickLine(fctx, p1, p2, 'blue');
+	for (var x = p1[0] + step ; x < p2[0] ; x += step) {
+		y = m * x + b;
+console.warn('===(%d,%d)===================', x,y);
+		var p = checkAround(imageData, x, y, m, 3);
+		if (p) found.push(p);
+	}
+	return found;
+}
+
+
+function checkAround(imageData, x, y, m, lvl) {
+//var dot = fctx.createImageData(1,1);
+	if (lvl > 0) {
+		var ldepth = 4;
+		if (lvl > 1) ldepth = 8;
+console.log('%d: (%d,%d) -------------', lvl, x, y);
+		var m2 = -1 / m;  //TODO handle 1/0
+		var b = y - m2 * x;
+var x2 = x + ldepth;
+var y2 = m2 * x2 + b;
+var x3 = x - ldepth;
+var y3 = m2 * x3 + b;
+//quickLine(fctx, [x2,y2], [x3,y3], 'rgba(0,255,0,0.2)', 1);
+
+		for (var j = 0 ; j < ldepth ; j++) {
+			var x2 = x + j;
+			var y2 = Math.floor(m2 * x2 + b);
+			var p = checkAround(imageData, x2, y2, m2, lvl - 1);
+			if (p) return p;
+			x2 = x - j;
+			y2 = Math.floor(m2 * x2 + b);
+			p = checkAround(imageData, x2, y2, m2, lvl - 1);
+			if (p) return p;
+		}
+
+	} else {
+/*
+dot.data[0] = 255;
+dot.data[1] = 255;
+dot.data[2] = 0;
+dot.data[3] = 200;
+*/
+
+		var offset = (y * imageData.width + x) * 4;
+console.log('(%f,%f) [%d] -> %o', x, y, offset, imageData.data[offset]);
+//imageData.data[offset+1] = 255;  imageData.data[offset+2] = 255;
+//fctx.putImageData(dot, x, y);
+		if (imageData.data[offset]) return [x,y];
+	}
+	return false;
+}
+
+/*
+function fooooo() {
+///console.log(offset);
+//console.log(imageData.data[
+//console.log('(%f,%f) [%d] -> (%o,%o,%o)', x, y, offset, imageData.data[offset], imageData.data[offset+1], imageData.data[offset+2]);
+console.log('(%f,%f)', x, y);
+
+		var m2 = -1/m;
+		var b2 = y - m2 * x;
+		FINDNEARBY: for (var i = 0 ; i < 15 ; i++) {
+			var x2 = x + i;
+			var y2 = Math.floor(m2 * x2 + b2);
+			//var offset = (y2 * imageData.width + x2) * 4;
+//console.log('%d: (%d,%d) [%d] -> %d', i, x2, y2, offset, imageData.data[offset]);
+			var b3 = y2 - m * x2;
+			for (var j = -4 ; j < 9 ; j++) {
+				var x3 = x2 + i;
+				var y3 = Math.floor(m * x3 + b3);
+				var offset = (y3 * imageData.width + x3) * 4;
+console.log('%d: (%d,%d) [%d] -> %d', i, x3, y3, offset, imageData.data[offset]);
+				if (imageData.data[offset]) {
+					console.log('----- found!');
+					foundSpots.push([x2, y2]);
+					break FINDNEARBY;
+				}
+imageData.data[offset+1] = 255;  imageData.data[offset+2] = 255;
+			}
+//
+			if (imageData.data[offset]) {
+				console.log('----- found!');
+				foundSpots.push([x2, y2]);
+				break;
+			}
+//
+			x2 = x - i;
+			y2 = Math.floor(m2 * x2 + b2);
+			//var offset = (y2 * imageData.width + x2) * 4;
+//console.log('-%d: (%d,%d) [%d] -> %d', i, x2, y2, offset, imageData.data[offset]);
+			for (var j = 0 ; j < 8 ; j++) {
+				var x3 = x2 + i;
+				var y3 = Math.floor(m * x3 + b3);
+				var offset = (y3 * imageData.width + x3) * 4;
+console.log('%d: (%d,%d) [%d] -> %d', i, x3, y3, offset, imageData.data[offset]);
+				if (imageData.data[offset]) {
+					console.log('----- found!');
+					foundSpots.push([x2, y2]);
+					break FINDNEARBY;
+				}
+			}
+		}
+	}
+
+	for (var i = 0 ; i < spots.length ; i++) {
+		drawSpot(ctx2, spots[i], '_hilite');
+	}
+	for (var i = 0 ; i < foundSpots.length ; i++) {
+		drawSpot(ctx2, foundSpots[i], '_dim', 3);
+	}
+
+//
+	contextSetStyles(ctx2, '_line');
+        ctx2.beginPath();
+        ctx2.moveTo(spots[0][0], spots[0][1]);
+        ctx2.lineTo(spots[1][0], spots[1][1]);
+        ctx2.lineTo(spots[2][0], spots[2][1]);
+        ctx2.stroke();
+//
+
+return ctx2;
+}
+*/
+
+function edgeDetect(ctx) {
+	ctx.drawImage(t.imageElement, 0, 0);
+	var w = ctx.canvas.width;
+	var h = ctx.canvas.height;
+	var img_u8 = new jsfeat.matrix_t(w, h, jsfeat.U8C1_t);
+	var imageData = ctx.getImageData(0, 0, w, h);
+
+	jsfeat.imgproc.grayscale(imageData.data, w, h, img_u8);
+
+	var blur_radius = 5;
+	var kernel_size = (blur_radius + 1) << 1;
+	jsfeat.imgproc.gaussian_blur(img_u8, img_u8, kernel_size, 0);
+
+	jsfeat.imgproc.canny(img_u8, img_u8, edgeA, edgeB);
+	//kernel_size = (2) << 1;
+	//jsfeat.imgproc.gaussian_blur(img_u8, img_u8, kernel_size, 0);
+
+/* 2,20,50
+                    var r = options.blur_radius|0;
+                    var kernel_size = (r+1) << 1;
+
+                    stat.start("gauss blur");
+                    jsfeat.imgproc.gaussian_blur(img_u8, img_u8, kernel_size, 0);
+
+	var data_buffer = idata;
+	var matrix = new jsfeat.matrix_t(w, h, jsfeat.U8_t|jsfeat.C1_t, data_buffer);
+//////////////
+                    var imageData = ctx.getImageData(0, 0, 640, 480);
+
+                    stat.start("grayscale");
+                    stat.stop("grayscale");
+
+                    var r = options.blur_radius|0;
+                    var kernel_size = (r+1) << 1;
+
+                    stat.start("gauss blur");
+                    jsfeat.imgproc.gaussian_blur(img_u8, img_u8, kernel_size, 0);
+                    stat.stop("gauss blur");
+
+                    stat.start("canny edge");
+                    jsfeat.imgproc.canny(img_u8, img_u8, options.low_threshold|0, options.high_threshold|0);
+                    stat.stop("canny edge");
+
+                    
+///////////////
+*/
+                    // render result back to canvas
+                    var data_u32 = new Uint32Array(imageData.data.buffer);
+                    var alpha = (0xff << 24);
+                    var i = img_u8.cols*img_u8.rows, pix = 0;
+                    while(--i >= 0) {
+                        pix = img_u8.data[i];
+                        data_u32[i] = alpha | (pix << 16) | (pix << 8) | pix;
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+	return ctx;
+}
+
+</script>
+
+<style>
+	#leaveMeAlone {
+		position: relative;
+		padding: 30px;
+		margin: 40px;
+		background-color: #CCC;
+		height: 200px;
+	}
+
+	img#fluke-img {
+		position: absolute;
+		top: 30px;
+		left: 100px;
+		width: 300px;
+	}
+
+	img#fluke-img2 {
+		position: absolute;
+		top: 30px;
+		left: 500px;
+		width: 300px;
+	}
+
+	.imageTools-containerElement {
+		xoutline: solid 3px rgba(100, 255, 10, 0.8);
+	}
+	.imageTools-imageElement {
+	}
+
+	#edge-scrub {
+		position: absolute;
+		right: 100px;
+		top: 350px;
+		width: 50px;
+		height: 50px;
+		background-color: #999;
+		font-size: 0.65em;
+		text-align: center;
+	}
+</style>
+
+</head>
+<body>
+
+
+<div id="leaveMeAlone">
+<div style="float: right; width: 400px; font-size: 0.8em;">
+<ul>
+<li>pick 3 points on fluke (tips and valley, order doesnt matter) and edge detection output will show up below
+<li>you can (try!) to scrub settings on edge detection in the little gray square -- it is kinda lame interface, drag around inside it
+<li>you can drag/move spots in top image to adjust
+<li>yellowish line should be left fluke, blueish is right
+</ul>
+</div>
+	<ximg xid="fluke-img" src="/shepherd_data_dir/encounters/1/d/1d29894f-50f4-47df-b444-a7619394aa28/test-pattern-mid.jpg" onLoad="setTool()" />
+	<ximg xid="fluke-img" src="images/test-fluke-mid.jpg" onLoad="setTool()" />
+	<img id="fluke-img" src="images/test-fluke-B.jpg" onLoad="setTool()" />
+	<ximg xid="fluke-img2" src="images/test-fluke-C.jpg" onLoad="setTool()" />
+	<ximg xid="fluke-img2" src="images/test-fluke-D.jpg" onLoad="setTool()" />
+</div>
+
+<div id="edge-scrub">scrub for edge settings</div>
+
+</body>
+</html>

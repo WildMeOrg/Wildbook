@@ -26,6 +26,7 @@ import org.ecocean.Shepherd;
 import javax.jdo.Extent;
 import javax.jdo.Query;
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class GridCleanupThread implements Runnable {
@@ -54,6 +55,7 @@ private String context="context0";
 
   public void cleanup() {
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("GridCleanupThread.class");
 
     myShepherd.beginDBTransaction();
 
@@ -66,7 +68,7 @@ private String context="context0";
     while (size > 0) {
       try {
 
-        ArrayList pairs = myShepherd.getPairs(query, 50);
+        List<Pair> pairs = myShepherd.getPairs(query, 50);
         size = pairs.size();
         for (int m = 0; m < size; m++) {
           Pair mo = (Pair) pairs.get(m);

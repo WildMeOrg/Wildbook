@@ -5,7 +5,7 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 
 	refClass: {
 		measurements: 'Measurements',
-		images: 'SinglePhotoVideos',
+		images: 'MediaAssets',
 	},
 
 /*
@@ -14,9 +14,23 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 	}),
 */
 
+	// this allows calls to the enc rest api to use the lightweight rest server
+	url: function() {
+		console.log("Encounter-specific url function called!");
+		if (!this.id) return false;  //how are you really supposed to handle this??? TODO
+		return wildbookGlobals.baseUrl + '/lightRest/' + this.className() + '/' + this.id;
+	},
 
+
+
+        //TODO have special way to get which Annotation
 	thumbUrl: function() {
-		return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/thumb.jpg';
+                if (!this.get('annotations') || (this.get('annotations').length < 1)) return '';
+                var ma = this.get('annotations')[0].mediaAsset;
+                if (!ma) return '';
+                ma = new wildbook.Model.MediaAsset(ma);
+                return ma.labelUrl('_thumb', '');
+		//return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/thumb.jpg';
 	},
 
 
@@ -106,6 +120,17 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 
 
 wildbook.Collection.Encounters = wildbook.Collection.BaseClass.extend({
-	model: wildbook.Model.Encounter
+	model: wildbook.Model.Encounter,
+	url: function() {
+		var u = wildbookGlobals.baseUrl + '/LightRest/';
+		if (this._altUrl) { 
+			u += this._altUrl;
+		} else {
+			u += this.model.prototype.className();
+		}
+		console.log('Encounter-specific url() -> %s', u);
+		return u;
+	}
+
 });
 

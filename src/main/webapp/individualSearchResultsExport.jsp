@@ -1,15 +1,20 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.Enumeration" %>
-<%@ page import="java.util.Properties" %>
-<%@ page import="java.util.Vector" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page contentType="text/html; charset=utf-8" 
+		language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties,java.util.Enumeration, java.util.Vector" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
-<%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties props = ShepherdProperties.getProperties("individualSearchResultsExport.properties", langCode, context);
-  Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
+
+  <%
+
+  String context="context0";
+  context=ServletUtilities.getContext(request);
+    //let's load out properties
+    Properties props = new Properties();
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
+    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsExport.properties"));
+    props = ShepherdProperties.getProperties("individualSearchResultsExport.properties", langCode,context);
+
 
     int startNum = 1;
     int endNum = 10;
@@ -50,6 +55,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("individualSearchResultsExport.jsp");
 
 
 
@@ -88,7 +94,7 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -115,9 +121,7 @@
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  table td {
-    padding: 5px !important;
-  }
+  
   
 </style>
 
@@ -151,15 +155,15 @@ if(request.getQueryString()!=null){
 
 %>
 
-  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
   </a></li>
-   <li><a href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("mappedResults")%>
+   <li><a href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
   </a></li>
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
   </a></li>
-    <li><a class="active"><%=propsShared.getProperty("export")%>
+    <li><a class="active"><%=props.getProperty("export")%>
   </a></li>
 
 </ul>
@@ -168,38 +172,48 @@ if(request.getQueryString()!=null){
 
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
-	<tr><td bgcolor="#CCCCCC"><strong><%=props.getProperty("capture_title")%></strong><br/><%=props.getProperty("capture_subtitle")%></td></tr>
-	<tr><td bgcolor="#FFFFFF"><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=queryString%>"><%=props.getProperty("click")%></a>
+	<tr><td bgcolor="#CCCCCC"><strong>CAPTURE with annual seasons (example only)</strong><br/>For use with the web version available <a href="http://www.mbr-pwrc.usgs.gov/software/capture.html">here.</a></td></tr>
+	<tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=queryString%>">
+		Click here</a>
         </td></tr>
 </table>
 	</p>
 
 	<p>	<table border="1" bordercolor="black" cellspacing="0">
-			<tr><td bgcolor="#CCCCCC"><strong><%=props.getProperty("socprog_title")%></strong></td></tr>
+			<tr><td bgcolor="#CCCCCC"><strong>SOCPROG Excel File Export</strong></td></tr>
 			<tr><td bgcolor="#FFFFFF">
-		<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=queryString%>"><%=props.getProperty("click")%></a>
+		<a href="//<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=queryString%>">
+Click here</a>
 </td></tr>
 </table>
 </p>
 
 	<p>	<table border="1" bordercolor="black" cellspacing="0">
-			<tr><td bgcolor="#CCCCCC"><strong><%=props.getProperty("kinalyzer_title")%></strong></td></tr>
-			<tr><td bgcolor="#FFFFFF"><%=props.getProperty("link")%>: <a href="http://kinalyzer.cs.uic.edu">http://kinalyzer.cs.uic.edu</a></td></tr>
+			<tr><td bgcolor="#CCCCCC"><strong>Kinalyzer CSV File Export</strong></td></tr>
+			<tr><td bgcolor="#FFFFFF">Link: <a href="http://kinalyzer.cs.uic.edu">http://kinalyzer.cs.uic.edu</a></td></tr>
 			<tr><td bgcolor="#FFFFFF">
-		<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/KinalyzerExport?<%=queryString%>"><%=props.getProperty("click")%></a>
+		<a href="//<%=CommonConfiguration.getURLLocation(request)%>/KinalyzerExport?<%=queryString%>">
+Click here</a>
 </td></tr>
 </table>
 </p>
 
 <p>
-<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=queryString%>" method="get">
+<form name="simpleCMR" action="//<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=queryString%>" method="get">
 		<table border="1" bordercolor="black" cellspacing="0">
-			<tr><td bgcolor="#CCCCCC"><strong><%=props.getProperty("simple_title")%></strong></td></tr>
-			<tr><td bgcolor="#FFFFFF"><em><%=props.getProperty("simple_text1")%></em></td></tr>
-			<tr><td bgcolor="#FFFFFF"><%=props.getProperty("simple_text2")%>: <input type="text" name="numberSessions" size="3" maxLength="3" value="3"/></td></tr>
-			<tr><td bgcolor="#FFFFFF"><%=props.getProperty("simple_text3")%>: <input type="checkbox" name="includeIndividualID" /></td></tr>
-      <tr><td bgcolor="#FFFFFF"><%=props.getProperty("simple_text4")%>: <input type="checkbox" name="includeQueryComments" /></td></tr>
-      <tr><td bgcolor="#FFFFFF"><input type="submit" value="<%=props.getProperty("next")%>"></td></tr>
+			<tr>
+			  <td bgcolor="#CCCCCC"><strong>Simple Mark-Recapture History File Export (single site, single state)</strong></td></tr>
+			
+			<tr><td bgcolor="#FFFFFF"><em>This output file (an .inp file) is designed for use with <a href="http://www.phidot.org/software/mark/index.html" target="_blank">Program MARK</a>, <a href="http://www.phidot.org/software/mark/rmark/" target="_blank">RMARK</a>, <a href="http://www.cefe.cnrs.fr/biostatistiques-et-biologie-des-populations/logiciels">U-CARE</a>, and other mark-recapture analysis packages using individual capture history file formats.
+			This is a single state, single site format. If you have specified one or more location IDs in the search, the first one specified in the list will be used to determine the capture history
+			for each individual animal. The options below also allow you to include details of this search within the .inp file. These comments in the /* ... */ format are acceptable within Program MARK but may not be readable by other applications.</em></td></tr>
+			
+			
+			<tr><td bgcolor="#FFFFFF">Number of capture sessions: <input type="text" name="numberSessions" size="3" maxLength="3" value="3"/></td></tr>
+			<tr><td bgcolor="#FFFFFF">Include marked individual ID as a comment at the end of each line (Program MARK only): <input type="checkbox" name="includeIndividualID" /></td></tr>
+            <tr><td bgcolor="#FFFFFF">Include search query summary as a comment and URL at the start of the file (Program MARK only): <input type="checkbox" name="includeQueryComments" /></td></tr>
+            
+            <tr><td bgcolor="#FFFFFF"><input type="submit" value="Next"></td></tr>
 		</table>
 		<%
 Enumeration params=request.getParameterNames();
@@ -275,20 +289,18 @@ while(params.hasMoreElements()){
   <tr>
     <td align="left">
 
-      <p><strong><%=propsShared.getProperty("queryDetails")%>
+      <p><strong><%=props.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=propsShared.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", propsShared.getProperty("location")).replaceAll("locationCodeField", propsShared.getProperty("locationID")).replaceAll("verbatimEventDateField", propsShared.getProperty("verbatimEventDate")).replaceAll("Sex", propsShared.getProperty("sex")).replaceAll("Keywords", propsShared.getProperty("keywords")).replaceAll("alternateIDField", (propsShared.getProperty("alternateID"))).replaceAll("alternateIDField", (propsShared.getProperty("size")))%>
+        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
       </p>
 
-<% if (request.getParameter("debug") != null) { %>
-      <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
+      <p class="caption"><strong><%=props.getProperty("jdoql")%>
       </strong><br/>
         <%=result.getJDOQLRepresentation()%>
       </p>
-<% } %>
 
     </td>
   </tr>

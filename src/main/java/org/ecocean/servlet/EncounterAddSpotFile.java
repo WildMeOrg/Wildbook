@@ -66,6 +66,7 @@ public class EncounterAddSpotFile extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterAddSpotFile.class");
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -114,10 +115,10 @@ public class EncounterAddSpotFile extends HttpServlet {
         	try {
           	if (side.equals("right")) {
             	add2shark.setRightSpotImageFileName(fileName);
-            	add2shark.hasRightSpotImage = true;
+            	//add2shark.hasRightSpotImage = true;
           	} else {
             	add2shark.setSpotImageFileName(fileName);
-            	add2shark.hasSpotImage = true;
+            	//add2shark.hasSpotImage = true;
           	}
 
           	String user = "Unknown User";
@@ -223,10 +224,10 @@ public class EncounterAddSpotFile extends HttpServlet {
         try {
           if (side.equals("right")) {
             add2shark.setRightSpotImageFileName(fileName);
-            add2shark.hasRightSpotImage = true;
+            //add2shark.hasRightSpotImage = true;
           } else {
             add2shark.setSpotImageFileName(fileName);
-            add2shark.hasSpotImage = true;
+            //add2shark.hasSpotImage = true;
           }
 
           String user = "Unknown User";

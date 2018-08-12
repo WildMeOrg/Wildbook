@@ -19,7 +19,6 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
@@ -32,8 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 
 //Set alternateID for the individual
@@ -51,34 +48,23 @@ public class IndividualSetAlternateID extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    request.setCharacterEncoding("UTF-8");
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualSetAlternateID.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/individuals.jsp?number=%s", request.getParameter("individual"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "individual.editField", true, link)
-            .setParams(request.getParameter("individual"));
-
     String sharky = "None";
     sharky = request.getParameter("individual");
     String alternateID = "";
     myShepherd.beginDBTransaction();
-
     if (myShepherd.isMarkedIndividual(sharky)) {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
       alternateID = request.getParameter("alternateid");
-      actionResult.setParams(sharky, alternateID, myShark.getAlternateID() == null ? "" : myShark.getAlternateID());
       try {
         myShark.setAlternateID(alternateID);
         myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set alternate ID: " + alternateID + ".");
@@ -92,20 +78,31 @@ public class IndividualSetAlternateID extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        actionResult.setMessageOverrideKey("alternateId");
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success!</strong> I have successfully changed the alternate ID for individual " + sharky + " to " + alternateID + ".</p>");
+
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+        String message = "The alternate ID for " + sharky + " was set to " + alternateID + ".";
       } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> This individual is currently being modified by another user. Please wait a few seconds before trying to modify this individual again.");
+
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+
       }
     } else {
       myShepherd.rollbackDBTransaction();
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to set the individual alternate ID. I cannot find the individual that you intended it for in the database.");
+      out.println(ServletUtilities.getFooter(context));
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
     myShepherd.closeDBTransaction();
   }
 }
+	
+	

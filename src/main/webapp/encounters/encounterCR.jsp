@@ -190,7 +190,7 @@ margin-bottom: 8px !important;
       			String headerBGColor="FFFFFC";
       			//if(CommonConfiguration.getProperty(()){}
 
-						ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+						List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 						//String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/" + num;
 						String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 

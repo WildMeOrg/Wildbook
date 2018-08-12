@@ -9,6 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -35,6 +38,7 @@ import org.ecocean.User;
 import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.oauth.client.FacebookClient;
+import org.pac4j.oauth.credentials.OAuth20Credentials;
 //import org.pac4j.oauth.client.YahooClient;
 import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
@@ -83,10 +87,11 @@ import org.scribe.oauth.*;
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     HttpSession session = request.getSession(true);
 
-    PrintWriter out = response.getWriter();
+        PrintWriter out = response.getWriter();
         String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
-        //myShepherd.beginDBTransaction();
+        myShepherd.setAction("SocialConnect.class");
+        myShepherd.beginDBTransaction();
 
         String socialType = request.getParameter("type");
 
@@ -97,6 +102,8 @@ import org.scribe.oauth.*;
 
         if (user == null) {
             response.sendRedirect("login.jsp");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return;
         }
 
@@ -107,34 +114,44 @@ import org.scribe.oauth.*;
         } catch (Exception ex) {
             System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
         }
-            WebContext ctx = new J2EContext(request, response);
+            J2EContext ctx = new J2EContext(request, response);
+            session = renewSession(ctx);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             fbclient.setCallbackUrl(callbackUrl);
 
             OAuthCredentials credentials = null;
             try {
-                credentials = fbclient.getCredentials(ctx);
+                credentials = (OAuthCredentials)fbclient.getCredentials(ctx);
             } catch (Exception ex) {
+                ex.printStackTrace();
                 System.out.println("caught exception on facebook credentials: " + ex.toString());
             }
-
+            FacebookProfile facebookProfile = null;
             if (credentials != null) {
-                FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
+                try {                  
+                  facebookProfile = fbclient.getUserProfile(credentials, ctx);
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
                 User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
                 System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
-if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuser = " + fbuser.getUsername());
+                if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuser = " + fbuser.getUsername());
                 if ((fbuser != null) && (fbuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
                     fbuser.unsetSocial("facebook");
                     //myShepherd.getPM().makePersistent(user);
                     session.setAttribute("message", "disconnected from facebook");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.commitDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
 
                 } else if (fbuser != null) {
                     session.setAttribute("error", "looks like this account is already connected to an account");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
 
                 } else {  //lets do this
@@ -142,16 +159,20 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                     //myShepherd.getPM().makePersistent(user);
                     session.setAttribute("message", "connected to facebook");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.commitDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
                 }
             } else {
 
-System.out.println("*** trying redirect?");
+              System.out.println("*** trying redirect?");
                 try {
-                    fbclient.redirect(ctx, false, false);
+                    fbclient.redirect(ctx);
                 } catch (Exception ex) {
                     System.out.println("caught exception on facebook processing: " + ex.toString());
                 }
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return;
             }
 
@@ -161,7 +182,7 @@ System.out.println("*** trying redirect?");
             String otoken = request.getParameter("oauth_token");
 
             OAuthService service = null;
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=flickr";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=flickr";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             try {
                 service = SocialAuth.getFlickrOauth(context, callbackUrl);
@@ -179,30 +200,32 @@ System.out.println("*** trying redirect?");
             if (overif == null) {
                 Token requestToken = service.getRequestToken();
                 session.setAttribute("requestToken", requestToken);
-       System.out.println("==============================================requestToken = " + requestToken);
+                System.out.println("==============================================requestToken = " + requestToken);
                 String authorizationUrl = service.getAuthorizationUrl(requestToken) + "&perms=read";
-System.out.println(authorizationUrl);
+                System.out.println(authorizationUrl);
 
 //http://localhost.wildme.org/a/SocialConnect?type=xxflickr&oauth_token=72157652805581432-a5b8f3598c13e2a6&oauth_verifier=d3325223f923442e
                 response.sendRedirect(authorizationUrl);
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return;
 
             } else {
-System.out.println("verifier -> " + overif);
+                System.out.println("verifier -> " + overif);
                 Token requestToken = (Token)session.getAttribute("requestToken");
                 Verifier verifier = new Verifier(overif);
                 Token accessToken = service.getAccessToken(requestToken, verifier);
-       System.out.println("==============================================requestToken = " + requestToken);
-       System.out.println("=- - - - - - - - - - - - - -==================accessToken = " + accessToken);
-System.out.println("-----------------------------------------otoken= " + otoken);
-       System.out.println("verifier = " + verifier);
+                System.out.println("==============================================requestToken = " + requestToken);
+                System.out.println("=- - - - - - - - - - - - - -==================accessToken = " + accessToken);
+                System.out.println("-----------------------------------------otoken= " + otoken);
+                System.out.println("verifier = " + verifier);
 
                 OAuthRequest oRequest = new OAuthRequest(Verb.GET, SocialAuth.FLICKR_URL);
                 oRequest.addQuerystringParameter("method", "flickr.test.login");
                 service.signRequest(accessToken, oRequest);
                 Response oResponse = oRequest.send();
-System.out.println("GOT RESPONSE!!!!!!!!!!!!!!!!!!!!!!!!!!");
-System.out.println(oResponse.getBody());
+                System.out.println("GOT RESPONSE!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                System.out.println(oResponse.getBody());
 
                 String fusername = null;   //should we use <user id="XXXXXXXXX"> instead?  TODO
                 int i = oResponse.getBody().indexOf("<username>");
@@ -212,17 +235,21 @@ System.out.println(oResponse.getBody());
                     if (i > -1) fusername = fusername.substring(0, i);
                 }
                 User fuser = myShepherd.getUserBySocialId("flickr", fusername);
-   System.out.println("fusername = " + fusername + " -> user = " + fuser);
-if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser = " + fuser.getUsername());
+                System.out.println("fusername = " + fusername + " -> user = " + fuser);
+                if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser = " + fuser.getUsername());
                 if ((fuser != null) && (fuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
                     fuser.unsetSocial("flickr");
                     session.setAttribute("message", "disconnected from flickr");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.commitDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
 
                 } else if (fuser != null) {
                     session.setAttribute("error", "looks like this account is already connected to an account");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
 
                 } else {  //lets do this
@@ -230,6 +257,10 @@ if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser 
                     //myShepherd.getPM().makePersistent(user);
                     session.setAttribute("message", "connected to flickr");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.commitDBTransaction();
+                    // This was a rollback, but it sure seems like we want to save this change?
+                    // Update. Yup, we want commitDBTransaction all up in this servlet. Stuff isn't getting saved.
+                    myShepherd.closeDBTransaction();
                     return;
                 }
 
@@ -311,10 +342,37 @@ System.out.println("*** trying redirect?");
             session.setAttribute("error", "invalid type");
          //response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");
          response.sendRedirect("login.jsp");
+         myShepherd.rollbackDBTransaction();
+         myShepherd.closeDBTransaction();
             return;
         }
 
 
         //out.println("ok????");
     }
+    public HttpSession renewSession(final J2EContext context) {
+      final HttpServletRequest request = context.getRequest();
+      final HttpSession session = request.getSession();
+      
+      final Map<String, Object> attributes = new HashMap<>();
+      session.setMaxInactiveInterval(10000);
+      try {
+        
+      } catch (Exception e) {
+        e.printStackTrace();
+        System.out.println("BROKE AT RENEW SESSION");
+      }
+      Enumeration atts = session.getAttributeNames();
+      while (atts.hasMoreElements()) {
+        attributes.put(atts.nextElement().toString(), session.getAttribute(atts.nextElement().toString()));    
+      }
+      session.invalidate();
+      final HttpSession newSession = request.getSession(true);
+      
+      for (String k : attributes.keySet()) {
+        newSession.setAttribute(k, attributes.get(k)); 
+      }
+      return newSession;
+    } 
+    
 }

@@ -19,7 +19,9 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.MarkedIndividual;
+import org.ecocean.Shepherd;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,11 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.List;
 
 
 public class IndividualSetSex extends HttpServlet {
@@ -49,28 +47,18 @@ public class IndividualSetSex extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    Map<String, String> mapI18n = CommonConfiguration.getI18nPropertiesMap("sex", langCode, context, false);
-
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualSetSex.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/individuals.jsp?number=%s", request.getParameter("individual"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "individual.editField", true, link)
-            .setParams(request.getParameter("individual"));
 
     String action = request.getParameter("action");
+
     if ((request.getParameter("individual") != null) && (request.getParameter("selectSex") != null)) {
 
       myShepherd.beginDBTransaction();
@@ -85,12 +73,8 @@ public class IndividualSetSex extends HttpServlet {
         if(request.getParameter("selectSex")!=null){
           changeMe.setSex(request.getParameter("selectSex"));
           newSex=request.getParameter("selectSex");
-          actionResult.setMessageParams(request.getParameter("individual"), mapI18n.get(newSex), mapI18n.get(oldSex));
          }
-        else{
-          changeMe.setSex(null);
-          actionResult.setMessageParams(request.getParameter("individual"), "", mapI18n.get(oldSex));
-        }
+        else{changeMe.setSex(null);}
         //changeMe.setSex(request.getParameter("selectSex"));
         
         changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed sex from " + oldSex + " to " + newSex + ".</p>");
@@ -104,20 +88,61 @@ public class IndividualSetSex extends HttpServlet {
 
       if (!locked) {
         myShepherd.commitDBTransaction(action);
-        actionResult.setMessageOverrideKey("sex");
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success:</strong> Sex has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to <strong>" + request.getParameter("individual") + "</strong></a></p>\n");
+        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+        int allStatesSize=allStates.size();
+        if(allStatesSize>0){
+          for(int i=0;i<allStatesSize;i++){
+            String stateName=allStates.get(i);
+            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+          }
+        }
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+        out.println(ServletUtilities.getFooter(context));
+        String message = "The sex for " + request.getParameter("individual") + " has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".";
+        ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
       } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure:</strong> Sex was NOT updated. This record is currently being modified by another user. Please try this operation again in a few seconds.");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to <strong>" + request.getParameter("individual") + "</strong></a></p>\n");
+        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+        int allStatesSize=allStates.size();
+        if(allStatesSize>0){
+          for(int i=0;i<allStatesSize;i++){
+            String stateName=allStates.get(i);
+            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+          }
+        }
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+        out.println(ServletUtilities.getFooter(context));
+
       }
 
     } else {
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to <strong>" + request.getParameter("individual") + "</strong></a></p>\n");
+      List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+      int allStatesSize=allStates.size();
+      if(allStatesSize>0){
+        for(int i=0;i<allStatesSize;i++){
+          String stateName=allStates.get(i);
+          out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+        }
+      }
+      out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+      out.println(ServletUtilities.getFooter(context));
+
     }
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
+
 }

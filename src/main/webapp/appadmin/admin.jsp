@@ -1,13 +1,13 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.Properties" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties props = ShepherdProperties.getProperties("admin.properties", langCode, context);
+<%@ page contentType="text/html; charset=iso-8859-1" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*" %>
 
-  Shepherd myShepherd = new Shepherd(context);
+
+
+<%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
 
 //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -22,20 +22,20 @@
 <div class="container maincontent">
      
 
-      <h1><%=props.getProperty("title")%></h1>
+      <h1>Library Administration</h1>
      
       <table width="600" border="1">
         <tr>
           <td>
-            <p><font size="+1"><%=props.getProperty("restore.title")%></font></p>
+            <p><font size="+1">Restore a Deleted Encounter</font></p>
 
             <form name="restoreEncounter" method="post"
                   action="../ResurrectDeletedEncounter">
-              <p><%=props.getProperty("restore.encounter")%> <input name="number" type="text" id="number"
+              <p>Encounter number: <input name="number" type="text" id="number"
                                           size="20" maxlength="50"> <br> <input name="Restore"
                                                                                 type="submit"
                                                                                 id="Restore"
-                                                                                value="<%=props.getProperty("restore.submit")%>"></p>
+                                                                                value="Restore"></p>
             </form>
           </td>
         </tr>
@@ -44,15 +44,16 @@
       <table width="600" border="1">
         <tr>
           <td>
-            <p><font size="+1"><%=props.getProperty("updateEmail.title")%></font></p>
+            <p><font size="+1">Update Email Address of Submitter or
+              Photographer Across the Entire Library</font></p>
 
             <form name="updateEmail" method="post" action="../UpdateEmailAddress">
-              <p><%=props.getProperty("updateEmail.old")%> <input name="findEmail" type="text"
+              <p>Old Email Address: <input name="findEmail" type="text"
                                            id="findEmail" size="25" maxlength="50">
 
-              <p><%=props.getProperty("updateEmail.new")%> <input name="replaceEmail" type="text"
+              <p>New Email Address: <input name="replaceEmail" type="text"
                                            id="replaceEmail" size="25" maxlength="50"> <br> <input
-                name="Update" type="submit" id="Update" value="<%=props.getProperty("updateEmail.submit")%>"></p>
+                name="Update" type="submit" id="Update" value="Update"></p>
             </form>
           </td>
         </tr>
@@ -61,18 +62,22 @@
       <table width="600" border="1">
         <tr>
           <td>
-            <p><font size="+1"><%=props.getProperty("swapLocationId.title")%></font></p>
+            <p><font size="+1">Swap old location code for new across
+              all encounters</font></p>
 
-            <p class="style1"><%=props.getProperty("swapLocationId.warning")%></p>
+            <p class="style1"><em><strong>WARNING</strong></em>: This changes
+              the location code for encounters from an old to a new value. This is a
+              non-trivial change and should only be done after significant
+              deliberation.</p>
 
             <form name="massSwapLocCode" method="post" action="../MassSwapLocationCode">
-              <p><%=props.getProperty("swapLocationId.old")%> <input name="oldLocCode" type="text"
+              <p>Old location code: <input name="oldLocCode" type="text"
                                            id="oldLocCode" size="10" >
 
-              <p><%=props.getProperty("swapLocationId.new")%> <input name="newLocCode" type="text"
+              <p>New location code: <input name="newLocCode" type="text"
                                            id="newLocCode" size="10" > <br/>
                 <br> <input name="Update" type="submit" id="Update"
-                            value="<%=props.getProperty("swapLocationId.submit")%>"></p>
+                            value="Update"></p>
             </form>
           </td>
         </tr>
@@ -81,12 +86,13 @@
       <table width="600" border="1">
         <tr>
           <td>
-            <p><font size="+1"><%=props.getProperty("exposeToGBIF.title")%></font></p>
+            <p><font size="+1">Expose all approved encounters to the
+              GBIF. </font></p>
 
             <form name="exposeGBIF" method="post" action="../MassExposeGBIF">
 
               <input name="Expose to GBIF" type="submit" id="Expose to GBIF"
-                     value="<%=props.getProperty("exposeToGBIF.submit")%>">
+                     value="Expose to GBIF">
               </p></form>
           </td>
         </tr>
@@ -95,64 +101,31 @@
       <table width="600" border="1">
         <tr>
           <td>
-            <p><font size="+1"><%=props.getProperty("setLocationIdForMatching.title")%></font></p>
+            <p><font size="+1">Set the location code for all encounters
+              matching a string</font></p>
 
-            <p class="style1"><%=props.getProperty("setLocationIdForMatching.warning")%></p>
+            <p class="style1"><em><strong>WARNING</strong></em>: This changes
+              the location code for encounters from an old to a new value. This is a
+              non-trivial change and should only be done after significant
+              deliberation.</p>
 
             <form name="massSetLocationCodeFromLocationString" method="post"
                   action="../MassSetLocationCodeFromLocationString">
-              <p><%=props.getProperty("setLocationIdForMatching.search")%> <input
+              <p>Text string to match (case insensitive): <input
                 name="matchString" type="text" id="matchString" size="50"
                 maxlength="999">
 
-              <p><%=props.getProperty("setLocationIdForMatching.id")%> <input name="locCode" type="text"
+              <p>Location code to assign: <input name="locCode" type="text"
                                                  id="locCode" size="10" maxlength="10"> <br/>
                 <br> <input name="Update" type="submit" id="Update"
-                            value="<%=props.getProperty("setLocationIdForMatching.submit")%>"></p>
+                            value="Update"></p>
             </form>
           </td>
         </tr>
       </table>
 
-      <p>&nbsp;</p>
-      <table width="600" border="1">
-        <tr>
-          <td>
-            <p><font size="+1"><%=props.getProperty("setInformForMatching.title")%></font></p>
 
-            <p><font size="+1"><%=props.getProperty("setInformForMatching.text")%></font></p>
 
-            <form name="massSetInformOthers" method="post"
-                  action="../MassSetInformOthers">
-              <p><%=props.getProperty("setInformForMatching.search")%> <input
-                name="matchString" type="text" id="matchString" size="50"
-                maxlength="100"/>
-
-              <p><%=props.getProperty("setInformForMatching.emails")%> <input
-                name="informEmail" type="text" id="informEmail" size="50"
-                maxlength="999"> <br/>
-                <br /> <input name="Update" type="submit" id="Update"
-                            value="<%=props.getProperty("setInformForMatching.submit")%>"></p>
-            </form>
-          </td>
-        </tr>
-      </table>
-
-      <p>&nbsp;</p>
-      <table width="600" border="1">
-        <tr>
-          <td>
-            <p><img src="../images/Warning_icon.png" width="25px" height="*" align="absmiddle" />  <font size="+1"><%=props.getProperty("deleteAll.title")%></font>
-            <br /><br /><%=props.getProperty("deleteAll.warning")%>
-            </p>
-
-            <form onsubmit="return confirm('<%=props.getProperty("deleteAll.confirm")%>');" name="deleteAll" method="post" action="../DeleteAllDataPermanently">
-
-              <input name="deleteAllData" type="submit" id="deleteAllData" value="<%=props.getProperty("deleteAll.submit")%>">
-              </p></form>
-          </td>
-        </tr>
-      </table>
       
 </div>
 

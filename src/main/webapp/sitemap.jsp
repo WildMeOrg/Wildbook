@@ -11,6 +11,7 @@ context=ServletUtilities.getContext(request);
 
   //Shepherd
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("sitemap.jsp");
 
 
 
@@ -27,19 +28,19 @@ context=ServletUtilities.getContext(request);
             Sitemap</h1>
       
         <ul>
-          <li><a href="http://<%=CommonConfiguration.getURLLocation(request)%>">Home</a></li>
+          <li><a href="//<%=CommonConfiguration.getURLLocation(request)%>">Home</a></li>
     
           <li><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp">Report
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/submit.jsp">Report
             an encounter</a></li>
           <li><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/searchResults.jsp">All
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/searchResults.jsp">All
             Encounters</a></li>
           <li><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/individualSearchResults.jsp">All
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/individualSearchResults.jsp">All
             Marked Individuals</a></li>
           <li><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/thumbnailSearchResults.jsp?noQuery=true">Image
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/thumbnailSearchResults.jsp?noQuery=true">Image
             thumbnails</a></li>
 
 </ul>
@@ -54,11 +55,11 @@ context=ServletUtilities.getContext(request);
           Query sharkQuery = myShepherd.getPM().newQuery(sharkClass);
           myShepherd.beginDBTransaction();
           try {
-            Iterator it2 = myShepherd.getAllEncounters(encQuery);
+            Iterator<Encounter> it2 = myShepherd.getAllEncounters(encQuery);
             while (it2.hasNext()) {
-              Encounter tempEnc2 = (Encounter) it2.next();
+              Encounter tempEnc2 = it2.next();
         %> <a
-        href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=tempEnc2.getEncounterNumber()%>"><%=tempEnc2.getEncounterNumber()%>
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=tempEnc2.getEncounterNumber()%>"><%=tempEnc2.getEncounterNumber()%>
       </a> <%
         }
       %>
@@ -66,11 +67,11 @@ context=ServletUtilities.getContext(request);
           <h2>All marked individuals</h2>
        
         <%
-          Iterator it3 = myShepherd.getAllMarkedIndividuals(sharkQuery);
+          Iterator<MarkedIndividual> it3 = myShepherd.getAllMarkedIndividuals(sharkQuery);
           while (it3.hasNext()) {
-            MarkedIndividual tempShark = (MarkedIndividual) it3.next();
+            MarkedIndividual tempShark = it3.next();
         %> <a
-        href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=tempShark.getName()%>"><%=tempShark.getName()%>
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=tempShark.getName()%>"><%=tempShark.getName()%>
       </a> <%
           }
 

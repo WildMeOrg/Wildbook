@@ -19,7 +19,10 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
+import org.ecocean.Annotation;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,9 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
-import java.util.Properties;
 import java.util.StringTokenizer;
 
 
@@ -50,26 +50,18 @@ public class EncounterSetGenusSpecies extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetGenusSpecies.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("encounter"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("encounter"));
-
     String sharky = "None";
+
+
     sharky = request.getParameter("encounter");
     String genusSpecies = "";
 
@@ -101,7 +93,7 @@ public class EncounterSetGenusSpecies extends HttpServlet {
 			myShark.setGenus(null);
         	myShark.setSpecificEpithet(null);
         	myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />Set genus and species to null.");
-      genusSpecies = encprops.getProperty("unknown");
+
 		}
 	    //handle malformed Genus Species formats
 	    else{throw new Exception("The format of the genusSpecies parameter in servlet EncounterSetGenusSpecies did not have two tokens delimited by a space (e.g., \"Rhincodon typus\").");}
@@ -113,22 +105,43 @@ public class EncounterSetGenusSpecies extends HttpServlet {
       }
 
       if (!locked) {
+        if (myShark.getAnnotations() != null) {  //need to persist annots as well, since they have changed as well
+            for (Annotation ann : myShark.getAnnotations()) {
+                myShepherd.getPM().makePersistent(ann);
+            }
+        }
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        actionResult.setMessageOverrideKey("genusSpecies").setMessageParams(request.getParameter("encounter"), genusSpecies);
-      } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success!</strong> I have successfully changed the genus and species for encounter " + sharky + " to " + genusSpecies + ".</p>");
+        response.setStatus(HttpServletResponse.SC_OK);
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
+        //String message = "The alternate ID for encounter " + sharky + " was set to " + alternateID + ".";
+      } 
+      else {
+
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to modify this encounter again.");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
+
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
-      actionResult.setSucceeded(false);
+      //out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to set the genus and species. I cannot find the encounter that you intended it for in the database, or your information request did not include all of the required parameters.");
+      //out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
     myShepherd.closeDBTransaction();
   }
+
+
 }
+
+

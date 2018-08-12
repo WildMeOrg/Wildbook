@@ -1,18 +1,35 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.*" %>
-<%@ page import="java.util.Random" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%
-  String context = ServletUtilities.getContext(request);
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
 
-	String langCode = ServletUtilities.getLanguageCode(request);
-	Properties map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode, context);
-	Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
-	Properties haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "", context);
 
-	//get our Shepherd
-	Shepherd myShepherd = new Shepherd(context);
+  <%
+  String context="context0";
+  context=ServletUtilities.getContext(request);
+
+    //let's load encounterSearch.properties
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
+    String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+    
+    Properties map_props = new Properties();
+    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
+    map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode,context);
+	  
+
+    
+    Properties haploprops = new Properties();
+    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+	//haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+	haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
+		
+
+    Properties localeprops = new Properties();
+    localeprops = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
+	
+    
+    //get our Shepherd
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("individualMappedSearchResults.jsp");
 
 	Random ran= new Random();
 
@@ -34,34 +51,20 @@
 
 
 
-    ArrayList<String> allHaplos2=new ArrayList<String>(); 
+    List<String> allHaplos2=new ArrayList<String>(); 
     int numHaplos2 = 0;
     allHaplos2=myShepherd.getAllHaplotypes(); 
     numHaplos2=allHaplos2.size();
     
-    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
+    List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
     int numSpecies=allSpecies.size();
    
-    List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor",context);
+    List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
     int numSpeciesColors=allSpeciesColors.size();
 %>
 
 
-    <style type="text/css">
 
-   
-
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-}
-</style>
 
 <style type="text/css">
   #tabmenu {
@@ -82,7 +85,7 @@ margin-bottom: 8px !important;
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -133,8 +136,9 @@ margin-bottom: 8px !important;
   <jsp:include page="header.jsp" flush="true"/>
   
 
-<script src="http://maps.google.com/maps/api/js?v=3.9&language=<%=langCode%>"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+<script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="javascript/GeoJSON.js"></script>
 
 
@@ -158,7 +162,7 @@ margin-bottom: 8px !important;
     //aspect options: sex, haplotype, none
     var aspect="none";
     
-    var filename = "http://<%=CommonConfiguration.getURLLocation(request)%>/GetIndividualSearchGoogleMapsPoints?<%=request.getQueryString()%>";
+    var filename = "//<%=CommonConfiguration.getURLLocation(request)%>/GetIndividualSearchGoogleMapsPoints?<%=request.getQueryString()%>";
     var overlays = [];
     var overlaysSet=false;
     
@@ -169,18 +173,13 @@ margin-bottom: 8px !important;
     	  map = new google.maps.Map(document.getElementById('map_canvas'), {
     	      zoom: mapZoom,
     	      center: center,
-    	      mapTypeId: google.maps.MapTypeId.HYBRID
+    	      mapTypeId: google.maps.MapTypeId.HYBRID,
+    	      fullscreenControl: true
     	    });
     	  
 
     	  iw.open(map);
     	  
-  	  //adding the fullscreen control to exit fullscreen
-  	  var fsControlDiv = document.createElement('DIV');
-  	  var fsControl = new FSControl(fsControlDiv, map);
-  	  fsControlDiv.index = 1;
-  	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
         var markers = [];
 	var movePathCoordinates = [];
 
@@ -201,78 +200,6 @@ margin-bottom: 8px !important;
       }
       
       
-      function fullScreen(){
-    		$("#map_canvas").addClass('full_screen_map');
-    		$('html, body').animate({scrollTop:0}, 'slow');
-    		initialize();
-    		
-    		//hide header
-    		$("#header_menu").hide();
-    		
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute fullscreen!");
-    	}
-
-
-    	function exitFullScreen() {
-    		$("#header_menu").show();
-    		$("#map_canvas").removeClass('full_screen_map');
-
-    		initialize();
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute exitFullScreen!");
-    	}
-
-
-    	//making the exit fullscreen button
-    	function FSControl(controlDiv, map) {
-
-    	  // Set CSS styles for the DIV containing the control
-    	  // Setting padding to 5 px will offset the control
-    	  // from the edge of the map
-    	  controlDiv.style.padding = '5px';
-
-    	  // Set CSS for the control border
-    	  var controlUI = document.createElement('DIV');
-    	  controlUI.style.backgroundColor = '#f8f8f8';
-    	  controlUI.style.borderStyle = 'solid';
-    	  controlUI.style.borderWidth = '1px';
-    	  controlUI.style.borderColor = '#a9bbdf';;
-    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    	  controlUI.style.cursor = 'pointer';
-    	  controlUI.style.textAlign = 'center';
-    	  controlUI.title = 'Toggle the fullscreen mode';
-    	  controlDiv.appendChild(controlUI);
-
-    	  // Set CSS for the control interior
-    	  var controlText = document.createElement('DIV');
-    	  controlText.style.fontSize = '12px';
-    	  controlText.style.fontWeight = 'bold';
-    	  controlText.style.color = '#000000';
-    	  controlText.style.paddingLeft = '4px';
-    	  controlText.style.paddingRight = '4px';
-    	  controlText.style.paddingTop = '3px';
-    	  controlText.style.paddingBottom = '2px';
-    	  controlUI.appendChild(controlText);
-    	  //toggle the text of the button
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = '<%=map_props.getProperty("exitFullscreen") %>';
-    	    } else {
-    	      controlText.innerHTML = '<%=map_props.getProperty("fullscreen") %>';
-    	    }
-
-    	  // Setup the click event listeners: toggle the full screen
-
-    	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	    exitFullScreen();
-    	    } else {
-    	    fullScreen();
-    	    }
-    	  });
-
-    	}
 
       
       
@@ -325,7 +252,7 @@ function loadIndividualMapData(localResults,aspect){
 				}
 			}
 			
-			currentFeature_or_Features.setMap(map);
+			//currentFeature_or_Features.setMap(map);
 		}else{
 			//alert("In the else statement...");
 			currentFeature_or_Features.setMap(map);
@@ -536,16 +463,16 @@ if (request.getQueryString() != null) {
 }
 %>
 
-  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("matchingImages")%>
   </a></li>
-  <li><a class="active"><%=propsShared.getProperty("mappedResults")%>
+  <li><a class="active"><%=map_props.getProperty("mappedResults")%>
   </a></li>
      
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("export")%>
+    <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("export")%>
   </a></li>
 </ul>
 
@@ -577,14 +504,14 @@ if (request.getQueryString() != null) {
  <div id="map-container">
  
  
-<table cellpadding="3">
+<table cellpadding="3" width="100%">
  <tr>
- <td valign="top">
-<div id="map_canvas" style="width: 770px; height: 510px; "> </div>
+ <td valign="top" width="90%">
+<div id="map_canvas" style="width: 100%; height: 500px; "> </div>
  </td>
  
 
- <td valign="top">
+ <td valign="top" width="10%">
  <table id="haplotable" style="display:none">
  <tr><th><%=map_props.getProperty("haplotypeColorKey") %></th></tr>
                     <%
@@ -614,7 +541,7 @@ if (request.getQueryString() != null) {
  <%
  if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
  %>
-  <td valign="top">
+  <td valign="top" width="10%">
  <table id="speciestable" style="display:none">
  <tr><th>Species Color Key</th></tr>
                     <%

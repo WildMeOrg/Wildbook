@@ -34,6 +34,8 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.security.SocialAuth;
+import org.ecocean.servlet.ReCAPTCHA;
+import org.ecocean.identity.IBEISIA;
 
 import org.w3c.dom.Document;
 import com.google.gson.Gson;
@@ -51,35 +53,44 @@ public class JavascriptGlobals extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-
+    
+    //FIX-prevent caching
+    response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+    response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+    response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+    response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+    
+    String context="context0";
+    context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("JavascriptGlobals.class1");
+    
 		String username = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
+
+		String langCode = ServletUtilities.getLanguageCode(request);
+		//Properties props = new Properties();
+		//props = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
 		HashMap rtn = new HashMap();
 
 		rtn.put("context", context);
 		rtn.put("username", username);
+                rtn.put("sessionIsHuman", ReCAPTCHA.sessionIsHuman(request));
 		rtn.put("langCode", langCode);
 		rtn.put("baseUrl", request.getContextPath());
 		rtn.put("rootDir", (new File(getServletContext().getRealPath("/")).getParentFile()).toString());
 		rtn.put("dataUrl", "/" + CommonConfiguration.getDataDirectoryName(context));
+                rtn.put("validEmailRegexPattern", Util.validEmailRegexPattern());
 
 		HashMap props = new HashMap();
 		HashMap lang = new HashMap();
 
-    HashMap cci = new LinkedHashMap();
-    cci.put("locationID_en", Util.getIndexedValuesMap(ShepherdProperties.getProperties("commonCoreInternational.properties", "en", context), "locationID").values().toArray());
-    cci.put("locationID", Util.getIndexedValuesMap(ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context), "locationID").values().toArray());
-    lang.put("commonCoreInternational", cci);
 
-    HashMap cc = new LinkedHashMap();
-    cc.put("locationID", Util.getIndexedValuesMap(ShepherdProperties.getProperties("commonConfiguration.properties", "", context), "locationID").values().toArray());
-    lang.put("commonConfiguration", cc);
-
+		//lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
 		lang.put("visualMatcher", ShepherdProperties.getProperties("visualMatcher.properties", langCode, context));
+
 		lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
+
 
 		props.put("lang", lang);
 		rtn.put("properties", props);
@@ -116,6 +127,34 @@ public class JavascriptGlobals extends HttpServlet {
             propvalToHashMap(pn, authprops.getProperty(pn), rtn);
         }
     }
+
+
+    HashMap uploader = new HashMap();
+    String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
+    if (s3key == null) {
+        uploader.put("type", "local");
+    } else {
+        uploader.put("type", "s3direct");
+        uploader.put("s3_accessKeyId", s3key);
+        uploader.put("s3_secretAccessKey", CommonConfiguration.getProperty("s3upload_secretAccessKey", context));
+        uploader.put("s3_region", CommonConfiguration.getProperty("s3upload_region", context));
+        uploader.put("s3_bucket", CommonConfiguration.getProperty("s3upload_bucket", context));
+    }
+
+    rtn.put("uploader", uploader);
+
+    LinkedHashMap<String,String> kw = new LinkedHashMap<String,String>();
+    myShepherd.beginDBTransaction();
+    Iterator<Keyword> keywords = myShepherd.getAllKeywords();
+    while (keywords.hasNext()) {
+        Keyword k = keywords.next();
+        kw.put(k.getIndexname(), k.getReadableName());
+    }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+    rtn.put("keywords", kw);
+
+    rtn.put("iaStatus", IBEISIA.iaStatus(request));
 
     response.setContentType("text/javascript");
     response.setCharacterEncoding("UTF-8");

@@ -1,0 +1,89 @@
+button, html input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  background-color: @whaleSharkblue;
+	border: 0;
+	color: @mainColor;
+	line-height: 2em;
+	padding: 7px 13px;
+	font-weight: 300;
+	vertical-align: middle;
+	margin-right: 10px;
+	margin-top: 15px;
+}
+
+button.large, html input[type="button"].large,
+input[type="reset"].large,
+input[type="submit"].large {
+	font-size: 1.99rem;
+	padding-top: 0;
+	padding-bottom: 0;
+	padding-right: 0;
+	box-shadow: 2px 1px 2px 1px rgba(51,51,51,.4);
+	}
+
+button.contrast, html input[type="button"].contrast,
+input[type="reset"].contrast,
+input[type="submit"].contrast { background-color: @brand-contrast; }
+
+button.adopt {
+	margin-top:0;
+	text-align:center;
+	padding:0 10px;
+	margin-bottom: .5rem;
+	@media screen and (min-width: 400px){
+		float:left;
+		margin-bottom: 0;
+	}
+}
+
+button.light, html input[type="button"].light,
+input[type="reset"].light,
+input[type="submit"].light { background-color: @brand-secondary; }
+
+// button.light:hover, html input[type="button"].light:hover,
+// input[type="reset"].light:hover,
+// input[type="submit"].light:hover { background-color: @brand-contrast; }
+
+// button:hover, html input[type="button"]:hover,
+// input[type="reset"]:hover,
+// input[type="submit"]:hover { background-color: @brand-contrast; }
+
+.button-icon {
+width: 45px;
+min-height: 45px;
+margin-left: 10px;
+padding: 0 5px;
+vertical-align: middle;
+display: inline-block;
+background: url(../img/icon_arrow_right_white.svg) no-repeat center center;
+background-size: 50%;
+border-left: 1px solid white;
+background-color: @whaleSharkblue;
+}
+
+.heroBtn{
+  background-color: white;
+  color: @h1Colour;
+  .button-icon{
+    border-left: 1px solid @h1Colour;
+    background: url(../img/icon_arrow_right_blue.svg) no-repeat center center;
+    background-size: 50%;
+  }
+}
+
+.gallery-btn-group{
+  display: flex;
+  flex-wrap: wrap;
+  button{
+    margin: 1rem;
+  }
+}
+
+#individualSocialButtons{
+  display: flex;
+  align-items: center;
+  div, iframe, a{
+    margin-righ: 1rem;
+  }
+}

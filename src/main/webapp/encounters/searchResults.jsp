@@ -1,74 +1,91 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.*" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
+
+
+<%!
+
+String dispToString(Integer i) {
+	if (i==null) return "";
+	return i.toString();
+}
+
+%>
+
+
 <%
-	String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties encprops = ShepherdProperties.getProperties("searchResults.properties", langCode, context);
-	Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+  //let's load encounterSearch.properties
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+
+
+  Properties encprops = new Properties();
+  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
+  encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
+
 
   Shepherd myShepherd = new Shepherd(context);
-
-  int startNum = 1;
-  int endNum = 10;
+  myShepherd.setAction("searchResults.jsp");
 
 
-  try {
-
-    if (request.getParameter("startNum") != null) {
-      startNum = (new Integer(request.getParameter("startNum"))).intValue();
-    }
-    if (request.getParameter("endNum") != null) {
-      endNum = (new Integer(request.getParameter("endNum"))).intValue();
-    }
-
-  } catch (NumberFormatException nfe) {
-    startNum = 1;
-    endNum = 10;
-  }
 
   int numResults = 0;
 
 
-  Vector rEncounters = new Vector();
+  //Vector rEncounters = new Vector();
 
-  myShepherd.beginDBTransaction();
+  //myShepherd.beginDBTransaction();
 
-  EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
-  rEncounters = queryResult.getResult();
+  try{
+
+  	//EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+ 	 //rEncounters = queryResult.getResult();
 
 
 //--let's estimate the number of results that might be unique
 
-  int numUniqueEncounters = 0;
-  int numUnidentifiedEncounters = 0;
-  int numDuplicateEncounters = 0;
-/*
-  ArrayList uniqueEncounters = new ArrayList();
-  for (int q = 0; q < rEncounters.size(); q++) {
-    Encounter rEnc = (Encounter) rEncounters.get(q);
-    if ((rEnc.getIndividualID()!=null)&&(!rEnc.getIndividualID().equals("Unassigned"))) {
-      String assemblage = rEnc.getIndividualID() + ":" + rEnc.getYear() + ":" + rEnc.getMonth() + ":" + rEnc.getDay();
-      if (!uniqueEncounters.contains(assemblage)) {
-        numUniqueEncounters++;
-        uniqueEncounters.add(assemblage);
-      } else {
-        numDuplicateEncounters++;
-      }
-    } else {
-      numUnidentifiedEncounters++;
-    }
-
-  }
-*/
-
-//--end unique counting------------------------------------------
+  Integer numUniqueEncounters = null;
+  Integer numUnidentifiedEncounters = null;
+  Integer numDuplicateEncounters = null;
 
 %>
 
 
 <style type="text/css">
+
+#results-table thead tr {
+	height: 4em;
+}
+
+.ia-ann-summary {
+	margin: 0 2px;
+}
+
+.ia-success-match, .ia-success-miss, .ia-pending, .ia-error, .ia-unknown {
+	padding: 0 3px;
+	color: #FFF;
+	font-weight: bold;
+}
+
+.ptcol-ia .ia-success-match {
+	background-color: #1A0;
+}
+.ptcol-ia .ia-success-miss {
+	background-color: #222;
+}
+.ptcol-ia .ia-pending {
+	background-color: #42F;
+}
+.ptcol-ia .ia-error {
+	background-color: #D20;
+}
+.ptcol-ia .ia-unknown {
+	background-color: #888;
+}
+
 
 .ptcol-individualID {
 	position: relative;
@@ -85,6 +102,14 @@
 	color: black;
 	text-decoration: none;
 	cursor: pointer;
+}
+
+.ptcol-otherCatalogNumbers {
+  width: 75px !important;
+}
+
+tr.clickable:hover td {
+	background-color: #EFA !important;
 }
 
 tr:hover .ptcol-individualID span.unassigned {
@@ -141,7 +166,7 @@ td.tdw:hover div {
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -161,15 +186,32 @@ td.tdw:hover div {
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
-  
+
+
+	.collab-private {
+		background-color: #FDD;
+	}
+
+	.collab-private td {
+		background-color: transparent !important;
+	}
+
+	.collab-private .collab-icon {
+		position: absolute;
+		left: -15px;
+		z-index: -1;
+		width: 13px;
+		height: 13px;
+		background: url(../images/lock-icon-tiny.png) no-repeat;
+	}
+
 </style>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -193,26 +235,26 @@ td.tdw:hover div {
 
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
- 
+
 
 <ul id="tabmenu">
 
-  <li><a class="active"><%=propsShared.getProperty("table")%>
+  <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -232,6 +274,7 @@ td.tdw:hover div {
 
 <script type="text/javascript">
 
+	var needIAStatus = false;
 /*
 
 
@@ -261,11 +304,19 @@ td.tdw:hover div {
 	}
 */
 
+StringBuffer prettyPrint=new StringBuffer("");
+
+Map<String,Object> paramMap = new HashMap<String, Object>();
+
+String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+
 %>
+
+
 
 var searchResults = <%=encsJson%>;
 
-var jdoql = '<%= queryResult.getJDOQLRepresentation().replaceAll("'", "\\\\'") %>';
+var jdoql = '<%= filter.replaceAll("'", "\\\\'") %>';
 
 var testColumns = {
 	thumb: { label: 'Thumb', val: _colThumb },
@@ -296,55 +347,53 @@ $(document).keydown(function(k) {
 
 var colDefn = [
 	{
-		key: 'thumb',
-		label: '<%=encprops.getProperty("column_thumb")%>',
-		value: _colThumb,
-		nosort: true
-	},
-	{
 		key: 'individualID',
-		label: '<%=encprops.getProperty("column_individualID")%>',
-		value: _colIndLink
+		label: 'ID',
+		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
 	},
+  {
+    key: 'otherCatalogNumbers',
+    label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
+  },
 	{
 		key: 'date',
-		label: '<%=encprops.getProperty("column_date")%>',
+		label: '<%=encprops.getProperty("date")%>',
 		value: _colEncDate,
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'verbatimLocality',
-		label: '<%=encprops.getProperty("column_location")%>'
+		label: '<%=encprops.getProperty("location")%>',
 	},
 	{
 		key: 'locationID',
-		label: '<%=encprops.getProperty("column_locationID")%>',
-		value: _colLocationId
+		label: '<%=encprops.getProperty("locationID")%>',
 	},
 	{
 		key: 'taxonomy',
-		label: '<%=encprops.getProperty("column_taxonomy")%>',
-		value: _colTaxonomy
+		label: '<%=encprops.getProperty("taxonomy")%>',
+		value: _colTaxonomy,
 	},
 	{
 		key: 'submitterID',
-		label: '<%=encprops.getProperty("column_submitterID")%>'
+		label: '<%=encprops.getProperty("submitterName")%>',
+		value: _submitterID,
 	},
 	{
 		key: 'creationDate',
-		label: '<%=encprops.getProperty("column_dateCreated")%>',
+		label: 'Created',
 		value: _colCreationDate,
-		sortValue: _colCreationDateSort
+		sortValue: _colCreationDateSort,
 	},
 	{
 		key: 'modified',
-		label: '<%=encprops.getProperty("column_dateModified")%>',
+		label: 'Edit Date',
 		value: _colModified,
-		sortValue: _colModifiedSort
+		sortValue: _colModifiedSort,
 	}
-	
+
 ];
 
 
@@ -364,7 +413,46 @@ var counts = {
 
 var sTable = false;
 
+
+var iaResults;
 function doTable() {
+	iaResults = {};
+	if (needIAStatus) {
+		for (var i = 0 ; i < searchResults.length ; i++) {
+			if (searchResults[i].get('individualID') && (searchResults[i].get('individualID') != 'Unassigned')) continue;
+			var anns = searchResults[i].get('annotations');
+			if (!anns || (anns.length < 1)) continue;
+			searchResults[i].set('_iaResults', {});
+			iaResults[i] = {};
+			for (var a = 0 ; a < anns.length ; a++) {
+				iaResults[i][anns[a].id] = [];
+			}
+		}
+		colDefn.splice(1, 0, {
+			key: 'ia',
+			label: 'ID match',
+			value: _colIA,
+			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); },
+			sortValue: _colIASort
+		});
+
+		var allIds = [];
+		for (var i in iaResults) {
+			for (var annId in iaResults[i]) {
+				allIds.push(annId);
+			}
+		}
+
+		jQuery.ajax({
+			url: '../ia',
+			type: 'POST',
+			contentType: 'application/javascript',
+			dataType: 'json',
+			data: JSON.stringify({ taskSummary: allIds }),
+			success: function(d) { updateIAResults(d); },
+			error: function(a,b,c) { console.warn('%o %o %o', a, b, c); alert('error finding IA results'); },
+		});
+	}
 /*
 	for (var i = 0 ; i < searchResults.length ; i++) {
 		searchResults[i] = new wildbook.Model.Encounter(searchResults[i]);
@@ -424,6 +512,51 @@ function doTable() {
 
 }
 
+
+
+function updateIAResults(d) {
+	console.info('iaresults -> %o', d);
+	if (d.error || !d.success || !d.taskSummary) {
+		if (!d.error) d.error = 'unknown';
+		alert('error getting IA results: ' + d.error);
+		return;
+	}
+	var needUpdating = [];
+	var foundAnns = [];
+	for (var i in iaResults) {
+		var updated = false;
+		for (var annId in iaResults[i]) {
+			if (d.taskSummary[annId]) {
+				var r = searchResults[i].get('_iaResults');
+				if (!r) {
+					console.error('searchResults[%s] did not have _iaResults!?', i);
+					continue;
+				}
+				r[annId] = d.taskSummary[annId];
+				updated = true;
+				foundAnns.push(annId);
+			}
+		}
+		if (updated) needUpdating.push(i);
+	}
+	for (var annId in d.taskSummary) {
+		if (foundAnns.indexOf(annId) < 0) {
+			console.warn('taskSummary reported an annotation we dont care about: %s', annId);
+		}
+	}
+	console.log('needUpdating -> %o', needUpdating);
+	if (needUpdating.length < 1) return;
+
+	//refresh the values where needed, then the sorting for the IA summary column
+	for (var i = 0 ; i < needUpdating.length ; i++) {
+		sTable.refreshValue(needUpdating[i], 1);
+	}
+	sTable.refreshSort(1);
+	newSlice(sortCol);
+	show();  //update table to show changes
+}
+
+
 function rowClick(el) {
 	console.log(el);
 	var w = window.open('encounter.jsp?number=' + el.getAttribute('data-id'), '_blank');
@@ -459,7 +592,15 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
-		$('#results-table tbody tr')[i].title = '<%=encprops.getProperty("rowSelect.encounter")%> ' + searchResults[results[i]].id;
+		var private = searchResults[results[i]].get('_sanitized') || false;
+		var title = 'Encounter ' + searchResults[results[i]].id;
+		if (private) {
+			title += ' [private]';
+			$($('#results-table tbody tr')[i]).addClass('collab-private');
+		} else {
+			$($('#results-table tbody tr')[i]).removeClass('collab-private');
+		}
+		$('#results-table tbody tr')[i].title = title;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
@@ -616,22 +757,6 @@ function _colNumberLocations(o) {
 	return n;
 }
 
-// Function to map LocationIDs to i18n versions.
-function i18nLocationID(id) {
-//	var enID = wildbookGlobals.properties.lang.commonCoreInternational.locationID_en;
-	// Ideally use above line, but for backward-compatibility with hard-coded stuff, use line below instead.
-	var enID = wildbookGlobals.properties.lang.commonConfiguration.locationID;
-	var locID = wildbookGlobals.properties.lang.commonCoreInternational.locationID;
-	return locID[enID.indexOf(id)];
-}
-
-function _colLocationId(o) {
-	var id = o.get('locationID');
-	if (!id) return '';
-	else if (id == 'None') return '';
-	return i18nLocationID(id);
-}
-
 
 function _colTaxonomy(o) {
 	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
@@ -644,7 +769,7 @@ function _colRowNum(o) {
 }
 
 
-function _colThumb(o) {
+function _xxxcolThumb(o) {
 	if (!extra[o.individualID]) return '';
 	var url = extra[o.individualID].thumbUrl;
 	if (!url) return '';
@@ -660,6 +785,11 @@ function _colModified(o) {
 	return d.toLocaleDateString();
 }
 
+function _submitterID(o) {
+	var m = o.get('submitterName');
+	if (!m) m = o.get('submitterProject');
+	return m;
+}
 
 function _textExtraction(n) {
 	var s = $(n).text();
@@ -728,15 +858,11 @@ $('#progress').html(percentage);
 
 function _colIndLink(o) {
 	var iid = o.get('individualID');
-	switch (iid) {
-		case 'Unknown':
-		case 'Unassigned':
-			return '<%=encprops.getProperty("column_individualID.unassigned")%>';
-		case 'Unidentifiable':
-			return '<%=encprops.getProperty("column_individualID.unidentifiable")%>';
-		default:
-			return '<a target="_blank" onClick="return justA(event);" title="<%=encprops.getProperty("column_individualID")%>: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
-	}
+	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
+	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
+//
+//
+	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
 }
 
 
@@ -777,16 +903,191 @@ function _colTaxonomy(o) {
 	return o.get('genus') + ' ' + o.get('specificEpithet');
 }
 
+function _colFileName(o) {
+  if (!o.get('annotations')) return 'none';
+  var outStrings = [];
+  for (id in o.get('annotations')) {
+    var ann = o.get('annotations')[id];
+    //note: assuming 0th feature "may be bad" ?   TODO
+    if (ann.features && ann.features.length && ann.features[0].mediaAsset && ann.features[0].mediaAsset.filename) {
+      outStrings.push(ann.features[0].mediaAsset.filename);
+    }
+/*
+    if (ann.mediaAsset != undefined) {
+      var urlString = ann.mediaAsset.url;
+      var pieces = urlString.split('/');
+      var betweenLastSlashAndJpg = pieces[pieces.length-1].split('.')[0];
+      outStrings[outStrings.length] = betweenLastSlashAndJpg;
+      //console.log('\t added url string: '+ann.mediaAsset.url);
+    }
+    console.log('\t no mediaAsset found in annotation '+JSON.stringify(ann));
+*/
+  }
+  return outStrings.join(',\n');
+}
+function _colAlternateID(o) {
+  if (!o.get('otherCatalogNumbers')) return '';
+}
 
 function _colRowNum(o) {
 	return o._rowNum;
 }
 
 
+function _colIA(o) {
+	if (!o.get('_iaResults')) return '';
+	//for sorting.  not it is asc numeric, so smaller appears at top
+	var sortWeights = {
+		pending: 0,
+		'success-match': 3,
+		'success-miss': 5,
+		error: 7,
+		unknown: 9,
+	};
+	var res = [];
+	var total = {};
+	var mostRecent = 0;
+	var mostRecentNice = '';
+	for (var annId in o.get('_iaResults')) {
+		var sum = _colAnnIASummary(annId, o.get('_iaResults')[annId]);
+		if (sum.mostRecent > mostRecent) {
+			mostRecent = sum.mostRecent;
+			mostRecentNice = sum.mostRecentNice;
+		}
+		res.push(sum.html);
+		for (var flav in sum.data) {
+			if (sum.data[flav] < 1) continue;
+			if (!total[flav]) total[flav] = 0;
+			total[flav] += sum.data[flav];
+		}
+	}
+	if (res.length < 1) return '<span class="ia-ann-summary"><span class="ia-unknown">?</span></span>';
+	if (Object.keys(total).length == 1) {
+		var flav = Object.keys(total)[0];
+		o.set('_sortWeight', sortWeights[flav] + '.' + (10000000000000 - mostRecent));
+		return '<span class="ia-ann-summary" title="' + total[flav] + ' ' + flav + ' on ' + res.length + ' imgs; most recent run ' + sum.mostRecentNice + '"><span class="ia-' + flav + '">' + total[flav] + '</span></span>';
+	}
+
+	//for sortWeight, we pick the lowest value
+	var sw = 500;
+	for (var flav in total) {
+		if (sortWeights[flav] < sw) sw = sortWeights[flav];
+	}
+	o.set('_sortWeight', sw + '.' + (10000000000000 - mostRecent));
+	return res.join('');
+}
+
+function _colAnnIASummary(annId, sum) {
+	console.log('%s ------> %o', annId, sum);
+	var mostRecent = 0;
+	var mostRecentTaskId = false;
+	var flav = ['success-match', 'success-miss', 'pending', 'error', 'unknown'];
+	var r = {};
+	for (var i = 0 ; i < flav.length ; i++) {
+		r[flav[i]] = 0;
+	}
+	for (var taskId in sum) {
+		if (!sum[taskId].timestamp || !sum[taskId].status || !sum[taskId].status._response) {
+			console.warn('unknown summary on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId]);
+			r.unknown++;
+			continue;
+		}
+
+		if (sum[taskId].timestamp > mostRecent) {
+			mostRecent = sum[taskId].timestamp;
+			mostRecentTaskId = taskId;
+		}
+	}
+
+	if (mostRecentTaskId) {
+		if (sum[mostRecentTaskId].status && sum[mostRecentTaskId].status._response && sum[mostRecentTaskId].status._response.status && sum[mostRecentTaskId].status._response.response && sum[mostRecentTaskId].status._response.status.success) {
+			if (sum[mostRecentTaskId].status._response.response && sum[mostRecentTaskId].status._response.response.json_result &&
+			    (sum[mostRecentTaskId].status._response.response.json_result.length > 0)) {
+				var numMatches = 0;
+//console.warn(sum[mostRecentTaskId].status._response.response.json_result);
+				for (var m = 0 ; m < sum[mostRecentTaskId].status._response.response.json_result.length ; m++) {
+					if (!sum[mostRecentTaskId].status._response.response.json_result[m].daid_list) continue;
+					numMatches += sum[mostRecentTaskId].status._response.response.json_result[m].daid_list.length;
+				}
+				if (numMatches > 0) {
+					r['success-match']++;
+				} else {
+					r['success-miss']++;
+				}
+			} else {
+				console.warn('got IA results, but could not parse on annId=%s, taskId=%s -> %s', annId, mostRecentTaskId, sum[mostRecentTaskId].status);
+				r.error++;
+			}
+		} else if (!sum[mostRecentTaskId].status._response.success || sum[mostRecentTaskId].status._response.error) {
+			console.warn('error on annId=%s, taskId=%s -> %s', annId, mostRecentTaskId, sum[mostRecentTaskId].status._response.error || 'non-success');
+			r.error++;
+		} else {  //guess this means we are waiting on results?
+			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, mostRecentTaskId, sum[mostRecentTaskId].status._response);
+			r.pending++;
+		}
+
+
+/* old way, to show *all* results
+		if (sum[taskId].timestamp > mostRecent) mostRecent = sum[taskId].timestamp;
+
+		//wtf, gimme a break, nested json!
+		if (sum[taskId].status && sum[taskId].status._response && sum[taskId].status._response.status && sum[taskId].status._response.response && sum[taskId].status._response.status.success) {
+			if (sum[taskId].status._response.response && sum[taskId].status._response.response.json_result &&
+			    (sum[taskId].status._response.response.json_result.length > 0)) {
+				var numMatches = 0;
+//console.warn(sum[taskId].status._response.response.json_result);
+				for (var m = 0 ; m < sum[taskId].status._response.response.json_result.length ; m++) {
+					if (!sum[taskId].status._response.response.json_result[m].daid_list) continue;
+					numMatches += sum[taskId].status._response.response.json_result[m].daid_list.length;
+				}
+				if (numMatches > 0) {
+					r['success-match']++;
+				} else {
+					r['success-miss']++;
+				}
+			} else {
+				console.warn('got IA results, but could not parse on annId=%s, taskId=%s -> %s', annId, taskId, sum[taskId].status);
+				r.error++;
+			}
+		} else if (!sum[taskId].status._response.success || sum[taskId].status._response.error) {
+			console.warn('error on annId=%s, taskId=%s -> %s', annId, taskId, sum[taskId].status._response.error || 'non-success');
+			r.error++;
+		} else {  //guess this means we are waiting on results?
+			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId].status._response);
+			r.pending++;
+		}
+*/
+	}
+
+	var rtn = '';
+	var expl = '';
+	for (var i = 0 ; i < flav.length ; i++) {
+		if (r[flav[i]] < 1) continue;
+		rtn += '<span class="ia-' + flav[i] + '">' + r[flav[i]] + '</span>';
+		expl += ' ' + flav[i] + ':' + r[flav[i]];
+	}
+	if (!rtn) return '<span class="ia-error">!</span>';
+	var d = new Date(mostRecent);
+	return {
+		html: '<span class="ia-ann-summary" title="annot ' + annId + '; most recent run ' + d.toLocaleString() + ';' + expl + '">' + rtn + '</span>',
+		mostRecent: mostRecent,
+		mostRecentNice: d.toLocaleString(),
+		data: r
+	};
+}
+
+
+function _colIASort(o) {
+//console.info('[%s] weight=%o | has _iaResults %o', o.id, o.get('_sortWeight'), !(!o.get('_iaResults')));
+	if (o.get('_sortWeight')) return o.get('_sortWeight');
+	if (!o.get('_iaResults')) return 1000;
+	return 0;
+}
+
 function _colThumb(o) {
-	var url = o.thumbUrl();
+	var url = wildbook.cleanUrl(o.thumbUrl());
 	if (!url) return '';
-	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
+	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /><span class="collab-icon"></span></div>';
 	return '<img src="' + url + '" />';
 }
 
@@ -846,14 +1147,14 @@ console.log(t);
 
 </script>
 
-<p>
-<input placeholder="<%=encprops.getProperty("filter_placeholder")%>" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="<%=encprops.getProperty("filter_submit")%>" />
-<input type="button" value="<%=encprops.getProperty("filter_clear")%>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<p class="table-filter-text">
+<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="filter" />
+<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 <div class="pageableTable-wrapper">
-	<div id="progress"><%=encprops.getProperty("loading_results")%></div>
+	<div id="progress">Loading results table...</div>
 	<table id="results-table"></table>
 	<div id="results-slider"></div>
 </div>
@@ -869,9 +1170,9 @@ console.log(t);
           if (request.getUserPrincipal()!=null) {
         %>
         <br/>
-        <span id="count-ided"><%=numUniqueEncounters%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
-        <span id="count-unid"><%=numUnidentifiedEncounters%></span> <%=encprops.getProperty("unidentified")%><br/>
-        <span id="count-dailydup"><%=(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
+        <span id="count-ided"><%=dispToString(numUniqueEncounters)%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
+        <span id="count-unid"><%=dispToString(numUnidentifiedEncounters)%></span> <%=encprops.getProperty("unidentified")%><br/>
+        <span id="count-dailydup"><%=dispToString(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
         <%
           }
         %>
@@ -883,9 +1184,7 @@ console.log(t);
       </strong>: <%=(myShepherd.getNumEncounters() + (myShepherd.getNumUnidentifiableEncounters()))%>
       </p>
     </td>
-    <%
-      myShepherd.rollbackDBTransaction();
-    %>
+
   </tr>
 </table>
 
@@ -893,20 +1192,18 @@ console.log(t);
   <tr>
     <td align="left">
 
-      <p><strong><%=propsShared.getProperty("queryDetails")%>
+      <p><strong><%=encprops.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=propsShared.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+        <%=prettyPrint.toString().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       </p>
 
-<% if (request.getParameter("debug") != null) { %>
-      <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
+      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
       </strong><br/>
-        <%=queryResult.getJDOQLRepresentation()%>
+        <%=filter %>
       </p>
-<% } %>
 
     </td>
   </tr>
@@ -917,15 +1214,14 @@ console.log(t);
 
 
 <%
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-  rEncounters = null;
+  }
+  catch(Exception e){e.printStackTrace();}
+  finally{
+	  myShepherd.rollbackDBTransaction();
+	  myShepherd.closeDBTransaction();
+  }
+  //rEncounters = null;
 
 %>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
-
-
-

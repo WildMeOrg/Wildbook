@@ -30,8 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 
 //Set alternateID for this encounter/sighting
@@ -46,23 +44,15 @@ public class TissueSampleRemoveMicrosatelliteMarkers extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("TissueSampleRemoveMicrosatelliteMarkers.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("encounter"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("encounter"));
 
     myShepherd.beginDBTransaction();
     if ((request.getParameter("analysisID")!=null)&&(request.getParameter("encounter")!=null)&&(request.getParameter("sampleID")!=null)&& (!request.getParameter("sampleID").equals("")) && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("encounter")))&&(myShepherd.isEncounter(request.getParameter("encounter")))) {
@@ -91,21 +81,33 @@ public class TissueSampleRemoveMicrosatelliteMarkers extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         //myShepherd.closeDBTransaction();
-        actionResult.setMessageOverrideKey("removeTissueSampleMicrosatelliteMarkers").setMessageParams(request.getParameter("encounter"), request.getParameter("sampleID"));
-      }
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success!</strong> I have successfully removed the microsatellite markers for tissue sample "+request.getParameter("sampleID")+" for encounter " + request.getParameter("encounter") + ".</p>");
+
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("encounter") + "\">Return to encounter " + request.getParameter("encounter") + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+        } 
       else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user or is inaccessible. Please wait a few seconds before trying to modify this encounter again.");
+
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("encounter") + "\">Return to encounter " + request.getParameter("encounter") + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+
       }
     } else {
       myShepherd.rollbackDBTransaction();
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to remove the microsatellite markers. I cannot find the encounter or tissue sample that you intended it for in the database.");
+      out.println(ServletUtilities.getFooter(context));
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
     myShepherd.closeDBTransaction();
   }
+
+
 }
+  
+  

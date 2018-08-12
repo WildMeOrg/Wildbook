@@ -19,16 +19,27 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java"
+<%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
-<html>
+
 <%
 
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-  session.setMaxInactiveInterval(6000);
-  String num = request.getParameter("number");
+  //session.setMaxInactiveInterval(6000);
+  String num="";
+  if(request.getParameter("number")!=null){
+	Shepherd myShepherd=new Shepherd(context);
+	myShepherd.setAction("scanEndApplet.jsp");
+	myShepherd.beginDBTransaction();
+	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
+  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+	}
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+  }	
+  String encSubdir = Encounter.subdir(num);
   //Shepherd myShepherd = new Shepherd(context);
   //if (request.getParameter("writeThis") == null) {
   //  myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
@@ -48,23 +59,12 @@ context=ServletUtilities.getContext(request);
   //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
-	String encSubdir = Encounter.subdir(num);
+	//String encSubdir = Encounter.subdir(num);
   //File thisEncounterDir = new File(encountersDir, encSubdir);   //never used??
  
 %>
 
-<head>
-  <title>Best matches for Encounter <%=num%>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="expires" content="0">
-  <link
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/css/ecocean.css"
-    rel="stylesheet" type="text/css"/>
-      <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
-<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
-      
-</head>
+<jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
   
@@ -86,7 +86,7 @@ context=ServletUtilities.getContext(request);
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -116,18 +116,21 @@ context=ServletUtilities.getContext(request);
   
 </style>
 
-<body>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-<div id="main">
+<style>
+td, th {
+    border: 1px solid black;
+    padding: 5px;
+}
+
+</style>
+
+
+<div class="container maincontent">
 
 <ul id="tabmenu">
   <li><a
-    href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-    <%=request.getParameter("number")%>
+    href="encounter.jsp?number=<%=num%>">xxEncounter
+    <%=num%>
   </a></li>
   <%
     String fileSider = "";
@@ -144,7 +147,7 @@ context=ServletUtilities.getContext(request);
     if (finalXMLFile.exists()) {
   %>
   <li><a
-    href="scanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%><%=fileSider%>">Modified
+    href="scanEndApplet.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Modified
     Groth</a></li>
 
   <%
@@ -230,9 +233,9 @@ context=ServletUtilities.getContext(request);
 		  <%
 		  
 
-		    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
+		    String feedURL = "//" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
 		    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
-		    System.out.println("Base URL is: " + baseURL);
+		    //System.out.println("Base URL is: " + baseURL);
 		    if (xmlOK) {
 		      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
 		        feedURL = baseURL + encSubdir + "/lastFullRightI3SScan.xml?";
@@ -244,7 +247,7 @@ context=ServletUtilities.getContext(request);
 		    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
 		      rightSA = "&filePrefix=extractRight";
 		    }
-		    System.out.println("I made it to the Flash without exception.");
+		    //System.out.println("I made it to the Flash without exception.");
 		  %>
 		  <OBJECT id="sharkflash"
 		          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
@@ -263,6 +266,8 @@ context=ServletUtilities.getContext(request);
 		  </OBJECT>
 		</p>
 <a name="resultstable" /><table class="tablesorter">
+
+<table width="800px">
   <thead>
   
         <tr align="left" valign="top">
@@ -285,14 +290,14 @@ context=ServletUtilities.getContext(request);
         <tr align="left" valign="top">
          
                 <td width="60" align="left"><a
-                  href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a></td>
              
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>">Link
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>">Link
           </a></td>
           <%
             }
@@ -330,14 +335,14 @@ context=ServletUtilities.getContext(request);
         <tr align="left" valign="top">
           
                 <td width="60" align="left"><a
-                  href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
+                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
                 </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>"><%=enc1.attributeValue("number")%>
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>"><%=enc1.attributeValue("number")%>
           </a></td>
           <%
             }
@@ -403,10 +408,7 @@ context=ServletUtilities.getContext(request);
 
 
 %>
+<br />
+</div>
 <jsp:include page="../footer.jsp" flush="true"/>
-</div>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+

@@ -102,21 +102,6 @@ public final class SpamChecker {
     if (containsPossibleSpam(enc.getLocation()) || containsPossibleSpam(enc.getComments()) || containsPossibleSpam(enc.getBehavior()))
       return Result.POSSIBLE_SPAM;
 
-    // Check for unrealistic depth (TODO: tailor for each Wildbook instance).
-    if (enc.getMaximumDepthInMeters() != null && enc.getMaximumDepthInMeters() > 5000d) {
-      return Result.POSSIBLE_SPAM;
-    }
-
-    // Check for unrealistic measurement (TODO: tailor for each Wildbook instance, based on available units).
-    if (enc.getMeasurements() != null) {
-      for (Measurement m : enc.getMeasurements()) {
-        if (m.getValue() != null && m.getValue() < 0d)
-          return Result.POSSIBLE_SPAM;
-        if (m.getValue() != null && m.getValue() > 100d)
-          return Result.POSSIBLE_SPAM;
-      }
-    }
-
     return Result.NOT_SPAM;
   }
 

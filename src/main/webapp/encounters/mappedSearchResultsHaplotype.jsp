@@ -1,16 +1,28 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.*" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Properties encprops = ShepherdProperties.getProperties("mappedSearchResults.properties", langCode, context);
-    Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
-    Properties haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "", context);
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+
+
+  <%
+  String context="context0";
+  context=ServletUtilities.getContext(request);
+
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
+    String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+    
+    Properties encprops = new Properties();
+    //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+    encprops=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode, context);
+
+    
+    
+    Properties haploprops = new Properties();
+    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("mappedSearchResultsHaplotype.jsp");
 
 
 
@@ -48,24 +60,13 @@
     rEncounters = queryResult.getResult();
     
     //let's prep the HashTable for the pie chart
-    ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
+    List<String> allHaplos2=myShepherd.getAllHaplotypes(); 
     int numHaplos2 = allHaplos2.size();
 	
     		
   %>
 
-  
-<style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-</style>
+
   
 
 <style type="text/css">
@@ -87,7 +88,7 @@ margin-bottom: 8px !important;
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -133,8 +134,8 @@ margin-bottom: 8px !important;
   
   <jsp:include page="../header.jsp" flush="true"/>
 
-    <script src="http://maps.google.com/maps/api/js?language=<%=langCode%>"></script>
- 
+  <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
+
 
 
 
@@ -148,18 +149,23 @@ margin-bottom: 8px !important;
         var map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID
+          mapTypeId: google.maps.MapTypeId.HYBRID,
+          fullscreenControl: true
         });
-    	  //adding the fullscreen control to exit fullscreen
-    	  var fsControlDiv = document.createElement('DIV');
-    	  var fsControl = new FSControl(fsControlDiv, map);
-    	  fsControlDiv.index = 1;
-    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+    	  
+        
         var markers = [];
  
  
         
         <%
+
+//now remove encounters this user cannot see
+for (int i = rEncounters.size() - 1 ; i >= 0 ; i--) {
+	Encounter enc = (Encounter)rEncounters.get(i);
+	if (!enc.canUserAccess(request)) rEncounters.remove(i);
+}
+
         //Vector haveGPSData = new Vector();
         int rEncountersSize=rEncounters.size();
         int count = 0;
@@ -213,11 +219,11 @@ if(rEncounters.size()>0){
       	<%
     	String individualLinkString="";
     	//if this is a MarkedIndividual, provide a link to it
-    	if((thisEnc.isAssignedToMarkedIndividual()!=null)&&(!thisEnc.isAssignedToMarkedIndividual().toLowerCase().equals("unassigned"))){
-    		individualLinkString="<strong><a target=\"_blank\" href=\"http://"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.isAssignedToMarkedIndividual()+"\">"+thisEnc.isAssignedToMarkedIndividual()+"</a></strong><br />";
+    	if(thisEnc.getIndividualID()!=null){
+    		individualLinkString="<strong><a target=\"_blank\" href=\"//"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.getIndividualID()+"\">"+thisEnc.getIndividualID()+"</a></strong><br />";
     	}
     	%>
-    	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+    	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
  
           
            
@@ -241,78 +247,7 @@ myShepherd.rollbackDBTransaction();
       
      
       
-      function fullScreen(){
-    		$("#map_canvas").addClass('full_screen_map');
-    		$('html, body').animate({scrollTop:0}, 'slow');
-    		initialize();
-    		
-    		//hide header
-    		$("#header_menu").hide();
-    		
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute fullscreen!");
-    	}
 
-
-    	function exitFullScreen() {
-    		$("#header_menu").show();
-    		$("#map_canvas").removeClass('full_screen_map');
-
-    		initialize();
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute exitFullScreen!");
-    	}
-
-
-    	//making the exit fullscreen button
-    	function FSControl(controlDiv, map) {
-
-    	  // Set CSS styles for the DIV containing the control
-    	  // Setting padding to 5 px will offset the control
-    	  // from the edge of the map
-    	  controlDiv.style.padding = '5px';
-
-    	  // Set CSS for the control border
-    	  var controlUI = document.createElement('DIV');
-    	  controlUI.style.backgroundColor = '#f8f8f8';
-    	  controlUI.style.borderStyle = 'solid';
-    	  controlUI.style.borderWidth = '1px';
-    	  controlUI.style.borderColor = '#a9bbdf';;
-    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    	  controlUI.style.cursor = 'pointer';
-    	  controlUI.style.textAlign = 'center';
-    	  controlUI.title = 'Toggle the fullscreen mode';
-    	  controlDiv.appendChild(controlUI);
-
-    	  // Set CSS for the control interior
-    	  var controlText = document.createElement('DIV');
-    	  controlText.style.fontSize = '12px';
-    	  controlText.style.fontWeight = 'bold';
-    	  controlText.style.color = '#000000';
-    	  controlText.style.paddingLeft = '4px';
-    	  controlText.style.paddingRight = '4px';
-    	  controlText.style.paddingTop = '3px';
-    	  controlText.style.paddingBottom = '2px';
-    	  controlUI.appendChild(controlText);
-    	  //toggle the text of the button
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = 'Exit Fullscreen';
-    	    } else {
-    	      controlText.innerHTML = 'Fullscreen';
-    	    }
-
-    	  // Setup the click event listeners: toggle the full screen
-
-    	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	    exitFullScreen();
-    	    } else {
-    	    fullScreen();
-    	    }
-    	  });
-
-    	}
 
       
       
@@ -389,13 +324,13 @@ myShepherd.rollbackDBTransaction();
  <div id="map-container">
  
  
- <table cellpadding="3">
+ <table width="100%">
  <tr>
- <td valign="top">
-<div id="map_canvas" style="width: 770px; height: 510px; "> </div>
- </td>
- <td valign="top">
- <table>
+ 	<td valign="top" width="90%">
+ 		<div id="map_canvas" style="width: 100%; height: 500px;"></div>
+ 	</td>
+ <td valign="top" width="10%">
+ <table >
  <tr><th>Haplotype Color Key</th></tr>
                     <%
                     String haploColor="CC0000";
@@ -455,20 +390,18 @@ myShepherd.rollbackDBTransaction();
   <tr>
     <td align="left">
 
-      <p><strong><%=propsShared.getProperty("queryDetails")%>
+      <p><strong><%=encprops.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=propsShared.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", propsShared.getProperty("location")).replaceAll("locationCodeField", propsShared.getProperty("locationID")).replaceAll("verbatimEventDateField", propsShared.getProperty("verbatimEventDate")).replaceAll("alternateIDField", propsShared.getProperty("alternateID")).replaceAll("behaviorField", propsShared.getProperty("behavior")).replaceAll("Sex", propsShared.getProperty("sex")).replaceAll("nameField", propsShared.getProperty("nameField")).replaceAll("selectLength", propsShared.getProperty("selectLength")).replaceAll("numResights", propsShared.getProperty("numResights")).replaceAll("vesselField", propsShared.getProperty("vesselField"))%>
+        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       </p>
 
-<% if (request.getParameter("debug") != null) { %>
-      <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
+      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
       </strong><br/>
         <%=queryResult.getJDOQLRepresentation()%>
       </p>
-<% } %>
 
     </td>
   </tr>

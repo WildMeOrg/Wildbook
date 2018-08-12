@@ -19,7 +19,9 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,8 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.*;
 
 //import com.poet.jdo.*;
 
@@ -55,39 +55,25 @@ public class EncounterSetMatchedBy extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    String langCodeDef = CommonConfiguration.getProperty("defaultLanguage", context);
-    if (langCodeDef == null)
-      langCodeDef = "en";
-    Properties props = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-    Properties propsDef = ShepherdProperties.getProperties("encounter.properties", langCodeDef, context);
-    Map<String, String> mapI18n = new HashMap<>();
-    for (String key : new String[]{"unmatchedFirstEncounter", "visualInspection", "patternMatch"})
-      mapI18n.put(propsDef.getProperty(key), props.getProperty(key));
 
+    //initialize shepherd
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetMatchedBy.class");
 
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
-
     //setup variables
     String encounterNumber = "None";
     String matchedBy = "Unknown", prevMatchedBy = "";
 
     myShepherd.beginDBTransaction();
+
+
     encounterNumber = request.getParameter("number");
     if (request.getParameter("matchedBy") != null) matchedBy = request.getParameter("matchedBy");
     if ((myShepherd.isEncounter(encounterNumber)) && (request.getParameter("number") != null)) {
@@ -113,22 +99,40 @@ public class EncounterSetMatchedBy extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         //myShepherd.closeDBTransaction();
-        actionResult.setMessageOverrideKey("matchedBy").setMessageParams(encounterNumber, mapI18n.get(matchedBy), mapI18n.get(prevMatchedBy));
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
+        out.println("<strong>Success!</strong> I have successfully changed the matched by type for encounter " + encounterNumber + " from " + prevMatchedBy + " to " + matchedBy + ".</p>");
 
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
         String message = "The matched by type for encounter " + encounterNumber + " was changed from " + prevMatchedBy + " to " + matchedBy + ".";
         ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
-      } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+      } 
+      else {
+
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to remove this data file again.");
+
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
+
       }
-    } else {
-      actionResult.setSucceeded(false);
+    } 
+    else {
+
+      //out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      out.println("<strong>Error:</strong> I was unable to set the matched by type. I cannot find the marked individual that you intended it for in the database, or I wasn't sure what file you wanted to remove.");
+      //out.println(ServletUtilities.getFooter(context));
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
+
     myShepherd.closeDBTransaction();
   }
+
+
 }
+	
+	

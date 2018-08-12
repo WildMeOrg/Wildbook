@@ -1,15 +1,22 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.text.DecimalFormat" %>
-<%@ page import="java.util.*" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.genetics.distance.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.*, org.ecocean.genetics.distance.*,java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
-<%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties props = ShepherdProperties.getProperties("individualDistanceSearchResults.properties", langCode, context);
-  Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
+
+
+  <%
+
+  String context="context0";
+  context=ServletUtilities.getContext(request);
+    //let's load out properties
+    Properties props = new Properties();
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
+    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualDistanceSearchResults.properties"));
+    props = ShepherdProperties.getProperties("individualDistanceSearchResults.properties", langCode,context);
+
+
+
 
 
     int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
@@ -32,6 +39,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("individualDistanceSearchResults.jsp");
 
 
 
@@ -81,7 +89,7 @@
     }
     	   
     
-    ArrayList<String> loci=myShepherd.getAllLoci();
+    List<String> loci=myShepherd.getAllLoci();
     int numLoci=loci.size();
     String[] theLoci=new String[numLoci];
     for(int q=0;q<numLoci;q++){
@@ -306,20 +314,18 @@ myShepherd=null;
   <tr>
     <td align="left">
 
-      <p><strong><%=propsShared.getProperty("queryDetails")%>
+      <p><strong><%=props.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=propsShared.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", propsShared.getProperty("location")).replaceAll("locationCodeField", propsShared.getProperty("locationID")).replaceAll("verbatimEventDateField", propsShared.getProperty("verbatimEventDate")).replaceAll("Sex", propsShared.getProperty("sex")).replaceAll("Keywords", propsShared.getProperty("keywords")).replaceAll("alternateIDField", (propsShared.getProperty("alternateID"))).replaceAll("alternateIDField", (propsShared.getProperty("size")))%>
+        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
       </p>
 
-<% if (request.getParameter("debug") != null) { %>
-      <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
+      <p class="caption"><strong><%=props.getProperty("jdoql")%>
       </strong><br/>
         <%=result.getJDOQLRepresentation()%>
       </p>
-<% } %>
 
     </td>
   </tr>

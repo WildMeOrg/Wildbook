@@ -40,6 +40,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSearchExportExcelFile.class");
     
 
     
@@ -297,8 +298,8 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               Label lNumberx27 = new Label(27, count, enc.getSizeAsDouble().toString());
               sheet.addCell(lNumberx27);
             }
-            if (!enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
-              Label lNumberx28 = new Label(28, count, enc.isAssignedToMarkedIndividual());
+            if (enc.getIndividualID()!=null) {
+              Label lNumberx28 = new Label(28, count, enc.getIndividualID());
               sheet.addCell(lNumberx28);
             }
             if (enc.getLocationCode() != null) {

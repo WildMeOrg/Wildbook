@@ -84,7 +84,7 @@
   Shepherd myShepherd = new Shepherd(context);
 
 
-	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 
   myShepherd.beginDBTransaction();
@@ -125,7 +125,7 @@ if(sharky.getAlternateID()!=null){
         henc.put("thumbUrl", imgName);
 	henc.put("date", enc.getDate());
     	henc.put("location", enc.getLocation());
-	if ((enc.getImages()!=null) && (enc.getImages().size()>0)) henc.put("hasImages", true);
+	if ((enc.getMedia()!=null) && (enc.getMedia().size()>0)) henc.put("hasImages", true);
    	if ((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)) henc.put("hasTissueSamples", true);
    	if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
 	henc.put("catalogNumber", enc.getEncounterNumber());
@@ -159,5 +159,9 @@ System.out.println(henc);
 	}
 } catch(Exception e){
 }
+  finally{
+	  myShepherd.rollbackDBTransaction();
+	  myShepherd.closeDBTransaction();
+  }
 
 %>

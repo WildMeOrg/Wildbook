@@ -20,7 +20,6 @@
 package org.ecocean.servlet;
 
 
-import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -33,10 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
+import java.util.List;
 
 
 public class EncounterSetState extends HttpServlet {
@@ -58,26 +54,17 @@ public class EncounterSetState extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    Map<String, String> mapI18n = CommonConfiguration.getI18nPropertiesMap("encounterState", langCode, context, false);
-
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetState.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
     boolean isOwner = true;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
+ 
 
     if ((request.getParameter("number") != null)&&(request.getParameter("state") != null)) {
       myShepherd.beginDBTransaction();
@@ -103,22 +90,33 @@ public class EncounterSetState extends HttpServlet {
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        actionResult.setMessageOverrideKey("encounterState").setMessageParams(request.getParameter("number"), mapI18n.get(state), mapI18n.get(oldScar));
-
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success:</strong> Encounter state has been updated from " + oldScar + " to " + state + ".");
+        response.setStatus(HttpServletResponse.SC_OK);
+        
         String message = "Encounter " + request.getParameter("number") + " state has been updated from " + oldScar + " to " + state + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+      } 
+      else {
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        out.println("<strong>Failure:</strong> Encounter state was NOT updated because another user is currently modifying this reconrd. Please try to reset the scarring again in a few seconds.");
+        
+
       }
-    } else {
-      actionResult.setSucceeded(false);
+    } 
+    else {
+     // out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+      
+
     }
 
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
 }
+  
+  

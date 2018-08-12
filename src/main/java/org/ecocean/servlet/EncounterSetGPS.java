@@ -24,14 +24,9 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Properties;
+import java.util.List;
 
 import org.ecocean.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 //Set alternateID for this encounter/sighting
@@ -54,25 +49,17 @@ public class EncounterSetGPS extends HttpServlet {
     
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("EncounterSetGPS.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked=false;
     boolean isOwner=true;
+   
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     //reset GPS coordinates
 
@@ -87,12 +74,13 @@ public class EncounterSetGPS extends HttpServlet {
           String oldGPS="";
           
           if((changeMe.getDecimalLatitude()==null)||(changeMe.getDecimalLongitude()==null)){
-            oldGPS = encprops.getProperty("noValue");
+            oldGPS="NO VALUE";
           }
           else{
-            oldGPS = String.format("(%s° %s, %s° %s)", changeMe.getDecimalLatitude(), encprops.getProperty("latitude"), changeMe.getDecimalLongitude(), encprops.getProperty("longitude"));
+            oldGPS="("+changeMe.getDecimalLatitude()+" latitude, "+changeMe.getDecimalLongitude()+" longitude)";
+            
           }
-          String newGPS = String.format("(%s° %s, %s° %s)", lat, encprops.getProperty("latitude"), longitude, encprops.getProperty("longitude"));
+          String newGPS="("+lat+" latitude, "+longitude+" longitude)";
           
           try{
           
@@ -126,7 +114,7 @@ public class EncounterSetGPS extends HttpServlet {
 
               //changeMe.setDWCDecimalLatitude(-9999.0);
               //changeMe.setDWCDecimalLongitude(-9999.0);
-              newGPS = encprops.getProperty("noValue");
+              newGPS="NO VALUE";
               
             }
             changeMe.addComments("<p><em>"+request.getRemoteUser()+" on "+(new java.util.Date()).toString()+"</em><br>Changed encounter GPS coordinates from "+oldGPS+" to "+newGPS+".</p>");
@@ -142,27 +130,41 @@ public class EncounterSetGPS extends HttpServlet {
           if(!locked){
           
             myShepherd.commitDBTransaction();
-            actionResult.setMessageOverrideKey("gps").setMessageParams(request.getParameter("number"), newGPS, oldGPS);
-
+            //out.println(ServletUtilities.getHeader(request));
+            out.println("<strong>Success:</strong> The encounter's recorded GPS location has been updated from "+oldGPS+" to "+newGPS+".");
+            //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
+            response.setStatus(HttpServletResponse.SC_OK);
+            
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+              //  out.println(ServletUtilities.getFooter(context));
             String message="The recorded GPS location for encounter #"+request.getParameter("number")+" has been updated from "+oldGPS+" to "+newGPS+".";
             ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-          }
-          else {
-            actionResult.setSucceeded(false).setMessageOverrideKey("locked");
-          }
-
-        }
+            }
+          else{
+            
+            //out.println(ServletUtilities.getHeader(request));
+            out.println("<strong>Failure:</strong> Encounter GPS location was NOT updated. An error was encountered. Please try this operation again in a few seconds. If this condition persists, contact the webmaster.");
+            //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            
+            
+            }
+          
+        }   
           
         else {
-          actionResult.setSucceeded(false);
-        }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
-    out.close();
-    myShepherd.closeDBTransaction();
-  }
+          ///out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+          //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
+         out.println(ServletUtilities.getFooter(context));  
+            
+          }
+        
+        
+//end GPS reset
+      out.close();
+      myShepherd.closeDBTransaction();
+      }
 }
 	

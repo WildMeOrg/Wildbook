@@ -19,7 +19,6 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -32,8 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 
 public class EncounterSetInformOthers extends HttpServlet {
@@ -49,25 +46,18 @@ public class EncounterSetInformOthers extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetInformOthers.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("encounter"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("encounter"));
-
     String sharky = "None";
+
+
     sharky = request.getParameter("encounter");
     String informers = "";
     myShepherd.beginDBTransaction();
@@ -85,20 +75,37 @@ public class EncounterSetInformOthers extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        actionResult.setMessageOverrideKey("informOthers").setMessageParams(request.getParameter("encounter"), informers);
-      } else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success!</strong> I have successfully changed the others to inform for encounter " + sharky + " to " + informers + ".</p>");
+        response.setStatus(HttpServletResponse.SC_OK);
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
+        String message = "The others to inform for encounter " + sharky + " was set to " + informers + ".";
+      } 
+      else {
+
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to modify this encounter again.");
+
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
-      actionResult.setSucceeded(false);
+      //out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to set the others to inform. I cannot find the encounter that you intended in the database.");
+      //out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
     myShepherd.closeDBTransaction();
   }
+
+
 }
+	
+	

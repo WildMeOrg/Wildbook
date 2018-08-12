@@ -19,7 +19,9 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,11 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.List;
 
 
 public class EncounterSetSex extends HttpServlet {
@@ -54,26 +52,15 @@ public class EncounterSetSex extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-    Map<String, String> mapI18n = CommonConfiguration.getI18nPropertiesMap("sex", langCode, context, false);
-
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetSex.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false, isOwner = true;
     boolean isAssigned = false;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     /**
      if(request.getParameter("number")!=null){
@@ -132,30 +119,49 @@ public class EncounterSetSex extends HttpServlet {
 
           if (!locked) {
             myShepherd.commitDBTransaction(action);
-            actionResult.setMessageOverrideKey("sex").setMessageParams(request.getParameter("number"), mapI18n.get(request.getParameter("selectSex")), mapI18n.get(oldSex));
-
+            //out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_OK);
+            out.println("<strong>Success:</strong> encounter sex has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".");
             String message = "The sex for encounter #" + request.getParameter("number") + "has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".";
             ServletUtilities.informInterestedParties(request, request.getParameter("number"),message,context);
-          } else {
-            actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+          } 
+          else {
+            //out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.println("<strong>Failure:</strong> Encounter sex was NOT updated because another user is currently modifying the record for this encounter.");
+            
           }
-        } else {
-          actionResult.setSucceeded(false);
+        } 
+        else {
+          //out.println(ServletUtilities.getHeader(request));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+          out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+         
+          //out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+          //out.println(ServletUtilities.getFooter(context));
+
         }
 
-      } else {
-        actionResult.setSucceeded(false);
+      } 
+      else {
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        out.println("<p>I didn't understand your command, or you are not authorized for this action.</p>");
+        //out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
+        //out.println(ServletUtilities.getFooter(context));
       }
 
-    } else {
-      actionResult.setSucceeded(false);
+    } 
+    else {
+      //out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      out.println("<p>I did not receive enough data to process your command. No action was indicated to me.</p>");
+      //out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
+      //out.println(ServletUtilities.getFooter(context));
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
+
 }

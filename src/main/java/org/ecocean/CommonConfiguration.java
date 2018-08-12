@@ -38,29 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 public class CommonConfiguration {
   
   private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
-  /**
-   * List of properties keys for which lookup is i18nized, and are looked up from the default-language version of
-   * <em>commonCoreInternational.properties</em>.
-   */
-  private static final List<String> I18N = Arrays.asList(
-          "locationID",
-          "country",
-          "sex",
-          "livingStatus",
-          "lifeStage",
-          "patterningCode",
-          "measurement",
-          "measurementUnits",
-          "samplingProtocol",
-          "metalTagLocation",
-          "encounterState",
-          "tissueType",
-          "biologicalMeasurementUnits",
-          "biologicalMeasurementSamplingProtocols",
-          "relationshipType",
-          "relationshipRole",
-          "preservationMethod"
-  );
+  
   //class setup
   //private static Properties props = new Properties();
   
@@ -137,7 +115,8 @@ public class CommonConfiguration {
 
   //start getter methods
   public static String getURLLocation(HttpServletRequest request) {
-    return request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+    int port = request.getServerPort();
+    return request.getServerName() + (((port == 80)||(port == 443)) ? "" : ":" + port) + request.getContextPath();
   }
 
 
@@ -169,7 +148,7 @@ public class CommonConfiguration {
     return getServerURI(req, contextPath).toASCIIString();
   }
 
-  
+
   public static String getMailHost(String context) {
     String s = getProperty("mailHost", context);
     return s != null ? s.trim() : s;
@@ -213,6 +192,15 @@ public class CommonConfiguration {
   public static String getSizelim(String context) {
     return getProperty("sizelim",context).trim();
   }
+
+    public static String getUploadTmpDir(String context) {
+        String dir = getProperty("uploadTmpDir", context);
+        if (dir == null) {
+            dir = System.getProperty("java.io.tmpdir");
+            System.out.println("WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir + " as default; this may introduce insecurities.");
+        }
+        return dir.trim();
+    }
 
   public static String getMaxTriangleRotation(String context) {
     return getProperty("maxTriangleRotation",context).trim();
@@ -302,27 +290,22 @@ public class CommonConfiguration {
     return initialize(context).propertyNames();
   }
 
-  /**
-   * @deprecated replaced by {@link #getIndexedValues(String, String)}
-   */
-  @Deprecated
   public static ArrayList<String> getSequentialPropertyValues(String propertyPrefix, String context){
     Properties myProps=initialize(context);
     //System.out.println(myProps.toString());
     ArrayList<String> returnThese=new ArrayList<String>();
-    
+
     //System.out.println("Looking for: "+propertyPrefix);
-    
+
     int iter=0;
     while(myProps.getProperty(propertyPrefix+iter)!=null){
       //System.out.println("Found: "+propertyPrefix+iter);
       returnThese.add(myProps.getProperty((propertyPrefix+iter)));
       iter++;
     }
-    
+
     return returnThese;
   }
-  
 
   /*
    * This method is used to determined the show/hide condition of an element of the UI.
@@ -351,8 +334,8 @@ public class CommonConfiguration {
     }
     return canAdopt;
   }
-  
-  
+
+
   /**
    * This configuration option defines whether batch upload of {@link MarkedIndividual} or {@link Encounter} objects are allowed.
    *
@@ -363,7 +346,7 @@ public class CommonConfiguration {
   }
 
 
-  
+
   /**
    * Helper method to parse boolean from string.
    * @param s string to parse
@@ -414,7 +397,7 @@ public class CommonConfiguration {
   }
 
 
-  
+
 
   public static boolean sendEmailNotifications(String context) {
     initialize(context);
@@ -524,31 +507,13 @@ public class CommonConfiguration {
     return originalString;
   }
 
-  /**
-   * Create/returns a map of sequential indexed [key => value] pairs for the specified base key.
-   * This is useful for referencing multi-value resources.
-   * <p>For example, if the following resources are defined:
-   * <pre>
-   * livingStatus0=alive
-   * livingStatus1=dead
-   * </pre>
-   * then a call to {@code getIndexedValuesMap("livingStatus", "context0")} would return a map containing:
-   * <ul>
-   * <li>livingStatus0 => alive</li>
-   * <li>livingStatus1 => dead</li>
-   * </ul>
-   * @param baseKey prefix (without index) of key for lookup
-   * @param context webapp context
-   * @return map of key/value pairs
-   */
   public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
-    Properties props = initialize(context);
-    Map<String, String> map = new LinkedHashMap<>();
+    Map<String, String> map = new TreeMap<>();
     boolean hasMore = true;
     int index = 0;
     while (hasMore) {
       String key = baseKey + index++;
-      String value = props.getProperty(key);
+      String value = CommonConfiguration.getProperty(key, context);
       if (value != null) {
         value = value.trim();
         if (value.length() > 0) {
@@ -562,83 +527,37 @@ public class CommonConfiguration {
     return map;
   }
 
-  /**
-   * Returns a list of sequential indexed values for the specified base key.
-   * This is useful for referencing multi-value resources.
-   * <p>For example, if the following resources are defined:
-   * <pre>
-   * livingStatus0=alive
-   * livingStatus1=dead
-   * </pre>
-   * then a call to {@code getIndexedValues("livingStatus", "context0")} would return a list containing:
-   * <ul>
-   * <li>alive</li>
-   * <li>dead</li>
-   * </ul>
-   * @param baseKey prefix (without index) of key for lookup
-   * @param context webapp context
-   * @return map of key/value pairs
-   */
-  public static List<String> getIndexedValues(String baseKey, String context) {
-    return new ArrayList<>(getIndexedValuesMap(baseKey, context).values());
-  }
-
-  /**
-   * Gets a map of all default-language to i18nized resources known by the specified key prefix.
-   * For example, calling: {@code getI18nPropertiesMap("livingStatus", "es", false)} might return a map containing:
-   * <ul>
-   * <li>alive => vivo</li>
-   * <li>dead => muerto</li>
-   * </ul>
-   * and calling: {@code getI18nPropertiesMap("livingStatus", "es", true)} would return:
-   * <ul>
-   * <li>vivo => alive</li>
-   * <li>muerto => dead</li>
-   * </ul>
-   * @param baseKey prefix of indexed keys
-   * @param langCode language code
-   * @param context webapp context
-   * @param inverse whether to generate reverse map (i18n-to-default; otherwise default-to-i18n)
-   * @return map of default-to-i18n resources
-   */
-  public static Map<String, String> getI18nPropertiesMap(String baseKey, String langCode, String context, boolean inverse) {
-    // Check for i18n properties, and delegate out if needed.
-    if (!I18N.contains(baseKey)) {
-      throw new IllegalArgumentException(String.format("%s is not a i18n resource key prefix", baseKey));
-    }
-    String defLang = getProperty("defaultLanguage", context);
-    if (defLang == null || "".equals(defLang))
-      defLang = "en";
-    Properties propsDef = ShepherdProperties.getProperties("commonCoreInternational.properties", defLang, context);
-    Properties props = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
-    Map<String, String> map = new LinkedHashMap<>();
+  public static List<String> getIndexedPropertyValues(String baseKey, String context) {
+    List<String> list = new ArrayList<String>();
     boolean hasMore = true;
     int index = 0;
     while (hasMore) {
       String key = baseKey + index++;
-      String valueDef = propsDef.getProperty(key);
-      String value = props.getProperty(key);
-      if (valueDef != null && value != null) {
-        if (inverse)
-          map.put(value, valueDef);
-        else
-          map.put(valueDef, value);
+      String value = CommonConfiguration.getProperty(key, context);
+      if (value != null) {
+        value = value.trim();
+        if (value.length() > 0) {
+          list.add(value.trim());
+        }
       }
       else {
         hasMore = false;
       }
     }
-    return map;
+    return list;
   }
-
+  
   public static Integer getIndexNumberForValue(String baseKey, String checkValue, String context){
+    System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
     boolean hasMore = true;
     int index = 0;
     while (hasMore) {
       String key = baseKey + index;
       String value = CommonConfiguration.getProperty(key, context);
+      System.out.println("     key "+key+" and value "+value);
       if (value != null) {
         value = value.trim();
+        System.out.println("CommonConfiguration: "+value);
         if(value.equals(checkValue)){return (new Integer(index));}
       }
       else {
@@ -683,7 +602,7 @@ public class CommonConfiguration {
     }
     return showUsersToPublic;
   }
-  
+
   /**
    * Gets the directory for holding website data ('shepherd_data_dir').
    * @param sc ServletContext as reference for finding directory
@@ -730,8 +649,8 @@ public class CommonConfiguration {
       throw new FileNotFoundException("Unable to find/create folder: " + f.getAbsolutePath());
     return f;
   }
-  
-  
+
+
   public static boolean isIntegratedWithWildMe(String context){
     
     initialize(context);
@@ -741,6 +660,16 @@ public class CommonConfiguration {
     }
     return integrated;
   }
-  
-  
+
+
+  // This can/should be ever-expanded with different conditions;
+  // This function is called to determine if StartupWildbook.initializeWildbook() should be called
+  public static boolean isWildbookInitialized(Shepherd myShepherd) {
+    List<User> users = myShepherd.getAllUsers();
+    if (users.size() == 0) return false;
+
+    return true;
+  }
+
+
 }

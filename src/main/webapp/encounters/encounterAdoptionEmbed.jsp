@@ -1,3 +1,6 @@
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList,java.util.List" %>
+
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
@@ -16,22 +19,17 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ page import="org.ecocean.Adoption" %>
-<%@ page import="org.ecocean.CommonConfiguration" %>
-<%@ page import="org.ecocean.Shepherd" %>
-<%@ page import="org.ecocean.ShepherdProperties" %>
-<%@ page import="java.util.*" %>
-<%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 
+<%
+String context="context0";
+context=ServletUtilities.getContext(request);
   Shepherd adoptShepherd = new Shepherd(context);
+  adoptShepherd.setAction("encounterAdoptionEmbed.jsp");
   String num = request.getParameter("encounterNumber");
 
   try {
+
+
 %>
   <style type="text/css">
 <!--
@@ -89,15 +87,16 @@ div.scroll {
 -->
 </style>
 <hr width="100%"/>
-  <h2><%=encprops.getProperty("adoption.section.title")%></h2>
+  <h2>Adopters</strong></h2>
 
 
 <%
-  ArrayList adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
-  int numAdoptions = adoptions.size();
-if(numAdoptions>0){
-  for (int ia = 0; ia < numAdoptions; ia++) {
-    Adoption ad = (Adoption) adoptions.get(ia);
+	adoptShepherd.beginDBTransaction();
+  	List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
+  	int numAdoptions = adoptions.size();
+	if(numAdoptions>0){
+  		for (int ia = 0; ia < numAdoptions; ia++) {
+    		Adoption ad = adoptions.get(ia);
 %>
 <table class="adopter" width="250px">
   <%
@@ -126,7 +125,9 @@ if(numAdoptions>0){
   %>
 
   <tr>
-    <td><%=encprops.getProperty("adoption.quote")%></td>
+    <td>Why are research and conservation important for this
+      species?
+    </td>
   </tr>
   <tr>
     <td width="250px"><em>"<%=ad.getAdopterQuote()%>"</em></td>
@@ -141,22 +142,24 @@ if(numAdoptions>0){
     <td>&nbsp;</td>
   </tr>
   <tr>
-    <td><em><%=encprops.getProperty("adoption.type")%>:</em><br><%=ad.getAdoptionType()%>
+    <td><em>Adoption type:</em><br><%=ad.getAdoptionType()%>
     </td>
   </tr>
   <tr>
-    <td><em><%=encprops.getProperty("adoption.startDate")%>:</em><br><%=ad.getAdoptionStartDate()%>
+    <td><em>Adoption start:</em><br><%=ad.getAdoptionStartDate()%>
     </td>
   </tr>
   <tr>
-    <td><em><%=encprops.getProperty("adoption.endDate")%>:</em><br><%=ad.getAdoptionEndDate()%>
+    <td><em>Adoption end:</em><br><%=ad.getAdoptionEndDate()%>
     </td>
   </tr>
   <tr>
     <td>&nbsp;</td>
   </tr>
   <tr>
-    <td align="left"><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[<%=encprops.getProperty("adoption.edit")%>]</a></td>
+    <td align="left"><a
+      href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
+      this adoption]</a></td>
   </tr>
   <tr>
     <td>&nbsp;</td>
@@ -171,21 +174,27 @@ if(numAdoptions>0){
   }
   else {
 	%>
-	<p><%=encprops.getProperty("adoption.none")%></p>
+	<p>No adoptions defined.</p>  
 <%	  
   }
+
+
 
   //add adoption
   if (request.getUserPrincipal()!=null) {
 %>
-<p><a href="../adoptions/adoption.jsp?encounter=<%=num%>#create">[+] <%=encprops.getProperty("adoption.add")%></a></p>
+<p><a
+  href="../adoptions/adoption.jsp?encounter=<%=num%>#create">[+]
+  Add adoption</a></p>
 <%
   }
 %>
 
 
 <%
-  } catch (Exception e) {
+  } 
+  catch (Exception e) {
+	e.printStackTrace();  
   }
   adoptShepherd.rollbackDBTransaction();
   adoptShepherd.closeDBTransaction();

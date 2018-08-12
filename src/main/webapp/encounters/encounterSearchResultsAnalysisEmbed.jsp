@@ -19,34 +19,44 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.*" %>
-<%@ page import="javax.jdo.Query" %>
-<%@ page import="org.apache.commons.math.stat.descriptive.SummaryStatistics" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ page import="org.ecocean.Util.MeasurementDesc" %>
-<%@ page import="java.text.MessageFormat" %>
-<%@ page import="java.text.NumberFormat" %>
-<%
+
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration" %>
+
+
+  <%
   //System.out.println("jdoQLstring is: "+request.getParameter("jdoqlString"));
+  String context="context0";
+  context=ServletUtilities.getContext(request);
+  
+  DecimalFormat df = new DecimalFormat("#.##");
 
-	String context = ServletUtilities.getContext(request);
-	String langCode = ServletUtilities.getLanguageCode(request);
-	Locale locale = new Locale(langCode);
-	NumberFormat df = NumberFormat.getInstance(locale);
-	df.setMaximumFractionDigits(2);
-
-	Properties props = ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
-	Properties propsAnalysisShared = ShepherdProperties.getProperties("searchResultsAnalysis_shared.properties", langCode, context);
-	Properties haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "", context);
-	Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+    //let's load encounterSearch.properties
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
     
-	Shepherd myShepherd = new Shepherd(context);
+    Properties encprops = new Properties();
+    //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
+    encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
+    
+    
+    Properties haploprops = new Properties();
+    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
 
+		Properties collabProps = new Properties();
+ 		collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+    
+    //get our Shepherd
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("encounterSearchResultsAnalysisEmbed.jsp");
+
+
+    
  	//prep for measurements summary
- 	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs(langCode, context);
+ 	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en",context);
  	int numMeasurementTypes=measurementTypes.size();
  	SummaryStatistics[] measurementValues=new SummaryStatistics[numMeasurementTypes];
  	SummaryStatistics[] measurementValuesMales=new SummaryStatistics[numMeasurementTypes];
@@ -60,7 +70,7 @@
 
  	
  	//prep for biomeasurements summary
- 	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs(langCode, context);
+ 	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
  	int numBioMeasurementTypes=bioMeasurementTypes.size();
  	SummaryStatistics[] bioMeasurementValues=new SummaryStatistics[numBioMeasurementTypes];
  	SummaryStatistics[] bioMeasurementValuesMales=new SummaryStatistics[numBioMeasurementTypes];
@@ -87,6 +97,7 @@
     //rEncounters = queryResult.getResult();
 
     Query acceptedEncounters = myShepherd.getPM().newQuery(request.getParameter("jdoqlString"));
+    acceptedEncounters.setOrdering("dwcDateAddedLong ascending");
     Collection c = (Collection) (acceptedEncounters.execute());
     rEncounters=new Vector(c);
     acceptedEncounters.closeAll();
@@ -95,7 +106,7 @@
 		boolean accessible = (blocked.size() < 1);
 
     //let's prep the HashTable for the haplo pie chart
-    ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
+    List<String> allHaplos2=myShepherd.getAllHaplotypes(); 
     int numHaplos2 = allHaplos2.size();
     Hashtable<String,Integer> pieHashtable = new Hashtable<String,Integer>();
  	for(int gg=0;gg<numHaplos2;gg++){
@@ -110,7 +121,7 @@
  	sexHashtable.put("unknown", new Integer(0));
  	
  	//let's prep the HashTable for the species pie chart
- 	  ArrayList<String> allSpecies2=CommonConfiguration.getSequentialPropertyValues("genusSpecies",context); 
+ 	  List<String> allSpecies2=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context); 
  	  int numSpecies2 = allSpecies2.size();
  	  Hashtable<String,Integer> speciesHashtable = new Hashtable<String,Integer>();
  		for(int gg=0;gg<numSpecies2;gg++){
@@ -130,7 +141,7 @@
  		
  		
  		//let's prep the HashTable for the country pie chart
- 		  ArrayList<String> allCountries=myShepherd.getAllCountries(); 
+ 		  List<String> allCountries=myShepherd.getAllCountries(); 
  		  int numCountries= allCountries.size();
  		  Hashtable<String,Integer> countriesHashtable = new Hashtable<String,Integer>();
  			for(int gg=0;gg<numCountries;gg++){
@@ -142,7 +153,7 @@
  			}
  			
  	 		//let's prep the HashTable for the state pie chart
- 	 		  ArrayList<String> states=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+ 	 		  List<String> states=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
  	 		  int numStates= states.size();
  	 		  Hashtable<String,Integer> statesHashtable = new Hashtable<String,Integer>();
  	 			for(int gg=0;gg<numStates;gg++){
@@ -155,7 +166,7 @@
  			
  			
  	 		//let's prep the HashTable for the assigned users pie chart
- 	 		  ArrayList<User> allUsers=myShepherd.getAllUsers(); 
+ 	 		  List<User> allUsers=myShepherd.getAllUsers(); 
  	 		  int numUsers= allUsers.size();
  	 		  Hashtable<String,Integer> usersHashtable = new Hashtable<String,Integer>();
  	 			for(int gg=0;gg<numUsers;gg++){
@@ -199,7 +210,7 @@
 
  		 //calculate number photos collected
  		 if(thisEnc.getAdditionalImageNames()!=null){
- 		 	numPhotos=numPhotos+thisEnc.getAdditionalImageNames().size();
+ 		 	numPhotos=numPhotos+thisEnc.getAnnotations().size();
  		 }
  			
  		//calculate the number of submitter contributors
@@ -436,16 +447,16 @@
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
 <script type="text/javascript">
-      google.load("visualization", "1", {packages:["corechart"], language: '<%=langCode%>'});
-
+      google.load("visualization", "1", {packages:["corechart"]});
+      
       google.setOnLoadCallback(drawHaploChart);
       function drawHaploChart() {
         var data = new google.visualization.DataTable();
-        data.addColumn('string', '<%=propsAnalysisShared.getProperty("chart.haplo.dataName.haplotype")%>');
-        data.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.haplo.dataName.number")%>');
+        data.addColumn('string', '<%=encprops.getProperty("haplotype") %>');
+        data.addColumn('number', '<%=encprops.getProperty("numberRecorded") %>');
         data.addRows([
           <%
-          ArrayList<String> allHaplos=myShepherd.getAllHaplotypes(); 
+          List<String> allHaplos=myShepherd.getAllHaplotypes(); 
           int numHaplos = allHaplos.size();
           
 
@@ -466,12 +477,12 @@
 
         var options = {
           width: 450, height: 300,
-          title: '<%=propsAnalysisShared.getProperty("chart.haplo.title")%>',
+          title: '<%=encprops.getProperty("haplotypeChartTitle") %>',
           colors: [
                    <%
                    String haploColor="CC0000";
-                   if((propsAnalysisShared.getProperty("defaultMarkerColor")!=null)&&(!propsAnalysisShared.getProperty("defaultMarkerColor").trim().equals(""))){
-                	   haploColor=propsAnalysisShared.getProperty("defaultMarkerColor");
+                   if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   haploColor=encprops.getProperty("defaultMarkerColor");
                    }   
 
                    
@@ -481,7 +492,7 @@
                      	  haploColor = haploprops.getProperty(haplo);
                         }
 					%>
-					'#<%=haploColor%>',
+					'#<%=haploColor %>',
 					<%
                    }
                    %>
@@ -498,18 +509,21 @@
       google.setOnLoadCallback(drawStateChart);
       function drawStateChart() {
         var statesdata = new google.visualization.DataTable();
-        statesdata.addColumn('string', '<%=propsAnalysisShared.getProperty("chart.state.dataName.state")%>');
-        statesdata.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.state.dataName.number")%>');
+        statesdata.addColumn('string', '<%=encprops.getProperty("state") %>');
+        statesdata.addColumn('number', '<%=encprops.getProperty("number") %>');
         statesdata.addRows([
           <%
-          for (int hh = 0; hh < numStates; hh++) {
+         
+          
+          for(int hh=0;hh<numStates;hh++){
           %>
-          ['<%=propsAnalysisShared.getProperty("chart.state." + states.get(hh))%>', <%=statesHashtable.get(states.get(hh))%>]
-					<%
-					if (hh < (numStates - 1)) { %>
-					,
-					<%
-					}
+          ['<%=states.get(hh)%>',    <%=statesHashtable.get(states.get(hh))%>]
+		  <%
+		  if(hh<(numStates-1)){
+		  %>
+		  ,
+		  <%
+		  }
           }
 		  %>
           
@@ -517,7 +531,7 @@
 
         var stateoptions = {
           width: 450, height: 300,
-          title: '<%=propsAnalysisShared.getProperty("chart.state.title")%>',
+          title: '<%=encprops.getProperty("encounterStateTitle") %>',
 
         };
 
@@ -530,26 +544,26 @@
       google.setOnLoadCallback(drawSexChart);
       function drawSexChart() {
         var data = new google.visualization.DataTable();
-        data.addColumn('string', '<%=propsAnalysisShared.getProperty("chart.sex.dataName.sex")%>');
-        data.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.sex.dataName.number")%>');
+        data.addColumn('string', '<%=encprops.getProperty("sex") %>');
+        data.addColumn('number', '<%=encprops.getProperty("numberRecorded") %>');
         data.addRows([
 
-          ['<%=propsAnalysisShared.getProperty("chart.sex.male")%>',    <%=sexHashtable.get("male")%>],
-           ['<%=propsAnalysisShared.getProperty("chart.sex.female")%>',    <%=sexHashtable.get("female")%>],
-           ['<%=propsAnalysisShared.getProperty("chart.sex.unknown")%>',    <%=sexHashtable.get("unknown")%>]
+          ['<%=encprops.getProperty("male") %>',    <%=sexHashtable.get("male")%>],
+           ['<%=encprops.getProperty("female") %>',    <%=sexHashtable.get("female")%>],
+           ['<%=encprops.getProperty("unknown") %>',    <%=sexHashtable.get("unknown")%>]
           
         ]);
 
         <%
         haploColor="CC0000";
-        if((propsAnalysisShared.getProperty("defaultMarkerColor")!=null)&&(!propsAnalysisShared.getProperty("defaultMarkerColor").trim().equals(""))){
-     	   haploColor=propsAnalysisShared.getProperty("defaultMarkerColor");
+        if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+     	   haploColor=encprops.getProperty("defaultMarkerColor");
         }
         
         %>
         var options = {
           width: 450, height: 300,
-          title: '<%=propsAnalysisShared.getProperty("chart.sex.title")%>',
+          title: '<%=encprops.getProperty("sexChartTitle") %>',
           colors: ['#0000FF','#FF00FF','<%=haploColor%>']
         };
 
@@ -560,11 +574,11 @@
       google.setOnLoadCallback(drawSpeciesChart);
       function drawSpeciesChart() {
         var speciesData = new google.visualization.DataTable();
-        speciesData.addColumn('string', '<%=propsAnalysisShared.getProperty("chart.species.dataName.species")%>');
-        speciesData.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.species.dataName.number")%>');
+        speciesData.addColumn('string', '<%=encprops.getProperty("species") %>');
+        speciesData.addColumn('number', '<%=encprops.getProperty("numberRecorded") %>');
         speciesData.addRows([
           <%
-          ArrayList<String> allSpecies=CommonConfiguration.getSequentialPropertyValues("genusSpecies",context); 
+          List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context); 
           int numSpecies = speciesHashtable.size();
           Enumeration<String> speciesKeys=speciesHashtable.keys();
 
@@ -585,7 +599,7 @@
         ]);
      var speciesOptions = {
           width: 450, height: 300,
-          title: '<%=propsAnalysisShared.getProperty("chart.species.title")%>',
+          title: '<%=encprops.getProperty("speciesChartTitle") %>',
           //colors: ['#0000FF','#FF00FF']
         };
       var speciesChart = new google.visualization.PieChart(document.getElementById('specieschart_div'));
@@ -597,11 +611,11 @@
        google.setOnLoadCallback(drawCountriesChart);
       function drawCountriesChart() {
         var countriesData = new google.visualization.DataTable();
-        countriesData.addColumn('string', '<%=propsAnalysisShared.getProperty("chart.country.dataName.country")%>');
-        countriesData.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.country.dataName.number")%>');
+        countriesData.addColumn('string', '<%=encprops.getProperty("country") %>');
+        countriesData.addColumn('number', '<%=encprops.getProperty("numberRecorded") %>');
         countriesData.addRows([
           <%
-          //ArrayList<String> allCountries=myShepherd.getAllCountries(); 
+          //List<String> allCountries=myShepherd.getAllCountries(); 
           //int numSpecies = speciesHashtable.size();
           Enumeration<String> countriesKeys=countriesHashtable.keys();
 
@@ -622,7 +636,7 @@
         ]);
      var countriesOptions = {
           width: 450, height: 300,
-          title: '<%=propsAnalysisShared.getProperty("chart.country.title")%>',
+          title: '<%=encprops.getProperty("countryChartTitle") %>',
           //colors: ['#0000FF','#FF00FF']
         };
       var countriesChart = new google.visualization.PieChart(document.getElementById('countrieschart_div'));
@@ -633,8 +647,8 @@
       google.setOnLoadCallback(drawUsersChart);
      function drawUsersChart() {
        var usersData = new google.visualization.DataTable();
-       usersData.addColumn('string', '<%=propsAnalysisShared.getProperty("chart.encPerUser.dataName.user")%>');
-       usersData.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.encPerUser.dataName.number")%>');
+       usersData.addColumn('string', '<%=encprops.getProperty("user") %>');
+       usersData.addColumn('number', '<%=encprops.getProperty("encountersAssigned") %>');
        usersData.addRows([
          <%
          Enumeration<String> usersKeys=usersHashtable.keys();
@@ -655,7 +669,7 @@
        ]);
     var usersOptions = {
          width: 450, height: 300,
-         title: '<%=propsAnalysisShared.getProperty("chart.encPerUser.title")%>',
+         title: '<%=encprops.getProperty("userEncountersTitle") %>',
          
        };
      var usersChart = new google.visualization.PieChart(document.getElementById('userschart_div'));
@@ -667,8 +681,8 @@
       google.setOnLoadCallback(drawDiscoveryCurve);
      function drawDiscoveryCurve() {
        var discoveryCurveData = new google.visualization.DataTable();
-       discoveryCurveData.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.discovery.dataName.enc")%>');
-       discoveryCurveData.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.discovery.dataName.ind")%>');
+       discoveryCurveData.addColumn('number', '<%=encprops.getProperty("numberEncounters") %>');
+       discoveryCurveData.addColumn('number', '<%=encprops.getProperty("numberIndividuals") %>');
        discoveryCurveData.addRows([
          <%
          Enumeration<Integer> discoveryKeys=discoveryCurveInflectionPoints.keys();
@@ -690,9 +704,9 @@
        ]);
     var discoveryCurveOptions = {
          width: 450, height: 300,
-         title: '<%=StringUtils.format(locale, propsAnalysisShared.getProperty("chart.discovery.title"), markedIndividuals.size())%>',
-         hAxis: {title: '<%=propsAnalysisShared.getProperty("chart.discovery.haxis.title")%>'},
-         vAxis: {title: '<%=propsAnalysisShared.getProperty("chart.discovery.vaxis.title")%>'},
+         title: '<%=encprops.getProperty("discoveryCurveTitle") %> (n=<%=markedIndividuals.size()%>)',
+         hAxis: {title: '<%=encprops.getProperty("discoveryEncounters") %>'},
+         vAxis: {title: '<%=encprops.getProperty("numberIndividuals") %>'},
          pointSize: 3,
        };
      var discoveryCurveChart = new google.visualization.ScatterChart(document.getElementById('discoveryCurve_div'));
@@ -703,8 +717,8 @@
      google.setOnLoadCallback(drawFrequencyChart);
     function drawFrequencyChart() {
       var frequencyData = new google.visualization.DataTable();
-      frequencyData.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.frequency.dataName.week")%>');
-      frequencyData.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.frequency.dataName.number")%>');
+      frequencyData.addColumn('number', '<%=encprops.getProperty("weekNumber") %>');
+      frequencyData.addColumn('number', '<%=encprops.getProperty("numberEncounters") %>');
       frequencyData.addRows([
         <%
         //Enumeration<Integer> discoveryKeys=discoveryCurveInflectionPoints.keys();
@@ -726,9 +740,9 @@
       ]);
    var frequencyChartOptions = {
         width: 450, height: 300,
-        title: '<%=propsAnalysisShared.getProperty("chart.frequency.title")%>',
-        hAxis: {title: '<%=propsAnalysisShared.getProperty("chart.frequency.haxis.title")%>'},
-        vAxis: {title: '<%=propsAnalysisShared.getProperty("chart.frequency.vaxis.title")%>'},
+        title: '<%=encprops.getProperty("weeklyTitle") %>',
+        hAxis: {title: '<%=encprops.getProperty("weekNumber") %>'},
+        vAxis: {title: '<%=encprops.getProperty("numberEncounters") %>'},
       };
     var frequencyChart = new google.visualization.ColumnChart(document.getElementById('frequency_div'));
     frequencyChart.draw(frequencyData, frequencyChartOptions);
@@ -741,8 +755,8 @@
     google.setOnLoadCallback(drawYearAddedChart);
    function drawYearAddedChart() {
      var yearAddedData = new google.visualization.DataTable();
-     yearAddedData.addColumn('string', '<%=propsAnalysisShared.getProperty("chart.yearAdded.dataName.year")%>');
-     yearAddedData.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.yearAdded.dataName.number")%>');
+     yearAddedData.addColumn('string', '<%=encprops.getProperty("weekNumber") %>');
+     yearAddedData.addColumn('number', '<%=encprops.getProperty("numberEncounters") %>');
      yearAddedData.addRows([
        <%
        
@@ -784,9 +798,9 @@
 
     var yearAddedChartOptions = {
        width: 450, height: 300,
-       title: '<%=propsAnalysisShared.getProperty("chart.yearAdded.title")%>',
-       hAxis: {title: '<%=propsAnalysisShared.getProperty("chart.yearAdded.haxis.title")%>'},
-       vAxis: {title: '<%=propsAnalysisShared.getProperty("chart.yearAdded.vaxis.title")%>'},
+       title: '<%=encprops.getProperty("encountersByYearTitle") %>',
+       hAxis: {title: '<%=encprops.getProperty("year") %>'},
+       vAxis: {title: '<%=encprops.getProperty("numberEncounters") %>'},
      };
    var yearAddedChart = new google.visualization.ColumnChart(document.getElementById('yearadded_div'));
    yearAddedChart.draw(yearAddedData, yearAddedChartOptions);
@@ -798,8 +812,8 @@
    google.setOnLoadCallback(drawYearTotalsChart);
   function drawYearTotalsChart() {
     var yearTotalsData = new google.visualization.DataTable();
-    yearTotalsData.addColumn('string', '<%=propsAnalysisShared.getProperty("chart.yearTotals.dataName.year")%>');
-    yearTotalsData.addColumn('number', '<%=propsAnalysisShared.getProperty("chart.yearTotals.dataName.number")%>');
+    yearTotalsData.addColumn('string', '<%=encprops.getProperty("year") %>');
+    yearTotalsData.addColumn('number', '<%=encprops.getProperty("numberEncounters") %>');
     yearTotalsData.addRows([
       <%
 
@@ -823,9 +837,9 @@
 
    var yearTotalsChartOptions = {
       width: 450, height: 300,
-      title: '<%=propsAnalysisShared.getProperty("chart.yearTotals.title")%>',
-      hAxis: {title: '<%=propsAnalysisShared.getProperty("chart.yearTotals.haxis.title")%>'},
-      vAxis: {title: '<%=propsAnalysisShared.getProperty("chart.yearTotals.vaxis.title")%>'},
+      title: '<%=encprops.getProperty("encounterTotalsTitle") %>',
+      hAxis: {title: '<%=encprops.getProperty("year") %>'},
+      vAxis: {title: '<%=encprops.getProperty("numberEncounters") %>'},
     };
   var yearTotalsChart = new google.visualization.ColumnChart(document.getElementById('yeartotals_div'));
   yearTotalsChart.draw(yearTotalsData, yearTotalsChartOptions);
@@ -839,91 +853,94 @@
 
  
 <% if (accessible) { %>
-
- <p><%=StringUtils.format(locale, propsAnalysisShared.getProperty("numberMatchingEncounters"), resultSize)%></p>
+<br>
+ <p><%=encprops.getProperty("numMatchingEncounters") %> <%=resultSize %></p>
  <ul>
-	<li><%=StringUtils.format(locale, propsAnalysisShared.getProperty("numberIdentified"), numIdentified)%></li>
-	<li><%=StringUtils.format(locale, propsAnalysisShared.getProperty("numberIndividualsRepresented"), markedIndividuals.size())%></li>
-	<li><%=StringUtils.format(locale, propsAnalysisShared.getProperty("numberPhotosCollected"), numPhotos)%></li>
-	<li><%=StringUtils.format(locale, propsAnalysisShared.getProperty("numberContributors"), numContributors)%></li>
+ 	<li><%=encprops.getProperty("numberIdentified") %> <%=numIdentified %></li>
+ 	<li><%=encprops.getProperty("numberMarkedIndividuals") %> <%=markedIndividuals.size() %></li>
+ 	<li><%=encprops.getProperty("numMediaAssets") %> <%=numPhotos %></li>
+ 	<li><%=encprops.getProperty("numContributors") %> <%=numContributors %></li>
  </ul>
 
-<p><strong><%=propsAnalysisShared.getProperty("section.measurements")%></strong></p>
+<p><strong><%=encprops.getProperty("measurements") %></strong></p>
 <%
- 		// Measurements
-		if (measurementTypes.size() > 0) {
-			for(int b = 0; b < numMeasurementTypes; b++) {
-				// If N > 0...
-				if (measurementValues[b].getN() > 0) {
-					String sd = MessageFormat.format(propsAnalysisShared.getProperty("standardDeviation"), df.format(measurementValues[b].getStandardDeviation()));
-					%>
-	<p><%=MessageFormat.format(propsAnalysisShared.getProperty("mean"), measurementTypes.get(b).getLabel(), df.format(measurementValues[b].getMean()), measurementTypes.get(b).getUnitsLabel(), sd, measurementValues[b].getN())%>:
-	<ul>
-		<%    if (measurementValuesMales[b].getN() > 0) { %>
-		<li><%=MessageFormat.format(propsAnalysisShared.getProperty("meanMales"), df.format(measurementValuesMales[b].getMean()), measurementTypes.get(b).getUnitsLabel(), MessageFormat.format(propsAnalysisShared.getProperty("standardDeviation"), df.format(measurementValuesMales[b].getStandardDeviation())), measurementValuesMales[b].getN())%></li>
-		<%    } %>
-		<%    if (measurementValuesFemales[b].getN() > 0) { %>
-		<li><%=MessageFormat.format(propsAnalysisShared.getProperty("meanFemales"), df.format(measurementValuesFemales[b].getMean()), measurementTypes.get(b).getUnitsLabel(), MessageFormat.format(propsAnalysisShared.getProperty("standardDeviation"), df.format(measurementValuesFemales[b].getStandardDeviation())), measurementValuesFemales[b].getN())%></li>
-		<%    } %>
-	</ul>
-					<%
-				}
-				// else if N = 0...
-				else {
+ 		//measurement
+		
+		if(measurementTypes.size()>0){
+			for(int b=0;b<numMeasurementTypes;b++){
+			%>
+				<p><%=encprops.getProperty("mean") %> <%= measurementTypes.get(b).getType()%> 
+				<% 
+				
+				//now report averages
+				if(measurementValues[b].getN()>0){
 				%>
-	<p><%=MessageFormat.format(propsAnalysisShared.getProperty("mean0"), measurementTypes.get(b).getLabel(), propsAnalysisShared.getProperty("noMeasurementValues"))%>
+				&nbsp;<%=df.format(measurementValues[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValues[b].getStandardDeviation()) %>) N=<%=measurementValues[b].getN() %><br />
+				<ul>
+					<li><%=encprops.getProperty("meanMales") %> <%=df.format(measurementValuesMales[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesMales[b].getStandardDeviation()) %>) N=<%=measurementValuesMales[b].getN() %></li>
+					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(measurementValuesFemales[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesFemales[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales[b].getN() %></li>
+				</ul>
 				<%
 				}
+				else{
+					%>
+					&nbsp;<%=encprops.getProperty("noMeasurement") %>
+					<%
+				}
+				
 				%>
 				</p>
 			<%
 			}
 		}
-		else {
+		else{
 			%>
-	<p><%=propsAnalysisShared.getProperty("noMeasurementTypes")%></p>
+			<p><%=encprops.getProperty("noMeasurementTypes") %></p>
 			<% 
 		}
 %>
-<p><strong><%=propsAnalysisShared.getProperty("section.bioChemMeasurements")%></strong></p>
+<p><strong><%=encprops.getProperty("biochemicalMeasurements") %></strong></p>
 <%
-		// Bio-measurements
-		if (bioMeasurementTypes.size() > 0) {
-			for(int b = 0; b < numMeasurementTypes; b++) {
-				// If N > 0...
-				if (bioMeasurementValues[b].getN() > 0) {
-					String sd = MessageFormat.format(propsAnalysisShared.getProperty("standardDeviation"), df.format(bioMeasurementValues[b].getStandardDeviation()));
-					%>
-	<p><%=MessageFormat.format(propsAnalysisShared.getProperty("mean"), bioMeasurementTypes.get(b).getType(), df.format(bioMeasurementValues[b].getMean()), bioMeasurementTypes.get(b).getUnitsLabel(), sd, bioMeasurementValues[b].getN())%>:
-	<ul>
-		<%    if (bioMeasurementValuesMales[b].getN() > 0) { %>
-		<li><%=MessageFormat.format(propsAnalysisShared.getProperty("meanMales"), df.format(bioMeasurementValuesMales[b].getMean()), bioMeasurementTypes.get(b).getUnitsLabel(), MessageFormat.format(propsAnalysisShared.getProperty("standardDeviation"), df.format(bioMeasurementValuesMales[b].getStandardDeviation())), bioMeasurementValuesMales[b].getN())%></li>
-		<%    } %>
-		<%    if (bioMeasurementValuesFemales[b].getN() > 0) { %>
-		<li><%=MessageFormat.format(propsAnalysisShared.getProperty("meanFemales"), df.format(bioMeasurementValuesFemales[b].getMean()), bioMeasurementTypes.get(b).getUnitsLabel(), MessageFormat.format(propsAnalysisShared.getProperty("standardDeviation"), df.format(bioMeasurementValuesFemales[b].getStandardDeviation())), bioMeasurementValuesFemales[b].getN())%></li>
-		<%    } %>
-	</ul>
+ 		//measurement
+		
+		if(bioMeasurementTypes.size()>0){
+			for(int b=0;b<numBioMeasurementTypes;b++){
+			%>
+				<p><%=encprops.getProperty("mean") %> <%= bioMeasurementTypes.get(b).getType()%> 
+				<% 
+				
+				//now report averages
+				if(bioMeasurementValues[b].getN()>0){
+				%>
+				&nbsp;<%=df.format(bioMeasurementValues[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValues[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues[b].getN() %><br />
+				<ul>
+					<li><%=encprops.getProperty("meanMales") %> <%=df.format(bioMeasurementValuesMales[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesMales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales[b].getN() %></li>
+					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(bioMeasurementValuesFemales[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesFemales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales[b].getN() %></li>
+					</ul>
 				<%
 				}
-				// else if N = 0...
-				else {
+				else{
 					%>
-	<p><%=MessageFormat.format(propsAnalysisShared.getProperty("mean0"), bioMeasurementTypes.get(b).getLabel(), propsAnalysisShared.getProperty("noMeasurementValues"))%></p>
+					&nbsp;<%=encprops.getProperty("noMeasurement") %>
 					<%
 				}
+				
+				%>
+				</p>
+			<%
 			}
 		}
-		else {
+		else{
 			%>
-	<p><%=propsAnalysisShared.getProperty("noMeasurementTypes")%></p>
-			<%
+			<p><%=encprops.getProperty("noMeasurementTypes") %></p>
+			<% 
 		}
 
 
-		try {
+     try {
  %>
  
-<p><strong><%=propsAnalysisShared.getProperty("section.charting")%></strong></p>
+<p><strong><%=encprops.getProperty("charts") %></strong></p>
 
  <div id="chart_div"></div>
 

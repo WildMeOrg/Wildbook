@@ -51,6 +51,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("ResurrectDeletedAdoption.class");
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -136,6 +137,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
       out.println(ServletUtilities.getFooter(context));
 
     }
+    myShepherd.closeDBTransaction();
     out.close();
   }
 

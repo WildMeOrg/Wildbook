@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 
@@ -51,6 +51,7 @@ public class RemoveEmailAddress extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("RemoveEmailAddress.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -60,7 +61,7 @@ public class RemoveEmailAddress extends HttpServlet {
 
       //String oldCode="";
       myShepherd.beginDBTransaction();
-      ArrayList<Encounter> al = myShepherd.getEncountersWithHashedEmailAddress(request.getParameter("hashedEmail"));
+      List<Encounter> al = myShepherd.getEncountersWithHashedEmailAddress(request.getParameter("hashedEmail"));
       int numMatchingEncounters = al.size();
       String removeMe = "";
       int numInstances = 0;

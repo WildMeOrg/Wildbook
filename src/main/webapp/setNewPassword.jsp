@@ -9,6 +9,7 @@
 	Properties props = ShepherdProperties.getProperties("users.properties", langCode, context);
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("setNewPassword.jsp");
   	
 
 //handle some cache-related security

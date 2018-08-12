@@ -19,19 +19,27 @@
 
 package org.ecocean.servlet;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.ecocean.*;
+
+import com.oreilly.servlet.multipart.FilePart;
+import com.oreilly.servlet.multipart.MultipartParser;
+import com.oreilly.servlet.multipart.ParamPart;
+import com.oreilly.servlet.multipart.Part;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+
+import java.util.Properties;
 
 
 public class UserCreate extends HttpServlet {
@@ -47,11 +55,10 @@ public class UserCreate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    request.setCharacterEncoding("UTF-8");
+    String context="context0";
+    //context=ServletUtilities.getContext(request);
     
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-
     //set up the user directory
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -64,23 +71,14 @@ public class UserCreate extends HttpServlet {
     //set up for response
     response.setContentType("text/html; charset=UTF-8");
     PrintWriter out = response.getWriter();
+    boolean createThisUser = false;
 
+    String addedRoles="";
     boolean isEdit=false;
     if(request.getParameter("isEdit")!=null){
       isEdit=true;
       //System.out.println("isEdit is TRUE in UserCreate!");
     }
-    boolean createThisUser = !isEdit;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/appadmin/users.jsp?context=%s", context);
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, createThisUser ? "createUser" : "editUser", true, link);
-    actionResult.setMessageParams(request.getParameter("username"));
 
     //create a new Role from an encounter
 
@@ -96,6 +94,7 @@ public class UserCreate extends HttpServlet {
       if((password.equals(password2))||(isEdit)){
         
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("UserCreate.class");
         
         User newUser=new User();
       
@@ -158,7 +157,7 @@ public class UserCreate extends HttpServlet {
         //now handle roles
         
         //if this is not a new user, we need to blow away all old roles
-        ArrayList<Role> preexistingRoles=new ArrayList<Role>();
+        List<Role> preexistingRoles=new ArrayList<Role>();
         if(!createThisUser){
           //get existing roles for this existing user
           preexistingRoles=myShepherd.getAllRolesForUser(username);
@@ -167,9 +166,8 @@ public class UserCreate extends HttpServlet {
         
         
         //start role processing
-
-        List<String> addedRoles = new ArrayList<>();
-        ArrayList<String> contexts=ContextConfiguration.getContextNames();
+        
+        List<String> contexts=ContextConfiguration.getContextNames();
         int numContexts=contexts.size();
         //System.out.println("numContexts is: "+numContexts);
         for(int d=0;d<numContexts;d++){
@@ -189,9 +187,11 @@ public class UserCreate extends HttpServlet {
               role.setUsername(username);
               role.setContext("context"+d);
               myShepherd.getPM().makePersistent(role);
-              addedRoles.add(ContextConfiguration.getNameForContext("context" + d) + ":" + roles[i]);
+              addedRoles+=("SEPARATORSTART"+ContextConfiguration.getNameForContext("context"+d)+":"+roles[i]+"SEPARATOREND");
+              //System.out.println(addedRoles);
               myShepherd.commitDBTransaction();
               myShepherd.beginDBTransaction();
+              //System.out.println("Creating role: context"+d+thisRole);
             }
           }
           }
@@ -199,26 +199,50 @@ public class UserCreate extends HttpServlet {
         }
         //end role processing
         
-        myShepherd.commitDBTransaction();
+        
+
+        myShepherd.commitDBTransaction();    
         myShepherd.closeDBTransaction();
         myShepherd=null;
-
-        actionResult.setCommentParams("<ul>" + StringUtils.collateStrings(addedRoles, "<li>", "</li>", null) + "</ul>");
        
+
+            //output success statement
+            out.println(ServletUtilities.getHeader(request));
+            if(createThisUser){
+              out.println("<strong>Success:</strong> User '" + StringEscapeUtils.escapeHtml4(username) + "' was successfully created with added roles: <ul>" + addedRoles.replaceAll("SEPARATORSTART", "<li>").replaceAll("SEPARATOREND", "</li>")+"</ul>");
+            }
+            else{
+              out.println("<strong>Success:</strong> User '" + StringEscapeUtils.escapeHtml4(username) + "' was successfully updated and has assigned roles: <ul>" + addedRoles.replaceAll("SEPARATORSTART", "<li>").replaceAll("SEPARATOREND", "</li>")+"</ul>");
+              
+            }
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
+            out.println(ServletUtilities.getFooter(context));
+            
     }
     else{
-        actionResult.setSucceeded(false);
-        actionResult.setMessageOverrideKey("noPasswordMatch");
+        //output failure statement
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure:</strong> User was NOT successfully created. Your passwords did not match.");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+        
       }
+      
+      
 }
 else{
-  actionResult.setSucceeded(false);
-  actionResult.setMessageOverrideKey("notEnoughInfo");
+  //output failure statement
+  out.println(ServletUtilities.getHeader(request));
+  out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
+  out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
+  out.println(ServletUtilities.getFooter(context));
+  
 }
 
-  // Reply to user.
-  request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-  getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+
+   
+
+
 
     out.close();
     

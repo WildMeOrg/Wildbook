@@ -149,6 +149,7 @@ public class ShareDst{
     //String individualNames[] = null;
     boolean namesPresent = true;
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("ShareDst.java");
     myShepherd.beginDBTransaction();
     try{
 	//numLoci = NIBnumLoci.posIntValue ();
