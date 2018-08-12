@@ -339,14 +339,14 @@ public class Encounter implements java.io.Serializable {
    *
    * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
    */
-  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
+  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location) {
     if (images != null) System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
     this.verbatimLocality = location;
-    this.recordedBy = submitterName;
-    this.submitterEmail = submitterEmail;
+    //this.recordedBy = submitterName;
+    //this.submitterEmail = submitterEmail;
 
     //now we need to set the hashed form of the email addresses
-    this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
+    //this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
 
     this.images = images;
     this.day = day;
@@ -644,7 +644,12 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setSubmitterName(String newname) {
-    recordedBy = newname;
+    if(newname==null) {
+      recordedBy=null;
+    }
+    else {
+      recordedBy = newname;
+    }
   }
 
   /**
@@ -657,8 +662,14 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setSubmitterEmail(String newemail) {
-    submitterEmail = newemail;
-    this.hashedSubmitterEmail = Encounter.getHashOfEmailString(newemail);
+    if(newemail==null) {
+      submitterEmail = null;
+      this.hashedSubmitterEmail = null;
+    }
+    else {
+      submitterEmail = newemail;
+      this.hashedSubmitterEmail = Encounter.getHashOfEmailString(newemail);
+    }
   }
 
   /**
@@ -674,7 +685,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the phone number of the person who submitted this encounter data.
    */
   public void setSubmitterPhone(String newphone) {
-    submitterPhone = newphone;
+    if(newphone==null) {
+      submitterPhone=null;
+    }
+    else{
+      submitterPhone = newphone;
+    }
   }
 
   /**
@@ -690,7 +706,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the mailing address of the person who submitted this encounter data.
    */
   public void setSubmitterAddress(String address) {
-    submitterAddress = address;
+    if(address==null) {
+      submitterAddress=null;
+    }
+    else {
+      submitterAddress = address;
+    }
   }
 
   /**
@@ -706,7 +727,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the name of the person who took the primaryImage this encounter.
    */
   public void setPhotographerName(String name) {
-    photographerName = name;
+    if(name==null) {
+      photographerName=null;
+    }
+    else {
+      photographerName = name;
+    }
   }
 
   /**
@@ -722,8 +748,14 @@ public class Encounter implements java.io.Serializable {
    * Sets the e-mail address of the person who took the primaryImage this encounter.
    */
   public void setPhotographerEmail(String email) {
-    photographerEmail = email;
-    this.hashedPhotographerEmail = Encounter.getHashOfEmailString(email);
+    if(email==null) {
+      photographerEmail = null;
+      this.hashedPhotographerEmail = null;
+    }
+    else {
+      photographerEmail = email;
+      this.hashedPhotographerEmail = Encounter.getHashOfEmailString(email);
+    }
   }
 
   /**
@@ -739,7 +771,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the phone number of the person who took the primaryImage this encounter.
    */
   public void setPhotographerPhone(String phone) {
-    photographerPhone = phone;
+    if(phone==null) {
+      photographerPhone=null;
+    }
+    else {
+      photographerPhone = phone;
+    }
   }
 
   /**
@@ -755,7 +792,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the mailing address of the person who took the primaryImage this encounter.
    */
   public void setPhotographerAddress(String address) {
-    photographerAddress = address;
+    if(address==null) {
+      photographerAddress=null;
+    }
+    else {
+      photographerAddress = address;
+    }
   }
 
   /**
@@ -3107,7 +3149,7 @@ throw new Exception();
 
     //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
     public Encounter cloneWithoutAnnotations() {
-        Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
+        Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
         enc.setGenus(this.getGenus());
         enc.setSpecificEpithet(this.getSpecificEpithet());
@@ -3258,12 +3300,12 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return submitters;
     }
     
-    public List<User> getPhotographer(){
+    public List<User> getPhotographers(){
       return photographers;
     }
     
     public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
-    public void setPhoographers(List<User> photographers) {this.photographers=photographers;}
+    public void setPhotographers(List<User> photographers) {this.photographers=photographers;}
     
     
 }

@@ -559,7 +559,7 @@ System.out.println("*** trying redirect?");
 
 System.out.println("about to do enc()");
 
-            Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
+            Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"));
             boolean llSet = false;
             //Encounter enc = new Encounter();
             //System.out.println("Submission detected date: "+enc.getDate());
@@ -612,7 +612,68 @@ System.out.println("enc ?= " + enc.toString());
             enc.setGenus(genus);
             enc.setSpecificEpithet(specificEpithet);
 
-
+            
+            //User management
+            String subN=getVal(fv, "submitterName");
+            String subE=getVal(fv, "submitterEmail");
+            String subO=getVal(fv, "submitterOrganization");
+            String subP=getVal(fv, "submitterProject");
+            //User user=null;
+            List<User> submitters=new ArrayList<User>();
+            if((subE!=null)&&(!subE.trim().equals(""))) {
+              
+              StringTokenizer str=new StringTokenizer(subE,",");
+              int numTokens=str.countTokens();
+              for(int y=0;y<numTokens;y++) {
+                String tok=str.nextToken();
+                if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
+                  User user=myShepherd.getUserByEmailAddress(subE.trim());
+                  submitters.add(user);
+                }
+                else {
+                  User user=new User(tok);
+                  user.setAffiliation(subO);
+                  user.setUserProject(subP);
+                  myShepherd.getPM().makePersistent(user);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  
+                  submitters.add(user);
+                }
+              }
+            }
+            enc.setSubmitters(submitters);
+            //end submitter-user processing
+            
+            //User management - photographer processing
+            String photoN=getVal(fv, "photographerName");
+            String photoE=getVal(fv, "photographerEmail");
+            List<User> photographers=new ArrayList<User>();
+            if((photoE!=null)&&(!photoE.trim().equals(""))) {
+              
+              StringTokenizer str=new StringTokenizer(photoE,",");
+              int numTokens=str.countTokens();
+              for(int y=0;y<numTokens;y++) {
+                String tok=str.nextToken();
+                if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
+                  User user=myShepherd.getUserByEmailAddress(photoE.trim());
+                  photographers.add(user);
+                }
+                else {
+                  User user=new User(tok);
+                  myShepherd.getPM().makePersistent(user);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  photographers.add(user);
+                }
+              }
+            }
+            enc.setPhotographers(photographers);
+            //end photographer-user processing
+            
+            
+            
+            
 /*
             String baseDir = ServletUtilities.dataDir(context, rootDir);
             ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
@@ -824,15 +885,14 @@ System.out.println("depth --> " + fv.get("depth").toString());
       }
 
       //enc.setMeasureUnits("Meters");
-      enc.setSubmitterPhone(getVal(fv, "submitterPhone"));
-      enc.setSubmitterAddress(getVal(fv, "submitterAddress"));
-      enc.setSubmitterOrganization(getVal(fv, "submitterOrganization"));
-      enc.setSubmitterProject(getVal(fv, "submitterProject"));
+     // enc.setSubmitterPhone(getVal(fv, "submitterPhone"));
+      //enc.setSubmitterAddress(getVal(fv, "submitterAddress"));
 
-      enc.setPhotographerPhone(getVal(fv, "photographerPhone"));
-      enc.setPhotographerAddress(getVal(fv, "photographerAddress"));
-      enc.setPhotographerName(getVal(fv, "photographerName"));
-      enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
+
+     // enc.setPhotographerPhone(getVal(fv, "photographerPhone"));
+     // enc.setPhotographerAddress(getVal(fv, "photographerAddress"));
+     // enc.setPhotographerName(getVal(fv, "photographerName"));
+     // enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
       enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + ServletUtilities.getRemoteHost(request) + "</p>");
       //enc.approved = false;
 
