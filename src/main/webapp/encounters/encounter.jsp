@@ -2057,144 +2057,107 @@ $(document).ready(function() {
 
 
 
-					<p class="para">
-						<em><%=encprops.getProperty("submitter")%></em>
+	      <p class="para"><em><%=encprops.getProperty("submitter") %></em>
+	      <%
+	       if(enc.getSubmitters()!=null){   
+	    	   List<User> submitters=enc.getSubmitters();
+	    	   int numSubmitters=submitters.size();
+			   for(int f=0;f<numSubmitters;f++){
+			    	   User user=submitters.get(f);
+			          if(user.getFullName()!=null){
+			            %>
+			            <br/><span id="displaySubmitName"><%=user.getFullName()%></span>
+			            <%
+			          }
+			          if (isOwner) {
+			
+					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+					              //break up the string
+					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
+	
+					                %>
+					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+					                <%
+					            }
+				                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){
+				                %>
+				                	<br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
+				                <%
+				                }
+				                if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
+				                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
+				                <%
+				                 }
+			
+			         } //end if isOwner
+			   	} //submitters for loop               	
+	 		} //end if submitters!=null
+			%>
+			</p> <!--  End submitters paragraph -->
+		
+	      <p class="para"><em><%=encprops.getProperty("photographer") %></em>
+	      <%
+	       if(enc.getPhotographers()!=null){   
+	    	   List<User> photographers=enc.getPhotographers();
+	    	   int numSubmitters=photographers.size();
+			   for(int f=0;f<numSubmitters;f++){
+			    	   User user=photographers.get(f);
+			          if(user.getFullName()!=null){
+			            %>
+			            <br/><span id="displaySubmitName"><%=user.getFullName()%></span>
+			            <%
+			          }
+			          if (isOwner) {
+			
+					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+					              //break up the string
+					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
+	
+					                %>
+					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+					                <%
+					            }
+				                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){
+				                %>
+				                	<br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
+				                <%
+				                }
+				                if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
+				                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
+				                <%
+				                 }
+			
+			         } //end if isOwner
+			   	} //photographers for loop               	
+	 		} //end if photographers!=null
+			%>
+			</p> <!--  End photographers paragraph -->
+		                   
+		                   
+		                   
+		                   
+		                   
+							<%
+		                    if(isOwner){
+		                    %>
+		
+		                                <p class="para">
+		                                  <em>
+		                                    <%=encprops.getProperty("inform_others") %>
+		                                  </em>
+		                 
+		                                    <br/>
+											Rewriting for Wildbook 7...
+		                                        </p>
+		
+		            
+		               		<%
+		                  	} //end if isOwner
+    	   		
 
-						<%
-							if (enc.getSubmitterName() != null) {
-						%>
-						<br />
-						<span id="displaySubmitName"><%=enc.getSubmitterName()%></span>
-						<%
-							}
-									if (isOwner) {
-
-										if ((enc.getSubmitterEmail() != null) && (!enc.getSubmitterEmail().equals(""))
-												&& (enc.getSubmitterEmail().indexOf(",") != -1)) {
-											//break up the string
-											StringTokenizer stzr = new StringTokenizer(enc.getSubmitterEmail(), ",");
-											while (stzr.hasMoreTokens()) {
-												String nextie = stzr.nextToken();
-						%>
-						<br />
-						<a
-							href="mailto:<%=nextie%>?subject=<%=encprops.getProperty("contactEmailMessageHeading")%><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle", context)%>"><%=nextie%></a>
-						<%
-							}
-
-										} else if ((enc.getSubmitterEmail() != null) && (!enc.getSubmitterEmail().equals(""))) {
-						%>
-						<br /> <a
-							href="mailto:<%=enc.getSubmitterEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading")%><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle", context)%>"><span
-							id="displaySubmitEmail"><%=enc.getSubmitterEmail()%></a></span>
-						<%
-							}
-
-										if ((enc.getSubmitterPhone() != null) && (!enc.getSubmitterPhone().equals(""))) {
-						%>
-						<br />
-						<span id="displaySubmitPhone"><%=enc.getSubmitterPhone()%></span>
-						<%
-							}
-										if ((enc.getSubmitterAddress() != null) && (!enc.getSubmitterAddress().equals(""))) {
-						%>
-						<br />
-						<span id="displaySubmitAddress"><%=enc.getSubmitterAddress()%></span>
-						<%
-							}
-
-										if ((enc.getSubmitterOrganization() != null) && (!enc.getSubmitterOrganization().equals(""))) {
-						%>
-						<br />
-						<span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
-						<%
-							}
-										if ((enc.getSubmitterProject() != null) && (!enc.getSubmitterProject().equals(""))) {
-						%>
-						<br />
-						<span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
-						<%
-							}
-
-									}
-						%>
-					</p>
-
-					<p class="para">
-						<em><%=encprops.getProperty("photographer")%></em>
-						<%
-							
-						%>
-
-						<%
-							if (enc.getPhotographerName() != null) {
-						%>
-						<br />
-						<span id="displayPhotoName"><%=enc.getPhotographerName()%></span>
-						<%
-							}
-
-									if (isOwner) {
-
-										if ((enc.getPhotographerEmail() != null) && (!enc.getPhotographerEmail().equals(""))) {
-						%>
-						<br />
-						<a
-							href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading")%><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle", context)%>"><span
-							id="displayPhotoEmail"><%=enc.getPhotographerEmail()%></span></a>
-						<%
-							}
-										if ((enc.getPhotographerPhone() != null) && (!enc.getPhotographerPhone().equals(""))) {
-						%>
-						<br />
-						<span id="displayPhotoPhone"><%=enc.getPhotographerPhone()%></span>
-						<%
-							}
-										if ((enc.getPhotographerAddress() != null) && (!enc.getPhotographerAddress().equals(""))) {
-						%>
-						<br />
-						<span id="displayPhotoAddress"><%=enc.getPhotographerAddress()%></span>
-						<%
-							}
-						%>
-						<%
-							}
-						%>
-					</p>
-
-					<%
-						if (isOwner) {
-					%>
-
-					<p class="para">
-						<em> <%=encprops.getProperty("inform_others")%>
-						</em>
-						<%
-							
-						%>
-
-                                <p class="para">
-                                  <em>
-                                    <%=encprops.getProperty("inform_others") %>
-                                  </em>
-                 
-                                    <br/>
-									Rewriting for Wildbook 7...
-                                        </p>
-                              
-
-          <!-- start submitter -->
-          
-
-
-
-            <!-- end submitter  -->
-
-
-            
-                <%
-                  }
-                  %>
+                  	%>
+                  
+                    <!-- end submitter  -->
         </div>
 <%-- END CONTACT INFORMATION --%>
 
