@@ -38,7 +38,9 @@ import java.util.GregorianCalendar;
 import java.lang.Math;
 import java.io.*;
 import java.lang.reflect.Field;
+
 import javax.jdo.Query;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +61,7 @@ import javax.servlet.http.HttpServletRequest;
 
 
 
+
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -68,6 +71,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 
 import javax.servlet.http.HttpServletRequest;
+
 
 //note these are different.  so be explicit if you need the org.json.JSONObject flavor
 //import org.json.JSONObject;
@@ -3300,8 +3304,36 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return submitters;
     }
     
+    public List<String> getSubmitterEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getSubmitters()!=null)subs.addAll(getSubmitters());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+          listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
     public List<User> getPhotographers(){
       return photographers;
+    }
+    
+    public List<String> getPhotographerEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getPhotographers()!=null)subs.addAll(getPhotographers());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+          listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
     }
     
     public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
