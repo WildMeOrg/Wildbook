@@ -49,6 +49,7 @@ import java.net.URL;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -703,6 +704,33 @@ private static String loadOverrideText(String shepherdDataDir, String fileName, 
   }
   return myText.toString();
 }
+
+  /**
+   * Returns the string URL for the specified Encounter.
+   * @param request servlet request
+   * @param context webapp context
+   * @param enc Encounter for which to create/return URL
+   * @return string representing URL to encounter
+   */
+  public static String getEncounterURL(HttpServletRequest request, String context, String enc) {
+    Objects.requireNonNull(request);
+    Objects.requireNonNull(context);
+    Objects.requireNonNull(enc);
+//    String sfEnc = request.getContextPath() + "/encounters/encounter.jsp?number=%s";
+    String sfEnc = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=%s";
+    return String.format(sfEnc, enc);
+  }
+
+  /**
+   * Returns the string URL for the specified Encounter.
+   * @param request servlet request
+   * @param context webapp context
+   * @param enc Encounter for which to create/return URL
+   * @return string representing URL to encounter
+   */
+  public static String getEncounterURL(HttpServletRequest request, String context, Encounter enc) {
+    return getEncounterURL(request, context, enc.getCatalogNumber());
+  }
 
 public static String handleNullString(Object obj){
   if(obj==null){return "";}
