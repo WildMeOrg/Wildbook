@@ -22,21 +22,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.*;
-import org.ecocean.mmutil.FileUtilities;
-import org.ecocean.mmutil.MMAResultsProcessor;
-import org.ecocean.mmutil.MantaMatcherUtilities;
-import org.ecocean.mmutil.MediaUtilities;
-import org.ecocean.mmutil.RegexFilenameFilter;
+import org.ecocean.mmutil.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +42,12 @@ public final class MantaMatcher extends DispatchServlet {
   private static final long serialVersionUID = 1L;
   /** SLF4J logger instance for writing log entries. */
   private static final Logger log = LoggerFactory.getLogger(MantaMatcher.class);
+  /** Parameter key for referencing MMA results data. */
+  public static final String PARAM_KEY_SPV = "spv";
+  /** Parameter key for referencing MMA results data. */
+  public static final String PARAM_KEY_SCANID = "scanid";
+  /** Request key for referencing MMA scan data. */
+  public static final String REQUEST_KEY_SCAN = "mma-scan";
   /** Request key for referencing MMA results data. */
   public static final String REQUEST_KEY_RESULTS = "mma-results";
   /** Path for referencing JSP page for error display. */
@@ -60,7 +59,7 @@ public final class MantaMatcher extends DispatchServlet {
   public void init() throws ServletException {
     super.init();
     try {
-      registerMethodGET("displayResults", "displayResultsRegional");
+      registerMethodGET("displayResults");
       registerMethodPOST("resetMmaCompatible", "deleteAllOrphanMatcherFiles");
     }
     catch (DelegateNotFoundException ex) {
@@ -70,7 +69,8 @@ public final class MantaMatcher extends DispatchServlet {
 
   @Override
   public String getServletInfo() {
-    return "MantaMatcherResults, Copyright 2014 Giles Winstanley / Wild Book / wildme.org";
+    int y = Calendar.getInstance().get(Calendar.YEAR);
+    return String.format("MantaMatcher, Copyright 2014-%d Giles Winstanley / Wild Book / wildme.org", y);
   }
 
   @Override
@@ -90,73 +90,36 @@ public final class MantaMatcher extends DispatchServlet {
   }
 
   public void displayResults(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-    
-    String context="context0";
-    context=ServletUtilities.getContext(req);
-    Shepherd shepherd = new Shepherd(context);
-    shepherd.setAction("MantaMatcher.class_1");
-    shepherd.beginDBTransaction();
+
     try {
-      // Parse encounter for which to get MantaMatcher algorithm results.
-      String num = req.getParameter("spv");
+      // Parse SPV for which to get MantaMatcher algorithm results.
+      String num = req.getParameter(PARAM_KEY_SPV);
       if (num == null || "".equals(num.trim())) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
       }
-      
+      // Parse unique results ID.
+      String id = req.getParameter(PARAM_KEY_SCANID);
+      if (id == null || "".equals(id.trim())) {
+        throw new IllegalArgumentException("Invalid results ID specified");
+      }
 
+      String context="context0";
+      context=ServletUtilities.getContext(req);
       
-
+      Shepherd shepherd = new Shepherd(context);
       SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
       if (spv == null) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
       }
 
-      Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(spv);
-      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, mmMap.get("TXT"), spv);
-      req.setAttribute(REQUEST_KEY_RESULTS, mmaResults);
-      getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
-
-    } 
-    catch (Exception ex) {
-      handleException(req, res, ex);
-    }
-    finally{
-      shepherd.rollbackDBTransaction();
-      shepherd.closeDBTransaction();
-    }
-  }
-
-  public void displayResultsRegional(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-    
-    String context="context0";
-    context=ServletUtilities.getContext(req);
-    Shepherd shepherd = new Shepherd(context);
-    shepherd.setAction("MantaMatcher.class_2");
-    shepherd.beginDBTransaction();
-    try {
-      // Parse encounter for which to get MantaMatcher algorithm results.
-      String num = req.getParameter("spv");
-      if (num == null || "".equals(num.trim())) {
-        throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
-      }
-
-
-      SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
-      if (spv == null) {
-        throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
-      }
-
-      Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(spv);
-      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, mmMap.get("TXT-REGIONAL"), spv);
+      MantaMatcherScan scan = MantaMatcherUtilities.findMantaMatcherScan(context, spv, id);
+      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, scan.getScanOutputTXT(), spv);
+      req.setAttribute(REQUEST_KEY_SCAN, scan);
       req.setAttribute(REQUEST_KEY_RESULTS, mmaResults);
       getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
 
     } catch (Exception ex) {
       handleException(req, res, ex);
-    }
-    finally{
-      shepherd.rollbackDBTransaction();
-      shepherd.commitDBTransaction();
     }
   }
 
@@ -173,15 +136,12 @@ public final class MantaMatcher extends DispatchServlet {
     File dataDir = new File(ServletUtilities.dataDir(context, rootDir));
     // Parse MantaMatcher results files ready for display.
     Shepherd shepherd = new Shepherd(context);
-    shepherd.setAction("MantaMatcher.class_3");
-    shepherd.beginDBTransaction();
     try {
       // Load results file.
       String text = new String(FileUtilities.loadFile(mmaResults));
       // Parse results.
       return MMAResultsProcessor.parseMatchResults(shepherd, text, spv, dataDir);
     } finally {
-      shepherd.rollbackDBTransaction();
       shepherd.closeDBTransaction();
     }
   }
@@ -190,8 +150,6 @@ public final class MantaMatcher extends DispatchServlet {
     String context="context0";
     context = ServletUtilities.getContext(req);
     Shepherd shepherd = new Shepherd(context);
-    shepherd.setAction("MantaMatcher.class_4");
-    shepherd.beginDBTransaction();
     File dataDir = new File(ServletUtilities.dataDir(context, getServletContext().getRealPath("/")));
 
     try {
@@ -199,8 +157,8 @@ public final class MantaMatcher extends DispatchServlet {
       // Perform MMA-compatible flag updates.
       int ok = 0, changed = 0, failed = 0;
       shepherd.beginDBTransaction();
-      for (Iterator<Encounter> iter = shepherd.getAllEncounters(); iter.hasNext();) {
-        Encounter enc = iter.next();
+      for (Iterator iter = shepherd.getAllEncounters(); iter.hasNext();) {
+        Encounter enc = (Encounter)iter.next();
         boolean hasCR = MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, dataDir);
         boolean encCR = enc.getMmaCompatible();
         if ((hasCR && encCR) || (!hasCR && !encCR)) {
@@ -218,7 +176,7 @@ public final class MantaMatcher extends DispatchServlet {
         }
       }
       shepherd.commitDBTransaction();
-      //shepherd.closeDBTransaction();
+      shepherd.closeDBTransaction();
 
       // Write output to response.
       res.setCharacterEncoding("UTF-8");
@@ -240,10 +198,9 @@ public final class MantaMatcher extends DispatchServlet {
 
     } catch (Exception ex) {
       shepherd.rollbackDBTransaction();
-   
+      shepherd.closeDBTransaction();
       handleException(req, res, ex);
     }
-    finally{   shepherd.closeDBTransaction();}
   }
 
   // Admin utility method to scan encounters & their data folders for
@@ -252,19 +209,18 @@ public final class MantaMatcher extends DispatchServlet {
     String context="context0";
     context = ServletUtilities.getContext(req);
     Shepherd shepherd = new Shepherd(context);
-    shepherd.setAction("MantaMatcher.class_5");
     File dataDir = new File(ServletUtilities.dataDir(context, getServletContext().getRealPath("/")));
     // Format string for encounter page URL (with placeholder).
     String pageUrlFormatEnc = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";
 
     Map<File, String> files = new TreeMap<>();
     Map<File, String> failed = new TreeMap<>();
-    shepherd.beginDBTransaction();
+
     try {
       // Perform MMA-compatible flag updates.
       shepherd.beginDBTransaction();
-      for (Iterator<Encounter> iter = shepherd.getAllEncounters(); iter.hasNext();) {
-        Encounter enc = iter.next();
+      for (Iterator iter = shepherd.getAllEncounters(); iter.hasNext();) {
+        Encounter enc = (Encounter)iter.next();
         File dir = new File(enc.dir(dataDir.getAbsolutePath()));
         if (dir == null || !dir.exists())
           continue;
@@ -340,11 +296,9 @@ public final class MantaMatcher extends DispatchServlet {
       }
 
     } catch (Exception ex) {
-     // shepherd.rollbackDBTransaction();
+      shepherd.rollbackDBTransaction();
+      shepherd.closeDBTransaction();
       handleException(req, res, ex);
     }
-    finally{      
-      shepherd.rollbackDBTransaction();
-      shepherd.closeDBTransaction();}
   }
 }
