@@ -1,15 +1,16 @@
 package org.ecocean.identity;
 
 import org.ecocean.ImageAttributes;
-
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
+import org.ecocean.ai.nlp.SUTime;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
 import org.ecocean.ai.ocr.google.GoogleOcr;
 import org.ecocean.ai.ocr.azure.AzureOcr;
 import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.media.YouTubeAssetStore;
+import org.ecocean.LinkedProperties;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Encounter;
@@ -19,6 +20,9 @@ import org.ecocean.ContextConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.CommonConfiguration;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,25 +35,39 @@ import java.util.StringTokenizer;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
+
 import java.net.URL;
+
 import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
 import org.ecocean.RestClient;
+
 import java.io.IOException;
+
 import javax.servlet.ServletException;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
+
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.StringUtils;
+
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+
+
+
+
+
+
 //date time
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -2716,6 +2734,24 @@ return Util.generateUUID();
     public static void fromDetection(Occurrence occ, Shepherd myShepherd, HttpServletRequest request, String context)  {
         System.out.println(">>>>>> detection created " + occ.toString());
 
+        
+        //prep the YouTube video date for SUTimee analysis
+        String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        String tempRelativeDate=null;
+        try{    
+          tempRelativeDate=YouTube.getVideoPublishedAt(occ, context);
+        }
+        catch(Exception e){}
+        if((tempRelativeDate!=null)&&(tempRelativeDate.indexOf("T")!=-1)){
+          tempRelativeDate=tempRelativeDate.substring(0,tempRelativeDate.indexOf("T"));
+        }
+        if((tempRelativeDate!=null)&&(!tempRelativeDate.equals(""))){
+          DateTimeFormatter parser2 = DateTimeFormat.forPattern("yyyy-MM-dd");
+          DateTime time = parser2.parseDateTime(tempRelativeDate);
+          relativeDate=time.toString(parser2);  
+        }
+        
+        
         //set the locationID/location/date on all encounters by inspecting detected comments on the first encounter
         if((occ.getEncounters()!=null)&&(occ.getEncounters().get(0)!=null)){
 
@@ -2841,7 +2877,8 @@ return Util.generateUUID();
 
             System.out.println("Let's parse these remarks for date and location: "+remarks);
 
-            Properties props = new Properties();
+            LinkedProperties props=(LinkedProperties)ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+
 
             //OK, let's check the comments and tags for retrievable metadata
             try {
@@ -2850,15 +2887,14 @@ return Util.generateUUID();
             //first parse for location and locationID
               String lowercaseRemarks=remarks.toLowerCase();
               try{
-                props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
-                Enumeration m_enum = props.propertyNames();
-                while (m_enum.hasMoreElements()) {
-                  String aLocationSnippet = ((String) m_enum.nextElement()).trim();
-                  System.out.println("     Looking for: "+aLocationSnippet);
+                Iterator m_enum = props.orderedKeys().iterator();
+                while (m_enum.hasNext()) {
+                  String aLocationSnippet = ((String) m_enum.next()).replaceFirst("\\s++$", "");
+                  //System.out.println("     Looking for: "+aLocationSnippet);
                   if (lowercaseRemarks.indexOf(aLocationSnippet) != -1) {
                     locCode = props.getProperty(aLocationSnippet);
-                    location+=(aLocationSnippet+" ");
-                    System.out.println(".....Building an idea of location: "+location);
+                    location+=" "+ aLocationSnippet;
+                    //System.out.println(".....Building an idea of location: "+location);
                   }
                 }
 
@@ -2869,6 +2905,9 @@ return Util.generateUUID();
 
               boolean setDate=true;
               if(enc.getDateInMilliseconds()!=null){setDate=false;}
+              
+              
+              
               //next use natural language processing for date
               if(setDate){
                 //boolean NLPsuccess=false;
@@ -2876,8 +2915,8 @@ return Util.generateUUID();
                     System.out.println(">>>>>> looking for date with NLP");
                     //call Stanford NLP function to find and select a date from ytRemarks
                     //String myDate= ServletUtilities.nlpDateParse(remarks);
-                    String myDate=ParseDateLocation.parseDate(request,remarks, context);
-                    System.out.println("Finished ParseDateLocation.parseDate");;
+                    String myDate=SUTime.parseDateStringForBestDate(request, remarks, relativeDate).replaceAll("null","");
+                    System.out.println("Finished SUTime.parseDateStringForBestDate: "+myDate);;
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
                         System.out.println(">>>>>> NLP found date: "+myDate);
@@ -2975,7 +3014,7 @@ return Util.generateUUID();
 
             //TBD-simplify to one set of files
             System.out.println("Getting quest.properties for language code: "+detectedLanguage);
-            quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+            quest= ShepherdProperties.getProperties("quest.properties", detectedLanguage.substring(0,2));
             //questEs= ShepherdProperties.getProperties("questEs.properties");
 
             String questionToPost=null;
