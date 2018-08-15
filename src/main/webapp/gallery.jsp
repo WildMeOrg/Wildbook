@@ -37,7 +37,7 @@ String sortParam = "";
 String sortString = "";
 
 if(request.getParameter("sort")!=null) {
-  sortParam = +Util.sanitizeURLParameter(request.getParameter("sort")); 
+  sortParam = Util.sanitizeURLParameter(request.getParameter("sort")); 
 	sortString = "&sort="+sortParam;
 }
 //locationCodeField
