@@ -8,7 +8,8 @@
 
     String langCode=ServletUtilities.getLanguageCode(request);
     
-    String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+    Properties gProps=ShepherdProperties.getProperties("googleKeys.properties", "", context);
+    String mapKey = gProps.getProperty("googleMapsKey");
     
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));

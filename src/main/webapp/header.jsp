@@ -37,40 +37,51 @@
 
 <html lang="<%=langCode%>" >
     <head>
-      <title><%=CommonConfiguration.getHTMLTitle(context)%></title>
-      <meta name="language" content="<%=langCode%>" />
-      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+      <title><%=CommonConfiguration.getHTMLTitle(context)%>
+      </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-      <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-      <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+      <meta name="Description"
+            content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
+      <meta name="Keywords"
+            content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-      <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-      <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
+      <link rel="shortcut icon"
+            href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+      <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
+
+      <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
+    <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
+
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
+      <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/javascript/jquery-ui.min.js"></script>
-<% if (!"en".equals(langCode)) { %>
-      <script type="text/javascript" src="<%=urlLoc %>/javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-<% } %>
+
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
 	<script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
-      <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
 
-      
+
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
-      
-     <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>    
-  	<script src="<%=urlLoc %>/cust/mantamatcher/js/behaviour.js"></script>
- 
-  
+
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
+      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
+
+      <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
+
+ 	<!-- Start Open Graph Tags -->
+ 	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+  	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
+  	<!-- End Open Graph Tags -->
     </head>
     
     <body role="document">
@@ -80,7 +91,7 @@
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a>
+                <a href="//www.wildme.org" id="wild-me-badge">A Wild me project</a>
                   <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
                     
@@ -201,7 +212,7 @@
             						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
             						String myLang=supportedLanguages.get(h);
             					%>
-            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="<%=urlLoc %>/images/flag_<%=myLang %>.gif" />
             						<script type="text/javascript">
             	
             							$( "#flag_<%=myLang%>" ).click(function() {
@@ -275,7 +286,7 @@
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                                  
-                          	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                          	<li><a target="_blank" href="//www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         </ul>
                       </li>
                       
@@ -400,7 +411,7 @@
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
                                 <% } %>
-                                <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
+                                <li><a target="_blank" href="//www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
                                 <li><a href="<%=urlLoc %>/javadoc/index.html"><%=props.getProperty("javadoc")%></a></li>
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
@@ -433,10 +444,10 @@
             },
             select: function(ev, ui) {
                 if (ui.item.type == "individual") {
-                    window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
+                    window.location.replace("<%=(urlLoc+"/individuals.jsp?number=") %>" + ui.item.value);
                 } 
                 else if (ui.item.type == "locationID") {
-                	window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                	window.location.replace("<%=(urlLoc+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
                 } 
                 /*
                 //restore user later
@@ -452,7 +463,7 @@
             //source: app.config.wildbook.proxyUrl + "/search"
             source: function( request, response ) {
                 $.ajax({
-                    url: '<%=("http://" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
+                    url: '<%=urlLoc %>/SiteSearch',
                     dataType: "json",
                     data: {
                         term: request.term

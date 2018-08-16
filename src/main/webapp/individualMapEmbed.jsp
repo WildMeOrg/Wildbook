@@ -69,7 +69,8 @@ context=ServletUtilities.getContext(request);
   myShepherd.setAction("individualMapEmbed.jsp");
   myShepherd.beginDBTransaction();
   Vector haveGPSData = new Vector();
-  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+  Properties gProps=ShepherdProperties.getProperties("googleKeys.properties", "", context);
+  String mapKey = gProps.getProperty("googleMapsKey");
   if(request.getParameter("name")!=null){
 	  String name = request.getParameter("name");
 	  MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);

@@ -26,6 +26,9 @@
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("mappedSearchResultsSex.jsp");
 
+    
+    Properties gProps=ShepherdProperties.getProperties("googleKeys.properties", "", context);
+    String mapKey = gProps.getProperty("googleMapsKey");
 
 
 
@@ -123,7 +126,7 @@
   
     <jsp:include page="../header.jsp" flush="true"/>
 
-    <script src="//maps.google.com/maps/api/js?sensor=false"></script>
+    <script src="//maps.google.com/maps/api/js?key=<%=mapKey %>&sensor=false"></script>
 
 
     <script type="text/javascript">

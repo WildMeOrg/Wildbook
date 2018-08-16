@@ -28,8 +28,8 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
-  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+  Properties gProps=ShepherdProperties.getProperties("googleKeys.properties", "", context);
+  String mapKey = gProps.getProperty("googleMapsKey");
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
