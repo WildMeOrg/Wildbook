@@ -12,7 +12,7 @@
 	Locale locale = new Locale(langCode);
 	NumberFormat nf = NumberFormat.getIntegerInstance(locale);
 	Properties props = ShepherdProperties.getProperties("index.properties", langCode, context);
-	Map<String, String> locMap = CommonConfiguration.getI18nPropertiesMap("locationID", langCode, context, false);
+	Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
 
 //set up our Shepherd
 
@@ -23,7 +23,7 @@ myShepherd=new Shepherd(context);
 
 	//check usernames and passwords
 	myShepherd.beginDBTransaction();
-	ArrayList<User> users=myShepherd.getAllUsers();
+	List<User> users=myShepherd.getAllUsers();
 	if(users.size()==0){
 		String salt=ServletUtilities.getSalt().toHex();
 		String hashedPassword=ServletUtilities.hashAndSaltPassword("tomcat123", salt);
@@ -195,7 +195,7 @@ margin-bottom: 8px !important;
  		
  		//let's add map points for our locationIDs
  		<%
- 		List<String> locs=CommonConfiguration.getIndexedValues("locationID", context);
+ 		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
  		myShepherd.beginDBTransaction();
@@ -648,12 +648,6 @@ finally{
     </section>
 </div>
 
-<div class="container-fluid main-section">
-    <h2 class="section-header"><%=props.getProperty("map-title")%></h2>
-    
-      <div id="map_canvas" style="width: 770px; height: 510px; margin: 0 auto;"></div>
-   
-</div>
 
 <div class="container-fluid">
     <section class="container main-section">

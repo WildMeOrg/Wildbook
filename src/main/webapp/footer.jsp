@@ -8,7 +8,7 @@
   String langCode = ServletUtilities.getLanguageCode(request);
   Properties props = ShepherdProperties.getProperties("footer.properties", langCode, context);
 
-  String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+  String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
 
         <!-- footer -->
@@ -50,9 +50,7 @@
                   <p class="col-sm-8 col-md-8 col-lg-8">
                     <small><%=props.getProperty("disclaimer")%></small>
                   </p>
-                  <a href="http://www.wildme.org/wildbook" class="col-sm-4 col-md-4 col-lg-4" title="<%=props.getProperty("logo.wildbook.title")%>">
-                      <img src="<%=urlLoc %>/images/logo_wildbook.jpg" alt=" logo" class="pull-right" />
-                  </a>
+
                 </div>
               </div>
             </div>

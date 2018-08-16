@@ -31,10 +31,11 @@
   Properties props = ShepherdProperties.getProperties("header.properties", langCode, context);
   Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 
-  String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
-%>
 
-<html lang="<%=langCode%>" xml:lang="<%=langCode%>" xmlns="http://www.w3.org/1999/xhtml">
+  String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+  %>
+
+<html lang="<%=langCode%>" >
     <head>
       <title><%=CommonConfiguration.getHTMLTitle(context)%></title>
       <meta name="language" content="<%=langCode%>" />
@@ -138,7 +139,7 @@
                      	
                       
                       
-                      ArrayList<String> contextNames=ContextConfiguration.getContextNames();
+                      	java.util.List<String> contextNames=ContextConfiguration.getContextNames();
                 		int numContexts=contextNames.size();
                 		if(numContexts>1){
                 		%>
@@ -304,7 +305,7 @@
                         
                         <!-- list encounters by state -->
                           <%
-                            for (String state : CommonConfiguration.getIndexedValues("encounterState", context)) {
+                            for (String state : CommonConfiguration.getIndexedPropertyValues("encounterState", context)) {
                               String propKey = "viewEncounters" + WordUtils.capitalize(state);
                           %>
                           <li><a href="<%=urlLoc%>/encounters/searchResults.jsp?state=<%=state%>"><%=props.getProperty(propKey)%></a></li>
@@ -330,7 +331,7 @@
                           <%
                             Shepherd myShepherd = new Shepherd(context);
                             try {
-                              ArrayList<String> locUsed = myShepherd.getAllLocationIDs();
+                              java.util.List<String> locUsed = myShepherd.getAllLocationIDs();
                               Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
                               for (Map.Entry<String, String> me : locMap.entrySet()) {
                                 if (!locUsed.contains(me.getValue()))
