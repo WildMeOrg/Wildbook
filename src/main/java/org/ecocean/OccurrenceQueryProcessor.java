@@ -21,7 +21,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
   private static final String BASE_FILTER = "SELECT FROM org.ecocean.Occurrence WHERE \"OCCURRENCEID\" != null && ";
 
-  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"fieldStudySite", "fieldSurveyCode", "sightingPlatform", "humanActivityNearby","seaState","observer","comments","occurrenceID"};
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"fieldStudySite", "fieldSurveyCode", "sightingPlatform","seaState","observer","comments","occurrenceID"};
 
   public static final String[] CATEGORICAL_STRING_FIELDS = new String[]{"submitterID"};
 
@@ -29,11 +29,11 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
 
-    String filter= BASE_FILTER;
+    String filter = BASE_FILTER;
     String jdoqlVariableDeclaration = "";
     String parameterDeclaration = "";
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = "context0";
+    context = ServletUtilities.getContext(request);
 
     Shepherd myShepherd=new Shepherd(context);
     //myShepherd.setAction("OccurrenceQueryProcessor.class");
