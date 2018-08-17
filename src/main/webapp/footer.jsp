@@ -1,12 +1,20 @@
 <%@ page
 		contentType="text/html; charset=utf-8"
 		language="java"
-     	import="org.ecocean.CommonConfiguration,org.ecocean.ContextConfiguration"
+     	import="org.ecocean.CommonConfiguration,
+      org.ecocean.ContextConfiguration,
+      org.ecocean.ShepherdProperties,
+      org.ecocean.servlet.ServletUtilities,
+      org.ecocean.Shepherd,
+      org.ecocean.User,
+      java.util.ArrayList,
+      java.util.List,
+      java.util.Properties,
+      org.apache.commons.lang.WordUtils,
+      org.ecocean.security.Collaboration
+      "
 %>
         <%
-
-System.out.println("Beginning footer");
-
 String context="context0";
 context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
@@ -25,7 +33,6 @@ myShepherd.beginDBTransaction();
 String username = null;
 User user = null;
 boolean indocetUser = false;
-System.out.println("Footer1");
 
 if(request.getUserPrincipal()!=null){
 
@@ -38,10 +45,8 @@ if(request.getUserPrincipal()!=null){
     myShepherd.closeDBTransaction();
   //}
 }
+        %>
 
-System.out.println("Footer2: isIndocetUser = "+indocetUser);
-
-%>
         <!-- footer -->
         <footer class="page-footer">
 
@@ -49,29 +54,28 @@ System.out.println("Footer2: isIndocetUser = "+indocetUser);
               <div class="container main-section">
 
                 <div class="row">
-                  <p class="col-sm-8" style="margin-top:40px;">
+                  <div class="col-sm-6" style="margin-top:40px;">
                     <small>This software is distributed under the GPL v2 license and is intended to support mark-recapture field studies.
                   <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
-                  </p>
-                  <!-- IndoCet funder logos -->
-                  <%if (indocetUser) {%>
-                    <a href="https://www.ffem.fr" class="col-sm-4" title="Funded in part by FFEM">
-                      <img src="<%=urlLoc %>/cust/indocet/logo_FFEM.png" alt=" logo" class="pull-right" style="
-                        height: 150px;
-                      "/>
-                    </a>
-                    <a href="commissionoceanindien.org" class="col-sm-4" title="Funded in part by COI">
-                      <img src="<%=urlLoc %>/cust/indocet/logo_COI.png" alt=" logo" class="pull-right" style="
-                        height: 150px;
-                      "/>
-                    </a>
+                  </div>
+                  <div class="col-sm-6">
+                    <%if (indocetUser) {%>
+                      <p>
+                      <a href="https://www.ffem.fr" class="col-sm-4" title="Funded in part by FFEM">
+                        <img src="<%=urlLoc %>/cust/indocet/logo_FFEM.png" alt=" logo" style="margin-top:40px;" />
+                      </a>
+                      <a href="commissionoceanindien.org" class="col-sm-4" title="Funded in part by COI">
+                        <img src="<%=urlLoc %>/cust/indocet/logo_COI.png" alt=" logo" style="margin-top:40px;" />
+                      </a>
+                    </p>
+                    <%}%>
 
-                  <%}%>
-                  <a href="http://www.wildbook.org" class="col-sm-4" title="This site is Powered by Wildbook">
-                    <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" class="pull-right" style="
-											height: 150px;
-										"/>
-                  </a>
+                    <a href="http://www.wildbook.org" class="col-sm-4" title="This site is Powered by Wildbook">
+                      <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" class="pull-right" style="
+  											height: 150px;
+  										"/>
+                    </a>
+                </div>
                 </div>
               </div>
             </div>
