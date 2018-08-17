@@ -57,7 +57,7 @@ div .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, div .nav-tabs > 
 	background-color: #075366;
 	color: #fff;
 	}
-thead th, tr th {
+thead th, tr th, tr.headerRow, div.tableFeedbackWrapper {
 	background-color: #075366;
 }
 /* end individualStyles */

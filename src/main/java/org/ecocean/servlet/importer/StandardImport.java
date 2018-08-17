@@ -246,9 +246,8 @@ public class StandardImport extends HttpServlet {
     if (sciName==null) return null;
     return myShepherd.getOrCreateTaxonomy(sciName);
   }
-
-  public static boolean validLatLon(Double lat, Double lon) {
-    return ((lat!=null) && (lon!=null) && ((lat!=0.0)&&(lon!=0.0)) );
+  public static boolean validCoord(Double latOrLon) {
+    return (latOrLon!=null && latOrLon!=0.0);
   }
 
   public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
@@ -262,22 +261,24 @@ public class StandardImport extends HttpServlet {
   	Integer individualCount = getInteger(row, "Occurrence.individualCount");
   	if (individualCount!=null) occ.setIndividualCount(individualCount);
 
+    // covers a typo on some decimalLatitude headers ("decimalLatitiude" note the extra i in Latitiude)
   	Double decimalLatitiude = getDouble(row, "Encounter.decimalLatitiude");
-  	if (decimalLatitiude!=null) occ.setDecimalLatitude(decimalLatitiude);
-
+  	if (validCoord(decimalLatitiude)) occ.setDecimalLatitude(decimalLatitiude);
   	Double decimalLatitude = getDouble(row, "Encounter.decimalLatitude");
+    if (validCoord(decimalLatitude)) occ.setDecimalLatitude(decimalLatitude);
   	Double decimalLongitude = getDouble(row, "Encounter.decimalLongitude");
-
-    if (validLatLon(decimalLatitude,decimalLongitude)) {
-      occ.setDecimalLatitude(decimalLatitude);
-      occ.setDecimalLongitude(decimalLongitude);
-    }
+    if (validCoord(decimalLongitude)) occ.setDecimalLongitude(decimalLongitude);
 
   	String fieldStudySite = getString(row, "Occurrence.fieldStudySite");
+    // fieldStudySite defaults to locationID
+    if (fieldStudySite==null) fieldStudySite = getString(row, "Encounter.locationID");
   	if (fieldStudySite!=null) occ.setFieldStudySite(fieldStudySite);
 
   	String groupComposition = getString(row, "Occurrence.groupComposition");
   	if (groupComposition!=null) occ.setGroupComposition(groupComposition);
+
+    String groupBehavior = getString(row, "Occurrence.groupBehavior");
+    if (groupBehavior!=null) occ.setGroupBehavior(groupBehavior);
 
   	String fieldSurveyCode = getString(row, "Survey.id");
     if (fieldSurveyCode==null) fieldSurveyCode = getString(row, "Occurrence.fieldSurveyCode");
@@ -288,6 +289,9 @@ public class StandardImport extends HttpServlet {
   	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatform);
     String surveyComments = getString(row, "Survey.comments");
     if (surveyComments!=null) occ.addComments(surveyComments);
+
+    String comments = getString(row, "Occurrence.comments");
+    if (comments!=null) occ.addComments(comments);
 
     Integer numAdults = getInteger(row, "Occurrence.numAdults");
     if (numAdults!=null) occ.setNumAdults(numAdults);
@@ -412,16 +416,13 @@ public class StandardImport extends HttpServlet {
   	Double latitude = getDouble(row,"Encounter.latitude");
     if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitude");
     if (latitude==null) latitude = getDouble(row,"Occurrence.decimalLatitude");
+    if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitiude");
+    if (validCoord(latitude)) enc.setDecimalLatitude(latitude);
 
   	Double longitude = getDouble(row, "Encounter.longitude");
     if (longitude==null) longitude = getDouble(row,"Encounter.decimalLongitude");
     if (longitude==null) longitude = getDouble(row,"Occurrence.decimalLongitude");
-
-    if (validLatLon(latitude,longitude)) {
-      enc.setDecimalLatitude(latitude);
-      enc.setDecimalLongitude(longitude);
-    }
-
+    if (validCoord(longitude)) enc.setDecimalLongitude(longitude);
 
   	String locationID = getString(row, "Encounter.locationID");
   	if (locationID!=null) enc.setLocationID(locationID);
@@ -910,6 +911,7 @@ public class StandardImport extends HttpServlet {
     // some custom data-fixing just for our aswn data blend
     String occID = getString(row,"Occurrence.occurrenceID");
     if (!Util.stringExists(occID)) occID = getString(row, "Encounter.occurrenceID");
+    if (!Util.stringExists(occID)) return occID;
   	return (occID.replace("LiveVesselSighting","")); //removes LiveVesselSighting;
   }
 
@@ -917,10 +919,7 @@ public class StandardImport extends HttpServlet {
     return (occ!=null && !occ.getOccurrenceID().equals(getOccurrenceID(row)));
   }
 
-
-
-
-//   // following 'get' functions swallow errors
+  // following 'get' functions swallow errors
   public static Integer getInteger(Row row, int i) {
     try {
       double val = row.getCell(i).getNumericCellValue();
@@ -942,7 +941,6 @@ public class StandardImport extends HttpServlet {
         }
       }
       catch (Exception ex) {}
-
     }
     return null;
   }

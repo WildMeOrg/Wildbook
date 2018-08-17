@@ -17,15 +17,24 @@
  			message = "<strong>Committing.</strong> When this page is done, your import is complete and you can find your data on Flukebook.";
 	 	}
         %>
+
         <style>
 			.import-explanation {
 			}
 			.import-header {
 				margin-top: 0px;
 			}
+            .sliderOverlay {
+                position: float;
+            }
     	</style>
-
+        <link rel="stylesheet" href="<%=urlLoc %>/import/tableFeedback.css" />
         <div class="container maincontent">
 
-          <h1 class="import-header">Bulk Data Import</h1>
-          <p class="import-explanation"><%=message %></p>
+            <div class="sliderOverlay">
+                <button>Back</button>
+                <button>Forward</button>
+            </div>
+
+        <h1 class="import-header">Bulk Data Import</h1>
+        <p class="import-explanation"><%=message %></p>

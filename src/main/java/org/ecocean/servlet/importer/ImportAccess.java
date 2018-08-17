@@ -266,6 +266,7 @@ public class ImportAccess extends HttpServlet {
 
     if (!skipIDPhotos) {
       out.println("<div>");
+      out.println("<h2> Committing = <%=committing%></h2>");
       out.println("<h3> Processing IDPhotos table</h3>");
       out.println("<p>");
       if (!tables.contains("IDPhotos")) throw new IOException("Formatting Exception: No IDphotos table!");
@@ -626,6 +627,9 @@ public class ImportAccess extends HttpServlet {
     // }
 
 
+    enc.setGenus("Megaptera");
+    enc.setSpecificEpithet("novaeangliae");
+
     return enc;
   }
   // each row in idphotos is an annotation, but you can deduce which encounter it is by the individual_id and date fields
@@ -695,7 +699,7 @@ public class ImportAccess extends HttpServlet {
       generatedOccurrences.put(occCode, occ);
       newObj = true;
     }
-
+    occ.addSpecies("Megaptera novaeangliae", myShepherd);
     return occ;
 
   }
@@ -1045,7 +1049,15 @@ public class ImportAccess extends HttpServlet {
 
     System.out.println("    SHROW-Proc done with method. Why you not printing?");
 
-    if (enc.getOccurrenceID()==null) enc.setOccurrenceID(occID);
+    if (enc.getOccurrenceID()==null && occID!=null) enc.setOccurrenceID(occID);
+    System.out.println("    SHROW-Proc done setting occID. About to set genus.");
+
+    enc.setGenusOnly("Megaptera");
+    System.out.println("    SHROW-Proc done setting genus. About to set species.");
+    enc.setSpeciesOnly("novaeangliae");    
+
+    System.out.println("    SHROW-Proc REALLY done with method. Why you not printing?");
+
 
     return enc;
   }
@@ -1087,8 +1099,7 @@ public class ImportAccess extends HttpServlet {
     if (boat!=null) occ.setSightingPlatform(boat);
     System.out.println("    SHROW-Proc set boat "+boat);
 
-
-
+    occ.addSpecies("Megaptera novaeangliae", myShepherd);
 
     return occ;
   }
