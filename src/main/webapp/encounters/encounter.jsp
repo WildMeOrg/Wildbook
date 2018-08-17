@@ -476,7 +476,7 @@ code {
 							}
 							if ((c == null) || (c.getState() == null)) {
 								uid = enc.getAssignedUsername();
-								name = enc.getSubmitterName();
+								name = enc.getAssignedUsername();
 								if ((name == null) || name.equals("N/A"))
 									name = enc.getAssignedUsername();
 							} else if (c.getState().equals(Collaboration.STATE_INITIALIZED)) {
