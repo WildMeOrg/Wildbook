@@ -2213,6 +2213,13 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 	else{genus=null;}
     updateAnnotationTaxonomy();
   }
+  // we need these methods because our side-effected setGenus will silently break an import (!!!!!) in an edge case I cannot identify
+  public void setGenusOnly(String genus) {
+    this.genus = genus;
+  }
+  public void setSpeciesOnly(String species) {
+    this.specificEpithet = species;
+  }
 
   public String getSpecificEpithet() {
     return specificEpithet;
@@ -3131,7 +3138,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 		} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
 			collabClass = "blocked";
 		}
-		return "<div class=\"row-lock " + collabClass + " collaboration-button\" data-collabowner=\"" + this.getAssignedUsername() + "\" data-collabownername=\"" + this.getSubmitterName() + "\">&nbsp;</div>";
+		return "<div class=\"row-lock " + collabClass + " collaboration-button\" data-collabowner=\"" + this.getAssignedUsername() + "\" data-collabownername=\"" + this.getAssignedUsername() + "\">&nbsp;</div>";
 	}
 
 

@@ -229,8 +229,8 @@ context=ServletUtilities.getContext(request);
 			if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
 			if ((c == null) || (c.getState() == null)) {
 				String fullName = u;
-				if (user.getFullName()!=null) fullName = user.getFullName();
-					possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
+				//if (user.getFullName()!=null) fullName = user.getFullName(); commented out bc this line erroneously set the other person's fullName to your fullname.
+				possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
 				}
 			}
 			String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
@@ -720,6 +720,54 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
   if (isOwner) {
 %>
 
+
+<div class="row">
+<form method="post" action="occurrence.jsp?number=<%=occ.getOccurrenceID()%>" id="occform">
+<input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
+
+
+<h2>Data Fields</h2>
+<div class="col-lg-4 col-md-6 col-sm-12">
+<table  class="occurrence-field-edit">
+
+  <tr><td><h3>Location</h3></td></tr>
+  <%
+  String[] locationFields = {"fieldStudySite", "fieldSurveyCode", "sightingPlatform", "decimalLatitude", "decimalLongitude", "transectName", "transectBearing","distance","bearing"};
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, locationFields, out);
+  %>
+
+</table>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+<table  class="occurrence-field-edit">
+
+  <tr><td><h3>Observation</h3></td></tr>
+  <%
+  String[] danFields = {"groupComposition", "groupBehavior", "humanActivityNearby","initialCue","seaState","observer","comments"};
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, danFields, out, props);
+
+  %>
+</table>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+<table  class="occurrence-field-edit">
+  <tr><td><h3>Counts</h3></td></tr><%
+  String[] groupFields = {"minGroupSizeEstimate", "maxGroupSizeEstimate", "bestGroupSizeEstimate", "numAdults", "numJuveniles", "numCalves"};
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, groupFields, out);
+  %>
+
+</table>
+<div class="submit" style="position:relative">
+<input type="submit" name="save" value="Save" />
+<span class="note" style="position:absolute;bottom:9"></span>
+</div>
+
+</div>
+
+
+</form>
+</div> <!--row -->
+
 <div id="researcherComments">
 <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=props.getProperty("researcherComments") %>
 </strong></p>
@@ -801,57 +849,18 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
     border-radius: 5px;
   }
 
+  table.occurrence-field-edit {
+    table-layout:fixed;
+    width: 100%;
+  }
+  table.occurrence-field-edit tr select, table.occurrence-field-edit tr input{
+    width: 100%;
+  }
 
 
 </style>
 </div>
 
-<div class="row">
-<form method="post" action="occurrence.jsp?number=<%=occ.getOccurrenceID()%>" id="occform">
-<input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
-
-
-<h2>Data Fields</h2>
-<div class="col-lg-4 col-md-6 col-sm-12">
-<table  class="occurrence-field-edit">
-
-  <tr><td><h3>Location</h3></td></tr>
-  <%
-  String[] locationFields = {"fieldStudySite", "fieldSurveyCode", "sightingPlatform", "decimalLatitude", "decimalLongitude", "transectName", "transectBearing","distance","bearing"};
-  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, locationFields, out);
-  %>
-
-</table>
-</div>
-<div class="col-lg-4 col-md-6 col-sm-12">
-<table  class="occurrence-field-edit">
-
-  <tr><td><h3>Observation</h3></td></tr>
-  <%
-  String[] danFields = {"groupComposition", "groupBehavior", "humanActivityNearby","initialCue","seaState","observer","comments"};
-  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, danFields, out, props);
-
-  %>
-</table>
-</div>
-<div class="col-lg-4 col-md-6 col-sm-12">
-<table  class="occurrence-field-edit">
-  <tr><td><h3>Counts</h3></td></tr><%
-  String[] groupFields = {"minGroupSizeEstimate", "maxGroupSizeEstimate", "bestGroupSizeEstimate", "numAdults", "numJuveniles", "numCalves"};
-  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, groupFields, out);
-  %>
-
-</table>
-<div class="submit" style="position:relative">
-<input type="submit" name="save" value="Save" />
-<span class="note" style="position:absolute;bottom:9"></span>
-</div>
-
-</div>
-
-
-</form>
-</div> <!--row -->
 
   <div class="row">
       <div class="col-xs-6">
