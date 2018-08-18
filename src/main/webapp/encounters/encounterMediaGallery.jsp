@@ -415,6 +415,7 @@ function doImageEnhancer(sel) {
 */
 	];
 
+        /*
 	if (wildbook.iaEnabled()) {  //TODO (the usual) needs to be genericized for IA plugin support (which doesnt yet exist)
 		opt.menu.push(['start new matching scan', function(enh) {
       		if (!isGenusSpeciesSet()) {
@@ -428,6 +429,7 @@ function doImageEnhancer(sel) {
 			startIdentify(assetById(mid), enh.imgEl);
 		}]);
 	}
+	*/
 
 
         opt.menu.push(['use visual matcher', function(enh) {
