@@ -8,6 +8,9 @@
   String context="context0";
   context=ServletUtilities.getContext(request);
 
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
+
     //let's load encounterSearch.properties
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
@@ -448,7 +451,7 @@
   
 
 
-<script src="//maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
     
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 

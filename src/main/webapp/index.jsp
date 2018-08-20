@@ -26,6 +26,7 @@ myShepherd=new Shepherd(context);
 //check for and inject a default user 'tomcat' if none exists
 
   	//check usernames and passwords
+    String langCode=ServletUtilities.getLanguageCode(request);
 	myShepherd.beginDBTransaction();
   	List<User> users=myShepherd.getAllUsers();
   	if(users.size()==0){
@@ -68,7 +69,7 @@ myShepherd=new Shepherd(context);
 
 %>
 
-<script src="https://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
