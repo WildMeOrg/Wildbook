@@ -64,7 +64,9 @@
     int numHaplos2 = allHaplos2.size();
 	
     		
-  %>
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
+%>
 
 
   
@@ -135,7 +137,6 @@
   <jsp:include page="../header.jsp" flush="true"/>
 
   <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
-
 
 
 

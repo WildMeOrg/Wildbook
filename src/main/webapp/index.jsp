@@ -65,11 +65,11 @@ myShepherd=new Shepherd(context);
   	}
 
 // Here I'll do some preliminary stuff for
-
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 %>
 
-<script src="https://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>

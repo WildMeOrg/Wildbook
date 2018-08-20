@@ -27,8 +27,7 @@
     myShepherd.setAction("searchComparisonResults.jsp");
 
 
-
-
+	String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     int numResults = 0;
 
@@ -442,13 +441,10 @@
       }
 
     </style>
-  
 
 
-  
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>"></script>
 
-
-<script src="//maps.google.com/maps/api/js?sensor=false"></script>
     
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 

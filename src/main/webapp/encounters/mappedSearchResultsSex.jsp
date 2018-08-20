@@ -123,7 +123,7 @@
   
     <jsp:include page="../header.jsp" flush="true"/>
 
-    <script src="//maps.google.com/maps/api/js?sensor=false"></script>
+    <script src="//maps.google.com/maps/api/js?"></script>
 
 
     <script type="text/javascript">
