@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
+import org.ecocean.media.*;
 import org.ecocean.mmutil.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,9 +54,9 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
   /** Resources for internationalization. */
   private final ResourceBundle bundle;
   /** Collection of media files to process with mmprocess. */
-  private final List<SinglePhotoVideo> list = new ArrayList<>();
+  private final List<MediaAsset> list = new ArrayList<>();
   /** Collection of media files to remove due to problems. */
-  private final List<SinglePhotoVideo> problems = new ArrayList<>();
+  private final List<MediaAsset> problems = new ArrayList<>();
 
   public Plugin_MantaMatcher(Shepherd shepherd, List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
     super(shepherd, listInd, listEnc, errors, warnings, loc);
@@ -73,11 +73,11 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
     // Process all images to find MantaMatcher CR images.
     List<File> done = new ArrayList<>();
     Set<File> files = new HashSet<>();
-    for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
-      files.add(spv.getFile());
+    for (MediaAsset spv : getMapPhoto().keySet()) {
+      files.add(spv.localPath().toFile());
     }
-    for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
-      File f = spv.getFile();
+    for (MediaAsset spv : getMapPhoto().keySet()) {
+      File f = spv.localPath().toFile();
       Matcher m = REGEX_CR.matcher(f.getName());
       if (m.matches()) {
         getMapPhoto().get(spv).setPersist(false);
@@ -121,32 +121,32 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
    */
   @Override
   void process() throws IOException, InterruptedException {
-    for (SinglePhotoVideo spv : list) {
+    for (MediaAsset spv : list) {
       // Find reference image.
-      SinglePhotoVideo ref = findReferenceSPV(spv);
-      if (ref == null || !ref.getFile().exists()) {
-        String msg = MessageFormat.format(bundle.getString("plugin.warning.noReference"), spv.getFile().getName());
+      MediaAsset ref = findReferenceSPV(spv);
+      if (ref == null || !ref.localPath().toFile().exists()) {
+        String msg = MessageFormat.format(bundle.getString("plugin.warning.noReference"), spv.localPath().toFile().getName());
         addWarning(msg);
-        log.warn(String.format("Unable to find associated reference image for: %s", spv.getFile().getName()));
+        log.warn(String.format("Unable to find associated reference image for: %s", spv.localPath().toFile().getName()));
         incrementCounter();
         continue;
       }
       // Perform MM process.
-      mmprocess(ref.getFile());
+      mmprocess(ref.localPath().toFile());
       // Check that mmprocess did something.
-      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ref);
+      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ref.localPath().toFile());
       File fEH = mmFiles.get("EH");
       File fFT = mmFiles.get("FT");
       File fFEAT = mmFiles.get("FEAT");
       // Notify user & delete residual files if mmprocess problems.
       if (!fEH.exists() || !fFT.exists() || !fFEAT.exists()) {
-        String msg = MessageFormat.format(bundle.getString("plugin.warning.mmprocess.failed"), spv.getFile().getName());
+        String msg = MessageFormat.format(bundle.getString("plugin.warning.mmprocess.failed"), spv.localPath().toFile().getName());
         addWarning(msg);
         log.warn(msg);
         fFEAT.delete();
         fFT.delete();
         fEH.delete();
-        spv.getFile().delete();
+        spv.localPath().toFile().delete();
       }
       // Increment progress counter.
       incrementCounter();
@@ -155,11 +155,11 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
     }
 
     // Remove SPVs which were identified as problems.
-    for (SinglePhotoVideo spv : problems) {
+    for (MediaAsset spv : problems) {
       for (Encounter enc : getListEnc()) {
-        if (enc.getCatalogNumber().equals(spv.getCorrespondingEncounterNumber())) {
-          enc.removeSinglePhotoVideo(spv);
-          spv.getFile().delete();
+        if (spv.localPath().toString().indexOf(enc.getCatalogNumber())!=-1) {
+          enc.removeMediaAsset(spv);;
+          spv.localPath().toFile().delete();
         }
       }
     }
@@ -167,11 +167,11 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
     // Process encounters to determine which are now MMA-compatible.
     for (Encounter enc : getListEnc()) {
       boolean hasCR = false;
-      for (SinglePhotoVideo mySPV : enc.getSinglePhotoVideo()) {
+      for (MediaAsset mySPV : enc.getMedia()) {
         if (list.contains(mySPV))
           continue;
-        if (MediaUtilities.isAcceptableImageFile(mySPV.getFile())) {
-          Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(mySPV);
+        if (MediaUtilities.isAcceptableImageFile(mySPV.localPath().toFile())) {
+          Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(mySPV,enc);
           hasCR = hasCR | mmaFiles.get("CR").exists();
           if (hasCR)
             break;
@@ -188,8 +188,8 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
    * @param spvCR CR image file for which to find ID image file
    * @return {@code SinglePhotoVideo} instance of the ID image, or null if not found.
    */
-  private SinglePhotoVideo findReferenceSPV(SinglePhotoVideo spvCR) {
-    File fCR = spvCR.getFile();
+  private MediaAsset findReferenceSPV(MediaAsset spvCR) {
+    File fCR = spvCR.localPath().toFile();
     File found = null;
     Matcher m = REGEX_CR.matcher(fCR.getName());
     if (!m.matches())
@@ -220,17 +220,17 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
       return null;
 
     // Find SPV relating to reference file.
-    for (SinglePhotoVideo x : findEncounterForSPV(spvCR).getSinglePhotoVideo()) {
-      if (x.getFile().equals(found))
+    for (MediaAsset x : findEncounterForSPV(spvCR).getMedia()) {
+      if (x.localPath().toFile().equals(found))
         return x;
     }
     return null;
   }
 
-  private Encounter findEncounterForSPV(SinglePhotoVideo spv) {
+  private Encounter findEncounterForSPV(MediaAsset spv) {
     assert spv != null;
     for (Encounter enc : getListEnc()) {
-      if (enc.getCatalogNumber().equals(spv.getCorrespondingEncounterNumber()))
+      if (spv.localPath().toString().indexOf(enc.getCatalogNumber())!=-1)
         return enc;
     }
     return null;

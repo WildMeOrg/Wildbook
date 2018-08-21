@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.mmutil.*" %>
+<%@ page import="org.ecocean.Encounter, org.ecocean.media.MediaAsset, org.ecocean.Shepherd" %>
+<%@ page import="org.ecocean.mmutil.*,org.ecocean.CommonConfiguration" %>
 <%@ page import="java.text.*" %>
 <%@ page import="java.util.*" %>
-<%@ page import="java.io.File, org.ecocean.media.*" %>
+<%@ page import="java.io.File, org.ecocean.media.*,org.ecocean.ShepherdProperties" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.ecocean.servlet.*" %>
 
@@ -97,6 +97,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.beginDBTransaction();
 try {
   //get the encounter number
   String encNum = request.getParameter("encounterNumber");
@@ -154,15 +155,16 @@ try {
     List<MediaAsset> photos = enc.getMedia();
     for (int t = 0; t < photos.size(); t++) {
       MediaAsset ma=photos.get(t);
-      SinglePhotoVideo spv = new SinglePhotoVideo(encNum,ma.getFilename(),(enc.subdir())+File.separator+ma.getFilename());
+      //SinglePhotoVideo spv = new SinglePhotoVideo(encNum,ma.getFilename(),(enc.subdir())+File.separator+ma.getFilename());
       String spvKey = String.format("spv%d", t);
-      if (!MediaUtilities.isAcceptableImageFile(spv.getFile()))
+      File file=new File(enc.subdir()+File.separator+ma.getFilename());
+      if (!MediaUtilities.isAcceptableImageFile(file))
         continue;
-      if (!MantaMatcherUtilities.checkMatcherFilesExist(spv.getFile()))
+      if (!MantaMatcherUtilities.checkMatcherFilesExist(file))
         continue;
-      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
       File mmFT = mmFiles.get("FT");
-      Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, spv);
+      Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, ma,enc);
 %>
     <div class="subSection featureRegion">
       <p class="subSectionTitle featureRegionTitle"><%= MessageFormat.format(encprops.getProperty("mma.featureImage"), t + 1) %></p>
@@ -174,7 +176,7 @@ try {
           <form action="../EncounterAddMantaPattern" method="post" name="EncounterRemoveMantaPattern">
             <input name="action" type="hidden" value="imageremove" id="actionRemove-remove"/>
             <input name="number" type="hidden" value="<%=encNum%>" id="number-remove"/>
-            <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID-remove"/>
+            <input name="dataCollectionEventID" type="hidden" value="<%=ma.getId() %>" id="dataCollectionEventID-remove"/>
             <p><input name="removeMMPatternFile" type="submit" id="removeMMPatternFile" value="<%= encprops.getProperty("mma.submit.remove") %>"/></p>
           </form>
         </div>
@@ -199,7 +201,7 @@ try {
             if (mmaScan.getLocationIds().equals(allLocationIDs)) {
               dispLocIDs = "<span class=\"mmaResultsLocation\">" + encprops.getProperty("mma.location.global") + "</span>";
             }
-            String resultsURL = MantaMatcherUtilities.createMantaMatcherResultsLink(request, spv, mmaScan.getId());
+            String resultsURL = MantaMatcherUtilities.createMantaMatcherResultsLink(request, ma,enc, mmaScan.getId());
 %>
         <div class="mmaResults">
           <table class="mmaResultDetailsTable">
@@ -254,7 +256,7 @@ try {
 %>
         <div class="mmaResults">
           <form id="formNewScan-<%=spvKey%>">
-<%  if (MantaMatcherUtilities.checkMatcherFilesUsable(spv.getFile())) { %>
+<%  if (MantaMatcherUtilities.checkMatcherFilesUsable(file)) { %>
             <button id="buttonNewScan-<%=spvKey%>" class="smaller" title="<%= encprops.getProperty("mma.button.newScan.title") %>"><%= encprops.getProperty("mma.button.newScan") %></button>
 <%  } else { %>
             <button disabled id="buttonNewScan-<%=spvKey%>" class="smaller" title="<%= encprops.getProperty("mma.button.newScan.disabled.title") %>"><%= encprops.getProperty("mma.button.newScan.disabled") %></button>
@@ -307,7 +309,7 @@ try {
                     <button id="selectNone-<%=spvKey%>" class="smaller"><%= MessageFormat.format(encprops.getProperty("mma.button.selectNone"), enc.getLocationID()) %></button>
                     <input name="action" type="hidden" value="rescan"/>
                     <input name="number" type="hidden" value="<%=encNum%>"/>
-                    <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>"/>
+                    <input name="dataCollectionEventID" type="hidden" value="<%=ma.getId() %>"/>
                     <p><input type="submit" id="scanFile-<%=spvKey%>" value="<%= encprops.getProperty("mma.submit.scan") %>"/></p>
                   </form>
                 </div>

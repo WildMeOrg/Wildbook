@@ -29,8 +29,9 @@ import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
+//import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;
+import org.ecocean.media.*;
 
 /**
  * Base implementation for a site-specific batch data processor.
@@ -63,7 +64,7 @@ public abstract class BatchProcessorPlugin {
   /** List of measurements. */
   private List<Measurement> listMea;
   /** Map of media-items to batch-photos used during batch processing. */
-  private Map<SinglePhotoVideo, BatchMedia> mapPhoto;
+  private Map<MediaAsset, BatchMedia> mapPhoto;
   /** List of samples. */
   private List<TissueSample> listSam;
   /** List of errors produced by the batch processor (fatal). */
@@ -116,11 +117,11 @@ public abstract class BatchProcessorPlugin {
     this.listMea = listMea;
   }
 
-  final protected Map<SinglePhotoVideo, BatchMedia> getMapPhoto() {
+  final protected Map<MediaAsset, BatchMedia> getMapPhoto() {
     return mapPhoto;
   }
 
-  final void setMapPhoto(Map<SinglePhotoVideo, BatchMedia> mapPhoto) {
+  final void setMapPhoto(Map<MediaAsset, BatchMedia> mapPhoto) {
     this.mapPhoto = mapPhoto;
   }
 

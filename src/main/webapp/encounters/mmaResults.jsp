@@ -61,7 +61,7 @@
   // Get map for implementing i18n of pigmentation.
   Map<String, String> mapPig = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
   // Get set of all LocationIDs.
-  Set<String> allLocationIDs = new HashSet<String>(CommonConfiguration.getIndexedValues("locationID", context));
+  Set<String> allLocationIDs = new HashSet<String>(CommonConfiguration.getIndexedPropertyValues("locationID", context));
 
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 	response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance

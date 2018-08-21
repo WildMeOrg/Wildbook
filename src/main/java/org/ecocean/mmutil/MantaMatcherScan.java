@@ -1,6 +1,7 @@
 package org.ecocean.mmutil;
 
-import org.ecocean.SinglePhotoVideo;
+import org.ecocean.Encounter;
+import org.ecocean.media.*;
 import org.ecocean.StringUtils;
 import java.io.File;
 import java.io.Serializable;
@@ -30,16 +31,17 @@ public final class MantaMatcherScan implements Serializable, Comparable<MantaMat
   /** Flag indicating whether either of the files is non-standard. */
   private boolean nonStandardFiles = false;
 
-  public MantaMatcherScan(SinglePhotoVideo spv, Collection<String> locationIds, Date dateTime) {
-    Objects.requireNonNull(spv);
+  public MantaMatcherScan(MediaAsset ma, Encounter enc,Collection<String> locationIds, Date dateTime) {
+    Objects.requireNonNull(ma);
     Objects.requireNonNull(locationIds);
     Objects.requireNonNull(dateTime);
-    this.dataCollectionEventId = spv.getDataCollectionEventID();
+    File file=new File(enc.subdir()+File.separator+ma.getFilename());
+    this.dataCollectionEventId = (new Integer(ma.getId())).toString();
     this.locationIds = new TreeSet<>(locationIds);
     this.id = UUID.randomUUID().toString();
-    this.scanInput = new File(spv.getFile().getParentFile(), String.format("%s_mmaScan_%s_input.txt", spv.getDataCollectionEventID(), id));
-    this.scanOutputTXT = new File(spv.getFile().getParentFile(), String.format("%s_mmaScan_%s_output.txt", spv.getDataCollectionEventID(), id));
-    this.scanOutputCSV = new File(spv.getFile().getParentFile(), String.format("%s_mmaScan_%s_output.csv", spv.getDataCollectionEventID(), id));
+    this.scanInput = new File(file.getParentFile(), String.format("%s_mmaScan_%s_input.txt", (new Integer(ma.getId())).toString(), id));
+    this.scanOutputTXT = new File(file.getParentFile(), String.format("%s_mmaScan_%s_output.txt", (new Integer(ma.getId())).toString(), id));
+    this.scanOutputCSV = new File(file.getParentFile(), String.format("%s_mmaScan_%s_output.csv", (new Integer(ma.getId())).toString(), id));
     this.dateTime = dateTime;
   }
 

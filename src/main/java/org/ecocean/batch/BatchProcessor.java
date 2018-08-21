@@ -273,7 +273,10 @@ public final class BatchProcessor implements Runnable {
       plugin.setServletContext(servletContext);
       plugin.setDataDir(dataDir);
       plugin.setListMea(listMea);
-      plugin.setMapPhoto(mapMedia);
+      
+      //RETURN to this of ever used. Needs to witch to MediaAsset (new code) rather than SinglePhotoVideo (old code)
+      //plugin.setMapPhoto(new mapMedia);
+      
       plugin.setListSam(listSam);
     } catch (Exception ex) {
       String msg = bundle.getString("batchUpload.processError.plugin.loadFailed");

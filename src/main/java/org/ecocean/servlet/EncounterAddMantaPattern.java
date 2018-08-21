@@ -23,7 +23,12 @@ import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
-import org.ecocean.*;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
+import org.ecocean.ActionResult_Encounter;
+import org.ecocean.ActionResult;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.media.*;
 import org.ecocean.mmutil.ListHelper;
 import org.ecocean.mmutil.MantaMatcherScan;
 import org.ecocean.mmutil.MantaMatcherUtilities;
@@ -96,7 +101,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
     String encounterNumber = "";
-    SinglePhotoVideo spv = null;
+    //SinglePhotoVideo spv = null;
+    MediaAsset ma = null;
     Map<String, File> mmFiles = null;
     MantaMatcherScan scan = null;
     String action = "imageadd";
@@ -124,8 +130,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
         encounterNumber = request.getParameter("number");
         try {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
-          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
-          MantaMatcherUtilities.removeMatcherFiles(context, spv);
+          ma = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
+          MantaMatcherUtilities.removeMatcherFiles(context,ma,enc );
 
           // Clear MMA-compatible flag if appropriate for encounter.
           boolean hasCR = MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir);
@@ -149,9 +155,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
           //File encDir = new File(encountersDir, enc.getEncounterNumber());
           File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
           
-          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
-          File spvFile = new File(encDir, spv.getFilename());
-          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+          ma = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
+          File file=new File(enc.subdir()+File.separator+ma.getFilename());
+          File spvFile = new File(encDir, ma.getFilename());
+          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
 
           String[] locIDs = request.getParameterValues("locationID");
           List<String> locationIDs = (locIDs == null) ? null : Arrays.asList(locIDs);
@@ -159,20 +166,20 @@ public class EncounterAddMantaPattern extends HttpServlet {
           String scanId = request.getParameter("scanId");
           // If refreshing a scan, delete previous results and update time.
           if (scanId != null) {
-            scan = MantaMatcherUtilities.findMantaMatcherScan(context, spv, scanId);
+            scan = MantaMatcherUtilities.findMantaMatcherScan(context, ma,enc, scanId);
             // Remove this old scan from those already saved.
-            Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, spv);
+            Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, ma,enc);
             mmaScans.remove(scan);
-            MantaMatcherUtilities.saveMantaMatcherScans(context, spv, mmaScans);
+            MantaMatcherUtilities.saveMantaMatcherScans(context, ma,enc, mmaScans);
             // Now remove old data and update time for resuse.
             scan.deleteScanFiles();
             scan.setDateTime(new Date());
           } else {
-            scan = new MantaMatcherScan(spv, locationIDs, new Date());
+            scan = new MantaMatcherScan(ma,enc, locationIDs, new Date());
           }
 
           // Prepare temporary algorithm input file.
-          String inputText = MantaMatcherUtilities.collateAlgorithmInput(myShepherd, encountersDir, enc, spv, locationIDs);
+          String inputText = MantaMatcherUtilities.collateAlgorithmInput(myShepherd, encountersDir, enc, ma, locationIDs);
           try (PrintWriter pw = new PrintWriter(scan.getScanInput())) {
             pw.print(inputText);
             pw.flush();
@@ -215,9 +222,9 @@ public class EncounterAddMantaPattern extends HttpServlet {
           scan.getScanInput().delete();
 
           // Resave MMA scans after including new one.
-          Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, spv);
+          Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, ma,enc);
           mmaScans.add(scan);
-          MantaMatcherUtilities.saveMantaMatcherScans(context, spv, mmaScans);
+          MantaMatcherUtilities.saveMantaMatcherScans(context, ma,enc, mmaScans);
         }
         catch (SecurityException sx) {
           log.error(sx.getMessage(), sx);
@@ -233,9 +240,9 @@ public class EncounterAddMantaPattern extends HttpServlet {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
           File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
 
-          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
-          File spvFile = new File(encDir, spv.getFilename());
-          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+          ma = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
+          File spvFile = new File(encDir, ma.getFilename());
+          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
 
           String[] locIDs = request.getParameterValues("locationID");
           List<String> locationIDs = (locIDs == null) ? null : Arrays.asList(locIDs);
@@ -243,12 +250,12 @@ public class EncounterAddMantaPattern extends HttpServlet {
           String scanId = request.getParameter("scanId");
 
           // Resave MMA scans after including new one.
-          Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, spv);
-          scan = MantaMatcherUtilities.findMantaMatcherScan(context, spv, scanId);
+          Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, ma,enc);
+          scan = MantaMatcherUtilities.findMantaMatcherScan(context, ma,enc, scanId);
           if (scan != null) {
             mmaScans.remove(scan);
             scan.deleteScanFiles();
-            MantaMatcherUtilities.saveMantaMatcherScans(context, spv, mmaScans);
+            MantaMatcherUtilities.saveMantaMatcherScans(context, ma,enc, mmaScans);
           }
         }
         catch (SecurityException sx) {
@@ -274,8 +281,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
             } 
             // Determine existing image to which to assign new CR image.
             if (name.equals("photoNumber")){
-              spv = myShepherd.getSinglePhotoVideo(value);
-              mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+              ma = myShepherd.getMediaAsset(value);
+              mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,myShepherd.getEncounter(encounterNumber));
             }
           }
 
@@ -288,7 +295,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             try {
               // Attempt to delete existing MM algorithm files.
               // (Shouldn't exist, but just a precaution.)
-              MantaMatcherUtilities.removeMatcherFiles(context, spv);
+              MantaMatcherUtilities.removeMatcherFiles(context, ma,myShepherd.getEncounter(encounterNumber));
             }
             catch (SecurityException sx) {
               sx.printStackTrace();
@@ -352,8 +359,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
       else if (action.equals("imageadd2")) {
         
 				encounterNumber = request.getParameter("encounterID");
-				spv = myShepherd.getSinglePhotoVideo(request.getParameter("photoNumber"));
-				mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+				ma = myShepherd.getMediaAsset(request.getParameter("photoNumber"));
+				mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,myShepherd.getEncounter(encounterNumber));
 				String matchFilename = request.getParameter("matchFilename");
 				String errorMessage = null;
 
@@ -361,7 +368,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
         try {
           // Attempt to delete existing MM algorithm files.
           // (Shouldn't exist, but just a precaution.)
-          MantaMatcherUtilities.removeMatcherFiles(context, spv);
+          MantaMatcherUtilities.removeMatcherFiles(context, ma,myShepherd.getEncounter(encounterNumber));
         }
         catch (SecurityException sx) {
           sx.printStackTrace();
@@ -533,7 +540,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
           }
           else if (action.equals("rescan")) {
-            String paramSPV = String.format("%s=%s", MantaMatcher.PARAM_KEY_SPV, URLEncoder.encode(spv.getDataCollectionEventID()));
+            String paramSPV = String.format("%s=%s", MantaMatcher.PARAM_KEY_SPV, URLEncoder.encode(new Integer(ma.getId()).toString()));
             String paramScanId = String.format("%s=%s", MantaMatcher.PARAM_KEY_SCANID, URLEncoder.encode(scan.getId()));
             String resultsURL = String.format("%s/MantaMatcher/displayResults?%s&%s", request.getContextPath(), paramSPV, paramScanId);
             response.sendRedirect(resultsURL);

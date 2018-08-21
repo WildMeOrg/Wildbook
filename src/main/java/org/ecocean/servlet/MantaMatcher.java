@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.*;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.mmutil.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,13 +90,14 @@ public final class MantaMatcher extends DispatchServlet {
     getServletContext().getRequestDispatcher(JSP_ERROR).forward(req, res);
   }
 
-  public void displayResults(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-
+  public void displayResults(HttpServletRequest req, HttpServletResponse res, Encounter enc) throws ServletException, IOException {
+    Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    myShepherd.beginDBTransaction();
     try {
       // Parse SPV for which to get MantaMatcher algorithm results.
       String num = req.getParameter(PARAM_KEY_SPV);
       if (num == null || "".equals(num.trim())) {
-        throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
+        throw new IllegalArgumentException("Invalid MediaAsset specified");
       }
       // Parse unique results ID.
       String id = req.getParameter(PARAM_KEY_SCANID);
@@ -106,14 +108,16 @@ public final class MantaMatcher extends DispatchServlet {
       String context="context0";
       context=ServletUtilities.getContext(req);
       
-      Shepherd shepherd = new Shepherd(context);
-      SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
-      if (spv == null) {
-        throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
+      
+      myShepherd.beginDBTransaction();
+      myShepherd.setAction("MantaMatcher.java");
+      MediaAsset ma = myShepherd.getMediaAsset(num);
+      if (ma == null) {
+        throw new IllegalArgumentException("Invalid MediaAsset specified: " + num);
       }
 
-      MantaMatcherScan scan = MantaMatcherUtilities.findMantaMatcherScan(context, spv, id);
-      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, scan.getScanOutputTXT(), spv);
+      MantaMatcherScan scan = MantaMatcherUtilities.findMantaMatcherScan(context,ma,enc , id);
+      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, scan.getScanOutputTXT(), ma, enc);
       req.setAttribute(REQUEST_KEY_SCAN, scan);
       req.setAttribute(REQUEST_KEY_RESULTS, mmaResults);
       getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
@@ -121,11 +125,15 @@ public final class MantaMatcher extends DispatchServlet {
     } catch (Exception ex) {
       handleException(req, res, ex);
     }
+    finally{
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+    }
   }
 
-  private MMAResultsProcessor.MMAResult parseResults(HttpServletRequest req, File mmaResults, SinglePhotoVideo spv)
+  private MMAResultsProcessor.MMAResult parseResults(HttpServletRequest req, File mmaResults, MediaAsset ma, Encounter enc)
           throws IOException, ParseException {
-    assert spv != null;
+    assert ma != null;
     assert mmaResults != null;
     
     String context="context0";
@@ -135,14 +143,16 @@ public final class MantaMatcher extends DispatchServlet {
     String rootDir = getServletContext().getRealPath("/");
     File dataDir = new File(ServletUtilities.dataDir(context, rootDir));
     // Parse MantaMatcher results files ready for display.
-    Shepherd shepherd = new Shepherd(context);
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.beginDBTransaction();
     try {
       // Load results file.
       String text = new String(FileUtilities.loadFile(mmaResults));
       // Parse results.
-      return MMAResultsProcessor.parseMatchResults(shepherd, text, spv, dataDir);
+      return MMAResultsProcessor.parseMatchResults(myShepherd, text, ma, enc, dataDir);
     } finally {
-      shepherd.closeDBTransaction();
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
     }
   }
 
@@ -208,7 +218,8 @@ public final class MantaMatcher extends DispatchServlet {
   public void deleteAllOrphanMatcherFiles(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     String context="context0";
     context = ServletUtilities.getContext(req);
-    Shepherd shepherd = new Shepherd(context);
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.beginDBTransaction();
     File dataDir = new File(ServletUtilities.dataDir(context, getServletContext().getRealPath("/")));
     // Format string for encounter page URL (with placeholder).
     String pageUrlFormatEnc = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";
@@ -218,8 +229,8 @@ public final class MantaMatcher extends DispatchServlet {
 
     try {
       // Perform MMA-compatible flag updates.
-      shepherd.beginDBTransaction();
-      for (Iterator iter = shepherd.getAllEncounters(); iter.hasNext();) {
+      myShepherd.beginDBTransaction();
+      for (Iterator iter = myShepherd.getAllEncounters(); iter.hasNext();) {
         Encounter enc = (Encounter)iter.next();
         File dir = new File(enc.dir(dataDir.getAbsolutePath()));
         if (dir == null || !dir.exists())
@@ -246,11 +257,12 @@ public final class MantaMatcher extends DispatchServlet {
         }
 
         // Remove matcher files relating to existing SPVs.
-        for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
-          if (!MediaUtilities.isAcceptableImageFile(spv.getFile())) {
+        for (MediaAsset ma : enc.getMedia()) {
+          File file=new File(enc.subdir()+File.separator+ma.getFilename());
+          if (!MediaUtilities.isAcceptableImageFile(file)) {
             continue;
           }
-          Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+          Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
           File cr = mmFiles.get("CR");
           if (cr.exists()) {
             for (File f : mmFiles.values())
@@ -295,10 +307,15 @@ public final class MantaMatcher extends DispatchServlet {
         out.println(ServletUtilities.getFooter(context));
       }
 
-    } catch (Exception ex) {
-      shepherd.rollbackDBTransaction();
-      shepherd.closeDBTransaction();
+    } 
+    catch (Exception ex) {
+
       handleException(req, res, ex);
+      
+    }
+    finally{
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
     }
   }
 }

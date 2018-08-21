@@ -9,7 +9,8 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
+//import org.ecocean.SinglePhotoVideo;
+import org.ecocean.media.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +65,7 @@ public final class MMAResultsProcessor {
    * @throws IOException if thrown during parsing
    * @throws ParseException if thrown during parsing
    */
-  public static MMAResult parseMatchResults(Shepherd shepherd, String text, SinglePhotoVideo spv, File dataDir) throws IOException, ParseException {
+  public static MMAResult parseMatchResults(Shepherd shepherd, String text, MediaAsset ma, Encounter enc,File dataDir) throws IOException, ParseException {
     if (!checkResultsFormat(text))
       throw new IOException("Invalid results file format");
     // Split results into sections.
@@ -74,8 +75,9 @@ public final class MMAResultsProcessor {
     String[] sections = text.split("={10,}");
 
     MMAResult result = new MMAResult();
-    result.dirTest = spv.getFile().getParentFile();
-    result.testEncounterNumber = spv.getCorrespondingEncounterNumber();
+    File file=new File(enc.subdir()+File.separator+ma.getFilename());
+    result.dirTest = file.getParentFile();
+    result.testEncounterNumber = enc.getCatalogNumber();
     for (int i = 0; i < sections.length; i++) {
       if (i == 0)
         parseMatchResultsHeader(shepherd, result, sections[i].trim());
