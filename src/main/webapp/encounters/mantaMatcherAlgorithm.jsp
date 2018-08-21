@@ -106,7 +106,7 @@ try {
   myShepherd.beginDBTransaction();
   Encounter enc = myShepherd.getEncounter(encNum);
   boolean hasPhotos=false;
-  if ((enc.getAnnotations()!=null)&&(enc.getAnnotations().size()>0)) {
+  if ((enc.getMedia()!=null)&&(enc.getMedia().size()>0)) {
     hasPhotos = true;
   }
   boolean isAuthorized = request.isUserInRole("admin") || request.isUserInRole("imageProcessor");
@@ -157,12 +157,12 @@ try {
       MediaAsset ma=photos.get(t);
       //SinglePhotoVideo spv = new SinglePhotoVideo(encNum,ma.getFilename(),(enc.subdir())+File.separator+ma.getFilename());
       String spvKey = String.format("spv%d", t);
-      File file=new File(enc.subdir()+File.separator+ma.getFilename());
+      File file=ma.localPath().toFile();
       if (!MediaUtilities.isAcceptableImageFile(file))
         continue;
       if (!MantaMatcherUtilities.checkMatcherFilesExist(file))
         continue;
-      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
+      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(file);
       File mmFT = mmFiles.get("FT");
       Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, ma,enc);
 %>

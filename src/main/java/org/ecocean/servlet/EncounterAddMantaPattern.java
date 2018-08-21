@@ -156,9 +156,9 @@ public class EncounterAddMantaPattern extends HttpServlet {
           File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
           
           ma = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
-          File file=new File(enc.subdir()+File.separator+ma.getFilename());
-          File spvFile = new File(encDir, ma.getFilename());
-          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
+          //File file=new File(enc.subdir()+File.separator+ma.getFilename());
+          File spvFile = ma.localPath().toFile();
+          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spvFile);
 
           String[] locIDs = request.getParameterValues("locationID");
           List<String> locationIDs = (locIDs == null) ? null : Arrays.asList(locIDs);

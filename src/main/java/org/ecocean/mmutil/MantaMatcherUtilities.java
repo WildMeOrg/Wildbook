@@ -68,10 +68,10 @@ public final class MantaMatcherUtilities {
   public static Map<String, File> getMatcherFilesMap(MediaAsset ma, Encounter enc) {
     if (ma == null)
       throw new NullPointerException("Invalid media asset specified: null");
-    String maURL=enc.subdir()+File.separator+ma.getFilename();
-    File file=new File(maURL);
+    //String maURL=enc.subdir()+File.separator+ma.getFilename();
+    File file=ma.localPath().toFile();
     Map<String, File> map = getMatcherFilesMap(file);
-    map.put("MMA-SCAN-DATA", new File(enc.subdir(), String.format("%s_mmaScanData.dat", ma.getId())));
+    map.put("MMA-SCAN-DATA", new File(file.getParentFile(), String.format("%s_mmaScanData.dat", ma.getId())));
     return map;
   }
 
@@ -180,7 +180,7 @@ public final class MantaMatcherUtilities {
    */
   public static boolean checkEncounterHasMatcherFiles(Encounter enc, File dataDir) {
     for (MediaAsset ma : enc.getMedia()) {
-      File file=new File(enc.subdir()+File.separator+ma.getFilename());
+      File file=ma.localPath().toFile();
       if (MediaUtilities.isAcceptableImageFile(file) && checkMatcherFilesExist(file)) {
         return true;
       }
@@ -265,7 +265,7 @@ public final class MantaMatcherUtilities {
     // Collate results.
     StringBuilder sb = new StringBuilder();
 //    sb.append(spv.getFile().getParent()).append("\n\n");
-    File file=new File(enc.subdir()+File.separator+ma.getFilename());
+    File file=ma.localPath().toFile();
     sb.append(file.getAbsolutePath()).append("\n\n");
     for (Encounter x : list) {
       if (!enc.getEncounterNumber().equals(x.getEncounterNumber()))
@@ -353,7 +353,7 @@ public final class MantaMatcherUtilities {
         throw new IllegalArgumentException("Not all scans specified are for this SinglePhotoVideo");
     }
     // Save scan data to file (or delete file if none to save).
-    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
+    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma.localPath().toFile());
     File f = mmFiles.get("MMA-SCAN-DATA");
     if (scans.isEmpty()) {
       if (f.exists())

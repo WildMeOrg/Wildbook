@@ -35,7 +35,7 @@ public final class MantaMatcherScan implements Serializable, Comparable<MantaMat
     Objects.requireNonNull(ma);
     Objects.requireNonNull(locationIds);
     Objects.requireNonNull(dateTime);
-    File file=new File(enc.subdir()+File.separator+ma.getFilename());
+    File file=ma.localPath().toFile();
     this.dataCollectionEventId = (new Integer(ma.getId())).toString();
     this.locationIds = new TreeSet<>(locationIds);
     this.id = UUID.randomUUID().toString();
