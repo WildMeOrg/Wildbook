@@ -68,7 +68,7 @@ public class ApiAccess {
     //Shepherd myShepherd = new Shepherd(context);
 		ServletContext sc = session.getServletContext();
 		File afile = new File(sc.getRealPath("/") + "/WEB-INF/classes/apiaccess.xml");
-System.out.println("reading file??? " + afile.toString());
+//System.out.println("reading file??? " + afile.toString());
 
 		// h/t http://www.mkyong.com/java/how-to-read-xml-file-in-java-dom-parser/
 		try {
@@ -127,7 +127,7 @@ System.out.println(key);
 		for (Role r : roleObjs) {
 			roles.add(r.getRolename());
 		}
-		System.out.println("[class " + cname + "] roles for user '" + username + "': " + roles);
+		//System.out.println("[class " + cname + "] roles for user '" + username + "': " + roles);
 
 		NodeList nlist = this.configDoc.getDocumentElement().getElementsByTagName("class");
 		if (nlist.getLength() < 1) {
