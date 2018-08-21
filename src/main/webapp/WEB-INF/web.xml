@@ -255,6 +255,8 @@
 				 #lockdown Keyword handling
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
+				 
+				 /EncounterAddMantaPattern = authc, roles[researcher]
 				
 
             </param-value>
@@ -478,6 +480,11 @@
   <servlet>
     <servlet-name>EncounterSetBehavior</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetBehavior</servlet-class>
+  </servlet>
+  
+    <servlet>
+    <servlet-name>EncounterAddMantaPattern</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterAddMantaPattern</servlet-class>
   </servlet>
 
     <servlet>
@@ -1202,6 +1209,8 @@
     <servlet-name>TranslateQuery</servlet-name>
     <servlet-class>org.ecocean.servlet.TranslateQuery</servlet-class>
   </servlet>
+  
+  
 
 
   <servlet-mapping>
@@ -1212,6 +1221,11 @@
     <servlet-mapping>
       <servlet-name>SideFeed</servlet-name>
       <url-pattern>/SideFeed</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+      <servlet-name>EncounterAddMantaPattern</servlet-name>
+      <url-pattern>/EncounterAddMantaPattern</url-pattern>
   </servlet-mapping>
 
   <servlet>

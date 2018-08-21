@@ -3,7 +3,7 @@
 <%@ page import="org.ecocean.mmutil.*" %>
 <%@ page import="java.text.*" %>
 <%@ page import="java.util.*" %>
-<%@ page import="java.io.File" %>
+<%@ page import="java.io.File, org.ecocean.media.*" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.ecocean.servlet.*" %>
 
@@ -105,7 +105,7 @@ try {
   myShepherd.beginDBTransaction();
   Encounter enc = myShepherd.getEncounter(encNum);
   boolean hasPhotos=false;
-  if (enc.getSinglePhotoVideo() != null && enc.getSinglePhotoVideo().size() > 0) {
+  if ((enc.getAnnotations()!=null)&&(enc.getAnnotations().size()>0)) {
     hasPhotos = true;
   }
   boolean isAuthorized = request.isUserInRole("admin") || request.isUserInRole("imageProcessor");
@@ -151,9 +151,10 @@ try {
   <div id="mma" class="section">
     <p class="sectionTitle"><%= encprops.getProperty("mma.sectionTitle") %></p>
 <%
-    List<SinglePhotoVideo> photos = enc.getSinglePhotoVideo();
+    List<MediaAsset> photos = enc.getMedia();
     for (int t = 0; t < photos.size(); t++) {
-      SinglePhotoVideo spv = photos.get(t);
+      MediaAsset ma=photos.get(t);
+      SinglePhotoVideo spv = new SinglePhotoVideo(encNum,ma.getFilename(),(enc.subdir())+File.separator+ma.getFilename());
       String spvKey = String.format("spv%d", t);
       if (!MediaUtilities.isAcceptableImageFile(spv.getFile()))
         continue;
@@ -191,7 +192,7 @@ try {
         </div>
 <%
         } else if (enc.getLocationID() != null) {
-          Set<String> allLocationIDs = new HashSet<String>(CommonConfiguration.getIndexedValues("locationID", context));
+          Set<String> allLocationIDs = new HashSet<String>(CommonConfiguration.getIndexedPropertyValues("locationID", context));
           // Loop over each MMA scan...
           for (MantaMatcherScan mmaScan : mmaScans) {
             String dispLocIDs = mmaScan.getLocationIdString("<span class=\"mmaResultsLocation\">", "</span>", ", ");
