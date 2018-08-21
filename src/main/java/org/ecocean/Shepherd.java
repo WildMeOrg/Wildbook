@@ -3655,7 +3655,7 @@ public class Shepherd {
 
 
     String filter = "submitterID != null && dwcDateAddedLong >= "+startTime;
-    System.out.println("     My filter is: "+filter);
+    //System.out.println("     My filter is: "+filter);
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
     q.setResult("distinct submitterID");

@@ -40,6 +40,7 @@ public final class MantaMatcherScan implements Serializable, Comparable<MantaMat
     this.locationIds = new TreeSet<>(locationIds);
     this.id = UUID.randomUUID().toString();
     this.scanInput = new File(file.getParentFile(), String.format("%s_mmaScan_%s_input.txt", (new Integer(ma.getId())).toString(), id));
+    System.out.println("MantaMartcherScan.scanInput file is at: "+this.scanInput.getAbsolutePath());
     this.scanOutputTXT = new File(file.getParentFile(), String.format("%s_mmaScan_%s_output.txt", (new Integer(ma.getId())).toString(), id));
     this.scanOutputCSV = new File(file.getParentFile(), String.format("%s_mmaScan_%s_output.csv", (new Integer(ma.getId())).toString(), id));
     this.dateTime = dateTime;

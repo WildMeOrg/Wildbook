@@ -180,9 +180,18 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
           // Prepare temporary algorithm input file.
           String inputText = MantaMatcherUtilities.collateAlgorithmInput(myShepherd, encountersDir, enc, ma, locationIDs);
-          try (PrintWriter pw = new PrintWriter(scan.getScanInput())) {
-            pw.print(inputText);
+          File scanInput=scan.getScanInput();
+          System.out.println("EncounterAddMantaPattern.scanInput file is: "+scanInput.getAbsolutePath());
+          System.out.println("...and I am trying to write the following:\n: "+inputText);
+          try {
+            FileWriter pw = new FileWriter(scanInput);
+            pw.write(inputText);
             pw.flush();
+            pw.close();
+            
+          }
+          catch(Exception e){
+            e.printStackTrace();
           }
 
           // Run algorithm.
