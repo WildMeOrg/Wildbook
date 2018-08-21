@@ -358,10 +358,17 @@ public class EncounterAddMantaPattern extends HttpServlet {
       
       else if (action.equals("imageadd2")) {
         
+        System.out.println("STarting EncounterAddMantaPattern.imageadd2");
+        
 				encounterNumber = request.getParameter("encounterID");
+				System.out.println("...encounter number: "+encounterNumber);
 				ma = myShepherd.getMediaAsset(request.getParameter("photoNumber"));
-				mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,myShepherd.getEncounter(encounterNumber));
+				System.out.println("...mediassetID: "+request.getParameter("photoNumber"));
+				if(myShepherd.getMediaAsset(request.getParameter("photoNumber"))!=null)System.out.println("......it's a real media asset!");
+				//mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,myShepherd.getEncounter(encounterNumber));
+				mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma.localPath().toFile());
 				String matchFilename = request.getParameter("matchFilename");
+				System.out.println("...matchFilename is: "+matchFilename);
 				String errorMessage = null;
 
         assert mmFiles != null;

@@ -43,7 +43,7 @@ public class StartupWildbook implements ServletContextListener {
   // it is attached via web.xml's <listener></listener>
   public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
 
-    ensureTomcatUserExists(myShepherd);
+    //ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
 
@@ -124,7 +124,7 @@ public class StartupWildbook implements ServletContextListener {
         // res -> e.g. "jndi:/localhost/fubar"
 */
         if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
-        createMatchGraph();
+        //createMatchGraph();
 
         File qdir = ScheduledQueue.setQueueDir(context);
         if (qdir == null) {

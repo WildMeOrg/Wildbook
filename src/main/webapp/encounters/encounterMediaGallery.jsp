@@ -232,6 +232,19 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 						all.put(j);
 					}
 		  		}
+		  		
+		  		//insert old CR code
+
+				if (request.getParameter("isOwner").equals("true") && CommonConfiguration.isCatalogEditable(context)) {
+					File tryCR = new File(ma.localPath().toString().replaceFirst(".([^.]+)$", "_CR.$1"));
+					if (tryCR.exists()) {
+						String crimg = ma.getFilename().replaceFirst(".([^.]+)$", "_CR.$1");
+						%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=enc.getCatalogNumber() %>&filename=<%=ma.getFilename() %>&mediaAssetId=<%=ma.getId() %>"><img src="<%=ma.webURL().toString().replaceFirst(".([^.]+)$", "_CR.$1") %>" /></a><div class="note"><%=encprops.getProperty("candidateRegion")%></div></div>
+						<%
+					} 
+				}
+		  		//end insert old CR code
+		  		
 		  	} //end loop on each annotation
 		  	
 		  	

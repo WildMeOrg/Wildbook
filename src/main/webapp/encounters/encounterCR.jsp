@@ -281,7 +281,7 @@ console.log('have base64 to send to server for ' + encounterNumber);
 <form method="POST" id="cr-form" action="../EncounterAddMantaPattern" >
 	<input type="hidden" name="encounterID" value="<%=num%>" />
 	<input type="hidden" name="matchFilename" value="<%=matchFilename%>" />
-
+<input type="hidden" name="photoNumber" value="<%=ma.getId() %>" />
 	<input type="hidden" name="action" value="imageadd2" />
 	<input type="hidden" name="pngData" value="" />
 </form>
