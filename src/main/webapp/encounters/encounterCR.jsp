@@ -4,7 +4,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="javax.jdo.Extent" %>
 <%@ page import="javax.jdo.Query" %>
-<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.*, org.ecocean.media.*" %>
 <%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
@@ -171,12 +171,12 @@ margin-bottom: 8px !important;
 			<%
   			myShepherd.beginDBTransaction();
 
-  			if (myShepherd.isEncounter(num)) {
+  			if (myShepherd.isEncounter(num) && (request.getParameter("mediaAssetId")!=null)) {
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
       			pageContext.setAttribute("enc", enc);
-				int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
+				//int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
       
 				//let's see if this user has ownership and can make edits
       			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
@@ -190,38 +190,33 @@ margin-bottom: 8px !important;
       			String headerBGColor="FFFFFC";
       			//if(CommonConfiguration.getProperty(()){}
 
-						List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+						//List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 						//String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/" + num;
-						String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
+						//String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
-						String filename = request.getParameter("filename");
+							
+						String mediaAssetId = request.getParameter("mediaAssetId");
 
-						SinglePhotoVideo match = null;
-
-						for (SinglePhotoVideo s : spvs) {
-							if (myShepherd.isAcceptableImageFile(s.getFilename())) {
-								if (s.getFilename().equals(filename)) match = s;
-							}
-						}
-						if (match == null) match = spvs.get(0);
+						MediaAsset ma=myShepherd.getMediaAsset(mediaAssetId);
 
 						if (enc.getMmaCompatible()) {
-							File tryCR = new File(match.getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.$1"));
-							if (tryCR.exists()) crExistsUrl = match.getFilename().replaceFirst(".([^.]+)$", "_CR.$1");
+							File tryCR = new File((enc.subdir()+File.separator+ma.getFilename()).replaceFirst(".([^.]+)$", "_CR.$1"));
+							if (tryCR.exists()) crExistsUrl = ma.getFilename().replaceFirst(".([^.]+)$", "_CR.$1");
 						}
 
-						String imgUrl = "";
-						String matchFilename = "";
-						String matchSPVID = "";
-						if (match != null) {
-							matchFilename = match.getFilename();
-							matchSPVID=match.getDataCollectionEventID();
-							imgUrl = "/" + dataDir + "/" + matchFilename;
+						String imgUrl = ma.webURL().toString();
+						String matchFilename = ma.webURL().toString();
+						//String matchSPVID = "";
+						//if (match != null) {
+							//matchFilename = ma.getFilename();
+							//matchSPVID=match.getDataCollectionEventID();
+							//imgUrl = "/" + dataDir + "/" + matchFilename;
 							//List k = match.getKeywords();
-						}
+						//}
 
 						if (crExistsUrl != null) {
-							crExistsUrl = "/" + dataDir + "/" + crExistsUrl;
+							//crExistsUrl = "/" + dataDir + "/" + crExistsUrl;
+							crExistsUrl = ma.webURL().toString();
 						}
 
     			%>
@@ -286,7 +281,7 @@ console.log('have base64 to send to server for ' + encounterNumber);
 <form method="POST" id="cr-form" action="../EncounterAddMantaPattern" >
 	<input type="hidden" name="encounterID" value="<%=num%>" />
 	<input type="hidden" name="matchFilename" value="<%=matchFilename%>" />
-	<input type="hidden" name="photoNumber" value="<%=matchSPVID%>" />
+
 	<input type="hidden" name="action" value="imageadd2" />
 	<input type="hidden" name="pngData" value="" />
 </form>
@@ -321,7 +316,7 @@ catch(Exception e){
   		myShepherd.rollbackDBTransaction();
   		myShepherd.closeDBTransaction();
 		%>
-		<p class="para">There is no encounter #<%=num%> in the database. Please double-check the encounter number and try again.</p>
+		<p class="para">There is either no encounter <%=num%> or Media Asset <%=request.getParameter("mediaAssetId") %> in the database. Please double-check the encounter number and try again.</p>
 
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
