@@ -220,7 +220,7 @@
 	    		System.out.println("Suffix : "+suffix);
 	    		if (suffix.equals("mid.jpg")) {
 	    			swap = f.toString();
-	    			swap = swap.replaceAll("/opt/tomcat/webapps/", "");
+	    			swap = swap.replaceAll("/var/lib/tomca8/webapps/", "");
 	  	    		assetURLs = assetURLs + "<div class=\"col-xs-2\"><img class=\"new-thumb\" src=\""+swap+"\"/></div>";
 	  	    		System.out.println("ASSET URLS : "+assetURLs);
 	    		}
