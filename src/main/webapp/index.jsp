@@ -400,13 +400,16 @@ finally{
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
 		<ol class="list-inline carousel-indicators slide-nav">
 	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. <%=indexProps.getProperty("photographAnAnimal")%><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=indexProps.getProperty("submitPhoto")%><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=indexProps.getProperty("matchingProcess")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=indexProps.getProperty("hwhenEcounter")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="3" class="">3. <%=indexProps.getProperty("hwhereTrapping")%><span class="caret"></span></li>	        
+            <li data-target="#howtocarousel" data-slide-to="4" class="">4. <%=indexProps.getProperty("hmatchingProcess")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="5" class="">5. <%=indexProps.getProperty("hworkwithus")%><span class="caret"></span></li>
+      
 	    </ol>
 		<div class="carousel-inner text-left">
 			<div class="item active">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Photograph the ID area</h3>
+					<h3><%=indexProps.getProperty("hphotoIdPar")%></h3>
 					<p class="lead">
           <%=indexProps.getProperty("photoIdPar")%>
 					</p>
@@ -418,9 +421,9 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Submit PhotoID or sighting</h3>
+					<h3><%=indexProps.getProperty("whenEcounter")%></h3>
 					<p class="lead">
-          <%=indexProps.getProperty("submitPhotoPar")%>
+          <%=indexProps.getProperty("whenEncounterPar")%>
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -429,13 +432,35 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Matching Results</h3>
+					<h3><%=indexProps.getProperty("whereTrapping")%></h3>
+					<p class="lead">
+          <%=indexProps.getProperty("whereTrappingPar")%>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/wheretrapping.jpg" alt=""  style="max-height: 336px; max-width:336xp; border-radius:50%;"/>
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3><%=indexProps.getProperty("matchingProcess")%></h3>
 					<p class="lead">
           <%=indexProps.getProperty("matchingProcessPar")%>
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  style="max-height: 336px; max-width:336xp; border-radius:50%;"/>
+					<img class="pull-right" src="images/matchingprocess.jpg" alt=""  style="max-height: 336px; max-width:336xp; border-radius:50%;"/>
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3><%=indexProps.getProperty("workwithus")%></h3>
+					<p class="lead">
+          <%=indexProps.getProperty("workwithusPar")%>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/workwithus.jpg" alt=""  style="max-height: 336px; max-width:336xp; border-radius:50%;"/>
 				</div>
 			</div>
 		</div>
