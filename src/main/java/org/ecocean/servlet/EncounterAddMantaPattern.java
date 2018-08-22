@@ -183,16 +183,26 @@ public class EncounterAddMantaPattern extends HttpServlet {
           File scanInput=scan.getScanInput();
           System.out.println("EncounterAddMantaPattern.scanInput file is: "+scanInput.getAbsolutePath());
           System.out.println("...and I am trying to write the following:\n: "+inputText);
+          FileWriter pw = new FileWriter(scanInput);
+          BufferedWriter bw=new BufferedWriter(pw);
           try {
-            FileWriter pw = new FileWriter(scanInput);
-            pw.write(inputText);
-            pw.flush();
-            pw.close();
+            
+            bw.write(inputText);
+            bw.flush();
+            
             
           }
           catch(Exception e){
             e.printStackTrace();
           }
+          finally{
+            bw.close();
+          }
+          
+          if(scanInput.exists()){System.out.println("...Hooray! The file was written! ");}
+          else{System.out.println("...Uh oh! The file was NOT written! ");}
+          
+          
 
           // Run algorithm.
           List<String> procArg = ListHelper.create("/usr/bin/mmatch")
@@ -228,7 +238,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           proc.waitFor();
 
           // Delete temporary algorithm input file.
-          scan.getScanInput().delete();
+          //scan.getScanInput().delete();
 
           // Resave MMA scans after including new one.
           Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, ma,enc);
