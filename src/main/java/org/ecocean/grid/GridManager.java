@@ -71,6 +71,8 @@ public class GridManager {
   private static ConcurrentHashMap<String,EncounterLite> matchGraph=new ConcurrentHashMap<String, EncounterLite>();
   private static int numRightPatterns=0;
   private static int numLeftPatterns=0;
+  
+  private static boolean creationThread=false;
 
 
   //hold uncompleted scanWorkItems
@@ -104,6 +106,14 @@ public class GridManager {
 
   public long getNodeTimeout() {
     return nodeTimeout;
+  }
+  
+  public void setCreationThread(boolean status) {
+    creationThread=status;
+  }
+  
+  public boolean getCreationThread() {
+    return creationThread;
   }
 
   public long getCheckoutTimeout() {

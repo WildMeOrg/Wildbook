@@ -1167,12 +1167,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 
-        <tr>
-	  <td><br /><strong><%=props.getProperty("submitterName")%>:</strong>
-	    <input name="nameField" type="text" size="60"> <br> <em><%=props.getProperty("namesBlank")%>
-	    </em>
-	  </td>
-</tr>
+
       </table>
 
     </div>
