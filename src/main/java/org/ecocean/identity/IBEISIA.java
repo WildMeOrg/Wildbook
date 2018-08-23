@@ -2817,6 +2817,8 @@ return Util.generateUUID();
           System.out.println("Final detectedLanguage: "+detectedLanguage);
           
           
+          
+          
           //GET AND TRANSLATE OCR TEXT EMBEDDED IN VIDEO FRAMES
           //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
           String ocrRemarks="";
@@ -2828,22 +2830,36 @@ return Util.generateUUID();
                 MediaAsset myAsset = assets.get(0);
                 MediaAsset parent = myAsset.getParent(myShepherd);
                 if(parent!=null){
-                  ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
-                  if((frames!=null)&&(frames.size()>0)){
-                      
-
-                      //Google OCR
-                      //ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
-                      //ocrRemarks = GoogleOcr.detectText(bytesFrames);
-                      //if(ocrRemarks==null)ocrRemarks="";
-                      //System.out.println("I found Google OCR remarks: "+ocrRemarks);
-
-                      //Azure OCR 
-                      ocrRemarks = AzureOcr.detectText(frames);
-                      if(ocrRemarks==null)ocrRemarks="";
-                      System.out.println("I found Azure OCR remarks: "+ocrRemarks);
-                    }
-                  } else {
+             
+                  
+                  //first, set metadata lanuage on the mediaasset
+                  MediaAssetMetadata md = parent.getMetadata();
+                  JSONObject json= md.getData();
+                  JSONObject jsonDetected=new JSONObject();
+                  jsonDetected.put("langCode", detectedLanguage);
+                  json.put("detected", jsonDetected);
+                  md.setData(json);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  
+                    //second, commence OCR!
+                    ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
+                    if((frames!=null)&&(frames.size()>0)){
+                        
+  
+                        //Google OCR
+                        //ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
+                        //ocrRemarks = GoogleOcr.detectText(bytesFrames);
+                        //if(ocrRemarks==null)ocrRemarks="";
+                        //System.out.println("I found Google OCR remarks: "+ocrRemarks);
+  
+                        //Azure OCR 
+                        ocrRemarks = AzureOcr.detectText(frames);
+                        if(ocrRemarks==null)ocrRemarks="";
+                        System.out.println("I found Azure OCR remarks: "+ocrRemarks);
+                      }
+                  } 
+                  else {
                     System.out.println("I could not find any frames from YouTubeAssetStore.findFrames for asset:"+myAsset.getId()+" from Encounter "+myEnc.getCatalogNumber());
                   }
               }

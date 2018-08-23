@@ -124,13 +124,13 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
     	
     	//setup our metadata fields  
     	String videoID=ma.getMetadata().getData().getJSONObject("detailed").optString("id");
-		String videoTitle="[unknown]";
+		String videoTitle="";
 		String videoTitleShort=videoTitle;
 		String videoComments="";
 		String videoCommentsClean="";
 		String locIDWords="";
-		String videoDescription="[no description]";
-		String videoTags="[no tags]";
+		String videoDescription="";
+		String videoTags="";
 		
 		//start capturing metadata about the YouTube video
 		
@@ -147,10 +147,42 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 		//video tags
 		String videoTagsShort=videoTags;
 		if(videoTags.length()>1000){videoTagsShort=videoTags.substring(0,1000);}
-		if(md.getData().getJSONObject("detailed")!=null){
+		if(md.getData().optJSONObject("detailed")!=null){
 			videoDescription=md.getData().getJSONObject("detailed").optString("description").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase();
 			videoTags=md.getData().getJSONObject("detailed").getJSONArray("tags").toString().replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();		
 		}
+		
+		String ytRemarks=videoTitle+" "+videoDescription+" "+videoTags;
+		String storedLanguage="null";
+		String detectedLanguage="en";
+		try{
+			detectedLanguage=DetectTranslate.detectLanguage(ytRemarks);
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		
+        //first, set metadata lanuage on the mediaasset
+        if(md.getData().optJSONObject("detected")!=null){
+        	if(md.getData().getJSONObject("detected").optString("langCode")!=null){
+        		String storedData=md.getData().getJSONObject("detected").optString("langCode");
+        		if((!storedData.trim().equals(""))&&(storedData.toLowerCase().indexOf("unknown")==-1)){
+        			detectedLanguage=storedData;
+        		}
+        		
+        	}
+        }
+
+        JSONObject json= md.getData();
+        JSONObject jsonDetected=new JSONObject();
+        jsonDetected.put("langCode", detectedLanguage);
+        json.put("detected", jsonDetected);
+        md.setData(json);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+
+		
 		
 		//Let's get the Encounter objects related to this video
 		//JDOQL query
@@ -496,7 +528,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 			  
 			  }
 			  
-			  resultsHTML="<tr><td><a target=\"_blank\" href=\"https://www.whaleshark.org/occurrence.jsp?number="+occurID+"\">"+occurID+"</a></td><td><a target=\"_blank\" href=\"https://www.youtube.com/watch?v="+videoID+"\">"+videoID+"</a></td><td>"+currentDate+"</td><td><p style=\""+chosenStyleDate+"\">"+newDetectedDate+"</p></td><td>"+currentLocationID+"</td><td><p style=\""+chosenStyleLocation+"\">"+newLocationID+"</p></td><td>"+videoTitle+"</td><td>"+videoDescription+"</td><td>"+videoComments+"</td><td>"+videoCommentsClean+"<br><br>LocID Words: "+locIDWords+"</br></br></td><td>"+relativeDate+"</td></tr>";
+			  resultsHTML="<tr><td><a target=\"_blank\" href=\"https://www.whaleshark.org/occurrence.jsp?number="+occurID+"\">"+occurID+"</a></td><td><a target=\"_blank\" href=\"https://www.youtube.com/watch?v="+videoID+"\">"+videoID+"</a></td><td>"+currentDate+"</td><td><p style=\""+chosenStyleDate+"\">"+newDetectedDate+"</p></td><td>"+currentLocationID+"</td><td><p style=\""+chosenStyleLocation+"\">"+newLocationID+"</p></td><td>"+videoTitle+"</td><td>"+videoDescription+"</td><td>"+videoComments+"</td><td>"+videoCommentsClean+"<br><br>LocID Words: "+locIDWords+"</br></br></td><td>"+relativeDate+"</td><td>"+storedLanguage+"/"+detectedLanguage+"</td></tr>";
 				
 			  
 			  
@@ -561,7 +593,7 @@ tr.rowhighlight td, tr.rowhighlight th{
 
 <body>
 <table border="1">
-<tr><th>Occurrence</th><th>VideoID<th>Current Date</th><th>Potentially Matched Date</th><th>LocationID</th><th>New LocationID</th><th>Title Only</th><th>Description Only</th><th>Comments Only</th><th>Raw Comments</th><th>Relative date</th></tr>
+<tr><th>Occurrence</th><th>VideoID<th>Current Date</th><th>Potentially Matched Date</th><th>LocationID</th><th>New LocationID</th><th>Title Only</th><th>Description Only</th><th>Comments Only</th><th>Raw Comments</th><th>Relative date</th><th>Language: Stored/Detected</th></tr>
 <%
 
 myShepherd.beginDBTransaction();
@@ -592,6 +624,7 @@ try{
 		ArrayList<MediaAsset> notRunYoutubeAssets=new ArrayList<MediaAsset>();
 		
 		for(int i=0;i<results.size();i++){
+		
 			MediaAsset mas=results.get(i);
 			if(!hasRunDetection(mas,myShepherd)){
 				results.remove(i);
