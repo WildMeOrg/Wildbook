@@ -114,7 +114,7 @@
       <field name="adopterQuote" persistence-modifier="persistent">
         <column jdbc-type="LONGVARCHAR"/>
       </field>
-      <field name="adoptionStartDate" persistence-modifier="persistent">
+      <field name="adoptionStartDate" persistence-modifier="persistbent">
         <column length="100"/>
       </field>
       <field name="adoptionEndDate" persistence-modifier="persistent">
@@ -239,6 +239,18 @@
     </class>
 
     <class name="Encounter" identity-type="application" table="ENCOUNTER">
+	
+	      <field name="submitters" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.User"/>
+        <join/>
+      </field>
+	  
+	        <field name="photographers" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.User"/>
+        <join/>
+      </field>
+	  
+	  
       <field name="catalogNumber" primary-key="true">
         <column length="100"/>
       </field>
@@ -644,9 +656,17 @@
       <field name="fullName">
         <column name="FULLNAME"/>
       </field>
+	  
+	  <field name="uuid" primary-key="true">
+        <column name="UUID"/>
+      </field>
 
       <field name="emailAddress">
         <column name="EMAILADDRESS"/>
+      </field>
+	  
+	        <field name="hashedEmailAddress">
+        <column name="HASHEDEMAILADDRESS"/>
       </field>
 
       <field name="physicalAddress">
@@ -673,8 +693,8 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
 
-      <field name="username" primary-key="true" column="username">
-        <column length="100"/>
+      <field name="username" column="username" unique="true">
+        <column length="100" allows-null="true"/>
       </field>
 
       <field name="password" column="password">

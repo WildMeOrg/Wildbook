@@ -295,7 +295,8 @@ margin-bottom: 8px !important;
 int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
-
+int numUsersWithRoles=0;
+//Shepherd myShepherd=new Shepherd(context);
 myShepherd.beginDBTransaction();
 
 //String url = "login.jsp";
@@ -309,7 +310,8 @@ try{
 
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
-    numDataContributors=myShepherd.getNumUsers();
+    numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
+    numUsersWithRoles = myShepherd.getNumUsers()-numDataContributors;
 
 
 }
@@ -582,7 +584,7 @@ finally{
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("contributors") %></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> citizen scientists</i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
