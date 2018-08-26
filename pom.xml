@@ -53,11 +53,13 @@
 
   <dependencies>
 
+  <!--
     <dependency>
         <groupId>com.healthmarketscience.jackcess</groupId>
         <artifactId>jackcess</artifactId>
         <version>1.2.14.2</version>
     </dependency>
+	-->
   <!--
    <dependency>
             <groupId>org.mongodb.morphia</groupId>
@@ -452,11 +454,11 @@
 </dependency>
 
 
-    <dependency>
-      <groupId>com.google.apis</groupId>
-      <artifactId>google-api-services-youtube</artifactId>
-      <version>v3-rev191-1.23.0</version>
-    </dependency>
+<dependency>
+    <groupId>com.google.apis</groupId>
+    <artifactId>google-api-services-youtube</artifactId>
+    <version>v3-rev205-1.24.1</version>
+</dependency>
 
 <dependency>
     <groupId>org.apache.commons</groupId>

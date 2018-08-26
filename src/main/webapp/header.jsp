@@ -28,7 +28,7 @@
              java.util.ArrayList,
              java.util.List,
              java.util.Properties,
-             org.apache.commons.lang.WordUtils,
+             org.apache.commons.lang3.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration
               "
