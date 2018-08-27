@@ -527,7 +527,7 @@ function FSControl(controlDiv, map) {
 
             %>
 
-              <h5>Provisionary Fields</h5>
+              <h5><%=dsProps.getProperty("provisionaryFields")%></h5>
               <table>
 
               <%

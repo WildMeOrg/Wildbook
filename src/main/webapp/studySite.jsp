@@ -222,13 +222,13 @@
 
 <div class="col-sm-6">
 
-<h2> Map </h2>
+<h2> <%=stuprops.getProperty("Map")%> </h2>
 <em>
 <%=stuprops.getProperty("projectionComment")%>
 </em>
 
 
-<p><em>For illustration only. To set position, please use form.</em></p>
+<p><em><%=stuprops.getProperty("MapComment")%></em></p>
 
 <script type="text/javascript">
 
