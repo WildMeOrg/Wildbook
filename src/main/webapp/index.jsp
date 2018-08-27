@@ -66,6 +66,7 @@ myShepherd=new Shepherd(context);
 
 // Here I'll do some preliminary stuff for
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+String langCode=ServletUtilities.getLanguageCode(request);
 
 %>
 
