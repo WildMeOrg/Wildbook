@@ -65,7 +65,7 @@ myShepherd=new Shepherd(context);
   	}
 
 // Here I'll do some preliminary stuff for
-
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 %>
 
