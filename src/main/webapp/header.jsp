@@ -518,7 +518,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                               </ul>
                             </li>
 
-
+                                <!--
                                 <li class="divider"></li>
                                 <li class="dropdown-header">Nav header</li>
                                  -->
