@@ -90,7 +90,7 @@ public class WorkAppletHeadlessEpic {
     //urlArray.add("https://www.whaleshark.org");
     
     //addresses for spotashark-related wildbooks
-    urlArray.add("http://spottinggiantseabass.msi.ucsb.edu");
+    urlArray.add("https://spottinggiantseabass.msi.ucsb.edu");
     //urlArray.add("http://ncaquariums.wildbook.org");
     
     // IP for Bass Server
