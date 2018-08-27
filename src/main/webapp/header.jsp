@@ -375,18 +375,14 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <ul class="dropdown-menu" role="menu">
                           <li class="dropdown-header"><%=props.getProperty("states")%></li>
 
-                        <!-- list encounters by state -->
-                          <% boolean moreStates=true;
-                             int cNum=0;
-                             while(moreStates) {
-                                 String currentLifeState = "encounterState"+cNum;
-                                 if (CommonConfiguration.getProperty(currentLifeState,context)!=null) { %>
-                                   <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState,context) %>"><%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState,context))+" "))%></a></li>
-                                 <% cNum++;
-                                 } else {
-                                     moreStates=false;
-                                 }
-                            } //end while %>
+                            <!-- Manually list encounter states bc iterating through them doesn't translate well -->
+                            <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?state=approved"> <%=props.getProperty("viewApproved")%> </a></li>
+
+                            <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?state=unapproved"> <%=props.getProperty("viewUnapproved")%></a></li>
+                            <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?state=unidentifiable"> <%=props.getProperty("viewUnidentifiable")%></a></li>
+
+
+
                           <li class="divider"></li>
                           <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
                           <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
