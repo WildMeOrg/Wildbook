@@ -384,7 +384,7 @@ finally{
 			</button>
 			-->
             <a href="submit.jsp">
-                <button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>
+                <button class="large"><%= indexProps.getProperty("Report_encounter")%><span class="button-icon" aria-hidden="true"></button>
             </a>
         </div>
 
@@ -401,9 +401,9 @@ finally{
 		<ol class="list-inline carousel-indicators slide-nav">
 	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. <%=indexProps.getProperty("photographAnAnimal")%><span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=indexProps.getProperty("hwhenEcounter")%><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">3. <%=indexProps.getProperty("hwhereTrapping")%><span class="caret"></span></li>	        
-            <li data-target="#howtocarousel" data-slide-to="4" class="">4. <%=indexProps.getProperty("hmatchingProcess")%><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="5" class="">5. <%=indexProps.getProperty("hworkwithus")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=indexProps.getProperty("hwhereTrapping")%><span class="caret"></span></li>	        
+            <li data-target="#howtocarousel" data-slide-to="3" class="">4. <%=indexProps.getProperty("hmatchingProcess")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. <%=indexProps.getProperty("hworkwithus")%><span class="caret"></span></li>
       
 	    </ol>
 		<div class="carousel-inner text-left">
@@ -421,7 +421,7 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3><%=indexProps.getProperty("whenEcounter")%></h3>
+					<h3><%=indexProps.getProperty("whenEncounter")%></h3>
 					<p class="lead">
           <%=indexProps.getProperty("whenEncounterPar")%>
 					</p>
