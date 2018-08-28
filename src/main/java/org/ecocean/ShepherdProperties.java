@@ -54,6 +54,9 @@ public class ShepherdProperties {
       }
       catch (IOException ioe) {
         ioe.printStackTrace();
+      } catch (Exception e) {
+        System.out.println("Horrible exception within the Properties!");
+        e.printStackTrace();
       }
     }
 
