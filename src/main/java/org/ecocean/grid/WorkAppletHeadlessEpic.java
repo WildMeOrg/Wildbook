@@ -87,7 +87,7 @@ public class WorkAppletHeadlessEpic {
 
   public static void main(String args[]) {
 
-    urlArray.add("https://www.whaleshark.org");
+    //urlArray.add("https://www.whaleshark.org");
     
     //addresses for spotashark-related wildbooks
     //urlArray.add("http://www.spotashark.com");
@@ -95,14 +95,32 @@ public class WorkAppletHeadlessEpic {
     
     // IP for Bass Server
     //urlArray.add("http://34.209.17.78");
+    System.out.println("Starting WorkAppletHeadlessEpic");
 
+    //which URLS
     WorkAppletHeadlessEpic a = new WorkAppletHeadlessEpic();
-    //if(args[0]!=null)urlArray.add(args[0]);
-    a.getGoing();
+    if(args[0]!=null){
+      urlArray.add(args[0]);
+      System.out.println("Performing matching for server: "+args[0]);
+    }
+    
+    //check the number of processors
+    Runtime rt = Runtime.getRuntime();
+    int numProcessors = rt.availableProcessors();
+    if(args[1]!=null){
+      try{
+        numProcessors=new Integer(args[1]).intValue();
+      }
+      catch(Exception e){
+        System.out.println("I couldn't read an Integer for num processors to apply from value: "+args[1]);
+      }
+    }
+    
+    a.getGoing(numProcessors);
   }
 
 
-  public void getGoing() {
+  public void getGoing(int numProcessors) {
 
 
     String holdEncNumber = "";
@@ -122,7 +140,7 @@ public class WorkAppletHeadlessEpic {
     //set up the random identifier for this "node"
     Random ran = new Random();
     int nodeIdentifier = ran.nextInt();
-    String nodeID = "Amazon_Consolidated_" + (new Integer(nodeIdentifier)).toString();
+    String nodeID = "Azure_" + (new Integer(nodeIdentifier)).toString();
 
 
     //if targeted on a specific task, show a percentage bar for progress
@@ -138,9 +156,7 @@ public class WorkAppletHeadlessEpic {
         //let's allocate an object to handle an OutOfMemoryError
         //URL recoverURL = new URL("http://" + thisURLRoot + "/encounters/sharkGrid.jsp?groupSize=1&autorestart=true" + targeted + "&numComparisons=" + numComparisons);
         
-        //check the number of processors
-        Runtime rt = Runtime.getRuntime();
-        int numProcessors = rt.availableProcessors();
+
   
   
         System.out.println();
@@ -170,7 +186,7 @@ public class WorkAppletHeadlessEpic {
   
             long currentTime=(new GregorianCalendar()).getTimeInMillis();
             long timeDiff=currentTime-startTime;
-            long sleepTime=30000;
+            long sleepTime=10000;
             
             //allow 55 minutes
             //update 2017-11-08 AWS now allows per-second billing, so limit this way down to maximum 180 seconds (two polling intervals)
@@ -236,18 +252,20 @@ public class WorkAppletHeadlessEpic {
                 }
                 
                 successfulConnect=false;
-                if (timeDiff<allowedDiff) {
+                //if (timeDiff<allowedDiff) {
   
                   Thread.sleep(sleepTime);
                   //System.exit(0);
                   
-                }
+                //}
+                /*
                 else {
                   System.out.println("\n\nI hit the timeout and am shutting down after "+(timeDiff/1000/60)+" minutes.");
                   inputFromServlet.close();
                   System.exit(0);
                   
                 }
+                */
                 
               }
               inputFromServlet.close();
@@ -268,7 +286,7 @@ public class WorkAppletHeadlessEpic {
                 
               }
               else {
-                System.exit(0);
+                //System.exit(0);
               }
               
             }
@@ -292,7 +310,7 @@ public class WorkAppletHeadlessEpic {
                     
                   }
                   else {
-                    System.exit(0);
+                    //System.exit(0);
   
                   }
   
@@ -305,7 +323,7 @@ public class WorkAppletHeadlessEpic {
                   System.out.println("...nothing to do...sleeping...");
                   groupSize = 10;
                   //Thread.sleep(90000);
-                  System.exit(0);
+                  //System.exit(0);
                 }
   
               }
@@ -451,7 +469,7 @@ public class WorkAppletHeadlessEpic {
           catch (OutOfMemoryError oome) {
             //oome.printStackTrace();
             //hb.setFinished(true);
-            System.exit(0);
+            //System.exit(0);
   
           } catch (Exception e) {
             e.printStackTrace();
@@ -468,7 +486,7 @@ public class WorkAppletHeadlessEpic {
       System.exit(0);
 
     }
-    System.exit(0);
+    //System.exit(0);
   }        //end getGoing method
 
 
