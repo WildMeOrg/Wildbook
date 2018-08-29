@@ -5,7 +5,7 @@
   <%
   String context="context0";
   context=ServletUtilities.getContext(request);
-
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     //let's load encounterSearch.properties
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
@@ -53,7 +53,8 @@
  		pieHashtable.put(thisHaplo, new Integer(0));
  	}
     		
-    		
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
   %>
 
   
@@ -123,7 +124,7 @@
   
     <jsp:include page="../header.jsp" flush="true"/>
 
-    <script src="//maps.google.com/maps/api/js?sensor=false"></script>
+   <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 
     <script type="text/javascript">
