@@ -17,12 +17,19 @@
               "
 %>
 
-
-
 <jsp:include page="header.jsp" flush="true"/>
 
 
+<%!
 
+long logRuntime(long lastTime) {
+  long thisTime = System.currentTimeMillis();
+  long elapsed = thisTime - lastTime;
+  System.out.println("("+elapsed+"ms to complete above)");
+  return thisTime;
+}
+
+%>
 <%
 
 
@@ -30,6 +37,9 @@
 // All this fuss before the html is from individualSearchResults
 String context="context0";
 context=ServletUtilities.getContext(request);
+
+long lastTime = 0l;
+long thisTime = 0l;
 
 Properties props = new Properties();
 String langCode=ServletUtilities.getLanguageCode(request);
@@ -101,6 +111,7 @@ Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 
 myShepherd.beginDBTransaction();
 
+<<<<<<< Updated upstream
 int count = myShepherd.getNumAdoptions();
 int allSharks = myShepherd.getNumMarkedIndividuals();
 int countAdoptable = allSharks - count;
@@ -120,6 +131,15 @@ if(request.getParameter("adoptableSharks")!=null){
 }
 else{
 	String order ="nickName ASC NULLS LAST";
+=======
+request.setAttribute("rangeStart", startNum);
+request.setAttribute("rangeEnd", endNum);
+System.out.println("Gallery: about to query individuals.");
+lastTime = logRuntime(lastTime);
+MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+System.out.println("Gallery: done querying individuals.");
+lastTime = logRuntime(lastTime);
+>>>>>>> Stashed changes
 
 	request.setAttribute("rangeStart", startNum);
 	request.setAttribute("rangeEnd", endNum);
@@ -127,12 +147,20 @@ else{
 
 	rIndividuals = result.getResult();
 
+<<<<<<< Updated upstream
 	//handle any null errors better
 	if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
+=======
+System.out.println("Gallery: called result.getResult().");
+lastTime = logRuntime(lastTime);
+>>>>>>> Stashed changes
 
 }
 
 
+
+  System.out.println("Gallery: done sorting out non-public individuals");
+  lastTime = logRuntime(lastTime);
 
 if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
@@ -366,12 +394,37 @@ int numDataContributors=0;
         for (int j=0; j<2; j++) {
         	if(pair[j]!=null){
           MarkedIndividual indie = pair[j];
+<<<<<<< Updated upstream
           for (Encounter enJ : indie.getDateSortedEncounters()) {
             for (MediaAsset maJ : enJ.getMedia()) {
               if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
             }
           }
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
+=======
+/*
+for (Encounter enx : indie.getDateSortedEncounters()) {
+System.out.println("========> " + enx.getAnnotations());
+}
+*/
+  System.out.println("Gallery: about to start mysterious metadata hack");
+  lastTime = logRuntime(lastTime);
+
+
+///// note: this below is a workaround for the metadata bug that needs fixing
+for (Encounter enJ : indie.getDateSortedEncounters()) {
+	for (MediaAsset maJ : enJ.getMedia()) {
+		if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+	}
+}
+
+  System.out.println("Gallery: done with mysterious metadata hack on row "+i);
+  lastTime = logRuntime(lastTime);
+
+          ArrayList<JSONObject> al = indie.getExemplarImages(request,5);
+  System.out.println("Gallery: done getting exemplar images on row "+i);
+  lastTime = logRuntime(lastTime);
+>>>>>>> Stashed changes
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
@@ -404,6 +457,9 @@ int numDataContributors=0;
           <%
         }
         }
+  System.out.println("Gallery: done with top of row "+i);
+lastTime = logRuntime(lastTime);
+
         %>
         </div>
         <div class="row">
@@ -515,6 +571,9 @@ int numDataContributors=0;
             </div>
           </div>
           <%
+    System.out.println("Gallery: done with info panel for row "+i);
+lastTime = logRuntime(lastTime);
+
         }
         %>
         </div>
