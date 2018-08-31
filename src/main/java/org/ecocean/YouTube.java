@@ -70,7 +70,7 @@ public class YouTube {
 
     public static void init(String context) {
         //String context = ServletUtilities.getContext(request);
-        Properties googleProps = ShepherdProperties.getProperties("googleKeys.properties","");
+        Properties googleProps = org.ecocean.ShepherdProperties.getProperties("googleKeys.properties","");
       
         apiKey = googleProps.getProperty("youtube_api_key");
         
@@ -568,8 +568,8 @@ System.out.println("]=== done with .extractFrames()");
      * 
      * 
      */
-    public static void annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsset ma, HttpServletRequest request, Shepherd myShepherd, String context){   
-      annotateChildrenOfYouTubeMediaAssetWithDateLocation(ma, request, myShepherd, context, new AtomicInteger(0) ,new AtomicInteger(0) , new AtomicInteger(0) , new AtomicInteger(0) ,new AtomicInteger(0) ,new ArrayList<MediaAsset>(),new ArrayList<MediaAsset>(), true, new AtomicInteger(0) , new AtomicInteger(0) );   
+    public static void annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsset ma, String rootDir, Shepherd myShepherd, String context){   
+      annotateChildrenOfYouTubeMediaAssetWithDateLocation(ma, rootDir, myShepherd, context, new AtomicInteger(0) ,new AtomicInteger(0) , new AtomicInteger(0) , new AtomicInteger(0) ,new AtomicInteger(0) ,new ArrayList<MediaAsset>(),new ArrayList<MediaAsset>(), true, new AtomicInteger(0) , new AtomicInteger(0) );   
     }
     
     
@@ -583,7 +583,7 @@ System.out.println("]=== done with .extractFrames()");
      * @return An HTML table row of data <tr> about the video, Encounter(s), and comemnts posted on YouTube.  
      * 
      */
-    public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsset ma, HttpServletRequest request, Shepherd myShepherd, String context, AtomicInteger numVideosWithID,AtomicInteger numVideos, AtomicInteger numUncuratedVideos, AtomicInteger numCommentedVideos,AtomicInteger numCommentedVideosReplies,ArrayList<MediaAsset> goodDataVideos,ArrayList<MediaAsset> poorDataVideos, boolean persistDifferences, AtomicInteger numDatesFound, AtomicInteger numLocationIDsFound){
+    public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsset ma, String rootDir, Shepherd myShepherd, String context, AtomicInteger numVideosWithID,AtomicInteger numVideos, AtomicInteger numUncuratedVideos, AtomicInteger numCommentedVideos,AtomicInteger numCommentedVideosReplies,ArrayList<MediaAsset> goodDataVideos,ArrayList<MediaAsset> poorDataVideos, boolean persistDifferences, AtomicInteger numDatesFound, AtomicInteger numLocationIDsFound){
 
       //if we're going to persist changes, ensure the Shepherd object is ready
       if(persistDifferences && !myShepherd.getPM().currentTransaction().isActive()){
@@ -805,7 +805,7 @@ System.out.println("]=== done with .extractFrames()");
           //get video date with SUTime
           String newDetectedDate="";
           try{
-            newDetectedDate=SUTime.parseDateStringForBestDate(request, sb.toString(), relativeDate).replaceAll("null","");
+            newDetectedDate=SUTime.parseDateStringForBestDate(rootDir, sb.toString(), relativeDate).replaceAll("null","");
           }
           catch(Exception e){}
           if(!newDetectedDate.equals("")){numDatesFound.incrementAndGet();}

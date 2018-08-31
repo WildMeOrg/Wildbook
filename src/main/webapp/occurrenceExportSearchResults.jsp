@@ -38,24 +38,15 @@
     try{
 		    	OccurrenceQueryResult queryResult = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
 		    	rOccurrences = queryResult.getResult();
-
-
 		  %>
 
-		    <style type="text/css">
-
-
-
-
-		      #map {
-		        width: 600px;
-		        height: 400px;
-		      }
-
-		    </style>
-
-
 		<style type="text/css">
+
+		  #map {
+		    width: 600px;
+		    height: 400px;
+		  }
+
 		  #tabmenu {
 		    color: #000;
 		    border-bottom: 1px solid #CDCDCD;
@@ -109,14 +100,14 @@
 		    <div class="container maincontent">
 
 
-		      <h1 class="intro">Occurrence Search Result Export
+		      <h1 class="intro">Biopsy and Tagging Reports
 		      </h1>
 
 
 
 		 <ul id="tabmenu">
 
-		   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+		   <li><a href="occurrenceSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
 		   </a></li>
        <li><a class="active"
       href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>

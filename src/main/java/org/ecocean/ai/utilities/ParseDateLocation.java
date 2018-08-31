@@ -132,7 +132,7 @@ public class ParseDateLocation {
 
 
   //NOTE: overloaded parseDate method for tweet4j status objects specifically. There is another parseDate method!
-  public static String parseDate(HttpServletRequest request, String textInput, String context, Status tweet){
+  public static String parseDate(String rootDir, String textInput, String context, Status tweet){
 
     //int year=-1;
     //int month=-1;
@@ -153,7 +153,7 @@ public class ParseDateLocation {
     try{
       System.out.println(">>>>>> looking for date with NLP");
       //call Stanford NLP function to find and select a date from ytRemarks
-      myDate= org.ecocean.ai.nlp.SUTime.parseDateStringForBestDate(request, textInput, tweet);
+      myDate= org.ecocean.ai.nlp.SUTime.parseDateStringForBestDate(rootDir, textInput, tweet);
       //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
       System.out.println(">>>>>> NLP found date: "+myDate);
       
@@ -167,8 +167,20 @@ public class ParseDateLocation {
       return myDate;
   }
 
+    /*
+        TODO FIXME this is made by jon as a desired set of arguments to call from IBEISIA.fromDetection()
+
+           note: rootDir is base path for context, i.e. request.getSession().getServletContext().getRealPath("/")
+                 suitable for, e.g. baseDir = ServletUtilities.dataDir(context, rootDir);
+    */
+  /*
+  public static String parseDate(String textInput, String context, String rootDir){
+    return null;
+  }
+  */
+
   //NOTE: parseDate method WITHOUT tweet4j status object as a parameter. There is another parseDate method!
-  public static String parseDate(HttpServletRequest request, String textInput, String context){
+  public static String parseDate(String rootDir, String textInput, String context){
 
     //int year=-1;
     //int month=-1;
@@ -191,7 +203,7 @@ public class ParseDateLocation {
     try{
       System.out.println(">>>>>> looking for date with NLP");
       //call Stanford NLP function to find and select a date from ytRemarks
-      myDate= org.ecocean.ai.nlp.SUTime.parseDateStringForBestDate(request, textInput);
+      myDate= org.ecocean.ai.nlp.SUTime.parseDateStringForBestDate(rootDir, textInput);
       System.out.println(">>>>>> NLP found date: "+myDate);
 
 
