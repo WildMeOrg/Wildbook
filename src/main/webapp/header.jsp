@@ -93,6 +93,13 @@
                 <div class="container">
                 <a href="//www.wildme.org" id="wild-me-badge">A Wild me project</a>
                   <div class="search-and-secondary-wrapper">
+                  <%
+                  if(CommonConfiguration.allowAdoptions(context)){
+                  %>
+                    <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt a manta' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
+                  <%
+                  }
+                  %> 
                     <ul class="secondary-nav hor-ul no-bullets">
                     
                    
