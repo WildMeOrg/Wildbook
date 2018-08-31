@@ -278,6 +278,9 @@ public class StandardImport extends HttpServlet {
   	if (groupComposition!=null) occ.setGroupComposition(groupComposition);
 
     String groupBehavior = getString(row, "Occurrence.groupBehavior");
+    // if no groupBehavior we want the behavior from an Encounter to copy over for occurrence searches
+    // this makes sense semantically since many people view the world occurrence-first
+    if (groupBehavior==null) groupBehavior = getString(row, "Encounter.behavior");
     if (groupBehavior!=null) occ.setGroupBehavior(groupBehavior);
 
   	String fieldSurveyCode = getString(row, "Survey.id");
@@ -345,6 +348,9 @@ public class StandardImport extends HttpServlet {
     if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
     if (millis==null) millis = getLong(row, "Occurrence.millis");
   	if (millis!=null) occ.setDateTimeLong(millis);
+
+    String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
+    if (occurrenceRemarks!=null) occ.addComments(occurrenceRemarks);
 
   	if (enc!=null) {
       occ.addEncounter(enc);
