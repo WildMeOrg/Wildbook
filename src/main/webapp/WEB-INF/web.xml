@@ -2158,6 +2158,7 @@
       <servlet-name>mitFeed</servlet-name>
       <url-pattern>/MITFeed</url-pattern>
   </servlet-mapping>
+-->
 
   <!--
   <servlet-mapping>
