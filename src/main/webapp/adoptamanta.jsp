@@ -38,59 +38,62 @@ context=ServletUtilities.getContext(request);
 		</p>
 		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a manta<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
+
+	<!--
 	<section id="custom-donation-image">
 		<img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" />
 	</section>
+	-->
+
 	<%--If you dont want to use a custom image for your donation scale, comment out #custom-donation-image above and use the code below for some simple circles with price options  --%>
-	<%-- <section class="donations">
-		<article class="donation-option-group">
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Fry</p>
-					<p>$2/m</p>
+	 <section>
+		<article class="">
+			<div class="container">
+
+				<div class="col-xs-12">
+					<h3>Adoption Levels</h3>
 				</div>
-				<p>
-					A great option for children
-				</p>
-			</div>
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Whopper</p>
-					<p>$5/m</p>
+
+				<div class="col-xs-6 adoptionOptionDiv">
+					<div class="adoptionPriceDiv">
+						<h4><strong>Yearling</strong></h4>
+						<p class="adoptionOptionComment">$3/m</p>
+					</div>
+					<p>
+						Fun for kids and families that want to start multiple adoptions. 
+					</p>
 				</div>
-				<p>
-					Makes an excellent gift!
-				</p>
-			</div>
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Behemoth</p>
-					<p>$20/m</p>
+				<div class="col-xs-6 adoptionOptionDiv">
+					<div class="adoptionPriceDiv">
+						<h4><strong>Juvenile</strong></h4>
+						<p class="adoptionOptionComment">$6/month</p>
+					</div>
+					<p>
+						Great gift for the conservation minded person who loves mantas. 
+					</p>
 				</div>
-				<p>
-					Big families and groups
-				</p>
-			</div>
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Legend</p>
-					<p>$1000/yr</p>
+				<div class="col-xs-6 adoptionOptionDiv">
+					<div class="adoptionPriceDiv">
+						<h4><strong>Adult</strong></h4>
+						<p class="adoptionOptionComment">$12/month</p>
+					</div>
+					<p>
+						This level of support is great for a family that wants to adopt a manta together. 
+					</p>
 				</div>
-				<p>
-					Corporate adoptions and legends of the sea
-				</p>
-			</div>
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Custom</p>
-					<p>$?/yr</p>
+				<div class="col-xs-6 adoptionOptionDiv">
+					<div class="adoptionPriceDiv">
+						<h4><strong>Group / Company</strong></h4>
+						<p class="adoptionOptionComment">$100/month</p>
+					</div>
+					<p>
+						Did you know a group of rays is called a fever?
+					</p>
 				</div>
-				<p>
-					We appreciate your support of ongoing whale shark research
-				</p>
 			</div>
+
 		</article>
-	</section> --%>
+	</section> 
 	
 
 

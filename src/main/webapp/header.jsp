@@ -96,7 +96,7 @@
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
                   %>
-                    <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt a manta' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
+                    <a href="<%=urlLoc%>/adoptamanta.jsp"><button name='adopt a manta' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
                   <%
                   }
                   %> 

@@ -68,7 +68,7 @@ public class StripePayment extends HttpServlet {
         cardMap.put("source", token);
         cardMap.put("amount", pennyAmount);
         cardMap.put("currency", "usd");
-        cardMap.put("description", "Whaleshark.org one time donation.");
+        cardMap.put("description", "mantamatcher.org one time donation.");
 
         Map<String, String> initialMetadata = new HashMap<String, String>();
         initialMetadata.put("name", name);
