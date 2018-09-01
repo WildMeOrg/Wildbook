@@ -34,7 +34,7 @@ context=ServletUtilities.getContext(request);
 	String shark = "";
 	if (request.getParameter("number") != null) {
 		shark = request.getParameter("number");
-	}
+	} 
 
 	// Necessary to persist your selected shark across multiple form submissions.
 	// Payment status is also stored in session.
@@ -112,10 +112,10 @@ context=ServletUtilities.getContext(request);
 			<div class="input-group">
 				<span class="input-group-addon">Adoption Type</span>
 				<select id='planName' class="input-l-width" name="planName">
-					<option value="individual">Fry $2/Month</option>
-					<option value="whopper" selected="selected">Whopper - $5/Month</option>
-					<option value="behemoth">Behemoth - $250/Year</option>
-					<option value="legend">Legend - $1000/Year</option>
+					<option value="plan_DWNybD6bUUVxLO">Yearling $3/Month</option>
+					<option value="plan_DWO3tq3sCZozQ1" selected="selected">Juvenile - $6/Month</option>
+					<option value="plan_DWO6pwnwz3YtjU">Adult - $12/Month</option>
+					<option value="plan_DWO8MT3l82Kmfb">Group / Company - $100/Month</option>
 			</select>
 			</div>
 			<div class="input-group">

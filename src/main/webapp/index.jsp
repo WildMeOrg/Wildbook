@@ -24,8 +24,11 @@ myShepherd=new Shepherd(context);
 	//check usernames and passwords
 	myShepherd.beginDBTransaction();
 
-
-
+try {
+    StartupWildbook.ensureTomcatUserExists(myShepherd);
+} catch (Exception e) {
+    e.printStackTrace();
+}
 
 //let's quickly get the data we need from Shepherd
 
@@ -70,6 +73,11 @@ finally{
             <a href="submit.jsp">
                 <button class="large"><%=props.getProperty("buttonReport")%><span class="button-icon" aria-hidden="true"></button>
             </a>
+            <br>
+            <a href="adoptamanta.jsp">
+                <button class="large heroBtn">Adopt a Manta<span class="button-icon" aria-hidden="true"></button>
+            </a>
+            <br>
         </div>
 
 	</div>
