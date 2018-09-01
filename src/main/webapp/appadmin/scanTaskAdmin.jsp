@@ -24,7 +24,7 @@ String context=ServletUtilities.getContext(request);
   if (request.getParameter("nodeTimeout") != null) {
     try {
       int newTimeout = (new Integer(request.getParameter("nodeTimeout"))).intValue();
-      gm.setNodeTimeout(newTimeout);
+      //gm.setNodeTimeout(newTimeout);
     } catch (NumberFormatException nfe) {
     	nfe.printStackTrace();
     }
@@ -405,8 +405,8 @@ single scan are allowed to exceed the total.</span>
     for (int y = 0; y < numNodes; y++) {
       GridNode nd = (GridNode) nodes.get(y);
       long currenTime = System.currentTimeMillis();
-      long nodeTimeout = gm.getNodeTimeout();
-      if ((currenTime - nd.getLastHeartbeat()) < nodeTimeout) {
+      //long nodeTimeout = gm.getNodeTimeout();
+    //  if ((currenTime - nd.getLastHeartbeat()) < nodeTimeout) {
   %>
   <tr>
     <td><span class="style2"><%=nd.ipAddress()%></span></td>
@@ -419,7 +419,7 @@ single scan are allowed to exceed the total.</span>
 
   </tr>
   <%
-      } //end if
+     // } //end if
     } //end for
   %>
   </tbody>
@@ -457,15 +457,7 @@ single scan are allowed to exceed the total.</span>
       </td>
     </form>
   </tr>
-  <tr>
-    <form name="setNodeTimeout" id="setNodeTimeout" method="get"
-          action="scanTaskAdmin.jsp">
-      <td>Set node timeout (milliseconds):</td>
-      <td><input name="nodeTimeout" type="text" id="nodeTimeout"
-                 value="<%=gm.getNodeTimeout()%>" size="10" maxlength="15"/> <input
-        type="submit" name="Submit2" value="Set"/></td>
-    </form>
-  </tr>
+
   <tr>
     <form name="setCheckoutTimeout" id="setCheckoutTimeout" method="get"
           action="scanTaskAdmin.jsp">
