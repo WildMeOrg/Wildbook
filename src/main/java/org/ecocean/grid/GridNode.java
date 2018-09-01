@@ -81,9 +81,9 @@ public class GridNode {
 
     if (num < groupSize) {
       groupSize = num;
-      if (num < 1) {
-        num = 1;
-      }
+      //if (num < 1) {
+      //  num = 1;
+      //}
     }
   }
 
@@ -91,7 +91,7 @@ public class GridNode {
     lastHeartbeat = System.currentTimeMillis();
   }
 
-  public int getNextGroupSize(long checkoutTimeout, int maxGroupSize) {
+  public int getNextGroupSize(long checkoutTimeout, int maxGroupSize, int defaultGroupSize) {
     if (lastCheckout != 2) {
       long timeDiff = lastCheckin - lastCheckout;
       if (Math.abs(timeDiff) < 60000) {
@@ -99,19 +99,22 @@ public class GridNode {
       }
       else {
         groupSize--;
+        if(groupSize<defaultGroupSize)groupSize=defaultGroupSize;
       }
 
       //long multiplier=1/(timeDiff/60000);
       //groupSize=(int)(groupSize*multiplier*0.9);
 
       if (groupSize < 1) {
-        groupSize = 1;
-      } else if (groupSize > maxGroupSize) {
+        groupSize=defaultGroupSize;
+      } 
+      else if (groupSize > maxGroupSize) {
         groupSize = maxGroupSize;
         return maxGroupSize;
       }
       return groupSize;
-    } else {
+    } 
+    else {
       return groupSize;
     }
   }
