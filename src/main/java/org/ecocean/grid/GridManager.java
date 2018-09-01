@@ -44,7 +44,7 @@ public class GridManager {
   //these are only generic nodes
   //targeted nodes are always allowed
   private int numAllowedNodes = 25;
-  private long nodeTimeout = 180000;
+  //private long nodeTimeout = 180000;
   private String appletVersion = "1.2";
   public long checkoutTimeout = 120000;
   public int groupSize = 20;
@@ -100,13 +100,16 @@ public class GridManager {
     numCollisions++;
   }
 
+  /*
   public void setNodeTimeout(long timeout) {
     nodeTimeout = timeout;
   }
+  */
 
-  public long getNodeTimeout() {
+  /*public long getNodeTimeout() {
     return nodeTimeout;
   }
+  */
   
   public void setCreationThread(boolean status) {
     creationThread=status;
@@ -141,20 +144,22 @@ public class GridManager {
   }
 
   public int getNumNodes() {
-    int numNodes = nodes.size();
-    int returnValue = 0;
-    long currenTime = System.currentTimeMillis();
-    for (int i = 0; i < numNodes; i++) {
+    return nodes.size();
+    //int returnValue = 0;
+    //long currenTime = System.currentTimeMillis();
+    //for (int i = 0; i < numNodes; i++) {
       //System.out.println("gridManager: Time diff is: "+(currenTime-nodes.get(i).getLastCheckin()));
-      if ((currenTime - nodes.get(i).getLastHeartbeat()) < nodeTimeout) {
-        returnValue++;
-      } else {
+      //if ((currenTime - nodes.get(i).getLastHeartbeat()) < nodeTimeout) {
+        //returnValue++;
+      //} 
+      /*else {
         nodes.remove(i);
         i--;
         numNodes--;
       }
-    }
-    return returnValue;
+      */
+    //}
+    //return returnValue;
   }
 
   public int getNumAllowedNodes() {
@@ -206,7 +211,7 @@ public class GridManager {
     //clean out old nodes
     //int numNodes=nodes.size();
     //long currenTime=System.currentTimeMillis();
-    cleanupOldNodes();
+    //cleanupOldNodes();
 
 
     //first, add the node to the queue
@@ -282,6 +287,7 @@ public class GridManager {
     this.scanTaskLimit = limit;
   }
 
+  /*
   private void cleanupOldNodes() {
     int numNodes = nodes.size();
     long currenTime = System.currentTimeMillis();
@@ -294,10 +300,11 @@ public class GridManager {
 
     }
   }
+  */
 
   public int getPerMinuteRate() {
     int rate = 0;
-    cleanupOldNodes();
+    //cleanupOldNodes();
     int numNodes = nodes.size();
     long totalComparisons = 0;
     long totalTime = 0;

@@ -92,6 +92,7 @@ public class GridNode {
   }
 
   public int getNextGroupSize(long checkoutTimeout, int maxGroupSize, int defaultGroupSize) {
+    /*
     if (lastCheckout != 2) {
       long timeDiff = lastCheckin - lastCheckout;
       if (Math.abs(timeDiff) < 60000) {
@@ -116,7 +117,9 @@ public class GridNode {
     } 
     else {
       return groupSize;
-    }
+    }*/
+    return maxGroupSize;
+    
   }
 
   public long getLastCheckin() {
