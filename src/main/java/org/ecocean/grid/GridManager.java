@@ -251,7 +251,7 @@ public class GridManager {
   }
 
   public int getNextGroupSize(GridNode nd) {
-    return nd.getNextGroupSize(checkoutTimeout, maxGroupSize);
+    return nd.getNextGroupSize(checkoutTimeout, maxGroupSize, groupSize);
   }
 
   public GridNode getGridNode(String nodeID) {
