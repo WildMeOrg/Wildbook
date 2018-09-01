@@ -28,15 +28,15 @@ context=ServletUtilities.getContext(request);
 <link rel="stylesheet" href="css/createadoption.css">
 
 <div class="container maincontent adoption-page">
-	<h1 class="intro-adopt">Adopt a Shark</h1>
-	<h2>Support cutting edge whale shark research.</h2>
+	<h1 class="intro-adopt">Adopt a Manta</h1>
+	<h2>Support cutting edge giant manta research.</h2>
 	<section class="adoption-details">
 		<p>
-			Adopt a whale shark, give it a nickname, and receive updates each time it's spotted! Funds
-			raised by shark adoptions are used to offset the costs of maintaining this global library and
-			to support new and existing research projects for the world's most mysterious fish.
+			Adopt a giant manta, give it a nickname, and receive updates each time it's spotted! Funds
+			raised by manta adoptions are used to offset the costs of maintaining this global research platform and
+			to support new and existing research projects.
 		</p>
-		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></span></button></a>
+		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a manta<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
 	<section id="custom-donation-image">
 		<img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" />
@@ -112,7 +112,7 @@ context=ServletUtilities.getContext(request);
 			
 					<div class="adopter" style="width: 190px">
 						<div class="adopter-header" >
-							<p>Whale Shark Adopter</p>
+							<p>Giant Manta Adopter</p>
 						</div>
 						<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="" />
 						<div class="adopter-details">
