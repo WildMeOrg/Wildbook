@@ -223,6 +223,9 @@ public class WorkAppletHeadlessEpic {
                 con = (HttpURLConnection)u.openConnection();
                }
               
+              con.setConnectTimeout(30000);
+              con.setReadTimeout(30000);
+              
               con.setDoInput(true);
               con.setDoOutput(true);
               con.setUseCaches(false);
