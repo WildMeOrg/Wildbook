@@ -26,6 +26,7 @@ import org.ecocean.servlet.ServletUtilities;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import javax.jdo.Query;
@@ -75,26 +76,36 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
 
 
     myShepherd.beginDBTransaction();
-    Query query=null;
+    
+    List<String> encNumbers=myShepherd.getAllEncounterNumbers();
+    int numEncs=encNumbers.size();
+    System.out.println("MatchGraphCreationThread is exploring this many encounters: "+numEncs);
+    myShepherd.rollbackDBTransaction();
+    
+    gm.initializeNodes((int)(numEncs*2/3));
+    
+    //Query query=null;
     try {
       
-      query=myShepherd.getPM().newQuery(jdoql);
-      Collection c = (Collection) (query.execute());
-      System.out.println("Num scans to do: "+c.size());
-      Iterator encounters = c.iterator();
+      //query=myShepherd.getPM().newQuery(jdoql);
+      //Collection c = (Collection) (query.execute());
+      //System.out.println("Num scans to do: "+c.size());
+      //Iterator encounters = c.iterator();
       
       int count = 0;
 
-      while (encounters.hasNext()) {
-        Encounter enc = (Encounter) encounters.next();
+      for (int i=0;i<numEncs;i++) {
+        myShepherd.beginDBTransaction();
+        Encounter enc = myShepherd.getEncounter(encNumbers.get(i));
         if (((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0))||((enc.getSpots() != null) && (enc.getSpots().size() > 0))) {
             EncounterLite el=new EncounterLite(enc);
             gm.addMatchGraphEntry(enc.getCatalogNumber(), el);
             count++;
           } 
 
+        myShepherd.rollbackDBTransaction();
       }
-      myShepherd.rollbackDBTransaction();
+      //myShepherd.rollbackDBTransaction();
       finished=true;
 
     } 
@@ -105,7 +116,7 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
       
     }
     finally{
-      if(query!=null){query.closeAll();}
+      //if(query!=null){query.closeAll();}
       myShepherd.closeDBTransaction();
     }
     
