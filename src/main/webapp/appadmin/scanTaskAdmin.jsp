@@ -387,14 +387,11 @@ single scan are allowed to exceed the total.</span>
 <table class="table">
 <thead>
   <tr>
-    <th width="18"><span>IP</span></th>
-    <th width="38"><span>NodeID</span></th>
-    <th width="30"  ><span>#CPU</span></th>
+    <th width="25"><span>IP</span></th>
+    <th width="25"><span>NodeID</span></th>
+    <th width="25"  ><span>#CPUs</span></th>
+    <th width="25"  ><span>Last Checkin (ms)</span></th>
 
-
-    <th width="71"  >
-      <div align="left"><span class="style1">Chunk size</span></div>
-    </th>
 
   </tr>
   </thead>
@@ -402,24 +399,23 @@ single scan are allowed to exceed the total.</span>
   <%
     ArrayList nodes = gm.getNodes();
     int numNodes = nodes.size();
+    long currenTime = System.currentTimeMillis();
     for (int y = 0; y < numNodes; y++) {
       GridNode nd = (GridNode) nodes.get(y);
-      long currenTime = System.currentTimeMillis();
+      
       //long nodeTimeout = gm.getNodeTimeout();
-    //  if ((currenTime - nd.getLastHeartbeat()) < nodeTimeout) {
+      if ((currenTime - nd.getLastHeartbeat()) < 180000) {
   %>
   <tr>
     <td><span class="style2"><%=nd.ipAddress()%></span></td>
     <td><span class="style2"><%=nd.getNodeIdentifier()%></span></td>
     <td><span class="style2"><%=nd.numProcessors%></span></td>
-    
-    <td><span class="style2"><%=nd.groupSize%></span></td>
-
+    <td><span class="style2"><%=(currenTime-nd.getLastHeartbeat()) %></span></td>
 
 
   </tr>
   <%
-     // } //end if
+      } //end if
     } //end for
   %>
   </tbody>
