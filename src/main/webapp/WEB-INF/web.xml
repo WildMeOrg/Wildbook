@@ -117,135 +117,137 @@
                 #users who try to access a page protected by Shiro
                 #will be sent to /login.jsp
                 [filters]
-
-
-                #only let authenticated users
+               #only let authenticated users
                 #with the appropriate role
                 #view the web pages in the secure
                 #and admin areas
                 [urls]
-
-                /rest/** = authcBasicWildbook,roles[rest]
-				#/api/** = authcBasicWildbook,roles[rest-readonly]
-                /LightRest/** = authcBasicWildbook,roles[rest]
-
-
-
-                /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
-				/appadmin/listImages.jsp = authcBasicWildbook
-
-
-                /appadmin/** = authc, roles[admin]
-                #/MassSetInformOthers = authc, roles[admin]
-                /MassExposeGBIF = authc, roles[admin]
-                /MassSetLocationCodeFromLocationString = authc, roles[admin]
-                /MassSwapLocationCode = authc, roles[admin]
-                /logs/** = authc, roles[admin]
-                /xcalendar/** = authc, roles[researcher]
-                /SubmitSpots = authc, roles[imageProcessor]
-				/InterconnectSubmitSpots = authc, roles[imageProcessor]
-				/interconnectSubmitSpots = authc, roles[imageProcessor]
-
-				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
-				/SubmitSpotsAndImage = authc, roles[imageProcessor]
-
-		/GenePopExport = authc, roles[researcher]
-
-		/IndividualSetNickname = authc, roles[researcher]
-
-		/individualSearch.jsp = roles[researcher]
-		/GenePopExport = authc, roles[researcher]
-		/individualSearch.jsp = authc, roles[researcher]
-		/individualSearchResults.jsp = authc
-		/individualSearchResultsExport.jsp = authc, roles[researcher]
-		/individualSearchResultsAnalysis.jsp = authc, roles[researcher]
-		/individualMappedSearchResults.jsp = authc
-		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
-
-		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
-		 /encounters/encounterSearch.jsp = roles[researcher]
-		 /encounters/searchResults.jsp = authc
-		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
-		 /encounters/mappedSearchResults.jsp = authc
-		 /encounters/mappedSearchResultsSex.jsp = authc
-		 /encounters/mappedSearchResultsHaplotype.jsp = authc
-		 /encounters/exportSearchResults.jsp = authc, roles[researcher]
-		 /encounters/imageViewer.jsp = authc, roles[researcher]
-		 /encounters/searchComparison.jsp = authc, roles[researcher]
-      		/encounters/searchComparisonResults.jsp = authc, roles[researcher]
-                /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
-		/IndividualSetAlternateID = authc, roles[researcher]
-		 /EncounterSetAlternateID = authc, roles[researcher]
-		 /EncounterSetState = authc, roles[researcher]
-		 /EncounterSetScarring = authc, roles[researcher]
-		 /EncounterSetGPS = authc, roles[researcher]
-		  /EncounterSetVerbatimEventDate = authc, roles[researcher]
-		  /EncounterSetLifeStage = authc, roles[researcher]
-		  /EncounterSetCountry = authc, roles[researcher]
-		  /EncounterSetTissueSample = authc, roles[researcher]
-		   /TissueSampleSetHaplotype = authc, roles[researcher]
-		   /TissueSampleSetMeasurement = authc, roles[researcher]
-		  /TissueSampleRemoveHaplotype = authc, roles[researcher]
-		   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
-		   /TissueSampleSetMicrosatelliteMarkers  = authc, roles[researcher]
-		   /TissueSampleRemoveMicrosatelliteMarkers  = authc, roles[researcher]
-
-		   /RelationshipCreate  = authc, roles[researcher]
-		   /RelationshipDelete  = authc, roles[researcher]
-
-		   /ImportSRGD = authc, roles[admin]
-		        /IndividualCreate = authc, roles[researcher]
-		        /OccurrenceCreate = authc, roles[researcher]
-		        /OccurrenceRemoveEncounter = authc, roles[researcher]
-		        /IndividualRemoveEncounter = authc, roles[researcher]
-		        /OccurrenceAddEncounter = authc, roles[researcher]
-		        /IndividualAddEncounter = authc, roles[researcher]
-		         /TissueSampleSetSexAnalysis = authc, roles[researcher]
-		        /TissueSampleRemoveSexAnalysis = authc, roles[researcher]
-		         /EncounterRemoveTissueSample = authc, roles[researcher]
-		         /EncounterRemoveImage = authc, roles[researcher]
-		        # /SinglePhotoVideoRemoveKeyword = authc, roles[researcher]
-		        # /SinglePhotoVideoAddKeyword = authc, roles[researcher]
-		         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
-		         /EncounterSearchExportKML = authc, roles[researcher]
+                
+				#/DeleteAllDataPermanently = authc, roles[destroyer]
+				
+				/appadmin/** = authc, roles[admin]
+				 /logs/** = authc, roles[admin]
+             
+				/rest/** = authcBasicWildbook, roles[rest]
+			 
+			    /RelationshipCreate  = authc, roles[admin]
+		   /RelationshipDelete  = authc, roles[admin]
+			 
+		            /MassSetInformOthers = authc, roles[admin]
+		          /MassExposeGBIF = authc, roles[admin]
+		           /MassSetLocationCodeFromLocationString = authc, roles[admin]
+		          /MassSwapLocationCode = authc, roles[admin]
+		          /logs/** = authc, roles[admin]
 		         /UserCreate = authc, roles[admin]
-		         /UserDelete = authc, roles[admin]
-		         /UserAddProfileImage = authc, roles[researcher]
-		         /UserRemoveProfileImage = authc, roles[researcher]
-		         /EncounterSearchExportExcelFile = authc, roles[researcher]
-		         /EncounterSearchExportShapefile = authc, roles[researcher]
-		         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
-		         /EncounterAddComment = authc, roles[researcher]
-		         /OccurrenceAddComment = authc, roles[researcher]
-		          /OccurrenceSetIndividualCount = authc, roles[researcher]
-		         /IndividualAddComment = authc, roles[researcher]
-		         /SimpleCMROutput = authc, roles[researcher]
-		             /GenalexExportCodominantMSDataBySize = authc, roles[researcher]
-		             /SOCPROGExport = authc, roles[researcher]
-		             /OccurrenceSetGroupBehavior = authc, roles[researcher]
-		             /EncounterSetBehavior = authc, roles[researcher]
-		      /CJS = authc, roles[researcher]
-		      /software.jsp = authc, roles[researcher]
-      			
-      			/encounters/searchExport = authc, roles[researcher]
-      			/welcome.jsp = authc
-      			/EncounterSetSubmitterID = authc, roles[researcher]
-               		/UserResetAcceptedUserAgreement = authc, roles[admin]
-               		/IndividualSetYearOfBirth = authc, roles[researcher]
-               		/IndividualSetYearOfDeath = authc, roles[researcher]
-			/KinalyzerExport = authc, roles[researcher]
-
-			/myAccount.jsp = authc
+				 /UserDelete = authc, roles[admin]
+				/ResetCommonConfiguration = authc, roles[admin]
+				/ResurrectDeletedEncounter = authc, roles[admin]
+               	/UserResetAcceptedUserAgreement = authc, roles[admin]
+				  /InterconnectSubmitSpots = authc, roles[admin]
+				  /interconnectSubmitSpots= authc, roles[admin]
+				   /ImportSRGD = authc, roles[admin]
+				   /appadmin/scanTaskAdmin.jsp = authc, roles[admin]
+				   /encounters/encounterSpotVisualizer.jsp = authc, roles[admin]
+				   /interconnect/mac/Interconnect.jar = authc, roles[admin]
+				   /UpdateEmailAddress = authc, roles[admin]
+		      			
+				
+				/BatchUpload/** = authc, roles[RegionalManager]
+				/appadmin/batch* = authc, roles[RegionalManager]
+				/MantaMatcher = authc, roles[admin]
+				/EncounterSetSubmitterID = authc, roles[manager]
+				 
+				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
+		        /GenePopExport = authc, roles[researcher]
+				/individualSearchResultsExport.jsp = authc, roles[researcher]
+				 /encounters/exportSearchResults.jsp = authc, roles[researcher]
+				/encounters/searchComparison.jsp = authc, roles[researcher]
+				/encounters/searchComparisonResults.jsp = authc, roles[researcher]
+		        /IndividualSetAlternateID = authc, roles[researcher]
+				/EncounterSetScarring = authc, roles[researcher]
+				  /EncounterSetVerbatimEventDate = authc, roles[researcher]
+				  /EncounterSetLifeStage = authc, roles[researcher]
+				  /EncounterSetCountry = authc, roles[researcher]
+				  /EncounterSetTissueSample = authc, roles[researcher]
+				   /TissueSampleSetHaplotype = authc, roles[researcher]
+				   /TissueSampleSetMeasurement = authc, roles[researcher]
+				  /TissueSampleRemoveHaplotype = authc, roles[researcher]
+				   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
+					/IndividualCreate = authc, roles[identifier]
+				        /OccurrenceCreate = authc, roles[researcher]
+				        /OccurrenceRemoveEncounter = authc, roles[researcher]
+				        /IndividualRemoveEncounter = authc, roles[identifier]
+				        /OccurrenceAddEncounter = authc, roles[researcher]
+				        /IndividualAddEncounter = authc, roles[identifier]
+				         /TissueSampleSetSexAnalysis = authc, roles[researcher]
+				        /TissueSampleRemoveSexAnalysis = authc, roles[researcher]
+				         /EncounterRemoveTissueSample = authc, roles[researcher]
+				         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
+				         /EncounterSearchExportKML = authc, roles[researcher]
+				         /EncounterSearchExportExcelFile = authc, roles[researcher]
+				         /EncounterSearchExportShapefile = authc, roles[researcher]
+				         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
+						/OccurrenceSetIndividualCount = authc, roles[researcher]
+				         /IndividualAddComment = authc, roles[researcher]
+				         /SimpleCMROutput = authc, roles[researcher]
+				             /GenalexExportCodominantMSDataBySize = authc, roles[researcher]
+				             /SOCPROGExport = authc, roles[researcher]
+				             /OccurrenceSetGroupBehavior = authc, roles[researcher]
+				             /EncounterSetBehavior = authc, roles[researcher]
+				      /CJS = authc, roles[researcher]
+				      /software.jsp = authc, roles[researcher]
+				      
+		      			
+						/SinglePhotoVideoRemoveKeyword = authc, roles[imageProcessor]
+				         /SinglePhotoVideoAddKeyword = authc, roles[imageProcessor]
+						 /EncounterRemoveImage = authc, roles[imageProcessor]
+						/EncounterAddImage = authc, roles[imageProcessor]
+						/EncounterAddMantaPattern = authc, roles[imageProcessor]
+						/KeywordHandler = authc, roles[imageProcessor]
+						
+						/AdoptionAction = authc, roles[adoption]
+						/AdoptionForm = authc, roles[adoption]
+						/DeleteAdoption = authc, roles[adoption]
+						/ResurrectDeletedAdoption = authc, roles[adoption]
+						
+						 /EncounterSetState = authc, roles[approve]
+						 /EncounterDelete = authc, roles[approve]
+					
+					       /xcalendar/** = authc, roles[local]
+						   /individualSearch.jsp = authc, roles[local]
+						   /individualSearchResultsAnalysis.jsp = authc, roles[local]
+						   /individualMappedSearchResults.jsp = authc, roles[local]
+				/individualThumbnailSearchResults.jsp = authc, roles[local]
+				 /encounters/encounterSearch.jsp = authc, roles[local]
+				 /encounters/searchResults.jsp = authc, roles[local]
+				 /encounters/searchResultsAnalysis.jsp = authc, roles[local]
+				 /encounters/mappedSearchResults.jsp = authc, roles[local]
+				 /encounters/mappedSearchResultsSex.jsp = authc, roles[local]
+				 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[local]
+				 /googleSearch.jsp = authc, roles[local]
+				 /googleSearchResults.jsp = authc, roles[local]
+				 				         /EncounterAddComment = authc, roles[local]
+				         /OccurrenceAddComment = authc, roles[local]
+						 /CalendarXMLServer = authc, roles[local]
+				 /CalendarXMLServer2 = authc, roles[local]
+				 
+						   
+						   /welcome.jsp = authc
+						   /UserAddProfileImage = authc
+						   /UserRemoveProfileImage = authc
+						    		/IndividualSetYearOfBirth = authc, roles[admin]
+               		/IndividualSetYearOfDeath = authc, roles[admin]
+						   /KinalyzerExport = authc, roles[admin]
+					
+					/myAccount.jsp = authc
 					/UserSelfUpdate = authc
-
+					
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
-
-					/IndividualSetNickname = authc, roles[researcher]
-
-					/SubmitSpotsAndTransformImage = authc,roles[researcher]
-
-					/ResurrectDeletedEncounter = authc,roles[admin]
+					
+					/IndividualSetNickname = authc, roles[identifier]
+					/AdoptionAction = authc,roles[adoption]
+					
 					
 				/OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
                  /OccurrenceSearchExportGtm = authc, roles[researcher]
@@ -255,8 +257,7 @@
 				 #lockdown Keyword handling
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
-				 
-				 /EncounterAddMantaPattern = authc, roles[researcher]
+
 				
 
             </param-value>
