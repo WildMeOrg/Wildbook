@@ -679,6 +679,13 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       enc.setSatelliteTag(getSatelliteTag(fv));
       enc.setSex(getVal(fv, "sex"));
       enc.setLivingStatus(getVal(fv, "livingStatus"));
+      
+      // Process patterning code.
+      if (CommonConfiguration.showProperty("showPatterningCode", context)) {
+        String pc = getVal(fv, "patterningCode").trim();
+        if (CommonConfiguration.getIndexedPropertyValues("patterningCode", context).contains(pc))
+          enc.setPatterningCode(pc);
+      }
 
 
       if(fv.get("scars")!=null){
