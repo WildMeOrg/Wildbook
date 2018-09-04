@@ -115,7 +115,7 @@ context=ServletUtilities.getContext(request);
 			
 					<div class="adopter" style="width: 190px">
 						<div class="adopter-header" >
-							<p>Whale Shark Adopter</p>
+							<p>Manta Adopter</p>
 						</div>
 						<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="" />
 						<div class="adopter-details">
