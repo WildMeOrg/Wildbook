@@ -98,7 +98,7 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
-    <h4>After filling out the financial information, you will be able to create your profile and choose your sharks nickname.</h4>
+    <h4>After filling out the financial information, you will be able to create your profile and choose your manta's nickname.</h4>
   </section>
 
 	<%-- BEGIN STRIPE FORM --%>
