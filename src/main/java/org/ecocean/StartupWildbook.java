@@ -121,7 +121,7 @@ public class StartupWildbook implements ServletContextListener {
         }
 
         if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
-        //createMatchGraph();
+        createMatchGraph();
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
         startIAQueues("context0");
