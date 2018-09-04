@@ -205,11 +205,11 @@
 						/EncounterAddMantaPattern = authc, roles[imageProcessor]
 						/KeywordHandler = authc, roles[imageProcessor]
 						
-						/AdoptionAction = authc, roles[adoption]
-						/AdoptionForm = authc, roles[adoption]
-						/DeleteAdoption = authc, roles[adoption]
+						
+						
 						/ResurrectDeletedAdoption = authc, roles[adoption]
 						
+
 						 /EncounterSetState = authc, roles[approve]
 						 /EncounterDelete = authc, roles[approve]
 					
@@ -245,9 +245,7 @@
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 					
-					/IndividualSetNickname = authc, roles[identifier]
-					/AdoptionAction = authc,roles[adoption]
-					
+					/IndividualSetNickname = authc, roles[identifier]					
 					
 				/OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
                  /OccurrenceSearchExportGtm = authc, roles[researcher]
