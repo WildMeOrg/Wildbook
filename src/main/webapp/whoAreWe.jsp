@@ -31,7 +31,7 @@
 
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
-    ArrayList<User> allUsers=myShepherd.getAllUsers();
+    List<User> allUsers=myShepherd.getAllUsers();
     for (ListIterator<User> it = allUsers.listIterator(); it.hasNext();) {
       User u = it.next();
       if (u.getFullName() != null && u.getFullName().matches("(?i).*\\b(test|demo|rest)\\b.*")
