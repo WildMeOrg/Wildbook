@@ -99,7 +99,7 @@ console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
         var aid = ji.data('enh-annotationid');
         var w = $('#image-enhancer-wrapper-' + id + '-' + aid);
         //var scale = ji.width() / img.naturalWidth;
-        var scale = ji.width() / 4000;
+        var scale = ji.width() / 1280;
         console.warn("########## [%s] scale = %o", id, scale);
         w.data('enhancerScale', scale);
         ji.data('enhancerScale', scale);
