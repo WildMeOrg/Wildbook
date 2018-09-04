@@ -129,31 +129,42 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       //System.out.println(".....trying to check in # results:  "+returnedSize);
 
       //int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
-      int numComplete=0;
+      //int numComplete=0;
       //int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
       int numGenerated=0;
       //int numTaskTot = numComplete + numGenerated;
       int numTaskTot=0;
-      String scanTaskID="";
+      //String scanTaskID="";
       
-      ArrayList<String> tasksCompleted=new ArrayList<String>();
+      ArrayList<String> tasksAddressed=new ArrayList<String>();
       
       for (int m = 0; m < returnedSize; m++) {
         ScanWorkItemResult wir = (ScanWorkItemResult) returnedResults.get(m);
         
-        if(!wir.getUniqueNumberTask().equals(scanTaskID)){
-          scanTaskID=wir.getUniqueNumberTask();
-        }
+        //if(!wir.getUniqueNumberTask().equals(scanTaskID)){
+        //String scanTaskID=wir.getUniqueNumberTask();
+        //}
 
         
         //String swiUniqueNum = wir.getUniqueNumberWorkItem();
         String taskNum = wir.getUniqueNumberTask();
-        if(!affectedScanTasks.contains(taskNum)){affectedScanTasks.add(taskNum);}
+        if(!tasksAddressed.contains(taskNum)){tasksAddressed.add(taskNum);}
+        
+        //if(!affectedScanTasks.contains(taskNum)){affectedScanTasks.add(taskNum);}
 
         gm.checkinResult(wir);
         
         //auto-generate XML file of results if appropriate
-        numComplete = gm.getNumWorkItemsCompleteForTask(scanTaskID);
+
+
+
+      }
+      
+      int numTasksAddressed=tasksAddressed.size();
+      for(int m=0;m<numTasksAddressed;m++){
+        String scanTaskID=tasksAddressed.get(m);
+        
+        int numComplete = gm.getNumWorkItemsCompleteForTask(scanTaskID);
         //numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
         //numTaskTot = numComplete + numGenerated;
         
@@ -164,7 +175,7 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
           
           
           
-          if(!tasksCompleted.contains(scanTaskID)){
+          //if(!tasksCompleted.contains(scanTaskID)){
           
             Shepherd myShepherd=new Shepherd(context);
             myShepherd.setAction("ScanWorkItemResultsHandler.class");
@@ -173,12 +184,10 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
             if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
-            tasksCompleted.add(scanTaskID);
-          }
+            //tasksCompleted.add(scanTaskID);
+          //}
           
         }
-
-
       }
 
 
