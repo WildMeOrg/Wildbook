@@ -84,7 +84,7 @@ try {
 
   %><script>
 function isGenusSpeciesSet() {
-	var check = <%=((encs.get(0).getGenus()!=null)&&(encs.get(0).getSpecificEpithet()!=null))%>;
+	var check = <%=((numEncs > 0) && (encs.get(0).getGenus()!=null) && (encs.get(0).getSpecificEpithet()!=null))%>;
 	console.log("isGenusSpeciesSet() = "+check);
 	return check;
 }
@@ -235,7 +235,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 		  		
 		  		//insert old CR code
 
-				if (request.getParameter("isOwner").equals("true") && CommonConfiguration.isCatalogEditable(context)) {
+				if ("true".equals(request.getParameter("isOwner")) && CommonConfiguration.isCatalogEditable(context)) {
 					File tryCR = new File(ma.localPath().toString().replaceFirst(".([^.]+)$", "_CR.$1"));
 					if (tryCR.exists()) {
 						String crimg = ma.getFilename().replaceFirst(".([^.]+)$", "_CR.$1");
