@@ -34,6 +34,8 @@ import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 public class WorkAppletHeadlessEpic {
@@ -235,7 +237,10 @@ public class WorkAppletHeadlessEpic {
               
               System.out.println("     Opened a URL connection to: "+con.getURL().toString());
               
-              inputFromServlet = new ObjectInputStream(con.getInputStream());
+              //inputFromServlet = new ObjectInputStream(con.getInputStream());
+              
+              inputFromServlet =  new ObjectInputStream(new BufferedInputStream(new GZIPInputStream(con.getInputStream())));
+              
               workItems = (Vector) inputFromServlet.readObject();
               
               if((workItems!=null)&&(workItems.size()>0)){
@@ -306,16 +311,16 @@ public class WorkAppletHeadlessEpic {
                   //waiting for last workItem to finish elsewhere, wait quietly and check later
                   //long currentTime=(new GregorianCalendar()).getTimeInMillis();
                   //long timeDiff=currentTime-startTime;
-                  if ((swi.getTotalWorkItemsInTask() == -1)&&(timeDiff<allowedDiff)) {
+                  //if ((swi.getTotalWorkItemsInTask() == -1)&&(timeDiff<allowedDiff)) {
   
                     Thread.sleep(sleepTime);
                     //System.exit(0);
                     
-                  }
-                  else {
+                  //}
+                  //else {
                     //System.exit(0);
   
-                  }
+                  //}
   
                 } 
                 catch (NullPointerException npe) {
@@ -395,6 +400,9 @@ public class WorkAppletHeadlessEpic {
                   // Don't use a cached version of URL connection.
                   finishConnection.setUseCaches(false);
                   finishConnection.setDefaultUseCaches(false);
+                  
+                  finishConnection.setConnectTimeout(30000);
+                  finishConnection.setReadTimeout(30000);
   
                   // Specify the content type that we will send binary data
                   finishConnection.setRequestProperty("Content-Type", "application/octet-stream");
@@ -405,22 +413,26 @@ public class WorkAppletHeadlessEpic {
                   
                   try{
                     // send the results Vector to the servlet using serialization
-                    outputToFinalServlet = new ObjectOutputStream(finishConnection.getOutputStream());
-  
+                    
+                    //outputToFinalServlet = new ObjectOutputStream(finishConnection.getOutputStream());
+                    outputToFinalServlet = new ObjectOutputStream(new BufferedOutputStream(new GZIPOutputStream(finishConnection.getOutputStream())));
+                    
+                    
                     //sendObject(outputToFinalServlet, workItemResults);
                     System.out.println("     : Sending returned results...");
                     //new modification
-                    ObjectOutputStream out=null;
+                    //ObjectOutputStream out=null;
                     try{
                       //out = con;
                       outputToFinalServlet.reset();
                       if (workItemResults != null) {
                         outputToFinalServlet.writeObject(workItemResults);
                       }
+                      outputToFinalServlet.flush();
                       outputToFinalServlet.close();
                      }
                     catch(Exception e){
-                      if(out!=null)out.close();
+                      //if(out!=null)out.close();
                       System.out.println("     : Transmission exception in sendObject.");
                       e.printStackTrace();
                     }

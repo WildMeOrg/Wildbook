@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,11 +43,14 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.HttpURLConnection;
+
 import javax.net.ssl.HttpsURLConnection;
+
 import java.io.DataOutputStream;
 import java.nio.charset.Charset;
 import java.util.Vector;
 import java.util.ArrayList;
+import java.util.zip.GZIPInputStream;
 
 
 public class ScanWorkItemResultsHandler extends HttpServlet {
@@ -103,7 +107,10 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
     try {
 
       // get an input stream and Vector of results from the applet
-      inputFromApplet = new ObjectInputStream(request.getInputStream());
+      
+      //inputFromApplet = new ObjectInputStream(request.getInputStream());
+      inputFromApplet = new ObjectInputStream(new BufferedInputStream(new GZIPInputStream(request.getInputStream())));
+      
       Vector returnedResults = new Vector();
       returnedResults = (Vector) receiveObject(inputFromApplet);
       inputFromApplet.close();
