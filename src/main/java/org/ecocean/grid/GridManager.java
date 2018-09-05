@@ -419,11 +419,12 @@ public class GridManager {
     ArrayList<ScanWorkItem> returnItems = new ArrayList<ScanWorkItem>();
     int iterNum = toDo.size();
     boolean cont = true;
+    long time=System.currentTimeMillis();
     for (int i = 0; i < iterNum; i++) {
       if (cont) {
         ScanWorkItem item = toDo.get(i);
         if ((!item.isCheckedOut(checkoutTimeout)) && (!item.isDone())) {
-          item.setStartTime(System.currentTimeMillis());
+          item.setStartTime(time);
           returnItems.add(item);
           if (returnItems.size() >= num) {
             cont = false;
