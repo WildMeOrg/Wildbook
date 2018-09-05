@@ -415,7 +415,7 @@
       </field>
 
       <field name="annotations" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Annotation" dependent-element="true"/>
+        <collection element-type="org.ecocean.Annotation" dependent-element="false"/>
         <join/>
       </field>
 
