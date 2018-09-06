@@ -301,6 +301,25 @@ for (int i=0; i<captionLinks.size(); i++) {
 	cursor: auto;
 }
 
+
+div.gallery-download {
+    text-align: center;
+    font-size: 0.8em;
+    margin-top: -2.3em;
+}
+
+.gallery-download a {
+    display: inline-block;
+    background-color: #DDD;
+    margin: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+.gallery-download a:hover {
+    background-color: #CCA;
+}
+
 	.match-tools {
 		padding: 5px 15px;
 		background-color: #DDD;
@@ -383,6 +402,7 @@ if(request.getParameter("encounterNumber")!=null){
 
     $('#enc-gallery').append(removeAssetLink);
 */
+    if (wildbookGlobals.username) $('#enc-gallery').parent().append('<div class="gallery-download"><a href="../imagedl/' + elem.id + '/' + encodeURI(elem.filename) + '" title="Download" download="' + encodeURI(elem.filename) + '">' + elem.filename + '</a></div>');
   });
 
 
