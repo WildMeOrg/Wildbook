@@ -308,12 +308,10 @@ public class ScanAppletSupport extends HttpServlet {
 
     boolean rightScan = false;
     if(listSize>0)hasWork = true;
+    long time = System.currentTimeMillis();
     for (int i = 0; i < listSize; i++) {
       
-
       ScanWorkItem swi = list.get(i);
-
-      long time = System.currentTimeMillis();
 
       swi.setStartTime(time);
 
@@ -335,7 +333,7 @@ public class ScanAppletSupport extends HttpServlet {
         ScanWorkItem scanWI = new ScanWorkItem();
         scanWI.setTotalWorkItemsInTask(-1);
         scanWI.setWorkItemsCompleteInTask(-1);
-        scanWI.rightScan = rightScan;
+        //scanWI.rightScan = rightScan;
 
         //myShepherd.rollbackDBTransaction();
 
