@@ -239,45 +239,52 @@ public class WorkAppletHeadlessEpic {
               
               //inputFromServlet = new ObjectInputStream(con.getInputStream());
               
-              inputFromServlet =  new ObjectInputStream(new BufferedInputStream(new GZIPInputStream(con.getInputStream())));
-              
-              workItems = (Vector) inputFromServlet.readObject();
-              
-              if((workItems!=null)&&(workItems.size()>0)){
-                swi = (ScanWorkItem) workItems.get(0);
-                successfulConnect = true;
-              }
-              else{
-                System.out.println("...No work to do... Gonna take a nap then check the next server...");
+              try{
+                inputFromServlet =  new ObjectInputStream(new BufferedInputStream(new GZIPInputStream(con.getInputStream())));
                 
-                int c = urlArray.size();
-                if (i == (c - 1)) {
-                  System.out.println("...Back to the beginning of the Array!...");
-                  i = 0;
-                } else {
-                  System.out.println("...Done I'm done and I'm onto the next one...");
-                  i += 1;                  
+                workItems = (Vector) inputFromServlet.readObject();
+                
+                if((workItems!=null)&&(workItems.size()>0)){
+                  swi = (ScanWorkItem) workItems.get(0);
+                  successfulConnect = true;
                 }
-                
-                successfulConnect=false;
-                //if (timeDiff<allowedDiff) {
-  
-                  Thread.sleep(sleepTime);
-                  //System.exit(0);
+                else{
+                  System.out.println("...No work to do... Gonna take a nap then check the next server...");
                   
-                //}
-                /*
-                else {
-                  System.out.println("\n\nI hit the timeout and am shutting down after "+(timeDiff/1000/60)+" minutes.");
-                  inputFromServlet.close();
-                  System.exit(0);
+                  int c = urlArray.size();
+                  if (i == (c - 1)) {
+                    System.out.println("...Back to the beginning of the Array!...");
+                    i = 0;
+                  } else {
+                    System.out.println("...Done I'm done and I'm onto the next one...");
+                    i += 1;                  
+                  }
+                  
+                  successfulConnect=false;
+                  //if (timeDiff<allowedDiff) {
+    
+                    Thread.sleep(sleepTime);
+                    //System.exit(0);
+                    
+                  //}
+                  /*
+                  else {
+                    System.out.println("\n\nI hit the timeout and am shutting down after "+(timeDiff/1000/60)+" minutes.");
+                    inputFromServlet.close();
+                    System.exit(0);
+                    
+                  }
+                  */
                   
                 }
-                */
-                
-              }
-              inputFromServlet.close();
-              inputFromServlet = null;
+                inputFromServlet.close();
+            }
+            catch(EOFException e){
+              //no input received
+              //do nothing
+            }
+            
+            inputFromServlet = null;
             } 
             catch (Exception ioe) {
               if(inputFromServlet!=null)inputFromServlet.close();

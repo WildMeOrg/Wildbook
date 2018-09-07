@@ -31,7 +31,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.ecocean.*;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.mmutil.FileUtilities;
 import org.ecocean.mmutil.MMAResultsProcessor;
 import org.ecocean.mmutil.MantaMatcherUtilities;
@@ -103,16 +106,16 @@ public final class MantaMatcher extends DispatchServlet {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
       }
       
-
+      String encNumber=req.getParameter("encNumber");
       
 
-      SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
+      MediaAsset spv = shepherd.getMediaAsset(num);
       if (spv == null) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
       }
 
       Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(spv);
-      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, mmMap.get("TXT"), spv);
+      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, mmMap.get("TXT"), spv,encNumber);
       req.setAttribute(REQUEST_KEY_RESULTS, mmaResults);
       getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
 
@@ -140,14 +143,14 @@ public final class MantaMatcher extends DispatchServlet {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
       }
 
-
-      SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
+      String encNumber=req.getParameter("encNumber");
+      MediaAsset spv = shepherd.getMediaAsset(num);
       if (spv == null) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
       }
 
       Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(spv);
-      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, mmMap.get("TXT-REGIONAL"), spv);
+      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, mmMap.get("TXT-REGIONAL"), spv, encNumber);
       req.setAttribute(REQUEST_KEY_RESULTS, mmaResults);
       getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
 
@@ -160,7 +163,7 @@ public final class MantaMatcher extends DispatchServlet {
     }
   }
 
-  private MMAResultsProcessor.MMAResult parseResults(HttpServletRequest req, File mmaResults, SinglePhotoVideo spv)
+  private MMAResultsProcessor.MMAResult parseResults(HttpServletRequest req, File mmaResults, MediaAsset spv,String encNumber)
           throws IOException, ParseException {
     assert spv != null;
     assert mmaResults != null;
@@ -179,7 +182,7 @@ public final class MantaMatcher extends DispatchServlet {
       // Load results file.
       String text = new String(FileUtilities.loadFile(mmaResults));
       // Parse results.
-      return MMAResultsProcessor.parseMatchResults(shepherd, text, spv, dataDir);
+      return MMAResultsProcessor.parseMatchResults(shepherd, text, spv, dataDir, encNumber);
     } finally {
       shepherd.rollbackDBTransaction();
       shepherd.closeDBTransaction();
@@ -290,8 +293,8 @@ public final class MantaMatcher extends DispatchServlet {
         }
 
         // Remove matcher files relating to existing SPVs.
-        for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
-          if (!MediaUtilities.isAcceptableImageFile(spv.getFile())) {
+        for (MediaAsset spv : enc.getMedia()) {
+          if (!MediaUtilities.isAcceptableImageFile(spv.localPath().toFile())) {
             continue;
           }
           Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);

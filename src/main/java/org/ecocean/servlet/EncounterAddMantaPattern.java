@@ -25,6 +25,7 @@ import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.*;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.mmutil.*;
 
 import javax.servlet.ServletConfig;
@@ -37,16 +38,17 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
-
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 //import javax.imageio.spi.ImageReaderWriterSpi;
+
 
 import org.ecocean.servlet.*;
 
@@ -94,7 +96,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
     String encounterNumber = "";
-    SinglePhotoVideo spv = null;
+    MediaAsset spv = null;
     Map<String, File> mmFiles = null;
     String action = "imageadd";
     
@@ -121,7 +123,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
         encounterNumber = request.getParameter("number");
         try {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
-          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          spv = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
           MantaMatcherUtilities.removeMatcherFiles(spv);
 
           // Clear MMA-compatible flag if appropriate for encounter.
@@ -145,12 +147,17 @@ public class EncounterAddMantaPattern extends HttpServlet {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
           //File encDir = new File(encountersDir, enc.getEncounterNumber());
           
-          File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
+          File encDir = new File(enc.subdir());
           
           
-          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          //spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          spv=myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
+          
+          
           File spvFile = new File(encDir, spv.getFilename());
-          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+          
+          
+          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv.localPath().toFile());
           // Delete previous matching files.
           mmFiles.get("TXT").delete();
           mmFiles.get("CSV").delete();
@@ -224,7 +231,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           File dirEnc = new File(Encounter.dir(shepherdDataDir, encounterNumber));
           
           
-          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          spv = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
           mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
           // Delete previous matching files.
           mmFiles.get("TXT-REGIONAL").delete();
@@ -305,7 +312,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             } 
             // Determine existing image to which to assign new CR image.
             if (name.equals("photoNumber")){
-              spv = myShepherd.getSinglePhotoVideo(value);
+              spv = myShepherd.getMediaAsset(value);
               mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
             }
           }
@@ -383,7 +390,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
       else if (action.equals("imageadd2")) {
         
 				encounterNumber = request.getParameter("encounterID");
-				spv = myShepherd.getSinglePhotoVideo(request.getParameter("photoNumber"));
+				spv = myShepherd.getMediaAsset(request.getParameter("photoNumber"));
 				mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
 				String matchFilename = request.getParameter("matchFilename");
 				String errorMessage = null;
@@ -563,11 +570,11 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             out.println(ServletUtilities.getFooter(context));
           }
           else if (action.equals("rescan")) {
-            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
+            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getId();
             response.sendRedirect(resultsURL);
           }
           else if (action.equals("rescanRegional")) {
-            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResultsRegional?spv=" + spv.getDataCollectionEventID();
+            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResultsRegional?spv=" + spv.getId();
             response.sendRedirect(resultsURL);
           }
           else {
