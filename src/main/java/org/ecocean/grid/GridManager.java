@@ -53,7 +53,7 @@ public class GridManager {
   private long lastGridStatsQuery = 1;
   private long gridStatsRefreshPeriod = 300000;
   private int numScanTasks = 0;
-  private int numScanWorkItems = 0;
+  //private int numScanWorkItems = 0;
   private int numCollisions = 0;
   public int maxGroupSize = 100;
   public int numCompletedWorkItems = 0;
@@ -354,11 +354,12 @@ public class GridManager {
     return numScanTasks;
   }
 
+  /*
   public int getNumWorkItems(String context) {
     updateGridStats(context);
     return numScanWorkItems;
   }
-
+*/
   public int getNumCompletedWorkItems() {
     return numCompletedWorkItems;
   }
@@ -414,18 +415,19 @@ public class GridManager {
 
   public void removeAllWorkItems() {
     toDo = new ArrayList<ScanWorkItem>();
-    numScanWorkItems=0;
+    underway = new ArrayList<ScanWorkItem>();
+    //numScanWorkItems=0;
   }
 
   public synchronized void addWorkItem(ScanWorkItem swi) {
     toDo.add(swi);
-    numScanWorkItems++;
+    //numScanWorkItems++;
   }
 
   public synchronized ArrayList<ScanWorkItem> getWorkItems(int num) {
     ArrayList<ScanWorkItem> returnItems = new ArrayList<ScanWorkItem>();
     int iterNum=num; 
-    if(iterNum>numScanWorkItems)iterNum=numScanWorkItems;
+    if(iterNum>toDo.size())iterNum=toDo.size();
     //int toDoSize= toDo.size();
     //boolean cont = true;
     long time=System.currentTimeMillis();
@@ -450,7 +452,7 @@ public class GridManager {
     
     //if toDO doesn't have any work, start popping stuff off underway to help finish up
     else {
-      if(iterNum>underway.size())iterNum=underway.size();
+      iterNum=underway.size();
       for (int i = 0; i < iterNum; i++) {
         //if (cont) {
           ScanWorkItem item = underway.get(i);
@@ -571,13 +573,25 @@ public class GridManager {
   public int getNumWorkItemsIncompleteForTask(String taskID) {
     int num = 0;
     try{
+      
       if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
     	//int iter = numScanWorkItems;
-    	for (int i = 0; i < numScanWorkItems; i++) {
+    	for (int i = 0; i < toDo.size(); i++) {
       		if ((toDo.get(i)!=null)&&(toDo.get(i).getTaskIdentifier().equals(taskID))) {
       		  	num++;
       		}
     	}
+    	
+      if(underway==null){underway = new ArrayList<ScanWorkItem>();}
+      int iter = underway.size();
+      for (int i = 0; i < iter; i++) {
+          if ((underway.get(i)!=null)&&(underway.get(i).getTaskIdentifier().equals(taskID))) {
+              num++;
+          }
+      }
+    	
+    	
+    	
 	}
 	catch(Exception e){e.printStackTrace();}
     return num;
@@ -586,9 +600,15 @@ public class GridManager {
   public ArrayList<ScanWorkItem> getRemainingWorkItemsForTask(String taskID) {
     ArrayList<ScanWorkItem> list = new ArrayList<ScanWorkItem>();
     if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
-    for (int i = 0; i < numScanWorkItems; i++) {
+    for (int i = 0; i < toDo.size(); i++) {
       if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
         list.add(toDo.get(i));
+      }
+    }
+    if(underway==null){underway = new ArrayList<ScanWorkItem>();}
+    for (int i = 0; i < underway.size(); i++) {
+      if (underway.get(i).getTaskIdentifier().equals(taskID)) {
+        list.add(underway.get(i));
       }
     }
     return list;
@@ -623,9 +643,11 @@ public class GridManager {
   }
 
   public int getNumWorkItemsAndResults() {
-    if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
-    if(done==null){done = new ArrayList<ScanWorkItemResult>();}
-    return (done.size() + numScanWorkItems);
+    int returnMe=0;
+    if(toDo!=null)returnMe+=toDo.size();
+    if(done!=null)returnMe+=done.size();
+    if(underway!=null)returnMe+=underway.size();
+    return returnMe;
   }
 
   public int getToDoSize() {
@@ -635,13 +657,22 @@ public class GridManager {
   public int getDoneSize() {
     return done.size();
   }
+  
+  public int getUnderwaySize() {
+    return underway.size();
+  }
 
   public ScanWorkItem getWorkItem(String uniqueNum) {
-    int iter = numScanWorkItems;
+    int iter = toDo.size();
     ScanWorkItem swi = new ScanWorkItem();
     for (int i = 0; i < iter; i++) {
       if (toDo.get(i).getUniqueNumber().equals(uniqueNum)) {
         return toDo.get(i);
+      }
+    }
+    for (int i = 0; i < underway.size(); i++) {
+      if (underway.get(i).getUniqueNumber().equals(uniqueNum)) {
+        return underway.get(i);
       }
     }
     return swi;
@@ -722,5 +753,9 @@ public class GridManager {
   
   public void clearDoneItems(){done = new ArrayList<ScanWorkItemResult>();}
     
+  public int getNumUnderway(){
+    if(underway!=null)return underway.size();
+    return 0;
+  }
 
 }
