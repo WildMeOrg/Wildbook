@@ -309,9 +309,9 @@ else{
     </td>
     <%
       String gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
-      if (st.getUniqueNumber().equals("TuningTask")) {
-        gotoURL = "endTuningTask.jsp";
-      }
+      //if (st.getUniqueNumber().equals("TuningTask")) {
+      //  gotoURL = "endTuningTask.jsp";
+      //}
     %>
 
     <td>
@@ -390,6 +390,7 @@ single scan are allowed to exceed the total.</span>
     <th width="25"><span>IP</span></th>
     <th width="25"><span>NodeID</span></th>
     <th width="25"  ><span>#CPUs</span></th>
+    <th width="25"  ><span>Items Completed</span></th>
     <th width="25"  ><span>Last Checkin (ms)</span></th>
 
 
@@ -410,6 +411,7 @@ single scan are allowed to exceed the total.</span>
     <td><span class="style2"><%=nd.ipAddress()%></span></td>
     <td><span class="style2"><%=nd.getNodeIdentifier()%></span></td>
     <td><span class="style2"><%=nd.numProcessors%></span></td>
+     <td><span class="style2"><%=nd.numComparisons%></span></td>
     <td><span class="style2"><%=(currenTime-nd.getLastHeartbeat()) %></span></td>
 
 
@@ -432,10 +434,11 @@ single scan are allowed to exceed the total.</span>
   <%
   int toDo=gm.getToDoSize();
   int numDone=gm.getDoneSize();
+  int numDoing=gm.getNumUnderway();
  
   %>
   
-  (To-Do: <%=toDo%> Done: <%=numDone%>)</p>
+  (To-Do: <%=toDo%> Underway: <%=numDoing %> Done: <%=numDone%>)</p>
 
 <%
   if (request.isUserInRole("admin")) {
