@@ -508,7 +508,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         if (containerName!=null&&containerName!="") { 
             baseUrl = baseUrl.replace("localhost", containerName);
         }
-
+        System.out.println("BaseURL? "+baseUrl);
     } catch (Exception e) {
         e.printStackTrace();
     }

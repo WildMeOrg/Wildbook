@@ -183,6 +183,25 @@ public class CommonConfiguration {
             return null;
         }
     }
+
+    public static URI getServerURI(Shepherd myShepherd, int port) {
+      JSONObject info = getServerInfo(myShepherd);
+      if (info == null) return null;
+      try {
+          return new URI(
+              info.optString("scheme", null),
+              null,
+              info.optString("serverName", null),
+              info.optInt("serverPort", port),
+              info.optString("contextPath", null),
+              null, null
+          ).normalize();
+      } catch (URISyntaxException ex) {
+          System.out.println("CommonConfiguration.getServerURL() threw " + ex.toString());
+          return null;
+      }
+    }
+
     public static String getServerURL(Shepherd myShepherd) {
         URI u = getServerURI(myShepherd);
         if (u == null) return null;
