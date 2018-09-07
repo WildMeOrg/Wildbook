@@ -3746,5 +3746,15 @@ public class Shepherd {
   
   
 
+  public List<String> getAllEncounterNumbers(){
+    List<String> encs=null;
+    String filter="SELECT DISTINCT catalogNumber FROM org.ecocean.Encounter";  
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    encs=new ArrayList<String>(c);
+    query.closeAll();
+    return encs;
+}
+
 
 } //end Shepherd class

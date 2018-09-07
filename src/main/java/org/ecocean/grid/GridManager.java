@@ -45,7 +45,7 @@ public class GridManager {
   //targeted nodes are always allowed
   private int numAllowedNodes = 25;
   //private long nodeTimeout = 180000;
-  private String appletVersion = "1.2";
+  //private String appletVersion = "1.2";
   public long checkoutTimeout = 120000;
   public int groupSize = 20;
   public int creationDeletionThreadQueueSize = 1;
@@ -71,6 +71,8 @@ public class GridManager {
   private static ConcurrentHashMap<String,EncounterLite> matchGraph=new ConcurrentHashMap<String, EncounterLite>();
   private static int numRightPatterns=0;
   private static int numLeftPatterns=0;
+  
+  private static boolean creationThread=false;
 
 
   //hold uncompleted scanWorkItems
@@ -81,9 +83,15 @@ public class GridManager {
 
   public GridManager() {
   }
+  
+  
 
   public ArrayList<GridNode> getNodes() {
     return nodes;
+  }
+  
+  public void initializeNodes(int initialEstimateNodes){
+    nodes = new ArrayList<GridNode>(initialEstimateNodes);
   }
 
   public void setMaxGroupSize(int mgs) {
@@ -137,9 +145,11 @@ public class GridManager {
     return creationDeletionThreadQueueSize;
   }
 
+  /*
   public String getSupportedAppletVersion() {
     return appletVersion;
   }
+  */
 
   public int getNumNodes() {
     return nodes.size();
