@@ -712,7 +712,7 @@ public class MediaAsset implements java.io.Serializable {
         if (containerName!=null&&containerName!="") {
             try {
                 System.out.println("Using containerName for MediaAsset URL domain..");
-                return new URL(store.webURL(this).getProtocol(), containerName, 80, store.webURL(this).getFile());
+                return new URL(store.webURL(this).getProtocol(), containerName, store.webURL(this).getFile());
             } catch (java.net.MalformedURLException ex) {}
         }
         try {
