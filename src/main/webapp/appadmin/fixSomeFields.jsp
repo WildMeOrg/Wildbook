@@ -4,13 +4,13 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,
+org.ecocean.datacollection.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%
 
 String context="context0";
 context=ServletUtilities.getContext(request);
-
 Shepherd myShepherd=new Shepherd(context);
 
 
@@ -19,84 +19,44 @@ Shepherd myShepherd=new Shepherd(context);
 
 <html>
 <head>
-<title>Fix Some Fields</title>
+<title>Data Sheet. How do they work?</title>
 
 </head>
 
-
 <body>
-<<<<<<< HEAD
-<p>Removing all workspaces.</p>
-=======
-
->>>>>>> origin/crc
 <ul>
 <%
 
-myShepherd.beginDBTransaction();
-
-int numFixes=0;
-
-<<<<<<< HEAD
-try {
-
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
-
-  Iterator allSpaces=myShepherd.getAllWorkspaces();
-
-  boolean committing=true;
-
-
-  while(allSpaces.hasNext()){
-
-    Workspace wSpace=(Workspace)allSpaces.next();
-
-    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
-
-  	numFixes++;
-
-    if (committing) {
-      myShepherd.throwAwayWorkspace(wSpace);
-  		myShepherd.commitDBTransaction();
-  		myShepherd.beginDBTransaction();
-    }
-  }
-=======
 try{
 
-	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
+	Encounter enc = new Encounter("mortality", context, myShepherd);
+
+	DataSheet ds = new DataSheet(Util.generateUUID());
 	
+	System.out.println("++++++ New Enc: "+enc.toString());
 
+	System.out.println("++++++ New DataSheet: "+ds.toString());
 
-	while(allEncs.hasNext()){
-		
-		MarkedIndividual enc=(MarkedIndividual)allEncs.next();
-		enc.refreshDependentProperties(context);
-		myShepherd.commitDBTransaction();
-		myShepherd.beginDBTransaction();
+	System.out.println("++++++++++ Recording DataSheet???");
+	enc.record(ds);
 
-	}
-	myShepherd.rollbackDBTransaction();
+	System.out.println("++++++++++ Add Config DataSheet???");
+	enc.addConfigDataSheet(context);
+
+	System.out.println("++++++++++++++++++++++ Can I persist them independantly?");
+
+	myShepherd.storeNewEncounter(enc);
+	myShepherd.storeNewDataSheet(ds);
 	
->>>>>>> origin/crc
 }
 catch(Exception e){
-	myShepherd.rollbackDBTransaction();
-}
-finally{
-	myShepherd.closeDBTransaction();
-
+	e.printStackTrace();
+	//myShepherd.rollbackDBTransaction();
 }
 
 %>
 
 </ul>
-<<<<<<< HEAD
-<p>Done successfully: <%=numFixes %> workspaces deleted.</p>
-=======
-<p>Done successfully: <%=numFixes %></p>
 
->>>>>>> origin/crc
 </body>
 </html>
