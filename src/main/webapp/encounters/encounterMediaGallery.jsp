@@ -389,7 +389,7 @@ if(request.getParameter("encounterNumber")!=null){
         data: JSON.stringify({"detach":"true","EncounterID":"<%=encNum%>","MediaAssetID":maId}),
         success: function(d) {
           console.info("I detached MediaAsset "+maId+" from encounter <%=encNum%>");
-          $('#image-enhancer-wrapper-' + maId).closest('figure').remove();  //TODO fix this to find it with annotation id now!
+          $('[id^="image-enhancer-wrapper-' + maId + '-"]').closest('figure').remove()
 /*
           $('#remove'+maId).prev('figure').remove();
           $('#remove'+maId).after('<p style=\"text-align:center;\"><i>Image removed from encounter.</i></p>');
@@ -452,7 +452,8 @@ function doImageEnhancer(sel) {
            if(!encNum.equals("")){
         	%>
             ['remove this image', function(enh) {
-		removeAsset(enh.imgEl.prop('id').substring(11));
+		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+		removeAsset(mid);
             }],
             <%
     		}
