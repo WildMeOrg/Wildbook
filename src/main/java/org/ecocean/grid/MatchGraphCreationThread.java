@@ -82,6 +82,7 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
     System.out.println("MatchGraphCreationThread is exploring this many encounters: "+numEncs);
     myShepherd.rollbackDBTransaction();
     
+    gm.initializeNodes((int)(numEncs*2/3));
     
     //Query query=null;
     try {
