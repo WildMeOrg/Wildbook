@@ -46,7 +46,7 @@ public class GridManager {
   private int numAllowedNodes = 25;
   //private long nodeTimeout = 180000;
   //private String appletVersion = "1.2";
-  public long checkoutTimeout = 120000;
+  public long checkoutTimeout = 240000;
   public int groupSize = 20;
   public int creationDeletionThreadQueueSize = 1;
   public int scanTaskLimit = 150;
@@ -55,7 +55,7 @@ public class GridManager {
   private int numScanTasks = 0;
   //private int numScanWorkItems = 0;
   private int numCollisions = 0;
-  public int maxGroupSize = 100;
+  public int maxGroupSize = 240;
   public int numCompletedWorkItems = 0;
   
   //public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();

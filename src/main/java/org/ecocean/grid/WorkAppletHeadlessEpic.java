@@ -356,7 +356,12 @@ public class WorkAppletHeadlessEpic {
                   ScanWorkItem tempSWI = (ScanWorkItem) workItems.get(q);
   
                   //we also pass in workItemResults, which is a threadsafe vector of the results returned from each thread
-                  threadHandler.submit(new AppletWorkItemThread(tempSWI, workItemResults));
+                  try{
+                    threadHandler.submit(new AppletWorkItemThread(tempSWI, workItemResults));
+                  }
+                  catch(Exception e){
+                    System.out.println("...a thread threw an error, so I'm gonna skip it...");
+                  }
                 }
                 System.out.println("...done spawning threads...");
   
