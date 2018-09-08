@@ -207,7 +207,7 @@ try{
 			
 		
 		}
-		sb.append("\n Got a langCode for "+gotLangCode+"/"+numResults) 
+		sb.append("\n Got a langCode for "+gotLangCode+"/"+numResults); 
 		
 	%>
 %Num discard assets (negative training data): <%=poorDataVideos.size() %><br>
