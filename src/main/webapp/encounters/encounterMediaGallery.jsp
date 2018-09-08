@@ -755,9 +755,10 @@ console.info(d);
 				var mainMid = false;
 				if (d.results) {
 					for (var mid in d.results) {
-                                            refreshKeywordsForMediaAsset(mid, d.results[mid]);
+                                            refreshKeywordsForMediaAsset(mid, d);
 					}
 				}
+                                if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
 			} else {
 				var msg = d.error || 'ERROR could not make change';
 				$('.popup-content').append('<p class="error">' + msg + '</p>');
@@ -794,17 +795,29 @@ console.info(d);
 function refreshKeywordsForMediaAsset(mid, data) {
     for (var i = 0 ; i < assets.length ; i++) {
         if (assets[i].id != mid) continue;
+        //if (!assets[i].keywords) assets[i].keywords = [];
+        assets[i].keywords = [];  //we get *all* keywords in results, so blank this!
         for (var id in data.results[mid]) {
-            if (!assets[i].keywords) assets[i].keywords = [];
             assets[i].keywords.push({
                 indexname: id,
                 readableName: data.results[mid][id]
             });
         }
     }
+    //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
     $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {   //update the ui
         $(el).find('.image-enhancer-keyword-wrapper').remove();
         imageLayerKeywords($(el), { _mid: mid });
+    });
+}
+
+function refreshAllKeywordPulldowns() {
+    $('.image-enhancer-keyword-wrapper').each(function(i, el) {
+        var jel = $(el);
+        var p = jel.parent();
+        var mid = imageEnhancer.mediaAssetIdFromElement(p);
+        jel.remove();
+        imageLayerKeywords(p, { _mid: mid });
     });
 }
 
