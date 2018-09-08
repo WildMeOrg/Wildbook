@@ -2530,15 +2530,6 @@ $(document).ready(function() {
 </div>
 
 
-                   		<%
-
-                   }
-                   else {
-                   %>
-                   &nbsp;
-                   <%
-                   }
-                  %>
                   </td>
 
 
