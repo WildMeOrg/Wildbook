@@ -345,26 +345,38 @@ public final class MantaMatcherUtilities {
    * @return list of MantaMatcherScan instances
    */
   public static void saveMantaMatcherScans(String context, MediaAsset ma, Encounter enc, Set<MantaMatcherScan> scans) throws IOException {
+    System.out.println("...saveScan1");
     Objects.requireNonNull(ma);
+    System.out.println("...saveScan2");
     Objects.requireNonNull(scans);
+    System.out.println("...saveScan3");
     // Verify that all scans belong to this SPV.
     for (MantaMatcherScan scan : scans) {
       if (!scan.getDataCollectionEventId().equals(ma.getId()))
         throw new IllegalArgumentException("Not all scans specified are for this SinglePhotoVideo");
     }
+    System.out.println("...saveScan4");
     // Save scan data to file (or delete file if none to save).
     Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma.localPath().toFile());
+    System.out.println("...saveScan5");
     File f = mmFiles.get("MMA-SCAN-DATA");
+    System.out.println("...saveScan6");
     if (scans.isEmpty()) {
+      System.out.println("...saveScan7");
       if (f.exists())
         f.delete();
+      System.out.println("...saveScan8");
       return;
     }
+    System.out.println("...saveScan9");
     // Save scans to file.
     try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(f)))) {
+      System.out.println("...saveScan10");
       out.writeObject(scans);
+      System.out.println("...saveScan11");
     }
     catch (Exception ex) {
+      ex.printStackTrace();
       log.warn("Failed to load MantaMatcher scans for MediaAsset: " + ma.getId(), ex);
       if (ex instanceof IOException)
         throw (IOException)ex;

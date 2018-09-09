@@ -211,22 +211,30 @@ public class EncounterAddMantaPattern extends HttpServlet {
                   .add("-o").add(scan.getScanOutputTXT().getName())
                   .add("-c").add(scan.getScanOutputCSV().getName())
                   .asList();
+          System.out.println("...rescan1");
           ProcessBuilder pb2 = new ProcessBuilder(procArg);
+          System.out.println("...rescan2");
           pb2.directory(encDir);
+          System.out.println("...rescan3");
           pb2.redirectErrorStream();
+          System.out.println("...rescan4");
           
           String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
+          System.out.println("...rescan5");
           resultComment.append("<br />").append(procArgStr).append("<br /><br />");
           System.out.println(procArgStr);
-          
+          System.out.println("...rescan6");
           Process proc = pb2.start();
+          System.out.println("...rescan7");
           // Read output from process.
           resultComment.append("mmatch reported the following when trying to match image files:<br />");
+          System.out.println("...rescan8");
           BufferedReader brProc = new BufferedReader(new InputStreamReader(proc.getInputStream()));
           try {
             String temp = null;
             while ((temp = brProc.readLine()) != null) {
               resultComment.append(temp).append("<br />");
+              System.out.println("...rescan9");
             }
           }
           catch (IOException iox) {
@@ -236,14 +244,17 @@ public class EncounterAddMantaPattern extends HttpServlet {
             resultComment.append(iox.getStackTrace().toString());
           }
           proc.waitFor();
-
+          System.out.println("...rescan10");
           // Delete temporary algorithm input file.
           //scan.getScanInput().delete();
 
           // Resave MMA scans after including new one.
           Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, ma,enc);
+          System.out.println("...rescan11");
           mmaScans.add(scan);
+          System.out.println("...rescan12");
           MantaMatcherUtilities.saveMantaMatcherScans(context, ma,enc, mmaScans);
+          System.out.println("...rescan13");
         }
         catch (SecurityException sx) {
           log.error(sx.getMessage(), sx);
