@@ -156,6 +156,8 @@ public final class MantaMatcher extends DispatchServlet {
     myShepherd.beginDBTransaction();
     try {
       // Load results file.
+      System.out.println("...about to loadFile: "+mmaResults.getAbsolutePath());
+      if(mmaResults.exists())System.out.println("...better yet, it exists!");
       String text = new String(FileUtilities.loadFile(mmaResults));
       // Parse results.
       System.out.println("...about to parseMatchResults!");

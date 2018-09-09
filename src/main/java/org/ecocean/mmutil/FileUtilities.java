@@ -47,12 +47,15 @@ public class FileUtilities {
    * @return A byte array containing the contents of the specified {@code File}.
    */
   public static byte[] loadFile(File f) throws IOException {
+    System.out.println("...enterFIleUtilities.loadFile");
     if (!f.exists()) {
       throw new FileNotFoundException();
     }
+    System.out.println("...about to open a stream");
     FileInputStream fis = null;
     try {
       ByteArrayOutputStream bao = new ByteArrayOutputStream();
+      
       fis = new FileInputStream(f);
       byte[] b = new byte[4096];
       int n;

@@ -67,8 +67,9 @@ public final class MMAResultsProcessor {
    */
   public static MMAResult parseMatchResults(Shepherd shepherd, String text, MediaAsset ma,File dataDir) throws IOException, ParseException {
     System.out.println("...inside parseMatchResults!!!");
-    if (!checkResultsFormat(text))
-      throw new IOException("Invalid results file format");
+    //this changed entirely from 1.26a to 1.27...rewrite if ever needed again...
+    //if (!checkResultsFormat(text))
+      //throw new IOException("Invalid results file format");
     System.out.println("...checkResultsFormat passed!");
     System.out.println("...inside parseMatchResults!!!");
     // Split results into sections.

@@ -153,7 +153,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
         try {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
           //File encDir = new File(encountersDir, enc.getEncounterNumber());
-          File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
+          //File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
           
           ma = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
           //File file=new File(enc.subdir()+File.separator+ma.getFilename());
@@ -214,7 +214,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           System.out.println("...rescan1");
           ProcessBuilder pb2 = new ProcessBuilder(procArg);
           System.out.println("...rescan2");
-          pb2.directory(encDir);
+          pb2.directory(ma.localPath().toFile().getParentFile());
           System.out.println("...rescan3");
           pb2.redirectErrorStream();
           System.out.println("...rescan4");
