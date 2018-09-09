@@ -453,6 +453,7 @@ public class GridManager {
     //if toDO doesn't have any work, start popping stuff off underway to help finish up
     else {
       iterNum=underway.size();
+      if (iterNum>maxGroupSize)iterNum=maxGroupSize;
       for (int i = 0; i < iterNum; i++) {
         //if (cont) {
           ScanWorkItem item = underway.get(i);
