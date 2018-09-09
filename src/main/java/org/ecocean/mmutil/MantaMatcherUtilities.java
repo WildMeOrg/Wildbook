@@ -65,7 +65,7 @@ public final class MantaMatcherUtilities {
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
    * @return Map of string to file for each MantaMatcher algorithm feature.
    */
-  public static Map<String, File> getMatcherFilesMap(MediaAsset ma, Encounter enc) {
+  public static Map<String, File> getMatcherFilesMap(MediaAsset ma) {
     if (ma == null)
       throw new NullPointerException("Invalid media asset specified: null");
     //String maURL=enc.subdir()+File.separator+ma.getFilename();
@@ -197,7 +197,7 @@ public final class MantaMatcherUtilities {
    */
   public static void removeMatcherFiles(String context, MediaAsset ma, Encounter enc) throws IOException {
     removeAlgorithmMatchResults(context, ma,enc);
-    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
+    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma);
     mmFiles.get("CR").delete();
     mmFiles.get("EH").delete();
     mmFiles.get("FT").delete();
@@ -289,7 +289,7 @@ public final class MantaMatcherUtilities {
    * @param spv SinglePhotoVideo for which to remove algorithm match results
    */
   public static void removeAlgorithmMatchResults(String context, MediaAsset ma, Encounter enc) {
-    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma, enc);
+    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma);
     File f = mmFiles.get("MMA-SCAN-DATA");
     if (f.exists())
       f.delete();
@@ -301,11 +301,11 @@ public final class MantaMatcherUtilities {
    * @param spv SinglePhotoVideo instance for which to retrieve scans
    * @return ID of scan (currently based on millisecond date/time)
    */
-  public static MantaMatcherScan findMantaMatcherScan(String context, MediaAsset ma, Encounter enc, String id) throws IOException {
+  public static MantaMatcherScan findMantaMatcherScan(String context, MediaAsset ma, String id) throws IOException {
     Objects.requireNonNull(context);
     Objects.requireNonNull(ma);
     Objects.requireNonNull(id);
-    for (MantaMatcherScan scan : loadMantaMatcherScans(context, ma, enc)) {
+    for (MantaMatcherScan scan : loadMantaMatcherScans(context, ma)) {
       if (id.equals(scan.getId()))
         return scan;
     }
@@ -318,8 +318,8 @@ public final class MantaMatcherUtilities {
    * @param spv SinglePhotoVideo instance for which to retrieve scans
    * @return set of MantaMatcherScan instances
    */
-  public static Set<MantaMatcherScan> loadMantaMatcherScans(String context, MediaAsset ma, Encounter enc) throws IOException {
-    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
+  public static Set<MantaMatcherScan> loadMantaMatcherScans(String context, MediaAsset ma) throws IOException {
+    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma);
     File f = mmFiles.get("MMA-SCAN-DATA");
     if (!f.exists()){
       System.out.println("...I can't find MMA-SCAN-DATA in loadMantaMatcherScans");
@@ -362,7 +362,7 @@ public final class MantaMatcherUtilities {
     }
     System.out.println("...saveScan4");
     // Save scan data to file (or delete file if none to save).
-    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
+    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma);
     System.out.println("...saveScan5");
     File f = mmFiles.get("MMA-SCAN-DATA");
     System.out.println("...saveScan6");

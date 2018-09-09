@@ -65,7 +65,7 @@ public final class MMAResultsProcessor {
    * @throws IOException if thrown during parsing
    * @throws ParseException if thrown during parsing
    */
-  public static MMAResult parseMatchResults(Shepherd shepherd, String text, MediaAsset ma, Encounter enc,File dataDir) throws IOException, ParseException {
+  public static MMAResult parseMatchResults(Shepherd shepherd, String text, MediaAsset ma,File dataDir) throws IOException, ParseException {
     if (!checkResultsFormat(text))
       throw new IOException("Invalid results file format");
     // Split results into sections.
@@ -75,9 +75,10 @@ public final class MMAResultsProcessor {
     String[] sections = text.split("={10,}");
 
     MMAResult result = new MMAResult();
-    File file=new File(enc.subdir()+File.separator+ma.getFilename());
+    //File file=new File(enc.subdir()+File.separator+ma.getFilename());
+    File file=ma.localPath().toFile();
     result.dirTest = file.getParentFile();
-    result.testEncounterNumber = enc.getCatalogNumber();
+    result.testEncounterNumber = result.dirTest.getName();
     for (int i = 0; i < sections.length; i++) {
       if (i == 0)
         parseMatchResultsHeader(shepherd, result, sections[i].trim());

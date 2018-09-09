@@ -171,7 +171,7 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
         if (list.contains(mySPV))
           continue;
         if (MediaUtilities.isAcceptableImageFile(mySPV.localPath().toFile())) {
-          Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(mySPV,enc);
+          Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(mySPV);
           hasCR = hasCR | mmaFiles.get("CR").exists();
           if (hasCR)
             break;

@@ -93,7 +93,7 @@ public final class MantaMatcher extends DispatchServlet {
     getServletContext().getRequestDispatcher(JSP_ERROR).forward(req, res);
   }
 
-  public void displayResults(HttpServletRequest req, HttpServletResponse res, Encounter enc) throws ServletException, IOException {
+  public void displayResults(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
     myShepherd.setAction("MantaMatcher.displayResults");
     myShepherd.beginDBTransaction();
@@ -120,8 +120,8 @@ public final class MantaMatcher extends DispatchServlet {
         throw new IllegalArgumentException("Invalid MediaAsset specified: " + num);
       }
 
-      MantaMatcherScan scan = MantaMatcherUtilities.findMantaMatcherScan(context,ma,enc , id);
-      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, scan.getScanOutputTXT(), ma, enc);
+      MantaMatcherScan scan = MantaMatcherUtilities.findMantaMatcherScan(context,ma , id);
+      MMAResultsProcessor.MMAResult mmaResults = parseResults(req, scan.getScanOutputTXT(), ma);
       req.setAttribute(REQUEST_KEY_SCAN, scan);
       req.setAttribute(REQUEST_KEY_RESULTS, mmaResults);
       getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
@@ -135,7 +135,7 @@ public final class MantaMatcher extends DispatchServlet {
     }
   }
 
-  private MMAResultsProcessor.MMAResult parseResults(HttpServletRequest req, File mmaResults, MediaAsset ma, Encounter enc)
+  private MMAResultsProcessor.MMAResult parseResults(HttpServletRequest req, File mmaResults, MediaAsset ma)
           throws IOException, ParseException {
     assert ma != null;
     assert mmaResults != null;
@@ -153,7 +153,7 @@ public final class MantaMatcher extends DispatchServlet {
       // Load results file.
       String text = new String(FileUtilities.loadFile(mmaResults));
       // Parse results.
-      return MMAResultsProcessor.parseMatchResults(myShepherd, text, ma, enc, dataDir);
+      return MMAResultsProcessor.parseMatchResults(myShepherd, text, ma, dataDir);
     } finally {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
@@ -266,7 +266,7 @@ public final class MantaMatcher extends DispatchServlet {
           if (!MediaUtilities.isAcceptableImageFile(file)) {
             continue;
           }
-          Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
+          Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma);
           File cr = mmFiles.get("CR");
           if (cr.exists()) {
             for (File f : mmFiles.values())
