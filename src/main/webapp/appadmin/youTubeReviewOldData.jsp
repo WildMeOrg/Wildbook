@@ -89,6 +89,8 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 	//the return string of HTML content
 	String resultsHTML="";
 	
+
+	String suDirPath=request.getSession().getServletContext().getRealPath("/");
 	
 	/*
 	//weka predictor preparation answering the question: does this video description suggest a real world whale shark sighting?
@@ -334,7 +336,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 			//get video date with SUTime
 			String newDetectedDate="";
 			try{
-				newDetectedDate=SUTime.parseDateStringForBestDate(request.getSession().getServletContext().getRealPath("/"), sb.toString(), relativeDate).replaceAll("null","");
+				newDetectedDate=SUTime.parseDateStringForBestDate(suDirPath, sb.toString(), relativeDate).replaceAll("null","");
 			}
 			catch(Exception e){
 				e.printStackTrace();
