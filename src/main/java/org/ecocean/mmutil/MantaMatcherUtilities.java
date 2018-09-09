@@ -70,6 +70,7 @@ public final class MantaMatcherUtilities {
       throw new NullPointerException("Invalid media asset specified: null");
     //String maURL=enc.subdir()+File.separator+ma.getFilename();
     File file=ma.localPath().toFile();
+    System.out.println("...Trying to load matcher files from: "+ma.localPath().toFile().getAbsolutePath());
     Map<String, File> map = getMatcherFilesMap(file);
     map.put("MMA-SCAN-DATA", new File(file.getParentFile(), String.format("%s_mmaScanData.dat", ma.getId())));
     return map;
@@ -320,8 +321,10 @@ public final class MantaMatcherUtilities {
   public static Set<MantaMatcherScan> loadMantaMatcherScans(String context, MediaAsset ma, Encounter enc) throws IOException {
     Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
     File f = mmFiles.get("MMA-SCAN-DATA");
-    if (!f.exists())
+    if (!f.exists()){
+      System.out.println("...I can't find MMA-SCAN-DATA in loadMantaMatcherScans");
       return new TreeSet<>();
+    }
     try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(f)))) {
       Set<MantaMatcherScan> scans = (Set<MantaMatcherScan>)in.readObject();
       return scans;
@@ -352,12 +355,14 @@ public final class MantaMatcherUtilities {
     System.out.println("...saveScan3");
     // Verify that all scans belong to this SPV.
     for (MantaMatcherScan scan : scans) {
-      if (!scan.getDataCollectionEventId().equals(ma.getId()))
+      System.out.println("scan.getDataCollectionEventId(): "+scan.getDataCollectionEventId());
+      System.out.println("ma.getId(): "+ma.getId());
+      if (!scan.getDataCollectionEventId().trim().equals((new Integer(ma.getId())).toString()))
         throw new IllegalArgumentException("Not all scans specified are for this SinglePhotoVideo");
     }
     System.out.println("...saveScan4");
     // Save scan data to file (or delete file if none to save).
-    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma.localPath().toFile());
+    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ma,enc);
     System.out.println("...saveScan5");
     File f = mmFiles.get("MMA-SCAN-DATA");
     System.out.println("...saveScan6");

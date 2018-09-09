@@ -154,7 +154,7 @@
 				
 				/BatchUpload/** = authc, roles[RegionalManager]
 				/appadmin/batch* = authc, roles[RegionalManager]
-				/MantaMatcher = authc, roles[admin]
+				/MantaMatcher = authc, roles[identifier]
 				/EncounterSetSubmitterID = authc, roles[manager]
 				 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
@@ -497,6 +497,19 @@
     <servlet-class>org.ecocean.servlet.EncounterSetAsUnidentifiable</servlet-class>
   </servlet>
 -->
+
+    <servlet>
+    <servlet-name>MantaMatcher</servlet-name>
+    <servlet-class>org.ecocean.servlet.MantaMatcher</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+    <servlet-name>MantaMatcher</servlet-name>
+    <url-pattern>/MantaMatcher/*</url-pattern>
+  </servlet-mapping>
+
+  
+  
   
   <servlet>
     <servlet-name>DontTrack</servlet-name>

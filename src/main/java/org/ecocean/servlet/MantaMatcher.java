@@ -28,7 +28,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.ecocean.*;
+import org.ecocean.Shepherd;
+import org.ecocean.Encounter;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.mmutil.*;
 import org.slf4j.Logger;
@@ -61,6 +63,7 @@ public final class MantaMatcher extends DispatchServlet {
     super.init();
     try {
       registerMethodGET("displayResults");
+      //registerMethodPOST("displayResults");
       registerMethodPOST("resetMmaCompatible", "deleteAllOrphanMatcherFiles");
     }
     catch (DelegateNotFoundException ex) {
@@ -92,6 +95,7 @@ public final class MantaMatcher extends DispatchServlet {
 
   public void displayResults(HttpServletRequest req, HttpServletResponse res, Encounter enc) throws ServletException, IOException {
     Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    myShepherd.setAction("MantaMatcher.displayResults");
     myShepherd.beginDBTransaction();
     try {
       // Parse SPV for which to get MantaMatcher algorithm results.
@@ -109,8 +113,8 @@ public final class MantaMatcher extends DispatchServlet {
       context=ServletUtilities.getContext(req);
       
       
-      myShepherd.beginDBTransaction();
-      myShepherd.setAction("MantaMatcher.java");
+      //myShepherd.beginDBTransaction();
+      //myShepherd.setAction("MantaMatcher.java");
       MediaAsset ma = myShepherd.getMediaAsset(num);
       if (ma == null) {
         throw new IllegalArgumentException("Invalid MediaAsset specified: " + num);
