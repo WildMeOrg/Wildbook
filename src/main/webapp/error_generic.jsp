@@ -30,61 +30,31 @@
   Properties props = ShepherdProperties.getProperties("error.properties", langCode,context);
 %>
 
-<html>
-
-<!-- Standard Content -->
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-  <style>
-    #main pre {
-      background: #CCC;
-      font-size: 0.75em;
-    }
-  </style>
-</head>
-
-<!-- Body -->
-
-<body bgcolor="#FFFFFF" link="#990000">
-<div id="wrapper">
 
   <div id="page">
     <jsp:include page="header.jsp" flush="true">
       <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
 
-    <div id="main">
-
-      <div id="maincol-wide">
-
-        <div id="maintext">
+<div class="container maincontent">
 
 
           <h1 class="intro"><%=props.getProperty("title")%></h1>
 
-          <p><%=props.getProperty("error.prefix")%></p>
+          <p><%=props.getProperty("error.prefix") %></p>
 
           <c:set var="exception" value="${requestScope['javax.servlet.error.exception']}"/>
-          <pre><% exception.printStackTrace(new java.io.PrintWriter(out)); %></pre>
+          <pre><%
+				
+          		exception.printStackTrace(new java.io.PrintWriter(out)); 
+				
+				%>
+		</pre>
 
 
-        <!-- end maintext --></div>
+
 
       <!-- end maincol --></div>
 
       <jsp:include page="footer.jsp" flush="true"/>
 
-    <!-- end main --></div>
-  <!-- end page --></div>
-<!--end wrapper -->
-</body>
-
-
-</html>

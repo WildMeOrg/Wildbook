@@ -537,6 +537,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
       myShepherd.beginDBTransaction();
       System.out.println("    I see encounterNumber as: "+encounterNumber);
       if ((myShepherd.isEncounter(encounterNumber))&&!locked) {
+        System.out.println("...This is a valid encounter number!");
         Encounter add2shark = myShepherd.getEncounter(encounterNumber);
         try {
           String user = "Unknown User";
@@ -577,9 +578,12 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
           }
           else if (action.equals("rescan")) {
+            System.out.println("...building resultsURL...");
             String paramSPV = String.format("%s=%s", MantaMatcher.PARAM_KEY_SPV, URLEncoder.encode(new Integer(ma.getId()).toString()));
             String paramScanId = String.format("%s=%s", MantaMatcher.PARAM_KEY_SCANID, URLEncoder.encode(scan.getId()));
             String resultsURL = String.format("%s/MantaMatcher/displayResults?%s&%s", request.getContextPath(), paramSPV, paramScanId);
+            System.out.println("...successfully trying to redirect user to: "+resultsURL);
+            
             response.sendRedirect(resultsURL);
           }
           else if (action.equals("removeScan")) {

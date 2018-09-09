@@ -94,6 +94,7 @@ public final class MantaMatcher extends DispatchServlet {
   }
 
   public void displayResults(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    System.out.println("...Welcome to displayResults!");
     Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
     myShepherd.setAction("MantaMatcher.displayResults");
     myShepherd.beginDBTransaction();
@@ -103,11 +104,13 @@ public final class MantaMatcher extends DispatchServlet {
       if (num == null || "".equals(num.trim())) {
         throw new IllegalArgumentException("Invalid MediaAsset specified");
       }
+      System.out.println("...Num is fine!");
       // Parse unique results ID.
       String id = req.getParameter(PARAM_KEY_SCANID);
       if (id == null || "".equals(id.trim())) {
         throw new IllegalArgumentException("Invalid results ID specified");
       }
+      System.out.println("...ID is fine!");
 
       String context="context0";
       context=ServletUtilities.getContext(req);
@@ -119,6 +122,7 @@ public final class MantaMatcher extends DispatchServlet {
       if (ma == null) {
         throw new IllegalArgumentException("Invalid MediaAsset specified: " + num);
       }
+      System.out.println("...MediaAsset is fine!");
 
       MantaMatcherScan scan = MantaMatcherUtilities.findMantaMatcherScan(context,ma , id);
       MMAResultsProcessor.MMAResult mmaResults = parseResults(req, scan.getScanOutputTXT(), ma);
@@ -139,13 +143,14 @@ public final class MantaMatcher extends DispatchServlet {
           throws IOException, ParseException {
     assert ma != null;
     assert mmaResults != null;
-    
+    System.out.println("...welcome to parseResults!");
     String context="context0";
     context=ServletUtilities.getContext(req);
 
     // Derive data folder info.
     String rootDir = getServletContext().getRealPath("/");
     File dataDir = new File(ServletUtilities.dataDir(context, rootDir));
+    System.out.println("...I think my dataDIr is at: "+ServletUtilities.dataDir(context, rootDir));
     // Parse MantaMatcher results files ready for display.
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
@@ -153,6 +158,7 @@ public final class MantaMatcher extends DispatchServlet {
       // Load results file.
       String text = new String(FileUtilities.loadFile(mmaResults));
       // Parse results.
+      System.out.println("...about to parseMatchResults!");
       return MMAResultsProcessor.parseMatchResults(myShepherd, text, ma, dataDir);
     } finally {
       myShepherd.rollbackDBTransaction();

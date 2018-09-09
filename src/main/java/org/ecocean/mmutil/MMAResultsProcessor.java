@@ -66,8 +66,11 @@ public final class MMAResultsProcessor {
    * @throws ParseException if thrown during parsing
    */
   public static MMAResult parseMatchResults(Shepherd shepherd, String text, MediaAsset ma,File dataDir) throws IOException, ParseException {
+    System.out.println("...inside parseMatchResults!!!");
     if (!checkResultsFormat(text))
       throw new IOException("Invalid results file format");
+    System.out.println("...checkResultsFormat passed!");
+    System.out.println("...inside parseMatchResults!!!");
     // Split results into sections.
     // Section 0: header, reference set, test set, match specification
     // Section n: result n

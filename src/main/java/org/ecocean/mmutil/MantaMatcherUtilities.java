@@ -109,8 +109,10 @@ public final class MantaMatcherUtilities {
       throw new NullPointerException("Invalid file specified: null");
     String name = f.getName();
     String regFormat = MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES;
-    if (!name.matches("^.+\\." + regFormat))
+    if (!name.matches("^.+\\." + regFormat)){
+      System.out.println("...Hey, that's not a valid file format!");
       throw new IllegalArgumentException("Invalid file type specified: " + f.getName());
+    }  
     String regex = "\\." + regFormat;
     File pf = f.getParentFile();
 
@@ -135,6 +137,7 @@ public final class MantaMatcherUtilities {
     map.put("EH", eh);
     map.put("FT", ft);
     map.put("FEAT", feat);
+    System.out.println("...returning matcher filesmap of size: "+map.size());
     return map;
   }
 

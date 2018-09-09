@@ -164,7 +164,7 @@ try {
         continue;
       Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(file);
       File mmFT = mmFiles.get("FT");
-      Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, ma,enc);
+      Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, ma);
 %>
     <div class="subSection featureRegion">
       <p class="subSectionTitle featureRegionTitle"><%= MessageFormat.format(encprops.getProperty("mma.featureImage"), t + 1) %></p>
