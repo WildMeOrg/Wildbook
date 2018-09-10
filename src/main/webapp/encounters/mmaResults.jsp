@@ -120,7 +120,7 @@
 %>
 
 <div id="mma-queryImage">
-  <a href="<% out.print(encUrl); %>" target="_blank"><img src="<% out.print(linkEH); %>" class="mma-queryImg"/></a>
+  <a href="<% out.print(encUrl); %>" target="_blank"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "").replaceAll("/encounters","")); %>" class="mma-queryImg"/></a>
   <p><% out.print(name); %></p>
 </div>
 
@@ -214,8 +214,8 @@
 <%      } %>
         </table>
       </td>
-      <td class="matchedImage"><a href="<% out.print(match_encUrl); %>" target="_blank"><img src="<% out.print(match_linkEH); %>" class="mma-matchImg"/></a></td>
-      <td class="queryImage"><a href="<% out.print(encUrl); %>"><img src="<% out.print(linkEH); %>" class="mma-queryImg"/></a></td>
+      <td class="matchedImage"><a href="<% out.print(match_encUrl); %>" target="_blank"><img src="<% out.print(match_linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-matchImg"/></a></td>
+      <td class="queryImage"><a href="<% out.print(encUrl); %>"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "").replaceAll("/encounters","")); %>" class="mma-queryImg"/></a></td>
     </tr>
 <%
     }
