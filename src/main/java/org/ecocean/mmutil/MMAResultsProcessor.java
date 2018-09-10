@@ -38,6 +38,8 @@ public final class MMAResultsProcessor {
    * @param text text of results file
    * @return true if text conforms, false otherwise
    */
+  
+  /*
   private static boolean checkResultsFormat(String text) {
     // Perform quick checks for valid results format.
     final String[] CHECKS = {
@@ -54,6 +56,7 @@ public final class MMAResultsProcessor {
     }
     return true;
   }
+  */
 
   /**
    * Parses the MMA results from the results text.
@@ -152,7 +155,8 @@ public final class MMAResultsProcessor {
             res.matchEncounterNumber = mr.group(2);
             try {
               // Obtain encounter dir for matched image.
-              File dir = new File(Encounter.dir(dataDir, res.matchEncounterNumber));
+              //File dir = new File(Encounter.dir(dataDir, res.matchEncounterNumber));
+              File dir = new File(res.bestMatchPath).getParentFile();
               // Find matched image file (base image, not CR).
               res.fileRef = findReferenceFile(dir, res.bestMatch, res.bestMatchPath);
               // Fill details from encounter object.

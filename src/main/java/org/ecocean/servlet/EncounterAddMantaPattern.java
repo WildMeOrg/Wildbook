@@ -23,6 +23,7 @@ import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
+
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.ActionResult_Encounter;
@@ -34,6 +35,7 @@ import org.ecocean.mmutil.MantaMatcherScan;
 import org.ecocean.mmutil.MantaMatcherUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
@@ -44,6 +46,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.DatatypeConverter;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -93,7 +96,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
     //setup data dir
     File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext(), context);
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
-    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}
     
     //set up for response
@@ -179,7 +182,9 @@ public class EncounterAddMantaPattern extends HttpServlet {
           }
 
           // Prepare temporary algorithm input file.
-          String inputText = MantaMatcherUtilities.collateAlgorithmInput(myShepherd, encountersDir, enc, ma, locationIDs);
+          String rootDir = getServletContext().getRealPath("/");
+          String dataDir=ServletUtilities.dataDir(context, rootDir);
+          String inputText = MantaMatcherUtilities.collateAlgorithmInput(myShepherd, enc, ma, locationIDs, dataDir);
           File scanInput=scan.getScanInput();
           System.out.println("EncounterAddMantaPattern.scanInput file is: "+scanInput.getAbsolutePath());
           System.out.println("...and I am trying to write the following:\n: "+inputText);

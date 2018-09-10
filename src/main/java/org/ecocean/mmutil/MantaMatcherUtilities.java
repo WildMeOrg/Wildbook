@@ -26,6 +26,7 @@ import org.ecocean.mmutil.MantaMatcherScan;
 
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.MantaMatcher;
+import org.ecocean.servlet.ServletUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -219,13 +220,13 @@ public final class MantaMatcherUtilities {
    * @return text suitable for MantaMatcher algorithm input file
    */
   @SuppressWarnings("unchecked")
-  public static String collateAlgorithmInput(Shepherd shep, File encDir, Encounter enc, MediaAsset ma, Collection<String> locationIDs) {
+  public static String collateAlgorithmInput(Shepherd shep, Encounter enc, MediaAsset ma, Collection<String> locationIDs, String dataDir) {
     // Validate input.
     Objects.requireNonNull(locationIDs);
     if (enc.getLocationID() == null)
       throw new IllegalArgumentException("Invalid location ID specified");
-    if (encDir == null || !encDir.isDirectory())
-      throw new IllegalArgumentException("Invalid encounter directory specified");
+    //if (encDir == null || !encDir.isDirectory())
+      //throw new IllegalArgumentException("Invalid encounter directory specified");
     if (enc == null || ma == null)
       throw new IllegalArgumentException("Invalid encounter/SPV specified");
 
@@ -271,9 +272,13 @@ public final class MantaMatcherUtilities {
 //    sb.append(spv.getFile().getParent()).append("\n\n");
     File file=ma.localPath().toFile();
     sb.append(file.getAbsolutePath()).append("\n\n");
+    
     for (Encounter x : list) {
-      if (!enc.getEncounterNumber().equals(x.getEncounterNumber()))
-        sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.subdir()).append("\n");
+      if (!enc.getEncounterNumber().equals(x.getEncounterNumber())){
+        //sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.subdir()).append("\n");
+        sb.append(x.dir(dataDir)).append("\n");
+        sb.append(x.dir(dataDir).replaceAll("/encounters", "")).append("\n");
+      }
     }
 
     // Clean resources.

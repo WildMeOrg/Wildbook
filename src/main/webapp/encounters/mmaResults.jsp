@@ -82,8 +82,8 @@
 //  String rootDir = getServletContext().getRealPath("/");
 //  File dataDir = new File(ServletUtilities.dataDir(context, rootDir));
   // URL prefix of the encounters folder (for image links).
-  String dir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/encounters";
-  String dataDirUrlPrefix = CommonConfiguration.getServerURL(request, dir);
+  //String dir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/encounters";
+  //String dataDirUrlPrefix = CommonConfiguration.getServerURL(request, dir);
   // Format string for encounter page URL (with placeholder).
   String pageUrlFormatEnc = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=%s";
   String pageUrlFormatInd = "//" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=%s";
@@ -113,14 +113,15 @@
     Encounter enc = shepherd.getEncounter(encId);
     String nameCR = fCR.getName();
     String name = nameCR.substring(0, nameCR.indexOf("_CR"));
-    String linkCR = convertFileToURL(dataDirUrlPrefix, fCR);
+    //String linkCR = convertFileToURL(dataDirUrlPrefix, fCR);
+    String linkCR = pathCR.replaceAll("/var/lib/tomcat8/webapps/","https://www.mantamatcher.org/");
     String linkEH = linkCR.replace("_CR", "_EH");
     String encUrl = String.format(pageUrlFormatEnc, encId);
     boolean encIsAssigned = (enc.getIndividualID() != null && !"Unassigned".equals(enc.getIndividualID()));
 %>
 
 <div id="mma-queryImage">
-  <a href="<% out.print(encUrl); %>" target="_blank"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "").replaceAll("/encounters","")); %>" class="mma-queryImg"/></a>
+  <a href="<% out.print(encUrl); %>" target="_blank"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-queryImg"/></a>
   <p><% out.print(name); %></p>
 </div>
 
@@ -182,7 +183,8 @@
       Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(match.getFileRef());
       File match_fCR = mmMap.get("CR");
       String match_encId = match_fCR.getParentFile().getName();
-      String match_linkCR = convertFileToURL(dataDirUrlPrefix, match_fCR);
+      //String match_linkCR = convertFileToURL(dataDirUrlPrefix, match_fCR);
+      String match_linkCR = match_fCR.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/","https://www.mantamatcher.org/");
       String match_linkEH = match_linkCR.replace("_CR.", "_EH.");
       String match_encUrl = String.format(pageUrlFormatEnc, match_encId);
 %>
@@ -215,7 +217,7 @@
         </table>
       </td>
       <td class="matchedImage"><a href="<% out.print(match_encUrl); %>" target="_blank"><img src="<% out.print(match_linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-matchImg"/></a></td>
-      <td class="queryImage"><a href="<% out.print(encUrl); %>"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "").replaceAll("/encounters","")); %>" class="mma-queryImg"/></a></td>
+      <td class="queryImage"><a href="<% out.print(encUrl); %>"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-queryImg"/></a></td>
     </tr>
 <%
     }
