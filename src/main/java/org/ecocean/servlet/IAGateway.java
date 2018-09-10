@@ -504,11 +504,11 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     String baseUrl = null;
     try {
         String containerName = IA.getProperty("context0", "containerName");
-        baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+        baseUrl = request.getServerName().toString();
         if (containerName!=null&&containerName!="") { 
             baseUrl = baseUrl.replace("localhost", containerName);
         }
-        System.out.println("BaseURL? "+baseUrl);
+        System.out.println("=============================> BaseURL? "+baseUrl);
     } catch (Exception e) {
         e.printStackTrace();
     }
