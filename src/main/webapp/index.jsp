@@ -297,7 +297,8 @@ int numEncounters=0;
 int numNests=0;
 
 int numDataContributors=0;
-
+int numUsersWithRoles=0;
+//Shepherd myShepherd=new Shepherd(context);
 myShepherd.beginDBTransaction();
 
 //String url = "login.jsp";
@@ -312,6 +313,8 @@ try{
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
     numNests=myShepherd.getNumNests();
+    numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
+    numUsersWithRoles = myShepherd.getNumUsers()-numDataContributors;
 
 
 }
