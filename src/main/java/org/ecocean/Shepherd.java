@@ -849,10 +849,38 @@ public class Shepherd {
     return rolesFound;
   }
 
+  
+  
   public User getUser(String username) {
     User user= null;
+    String filter="SELECT FROM org.ecocean.User WHERE username == \""+username.trim()+"\"";   
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      user=(User)it.next();
+    }
+    query.closeAll();
+    return user;
+  }
+  
+  
+  public List<User> getUsersWithUsername() {
+    List<User> users=null;
+    String filter="SELECT FROM org.ecocean.User WHERE username != null";   
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    users=new ArrayList<User>(c);
+    query.closeAll();
+    return users;
+  }
+  
+
+  
+  public User getUserByUUID(String uuid) {
+    User user= null;
     try {
-      user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, username.trim()), true)));
+      user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, uuid.trim()), true)));
     }
     catch (Exception nsoe) {
       return null;
@@ -860,6 +888,9 @@ public class Shepherd {
     return user;
   }
 
+  
+  
+  
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
     String filter = "this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
@@ -2219,7 +2250,40 @@ public class Shepherd {
 
 
   public User getUserByEmailAddress(String email){
+    ArrayList<User> users=new ArrayList<User>();
     String filter="SELECT FROM org.ecocean.User WHERE emailAddress == \""+email+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){users=new ArrayList<User>(c);}
+    query.closeAll();
+    if(users.size()>0){return users.get(0);}
+    return null;
+  }
+  
+  public User getUserByHashedEmailAddress(String hashedEmail){
+    ArrayList<User> users=new ArrayList<User>();
+    String filter="SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \""+hashedEmail+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){users=new ArrayList<User>(c);}
+    query.closeAll();
+    if(users.size()>0){return users.get(0);}
+    return null;
+  }
+  
+  
+  public List<User> getUsersWithEmailAddresses(){
+    ArrayList<User> users=new ArrayList<User>();
+    String filter="SELECT FROM org.ecocean.User WHERE emailAddress != null";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null)users=new ArrayList<User>(c);
+    query.closeAll();
+    return users;
+  }
+  
+  public User getUserByAffiliation(String affil){
+    String filter="SELECT FROM org.ecocean.User WHERE affiliation == \""+affil+"\"";
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     Iterator it = c.iterator();
@@ -2232,6 +2296,8 @@ public class Shepherd {
     query.closeAll();
     return null;
   }
+  
+  
 
   public User getUserBySocialId(String service, String id) {
         if ((id == null) || (service == null)) return null;
@@ -3380,12 +3446,18 @@ public class Shepherd {
   }
 
   public List<User> getAllUsers() {
+    return getAllUsers("username ascending NULLS LAST");
+  }
+  
+  public List<User> getAllUsers(String ordering) {
     Collection c;
     ArrayList<User> list = new ArrayList<User>();
-    System.out.println("Shepherd.getAllUsers() called in context "+getContext());
+    //System.out.println("Shepherd.getAllUsers() called in context "+getContext());
     Extent userClass = pm.getExtent(User.class, true);
     Query users = pm.newQuery(userClass);
-    users.setOrdering("fullName ascending");
+    if(ordering!=null) {
+      users.setOrdering(ordering);
+    }
     try {
       c = (Collection) (users.execute());
       if(c!=null){
@@ -3405,7 +3477,7 @@ public class Shepherd {
 
   public String getAllUserEmailAddressesForLocationID(String locationID, String context){
     String addresses="";
-    List<User> users = getAllUsers();
+    List<User> users = getUsersWithEmailAddresses();
     int numUsers=users.size();
     for(int i=0;i<numUsers;i++){
       User user=users.get(i);
@@ -4406,6 +4478,25 @@ public class Shepherd {
 
   public String getAction(){return action;}
 
+  public List<String> getAllEncounterNumbers(){
+      List<String> encs=null;
+      String filter="SELECT DISTINCT catalogNumber FROM org.ecocean.Encounter";  
+      Query query=getPM().newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      encs=new ArrayList<String>(c);
+      query.closeAll();
+      return encs;
+  }
+  
+  public List<String> getAllUsernamesWithRoles(){
+    List<String> usernames=null;
+    String filter="SELECT DISTINCT username FROM org.ecocean.Role";  
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    usernames=new ArrayList<String>(c);
+    query.closeAll();
+    return usernames;
+}
   public User getLoggedInUser(HttpServletRequest request) {
     if (request == null || request.getUserPrincipal() == null) return null;
     return getUser(request.getUserPrincipal().getName());

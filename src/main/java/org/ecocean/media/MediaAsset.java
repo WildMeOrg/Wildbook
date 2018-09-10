@@ -41,6 +41,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Set;
 import java.util.List;
+import java.util.Base64;
 import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -707,6 +708,7 @@ public class MediaAsset implements java.io.Serializable {
         String containerName = CommonConfiguration.getProperty("containerName","context0");
 
         URL localURL = store.getConfig().getURL("webroot"); 
+        if (localURL == null) return null;
         String hostname = localURL.getHost(); 
 
         if (containerName!=null&&containerName!="") {
@@ -1229,7 +1231,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         if (b64 == null) throw new IOException("copyInBase64() null string");
         byte[] imgBytes = new byte[100];
         try {
-            imgBytes = DatatypeConverter.parseBase64Binary(b64);
+            imgBytes = Base64.getDecoder().decode(b64);
         } catch (IllegalArgumentException ex) {
             throw new IOException("copyInBase64() could not parse: " + ex.toString());
         }
@@ -1239,6 +1241,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         FileOutputStream stream = new FileOutputStream(file);
         try {
             stream.write(imgBytes);
+        } catch (Exception e) {
+            System.out.println("Exception from Writing FileOutputStream with imgBytes");
+            e.printStackTrace();
         } finally {
             stream.close();
         }
