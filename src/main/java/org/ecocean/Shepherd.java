@@ -1361,6 +1361,16 @@ public class Shepherd {
     return c.iterator();
   }
 
+  public List<MediaAsset> getMediaAssetsFromStore(int assetStoreId) {
+    String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE this.assetStore == as && as.id == "+assetStoreId;
+    String vars = " VARIABLES org.ecocean.media.AssetStore as";
+    filter = filter+vars;
+    Query q = pm.newQuery(filter);
+    Collection results = (Collection) q.execute();
+    ArrayList<MediaAsset> al = new ArrayList(results);
+    return al;
+  }
+
   /*
   public Iterator getUnassignedEncountersIncludingUnapproved() {
     String filter = "this.individualID == null";
@@ -2527,6 +2537,26 @@ public class Shepherd {
       return null;
     }
     return tempShark;
+  }
+
+  public MarkedIndividual getMarkedIndividualHard(Encounter enc) {
+    String num = enc.getCatalogNumber();
+    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.catalogNumber == \""+num+"\"  VARIABLES org.ecocean.Encounter enc";
+    ArrayList al = new ArrayList();
+    try {
+      Extent indClass = pm.getExtent(MarkedIndividual.class, true);
+      Query acceptedInds = pm.newQuery(indClass, filter);
+      Collection c = (Collection) (acceptedInds.execute());
+      al = new ArrayList(c);
+      try {
+        acceptedInds.closeAll();
+      } catch (NullPointerException npe) {}
+    }
+    catch(Exception e){
+      System.out.println("Exception in getMarkedIndividualHard for enc "+num);
+      e.printStackTrace();
+    }
+    return ((al.size()>0) ? ((MarkedIndividual) al.get(0)) : null);
   }
 
   public MarkedIndividual getMarkedIndividualQuiet(String name) {
