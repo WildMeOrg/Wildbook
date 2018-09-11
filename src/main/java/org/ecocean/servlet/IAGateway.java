@@ -520,7 +520,8 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         e.printStackTrace();
     }
 
-    if (j.optBoolean("enqueue", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
+    //v2 "forces" queueing -- onward to the glorious future!
+    if (j.optBoolean("enqueue", false) || j.optBoolean("v2", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
         //TODO if queue is not active/okay, fallback to synchronous???
         //TODO could probably add other stuff (e.g. security/user etc)
         j.put("__context", context);
@@ -533,10 +534,8 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         } else {
             j.put("taskId", taskId);
         }
-System.out.println("A-LOAD");
         Task task = Task.load(taskId, myShepherd);
         if (task == null) task = new Task(taskId);
-System.out.println("A-LOADED");
         myShepherd.getPM().makePersistent(task);
         myShepherd.commitDBTransaction();  //hack
         //myShepherd.closeDBTransaction();
