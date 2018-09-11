@@ -171,7 +171,7 @@ try {
 
       <%--Start: featureRegionImage--%>
       <div class="subSubSection featureRegionImage">
-        <p><img src="/<%=shepherdDataDir.getName() %>/<%=Encounter.subdir(enc.getCatalogNumber()) %>/<%=URLEncoder.encode(mmFT.getName(), "UTF-8")%>"/></p>
+        <p><img src="<%=mmFT.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/","https://www.mantamatcher.org/") %>"/></p>
         <div class="formRemoveCR">
           <form action="../EncounterAddMantaPattern" method="post" name="EncounterRemoveMantaPattern">
             <input name="action" type="hidden" value="imageremove" id="actionRemove-remove"/>
