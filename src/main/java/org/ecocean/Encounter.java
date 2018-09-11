@@ -40,7 +40,9 @@ import java.util.GregorianCalendar;
 import java.lang.Math;
 import java.io.*;
 import java.lang.reflect.Field;
+
 import javax.jdo.Query;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,13 +53,14 @@ import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
-import org.ecocean.servlet.ServletUtilities;
+//import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
 import org.ecocean.Survey;
 
 import javax.servlet.http.HttpServletRequest;
+
 
 
 
@@ -70,6 +73,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 
 import javax.servlet.http.HttpServletRequest;
+
 
 //note these are different.  so be explicit if you need the org.json.JSONObject flavor
 //import org.json.JSONObject;
@@ -174,6 +178,10 @@ public class Encounter implements java.io.Serializable {
 
   // for searchability
   private String imageNames;
+  
+  
+  private List<User> submitters;
+  private List<User> photographers;
 
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
@@ -359,14 +367,14 @@ public class Encounter implements java.io.Serializable {
    *
    * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
    */
-  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
+  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location) {
     if (images != null) System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
     this.verbatimLocality = location;
-    this.recordedBy = submitterName;
-    this.submitterEmail = submitterEmail;
+    //this.recordedBy = submitterName;
+    //this.submitterEmail = submitterEmail;
 
     //now we need to set the hashed form of the email addresses
-    this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
+    //this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
 
     this.images = images;
     this.day = day;
@@ -827,7 +835,12 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setSubmitterName(String newname) {
-    recordedBy = newname;
+    if(newname==null) {
+      recordedBy=null;
+    }
+    else {
+      recordedBy = newname;
+    }
   }
 
   /**
@@ -840,8 +853,14 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setSubmitterEmail(String newemail) {
-    submitterEmail = newemail;
-    this.hashedSubmitterEmail = Encounter.getHashOfEmailString(newemail);
+    if(newemail==null) {
+      submitterEmail = null;
+      this.hashedSubmitterEmail = null;
+    }
+    else {
+      submitterEmail = newemail;
+      this.hashedSubmitterEmail = Encounter.getHashOfEmailString(newemail);
+    }
   }
 
   /**
@@ -857,7 +876,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the phone number of the person who submitted this encounter data.
    */
   public void setSubmitterPhone(String newphone) {
-    submitterPhone = newphone;
+    if(newphone==null) {
+      submitterPhone=null;
+    }
+    else{
+      submitterPhone = newphone;
+    }
   }
 
   /**
@@ -873,7 +897,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the mailing address of the person who submitted this encounter data.
    */
   public void setSubmitterAddress(String address) {
-    submitterAddress = address;
+    if(address==null) {
+      submitterAddress=null;
+    }
+    else {
+      submitterAddress = address;
+    }
   }
 
   /**
@@ -889,7 +918,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the name of the person who took the primaryImage this encounter.
    */
   public void setPhotographerName(String name) {
-    photographerName = name;
+    if(name==null) {
+      photographerName=null;
+    }
+    else {
+      photographerName = name;
+    }
   }
 
   /**
@@ -905,8 +939,14 @@ public class Encounter implements java.io.Serializable {
    * Sets the e-mail address of the person who took the primaryImage this encounter.
    */
   public void setPhotographerEmail(String email) {
-    photographerEmail = email;
-    this.hashedPhotographerEmail = Encounter.getHashOfEmailString(email);
+    if(email==null) {
+      photographerEmail = null;
+      this.hashedPhotographerEmail = null;
+    }
+    else {
+      photographerEmail = email;
+      this.hashedPhotographerEmail = Encounter.getHashOfEmailString(email);
+    }
   }
 
   /**
@@ -932,7 +972,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the phone number of the person who took the primaryImage this encounter.
    */
   public void setPhotographerPhone(String phone) {
-    photographerPhone = phone;
+    if(phone==null) {
+      photographerPhone=null;
+    }
+    else {
+      photographerPhone = phone;
+    }
   }
 
   /**
@@ -948,7 +993,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the mailing address of the person who took the primaryImage this encounter.
    */
   public void setPhotographerAddress(String address) {
-    photographerAddress = address;
+    if(address==null) {
+      photographerAddress=null;
+    }
+    else {
+      photographerAddress = address;
+    }
   }
 
   /**
@@ -1203,6 +1253,10 @@ public class Encounter implements java.io.Serializable {
   public void setYear(int year) {
     this.year=year;
     resetDateInMilliseconds();
+  }
+  // this does not reset year/month/etc
+  public void setDateInMillisOnly(long ms) {
+      this.dateInMilliseconds = ms;
   }
 
 
@@ -1516,6 +1570,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return submitterID;
   }
 
+  
   public Vector getInterestedResearchers() {
     return interestedResearchers;
   }
@@ -1523,6 +1578,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void addInterestedResearcher(String email) {
     interestedResearchers.add(email);
   }
+  
 
  /*
   public boolean isApproved() {
@@ -1530,6 +1586,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
   */
 
+  /*
   public void removeInterestedResearcher(String email) {
     for (int i = 0; i < interestedResearchers.size(); i++) {
       String rName = (String) interestedResearchers.get(i);
@@ -1538,7 +1595,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
     }
   }
-
+*/
 
   public double getRightmostSpot() {
     double rightest = 0;
@@ -3385,7 +3442,7 @@ throw new Exception();
 
     //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
     public Encounter cloneWithoutAnnotations() {
-        Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
+        Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
         enc.setGenus(this.getGenus());
         enc.setSpecificEpithet(this.getSpecificEpithet());
@@ -3535,4 +3592,73 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }  
     } 
 
+    
+    public List<User> getSubmitters(){
+      return submitters;
+    }
+    
+    public List<String> getSubmitterEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getSubmitters()!=null)subs.addAll(getSubmitters());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+          listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
+    public List<String> getHashedSubmitterEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getSubmitters()!=null)subs.addAll(getSubmitters());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getHashedEmailAddress()!=null)&&(!use.getHashedEmailAddress().trim().equals(""))){
+          listy.add(use.getHashedEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
+    public List<User> getPhotographers(){
+      return photographers;
+    }
+    
+    public List<String> getPhotographerEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getPhotographers()!=null)subs.addAll(getPhotographers());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+          listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
+    public List<String> getHashedPhotographerEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getPhotographers()!=null)subs.addAll(getPhotographers());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getHashedEmailAddress()!=null)&&(!use.getHashedEmailAddress().trim().equals(""))){
+          listy.add(use.getHashedEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
+    public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
+    public void setPhotographers(List<User> photographers) {this.photographers=photographers;}
+    
+    
 }

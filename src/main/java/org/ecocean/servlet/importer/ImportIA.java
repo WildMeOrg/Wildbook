@@ -198,9 +198,11 @@ System.out.println(" - - - skipping existing " + exist);
         annotGroups.get(iaNamesArray.getString(j)).add(annots.get(j));
       }
 
+/*
       for (String uName : uniqueNames) {
         //System.out.println("Number Annotations with "+uName+": "+annotGroups.get(uName).size());
       }
+*/
 
       for (String name : uniqueNames) {
         if (IBEISIA.unknownName(name)) {   // we need one encounter per annot for unknown!

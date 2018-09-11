@@ -232,17 +232,40 @@ context=ServletUtilities.getContext(request);
 				//if (user.getFullName()!=null) fullName = user.getFullName(); commented out bc this line erroneously set the other person's fullName to your fullname.
 				possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
 				}
+				String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+				cmsg = cmsg.replace("'", "\\'");
+	
+				if (possible.size() > 0) {
+	   			String arr = new Gson().toJson(possible);
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+				} else {
+					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
+				}
 			}
-			String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
-			cmsg = cmsg.replace("'", "\\'");
-
-			if (possible.size() > 0) {
-   			String arr = new Gson().toJson(possible);
-				blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
-			} else {
-				cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
-				blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
-			}
+		out.println(blocker);
+	 
+	%>
+		<table>
+			<tr>
+				<td valign="middle">
+	 				<h2><strong><img style="align: center;" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=occ.getOccurrenceID()%></h2>
+					<p class="caption"><em><%=props.getProperty("description") %></em></p>
+	  			</td>		
+	  		</tr>
+	  	</table>
+	  	<p>
+		<%
+		if (occ.getSurvey(myShepherd)!=null) {
+			String surveyID = occ.getSurvey(myShepherd).getID();
+		%>	
+			<strong><%=props.getProperty("correspondingSurvey") %>:&nbsp</strong> 
+				<a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getOccurrenceID()%>&surveyID=<%=surveyID%>"><%=surveyID%></a>			
+		<%	
+		} else {
+		%>	
+			<strong><%=props.getProperty("noSurvey") %></strong>
+		<%
 		}
 	out.println(blocker);
 
@@ -366,109 +389,330 @@ context=ServletUtilities.getContext(request);
 				</div>
 			</div>
 		<%
-			}
+		}
+		if (occ.getCorrespondingSurveyTrackID()!=null) {
+			String surveyTrackID = occ.getCorrespondingSurveyTrackID();
 		%>
+			<br/>	
+			<strong><%=props.getProperty("correspondingSurveyTrack") %>:&nbsp<%=surveyTrackID%></strong> 									
+		<%	
+		} 
+		%>		
+		</p>
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-<div class="row">	
-	<div class="col-xs-12">
-	<br/>
-	<p><%=props.getProperty("groupBehavior") %>: 
-		<%if(occ.getGroupBehavior()!=null){%>
-			<%=occ.getGroupBehavior() %>
-		<%}%>
-		&nbsp; 
-		<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
-			<a id="groupB" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
-		<%}%>
-	</p>
-	<div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
-		<table border="1">
-		  <tr>
-		    <td align="left" valign="top">
-		      <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
-		            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
-		            <%=props.getProperty("groupBehavior") %>:
-		        
-			        <%if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){%>
-			        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
-			        <%} else { %>
-			        	<select name="behaviorComment" id="behaviorComment">
-			        		<option value=""></option>
-			   
-			   				<%
-			   				boolean hasMoreStages=true;
-			   				int taxNum=0;
-			   				while(hasMoreStages){
-			   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
-			   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-				   	  		%>
-				   	  	 
-				   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-				   	  		<%
-				   					taxNum++;
-			      				} else {
-			         				hasMoreStages=false;
-			      				}
-			   				}%>
-			  			</select>
-			        <%}%>
-		        	<input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
-		        </form>
-		    </td>
-		  </tr>
-		</table>
-	</div>
-  
-<script>
-	var dlgGroupB = $("#dialogGroupB").dialog({
-	  autoOpen: false,
-	  draggable: false,
-	  resizable: false,
-	  width: 600
-	});
-	
-	$("a#groupB").click(function() {
-	  dlgGroupB.dialog("open");
-	});
-</script>  
-
-	<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
-	
-	<p>
-		<%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
-		<%if(occ.getIndividualCount()!=null){%>
-			<%=occ.getIndividualCount() %>
-		<%}%>
-		&nbsp; 
-		<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) { %>
-			<a id="indies" style="color:blue;cursor: pointer;">
-				<img width="20px" height="20px" style="border-style: none; align: center;" src="images/Crystal_Clear_action_edit.png"/>
-			</a>	
-		<%}%>
-	</p>
-	
-  	<div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">           
-		<table border="1" >
-		  <tr>
-		    <td align="left" valign="top">
-		      <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
-		        <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
-		            <%=props.getProperty("newIndividualCount") %>:
+		<!-- Triggers edit survey and track ID form. -->
 		
-		        <input name="count" type="text" id="count" size="5" maxlength="7"></input> 
-		        <input name="individualCountButton" type="submit" id="individualCountName" value="<%=props.getProperty("set") %>">
-		      </form>
+	<script type="text/javascript">
+		$(document).ready(function() {
+		  var buttons = $("#editSurvey, #closeEditSurvey").on("click", function(){
+		    buttons.toggle();
+		  });
+		  $("#editSurvey").click(function() {
+		    //$(".editFormSurvey, .editTextSurvey, .allEditSurvey").toggle();
+		    $("#addSurveyForm").slideDown();
+		  });
+		  $("#closeEditSurvey").click(function() {
+		    //$(".editFormSurvey, .editTextSurvey, .resultMessageDiv, .allEditSurvey").toggle();
+		    $("#addSurveyForm").slideUp();
+		  });
+		});
+	</script>								
+			<% 
+				if (isOwner) {
+			%>
+				<script type="text/javascript">
+	                  $(document).ready(function() {
+	                    $("#addOccurrence").click(function(event) {
+	                      event.preventDefault();
+	
+	                      var occID = $("#addOccNumber").val();
+	                      var surveyID = $("#surveyID").val();
+	                      var surveyTrackID = $("#surveyTrackID").val();
+	
+	                      $.post("../OccurrenceSetSurveyAndTrack", {"occID": occID, "surveyTrackID": surveyTrackID, "surveyID": surveyID},
+	                      function() {
+	                        $("#addOccErrorDiv").hide();
+	                        $("#addDiv").addClass("has-success");
+	                        $("#createOccCheck").show();
+	                        $("#addSurveyCheck").show().text("Success! Refresh the page to see your changes.");
+	                      })
+	                      .fail(function(response) {
+	                        console.log("<small>Failed to add to survey.</small>");
+	                        $("#addDiv").addClass("has-error");
+	                        $("#addOccError, #addOccErrorDiv").show();
+	                        $("#addSurveyError").show().text("Failed to add survey and track! Make sure it exists.");
+	                        $("#addOccurrence").show();
+	                      });
+	                    });
+	
+	                    $("#add2OccurrenceInput").click(function() {
+	                      $("#addOccError, #addOccCheck, #addOccErrorDiv").hide()
+	                      $("#addDiv").removeClass("has-success");
+	                      $("#addDiv").removeClass("has-error");
+	                      $("#addOccurrence").show();
+	                      $("#addEncErrorDiv").hide();
+	                    });
+	                  });
+	                </script>
+				<div id="addSurveyForm" style="display:none;">
+					<div class="col-xs-6 col-lg-6">
+						<div class="highlight resultMessageDiv" id="addSurveyErrorDiv"></div>
+						<form name="addSurveyToOccurrence" class="editFormSurvey">
+							<input name="number" type="hidden" value="<%=number%>" id="addOccNumber" />
+							<div class="form-group row">
+								<div class="col-sm-8" id="addDiv">
+									<label><%=props.getProperty("addSurvey")%>: </label>
+									<input name="surveyID" id="surveyID" type="text" class="form-control" placeholder="<%=props.getProperty("surveyID")%>" /> 	
+									<br/>
+									<label><%=props.getProperty("addSurveyTrack")%>: </label><br/>
+									<label><small>Must be defined to link back from Survey.</small></label>
+									<input name="surveyTrackID" id="surveyTrackID" type="text" class="form-control" placeholder="<%=props.getProperty("surveyTrackID")%>" />
+									<label style="display:none;" id="addSurveyCheck"></label>
+									<label style="color:red;" id="addSurveyError"></label>
+								</div>
+								<div class="col-sm-8">
+									<input name="Add" type="submit" id="addOccurrence" value="<%=props.getProperty("set")%>" class="btn btn-sm editSurveyFormBtn" />
+								</div>
+							</div>
+						</form>					
+					</div>
+					<div class="col-xs-6 col-lg-6">
+						<br>
+					</div>
+				</div>
+			<%
+				}
+			%>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	<div class="row">	
+		<div class="col-xs-12">
+		<br/>
+		<p><%=props.getProperty("groupBehavior") %>: 
+			<%if(occ.getGroupBehavior()!=null){%>
+				<%=occ.getGroupBehavior() %>
+			<%}%>
+			&nbsp; 
+			<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
+				<a id="groupB" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
+			<%}%>
+		</p>
+		<div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
+			<table border="1">
+			  <tr>
+			    <td align="left" valign="top">
+			      <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
+			            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
+			            <%=props.getProperty("groupBehavior") %>:
+			        
+				        <%if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){%>
+				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
+				        <%} else { %>
+				        	<select name="behaviorComment" id="behaviorComment">
+				        		<option value=""></option>
+				   
+				   				<%
+				   				boolean hasMoreStages=true;
+				   				int taxNum=0;
+				   				while(hasMoreStages){
+				   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
+				   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
+					   	  		%>
+					   	  	 
+					   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
+					   	  		<%
+					   					taxNum++;
+				      				} else {
+				         				hasMoreStages=false;
+				      				}
+				   				}%>
+				  			</select>
+				        <%}%>
+			        	<input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
+			        </form>
+			    </td>
+			  </tr>
+			</table>
+		</div>
+	  
+	<script>
+		var dlgGroupB = $("#dialogGroupB").dialog({
+		  autoOpen: false,
+		  draggable: false,
+		  resizable: false,
+		  width: 600
+		});
+		
+		$("a#groupB").click(function() {
+		  dlgGroupB.dialog("open");
+		});
+	</script>  
+	
+		<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
+		
+		<p>
+			<%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
+			<%if(occ.getIndividualCount()!=null){%>
+				<%=occ.getIndividualCount() %>
+			<%}%>
+			&nbsp; 
+			<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) { %>
+				<a id="indies" style="color:blue;cursor: pointer;">
+					<img width="20px" height="20px" style="border-style: none; align: center;" src="images/Crystal_Clear_action_edit.png"/>
+				</a>	
+			<%}%>
+		</p>
+		
+	  	<div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">           
+			<table border="1" >
+			  <tr>
+			    <td align="left" valign="top">
+			      <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
+			        <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
+			            <%=props.getProperty("newIndividualCount") %>:
+			
+			        <input name="count" type="text" id="count" size="5" maxlength="7"></input> 
+			        <input name="individualCountButton" type="submit" id="individualCountName" value="<%=props.getProperty("set") %>">
+			      </form>
+			    </td>
+			  </tr>
+			</table>
+		</div>
+		
+		
+	<script>
+		var dlgIndies = $("#dialogIndies").dialog({
+		  autoOpen: false,
+		  draggable: false,
+		  resizable: false,
+		  width: 600
+		});
+		
+		$("a#indies").click(function() {
+		  dlgIndies.dialog("open");
+		});
+	</script>
+		<p><%=props.getProperty("locationID") %>: 
+			<%if(occ.getLocationID()!=null){%>
+				<%=occ.getLocationID() %>
+			<%}%>
+		</p>
+		
+		<table id="encounter_report" style="width:100%;">
+			<tr>
+			
+			<td align="left" valign="top">
+			
+			<p><strong><%=occ.getNumberEncounters()%>
+			</strong>
+			  <%=props.getProperty("numencounters")%>
+			</p> 
+		</table>
+		</div>
+	</div>
+		<!-- The Encounter display Area -->
+		<table id="results" style="width: 100%">
+		  <tr class="lineitem">
+		      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
+			   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("individualID") %></strong></td>
+			   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("location") %></strong></td>
+			   <td class="lineitem" bgcolor="#99CCFF"><strong><%=props.getProperty("dataTypes") %></strong></td>
+			   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("encnum") %></strong></td>
+			   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("alternateID") %></strong></td>
+			   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex") %></strong></td>
+			   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></strong></td>
+			 <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></strong></td>
+		  </tr>
+		  <%
+		    Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
+		
+		    int total = dateSortedEncs.length;
+		    for (int i = 0; i < total; i++) {
+		      Encounter enc = dateSortedEncs[i];
+		      
+		  %>
+		  	<tr>
+		      <td class="lineitem"><%=enc.getDate()%></td>
+		    
+		    <td class="lineitem">
+		    	<%if (enc.hasMarkedIndividual()) {%>
+		    	<a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
+		    	<%}else{%>
+		    		&nbsp;
+		    	<%}%>
+		    </td>
+		    
+		    <%
+		    String location="&nbsp;";
+		    if(enc.getLocation()!=null){
+		    	location=enc.getLocation();
+		    }
+		    %>
+		    
+		    <td class="lineitem"><%=location%></td>
+		    
+		    <td width="100" height="32px" class="lineitem">
+		    	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
+		    		
+		    		<% //if the encounter has photos, show photo folder icon	    		
+		    		if ((enc.getMedia().size()>0)){%>
+		    			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="*" />    		
+		    		<%} 
+		    		//if the encounter has a tissue sample, show an icon
+		    		if((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)){
+		    		%>
+		    			<img src="images/microscope.gif" height="32px" width="*" />
+		    		<%}
+		    		//if the encounter has a measurement, show the measurement icon
+		    		if(enc.hasMeasurements()){%>	
+		    			<img src="images/ruler.png" height="32px" width="*" />
+		        	<%}%>
+		    		
+		    	</a>
+		    </td>
+		    
+		    <td class="lineitem">
+		    	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%></a>
+		    </td>
+		
+		    <%if (enc.getAlternateID() != null) {%>
+			    <td class="lineitem"><%=enc.getAlternateID()%></td>
+		    <%} else {%>
+			    <td class="lineitem"><%=props.getProperty("none")%></td>
+		    <%}%>
+		
+			<%
+			String sexValue="&nbsp;";
+			if(enc.getSex()!=null){sexValue=enc.getSex();}
+			%>
+			
+		    <td class="lineitem"><%=sexValue %></td>
+		    
+		    <td class="lineitem">
+			    <%if(enc.getBehavior()!=null){%>
+			    	<%=enc.getBehavior() %>
+			    <%} else {%>
+			    &nbsp;
+			    <%}%>
+			</td>
+			    
+			<td class="lineitem">
+			    <%if(enc.getHaplotype()!=null){%>
+			    <%=enc.getHaplotype() %>
+			    <%} else {%>
+			    &nbsp;
+			    <%}%>
 		    </td>
 		  </tr>
+		  <%} //End of loop iterating over encounters. %>
 		</table>
 	</div>
 	

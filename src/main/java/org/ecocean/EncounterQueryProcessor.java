@@ -1093,7 +1093,9 @@ public class EncounterQueryProcessor extends QueryProcessor {
       String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterID.toLowerCase().indexOf('"+nameString+"') != -1))";
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
-      prettyPrint.append("nameField contains: \""+nameString+"\"<br />");
+      
+      prettyPrint.append("Related fullName or emailAddress contains: \""+nameString+"\"<br />");
+      
     }
     //end name and email filter--------------------------------------------------------------------------------------
 
