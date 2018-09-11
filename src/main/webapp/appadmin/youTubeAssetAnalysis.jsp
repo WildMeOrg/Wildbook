@@ -216,7 +216,9 @@ try{
 	<pre><%=sb.toString() %></pre>
 	<%
 	
-
+	   	BufferedWriter writer = new BufferedWriter(new FileWriter("/tmp/youTubeAssetAnanlysis.txt"));
+    	writer.write(sb.toString());
+     	writer.close();
 
 }
 catch(Exception e){
