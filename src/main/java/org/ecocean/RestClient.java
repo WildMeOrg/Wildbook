@@ -42,6 +42,10 @@ public class RestClient {
         return anyMethod("POST", url, data);
     }
 
+    public static JSONObject put(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return anyMethod("PUT", url, data);
+    }
+
     public static JSONObject get(URL url) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         return anyMethod("GET", url, null);
     }
