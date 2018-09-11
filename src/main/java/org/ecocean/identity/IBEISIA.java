@@ -2453,6 +2453,12 @@ System.out.println(">>>>>>>> age -> " + rtn);
         return (Double)null;
     }
 
+    //note: for list of valid viewpoint values "consult IA".  *wink*
+    public static JSONObject iaSetViewpointForAnnotUUID(String uuid, String viewpoint, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/viewpoint/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]&viewpoint_list=[\"" + ((viewpoint == null) ? "unknown" : viewpoint) + "\"]"), null);
+        return rtn;
+    }
+
     public static boolean iaEnabled(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         return (IA.getProperty(context,"IBEISIARestUrlAddAnnotations") != null);
