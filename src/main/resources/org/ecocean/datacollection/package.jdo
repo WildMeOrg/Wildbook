@@ -6,7 +6,7 @@
 
 
 
-  <class name="DataCollectionEvent" identity-type="application">
+  <class name="DataCollectionEvent" table="DATACOLLECTIONEVENT" identity-type="application">
     <inheritance strategy="new-table"/>
     <field name="correspondingEncounterNumber">
       <column name="CORRESPONDINGENCOUNTERNUMBER"/>
@@ -15,6 +15,12 @@
     <field name="dataCollectionEventID" primary-key="true" value-strategy="native">
       <column name="dataCollectionEventID"/>
     </field>
+
+    <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+      <collection element-type="org.ecocean.Observation"/>
+      <join/>
+    </field>
+
     <field name="samplingProtocol">
       <column name="SAMPLINGPROTOCOL"/>
     </field>
@@ -70,7 +76,7 @@
     </field>
   </class>
 
-  <class name="DataPoint" identity-type="application">
+  <class name="DataPoint" identity-type="application" table="DATAPOINT">
     <inheritance strategy="new-table"/>
     <field name="id" persistence-modifier="persistent" primary-key="true">
       <column name="ID"/>
@@ -83,7 +89,7 @@
     </field>
   </class>
 
-  <class name="DataSheet" identity-type="application">
+  <class name="DataSheet" table="DATASHEET" identity-type="application">
     <inheritance strategy="new-table"/>
     <field name="data" persistence-modifier="persistent" default-fetch-group="true">
       <collection element-type="org.ecocean.datacollection.DataPoint"/>

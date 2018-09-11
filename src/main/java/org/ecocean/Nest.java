@@ -10,6 +10,7 @@ import org.ecocean.datacollection.*;
 import org.ecocean.Util;
 
 public class Nest implements java.io.Serializable {
+  private static final long serialVersionUID = 1L;
 
   private String id;
   private String name;
@@ -33,18 +34,25 @@ public class Nest implements java.io.Serializable {
   //private List<User> contributors;
 
   /**
-   * empty constructor required by the JDO Enhancer
+   * empty constructor required by the JDO Enhancer 
    */
   public Nest() {
   }
 
   public Nest(String id) {
+    this.dataSheets = new ArrayList<DataSheet>();
     this.id = id;
   }
 
   public Nest(DataSheet sheet) {
+    try {
+      this.dataSheets = new ArrayList<DataSheet>();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     this.id = Util.generateUUID();
     this.record(sheet);
+    System.out.println("===============================>   Recorded sheet!!");
   }
 
   public String getID() {
@@ -91,7 +99,11 @@ public class Nest implements java.io.Serializable {
   }
 
   public void record(DataSheet datasheet) {
-    this.dataSheets.add(datasheet);
+    try {
+      this.dataSheets.add(datasheet);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   public void addConfigDataSheet(String context) throws IOException {
@@ -110,7 +122,11 @@ public class Nest implements java.io.Serializable {
 
 
   public List<DataSheet> getDataSheets() {
-    return dataSheets;
+    if (this.dataSheets==null) {
+      System.out.println("Sheets null in getDataSheets()!");
+      this.dataSheets = new ArrayList<DataSheet>();
+    }
+    return this.dataSheets;
   }
 
   public DataSheet getDataSheet(int i) {
@@ -126,12 +142,17 @@ public class Nest implements java.io.Serializable {
   }
 
   public int countSheets() {
-    return this.dataSheets.size();
+    int num = 0;
+    System.out.println("A. Is null in countSheets()??? "+this.dataSheets);
+    //System.out.println("Is THIS null??? "+this.dataSheets);
+    //System.out.println("AS A STRING! "+dataSheets.toString());
+    try {
+      num = getDataSheets().size();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return num;
   }
-
-
-
-
 
   public void setLocationID(String locationID) {
     this.locationID = locationID;
@@ -215,22 +236,25 @@ public class Nest implements java.io.Serializable {
   // array for only egg measurements
   public int getEggCount(int sheetNo) {
     DataSheet ds = getDataSheet(sheetNo);
-    DataPoint lastDP = ds.get(ds.size()-1);
-    String lastName = lastDP.getNumberedName();
-    System.out.println("   lastName = "+lastName);
-    System.out.println("   indexOfEgg = " + lastName.toLowerCase().indexOf("egg"));
-    System.out.println("   indexOfHam = " + lastName.toLowerCase().indexOf("ham"));
-    boolean lastDPAnEgg = (lastName.toLowerCase().indexOf("egg") > -1);
-
-    String intFromLastName = lastName.replaceAll("[^-?0-9]+", "");
-    System.out.println("   intFromLastName = "+intFromLastName);
-
-    if (!lastDPAnEgg) return 0;
-    int ans = Integer.parseInt(intFromLastName);
-    int otherAttempt = getDataSheet(sheetNo).getLastNumber("egg");
-    System.out.println("first answer = "+ans+" and second answer = "+otherAttempt);
-
-    return (Integer.parseInt(intFromLastName) + 1);
+    if (ds.size()>0) {
+      DataPoint lastDP = ds.get(ds.size()-1);
+      String lastName = lastDP.getNumberedName();
+      System.out.println("   lastName = "+lastName);
+      System.out.println("   indexOfEgg = " + lastName.toLowerCase().indexOf("egg"));
+      System.out.println("   indexOfHam = " + lastName.toLowerCase().indexOf("ham"));
+      boolean lastDPAnEgg = (lastName.toLowerCase().indexOf("egg") > -1);
+  
+      String intFromLastName = lastName.replaceAll("[^-?0-9]+", "");
+      System.out.println("   intFromLastName = "+intFromLastName);
+  
+      if (!lastDPAnEgg) return 0;
+      int ans = Integer.parseInt(intFromLastName);
+      int otherAttempt = getDataSheet(sheetNo).getLastNumber("egg");
+      System.out.println("first answer = "+ans+" and second answer = "+otherAttempt);
+  
+      return (Integer.parseInt(intFromLastName) + 1);
+    }
+    return 0;
   }
 
   public void addNewEgg(int sheetNo) {

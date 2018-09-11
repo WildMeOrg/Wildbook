@@ -44,7 +44,7 @@ public class DataSheet extends DataCollectionEvent {
     System.out.println("DataSheet.java: initializing a DataSheet from request");
     System.out.println("DataSheet.java: getDataCollectionEventID = "+this.getDataCollectionEventID());
     //this.setID(this.getDataCollectionEventID());
-    ///this.setID(Util.generateUUID());
+    this.setID(Util.generateUUID());
     this.data = new ArrayList<DataPoint>();
     System.out.println("DataSheet.java: done initializing DataSheet "+this.getID()+" with super.dataCollectionEventID = "+this.getDataCollectionEventID());
 
@@ -210,17 +210,17 @@ public class DataSheet extends DataCollectionEvent {
 
 
   public String toString() {
-    if (data==null) return ("DataSheet "+id+": null data");
-    return("DataSheet "+id+": ["+StringUtils.join(data, ", ")+ "]");
+    if (data==null) return ("DataSheet "+this.getID()+": null data");
+    return("DataSheet "+this.getID()+": ["+StringUtils.join(data, ", ")+ "]");
 
   }
   public String toLabeledString() {
-    if (data==null) return ("DataSheet "+id+": null data");
+    if (data==null) return ("DataSheet "+this.getID()+": null data");
     List<String> labeledNames = new ArrayList<String>();
     for (DataPoint dp: data) {
       labeledNames.add(dp.toLabeledString());
     }
-    return("DataSheet "+id+": ["+StringUtils.join(labeledNames, ", ")+ "]");
+    return("DataSheet "+this.getID()+": ["+StringUtils.join(labeledNames, ", ")+ "]");
   }
 
   public int getLastNumber(String dataName) {

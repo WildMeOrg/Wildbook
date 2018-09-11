@@ -5,21 +5,12 @@
     org.ecocean.datacollection.*,
     javax.jdo.Extent,
     javax.jdo.Query,
+    java.io.PrintWriter,
     java.io.File,
     java.util.Properties,
     java.util.Enumeration,
     java.lang.reflect.Method,
     org.ecocean.security.Collaboration" %>
-
-
-<jsp:include page="../header.jsp" flush="true"/>
-<!-- IMPORTANT style import for table printed by ClassEditTemplate.java -->
-<link rel="stylesheet" href="../css/classEditTemplate.css" />
-<script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
-<script type="text/javascript" src="../javascript/classEditTemplate.js"></script>
-
-
-
 
 <%
 
@@ -29,8 +20,8 @@
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+  //response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+  //response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
   //setup data dir
@@ -46,26 +37,41 @@
   System.out.println("beginning nest.jsp!");
 
 
-  Nest nestie;
+  Nest nestie = null;
   if (nestID!=null) {
-    nestie = myShepherd.getNest(nestID);
-    System.out.println("myShepherd grabbed Nest #"+nestID);
-  }
-  else {
-    System.out.println("NEWNEST: myShepherd failed to find a Nest # upon loading nest.jsp");
-    nestie = new Nest(Util.generateUUID()); // TODO: fix this case
-    myShepherd.storeNewNest(nestie);
+    try {
+      nestie = myShepherd.getNest(nestID);
+      System.out.println("myShepherd grabbed Nest #"+nestID);
+    } catch (Exception e) {
+      System.out.println("Exception on grabbing existing nest from request...");
+      e.printStackTrace();
+    }
+  } else {
+    try {
+      System.out.println("NEWNEST: myShepherd failed to find a Nest # upon loading nest.jsp");
+      DataSheet ds = new DataSheet(request);
+      myShepherd.storeNewDataSheet(ds);
+      nestie = new Nest(ds); 
+      System.out.println("1. New nest should have one sheet: "+nestie.getDataSheets());
+      myShepherd.storeNewNest(nestie);
+      System.out.println("2. New nest stored: "+nestie.getDataSheets());
+    } catch (Exception e) {
+      System.out.println("Exception on making new Nest...");
+      e.printStackTrace();
+    }http://localhost:8080/nest/nest.jsp
     nestID = nestie.getID();
+    System.out.println("3. New prior to countSheets()? "+nestie.getDataSheets());
   }
 
   String[] nestFieldGetters = new String[]{"getName", "getLocationID", "getLocationNote","getLatitude","getLongitude"};
 
-
+try {
   String saving = request.getParameter("save");
   String newNestingSheet = request.getParameter("newNestingSheet");
   String newEmergenceSheet = request.getParameter("newEmergenceSheet");
 
   int nDataSheets = nestie.countSheets();
+   System.out.println("4. After countSheets()? "+nestie.getDataSheets());
   int sheetToRemove = -1;
   for (int i=0; i<nDataSheets; i++) {
     String removeSheetI = request.getParameter("removeSheet"+i);
@@ -176,8 +182,20 @@
     System.out.println("NEST.JSP: Transaction committed");
     System.out.println("");
   }
+} catch (Exception e) {
+  e.printStackTrace();
+}
+  System.out.println("Begin HTML content!!");
 %>
 
+
+<jsp:include page="../header.jsp" flush="true"/>
+<!-- IMPORTANT style import for table printed by ClassEditTemplate.java -->
+<link rel="stylesheet" href="../css/classEditTemplate.css" />
+<script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="../javascript/classEditTemplate.js"></script>
+
+<h2>Test</h2>
 
 
 <div class="container maincontent">
@@ -191,12 +209,14 @@
 
       <table class="nest-field-table edit-table">
         <%
+        System.out.println("HTML level print 1");
         for (String getterName : nestFieldGetters) {
           Method nestMeth = nestie.getClass().getMethod(getterName);
           if (ClassEditTemplate.isDisplayableGetter(nestMeth)) {
             ClassEditTemplate.printOutClassFieldModifierRow((Object) nestie, nestMeth, out);
           }
         }
+        System.out.println("HTML level print 2");
         %>
       </table>
     </div>
@@ -215,62 +235,88 @@
       </div>
         <%
 
+        System.out.println("HTML level print 3");
+        try {
+          System.out.println("Did you choke before the first for loop??? "+nestie.getDataSheets().size());
+          for (int i=0; i < nestie.getDataSheets().size(); i++) { // DataSheet for loop Start
+            %> 
+            <div class="row dataSheet" id="<%=i%>"> 
+            <%
+            %> 
+            <div class="col-xs-12"> 
+            <%
+            //DataSheet dSheet = nestie.getDataSheet(nestie.getDataSheets().size()-(i+1)); //reverses order
+            System.out.println("Get the sheet!");
+            DataSheet dSheet = nestie.getDataSheet(i);
+            System.out.println("Get the eggs!");
+            int numEggs = nestie.getEggCount(i);
+            System.out.println("DataSheet "+i+" has #eggs = "+numEggs);
+            if (numEggs==0) {
+              nestie.addNewEgg(i);
+            }    
+            %> 
 
-        for (int i=0; i < nestie.getDataSheets().size(); i++) {
-          %> <div class="row dataSheet" id="<%=i%>"> <%
-          %> <div class="col-xs-12"> <%
-          //DataSheet dSheet = nestie.getDataSheet(nestie.getDataSheets().size()-(i+1)); //reverses order
-          DataSheet dSheet = nestie.getDataSheet(i);
-          int numEggs = nestie.getEggCount(i);
-          System.out.println("DataSheet "+i+" has #eggs = "+numEggs);
-          if (numEggs==0) {
-            nestie.addNewEgg(i);
+            <h3>Data Sheet <%=i+1%></h3>
+            
+            <% 
+              System.out.println("HTML level print 4");
+              if (dSheet.getName()!=null && !dSheet.getName().equals("")) {
+            %>
+                <h4><%=dSheet.getName()%></h4>
+            <%
+              }
+            %>
+              <input type="submit" onclick="classEditTemplate.markDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
+
+
+              <table class="nest-field-table edit-table" style="float: left">
+            <%
+              //ClassEditTemplate.printDateTimeSetterRow((Object) dSheet,dSheet.getID(), out);
+            %>
+              </table>
+            </div>
+            <%
+
+
+            int nFields = dSheet.size();
+            int nSubtables = Util.getNumSections(nFields, nFieldsPerSubtable);
+            int dataPointN = 0;
+
+            for (int tableN=0; tableN < nSubtables; tableN++) {
+
+            %>
+            
+            <div class="col col-md-4 nest-table">
+            <table class="nest-field-table edit-table" style="float: left">
+            
+            <%
+              for (int subTableI=0; dataPointN < nFields && subTableI < nFieldsPerSubtable; dataPointN++, subTableI++) {
+                if (dSheet.getData().size()<=dataPointN) {
+                  System.out.println("Did you get the point?");
+                  DataPoint dp = dSheet.getData().get(dataPointN);
+                  ClassEditTemplate.printOutClassFieldModifierRow((Object) nestie, dp, out);
+                }
+              }
+            %>  
+            </table></div>
+          <%
           }
           %>
-            <h3>Data Sheet <%=i+1%></h2>
 
-            <%
-            if (dSheet.getName()!=null && !dSheet.getName().equals(""))
-            {
-              %>
-              <h4><%=dSheet.getName()%></h4>
-              <%
-            }
-            %>
-            <input type="submit" onclick="classEditTemplate.markDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
-
-
-            <table class="nest-field-table edit-table" style="float: left">
-            <%
-            //ClassEditTemplate.printDateTimeSetterRow((Object) dSheet,dSheet.getID(), out);
-            %>
-            </table>
+          <div class="col-md-4">
+            <input type="button" name="newEgg<%=i%>" value="Add Egg Measurement" class="eggButton" />
           </div>
-          <%
 
+          </div> 
+          
+        <%
 
-          int nFields = dSheet.size();
-          int nSubtables = Util.getNumSections(nFields, nFieldsPerSubtable);
-          int dataPointN = 0;
-
-          for (int tableN=0; tableN < nSubtables; tableN++) {
-
-          %><div class="col col-md-4 nest-table">
-          <table class="nest-field-table edit-table" style="float: left"><%
-            for (int subTableI=0; dataPointN < nFields && subTableI < nFieldsPerSubtable; dataPointN++, subTableI++) {
-              DataPoint dp = dSheet.getData().get(dataPointN);
-              ClassEditTemplate.printOutClassFieldModifierRow((Object) nestie, dp, out);
-            }
-          %></table></div><%
+          } // DataSheet for loop End 
+        } catch (Exception e) {
+          System.out.println("Threw Exception in egg field area...");
+          e.printStackTrace(new java.io.PrintWriter(out));
         }
-        %>
-        <div class="col-md-4">
-          <input type="button" name="newEgg<%=i%>" value="Add Egg Measurement" class="eggButton" />
-        </div>
 
-        </div> <%
-
-        }
         %>
   <div class="row">
     <div class="col-sm-12">

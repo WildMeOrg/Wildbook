@@ -240,11 +240,12 @@
 
     <class name="Encounter" identity-type="application" table="ENCOUNTER">
 
-      <field name="dataSheets" persistence-modifier="persistent">
+      <field name="dataSheets" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.datacollection.DataSheet"/>
         <column name="DATASHEETS"/>
         <join/>
       </field>
+
 
 	
 	      <field name="submitters" persistence-modifier="persistent" default-fetch-group="true">
@@ -577,6 +578,13 @@
       <field name="id" primary-key="true">
         <column name="ID"/>
       </field>
+
+      <field name="dataSheets" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.datacollection.DataSheet" dependent-element="false"/>
+        <column name="DATASHEETS"/>
+        <join/>
+      </field>
+
       <field name="name">
         <column name="NAME"/>
       </field>
@@ -644,35 +652,6 @@
         <column name="STATE"/>
       </field>
     </class>
-
-
-
-    <class name="Nest" identity-type="application" table="NEST">  
-      <field name="id" primary-key="true">
-        <column name="ID"/>
-      </field>
-      
-      <field name="dataSheets" persistence-modifier="persistent">	
-        <collection element-type="org.ecocean.datacollection.DataSheet"/>
-        <column name="DATASHEETS"/>	
-        <join/>	
-      </field>
-      
-      <field name="locationID" persistence-modifier="persistent" >	
-        <column name="LOCATIONID"/>	
-      </field>	
-      <field name="locationNote" persistence-modifier="persistent" >	
-        <column name="LOCATIONNOTE"/>	
-      </field>	
-      <field name="latitude" persistence-modifier="persistent" >	
-        <column name="LATITUDE"/>	
-      </field>	
-      <field name="longitude" persistence-modifier="persistent" >	
-        <column name="LONGITUDE"/>	
-      </field>	
-    </class>
-
-
 
     <class name="User" identity-type="application" table="USERS">
 

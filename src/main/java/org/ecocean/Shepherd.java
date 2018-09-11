@@ -258,11 +258,14 @@ public class Shepherd {
     }
   }
 
-  public boolean storeNewNest(Nest indie) {
+  public boolean storeNewNest(Nest nest) {
     beginDBTransaction();
     try {
-      pm.makePersistent(indie);
+      System.out.println("STORING. entered shepherd store method, sheets = "+nest.getDataSheets());
+      pm.makePersistent(nest);
+      System.out.println("STORING. pm.makePersistent shepherd store method, sheets = "+nest.getDataSheets());
       commitDBTransaction();
+      System.out.println("STORING. commitDBTransaction() shepherd store method, sheets = "+nest.getDataSheets());
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new Nest in Shepherd.storeNewNest().");
@@ -270,6 +273,7 @@ public class Shepherd {
       return false;
     } finally {
       closeDBTransaction();
+      System.out.println("STORING. closeDBTransaction() shepherd store method, sheets = "+nest.getDataSheets());
     }
     return true;
   }
