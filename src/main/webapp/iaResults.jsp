@@ -139,12 +139,14 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 
 
+<!--  this all is in header!
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
 <script src="javascript/core.js"></script>
 <script src="javascript/classes/Base.js"></script>
 <script src="javascript/ia.js"></script>
-<script src="javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
+<script src="javascript/ia.IBEIS.js"></script>
+-->
 
 <script src="javascript/tablesorter/jquery.tablesorter.js"></script>
 <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
@@ -190,7 +192,7 @@ function parseTaskIds() {
 }
 
 function tryTaskId(tid) {
-    IA.fetchTaskResponse(tid, function(x) {
+    wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task);
         } else {
@@ -208,7 +210,7 @@ function getCachedTask(tid) {
 }
 
 function processTask(task) {
-    IA.processTask(task, function(t, res) {
+    wildbook.IA.processTask(task, function(t, res) {
         if (t && t.id) tasks[t.id] = t;
         $('.maincontent').append(res);
         grabTaskResult(t.id);
