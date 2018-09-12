@@ -915,7 +915,12 @@ public class MediaAsset implements java.io.Serializable {
                     org.datanucleus.api.rest.orgjson.JSONObject jf = new org.datanucleus.api.rest.orgjson.JSONObject();
                     Feature ft = fts.get(i);
                     jf.put("id", ft.getId());
-                    jf.put("type", ft.getType());
+                    try {  //for some reason(?) this will get a jdo error for "row not found".  why???  anyhow, we catch it
+                        jf.put("type", ft.getType());
+                    } catch (Exception ex) {
+                        jf.put("type", "unknown");
+                        System.out.println("ERROR: MediaAsset.sanitizeJson() on " + this.toString() + " threw " + ex.toString());
+                    }
                     JSONObject p = ft.getParameters();
                     if (p != null) jf.put("parameters", Util.toggleJSONObject(p));
 
