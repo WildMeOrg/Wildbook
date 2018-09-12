@@ -165,16 +165,16 @@
 		/individualSearchResults.jsp = authc
 		/individualSearchResultsExport.jsp = authc, roles[researcher]
 		/individualSearchResultsAnalysis.jsp = authc, roles[researcher]
-		/individualMappedSearchResults.jsp = authc
+		/individualMappedSearchResults.jsp = authc, roles[researcher]
 		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
 
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
 		 /encounters/encounterSearch.jsp = roles[researcher]
-		 /encounters/searchResults.jsp = authc
+		 /encounters/searchResults.jsp = authc, roles[researcher]
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
-		 /encounters/mappedSearchResults.jsp = authc
-		 /encounters/mappedSearchResultsSex.jsp = authc
-		 /encounters/mappedSearchResultsHaplotype.jsp = authc
+		 /encounters/mappedSearchResults.jsp = authc, roles[researcher]
+		 /encounters/mappedSearchResultsSex.jsp = authc, roles[researcher]
+		 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[researcher]
 		 /encounters/exportSearchResults.jsp = authc, roles[researcher]
 		 /encounters/imageViewer.jsp = authc, roles[researcher]
 		 /encounters/searchComparison.jsp = authc, roles[researcher]
@@ -511,12 +511,12 @@
 
 
 
-
+<!--
   <servlet>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSubmitterPhotographerContactInfo</servlet-class>
   </servlet>
-
+-->
 
     <servlet>
       <servlet-name>UserResetAcceptedUserAgreement</servlet-name>
@@ -1913,7 +1913,7 @@
         <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
         <url-pattern>/OccurrenceSetGroupBehavior</url-pattern>
   </servlet-mapping>
-
+<!--
   <servlet-mapping>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
     <url-pattern>/EncounterSetSubmitterPhotographerContactInfo</url-pattern>

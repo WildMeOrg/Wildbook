@@ -82,14 +82,18 @@ public class UserCreate extends HttpServlet {
 
     //create a new Role from an encounter
 
-    if ((request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))) || (request.getParameter("isEdit")!=null))) {
+    if ((request.getParameter("emailAddress") != null) &&  (!request.getParameter("emailAddress").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))) || (request.getParameter("isEdit")!=null))) {
       
-      String username=request.getParameter("username").trim();
+      String username=null;
+      if(request.getParameter("username")!=null) {
+        username=request.getParameter("username");
+      }
+      String email=request.getParameter("emailAddress").trim();
       
       String password="";
-      if(!isEdit)password=request.getParameter("password").trim();
+      if((request.getParameter("password")!=null)&&(!request.getParameter("password").trim().equals("")))password=request.getParameter("password").trim();
       String password2="";
-      if(!isEdit)password2=request.getParameter("password2").trim();
+      if((request.getParameter("password2")!=null)&&(!request.getParameter("password2").trim().equals("")))password2=request.getParameter("password2").trim();
       
       if((password.equals(password2))||(isEdit)){
         
@@ -100,21 +104,42 @@ public class UserCreate extends HttpServlet {
       
         myShepherd.beginDBTransaction();
       
-        if(myShepherd.getUser(username)==null){
+        if(myShepherd.getUserByEmailAddress(email)==null){
           
-          
-          String salt=ServletUtilities.getSalt().toHex();
-          String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
+          //new User
           //System.out.println("hashed password: "+hashedPassword+" with salt "+salt + " from source password "+password);
-          newUser=new User(username,hashedPassword,salt);
+          if((username!=null)&&(!password.equals(""))) {
+            
+            String salt=ServletUtilities.getSalt().toHex();
+            String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
+            newUser=new User(username,hashedPassword,salt);
+
+          }
+          else {
+            newUser=new User(email);
+          }
           myShepherd.getPM().makePersistent(newUser);
           createThisUser=true;
         }
         else{
-          newUser=myShepherd.getUser(username);
+          newUser=myShepherd.getUserByEmailAddress(email);
+          if((!password.equals(""))&(password.equals(password2))){
+            String salt=ServletUtilities.getSalt().toHex();
+            String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
+            newUser.setPassword(hashedPassword);
+            newUser.setSalt(salt);
+          }
         }
         
         //here handle all of the other User fields (e.g., email address, etc.)
+        
+        if((request.getParameter("username")!=null)&&(!request.getParameter("username").trim().equals(""))){
+          newUser.setUsername(request.getParameter("username").trim());
+        }
+        else if(isEdit&&(request.getParameter("username")!=null)&&(request.getParameter("username").trim().equals(""))){newUser.setUsername(null);}
+        
+        
+        
         if((request.getParameter("fullName")!=null)&&(!request.getParameter("fullName").trim().equals(""))){
           newUser.setFullName(request.getParameter("fullName").trim());
         }

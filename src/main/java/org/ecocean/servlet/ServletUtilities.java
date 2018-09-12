@@ -552,6 +552,10 @@ public static String hashAndSaltPassword(String clearTextPassword, String salt) 
   return new Sha512Hash(clearTextPassword, salt, 200000).toHex();
 }
 
+public static String hashString(String hashMe) {
+  return new Sha512Hash(hashMe).toHex();
+}
+
 public static ByteSource getSalt() {
   return new SecureRandomNumberGenerator().nextBytes();
 }

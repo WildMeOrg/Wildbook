@@ -112,7 +112,7 @@ public class IBEISIA {
     //other is a HashMap of additional properties to build lists out of (e.g. Encounter ids and so on), that do not live in/on MediaAsset
     public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, HashMap<MediaAsset,HashMap<String,Object>> other, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendMediaAssets() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlAddImages");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
         int ct = 0;
@@ -172,7 +172,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
 
     public static JSONObject sendAnnotations(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendAnnotations() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddAnnotations is not set");
         URL url = new URL(u);
 
@@ -221,7 +221,7 @@ System.out.println("sendAnnotations(): sending " + ct);
                                           JSONObject userConfidence, String baseUrl, String context)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
 
@@ -309,7 +309,7 @@ myShepherd.closeDBTransaction();
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartDetectImages", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlStartDetectImages");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
         URL url = new URL(u);
 
@@ -323,12 +323,22 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         }
         map.put("image_uuid_list", malist);
 
+        String modelTag = IA.getProperty(context, "modelTag");
+        if (modelTag != null) {
+            System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
+            map.put("model_tag", modelTag);
+        } else {
+            System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
+        }
+
+//TODO sensitivity & nms_thresh  (floats)
+
         return RestClient.post(url, new JSONObject(map));
     }
 
 
     public static JSONObject getJobStatus(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobStatus", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlGetJobStatus");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobStatus is not set");
         URL url = new URL(u + "?jobid=" + jobID);
         return RestClient.get(url);
@@ -337,7 +347,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     //note: this passes directly to IA so can be problematic! (ia down? and more importantly: ia restarted so job # is diff and old job is gone!)
     //  better(?) to use getJobResultLogged() below!
     public static JSONObject getJobResult(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobResult", context);
+        String u = IA.getProperty(context, "IBEISIARestUrlGetJobResult");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobResult is not set");
         URL url = new URL(u + "?jobid=" + jobID);
         return RestClient.get(url);
@@ -653,9 +663,13 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
     private static Object mediaAssetToUri(MediaAsset ma) {
 //System.out.println("=================== mediaAssetToUri " + ma + "\n" + ma.getParameters() + ")\n");
+        URL curl = ma.containerURLIfPresent();
+        if (curl == null) curl = ma.webURL();
+
         if (ma.getStore() instanceof LocalAssetStore) {
             //return ma.localPath().toString(); //nah, lets skip local and go for "url" flavor?
-            return ma.webURL().toString();
+            if (curl == null) return null;
+            return curl.toString();
         } else if (ma.getStore() instanceof S3AssetStore) {
             return ma.getParameters();
 /*
@@ -668,7 +682,8 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             return b;
 */
         } else {
-            return ma.webURL().toString();  //a better last gasp hope
+            if (curl == null) return null;
+            return curl.toString();
         }
     }
 
@@ -1126,14 +1141,13 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 
         JSONObject fparams = new JSONObject();
         fparams.put("detectionConfidence", iaResult.optDouble("confidence", -2.0));
-        //TODO add "theta" (double) to Feature!!
+        fparams.put("theta", iaResult.optDouble("theta", 0.0));
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
                                                 iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0), fparams);
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
-        //Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);  //old way
-        Annotation ann = new Annotation(tax.getScientificName(), ft);
+//TODO get rid of convertSpecies stuff re: Taxonomy!!!!
+        Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
         String annId = fromFancyUUID(iaResult.optJSONObject("uuid"));  //we adopt IA's annot id!  TODO should we check that this doesnt already exist? too much edge-case?
-System.out.println("ANNID => " + annId);
         if (annId != null) ann.setId(annId);
         return ann;
     }
@@ -1206,6 +1220,7 @@ System.out.println("**** type ---------------> [" + type + "]");
             Shepherd myShepherd2 = new Shepherd(context);
             myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
             myShepherd2.beginDBTransaction();
+            Task parentTask = Task.load(taskID, myShepherd2);
             Iterator<?> keys = newAnns.keys();
             while (keys.hasNext()) {
                 String maId = (String) keys.next();
@@ -1223,8 +1238,12 @@ System.out.println("     ---> " + annIds);
             if (needIdentifying.size() > 0) {
                 Task task = IA.intakeAnnotations(myShepherd2, needIdentifying);
                 rtn.put("identificationTaskId", task.getId());
+                if (parentTask != null) parentTask.addChild(task);
+                myShepherd2.getPM().makePersistent(task);
+                myShepherd2.commitDBTransaction();
+            } else {
+                myShepherd2.rollbackDBTransaction();
             }
-            myShepherd2.rollbackDBTransaction();
             myShepherd2.closeDBTransaction();
         }
 
@@ -1592,7 +1611,7 @@ System.out.println("identification most recent action found is " + action);
     //builds urls for IA, based on just one.  kinda hacky (as opposed to per-endpoint setting in CommonConfiguration); but can be useful
     public static URL iaURL(String context, String urlSuffix) {
         if (iaBaseURL == null) {
-            String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
+            String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
             if (u == null) throw new RuntimeException("configuration value IBEISIARestUrlAddAnnotations is not set");
             int i = u.indexOf("/", 9);  //9 should get us past "http://" to get to post-hostname /
             if (i < -1) throw new RuntimeException("could not parse IBEISIARestUrlAddAnnotations for iaBaseURL");
@@ -1680,6 +1699,7 @@ System.out.println("need " + annId + " from IA, i guess?");
             fparams.put("y", jbb.optInt(1, 0));
             fparams.put("width", jbb.optInt(2, -1));
             fparams.put("height", jbb.optInt(3, -1));
+            fparams.put("theta", iaThetaFromAnnotUUID(annId, context));  //now with vitamin THETA!
             Feature ft = new Feature("org.ecocean.boundingBox", fparams);
             ma.addFeature(ft);
 
@@ -1694,6 +1714,8 @@ System.out.println("need " + annId + " from IA, i guess?");
                 boolean exemplar = (rtn.getJSONArray("response").optInt(0, 0) == 1);
                 ann.setIsExemplar(exemplar);
             }
+            Boolean aoi = iaIsOfInterestFromAnnotUUID(annId, context);
+            ann.setIsOfInterest(aoi);
             System.out.println("INFO: " + ann + " pulled from IA");
             return ann;
 
@@ -1779,6 +1801,7 @@ System.out.println("need " + annId + " from IA, i guess?");
             ma.copyIn(file);
             ma.addDerivationMethod("pulledFromIA", System.currentTimeMillis());
             ma.updateMetadata();
+            MediaAssetFactory.save(ma, myShepherd);
             ma.updateStandardChildren(myShepherd);
         } catch (IOException ioe) {
             throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
@@ -2346,12 +2369,25 @@ System.out.println(map);
         if (t == -1) return null;
         return new DateTime(t * 1000);  //IA returns secs not millisecs
     }
+/// http://71.59.132.88:5007/api/annot/interest/json/?annot_uuid_list=[{"__UUID__":"8ddbb0fa-6eda-44ae-862a-c2ad333e7918"}]
+    public static Boolean iaIsOfInterestFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/interest/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get isOfInterest from annot uuid=" + uuid);
+        if (rtn.getJSONArray("response").isNull(0)) return null;
+        return rtn.getJSONArray("response").optBoolean(0);
+    }
 //http://52.37.240.178:5000/api/annot/image/gps/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
     public static Double[] iaLatLonFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from annot uuid=" + uuid);
         JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
         return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
+    }
+//http://71.59.132.88:5005/api/annot/theta/json/?annot_uuid_list=[{%22__UUID__%22:%224ec2f978-cb4d-48f8-adaf-8eecca120285%22}]
+    public static Double iaThetaFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/theta/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get theta from annot uuid=" + uuid);
+        return rtn.getJSONArray("response").optDouble(0, 0.0);
     }
 //http://52.37.240.178:5000/api/image/lat/json/?image_uuid_list=[{%22__UUID__%22:%22e985b3d4-bb2a-8291-07af-1ec4028d4649%22}]
     public static Double[] iaLatLonFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
@@ -2398,18 +2434,24 @@ System.out.println(">>>>>>>> age -> " + rtn);
         return (Double)null;
     }
 
+    //note: for list of valid viewpoint values "consult IA".  *wink*
+    public static JSONObject iaSetViewpointForAnnotUUID(String uuid, String viewpoint, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/viewpoint/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]&viewpoint_list=[\"" + ((viewpoint == null) ? "unknown" : viewpoint) + "\"]"), null);
+        return rtn;
+    }
+
     public static boolean iaEnabled(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
-        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context) != null);
+        return (IA.getProperty(context,"IBEISIARestUrlAddAnnotations") != null);
     }
     public static boolean iaEnabled() {
-        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", ContextConfiguration.getDefaultContext()) != null);
+        return (IA.getProperty(ContextConfiguration.getDefaultContext(), "IBEISIARestUrlAddAnnotations") != null);
     }
 
     public static JSONObject iaStatus(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         JSONObject rtn = new JSONObject();
-        String utest = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
+        String utest = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         if (utest == null) {
             rtn.put("iaURL", (String)null);
             rtn.put("iaEnabled", false);
@@ -2431,8 +2473,9 @@ System.out.println(">>>>>>>> age -> " + rtn);
         }
         rtn.put("timestamp", System.currentTimeMillis());
         JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
-        settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
+        settings.put("IBEISIARestUrlAddAnnotations", IA.getProperty(context, "IBEISIARestUrlAddAnnotations"));
         rtn.put("settings", settings);
+        rtn.put("identOpts", identOpts(context));
         return rtn;
     }
 
@@ -3069,9 +3112,9 @@ return Util.generateUUID();
         String sciName = "";
         int i = 0;
         while (sciName != null) {
-            sciName = CommonConfiguration.getProperty("iaTaxonomyScientificName" + i, context);
+            sciName = IA.getProperty(context, "taxonomyScientificName" + i);
             if (sciName == null) continue;
-            String iaClass = CommonConfiguration.getProperty("iaDetectionClass" + i, context);
+            String iaClass = IA.getProperty(context, "detectionClass" + i);
             if (iaClass == null) iaClass = sciName;  //tough love
             map.put(iaClass, myShepherd.getOrCreateTaxonomy(sciName, true));
             i++;
@@ -3079,6 +3122,23 @@ return Util.generateUUID();
         return map;
     }
 
+    // in IA.properties as stringified JSON objects, like:
+    //     IBEISIdentOpt1={"OC_WDTW": true}
+
+    public static List<JSONObject> identOpts(String context) {
+        List<JSONObject> opt = new ArrayList<JSONObject>();
+        int i = 0;
+        String jstring = "";
+        while (jstring != null) {
+            jstring = IA.getProperty(context, "IBEISIdentOpt" + i);
+            if (jstring == null) break;
+            JSONObject j = Util.stringToJSONObject(jstring);
+            if (j != null) opt.add(j);
+            i++;
+        }
+        if (opt.size() < 1) opt.add((JSONObject)null);  //we should always have *one* -- the default empty one
+        return opt;
+    }
 
     public static String callbackUrl(String baseUrl) {
         return baseUrl + "/ia?callback";

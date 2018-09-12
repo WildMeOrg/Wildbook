@@ -2065,513 +2065,121 @@ $(document).ready(function() {
 
 
 
-					<p class="para">
-						<em><%=encprops.getProperty("submitter")%></em>
-
-						<%
-							if (enc.getSubmitterName() != null) {
-						%>
-						<br />
-						<span id="displaySubmitName"><%=enc.getSubmitterName()%></span>
-						<%
-							}
-									if (isOwner) {
-
-										if ((enc.getSubmitterEmail() != null) && (!enc.getSubmitterEmail().equals(""))
-												&& (enc.getSubmitterEmail().indexOf(",") != -1)) {
-											//break up the string
-											StringTokenizer stzr = new StringTokenizer(enc.getSubmitterEmail(), ",");
-											while (stzr.hasMoreTokens()) {
-												String nextie = stzr.nextToken();
-						%>
-						<br />
-						<a
-							href="mailto:<%=nextie%>?subject=<%=encprops.getProperty("contactEmailMessageHeading")%><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle", context)%>"><%=nextie%></a>
-						<%
-							}
-
-										} else if ((enc.getSubmitterEmail() != null) && (!enc.getSubmitterEmail().equals(""))) {
-						%>
-						<br /> <a
-							href="mailto:<%=enc.getSubmitterEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading")%><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle", context)%>"><span
-							id="displaySubmitEmail"><%=enc.getSubmitterEmail()%></a></span>
-						<%
-							}
-
-										if ((enc.getSubmitterPhone() != null) && (!enc.getSubmitterPhone().equals(""))) {
-						%>
-						<br />
-						<span id="displaySubmitPhone"><%=enc.getSubmitterPhone()%></span>
-						<%
-							}
-										if ((enc.getSubmitterAddress() != null) && (!enc.getSubmitterAddress().equals(""))) {
-						%>
-						<br />
-						<span id="displaySubmitAddress"><%=enc.getSubmitterAddress()%></span>
-						<%
-							}
-
-										if ((enc.getSubmitterOrganization() != null) && (!enc.getSubmitterOrganization().equals(""))) {
-						%>
-						<br />
-						<span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
-						<%
-							}
-										if ((enc.getSubmitterProject() != null) && (!enc.getSubmitterProject().equals(""))) {
-						%>
-						<br />
-						<span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
-						<%
-							}
-
-									}
-						%>
-					</p>
-
-					<p class="para">
-						<em><%=encprops.getProperty("photographer")%></em>
-						<%
-							
-						%>
-
-						<%
-							if (enc.getPhotographerName() != null) {
-						%>
-						<br />
-						<span id="displayPhotoName"><%=enc.getPhotographerName()%></span>
-						<%
-							}
-
-									if (isOwner) {
-
-										if ((enc.getPhotographerEmail() != null) && (!enc.getPhotographerEmail().equals(""))) {
-						%>
-						<br />
-						<a
-							href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading")%><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle", context)%>"><span
-							id="displayPhotoEmail"><%=enc.getPhotographerEmail()%></span></a>
-						<%
-							}
-										if ((enc.getPhotographerPhone() != null) && (!enc.getPhotographerPhone().equals(""))) {
-						%>
-						<br />
-						<span id="displayPhotoPhone"><%=enc.getPhotographerPhone()%></span>
-						<%
-							}
-										if ((enc.getPhotographerAddress() != null) && (!enc.getPhotographerAddress().equals(""))) {
-						%>
-						<br />
-						<span id="displayPhotoAddress"><%=enc.getPhotographerAddress()%></span>
-						<%
-							}
-						%>
-						<%
-							}
-						%>
-					</p>
-
-					<%
-						if (isOwner) {
-					%>
-
-					<p class="para">
-						<em> <%=encprops.getProperty("inform_others")%>
-						</em>
-						<%
-							
-						%>
-
-						<%
-							
-						%>
-						<br />
-						<%
-							if (enc.getInformOthers() != null) {
-
-											if (enc.getInformOthers().indexOf(",") != -1) {
-												//break up the string
-												StringTokenizer stzr = new StringTokenizer(enc.getInformOthers(), ",");
-
-												while (stzr.hasMoreTokens()) {
-						%>
-						<%=stzr.nextToken()%><br />
-						<%
-							}
-
-											} else {
-						%>
-						<span id="displayInformOthers"><%=enc.getInformOthers()%></span><br />
-						<%
-							}
-										} else {
-						%>
-						<%=encprops.getProperty("none")%>
-						<%
-							}
-						%>
-					</p>
-					<%
-						
-					%>
-
-					<!-- start submitter -->
-					<script type="text/javascript">
-            $(document).ready(function() {
-              $("#editContact").click(function(event) {
-                event.preventDefault();
-
-                $("#editContact").hide();
-
-                var contact = $("#submitter").val();
-                var number = $("#submitNumber").val();
-                var action = $("#submitAction").val();
-                var name = $("#submitName").val();
-                var email = $("#submitEmail").val();
-                var phone = $("#submitPhone").val();
-                var address = $("#submitAddress").val();
-                var submitterOrganization = $("#submitOrg").val();
-                var submitterProject = $("#submitProject").val();
-
-                $.post("../EncounterSetSubmitterPhotographerContactInfo", {"contact": contact, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address, "submitterOrganization": submitterOrganization, "submitterProject": submitterProject},
-                function() {
-                  $("#submitErrorDiv").hide();
-                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-success");
-                  $("#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").show();
-                  $("#displaySubmitName").html(name);
-                  $("#displaySubmitEmail").html(email);
-                  $("#displaySubmitPhone").html(phone);
-                  $("#displaySubmitAddress").html(address);
-                  $("#displaySubmitOrg").html(submitterOrganization);
-                  $("#displaySubmitProject").html(submitterProject);
-                })
-                .fail(function(response) {
-                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-error");
-                  $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError").show();
-                  $("#submitErrorDiv").html(response.responseText);
-                });
-              });
-
-              $("#setPersonalDetailsForm").click(function() {
-                $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").hide()
-                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-success");
-                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-error");
-                $("#editContact").show();
-              });
-            });
-          </script>
-
-					<div>
-						<div class="highlight resultMessageDiv" id="submitErrorDiv"></div>
-
-						<p class="editTextContact">
-							<strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("submitter")%>)</strong>
-						</p>
-						<form name="setPersonalDetails" class="editFormContact"
-							id="setPersonalDetailsForm">
-							<input type="hidden" name="contact" value="submitter"
-								id="submitter" /> <input name="number" type="hidden"
-								value="<%=num%>" id="submitNumber" /> <input name="action"
-								type="hidden" value="editcontact" id="submitAction" />
+	      <p class="para"><em><%=encprops.getProperty("submitter") %></em>
+	      <%
+	       if(enc.getSubmitters()!=null){   
+	    	   List<User> submitters=enc.getSubmitters();
+	    	   int numSubmitters=submitters.size();
+			   for(int f=0;f<numSubmitters;f++){
+			    	   User user=submitters.get(f);
+			    	   %>
+			    	   <p id="<%=user.getUUID() %>">
+			    	   <%
+			          if(user.getFullName()!=null){
+			            %>
+			            <span id="displaySubmitName"><%=user.getFullName()%></span>
+			            <%
+			          }
+			          if (isOwner) {
+			
+					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+					              //break up the string
+					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
+	
+					                %>
+					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+					                <%
+					            }
+				                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){
+				                %>
+				                	<br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
+				                <%
+				                }
+				                if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
+				                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
+				                <%
+				                 }
+			
+			         } //end if isOwner
+				         %>
+				         </p>
+				         <%
+			   	} //submitters for loop               	
+	 		} //end if submitters!=null
+			%>
+			</p> <!--  End submitters paragraph -->
+		
+	      <p class="para"><em><%=encprops.getProperty("photographer") %></em>
+	      <%
+	       if(enc.getPhotographers()!=null){   
+	    	   List<User> photographers=enc.getPhotographers();
+	    	   int numSubmitters=photographers.size();
+			   for(int f=0;f<numSubmitters;f++){
+			    	   User user=photographers.get(f);
+			    	   %>
+			    	   <p id="<%=user.getUUID() %>">
+			    	   <%
+			          if(user.getFullName()!=null){
+			            %>
+			            <p id="<%=user.getUUID() %>"><span id="displaySubmitName"><%=user.getFullName()%></span>
+			            <%
+			          }
+			          if (isOwner) {
+			
+					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+					              //break up the string
+					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
+	
+					                %>
+					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+					                <%
+					            }
+				                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){
+				                %>
+				                	<br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
+				                <%
+				                }
+				                if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
+				                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
+				                <%
+				                 }
+			
+			         } //end if isOwner
+			         %>
+			         </p>
+			         <%
+			   	} //photographers for loop               	
+	 		} //end if photographers!=null
+			%>
+			</p> <!--  End photographers paragraph -->
+		                   
+		                   
+		                   
+		                   
+		                   
 							<%
-								String sName = "";
-											if (enc.getSubmitterName() != null) {
-												sName = enc.getSubmitterName();
-											}
-											String sEmail = "";
-											if (enc.getSubmitterEmail() != null) {
-												sEmail = enc.getSubmitterEmail();
-											}
-											String sPhone = "";
-											if (enc.getSubmitterPhone() != null) {
-												sPhone = enc.getSubmitterPhone();
-											}
-											String sAddress = "";
-											if (enc.getSubmitterAddress() != null) {
-												sAddress = enc.getSubmitterAddress();
-											}
-											String sOrg = "";
-											if (enc.getSubmitterOrganization() != null) {
-												sOrg = enc.getSubmitterOrganization();
-											}
-											String sProject = "";
-											if (enc.getSubmitterProject() != null) {
-												sProject = enc.getSubmitterProject();
-											}
-							%>
+		                    if(isOwner){
+		                    %>
+		
+		                                <p class="para">
+		                                  <em>
+		                                    <%=encprops.getProperty("inform_others") %>
+		                                  </em>
+		                 
+		                                    <br/>
+											Rewriting for Wildbook 7...
+		                                        </p>
+		
+		            
+		               		<%
+		                  	} //end if isOwner
+    	   		
 
-							<div class="form-group row">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("name")%></label>
-								</div>
-								<div class="col-sm-5" id="submitNameDiv">
-									<input id="submitName" name="name" type="text"
-										value="<%=sName%>" class="form-control"></input> <span
-										class="form-control-feedback" id="submitNameCheck">&check;</span>
-									<span class="form-control-feedback" id="submitNameError">X</span>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("email")%></label>
-								</div>
-								<div class="col-sm-5" id="submitEmailDiv">
-									<input id="submitEmail" name="email" type="text"
-										value="<%=sEmail%>" class="form-control"></input> <span
-										class="form-control-feedback" id="submitEmailCheck">&check;</span>
-									<span class="form-control-feedback" id="submitEmailError">X</span>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("phone")%></label>
-								</div>
-								<div class="col-sm-5" id="submitPhoneDiv">
-									<input id="submitPhone" name="phone" type="text"
-										value="<%=sPhone%>" class="form-control"></input> <span
-										class="form-control-feedback" id="submitPhoneCheck">&check;</span>
-									<span class="form-control-feedback" id="submitPhoneError">X</span>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("address")%></label>
-								</div>
-								<div class="col-sm-5" id="submitAddressDiv">
-									<input id="submitAddress" name="address" type="text"
-										value="<%=sAddress%>" class="form-control"></input> <span
-										class="form-control-feedback" id="submitAddressCheck">&check;</span>
-									<span class="form-control-feedback" id="submitAddressError">X</span>
-								</div>
-							</div>
-							<div class="form-group row" id="submitOrgDiv">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("submitterOrganization")%></label>
-								</div>
-								<div class="col-sm-5">
-									<input id="submitOrg" name="submitterOrganization" type="text"
-										value="<%=sOrg%>" class="form-control"></input> <span
-										class="form-control-feedback" id="submitOrgCheck">&check;</span>
-									<span class="form-control-feedback" id="submitOrgError">X</span>
-								</div>
-							</div>
-							<div class="form-group row" id="submitProjectDiv">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("submitterProject")%></label>
-								</div>
-								<div class="col-sm-5">
-									<input id="submitProject" name="submitterProject" type="text"
-										value="<%=sProject%>" class="form-control"></input> <span
-										class="form-control-feedback" id="submitProjectCheck">&check;</span>
-									<span class="form-control-feedback" id="submitProjectError">X</span>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-sm-3"></div>
-								<div class="col-sm-5">
-									<input name="EditContact" type="submit" id="editContact"
-										value="Update" class="btn bnt-sm editFormBtn" />
-								</div>
-							</div>
-						</form>
-					</div>
-
-					<!-- end submitter  -->
-
-					<!-- start photographer -->
-					<script type="text/javascript">
-              $(document).ready(function() {
-                $("#editPhotographer").click(function(event) {
-                  event.preventDefault();
-
-                  $("#editPhotographer").hide();
-
-                  var contact = $("#photographer").val();
-                  var number = $("#photoNumber").val();
-                  var action = $("#photoAction").val();
-                  var name = $("#photoName").val();
-                  var email = $("#photoEmail").val();
-                  var phone = $("#photoPhone").val();
-                  var address = $("#photoAddress").val();
-
-
-                  $.post("../EncounterSetSubmitterPhotographerContactInfo", {"contact": contact, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address},
-                  function() {
-                    $("#photoErrorDiv").hide();
-                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-success");
-                    $("#photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").show();
-                    $("#displayPhotoName").html(name);
-                    $("#displayPhotoEmail").html(email);
-                    $("#displayPhotoPhone").html(phone);
-                    $("#displayPhotoAddress").html(address);
-                  })
-                  .fail(function(response) {
-                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-error");
-                    $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError").show();
-                    $("#photoErrorDiv").html(response.responseText);
-                  });
-                });
-
-                $("#setPhotographerInfoForm").click(function() {
-                  $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").hide()
-                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-success");
-                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-error");
-                  $("#editPhotographer").show();
-                });
-              });
-            </script>
-					<div>
-						<div class="highlight resultMessageDiv" id="photoErrorDiv"></div>
-
-						<p class="editTextContact">
-							<strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)</strong>
-						</p>
-						<form id="setPhotographerInfoForm" class="editFormContact">
-							<input type="hidden" name="contact" value="photographer"
-								id="photographer" /> <input name="number" type="hidden"
-								value="<%=num%>" id="photoNumber" /> <input name="action"
-								type="hidden" value="editcontact" id="photoAction" />
-
-							<%
-								String pName = "";
-											if (enc.getPhotographerName() != null) {
-												pName = enc.getPhotographerName();
-											}
-											String pEmail = "";
-											if (enc.getPhotographerEmail() != null) {
-												pEmail = enc.getPhotographerEmail();
-											}
-											String pPhone = "";
-											if (enc.getPhotographerPhone() != null) {
-												pPhone = enc.getPhotographerPhone();
-											}
-											String pAddress = "";
-											if (enc.getPhotographerAddress() != null) {
-												pAddress = enc.getPhotographerAddress();
-											}
-							%>
-
-							<div class="form-group row">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("name")%></label>
-								</div>
-								<div class="col-sm-5" id="photoNameDiv">
-									<input id="photoName" name="name" type="text" size="20"
-										value="<%=pName%>" class="form-control"></input> <span
-										class="form-control-feedback" id="photoNameCheck">&check;</span>
-									<span class="form-control-feedback" id="photoNameError">X</span>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("email")%></label>
-								</div>
-								<div class="col-sm-5" id="photoEmailDiv">
-									<input id="photoEmail" name="email" type="text"
-										value="<%=pEmail%>" class="form-control"></input> <span
-										class="form-control-feedback" id="photoEmailCheck">&check;</span>
-									<span class="form-control-feedback" id="photoEmailError">X</span>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("phone")%></label>
-								</div>
-								<div class="col-sm-5" id="photoPhoneDiv">
-									<input id="photoPhone" name="phone" type="text" size="20"
-										value="<%=pPhone%>" class="form-control"></input></input> <span
-										class="form-control-feedback" id="photoPhoneCheck">&check;</span>
-									<span class="form-control-feedback" id="photoPhoneError">X</span>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-sm-3">
-									<label><%=encprops.getProperty("address")%></label>
-								</div>
-								<div class="col-sm-5" id="photoAddressDiv">
-									<input id="photoAddress" name="address" type="text"
-										value="<%=pAddress%>" class="form-control" /> <span
-										class="form-control-feedback" id="photoAddressCheck">&check;</span>
-									<span class="form-control-feedback" id="photoAddressError">X</span>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-sm-3"></div>
-								<div class="col-sm-5">
-									<input name="EditContact" type="submit" id="editPhotographer"
-										value="Update" class="btn btn-sm editFormBtn" />
-								</div>
-							</div>
-						</form>
-					</div>
-
-					<!-- end photographer  -->
-
-					<%-- start inform others --%>
-					<script type="text/javascript">
-                $(document).ready(function() {
-                  $("#setOthers").click(function(event) {
-                    event.preventDefault();
-
-                    $("#setOthers").hide();
-
-                    var encounter = $("#informEncounter").val();
-                    var informothers = $("#informOthers").val();
-
-                    $.post("../EncounterSetInformOthers", {"encounter": encounter, "informothers": informothers},
-                    function() {
-                      $("#informErrorDiv").hide();
-                      $("#informOthersDiv").addClass("has-success");
-                      $("#informCheck").show();
-                      $("#displayInformOthers").html(informothers);
-                    })
-                    .fail(function(response) {
-                      $("#informOthersDiv").addClass("has-error");
-                      $("#informError, #informErrorDiv").show();
-                      $("#informErrorDiv").html(response.responseText);
-                    });
-                  });
-
-                  $("#informOthers").click(function() {
-                    $("#informError, #informCheck, #informErrorDiv").hide()
-                    $("#informOthersDiv").removeClass("has-success");
-                    $("#informOthersDiv").removeClass("has-error");
-                    $("#setOthers").show();
-                  });
-                });
-              </script>
-
-					<div>
-						<div class="highlight resultMessageDiv" id="informErrorDiv"></div>
-
-						<p class="editTextContact">
-							<strong><%=encprops.getProperty("setOthersToInform")%></strong> <span
-								class="editTextContact"><em><%=encprops.getProperty("separateEmails")%></em></span>
-						</p>
-						<form name="setOthers" class="editFormContact">
-							<input name="encounter" type="hidden" value="<%=num%>"
-								id="informEncounter" />
-							<div class="form-group row">
-								<div class="col-sm-6" id="informOthersDiv">
-									<input class="form-control" name="informothers" type="text"
-										id="informOthers" <%if (enc.getInformOthers() != null) {%>
-										value="<%=enc.getInformOthers().trim()%>" <%}%> /> <span
-										class="form-control-feedback" id="informCheck">&check;</span>
-									<span class="form-control-feedback" id="informError">X</span>
-								</div>
-								<div class="col-sm-3">
-									<input name="Set" type="submit" id="setOthers"
-										value="<%=encprops.getProperty("set")%>"
-										class="btn btn-sm editFormBtn" />
-								</div>
-							</div>
-						</form>
-					</div>
-					<!-- end inform others  -->
-					<%
-						}
-					%>
-				</div>
-				<%-- END CONTACT INFORMATION --%>
+                  	%>
+                  
+                    <!-- end submitter  -->
+        </div>
+<%-- END CONTACT INFORMATION --%>
 
 
 				<%-- START METADATA --%>
@@ -2886,11 +2494,62 @@ $(document).ready(function() {
 									</td>
 
 
-								</tr>
-							</table> <!-- END USER ATTRIBUTE --> <!-- START TAPIRLINK DISPLAY AND SETTER -->
-							<%
-								if (isOwner) {
-							%> <script type="text/javascript">
+
+<!-- start set username -->
+<div>
+  <div class="highlight resultMessageDiv" id="assignErrorDiv"></div>
+
+  <p class="editTextMeta"><strong><%=encprops.getProperty("assignUser")%></strong></p>
+
+  <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post" class="editFormMeta">
+    <input name="number" type="hidden" value="<%=num%>" id="assignNumber"/>
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <select name="submitter" id="submitterSelect" class="form-control" size="1">
+            <option value=""></option>
+            <%
+
+            Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.setAction("encounter.jsp3");
+            userShepherd.beginDBTransaction();
+
+            ArrayList<String> usernames=userShepherd.getAllUsernames();
+
+            int numUsers=usernames.size();
+            for(int i=0;i<numUsers;i++){
+                String thisUsername=usernames.get(i);
+                //User thisUser2=userShepherd.getUser(thisUsername);
+                String thisUserFullname=thisUsername;
+                //if((thisUser2!=null)&&(thisUser2.getFullName()!=null)){thisUserFullname=thisUser2.getFullName();}
+              %>
+              <option value="<%=thisUsername%>"><%=thisUserFullname%></option>
+              <%
+            }
+            userShepherd.rollbackDBTransaction();
+            userShepherd.closeDBTransaction();
+            %>
+          </select>
+      </div>
+      <div class="col-sm-3">
+        <input name="Assign" type="submit" id="Assign" value="<%=encprops.getProperty("assign")%>" class="btn btn-sm editFormBtn"/>
+      </div>
+    </div>
+  </form>
+</div>
+
+
+                  </td>
+
+
+    </tr></table>
+
+<!-- END USER ATTRIBUTE -->
+
+<!-- START TAPIRLINK DISPLAY AND SETTER -->
+<%
+if (isOwner) {
+%>
+<script type="text/javascript">
   $(document).ready(function() {
     $("#tapirApprove").click(function(event) {
       event.preventDefault();

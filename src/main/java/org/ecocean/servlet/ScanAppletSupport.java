@@ -26,18 +26,18 @@ import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.grid.GridNode;
 import org.ecocean.grid.ScanWorkItem;
 
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-
 import java.util.Vector;
+import java.util.zip.GZIPOutputStream;
 
 //import java.io.PrintWriter;
 
@@ -173,11 +173,12 @@ public class ScanAppletSupport extends HttpServlet {
       try {
         //myShepherd.beginDBTransaction();
 
-        int totalWorkItems = gm.getNumWorkItemsCompleteForTask(request.getParameter("newEncounterNumber")) + gm.getNumWorkItemsIncompleteForTask(request.getParameter("newEncounterNumber"));
+        //int totalWorkItems = gm.getNumWorkItemsCompleteForTask(request.getParameter("newEncounterNumber")) + gm.getNumWorkItemsIncompleteForTask(request.getParameter("newEncounterNumber"));
         //change
         //int totalWorkItemsComplete=myShepherd.getNumWorkItemsCompleteForTask(request.getParameter("newEncounterNumber"));
-        int totalWorkItemsComplete = gm.getNumWorkItemsCompleteForTask(request.getParameter("newEncounterNumber"));
+        //int totalWorkItemsComplete = gm.getNumWorkItemsCompleteForTask(request.getParameter("newEncounterNumber"));
 
+        /*
         boolean force = false;
         int diff = totalWorkItems - totalWorkItemsComplete;
         if (diff < groupSize) {
@@ -185,13 +186,14 @@ public class ScanAppletSupport extends HttpServlet {
           groupSize = diff;
           force = true;
         }
+        */
 
         //new way
 
         Vector holdSWIs = new Vector();
 
         //get the items to transmit
-        getUniqueWorkItems(holdSWIs, request, groupSize, checkoutTimeout, force, totalWorkItems, totalWorkItemsComplete, gm);
+        getUniqueWorkItems(holdSWIs, request, groupSize, checkoutTimeout, gm);
 
 
         //transmit result and clean up
@@ -253,7 +255,11 @@ public class ScanAppletSupport extends HttpServlet {
   public boolean sendObject(HttpServletResponse response, Object encounterVector) {
     ObjectOutputStream outputToApplet=null;
     try {
-      outputToApplet = new ObjectOutputStream(response.getOutputStream());
+      
+      //outputToApplet = new ObjectOutputStream(response.getOutputStream());
+      
+      outputToApplet = new ObjectOutputStream(new BufferedOutputStream(new GZIPOutputStream(response.getOutputStream())));
+      
       outputToApplet.writeObject(encounterVector);
       outputToApplet.flush();
       outputToApplet.close();
@@ -272,7 +278,7 @@ public class ScanAppletSupport extends HttpServlet {
     }
   }
 
-  public synchronized void getUniqueWorkItems(Vector holdSWIs, HttpServletRequest request, int groupSize, long checkoutTimeout, boolean force, int totalWorkItems, int totalWorkItemsComplete, GridManager gm) {
+  public synchronized void getUniqueWorkItems(Vector holdSWIs, HttpServletRequest request, int groupSize, long checkoutTimeout, GridManager gm) {
 
     String id = request.getParameter("newEncounterNumber");
 
@@ -301,38 +307,39 @@ public class ScanAppletSupport extends HttpServlet {
     boolean hasWork = false;
 
     boolean rightScan = false;
+    if(listSize>0)hasWork = true;
+    long time = System.currentTimeMillis();
     for (int i = 0; i < listSize; i++) {
-      hasWork = true;
-
+      
       ScanWorkItem swi = list.get(i);
-
-      long time = System.currentTimeMillis();
 
       swi.setStartTime(time);
 
-      swi.setTotalWorkItemsInTask(totalWorkItems);
-      swi.setWorkItemsCompleteInTask(totalWorkItemsComplete + i);
+      //swi.setTotalWorkItemsInTask(totalWorkItems);
+      //swi.setWorkItemsCompleteInTask(totalWorkItemsComplete + i);
       rightScan = swi.rightScan;
       holdSWIs.add(swi);
     }
     //query.closeAll();
-    if (hasWork) {
+    //if (hasWork) {
       //query.closeAll();
       //myShepherd.commitDBTransaction();
-    } else {
+    //} 
+    if(!hasWork) {
       //query.closeAll();
-      if ((totalWorkItems != totalWorkItemsComplete) || (totalWorkItems == 0)) {
+      //if ((totalWorkItems != totalWorkItemsComplete) || (totalWorkItems == 0)) {
 
         //return a blank workItem telling the applet to wait for a result to be written
         ScanWorkItem scanWI = new ScanWorkItem();
         scanWI.setTotalWorkItemsInTask(-1);
         scanWI.setWorkItemsCompleteInTask(-1);
-        scanWI.rightScan = rightScan;
+        //scanWI.rightScan = rightScan;
 
         //myShepherd.rollbackDBTransaction();
 
         holdSWIs.add(scanWI);
-      } else {
+      //} 
+      /*else {
 
         //tell the applet to go for it and look at the result
         //query.closeAll();
@@ -344,7 +351,7 @@ public class ScanAppletSupport extends HttpServlet {
         scanWI.setWorkItemsCompleteInTask(0);
         scanWI.rightScan = rightScan;
         holdSWIs.add(scanWI);
-      }
+      }*/
 
     }
 
@@ -387,9 +394,10 @@ public class ScanAppletSupport extends HttpServlet {
     }*/
 
     String activeTask = "";
+    if(listSize>0)foundTask = true;
     for (int i = 0; i < listSize; i++) {
 
-      foundTask = true;
+      
       ScanWorkItem swi2 = list.get(i);
 
 
@@ -404,12 +412,12 @@ public class ScanAppletSupport extends HttpServlet {
       swi2.setWorkItemsCompleteInTask(1);
       holdResults.add(swi2);
     }
-    if (foundTask) {
+    //if (foundTask) {
       //query.closeAll();
 
       //myShepherd.commitDBTransaction();
 
-    } else {
+    if(!foundTask) {
       //System.out.println("I'm in scanAppletSupport, generic request, returning a blank return item...");
 
       //tell the node to go back to a conservative load since we're not sure how intensive the next set of work might be

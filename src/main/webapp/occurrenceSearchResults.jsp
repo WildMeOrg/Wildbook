@@ -292,9 +292,9 @@ var colDefn = [
     value: _date,
   },
   {
-    key: 'sightingPlatform',
-    label: 'Sighting Platform',
-    value: _notUndefined('sightingPlatform'),
+    key: 'groupBehavior',
+    label: 'Group Behavior',
+    value: _notUndefined('groupBehavior'),
   },
   {
     key: 'taxonomies',

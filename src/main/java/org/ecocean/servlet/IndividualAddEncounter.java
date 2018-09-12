@@ -214,12 +214,12 @@ public class IndividualAddEncounter extends HttpServlet {
 
       			  // Notify submitters, photographers, and informOthers values
               Set<String> cSubmitters = new HashSet<>();
-              if (enc2add.getSubmitterEmail() != null)
-                cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getSubmitterEmail()));
-              if (enc2add.getPhotographerEmail() != null)
-                cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getPhotographerEmail()));
+              if (enc2add.getSubmitterEmails() != null)cSubmitters.addAll(enc2add.getSubmitterEmails());
+              if (enc2add.getPhotographerEmails() != null)cSubmitters.addAll(enc2add.getPhotographerEmails());
+
               if (enc2add.getInformOthers() != null)
                 cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getInformOthers()));
+              
               for (String emailTo : cSubmitters) {
                 if (!"".equals(emailTo)) {
                   tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
@@ -229,7 +229,7 @@ public class IndividualAddEncounter extends HttpServlet {
               }
 
       			  // Notify other who need to know
-              Set<String> cOthers = new HashSet<>(addToMe.getAllEmailsToUpdate());
+              Set<String> cOthers = new HashSet<>(allAssociatedEmails);
               cOthers.removeAll(cSubmitters);
               //System.out.println("cOthers size is: "+cOthers.size());
               for (String emailTo : cOthers) {
@@ -288,10 +288,12 @@ public class IndividualAddEncounter extends HttpServlet {
             out.println(ServletUtilities.getFooter(context));
             String message = "Encounter #" + request.getParameter("number") + " was added to " + request.getParameter("individual") + ".";
 
+            /*
             if (request.getParameter("noemail") == null) {
               ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
               ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
             }
+            */
             es.shutdown();
           }
 
