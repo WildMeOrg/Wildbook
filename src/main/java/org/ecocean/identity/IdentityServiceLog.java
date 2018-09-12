@@ -176,7 +176,7 @@ public class IdentityServiceLog implements java.io.Serializable {
 //System.out.println("serviceName=(" + serviceName + ") serviceJobID=(" + serviceJobID + ")");
         Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
         //Query qry = myShepherd.getPM().newQuery(cls, "this.serviceName == \"" + serviceName + "\" && this.objectIDs.contains(\"" + objectID + "\")");
-        Query qry = myShepherd.getPM().newQuery(cls, "this.serviceName == \"" + serviceName + "\"");
+        Query qry = myShepherd.getPM().newQuery(cls, "this.objectIDs != null && this.serviceName == \"" + serviceName + "\"");
         qry.setOrdering("timestamp");
         ArrayList<IdentityServiceLog> log=new ArrayList<IdentityServiceLog>();
         try {
