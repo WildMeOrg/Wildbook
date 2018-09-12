@@ -187,10 +187,17 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
             Shepherd myShepherd=new Shepherd(context);
             myShepherd.setAction("ScanWorkItemResultsHandler.class");
             myShepherd.beginDBTransaction();
-            ScanTask st=myShepherd.getScanTask(scanTaskID);
-            if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
+            try{
+              ScanTask st=myShepherd.getScanTask(scanTaskID);
+              if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
+            }
+            catch(Exception e){
+              e.printStackTrace();
+            }
+            finally{
+              myShepherd.rollbackDBTransaction();
+              myShepherd.closeDBTransaction();
+            }
             //tasksCompleted.add(scanTaskID);
           //}
           
