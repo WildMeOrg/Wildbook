@@ -664,6 +664,10 @@ public class Util {
         value = value.toLowerCase();
         return !(value.equals("false") || value.equals("f") || value.equals("0"));
     }
+    //a slightly(!) more generic(!?) version of above
+    public static boolean booleanNotFalse(String value) {
+        return requestParameterSet(value);
+    }
 
     
     public static String basicSanitize(String input) {
