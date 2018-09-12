@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 import java.io.*;
 
@@ -51,14 +52,31 @@ public class UserDelete extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    String username = request.getParameter("username").trim();
+    String email = request.getParameter("email").trim();
 
 
     myShepherd.beginDBTransaction();
-    if (myShepherd.getUser(username)!=null) {
+    if (myShepherd.getUserByEmailAddress(email)!=null) {
 
       try {
-        User ad = myShepherd.getUser(username);
+        User ad = myShepherd.getUserByEmailAddress(email);
+        
+        //first delete the roles
+        if(ad.getUsername()!=null) {
+          List<Role> roles=myShepherd.getAllRolesForUser(ad.getUsername());
+          int numRoles=roles.size();
+          for(int i=0;i<numRoles;i++){
+            Role r=roles.get(i);
+            //if(myShepherd.getUser(r.getUsername())!=null){
+            myShepherd.getPM().deletePersistent(r);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+            //}
+          }
+      }
+        
+        
+        //now delete the user
         myShepherd.getPM().deletePersistent(ad);
 
       } 
@@ -73,7 +91,7 @@ public class UserDelete extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully removed user account '" + username + "'.");
+        out.println("<strong>Success!</strong> I have successfully removed user account '" + email + "'.");
 
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));

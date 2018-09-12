@@ -292,6 +292,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
     String getterName = "get" + fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
     Method getter = obj.getClass().getMethod(getterName);
     //printOutClassFieldModifierRow(obj, getter, out);
+    // below call being used
     printOutClassFieldModifierRow(obj, getter, posValues, out);
   }
 
@@ -324,7 +325,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
     String fieldName = prettyFieldNameFromGetMethod(getMethod);
     String inputName = inputElemName(getMethod, classNamePrefix);
 
-    System.out.println("printing out "+fieldName+" with pos values "+posValues);
+    System.out.println("printing out "+fieldName+" value = "+printValue+" and options = "+posValues);
 
     printOutClassFieldModifierRow(fieldName, printValue, posValues, inputName, out);
   }
@@ -368,12 +369,22 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
     String SELECTED = " selected=\"selected\" ";
     String thisSelStr = (printValue.equals("")) ? SELECTED : "";
 
+    // keeps track of whether we've actually displayed the printed value.
+    boolean printValuePrinted = thisSelStr.equals(SELECTED);
+
     out.println("\t\t<select name=\""+inputName+"\">");
     out.println("\t\t\t<option value=\"\" "+thisSelStr+" ></option>");
     for (String valStr: posValues) {
       thisSelStr = (printValue.equals(valStr)) ? SELECTED : "";
+      printValuePrinted = printValuePrinted || thisSelStr.equals(SELECTED); // keeps track if we've ever seen the value
       out.println("\t\t\t<option value=\""+valStr+"\" "+thisSelStr+">"+valStr+"</option>");
     }
+    if (!printValuePrinted && Util.stringExists(printValue)) {
+      // print value is selected.
+      out.println("\t\t\t<option value=\""+printValue+"\" "+SELECTED+">"+printValue+"</option>");
+    }
+
+
     out.println("\t\t</select>");
     out.println("\t</td>");
 

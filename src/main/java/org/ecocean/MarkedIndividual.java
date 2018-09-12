@@ -198,6 +198,33 @@ public class MarkedIndividual implements java.io.Serializable {
 
  }
 
+   public boolean addEncounterNoCommit(Encounter newEncounter) {
+
+      newEncounter.assignToMarkedIndividual(individualID);
+
+      //get and therefore set the haplotype if necessary
+      getHaplotype();
+
+      boolean isNew=true;
+      for(int i=0;i<encounters.size();i++) {
+        Encounter tempEnc=(Encounter)encounters.get(i);
+        if(tempEnc.getEncounterNumber().equals(newEncounter.getEncounterNumber())) {
+          isNew=false;
+        }
+      }
+
+      //prevent duplicate addition of encounters
+      if(isNew){
+        encounters.add(newEncounter);
+        numberEncounters++;
+        //refreshDependentProperties(context);
+      }
+      setTaxonomyFromEncounters();  //will only set if has no value
+      setSexFromEncounters();       //likewise
+      return isNew;
+
+  }
+
    /**Removes an encounter from this MarkedIndividual.
    *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
    *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
@@ -1641,7 +1668,7 @@ public boolean hasGeneticSex(){
 *@return ArrayList of all emails to inform
 */
 public List<String> getAllEmailsToUpdate(){
-	ArrayList notifyUs=new ArrayList();
+	ArrayList<String> notifyUs=new ArrayList<String>();
 
 	int numEncounters=encounters.size();
 	//int numUnidetifiableEncounters=unidentifiableEncounters.size();
@@ -1649,6 +1676,9 @@ public List<String> getAllEmailsToUpdate(){
 	//process encounters
 	for(int i=0;i<numEncounters;i++){
 		Encounter enc=(Encounter)encounters.get(i);
+		
+		
+		/*
 		if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().trim().equals(""))){
 			String submitter = enc.getSubmitterEmail();
 			if (submitter.indexOf(",") != -1) {
@@ -1671,6 +1701,20 @@ public List<String> getAllEmailsToUpdate(){
 					}
 					else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
 		}
+		*/
+		
+		List<User> allUsers=new ArrayList<User>();
+		if(enc.getSubmitters()!=null)allUsers.addAll(enc.getSubmitters());
+		if(enc.getPhotographers()!=null)allUsers.addAll(enc.getPhotographers());
+		int numUsers=allUsers.size();
+		for(int k=0;k<numUsers;k++){
+		  User use=allUsers.get(k);
+		  if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+		    notifyUs.add(use.getEmailAddress());
+		  }
+		}
+		
+		
 		if((enc.getInformOthers()!=null)&&(!enc.getInformOthers().trim().equals(""))){
 							String photog = enc.getInformOthers();
 							if (photog.indexOf(",") != -1) {

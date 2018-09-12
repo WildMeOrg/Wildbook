@@ -1,69 +1,3 @@
-<html><head><title>obrowse</title>
-<script src="tools/jquery/js/jquery.min.js"></script>
-<style>
-
-.img-margin {
-    float: right;
-    display: inline-block;
-}
-
-#img-wrapper {
-    position: relative;
-}
-.featurebox {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    outline: dashed 2px rgba(255,255,0,0.8);
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
-}
-.mediaasset {
-	position: relative;
-}
-.mediaasset img {
-	xposition: absolute;
-	top: 0;
-	xright: 20px;
-	max-width: 350px;
-}
-
-.deprecated {
-	color: #888;
-}
-
-</style>
-
-<script>
-var features = {};
-
-function addFeature(id, bbox) {
-    features[id] = bbox;
-}
-
-function drawFeatures() {
-    for (id in features) {
-        drawFeature(id);
-    }
-}
-function drawFeature(id) {
-    if (!(id in features)) return;
-    var bbox = features[id];
-    var el = $('#img-wrapper');
-    var img = $('img')[0];
-    var f = $('<div title="' + id + '" id="feature-' + id + '" class="featurebox" />');
-    el.append(f);
-    if (!bbox || !bbox.width) return;  //trivial annot, so leave it as whole image
-    var scale = img.height / img.naturalHeight;
-    f.css('width', (bbox.width * scale) + 'px');
-    f.css('height', (bbox.height * scale) + 'px');
-    f.css('left', (bbox.x * scale) + 'px');
-    f.css('top', (bbox.y * scale) + 'px');
-}
-</script>
-
-</head><body>
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
@@ -74,7 +8,6 @@ java.util.ArrayList,
 org.json.JSONObject,
 java.util.Properties" %>
 <%!
-
 	public Shepherd myShepherd = null;
 
 	private ArrayList<Object> shown = new ArrayList<Object>();
@@ -160,9 +93,10 @@ java.util.Properties" %>
 		shown.add(ann);
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
 		h += "<li>species: <b>" + ((ann.getSpecies() == null) ? "[null]" : ann.getSpecies()) + "</b></li>";
-		h += "<li>features: " + showFeatureList(ann.getFeatures(), req) + "</li>";
-		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd), req) + "</li>";
-		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset(), req) + "</li>";
+        h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
+		h += "<li>features: " + showFeatureList(ann.getFeatures()) + "</li>";
+		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd)) + "</li>";
+		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset()) + "</li>";
 		return h + "</ul></div>";
 	}
 
@@ -268,7 +202,87 @@ java.util.Properties" %>
             if (occ == null) return "(no Occurrence)";
             return "[<a target=\"_new\" href=\"occurrence.jsp?number=" + occ.getID() + "\">" + occ.getID() + "</a>] " + occ.toString();
         }
+    	private boolean rawOutput(String type) {
+        	if (type == null) return false;
+        	return type.equals("MediaAssetMetadata");
+    	}
+
 %><%
+
+String id = request.getParameter("id");
+String type = request.getParameter("type");
+
+if (!rawOutput(type)) {
+%>
+<html><head><title>obrowse</title>
+<script src="tools/jquery/js/jquery.min.js"></script>
+<style>
+
+.img-margin {
+    float: right;
+    display: inline-block;
+}
+
+#img-wrapper {
+    position: relative;
+}
+.featurebox {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    outline: dashed 2px rgba(255,255,0,0.8);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
+}
+.mediaasset {
+	position: relative;
+}
+.mediaasset img {
+	xposition: absolute;
+	top: 0;
+	xright: 20px;
+	max-width: 350px;
+}
+
+.deprecated {
+	color: #888;
+}
+
+</style>
+
+<script>
+var features = {};
+
+function addFeature(id, bbox) {
+    features[id] = bbox;
+}
+
+function drawFeatures() {
+    for (id in features) {
+        drawFeature(id);
+    }
+}
+function drawFeature(id) {
+    if (!(id in features)) return;
+    var bbox = features[id];
+    var el = $('#img-wrapper');
+    var img = $('img')[0];
+    var f = $('<div title="' + id + '" id="feature-' + id + '" class="featurebox" />');
+    el.append(f);
+    if (!bbox || !bbox.width) return;  //trivial annot, so leave it as whole image
+    var scale = img.height / img.naturalHeight;
+    f.css('width', (bbox.width * scale) + 'px');
+    f.css('height', (bbox.height * scale) + 'px');
+    f.css('left', (bbox.x * scale) + 'px');
+    f.css('top', (bbox.y * scale) + 'px');
+    if (bbox.theta) f.css('transform', 'rotate(' +  bbox.theta + 'rad)');
+}
+</script>
+
+</head><body>
+<%
+}  //above skipped for MediaAssetMetadata (raw json)
 
 myShepherd = new Shepherd("context0");
 myShepherd.setAction("obrowse.jsp");
@@ -290,8 +304,6 @@ context=ServletUtilities.getContext(request);
   props = ShepherdProperties.getProperties("login.properties", langCode,context);
 */
 
-String id = request.getParameter("id");
-String type = request.getParameter("type");
 if (type == null) type = "Encounter";
 if (id == null) {
 	out.println(showForm());
@@ -399,6 +411,9 @@ if (needForm) out.println(showForm());
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 
+if (!rawOutput(type)) {
 %>
 
 </body></html>
+
+<% } %>

@@ -41,6 +41,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Set;
 import java.util.List;
+import java.util.Base64;
 import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -661,12 +662,13 @@ public class MediaAsset implements java.io.Serializable {
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
         }
-
         try {
             int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
-            if (i == 0) return new URL(store.getUsage().substring(16));
+            if (i == 0) {
+                String localURL = store.getUsage().substring(16);
+                return new URL(localURL);
+            } 
         } catch (java.net.MalformedURLException ex) {}
-
         return store.webURL(this);
     }
 
@@ -707,6 +709,26 @@ public class MediaAsset implements java.io.Serializable {
     public URL safeURL() {
         return safeURL((HttpServletRequest)null);
     }
+
+    public URL containerURLIfPresent() {
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
+
+        URL localURL = store.getConfig().getURL("webroot"); 
+        if (localURL == null) return null;
+        String hostname = localURL.getHost(); 
+
+        if (containerName!=null&&containerName!="") {
+            try {
+                System.out.println("Using containerName for MediaAsset URL domain..");
+                return new URL(store.webURL(this).getProtocol(), containerName, 80, store.webURL(this).getFile());
+            } catch (java.net.MalformedURLException ex) {}
+        }
+        try {
+            return new URL(hostname);
+        } catch (java.net.MalformedURLException mue) {}
+        return null;
+    }
+
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request, String bestType) {
         if (store == null) return null;
         //this logic is simplistic now, but TODO make more complex (e.g. configurable) later....
@@ -901,6 +923,7 @@ public class MediaAsset implements java.io.Serializable {
                     Annotation ann = ft.getAnnotation();
                     if (ann != null) {
                         jf.put("annotationId", ann.getId());
+                        jf.put("annotationIsOfInterest", ann.getIsOfInterest());
                         Encounter enc = ann.findEncounter(myShepherd);
                         if (enc != null) {
                             jf.put("encounterId", enc.getCatalogNumber());
@@ -1177,6 +1200,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public void setMetadata(MediaAssetMetadata md) {
         metadata = md;
     }
+    public void setMetadata() throws IOException {
+        setMetadata(updateMetadata());
+    }
     public MediaAssetMetadata updateMetadata() throws IOException {  //TODO should this overwrite existing, or append?
         if (store == null) return null;
         metadata = store.extractMetadata(this);
@@ -1237,7 +1263,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         if (b64 == null) throw new IOException("copyInBase64() null string");
         byte[] imgBytes = new byte[100];
         try {
-            imgBytes = DatatypeConverter.parseBase64Binary(b64);
+            imgBytes = Base64.getDecoder().decode(b64);
         } catch (IllegalArgumentException ex) {
             throw new IOException("copyInBase64() could not parse: " + ex.toString());
         }
@@ -1247,6 +1273,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         FileOutputStream stream = new FileOutputStream(file);
         try {
             stream.write(imgBytes);
+        } catch (Exception e) {
+            System.out.println("Exception from Writing FileOutputStream with imgBytes");
+            e.printStackTrace();
         } finally {
             stream.close();
         }

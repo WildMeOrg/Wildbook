@@ -155,6 +155,14 @@ public class Occurrence implements java.io.Serializable {
     setDWCDateLastModified();
     setDateTimeCreated();
   }
+  public Occurrence(String occurrenceID){
+    this.occurrenceID=occurrenceID;
+    encounters=new ArrayList<Encounter>();
+    assets = new ArrayList<MediaAsset>();
+    setDWCDateLastModified();
+    setDateTimeCreated();
+    System.out.println("Created new occurrence with only ID"+this.occurrenceID);
+  }
 
 
   public boolean addEncounter(Encounter enc){

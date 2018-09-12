@@ -102,6 +102,7 @@ public class TwitterBot {
 System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
         myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
         if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
 
         String baseUrl = CommonConfiguration.getServerURL(context);
@@ -502,6 +503,7 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
                 myShepherd.beginDBTransaction();
                 int t = collectTweets(myShepherd);
                 myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
                 if ((t != 0) || (count % 1 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
             }
         },
@@ -547,6 +549,30 @@ System.out.println("processDetectionResults() -> " + mas);
         //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
         sendTweet(tweetText(context, "tweetTextIANone", vars));
         return "Failed to find any Annotations; sent tweet";
+    }
+
+    // mostly for ContextDestroyed in StartupWildbook..... i think?
+    public static void cleanup() {
+/*
+        for (ScheduledExecutorService ses : runningSES) {
+            ses.shutdown();
+            try {
+                if (ses.awaitTermintation(20, TimeUnit.SECONDS)) {
+                    ses.shutdownNow();
+                    if (ses.awaitTermintation(20, TimeUnit.SECONDS)) {
+                        System.out.println("!!! QueueUtil.cleanup() -- ExecutorService did not terminate");
+                    }
+                }
+            } catch (InterruptedException ie) {
+                ses.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+        for (ScheduledFuture sf : runningSF) {
+            sf.cancel(true);
+        }
+*/
+        System.out.println("================ = = = = = = ===================== TwitterBot.cleanup() finished.");
     }
 
 }

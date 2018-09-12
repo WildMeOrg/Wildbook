@@ -314,6 +314,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       }
       jsonData = json;
       for(var i=0; i < jsonData.encounters.length; i++) {
+    	  var occurringWith = "";
         for(var j = 0; j < occurrenceObjectArray.length; j++) {
           if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
             if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {

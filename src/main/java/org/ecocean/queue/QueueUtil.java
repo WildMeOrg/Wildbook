@@ -32,7 +32,7 @@ public class QueueUtil {
     //helper method for backgrounding queue consumers who dont background themselves
     //unnecessary for RabbitMQQueue (consumer goes into background automatically)
     public static void background(final Queue queue) throws IOException {
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
+        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(1);
         final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
             int count = 0;
             public void run() {
@@ -82,6 +82,17 @@ public class QueueUtil {
     public static void cleanup() {
         for (ScheduledExecutorService ses : runningSES) {
             ses.shutdown();
+            try {
+                if (ses.awaitTermination(20, TimeUnit.SECONDS)) {
+                    ses.shutdownNow();
+                    if (ses.awaitTermination(20, TimeUnit.SECONDS)) {
+                        System.out.println("!!! QueueUtil.cleanup() -- ExecutorService did not terminate");
+                    }
+                }
+            } catch (InterruptedException ie) {
+                ses.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
         for (ScheduledFuture sf : runningSF) {
             sf.cancel(true);
