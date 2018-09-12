@@ -465,6 +465,7 @@ function doImageEnhancer(sel) {
 */
 	];
 
+        /*
 	if (wildbook.iaEnabled()) {  //TODO (the usual) needs to be genericized for IA plugin support (which doesnt yet exist)
 		opt.menu.push(['start new matching scan', function(enh) {
 		    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
@@ -478,6 +479,7 @@ function doImageEnhancer(sel) {
 		    startIdentify(ma, enh.imgEl);  //this asset should now be annotationly correct
 		}]);
 	}
+        */
 
 
         opt.menu.push(['use visual matcher', function(enh) {
