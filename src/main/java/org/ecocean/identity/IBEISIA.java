@@ -1213,9 +1213,11 @@ System.out.println("**** type ---------------> [" + type + "]");
         myShepherd.closeDBTransaction();
 
 
+        boolean skipIdent = Util.booleanNotFalse(IA.getProperty(context, "IBEISIADisableIdentification"));
+
         //now we pick up IA.intake(anns) from detection above (if applicable)
         //TODO should we cluster these based on MediaAsset instead? send them in groups to IA.intake()?
-        if (newAnns != null) {
+        if (!skipIdent && (newAnns != null)) {
             List<Annotation> needIdentifying = new ArrayList<Annotation>();
             Shepherd myShepherd2 = new Shepherd(context);
             myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
