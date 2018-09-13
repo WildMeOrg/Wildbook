@@ -27,7 +27,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
-  //myShepherd.setAction("individualSearch.jsp");
+  myShepherd.setAction("occurrenceSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
