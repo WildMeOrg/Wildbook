@@ -9,6 +9,7 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.ia.Task;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
@@ -567,5 +568,8 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return ann;
     }
 
+    public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
+        return Task.getRootTasksFor(this, myShepherd);
+    }
 
 }
