@@ -464,26 +464,21 @@ function doImageEnhancer(sel) {
 	}
 	*/
 
-	<%
-	if(request.isUserInRole("admin")){
-	%>
+
     opt.menu.push(['create optional feature region', function(enh) {
         var mid = enh.imgEl.data('enh-mediaassetid');
         window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
     }]);
 
         opt.menu.push(['use visual matcher', function(enh) {
-      	    if (!isGenusSpeciesSet()) {
-                imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
-                return;
-            }
+      	    //if (!isGenusSpeciesSet()) {
+            //    imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
+            //    return;
+            //}
             var mid = enh.imgEl.data('enh-mediaassetid');
             window.location.href = 'encounterVM.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
         }]);
-        
-        <%
-    }	
-        %>
+ 
 
 /*   we dont really like the old tasks showing up in menu. so there.
 	var ct = 1;
