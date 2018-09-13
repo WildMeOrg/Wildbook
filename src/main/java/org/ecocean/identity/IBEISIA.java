@@ -331,7 +331,21 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
             System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
         }
 
-//TODO sensitivity & nms_thresh  (floats)
+        String sensitivity = IA.getProperty(context, "sensitivity");
+        if (sensitivity != null) {
+            System.out.println("[INFO] sendDetect() sensitivity set to " + sensitivity);
+            map.put("sensitivity", sensitivity);
+        } else {
+            System.out.println("[INFO] sendDetect() sentivity is null; DEFAULT will be used");
+        }
+
+        String nms_thresh = IA.getProperty(context, "nms_thresh");
+        if (nms_thresh != null) {
+            System.out.println("[INFO] sendDetect() nms_thresh set to " + nms_thresh);
+            map.put("nms_thresh", nms_thresh);
+        } else {
+            System.out.println("[INFO] sendDetect() nms_thresh is null; DEFAULT will be used");
+        }
 
         return RestClient.post(url, new JSONObject(map));
     }
