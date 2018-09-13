@@ -29,16 +29,23 @@ wildbook.IA.plugins.push({
         var items = new Array();
         items.push([
             function(enh) {
-                var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
+                var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
+                //var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                //var ma = assetById(mid);
+                var menuText = '';
+                if (iaStatus && iaStatus.status) {
+                    menuText += 'matching already initiated, status: <span title="task ' + iaStatus.taskId;
+                    menuText += '" class="image-enhancer-menu-item-iastatus-';
+                    menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
+                } else {
+                    menuText = 'start matching';
+                }
+                //var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                 //var ma = assetByAnnotationId(aid);
-                return 'HELLO <b style="color: red;">' + aid + '</b>';
+                return menuText;
             },
             function(enh) {
-                var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-                //var ma = assetByAnnotationId(aid);
-                alert(mid + ' : ' + aid);
+                var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
             }
         ]);
         return items;
@@ -88,6 +95,27 @@ wildbook.IA.plugins.push({
 	}
 */
 
+    },
+
+    iaStatus: function(enh) {
+        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+        var ma = assetById(mid);
+        if (!ma || !ma.tasks || (ma.tasks.length < 1)) return null;
+        if (!ma || !ma.detectionStatus) return null;
+        var rtn = {
+            status: ma.detectionStatus,
+            statusText: ma.detectionStatus,
+            taskId: ma.tasks[ma.tasks.length - 1].id
+        };
+        if (ma.annotationIdentificationStatus) {
+            rtn.status = ma.annotationIdentificationStatus;
+            rtn.statusText += '/' + ma.annotationIdentificationStatus;
+        }
+        if (!rtn.status) {  //no old-world props on objs
+            rtn.status = 'pending';
+            rtn.statusText = 'active (see results)';
+        }
+        return rtn;
     },
 
     //can assume task.parameters is set
