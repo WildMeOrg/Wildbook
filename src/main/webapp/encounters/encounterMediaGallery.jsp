@@ -3,6 +3,7 @@
 org.ecocean.media.*,
 org.ecocean.*,
 org.ecocean.identity.IBEISIA,
+org.ecocean.ia.Task,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
@@ -203,7 +204,17 @@ function forceLink(el) {
 		  		if (ma != null) {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
+                                                List<Task> tasks = ann.getRootIATasks(imageShepherd);
+                                                for (Task t : ma.getRootIATasks(imageShepherd)) {
+                                                    if (!tasks.contains(t)) tasks.add(t);
+                                                }
+                                                JSONArray jt = new JSONArray();
+                                                for (Task t : tasks) {
+                                                    jt.put(Util.toggleJSONObject(t.toJSONObject()));
+                                                }
+                                                j.put("tasks", jt);
 						j.put("annotationId", ann.getId());
+                                                j.put("annotationIdentificationStatus", ann.getIdentificationStatus());
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
