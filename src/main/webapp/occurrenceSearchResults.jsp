@@ -58,7 +58,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
-    //myShepherd.setAction("occurrenceSearchResults.jsp");
+    myShepherd.setAction("occurrenceSearchResults.jsp");
 
 
 
@@ -756,7 +756,9 @@ function applyFilter() {
       <p><strong><%=occProps.getProperty("matchingOccurrences")%>
       </strong>: <span id="count-total"></span>
       </p>
-      <%myShepherd.beginDBTransaction();%>
+      <%
+      myShepherd.beginDBTransaction();
+      %>
       <p><strong><%=occProps.getProperty("totalOccurrences")%>
     </strong>: <%=(myShepherd.getNumOccurrences())%>
       </p>
