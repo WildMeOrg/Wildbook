@@ -399,7 +399,7 @@ $(document).ready(function() {
             if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit"><%= props.getProperty("edit") %></button>
-              <button class="btn btn-md" type="button" name="button" id="closeEdit"><%= props.getProperty("closeEditCaps") %>t</button>
+              <button class="btn btn-md" type="button" name="button" id="closeEdit"><%= props.getProperty("closeEditCaps") %></button>
             </div>
             <%}%></h1>
           <%
