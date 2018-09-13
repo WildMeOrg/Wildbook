@@ -28,73 +28,64 @@ wildbook.IA.plugins.push({
         }
         var items = new Array();
         items.push([
-            function(enh) {
+            function(enh) {  //the menu text
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                //var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                //var ma = assetById(mid);
                 var menuText = '';
                 if (iaStatus && iaStatus.status) {
                     menuText += 'matching already initiated, status: <span title="task ' + iaStatus.taskId;
                     menuText += '" class="image-enhancer-menu-item-iastatus-';
                     menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
                 } else {
-                    menuText = 'start matching';
+	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                    var ma = assetById(mid);
+                    if (ma.taxonomyString) {
+                        menuText = 'start matching';
+                    } else {
+                        menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';
+                    }
                 }
-                //var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-                //var ma = assetByAnnotationId(aid);
                 return menuText;
             },
-            function(enh) {
+            function(enh) {  //the menu action
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
+                if (iaStatus && iaStatus.taskId) {
+                    wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
+                } else {
+	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                    var ma = assetById(mid);
+                    if (ma.taxonomyString) {
+	                ma.annotationId;
+alert('fake starting!');
+                        /////TODO do the actual rest call for matching... yay!
+                    } else {
+                        imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
+                        return;
+                    }
+                }
             }
         ]);
-        return items;
 
-
-/*  COPIED OVER FOR PROSPERITY
-	if (wildbook.iaEnabled()) {  //TODO (the usual) needs to be genericized for IA plugin support (which doesnt yet exist)
-		opt.menu.push(['start new matching scan', function(enh) {
-		    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-		    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-                    var ma = assetByAnnotationId(aid);
-      		    if (!isGenusSpeciesSet(ma)) {
-        		imageEnhancer.popup("You need full taxonomic classification to start identification!");
-        		return;
-      		    }
-		    imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid + ':' + aid), '<p>starting matching; please wait...</p>');
-		    startIdentify(ma, enh.imgEl);  //this asset should now be annotationly correct
-		}]);
-	}
-
-
-        opt.menu.push(['use visual matcher', function(enh) {
-	    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-	    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-            var ma = assetByAnnotationId(aid);
-      	    if (!isGenusSpeciesSet(ma)) {
-                imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
-                return;
+        //TODO could have conditional etc to turn on/off visual matcher i guess
+        items.push([
+            function(enh) {  //the menu text
+	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var ma = assetById(mid);
+                if (!ma.taxonomyString) return '<i class="error">you must have <b>genus and specific epithet</b> set to use visual matcher</i>';
+                return 'visual matcher';
+            },
+            function(enh) {  //the menu action
+	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var ma = assetById(mid);
+                if (!ma.taxonomyString) {
+                    imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before using visual matcher.');
+                    return;
+                }
+                //TODO how should we *really* get encounter number!
+                wildbook.openInTab('encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid);
             }
-            window.location.href = 'encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid;
-        }]);
+        ]);
 
-/*   we dont really like the old tasks showing up in menu. so there.
-	var ct = 1;
-	for (var annId in iaTasks) {
-		//we really only care about first tid now (most recent)
-		var tid = iaTasks[annId][0];
-		opt.menu.push([
-			//'- previous scan results ' + ct,
-			'- previous scan results',
-			function(enh, tid) {
-				console.log('enh(%o) tid(%o)', enh, tid);
-				wildbook.openInTab('matchResults.jsp?taskId=' + tid);
-			},
-			tid
-		]);
-	}
-*/
-
+        return items;
     },
 
     iaStatus: function(enh) {

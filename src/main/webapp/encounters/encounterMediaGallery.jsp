@@ -204,6 +204,7 @@ function forceLink(el) {
 		  		if (ma != null) {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
+                                                j.put("taxonomyString", enc.getTaxonomyString());
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
                                                     if (!tasks.contains(t)) tasks.add(t);
