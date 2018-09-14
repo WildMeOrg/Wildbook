@@ -131,18 +131,6 @@ public class Occurrence implements java.io.Serializable {
     //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
   }
 
-  public Occurrence(String occurrenceID){
-    System.out.println("    NEW OCCURRENCE with only an id: "+occurrenceID);
-    this.occurrenceID=occurrenceID;
-    encounters=new ArrayList<Encounter>();
-    assets = new ArrayList<MediaAsset>();
-    setDWCDateLastModified();
-    setDateTimeCreated();
-    System.out.println("Created new occurrence "+this.occurrenceID);
-
-    //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
-  }
-
   public Occurrence(List<MediaAsset> assets, Shepherd myShepherd){
     occurrenceID = Util.generateUUID();
 

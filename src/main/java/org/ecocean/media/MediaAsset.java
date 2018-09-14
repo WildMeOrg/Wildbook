@@ -1200,9 +1200,6 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         MediaAssetMetadata data = getMetadata();
         return ((data != null) && (data.getData() != null) && (data.getData().opt("attributes") != null));
     }
-    public void setMetadata() throws IOException {
-        setMetadata(updateMetadata());
-    }
     public void setMetadata(MediaAssetMetadata md) {
         metadata = md;
     }
