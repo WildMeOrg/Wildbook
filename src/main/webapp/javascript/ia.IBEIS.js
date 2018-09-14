@@ -70,7 +70,7 @@ alert('fake starting!');
             function(enh) {  //the menu text
 	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
-                if (!ma.taxonomyString) return '<i class="error">you must have <b>genus and specific epithet</b> set to use visual matcher</i>';
+                if (!ma.taxonomyString) return false;  //this just skips this item
                 return 'visual matcher';
             },
             function(enh) {  //the menu action
