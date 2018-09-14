@@ -226,6 +226,9 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
         if (h) p.html(h);
         return p;
     },
+    popupClose: function() {
+        jQuery('.image-enhancer-popup').remove();
+    },
 
     debugInitFunction: function(wel, opt) {
         console.log('>>>> init on %o with opt=%o', wel, opt);
