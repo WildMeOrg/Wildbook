@@ -3,6 +3,7 @@
 org.ecocean.media.*,
 org.ecocean.*,
 org.ecocean.identity.IBEISIA,
+org.ecocean.ia.Task,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
@@ -182,8 +183,8 @@ function forceLink(el) {
 		  		System.out.println("    EMG: starting for ann "+ann);
 
 		  		if (ann == null) continue;
-		      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
-		      System.out.println("    EMG: got tasks "+tasks);
+		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+		      //System.out.println("    EMG: got tasks "+tasks);
 
 		      MediaAsset ma = ann.getMediaAsset();
 		      String filename = ma.getFilename();
@@ -219,9 +220,18 @@ function forceLink(el) {
 
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
-		  				System.out.println("    EMG: j is not null");
-
+                                                j.put("taxonomyString", enc.getTaxonomyString());
+                                                List<Task> tasks = ann.getRootIATasks(imageShepherd);
+                                                for (Task t : ma.getRootIATasks(imageShepherd)) {
+                                                    if (!tasks.contains(t)) tasks.add(t);
+                                                }
+                                                JSONArray jt = new JSONArray();
+                                                for (Task t : tasks) {
+                                                    jt.put(Util.toggleJSONObject(t.toJSONObject()));
+                                                }
+                                                j.put("tasks", jt);
 						j.put("annotationId", ann.getId());
+                                                j.put("annotationIdentificationStatus", ann.getIdentificationStatus());
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
@@ -475,11 +485,10 @@ jQuery(document).ready(function() {
 });
 
 function doImageEnhancer(sel) {
-    var loggedIn = wildbookGlobals.username && (wildbookGlobals.username != "");
     var opt = {
     };
 
-    if (loggedIn) {
+    if (!wildbook.user.isAnonymous()) {
         opt.debug = false;
         opt.menu = [
            <%
@@ -499,47 +508,7 @@ function doImageEnhancer(sel) {
 */
 	];
 
-	if (wildbook.iaEnabled()) {  //TODO (the usual) needs to be genericized for IA plugin support (which doesnt yet exist)
-		opt.menu.push(['start new matching scan', function(enh) {
-		    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-		    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-                    var ma = assetByAnnotationId(aid);
-      		    if (!isGenusSpeciesSet(ma)) {
-        		imageEnhancer.popup("You need full taxonomic classification to start identification!");
-        		return;
-      		    }
-		    imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid + ':' + aid), '<p>starting matching; please wait...</p>');
-		    startIdentify(ma, enh.imgEl);  //this asset should now be annotationly correct
-		}]);
-	}
-
-        opt.menu.push(['use visual matcher', function(enh) {
-	    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-	    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-            var ma = assetByAnnotationId(aid);
-      	    if (!isGenusSpeciesSet(ma)) {
-                imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
-                return;
-            }
-            window.location.href = 'encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid;
-        }]);
-
-/*   we dont really like the old tasks showing up in menu. so there.
-	var ct = 1;
-	for (var annId in iaTasks) {
-		//we really only care about first tid now (most recent)
-		var tid = iaTasks[annId][0];
-		opt.menu.push([
-			//'- previous scan results ' + ct,
-			'- previous scan results',
-			function(enh, tid) {
-				console.log('enh(%o) tid(%o)', enh, tid);
-				wildbook.openInTab('matchResults.jsp?taskId=' + tid);
-			},
-			tid
-		]);
-	}
-*/
+        wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%
 if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
 %>

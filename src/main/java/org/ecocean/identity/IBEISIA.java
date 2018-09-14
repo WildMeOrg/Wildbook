@@ -136,10 +136,10 @@ public class IBEISIA {
                 w = (int) iatt.getWidth();
                 h = (int) iatt.getHeight();
             }
-            //we are *required* to have a width/height to pass to IA, so lets skip...  or fail???  TODO
+            //we are *required* to have a width/height to pass to IA, so lets skip...
             if ((w < 1) || (h < 1)) {
-                throw new RuntimeException("could not use " + ma.toString() + " - unable to find width/height");
-                //continue;  //skip?
+                System.out.println("WARNING: IBEISIA.sendMediaAssets() skipping " + ma.toString() + " - unable to find width/height");
+                continue;
             }
 
             map.get("image_width_list").add(w);
@@ -190,7 +190,10 @@ System.out.println("sendMediaAssets(): sending " + ct);
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
             int[] bbox = ann.getBbox();
-            if (bbox == null) throw new RuntimeException("failed to add " + ann + "; could not getBbox()");
+            if (bbox == null) {
+                System.out.println("WARNING: IBEISIA.sendAnnotations() skipping " + ann.toString() + " - invalid bbox");
+                continue;
+            }
             map.get("annot_bbox_list").add(bbox);
             map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
             map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
@@ -1213,9 +1216,11 @@ System.out.println("**** type ---------------> [" + type + "]");
         myShepherd.closeDBTransaction();
 
 
+        boolean skipIdent = Util.booleanNotFalse(IA.getProperty(context, "IBEISIADisableIdentification"));
+
         //now we pick up IA.intake(anns) from detection above (if applicable)
         //TODO should we cluster these based on MediaAsset instead? send them in groups to IA.intake()?
-        if (newAnns != null) {
+        if (!skipIdent && (newAnns != null)) {
             List<Annotation> needIdentifying = new ArrayList<Annotation>();
             Shepherd myShepherd2 = new Shepherd(context);
             myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
