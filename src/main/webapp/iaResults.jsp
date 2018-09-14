@@ -139,31 +139,11 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 
 
-<!--  this all is in header!
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
-<script src="javascript/core.js"></script>
-<script src="javascript/classes/Base.js"></script>
-<script src="javascript/ia.js"></script>
-<script src="javascript/ia.IBEIS.js"></script>
--->
 
-<script src="javascript/tablesorter/jquery.tablesorter.js"></script>
-<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-<link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
-<link rel="stylesheet" href="css/pageableTable.css" />
 <link rel="stylesheet" href="css/ia.css" type="text/css" />
-<script src="javascript/tsrt.js"></script>
-<script src="javascript/flukeScanEnd.js"></script>
 
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript">
-/*
-	google.load('visualization', '1.1', {packages: ['line', 'corechart']});
-    	google.setOnLoadCallback(initChart);
-*/
-</script>
 
 
 <script>
@@ -182,6 +162,8 @@ function init2() {   //called from wildbook.init() when finished
 		tryTaskId(taskIds[i]);
 	}
 }
+
+$(document).ready(function() { wildbook.init(function() { init2(); }); });
 
 
 function parseTaskIds() {
