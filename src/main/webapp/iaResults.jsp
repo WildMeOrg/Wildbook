@@ -141,27 +141,9 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
-<script src="javascript/core.js"></script>
-<script src="javascript/classes/Base.js"></script>
-<script src="javascript/ia.js"></script>
-<script src="javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
 
-<script src="javascript/tablesorter/jquery.tablesorter.js"></script>
-<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-<link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
-<link rel="stylesheet" href="css/pageableTable.css" />
 <link rel="stylesheet" href="css/ia.css" type="text/css" />
-<script src="javascript/tsrt.js"></script>
-<script src="javascript/flukeScanEnd.js"></script>
 
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript">
-/*
-	google.load('visualization', '1.1', {packages: ['line', 'corechart']});
-    	google.setOnLoadCallback(initChart);
-*/
-</script>
 
 
 <script>
@@ -181,6 +163,8 @@ function init2() {   //called from wildbook.init() when finished
 	}
 }
 
+$(document).ready(function() { wildbook.init(function() { init2(); }); });
+
 
 function parseTaskIds() {
 	var a = window.location.search.substring(1).split('&');
@@ -190,7 +174,7 @@ function parseTaskIds() {
 }
 
 function tryTaskId(tid) {
-    IA.fetchTaskResponse(tid, function(x) {
+    wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task);
         } else {
@@ -208,7 +192,7 @@ function getCachedTask(tid) {
 }
 
 function processTask(task) {
-    IA.processTask(task, function(t, res) {
+    wildbook.IA.processTask(task, function(t, res) {
         if (t && t.id) tasks[t.id] = t;
         $('.maincontent').append(res);
         grabTaskResult(t.id);

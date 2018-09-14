@@ -30,6 +30,7 @@ import org.ecocean.Util;
 import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Encounter;
+import org.ecocean.ia.Task;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -1295,6 +1296,10 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public boolean isValidChildType(String type) {
         if (store == null) return false;
         return store.isValidChildType(type);
+    }
+
+    public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
+        return Task.getRootTasksFor(this, myShepherd);
     }
 
 

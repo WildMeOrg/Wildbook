@@ -9,6 +9,9 @@
 		<field name="id" primary-key="true">
         		<column length="36"/>
 		</field>
+		<field name="created">
+			<index name="TASK_CREATED_idx" />
+		</field>
 
 		<!-- this points up to the parent -->
       		<field name="parent" persistence-modifier="persistent" element-type="org.ecocean.ia.Task" recursion-depth="3"/>
