@@ -2408,11 +2408,6 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     return milliToMonthDayYear(endDateInMilliseconds);
   }
 
-    // this does not reset year/month/etc
-    public void setDateInMillisOnly(long ms) {
-        this.dateInMilliseconds = ms;
-    }
-
 
   public String getDecimalLatitude(){
     if(decimalLatitude!=null){return Double.toString(decimalLatitude);}

@@ -788,7 +788,6 @@ public class Shepherd {
       user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, uuid.trim()), true)));
     }
     catch (Exception nsoe) {
-      System.out.println("Shepherd.getUser(String) called for nonexistent user "+username);
       return null;
     }
     return user;
@@ -889,31 +888,6 @@ public class Shepherd {
       return null;
     }
   }
-  public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String analysisID) {
-    try {
-      MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(analysisID, "MicrosatelliteMarkers");
-      return msDNA;
-    }
-    catch (Exception nsoe) {
-      nsoe.printStackTrace();
-      return null;
-    }
-  }
-
-
-
-  public SexAnalysis getSexAnalysis(String analysisID) {
-    try {
-      SexAnalysis mtDNA = (SexAnalysis)getGeneticAnalysis(analysisID, "SexAnalysis");
-      return mtDNA;
-    }
-    catch (Exception nsoe) {
-      nsoe.printStackTrace();
-      return null;
-    }
-  }
-
-
   public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String analysisID) {
     try {
       MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(analysisID, "MicrosatelliteMarkers");
@@ -1077,15 +1051,6 @@ public class Shepherd {
     return kw;
   }
 
-  public Keyword getOrCreateKeyword(String name) {
-    Keyword kw = getKeyword(name);
-    if (kw==null) {
-      kw = new Keyword(name);
-      storeNewKeyword(kw);
-    }
-    return kw;
-  }
-
 
 
 
@@ -1212,9 +1177,6 @@ public class Shepherd {
     return (getGeneticAnalysis(analysisID)!=null);
   }
 
-  public boolean isGeneticAnalysis(String analysisID) {
-    return (getGeneticAnalysis(analysisID)!=null);
-  }
   public GeneticAnalysis getGeneticAnalysis(String analysisID) {
     String filter = "this.analysisID == \""+analysisID+"\"";
 
@@ -1271,28 +1233,6 @@ public class Shepherd {
       while(it.hasNext()){
 		  GeneticAnalysis gen=(GeneticAnalysis)it.next();
 		  acceptedEncounters.closeAll();
-        return gen;
-      }
-    }
-    catch (Exception nsoe) {
-      nsoe.printStackTrace();
-      acceptedEncounters.closeAll();
-      return null;
-    }
-    acceptedEncounters.closeAll();
-    return null;
-  }
-  public GeneticAnalysis getGeneticAnalysis(String analysisID, String type) {
-    String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\"";
-        Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
-      Query acceptedEncounters = pm.newQuery(encClass, filter);
-    try {
-
-      Collection c = (Collection) (acceptedEncounters.execute());
-      Iterator it = c.iterator();
-      while(it.hasNext()){
-      GeneticAnalysis gen=(GeneticAnalysis)it.next();
-      acceptedEncounters.closeAll();
         return gen;
       }
     }
@@ -1375,11 +1315,6 @@ public class Shepherd {
     }
     return true;
   }
-
-  public boolean isOccurrence(Occurrence occ) {
-    return (occ!=null && isOccurrence(occ.getOccurrenceID()));
-  }
-
 
   public boolean isRelationship(String type, String markedIndividualName1, String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, boolean checkBidirectional) {
     try {
@@ -2803,16 +2738,6 @@ public class Shepherd {
     if (occ!=null) return occ;
     return getOccurrenceForEncounter(enc.getCatalogNumber());
   }
-
-
-  public Occurrence getOrCreateOccurrence(String id) {
-      if (id==null) return new Occurrence(Util.generateUUID());
-      Occurrence occ = getOccurrence(id);
-      if (occ != null) return occ;
-      occ = new Occurrence(id);
-      return occ;
-  }
-
 
   /**
    * Returns all of the names of the sharks that can be used for training purporses - i.e. have more than one encounter - in a Vector format

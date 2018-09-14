@@ -601,16 +601,6 @@ public class Util {
       return values;
     }
 
-    // replaces wrong-slashes with right-slashes
-    public static String windowsFileStringToLinux(String windowsFileString) {
-      return windowsFileString.replaceAll("\\\\","/");
-    }
-
-    public static boolean fileExists(String filepath) {
-      File f = new File(filepath);
-      return (f.exists() && !f.isDirectory());
-    }
-    
     // convenience method for comparing string values
     public static boolean shouldReplace(String val1, String val2) {
       return (stringExists(val1) && !stringExists(val2));
