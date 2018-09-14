@@ -149,6 +149,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                     res.put("IATaskId", task.getId());
                 }
                 myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
             }
         }
 
