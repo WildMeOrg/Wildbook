@@ -54,9 +54,25 @@ wildbook.IA.plugins.push({
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
                     if (ma.taxonomyString) {
-	                ma.annotationId;
-alert('fake starting!');
-                        /////TODO do the actual rest call for matching... yay!
+                        var data = {
+                            annotationIds: [ ma.annotationId ]
+                        };
+                        imageEnhancer.popup('<h2>Starting matching....</h2>');
+                        wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
+                            if (textStatus == 'success') {
+                                if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success || !xhr.responseJSON.taskId) {
+                                    imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Invalid response</p>');
+                                    console.log(xhr);
+                                    return;
+                                }
+                                //i think we at least got a task sent off!
+                                imageEnhancer.popupClose();
+                                wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
+                            } else {
+                                imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
+                                console.log(xhr);
+                            }
+                        });
                     } else {
                         imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
                         return;
@@ -107,6 +123,25 @@ alert('fake starting!');
             rtn.statusText = 'active (see results)';
         }
         return rtn;
+    },
+
+    restCall: function(data, callback) {
+        data.v2 = true;  //should always have this (for now)
+        var url = wildbookGlobals.baseUrl + '/ia';
+        jQuery.ajax({
+            data: JSON.stringify(data),
+            contentType: 'application/javascript',
+            url: url,
+            complete: function(xhr, textStatus) {
+                if (typeof callback == 'function') {
+                    callback(xhr, textStatus);
+                } else {
+                    console.info('IA.IBEIS.restCall() given no callback, status=%s, %o', textStatus, xhr);
+                }
+            },
+            dataType: 'json',
+            type: 'POST'
+        });
     },
 
     //can assume task.parameters is set
