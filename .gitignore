@@ -27,3 +27,4 @@ src/main/caribwhale_data_dir
 *.swp
 
 \.classpath
+results/

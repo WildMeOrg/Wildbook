@@ -1,0 +1,60 @@
+#!{{pkgPathFor "core/bash"}}/bin/bash
+
+exec 2>&1
+
+DBNAME="{{cfg.storage.database}}"
+DBUSER="{{cfg.storage.user}}"
+
+echo "... is postgresql running?"
+pg_isready || exit 1
+
+## Create user ##
+echo "...Checking for user"
+user_exist_query=$(psql -U {{bind.postgresql.first.cfg.superuser_name}} -d postgres -tc "SELECT 1 FROM pg_catalog.pg_user WHERE usename = '${DBUSER}'")
+if [ $? -ne 0 ]; then
+  echo "Error occured while checking if user exists"
+  exit 1
+fi
+
+echo ${user_exist_query} | grep -q 1
+if [ $? -ne 0 ]; then
+  echo "Creating user '${DBUSER}'"
+  psql -U {{bind.postgresql.first.cfg.superuser_name}} -d postgres -c "CREATE USER ${DBUSER}"
+
+  if [ $? -ne 0 ]; then
+    echo "Failed to create user"
+    exit 1
+  fi
+fi
+
+echo "Does database exists"
+db_exist_query=$(psql -U {{bind.postgresql.first.cfg.superuser_name}} -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = '${DBNAME}'")
+if [ $? -ne 0 ]; then
+  echo "Error occured while checking if database exists"
+  exit 1
+fi
+
+echo ${db_exist_query} | grep -q 1
+if [ $? -ne 0 ]; then
+  echo "...Creating database ${DBNAME}"
+  psql -U {{bind.postgresql.first.cfg.superuser_name}} -d postgres -c "CREATE DATABASE ${DBNAME}"
+
+  if [ $? -ne 0 ]; then
+    echo "Failed to create database"
+    exit 1
+  fi
+fi
+
+############# Tomcat SETUP #############################
+echo "Copying tomcat source files"
+cp -r {{pkgPathFor "core/tomcat8"}}/tc/* {{pkg.svc_data_path}}/.
+
+echo "copying tomcat config files"
+cp {{pkg.svc_config_path}}/server.xml {{pkg.svc_data_path}}/conf/server.xml
+
+############# PROJECT SETUP #############################
+echo "copying wildbook files"
+cp -r {{pkg.path}}/static {{pkg.svc_data_path}}/webapps/wildbook
+
+echo "copying wildbook config files"
+cp {{pkg.svc_config_path}}/jdoconfig.properties {{pkg.svc_data_path}}/webapps/wildbook/WEB-INF/classes/bundles/jdoconfig.properties

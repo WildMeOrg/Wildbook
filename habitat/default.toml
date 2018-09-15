@@ -1,0 +1,5 @@
+tomcat_port = 8080
+
+[storage]
+database = "wildbook"
+user = "wildbook"
