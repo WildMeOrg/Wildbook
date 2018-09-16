@@ -13,6 +13,7 @@ import java.net.URL;
 
 import org.ecocean.*;
 import org.ecocean.queue.*;
+import org.ecocean.ia.IA;
 import org.ecocean.grid.MatchGraphCreationThread;
 //import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
@@ -120,10 +121,16 @@ public class StartupWildbook implements ServletContextListener {
             return;
         }
 
-        if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
+        //TODO genericize this to be under .ia (with startup hooks for *any* IA plugin)
+        //if we dont need identificaiton, no need to prime
+        boolean skipIdent = Util.booleanNotFalse(IA.getProperty("context0", "IBEISIADisableIdentification"));  //oof hardcoded context!
+        if (!skipIdent && !skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
+
+        //NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
+        // TODO make it a configuration setting i guess
         //createMatchGraph();
 
-        //TODO genericize starting "all" consumers ... configurable? how?  etc.
+        //TODO genericize starting "all" consumers ... configurable? how?  etc.  oof... more hardcoded contexts. :(
         startIAQueues("context0");
         TwitterBot.startServices("context0");
     }
