@@ -305,7 +305,7 @@ for (int i=0; i<captionLinks.size(); i++) {
 div.gallery-download {
     text-align: center;
     font-size: 0.8em;
-    margin-top: -2.3em;
+    margin-top: -2.5em;
 }
 
 .gallery-download a {
@@ -402,7 +402,6 @@ if(request.getParameter("encounterNumber")!=null){
 
     $('#enc-gallery').append(removeAssetLink);
 */
-    if (wildbookGlobals.username) $('#enc-gallery').parent().append('<div class="gallery-download"><a href="../imagedl/' + elem.id + '/' + encodeURI(elem.filename) + '" title="Download" download="' + encodeURI(elem.filename) + '">' + elem.filename + '</a></div>');
   });
 
 
@@ -422,6 +421,16 @@ $(window).on('resizeEnd', function(ev) {
 //initializes image enhancement (layers)
 jQuery(document).ready(function() {
 	doImageEnhancer('figure img');
+
+    if (wildbookGlobals.username) {
+        $('.image-enhancer-wrapper').each(function(i, el) {
+	    var mid = el.id.substring(23);
+	    var ma = assetById(mid);
+            var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.filename) + '">' + ma.filename + '</a></div>';
+            $(el).closest('figure').after(h);
+            //$(el).closest('.my-gallery').after(h);
+        });
+    }
 });
 
 function doImageEnhancer(sel) {
