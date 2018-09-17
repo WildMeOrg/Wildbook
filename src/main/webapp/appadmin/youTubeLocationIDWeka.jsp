@@ -55,7 +55,7 @@ int numFixes=0;
 
 try{
 	
-		String filter="SELECT FROM org.ecocean.Encounter WHERE state == \"approved\" && locationID != null";
+		String filter="SELECT FROM org.ecocean.Encounter WHERE state == \"approved\"";
 		
 		
 		Query query = myShepherd.getPM().newQuery(filter);
@@ -66,6 +66,7 @@ try{
 		
 		String locationIDOptions="";
 		List<String> locs=myShepherd.getAllLocationIDs();
+		locs.add("null");
 		int numLocs=locs.size();
 		for(int p=0;p<numLocs;p++){
 			locationIDOptions+=(","+locs.get(p));
