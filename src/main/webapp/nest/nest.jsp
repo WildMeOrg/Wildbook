@@ -58,7 +58,7 @@
     } catch (Exception e) {
       System.out.println("Exception on making new Nest...");
       e.printStackTrace();
-    }http://localhost:8080/nest/nest.jsp
+    }
     nestID = nestie.getID();
     System.out.println("3. New prior to countSheets()? "+nestie.getDataSheets());
   }
@@ -195,141 +195,109 @@ try {
 <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 <script type="text/javascript" src="../javascript/classEditTemplate.js"></script>
 
-<h2>Test</h2>
-
-
 <div class="container maincontent">
-  <form method="post" onsubmit="return classEditTemplate.checkBeforeDeletion()" action="nest.jsp?number=<%=nestID%>" id="classEditTemplateForm">
+<form method="post" onsubmit="return classEditTemplate.checkBeforeDeletion()" action="nest.jsp?number=<%=nestID%>" id="classEditTemplateForm">
 
 
-<div class="row">
-  <div class="col-xs-12">
-    <h1>Nest</h1>
-    <p class="nestidlabel"><em>id <%=nestID%></em><p>
+    <div class="row">
+      <div class="col-xs-12">
+        <h1>Nest</h1>
+        <p class="nestidlabel"><em>id <%=nestID%></em><p>
 
-      <table class="nest-field-table edit-table">
-        <%
-        System.out.println("HTML level print 1");
-        for (String getterName : nestFieldGetters) {
-          Method nestMeth = nestie.getClass().getMethod(getterName);
-          if (ClassEditTemplate.isDisplayableGetter(nestMeth)) {
-            ClassEditTemplate.printOutClassFieldModifierRow((Object) nestie, nestMeth, out);
-          }
-        }
-        System.out.println("HTML level print 2");
-        %>
-      </table>
-    </div>
-  </div>
-
-
-      <div class="row">
-        <div class="col-sm-12">
-          <h2>Data Sheets</h2>
-          <input type="submit" name="newNestingSheet" value="Add New Nesting Field Sheet" />
-        </div>
-        <div class="col-sm-12">
-          <input type="submit" name="newEmergenceSheet" value="Add New Emergence Field Sheet" />
-        </div>
-
-      </div>
-        <%
-
-        System.out.println("HTML level print 3");
-        try {
-          System.out.println("Did you choke before the first for loop??? "+nestie.getDataSheets().size());
-          for (int i=0; i < nestie.getDataSheets().size(); i++) { // DataSheet for loop Start
-            %> 
-            <div class="row dataSheet" id="<%=i%>"> 
+          <table class="nest-field-table edit-table">
             <%
-            %> 
-            <div class="col-xs-12"> 
-            <%
-            //DataSheet dSheet = nestie.getDataSheet(nestie.getDataSheets().size()-(i+1)); //reverses order
-            System.out.println("Get the sheet!");
-            DataSheet dSheet = nestie.getDataSheet(i);
-            System.out.println("Get the eggs!");
-            int numEggs = nestie.getEggCount(i);
-            System.out.println("DataSheet "+i+" has #eggs = "+numEggs);
-            if (numEggs==0) {
-              nestie.addNewEgg(i);
-            }    
-            %> 
-
-            <h3>Data Sheet <%=i+1%></h3>
-            
-            <% 
-              System.out.println("HTML level print 4");
-              if (dSheet.getName()!=null && !dSheet.getName().equals("")) {
-            %>
-                <h4><%=dSheet.getName()%></h4>
-            <%
+            System.out.println("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
+            for (String getterName : nestFieldGetters) {
+              Method nestMeth = nestie.getClass().getMethod(getterName);
+              if (ClassEditTemplate.isDisplayableGetter(nestMeth)) {
+                ClassEditTemplate.printOutClassFieldModifierRow((Object) nestie, nestMeth, out);
+                //System.out.println(ClassEditTemplate.printOutClassFieldModifierRow((Object) nestie, nestMeth, out););
+                //THIS IS WHERE THE PROBLEM IS!!!
               }
+            }
+            System.out.println("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
             %>
-              <input type="submit" onclick="classEditTemplate.markDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
+          </table>
+      </div>
+    </div>
 
-
-              <table class="nest-field-table edit-table" style="float: left">
+    <div class="row">
+      <div class="col-xs-12">
+        <h2>Data Sheets</h2>
+      </div>
+      <div class="col-xs-6 col-lg-4">
+        <input type="submit" name="newNestingSheet" value="Add New Nesting Field Sheet" />
+      </div>
+      <div class="col-xs-6 col ">
+        <input type="submit" name="newEmergenceSheet" value="Add New Emergence Field Sheet" />
+      </div>
+    </div>
+        <%
+        try {
+          for (int i=0; i < nestie.getDataSheets().size(); i++) {
+        %> 
+            <div class="row dataSheet" id="<%=i%>"> 
+              <div class="col-xs-4"> 
+              <%
+              //DataSheet dSheet = nestie.getDataSheet(nestie.getDataSheets().size()-(i+1)); //reverses order
+              DataSheet dSheet = nestie.getDataSheet(i);
+              int numEggs = nestie.getEggCount(i);
+              System.out.println("DataSheet "+i+" has #eggs = "+numEggs);
+              if (numEggs==0) {
+                nestie.addNewEgg(i);
+              }    
+              %> 
+                <h3>Data Sheet <%=i+1%></h3>
+              <% 
+                if (dSheet.getName()!=null && !dSheet.getName().equals("")) {
+              %>
+                  <h4><%=dSheet.getName()%></h4>
+              <%
+                }
+              %>
+                <input type="button" name="newEgg<%=i%>" value="Add Egg Measurement" class="eggButton" />
+                <input type="submit" onclick="classEditTemplate.markDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
+              </div>
             <%
-              //ClassEditTemplate.printDateTimeSetterRow((Object) dSheet,dSheet.getID(), out);
-            %>
-              </table>
-            </div>
-            <%
-
-
             int nFields = dSheet.size();
             int nSubtables = Util.getNumSections(nFields, nFieldsPerSubtable);
             int dataPointN = 0;
-
             for (int tableN=0; tableN < nSubtables; tableN++) {
-
-            %>
-            
-            <div class="col col-md-4 nest-table">
-            <table class="nest-field-table edit-table" style="float: left">
-            
-            <%
-              for (int subTableI=0; dataPointN < nFields && subTableI < nFieldsPerSubtable; dataPointN++, subTableI++) {
-                if (dSheet.getData().size()<=dataPointN) {
-                  System.out.println("Did you get the point?");
-                  DataPoint dp = dSheet.getData().get(dataPointN);
-                  ClassEditTemplate.printOutClassFieldModifierRow((Object) nestie, dp, out);
-                }
-              }
-            %>  
-            </table></div>
+            %>         
+              <div class="col col-md-4 nest-table">
+                <table class="nest-field-table edit-table" style="float: left"> 
+                <%
+                  for (int subTableI=0; dataPointN < nFields && subTableI < nFieldsPerSubtable; dataPointN++, subTableI++) {
+                    if (dSheet.getData().size()<=dataPointN) {
+                      System.out.println("Did you get the point?");
+                      DataPoint dp = dSheet.getData().get(dataPointN);
+                      ClassEditTemplate.printOutClassFieldModifierRow((Object) nestie, dp, out);
+                    }
+                  }
+                %>  
+                </table>
+              </div>
           <%
           }
           %>
-
-          <div class="col-md-4">
-            <input type="button" name="newEgg<%=i%>" value="Add Egg Measurement" class="eggButton" />
-          </div>
-
-          </div> 
-          
+        </div> 
         <%
-
           } // DataSheet for loop End 
         } catch (Exception e) {
           System.out.println("Threw Exception in egg field area...");
           e.printStackTrace(new java.io.PrintWriter(out));
         }
-
         %>
-  <div class="row">
-    <div class="col-sm-12">
-      </hr>
-      <div class="submit" style="position:relative">
-        <input type="submit" name="save" value="Save" />
-        <span class="note" style="position:absolute;bottom:9"></span>
+      <div class="row">
+        <div class="col-sm-12">
+          <hr>
+          <div class="submit" style="position:relative">
+            <input type="submit" name="save" value="Save" />
+            <span class="note" style="position:absolute;bottom:9"></span>
+          </div>
+        </div>
       </div>
-    </div>
-
-  </div>
 </form>
-
 
 </div>
 
@@ -348,16 +316,22 @@ $(document).ready(function() {
 
   $('.eggButton').click(function() {
 
+    console.log("Clicked eggButton...");
     var dataSheetRow = $(this).closest('.row.dataSheet');
+    console.log("dataSheetRow: "+JSON.stringify(dataSheetRow));
     var dataSheetNum = classEditTemplate.extractIntFromString(dataSheetRow.attr('id'));
+    console.log("dataSheetNum: "+dataSheetNum);
     var lastTable = dataSheetRow.find('table.nest-field-table').last();
+    console.log("lastTable: "+JSON.stringify(lastTable));
     var eggDiamTemplate = lastTable.find('tr.sequential').first();
+    console.log("eggDiamTemplate: "+JSON.stringify(eggDiamTemplate));
     var eggWeightTemplate = lastTable.find('tr.sequential').last();
-
+    console.log("eggDiamTemplate: "+JSON.stringify(eggWeightTemplate));
 
     var oldFieldName = $(eggWeightTemplate).find('td.fieldName').html();
     console.log("oldFieldName = "+oldFieldName);
     var eggNum = classEditTemplate.extractIntFromString(oldFieldName) + 1;
+    console.log("eggNum = "+eggNum);
     var newEggDiamRow = classEditTemplate.createNumberedRowFromTemplate(eggDiamTemplate, eggNum, dataSheetNum);
     //var newEggWeightRow = classEditTemplate.createEggWeightFromTemplate(lastTableRow, eggNum, dataSheetNum);
     var newEggWeightRow = classEditTemplate.createNumberedRowFromTemplate(eggWeightTemplate, eggNum, dataSheetNum);

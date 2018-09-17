@@ -297,7 +297,7 @@ public class ClassEditTemplate {
   }
 
 
-
+  //IS THIS WHAT YOU ARE CALLING???
   // custom method to replicate a very specific table row format on this page
   public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
 
@@ -305,7 +305,14 @@ public class ClassEditTemplate {
     out.println("\t<td class=\"fieldName\">"+fieldName+"</td>");
     out.println("\t<td class=\"value\">");
     out.println("\t\t<input ");
-    out.println("name=\""+inputName+"\" ");
+    out.println("name=\""+inputName+"\" >");
+    out.println("\n</tr>");
+    System.out.println("<tr data-original-value=\""+printValue+"\">");
+    System.out.println("\t<td class=\"fieldName\">"+fieldName+"</td>");
+    System.out.println("\t<td class=\"value\">");
+    System.out.println("\t\t<input ");
+    System.out.println("name=\""+inputName+"\" >");
+    System.out.println("\n</tr>");
   // custom method to replicate a very specific table row format on this page
   }
 

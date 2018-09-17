@@ -115,6 +115,7 @@ public class Nest implements java.io.Serializable {
     DataSheet sheetie = DataSheet.fromCommonConfig(subname, context);
     sheetie.setName(subname);
     System.out.println();
+    System.out.println("Sheetie values: "+sheetie.getData());
     System.out.println("Just made a named config data sheet, "+sheetie.getName());
     this.record(sheetie);
   }
