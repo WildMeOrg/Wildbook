@@ -30,6 +30,7 @@ import org.ecocean.Util;
 import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Encounter;
+import org.ecocean.ia.Task;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -899,7 +900,12 @@ public class MediaAsset implements java.io.Serializable {
                     org.datanucleus.api.rest.orgjson.JSONObject jf = new org.datanucleus.api.rest.orgjson.JSONObject();
                     Feature ft = fts.get(i);
                     jf.put("id", ft.getId());
-                    jf.put("type", ft.getType());
+                    try {  //for some reason(?) this will get a jdo error for "row not found".  why???  anyhow, we catch it
+                        jf.put("type", ft.getType());
+                    } catch (Exception ex) {
+                        jf.put("type", "unknown");
+                        System.out.println("ERROR: MediaAsset.sanitizeJson() on " + this.toString() + " threw " + ex.toString());
+                    }
                     JSONObject p = ft.getParameters();
                     if (p != null) jf.put("parameters", Util.toggleJSONObject(p));
 
@@ -1258,6 +1264,10 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public boolean isValidChildType(String type) {
         if (store == null) return false;
         return store.isValidChildType(type);
+    }
+
+    public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
+        return Task.getRootTasksFor(this, myShepherd);
     }
 
 

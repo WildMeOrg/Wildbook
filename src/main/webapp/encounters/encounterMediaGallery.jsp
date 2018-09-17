@@ -3,6 +3,7 @@
 org.ecocean.media.*,
 org.ecocean.*,
 org.ecocean.identity.IBEISIA,
+org.ecocean.ia.Task,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.datacollection.MeasurementEvent, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
@@ -84,51 +85,6 @@ try {
 
   %><script>
 
-function isGenusSpeciesSet(asset) {
-	return (asset && asset.species);
-}
-
-var identTasks = [];
-function startIdentify(ma) {
-	//TODO this is tailored for flukebook basically.  see: Great Future Where Multiple IA Plugins Are Seemlessly Supported
-	_identAjax(ma);  //default; pattern-match
-	_identAjax(ma, { OC_WDTW: true });  //will do trailing edge match
-}
-
-function _identAjax(ma, opt) {
-	if (!ma) return _identCallback({ success: false, error: '_identAjax called with no MediaAsset' });
-	var aid = ma.annotationId;
-	if (!aid) return _identCallback({ success: false, error: '_identAjax called with no annotationId on asset', asset: ma });
-	var jdata = { identify: { annotationIds: [ aid ] }, enqueue: true };
-	//var jdata = { identify: { annotationIds: [ aid ], limitTargetSize: 10 } };  //debugging (small set to compare against)
-	if (opt) jdata.identify.opt = opt;
-	jQuery.ajax({
-		url: '../ia',
-		type: 'POST',
-		dataType: 'json',
-		contentType: 'application/javascript',
-		success: function(d) { _identCallback(d); },
-		error: function(x,y,z) {
-			console.warn('_identAjax error on %o: %o %o %o', ma, x, y, z);
-			_identCallback({ success: false, error: 'error ' + x});
-		},
-		data: JSON.stringify(jdata)
-	});
-}
-
-function _identCallback(res) {
-console.log("_identCallback got %o", res);
-	identTasks.push(res);
-	if (identTasks.length > 1) {
-console.info('completed _identAjax calls with %o', identTasks);
-		var ids = '';
-		for (var i = 0 ; i < identTasks.length ; i++) {
-			if (identTasks[i].success) ids += '&taskId=' + identTasks[i].taskId;
-		}
-		if (ids) window.location.href = 'matchResultsMulti.jsp?' + ids.substring(1);
-	}
-}
-
 
 function forceLink(el) {
 	var address = el.href;
@@ -136,33 +92,6 @@ function forceLink(el) {
 	el.stopPropagation();
 }
 
-/*
-		    jQuery.ajax({
-		      url: '../ia',
-		      type: 'POST',
-		      dataType: 'json',
-		      contentType: 'application/javascript',
-		      success: function(d) {
-		        console.info('identify returned %o', d);
-		        if (d.taskID) {
-				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
-		          window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
-		        } else {
-				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
-		        }
-		      },
-		      error: function(x,y,z) {
-				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
-		        console.warn('%o %o %o', x, y, z);
-		      },
-		      data: JSON.stringify({
-		        identify: { annotationIds: [ aid ] }
-		      })
-		    });
-		  }
-*/
-
-  //console.log("numEncs = <%=numEncs%>");
   </script>
   <%
   for(int f=0;f<numEncs;f++){
@@ -203,7 +132,18 @@ function forceLink(el) {
 		  		if (ma != null) {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
+                                                j.put("taxonomyString", enc.getTaxonomyString());
+                                                List<Task> tasks = ann.getRootIATasks(imageShepherd);
+                                                for (Task t : ma.getRootIATasks(imageShepherd)) {
+                                                    if (!tasks.contains(t)) tasks.add(t);
+                                                }
+                                                JSONArray jt = new JSONArray();
+                                                for (Task t : tasks) {
+                                                    jt.put(Util.toggleJSONObject(t.toJSONObject()));
+                                                }
+                                                j.put("tasks", jt);
 						j.put("annotationId", ann.getId());
+                                                j.put("annotationIdentificationStatus", ann.getIdentificationStatus());
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
@@ -389,7 +329,7 @@ if(request.getParameter("encounterNumber")!=null){
         data: JSON.stringify({"detach":"true","EncounterID":"<%=encNum%>","MediaAssetID":maId}),
         success: function(d) {
           console.info("I detached MediaAsset "+maId+" from encounter <%=encNum%>");
-          $('#image-enhancer-wrapper-' + maId).closest('figure').remove();  //TODO fix this to find it with annotation id now!
+          $('[id^="image-enhancer-wrapper-' + maId + '-"]').closest('figure').remove()
 /*
           $('#remove'+maId).prev('figure').remove();
           $('#remove'+maId).after('<p style=\"text-align:center;\"><i>Image removed from encounter.</i></p>');
@@ -441,18 +381,18 @@ jQuery(document).ready(function() {
 });
 
 function doImageEnhancer(sel) {
-    var loggedIn = wildbookGlobals.username && (wildbookGlobals.username != "");
     var opt = {
     };
 
-    if (loggedIn) {
+    if (!wildbook.user.isAnonymous()) {
         opt.debug = false;
         opt.menu = [
            <%
            if(!encNum.equals("")){
         	%>
             ['remove this image', function(enh) {
-		removeAsset(enh.imgEl.prop('id').substring(11));
+		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+		removeAsset(mid);
             }],
             <%
     		}
@@ -464,48 +404,7 @@ function doImageEnhancer(sel) {
 */
 	];
 
-	if (wildbook.iaEnabled()) {  //TODO (the usual) needs to be genericized for IA plugin support (which doesnt yet exist)
-		opt.menu.push(['start new matching scan', function(enh) {
-		    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-		    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-                    var ma = assetByAnnotationId(aid);
-      		    if (!isGenusSpeciesSet(ma)) {
-        		imageEnhancer.popup("You need full taxonomic classification to start identification!");
-        		return;
-      		    }
-		    imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid + ':' + aid), '<p>starting matching; please wait...</p>');
-		    startIdentify(ma, enh.imgEl);  //this asset should now be annotationly correct
-		}]);
-	}
-
-
-        opt.menu.push(['use visual matcher', function(enh) {
-	    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-	    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-            var ma = assetByAnnotationId(aid);
-      	    if (!isGenusSpeciesSet(ma)) {
-                imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
-                return;
-            }
-            window.location.href = 'encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid;
-        }]);
-
-/*   we dont really like the old tasks showing up in menu. so there.
-	var ct = 1;
-	for (var annId in iaTasks) {
-		//we really only care about first tid now (most recent)
-		var tid = iaTasks[annId][0];
-		opt.menu.push([
-			//'- previous scan results ' + ct,
-			'- previous scan results',
-			function(enh, tid) {
-				console.log('enh(%o) tid(%o)', enh, tid);
-				wildbook.openInTab('matchResults.jsp?taskId=' + tid);
-			},
-			tid
-		]);
-	}
-*/
+        wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%
 if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
 %>
@@ -754,9 +653,10 @@ console.info(d);
 				var mainMid = false;
 				if (d.results) {
 					for (var mid in d.results) {
-                                            refreshKeywordsForMediaAsset(mid, d.results[mid]);
+                                            refreshKeywordsForMediaAsset(mid, d);
 					}
 				}
+                                if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
 			} else {
 				var msg = d.error || 'ERROR could not make change';
 				$('.popup-content').append('<p class="error">' + msg + '</p>');
@@ -793,17 +693,29 @@ console.info(d);
 function refreshKeywordsForMediaAsset(mid, data) {
     for (var i = 0 ; i < assets.length ; i++) {
         if (assets[i].id != mid) continue;
+        //if (!assets[i].keywords) assets[i].keywords = [];
+        assets[i].keywords = [];  //we get *all* keywords in results, so blank this!
         for (var id in data.results[mid]) {
-            if (!assets[i].keywords) assets[i].keywords = [];
             assets[i].keywords.push({
                 indexname: id,
                 readableName: data.results[mid][id]
             });
         }
     }
+    //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
     $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {   //update the ui
         $(el).find('.image-enhancer-keyword-wrapper').remove();
         imageLayerKeywords($(el), { _mid: mid });
+    });
+}
+
+function refreshAllKeywordPulldowns() {
+    $('.image-enhancer-keyword-wrapper').each(function(i, el) {
+        var jel = $(el);
+        var p = jel.parent();
+        var mid = imageEnhancer.mediaAssetIdFromElement(p);
+        jel.remove();
+        imageLayerKeywords(p, { _mid: mid });
     });
 }
 

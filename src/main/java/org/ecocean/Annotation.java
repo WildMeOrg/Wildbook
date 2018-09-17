@@ -9,6 +9,7 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.ia.Task;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
@@ -301,14 +302,20 @@ public class Annotation implements java.io.Serializable {
             bbox[1] = 0;
             bbox[2] = (int)getMediaAsset().getWidth();
             bbox[3] = (int)getMediaAsset().getHeight();
-            return bbox;
+        } else {
+            //guess we derive from feature!
+            if (found.getParameters() == null) return null;
+            bbox[0] = found.getParameters().optInt("x", 0);
+            bbox[1] = found.getParameters().optInt("y", 0);
+            bbox[2] = found.getParameters().optInt("width", 0);
+            bbox[3] = found.getParameters().optInt("height", 0);
         }
-        //guess we derive from feature!
-        if (found.getParameters() == null) return null;
-        bbox[0] = found.getParameters().optInt("x", 0);
-        bbox[1] = found.getParameters().optInt("y", 0);
-        bbox[2] = found.getParameters().optInt("width", 0);
-        bbox[3] = found.getParameters().optInt("height", 0);
+
+        if ((bbox[2] < 1) || (bbox[3] < 1)) {
+            //note: do NOT use toString() in here!  it references .getBbox() !!  see: recursion
+            System.out.println("WARNING: Annotation.getBbox() found invalid width/height for id=" + this.getId());
+            return null;
+        }
         return bbox;
     }
 
@@ -567,5 +574,8 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return ann;
     }
 
+    public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
+        return Task.getRootTasksFor(this, myShepherd);
+    }
 
 }

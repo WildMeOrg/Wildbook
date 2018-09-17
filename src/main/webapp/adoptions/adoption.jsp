@@ -19,7 +19,7 @@ context=ServletUtilities.getContext(request);
   
   try{
 	  int count = myShepherd.getNumAdoptions();
-	  Adoption tempAD = null;
+
 	
 	  boolean edit = false;
 	
@@ -60,31 +60,7 @@ context=ServletUtilities.getContext(request);
 	  }
 	  */
 	
-	  if (request.getParameter("number") != null) {
-	    tempAD = myShepherd.getAdoption(request.getParameter("number"));
-	    edit = true;
-	    //servletURL = "/editAdoption";
-	    id = tempAD.getID();
-	    adopterName = tempAD.getAdopterName();
-	    adopterAddress = tempAD.getAdopterAddress();
-	    adopterEmail = tempAD.getAdopterEmail();
-	    if((tempAD.getAdopterImage()!=null)&&(!tempAD.getAdopterImage().trim().equals(""))){
-	    	adopterImage = tempAD.getAdopterImage();
-	  	}
-	    adoptionStartDate = tempAD.getAdoptionStartDate();
-	    adoptionEndDate = tempAD.getAdoptionEndDate();
-	    adopterQuote = tempAD.getAdopterQuote();
-	    adoptionManager = tempAD.getAdoptionManager();
-	    sharkForm = tempAD.getMarkedIndividual();
-	    if (tempAD.getEncounter() != null) {
-	      encounterForm = tempAD.getEncounter();
-	    }
-	    notes = tempAD.getNotes();
-	    adoptionType = tempAD.getAdoptionType();
-	    if(tempAD.getStripeCustomerId()!=null){
-	    	stripeID=tempAD.getStripeCustomerId();
-	    }
-	  }
+
 	%>
 	
 	
@@ -132,6 +108,33 @@ context=ServletUtilities.getContext(request);
 	
 	<div class="container maincontent">
 	
+	<%
+	if ((request.getParameter("number") != null)&&(myShepherd.getAdoption(request.getParameter("number").trim())!=null)) {
+		  Adoption tempAD = myShepherd.getAdoption(request.getParameter("number"));
+	    edit = true;
+	    //servletURL = "/editAdoption";
+	    id = tempAD.getID();
+	    adopterName = tempAD.getAdopterName();
+	    adopterAddress = tempAD.getAdopterAddress();
+	    adopterEmail = tempAD.getAdopterEmail();
+	    if((tempAD.getAdopterImage()!=null)&&(!tempAD.getAdopterImage().trim().equals(""))){
+	    	adopterImage = tempAD.getAdopterImage();
+	  	}
+	    adoptionStartDate = tempAD.getAdoptionStartDate();
+	    adoptionEndDate = tempAD.getAdoptionEndDate();
+	    adopterQuote = tempAD.getAdopterQuote();
+	    adoptionManager = tempAD.getAdoptionManager();
+	    sharkForm = tempAD.getMarkedIndividual();
+	    if (tempAD.getEncounter() != null) {
+	      encounterForm = tempAD.getEncounter();
+	    }
+	    notes = tempAD.getNotes();
+	    adoptionType = tempAD.getAdoptionType();
+	    if(tempAD.getStripeCustomerId()!=null){
+	    	stripeID=tempAD.getStripeCustomerId();
+	    }
+
+	%>
 	
 	
 	<h1 class="intro"> Adoption Administration</h1>
@@ -139,7 +142,7 @@ context=ServletUtilities.getContext(request);
 	<p>There are currently <%=count%> adoptions stored in the database.</p>
 	
 	<p>&nbsp;</p>
-	<table class="adoption" width="720px">
+	<table class="adoption">
 	  <tr>
 	    <td>
 	      <h3><a name="goto" id="goto"></a>View/edit adoption</h3>
@@ -398,7 +401,7 @@ context=ServletUtilities.getContext(request);
 	</table>
 	<br/>
 	<%
-	  if ((request.getParameter("number") != null) && (isOwner)) {
+	  if (isOwner) {
 	%>
 	<p>&nbsp;</p>
 	<table class="adoption" width="720px">
@@ -424,7 +427,14 @@ context=ServletUtilities.getContext(request);
 	<br/>
 	<%
 	  }
-	
+  	} //end if is adoption
+  	else{
+  		%>
+  		
+  		<p>I could not find the adoption <%=request.getParameter("number") %>.</p>
+  		
+  	<%
+  	}
 	  
   }
   catch(Exception e){e.printStackTrace();}

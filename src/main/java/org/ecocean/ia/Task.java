@@ -17,6 +17,7 @@ import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import javax.jdo.Query;
 
 public class Task implements java.io.Serializable {
 
@@ -200,6 +201,37 @@ public class Task implements java.io.Serializable {
             t = ((Task) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Task.class, taskId), true)));
         } catch (Exception ex) {};  //swallow jdo not found noise
         return t;
+    }
+
+    //TODO versions for multiple objects (when needed)
+    public static List<Task> getTasksFor(Annotation ann, Shepherd myShepherd) {
+        String qstr = "SELECT FROM org.ecocean.ia.Task WHERE objectAnnotations.contains(obj) && obj.id == \"" + ann.getId() + "\" VARIABLES org.ecocean.Annotation obj";
+        Query query = myShepherd.getPM().newQuery(qstr);
+        query.setOrdering("created");
+        return (List<Task>) query.execute();
+    }
+    public static List<Task> getRootTasksFor(Annotation ann, Shepherd myShepherd) {
+        return onlyRoots(getTasksFor(ann, myShepherd));
+    }
+
+    public static List<Task> getTasksFor(MediaAsset ma, Shepherd myShepherd) {
+        String qstr = "SELECT FROM org.ecocean.ia.Task WHERE objectMediaAssets.contains(obj) && obj.id == " + ma.getId() + " VARIABLES org.ecocean.media.MediaAsset obj";
+        Query query = myShepherd.getPM().newQuery(qstr);
+        query.setOrdering("created");
+        return (List<Task>) query.execute();
+    }
+    public static List<Task> getRootTasksFor(MediaAsset ma, Shepherd myShepherd) {
+        return onlyRoots(getTasksFor(ma, myShepherd));
+    }
+
+    //takes a bunch of tasks and returns only roots (without duplication)
+    public static List<Task> onlyRoots(List<Task> all) {
+        List<Task> roots = new ArrayList<Task>();
+        for (Task t : all) {
+            Task r = t.getRootTask();
+            if (!roots.contains(r)) roots.add(r);
+        }
+        return roots;
     }
 }
 
