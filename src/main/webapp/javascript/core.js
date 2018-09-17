@@ -225,7 +225,7 @@ console.log('is %o', ajax);
 
     openInTab: function(url) {
         var win = window.open(url, '_blank');
-        win.focus();
+        if (win) win.focus();
     },
 
     //this is its own mess of stuff related to the logged in user
