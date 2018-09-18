@@ -146,9 +146,10 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                 }
                 if (allMAs.size() > 0) {
                     Task task = IA.intakeMediaAssets(myShepherd, allMAs);
+                    myShepherd.getPM().makePersistent(task);
                     res.put("IATaskId", task.getId());
                 }
-                myShepherd.rollbackDBTransaction();
+                myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
             }
         }
