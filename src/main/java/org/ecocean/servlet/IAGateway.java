@@ -419,7 +419,7 @@ System.out.println("############################ rtn -> \n" + rtn);
                 FeatureType.initAll(myShepherd);
                 for (int i = 0 ; i < slist.length() ; i++) {
                     int stillNeedingReview = rlist.length();
-                    if (slist.optDouble(i, -1.0) < IBEISIA.getDetectionCutoffValue()) continue;
+                    if (slist.optDouble(i, -1.0) < IBEISIA.getDetectionCutoffValue(context)) continue;
                     /* decrementing this here, which may be "unwise" since this can "fail" in a bunch of ways (below); however, most of them
                        are error-like in nature, and should be dealt with in ways which i feel arent handled well yet.  this likely needs
                        to be reconsidered at some point... sigh.  -jon 20160613    TODO */
@@ -536,6 +536,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         }
         Task task = Task.load(taskId, myShepherd);
         if (task == null) task = new Task(taskId);
+        task.setParameters(j.optJSONObject("taskParameters")); //optional
         myShepherd.getPM().makePersistent(task);
         myShepherd.commitDBTransaction();  //hack
         //myShepherd.closeDBTransaction();
