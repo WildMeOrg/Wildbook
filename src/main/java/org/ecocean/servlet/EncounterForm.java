@@ -55,6 +55,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
 import org.ecocean.media.*;
+import org.ecocean.ia.Task;
 import org.ecocean.NotificationMailer;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.SinglePhotoVideo;
@@ -1013,7 +1014,9 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
-                org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
+                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
+                myShepherd.getPM().makePersistent(task);
+
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
