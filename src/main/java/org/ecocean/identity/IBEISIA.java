@@ -189,11 +189,11 @@ System.out.println("sendMediaAssets(): sending " + ct);
         myShepherd.beginDBTransaction();
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
-            int[] bbox = ann.getBbox();
-            if (bbox == null) {
-                System.out.println("WARNING: IBEISIA.sendAnnotations() skipping " + ann.toString() + " - invalid bbox");
+            if (!validForIdentification(ann)) {
+                System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
+            int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
             map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
             map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
@@ -246,6 +246,10 @@ System.out.println("sendAnnotations(): sending " + ct);
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         String species = null;
         for (Annotation ann : qanns) {
+            if (!validForIdentification(ann)) {
+                System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
+                continue;
+            }
             if (species == null) species = ann.getSpecies();
             qlist.add(toFancyUUID(ann.getUUID()));
 /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
@@ -270,6 +274,10 @@ System.out.println("     free ride :)");
         }
 
         if (tanns != null) for (Annotation ann : tanns) {
+            if (!validForIdentification(ann)) {
+                System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
+                continue;
+            }
             tlist.add(toFancyUUID(ann.getUUID()));
             String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
@@ -1249,18 +1257,22 @@ System.out.println("**** type ---------------> [" + type + "]");
             myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
             myShepherd2.beginDBTransaction();
             Task parentTask = Task.load(taskID, myShepherd2);
-            Iterator<?> keys = newAnns.keys();
-            while (keys.hasNext()) {
-                String maId = (String) keys.next();
+            if (taskParametersSkipIdent(parentTask)) {
+                System.out.println("NOTICE: IBEISIA.processCallback() " + parentTask + " skipped identification");
+            } else {
+                Iterator<?> keys = newAnns.keys();
+                while (keys.hasNext()) {
+                    String maId = (String) keys.next();
 System.out.println("maId -> " + maId);
-                JSONArray annIds = newAnns.optJSONArray(maId);
-                if (annIds == null) continue;
+                    JSONArray annIds = newAnns.optJSONArray(maId);
+                    if (annIds == null) continue;
 System.out.println("     ---> " + annIds);
-                for (int i = 0 ; i < annIds.length() ; i++) {
-                    String aid = annIds.optString(i, null);
-                    if (aid == null) continue;
-                    Annotation ann = ((Annotation) (myShepherd2.getPM().getObjectById(myShepherd2.getPM().newObjectIdInstance(Annotation.class, aid), true)));
-                    if (ann != null) needIdentifying.add(ann);
+                    for (int i = 0 ; i < annIds.length() ; i++) {
+                        String aid = annIds.optString(i, null);
+                        if (aid == null) continue;
+                        Annotation ann = ((Annotation) (myShepherd2.getPM().getObjectById(myShepherd2.getPM().newObjectIdInstance(Annotation.class, aid), true)));
+                        if (ann != null) needIdentifying.add(ann);
+                    }
                 }
             }
             if (needIdentifying.size() > 0) {
@@ -1290,6 +1302,7 @@ System.out.println("     ---> " + annIds);
 
     private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, String context, String rootDir) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
+        Task task = Task.load(taskID, myShepherd);
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
 System.out.println("***** ids = " + ids);
         if (ids == null) {
@@ -1346,7 +1359,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
-                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) { // wasn't detected with high confidence
+                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue(context, task)) {
                             needsReview = true;
                             continue;
                         }
@@ -1512,14 +1525,33 @@ System.out.println("*****************\nhey i think we are happy with these annot
             //here we can use cluster_dict to find out what to create/persist on our side
     }
 
+    public static double getDetectionCutoffValue(String context) {
+        return getDetectionCutoffValue(context, null);
+    }
 
     //scores < these will require human review (otherwise they carry on automatically)
-    public static double getDetectionCutoffValue() {
-        return 0.35;
+    // task is optional, but can have a parameter "detectionCutoffValue"
+    public static double getDetectionCutoffValue(String context, Task task) {
+        if ((task != null) && (task.getParameters() != null) && (task.getParameters().optDouble("detectionCutoffValue", -1) > 0))
+            return task.getParameters().getDouble("detectionCutoffValue");
+        String c = IA.getProperty(context, "IBEISIADetectionCutoffValue");
+        if (c != null) {
+            try {
+                return Double.parseDouble(c);
+            } catch(java.lang.NumberFormatException ex) {}
+        }
+        return 0.35;  //lowish value cuz we trust detection by default
     }
-    public static double getIdentificationCutoffValue() {
+    public static double getIdentificationCutoffValue(String context) {
+        String c = IA.getProperty(context, "IBEISIAIdentificationCutoffValue");
+        if (c != null) {
+            try {
+                return Double.parseDouble(c);
+            } catch(java.lang.NumberFormatException ex) {}
+        }
         return 0.8;
     }
+
     //tests review_pair_list and confidence_list for element at i and determines if we need review
     private static boolean needIdentificationReview(JSONArray rlist, JSONArray clist, int i, String context) {
         if ((rlist == null) || (clist == null) || (i < 0) || (rlist.length() == 0) || (clist.length() == 0) ||
@@ -1533,7 +1565,7 @@ System.out.println("needIdentificationReview() got matching_state --------------
             if (ms != null) return false;
 //////
 
-            return (clist.optDouble(i, -99.0) < getIdentificationCutoffValue());
+            return (clist.optDouble(i, -99.0) < getIdentificationCutoffValue(context));
     }
 
     public static String parseDetectionStatus(String maId, Shepherd myShepherd) {
@@ -3246,7 +3278,22 @@ System.out.println("processCallback returned --> " + proc);
 System.out.println("-------- >>> " + all.toString() + "\n##################################################################");
         return;
     }
-////////////////////////////
+
+    public static boolean validForIdentification(Annotation ann) {
+        if (ann == null) return false;
+        int[] bbox = ann.getBbox();
+        if (bbox == null) {
+            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
+            return false;
+        }
+        return true;
+    }
+
+    //does this task want us to skip identification?
+    public static boolean taskParametersSkipIdent(Task task) {
+        if ((task == null) || (task.getParameters() == null) || !task.getParameters().optBoolean("skipIdent", false)) return false;
+        return true;
+    }
 
 
 

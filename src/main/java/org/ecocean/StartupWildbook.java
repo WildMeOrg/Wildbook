@@ -127,8 +127,9 @@ public class StartupWildbook implements ServletContextListener {
         if (!skipIdent && !skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
 
         //NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
-        // TODO make it a configuration setting i guess
-        //createMatchGraph();
+        if (Util.booleanNotFalse(IA.getProperty("context0", "sharkGrid.startMatchGraph"))) {
+            createMatchGraph();
+        }
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.  oof... more hardcoded contexts. :(
         startIAQueues("context0");
