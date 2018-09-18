@@ -281,7 +281,7 @@ function manualCallback(tid) {
 	console.log(m);
 
 	$.ajax({
-		url: 'IBEISIAGetJobStatus.jsp?jobid=' + m.jobId,
+		url: wildbookGlobals.baseUrl + '/ia?callback&jobid=' + m.jobId,
 		type: 'GET',
 		dataType: 'json',
 		complete: function(x, stat) {
