@@ -571,6 +571,13 @@ System.out.println("about to do enc()");
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
 
+            //An initial encounter through the form is the default state. Most often unapproved. 
+            List<String> species=CommonConfiguration.getIndexedPropertyValues("encounterState", context);
+            String state = species.get(0);
+            if (state!=null) {
+                enc.setState(state);
+            }
+
             AssetStore astore = AssetStore.getDefault(myShepherd);
             ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
 

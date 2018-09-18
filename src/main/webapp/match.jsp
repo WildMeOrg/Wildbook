@@ -282,7 +282,7 @@ div.file-item div {
 var amHuman = <%=amHuman%>;
 var currentMethod = 'upload';
 var imageData = [];
-var defaultSpecies = 'Chelonia Mydas';
+var defaultSpecies = 'Chelonia mydas';
 var accessKey = wildbook.uuid();
 
 function activateStep(num) {
