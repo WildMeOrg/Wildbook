@@ -296,8 +296,17 @@ System.out.println("     free ride :)");
         }
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
+        //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing.. 
+        // If the list is null it will check against everything. 
+        if  (qnlist.size()==0) {
+            qnlist=null;
+        }
         map.put("query_annot_name_list", qnlist);
+        if  (tnlist.size()==0) {
+            tnlist=null;
+        }
         map.put("database_annot_name_list", tnlist);
+
 
 
 System.out.println("===================================== qlist & tlist =========================");

@@ -282,7 +282,7 @@ div.file-item div {
 var amHuman = <%=amHuman%>;
 var currentMethod = 'upload';
 var imageData = [];
-var defaultSpecies = 'Megaptera novaeangliae';
+var defaultSpecies = 'Chelonia Mydas';
 var accessKey = wildbook.uuid();
 
 function activateStep(num) {
