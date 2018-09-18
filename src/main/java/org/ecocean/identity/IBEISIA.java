@@ -189,11 +189,11 @@ System.out.println("sendMediaAssets(): sending " + ct);
         myShepherd.beginDBTransaction();
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
-            int[] bbox = ann.getBbox();
-            if (bbox == null) {
-                System.out.println("WARNING: IBEISIA.sendAnnotations() skipping " + ann.toString() + " - invalid bbox");
+            if (!validForIdentification(ann)) {
+                System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
+            int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
             map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
             map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
@@ -246,6 +246,10 @@ System.out.println("sendAnnotations(): sending " + ct);
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         String species = null;
         for (Annotation ann : qanns) {
+            if (!validForIdentification(ann)) {
+                System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
+                continue;
+            }
             if (species == null) species = ann.getSpecies();
             qlist.add(toFancyUUID(ann.getUUID()));
 /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
@@ -270,6 +274,10 @@ System.out.println("     free ride :)");
         }
 
         if (tanns != null) for (Annotation ann : tanns) {
+            if (!validForIdentification(ann)) {
+                System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
+                continue;
+            }
             tlist.add(toFancyUUID(ann.getUUID()));
             String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
@@ -3246,6 +3254,16 @@ System.out.println("processCallback returned --> " + proc);
         all.put("_timestamp", System.currentTimeMillis());
 System.out.println("-------- >>> " + all.toString() + "\n##################################################################");
         return;
+    }
+
+    public static boolean validForIdentification(Annotation ann) {
+        if (ann == null) return false;
+        int[] bbox = ann.getBbox();
+        if (bbox == null) {
+            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
+            return false;
+        }
+        return true;
     }
 
     //does this task want us to skip identification?
