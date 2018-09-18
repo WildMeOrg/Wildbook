@@ -247,7 +247,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         String species = null;
         for (Annotation ann : qanns) {
             if (!validForIdentification(ann)) {
-                System.out.println("WARNING: IBEISIA.sendIdentify() skipping invalid " + ann);
+                System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
                 continue;
             }
             if (species == null) species = ann.getSpecies();
@@ -274,6 +274,10 @@ System.out.println("     free ride :)");
         }
 
         if (tanns != null) for (Annotation ann : tanns) {
+            if (!validForIdentification(ann)) {
+                System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
+                continue;
+            }
             tlist.add(toFancyUUID(ann.getUUID()));
             String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
