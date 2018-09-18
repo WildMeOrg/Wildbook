@@ -1333,7 +1333,7 @@ else {
       	Shepherd inShepherd=new Shepherd("context0");
       inShepherd.setAction("encounterSearch.jsp2");
       myShepherd.beginDBTransaction();
-        List<User> users = inShepherd.getAllUsers();
+        List<User> users = inShepherd.getUsersWithUsername("fullName ascending");
         int numUsers = users.size();
 
       %>
