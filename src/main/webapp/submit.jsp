@@ -740,6 +740,46 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
   <hr/>
 
+<%
+if(CommonConfiguration.showProperty("showTaxonomy",context)){
+%>
+    <div class="form-group">
+        <div class="col-xs-6 col-md-4">
+          <label class="control-label"><%=props.getProperty("species") %></label>
+        </div>
+        <div class="col-xs-6 col-lg-8">
+          <select class="form-control" name="genusSpecies" id="genusSpecies">
+            <option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
+<%
+
+          List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+          int numGenusSpeciesProps=species.size();
+          String selected="";
+          if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
+
+                  if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+                    for(int q=0;q<numGenusSpeciesProps;q++){
+                          String currentGenuSpecies = "genusSpecies"+q;
+                          if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                              %>
+                                <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                              <%
+
+                          }
+
+
+                    }
+                  }
+%>
+          </select>
+        </div>
+    </div> 
+<%
+}
+%>
+<h3>Hello?</h3>
+
   <fieldset>
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
@@ -806,50 +846,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         </fieldset>
         <hr>
         <fieldset>
-<%
-
-if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-%>
-
-      <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("species") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
-  <%
-
-  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
-  					int numGenusSpeciesProps=species.size();
-  					String selected="";
-  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
-
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-                    	for(int q=0;q<numGenusSpeciesProps;q++){
-                           String currentGenuSpecies = "genusSpecies"+q;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-
-                        }
-
-
-                   }
-                   }
- %>
-  </select>
-    </div>
-        </div>
-
-        <%
-}
-
-%>
 
   <div class="form-group">
           <div class="col-xs-6 col-md-4">
