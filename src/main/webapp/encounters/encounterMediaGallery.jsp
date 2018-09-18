@@ -480,10 +480,10 @@ function doImageEnhancer(sel) {
     }]);
 
         opt.menu.push(['use visual matcher', function(enh) {
-      	    //if (!isGenusSpeciesSet()) {
-            //    imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
-            //    return;
-            //}
+      	    if (!isGenusSpeciesSet()) {
+                imageEnhancer.popup("You need full taxonomic classification to use Visual Matcher!");
+                return;
+            }
             var mid = enh.imgEl.data('enh-mediaassetid');
             window.location.href = 'encounterVM.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
         }]);

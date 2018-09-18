@@ -224,6 +224,10 @@
 				 /encounters/mappedSearchResults.jsp = authc, roles[local]
 				 /encounters/mappedSearchResultsSex.jsp = authc, roles[local]
 				 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[local]
+				 
+				 /encounters/encounterVM.jsp = authc
+				 
+				 
 				 /googleSearch.jsp = authc, roles[local]
 				 /googleSearchResults.jsp = authc, roles[local]
 				 				         /EncounterAddComment = authc, roles[local]
