@@ -176,14 +176,12 @@ function parseTaskIds() {
 function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
-            processTask(x.responseJSON.task);
+            processTask(x.responseJSON.task); //this will be json task (w/children)
         } else {
             alert('Error fetching task id=' + tid);
             console.error('tryTaskId(%s) failed: %o', tid, x);
         }
     });
-return;///////
-
 }
 
 
@@ -191,16 +189,50 @@ function getCachedTask(tid) {
     return tasks[tid];
 }
 
+
+function cacheTaskAndChildren(task) {
+    if (!task || !task.id || tasks[task.id]) return;
+    tasks[task.id] = task;
+    if (!wildbook.IA.hasChildren(task)) return;
+    for (var i = 0 ; i < task.children.length ; i++) {
+        cacheTaskAndChildren(task.children[i]);
+    }
+}
+
 function processTask(task) {
-    wildbook.IA.processTask(task, function(t, res) {
-        if (t && t.id) tasks[t.id] = t;
+    //first we populate tasks hash (for use later via getCachedTask()
+    cacheTaskAndChildren(task);
+
+    //now we get the DOM element
+    //  note: this recurses, so our "one" element should have nested children element for child task(s)
+    wildbook.IA.getDomResult(task, function(t, res) {
         $('.maincontent').append(res);
-        if (!t.children || (t.children.length < 1)) grabTaskResult(t.id);  //FIXME TODO generalize for all IA types
+        grabTaskResultsAll(task);
     });
 }
 
 
+
+//calls grabTaskResult() on all appropriate nodes in tree
+//  note there is no callback -- that is because this ultimately is expecting to put contents in
+//  appropriate divs (e.g. id="task-XXXX")
+var alreadyGrabbed = {};
+function grabTaskResultsAll(task) {
+console.info("grabTaskResultsAll %s", task.id);
+    if (!task || !task.id || alreadyGrabbed[task.id]) return;
+    if (wildbook.IA.needTaskResults(task)) {  //this magic decides "do we even have/need results for this task?"
+console.info("grabTaskResultsAll %s TRYING.....", task.id);
+        grabTaskResult(task.id);  //ajax, backgrounds
+    }
+    if (!wildbook.IA.hasChildren(task)) return;
+    //now we recurse thru children....
+    for (var i = 0 ; i < task.children.length ; i++) {
+        grabTaskResultsAll(task.children[i]);
+    }
+}
+
 function grabTaskResult(tid) {
+        alreadyGrabbed[tid] = true;
 	var mostRecent = false;
 	var gotResult = false;
 console.warn('------------------- grabTaskResult(%s)', tid);
@@ -269,6 +301,7 @@ function approxServerTime() {
 }
 
 function manualCallback(tid) {
+console.warn('manualCallback disabled currently (tid=%s)', tid); return;
 	var m = jobIdMap[tid];
 	if (!m || !m.jobId) return alert('Could not find jobid for ' + tid);
 	if (jobIdMap[tid].manualAttempts > 3) {
