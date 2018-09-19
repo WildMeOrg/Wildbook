@@ -176,14 +176,12 @@ function parseTaskIds() {
 function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
-            processTask(x.responseJSON.task);
+            processTask(x.responseJSON.task); //this will be json task (w/children)
         } else {
             alert('Error fetching task id=' + tid);
             console.error('tryTaskId(%s) failed: %o', tid, x);
         }
     });
-return;///////
-
 }
 
 
@@ -191,16 +189,50 @@ function getCachedTask(tid) {
     return tasks[tid];
 }
 
+
+function cacheTaskAndChildren(task) {
+    if (!task || !task.id || tasks[task.id]) return;
+    tasks[task.id] = task;
+    if (!wildbook.IA.hasChildren(task)) return;
+    for (var i = 0 ; i < task.children.length ; i++) {
+        cacheTaskAndChildren(task.children[i]);
+    }
+}
+
 function processTask(task) {
-    wildbook.IA.processTask(task, function(t, res) {
-        if (t && t.id) tasks[t.id] = t;
+    //first we populate tasks hash (for use later via getCachedTask()
+    cacheTaskAndChildren(task);
+
+    //now we get the DOM element
+    //  note: this recurses, so our "one" element should have nested children element for child task(s)
+    wildbook.IA.getDomResult(task, function(t, res) {
         $('.maincontent').append(res);
-        grabTaskResult(t.id);
+        grabTaskResultsAll(task);
     });
 }
 
 
+
+//calls grabTaskResult() on all appropriate nodes in tree
+//  note there is no callback -- that is because this ultimately is expecting to put contents in
+//  appropriate divs (e.g. id="task-XXXX")
+var alreadyGrabbed = {};
+function grabTaskResultsAll(task) {
+console.info("grabTaskResultsAll %s", task.id);
+    if (!task || !task.id || alreadyGrabbed[task.id]) return;
+    if (wildbook.IA.needTaskResults(task)) {  //this magic decides "do we even have/need results for this task?"
+console.info("grabTaskResultsAll %s TRYING.....", task.id);
+        grabTaskResult(task.id);  //ajax, backgrounds
+    }
+    if (!wildbook.IA.hasChildren(task)) return;
+    //now we recurse thru children....
+    for (var i = 0 ; i < task.children.length ; i++) {
+        grabTaskResultsAll(task.children[i]);
+    }
+}
+
 function grabTaskResult(tid) {
+        alreadyGrabbed[tid] = true;
 	var mostRecent = false;
 	var gotResult = false;
 console.warn('------------------- grabTaskResult(%s)', tid);
@@ -269,6 +301,7 @@ function approxServerTime() {
 }
 
 function manualCallback(tid) {
+console.warn('manualCallback disabled currently (tid=%s)', tid); return;
 	var m = jobIdMap[tid];
 	if (!m || !m.jobId) return alert('Could not find jobid for ' + tid);
 	if (jobIdMap[tid].manualAttempts > 3) {
@@ -395,9 +428,9 @@ function displayAnnotDetails(taskId, res, num) {
 			indivId = res.responseJSON.asset.features[0].individualId;
 			var h = 'Matching results';
 			if (encId) {
-				h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
-				//h += '<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
-				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+				h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
+				//h += '<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
+				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
 			}
 			if (indivId) {
 				h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
@@ -544,7 +577,7 @@ console.info('waiting to try again...');
       			altIDString = ', altID '+altIDString;
     		}
 
-		$('#results').html('One match found (<a target="_new" href="encounter.jsp?number=' +
+		$('#results').html('One match found (<a target="_new" href="encounters/encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
 			'</a> id ' + (res.matchAnnotations[0].encounter.individualID || 'unknown') + altIDString +
@@ -565,7 +598,7 @@ console.info('waiting to try again...');
 	if (altIDString && altIDString.length > 0) {
 		altIDString = ' (altID: '+altIDString+')';
 	}
-		h += '<li data-i="' + i + '"><a target="_new" href="encounter.jsp?number=' +
+		h += '<li data-i="' + i + '"><a target="_new" href="encounters/encounter.jsp?number=' +
 			res.matchAnnotations[i].encounter.catalogNumber + '">' +
 			res.matchAnnotations[i].encounter.catalogNumber + altIDString + '</a> (' +
 			(res.matchAnnotations[i].encounter.individualID || 'unidentified') + '), score = ' +
@@ -633,7 +666,7 @@ function approvalButtonClick(encID, indivID, encID2) {
 console.warn(d);
 			if (d.success) {
 				jQuery(msgTarget).html('<i><b>Update successful</b> - please wait....</i>');
-				//////window.location.href = 'encounter.jsp?number=' + encID;
+				//////window.location.href = 'encounters/encounter.jsp?number=' + encID;
 			} else {
 				console.warn('error returned: %o', d);
 				jQuery(msgTarget).html('Error updating encounter: <b>' + d.error + '</b>');
