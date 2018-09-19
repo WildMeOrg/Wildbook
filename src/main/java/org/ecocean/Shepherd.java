@@ -764,9 +764,14 @@ public class Shepherd {
   
   
   public List<User> getUsersWithUsername() {
+    return getUsersWithUsername("username ascending");
+  }
+  
+  public List<User> getUsersWithUsername(String ordering) {
     List<User> users=null;
     String filter="SELECT FROM org.ecocean.User WHERE username != null";   
     Query query=getPM().newQuery(filter);
+    query.setOrdering(ordering);
     Collection c = (Collection) (query.execute());
     users=new ArrayList<User>(c);
     query.closeAll();
