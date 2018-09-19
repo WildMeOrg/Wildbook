@@ -195,7 +195,7 @@ function processTask(task) {
     wildbook.IA.processTask(task, function(t, res) {
         if (t && t.id) tasks[t.id] = t;
         $('.maincontent').append(res);
-        grabTaskResult(t.id);
+        if (!t.children || (t.children.length < 1)) grabTaskResult(t.id);  //FIXME TODO generalize for all IA types
     });
 }
 
