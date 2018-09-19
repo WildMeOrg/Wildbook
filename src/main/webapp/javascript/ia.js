@@ -75,41 +75,62 @@ console.log(' . . . . getPluginType[%d] trying %s | %s', i, wildbook.IA.plugins[
         return res;
     },
 
+    //TODO we need to bust this out to plugin-type based decision making.  but for now i use this really hacky decision of only leaf nodes
+    //   note this will skip detection results (which has children) ... boo obvs
+    needTaskResults: function(task) {
+        return !wildbook.IA.hasChildren(task);
+    },
+
+    //utility function for "has 1 or more children"
+    hasChildren: function(task) {
+        return (task && Array.isArray(task.children) && (task.children.length > 0));
+    },
+
     //this will traverse the task, and call resCallback(task, res) with 'res' being the html (div) for results
-    //  for all subtasks
-    processTask: function(task, resCallback) {
+    //  note that the recursion will created nested dom elements for all children.  all with have id="task-TASKID"
+    getDomResult: function(task, resCallback) {
         if (!task && !task.id) return;
         if (typeof resCallback != 'function') {
-            console.error('wildbook.IA.processTask() failed on task %s due to no resCallback function', task.id);
+            console.error('wildbook.IA.getDomResult() failed on task %s due to no resCallback function', task.id);
             return;
         }
 
-        var res = wildbook.IA.callPlugin('getDomResult', task, [task]);
+        var res = jQuery(wildbook.IA.callPlugin('getDomResult', task, [task]));
+        wildbook.IA.appendDebugDom(task, res);
 
-        if (wildbook.IA.addDebug) {
-            var type = wildbook.IA.getPluginType(task);
-            var gt = wildbook.IA.getGeneralType(task);
-            res += '<div class="ia-debug" style="display:none;" id="task-debug-' + task.id + '">';
-            res += '<i>type:</i> <b>' + type + '</b>\n';
-            res += '<i>general type:</i> <b>' + gt + '</b>\n';
-            res += '<i>task contents:</i>\n\n' + JSON.stringify(task, null, 4);
-            res += '</div>';
-        }
-
-        resCallback(task, res);
-
-        //now recurse thru the kids
-        if (task.children && Array.isArray(task.children) && (task.children.length > 0)) {
+        if (wildbook.IA.hasChildren(task)) {
             //TODO not sure if this whole .parent thing is a good idea, but for now.........
             var parentTask = Object.assign({}, task);  //a shallow copy, but sufficient since we want to lose the children for this purpose
             delete(parentTask.children);  //lets cut out the loopiness plz
             for (var i = 0 ; i < task.children.length ; i++) {
-console.info('>>> iterating on child %d of task %s', i, task.id);
+console.info('>>> IA.getDomResult() iterating on child %d of task %s', i, task.id);
                 task.children[i].parent = parentTask;  //technically modifying the original task... oops?
-                wildbook.IA.processTask(task.children[i], resCallback);
+                var cres = jQuery(wildbook.IA.callPlugin('getDomResult', task.children[i], [task.children[i]]));
+                if (cres) {
+                    res.append(cres);
+                    wildbook.IA.appendDebugDom(task.children[i], cres);
+                }
             }
         }
+
+        resCallback(task, res);
     },
+
+
+    appendDebugDom: function(task, jel) {  //jel is a jquery element to append to
+        if (!wildbook.IA.addDebug) return;
+        var type = wildbook.IA.getPluginType(task);
+        var gt = wildbook.IA.getGeneralType(task);
+        var dh = '<div class="ia-debug" style="display:none;" id="task-debug-' + task.id + '">';
+        dh += '<i>type:</i> <b>' + type + '</b>\n';
+        dh += '<i>general type:</i> <b>' + gt + '</b>\n';
+        dh += '<i>task contents:</i>\n\n' + JSON.stringify(task, null, 4);
+        dh += '</div>';
+        jel.append(dh);
+    },
+
+
+        //now recurse thru the kids
 
     //this returns (null or) an array of "hamburger menu items", which are basically each ['text', function]
     //  passed in the enh object
@@ -127,7 +148,7 @@ console.info('>>> iterating on child %d of task %s', i, task.id);
         isMyTask: function(task) { return false; },  //gets set specifically only when no parameters (for now)
         getGeneralType: function() { return 'unknown'; },
         getDomResult: function(task) {
-            return '<!-- __NULL__.getDomResult(' + task.id + ') -->';
+            return '<div class="ia-null-task" id=' + task.id + '"></div>';
         }
     }]
 };
