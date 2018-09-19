@@ -395,9 +395,9 @@ function displayAnnotDetails(taskId, res, num) {
 			indivId = res.responseJSON.asset.features[0].individualId;
 			var h = 'Matching results';
 			if (encId) {
-				h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
-				//h += '<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
-				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+				h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
+				//h += '<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
+				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
 			}
 			if (indivId) {
 				h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
@@ -544,7 +544,7 @@ console.info('waiting to try again...');
       			altIDString = ', altID '+altIDString;
     		}
 
-		$('#results').html('One match found (<a target="_new" href="encounter.jsp?number=' +
+		$('#results').html('One match found (<a target="_new" href="encounters/encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
 			'</a> id ' + (res.matchAnnotations[0].encounter.individualID || 'unknown') + altIDString +
@@ -565,7 +565,7 @@ console.info('waiting to try again...');
 	if (altIDString && altIDString.length > 0) {
 		altIDString = ' (altID: '+altIDString+')';
 	}
-		h += '<li data-i="' + i + '"><a target="_new" href="encounter.jsp?number=' +
+		h += '<li data-i="' + i + '"><a target="_new" href="encounters/encounter.jsp?number=' +
 			res.matchAnnotations[i].encounter.catalogNumber + '">' +
 			res.matchAnnotations[i].encounter.catalogNumber + altIDString + '</a> (' +
 			(res.matchAnnotations[i].encounter.individualID || 'unidentified') + '), score = ' +
@@ -633,7 +633,7 @@ function approvalButtonClick(encID, indivID, encID2) {
 console.warn(d);
 			if (d.success) {
 				jQuery(msgTarget).html('<i><b>Update successful</b> - please wait....</i>');
-				//////window.location.href = 'encounter.jsp?number=' + encID;
+				//////window.location.href = 'encounters/encounter.jsp?number=' + encID;
 			} else {
 				console.warn('error returned: %o', d);
 				jQuery(msgTarget).html('Error updating encounter: <b>' + d.error + '</b>');
