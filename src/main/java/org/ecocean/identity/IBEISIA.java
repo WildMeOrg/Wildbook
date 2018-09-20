@@ -166,10 +166,6 @@ System.out.println("sendMediaAssets(): sending " + ct);
         return RestClient.post(url, hashMapToJSONObject(map));
     }
 
-
-
-            //Annotation ann = new Annotation(ma, species);
-
     public static JSONObject sendAnnotations(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendAnnotations() called without IA primed");
         String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
@@ -259,13 +255,27 @@ System.out.println("sendAnnotations(): sending " + ct);
         ArrayList<String> tnlist = new ArrayList<String>();
 
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
-        String species = null;
+        //String species = null;
+        String iaClass = null;
         for (Annotation ann : qanns) {
             if (!validForIdentification(ann)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
                 continue;
             }
-            if (species == null) species = ann.getSpecies();
+
+            //if (species == null) species = ann.getSpecies();
+
+            if (ann.getIAClass()!=null&&!"".equals(ann.getIAClass())) {
+                iaClass = ann.getIAClass();
+                System.out.println("iaClass set from Annotation.");
+            } else if (ann.getSpecies()!=null&&!"".equals(ann.getSpecies())) {
+                System.out.println("===> WARNING: annotation class sent to IA was set from Annotation.species instead of Annotation.iaClass.");
+                iaClass = ann.getSpecies();
+            } else {
+                System.out.println("===> CRITICAL ERROR: Annotation did not have a useable class candidate to send to identification from iaClass or species. ");
+                continue;
+            }
+
             qlist.add(toFancyUUID(ann.getUUID()));
 /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
             //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
@@ -277,14 +287,14 @@ System.out.println("sendAnnotations(): sending " + ct);
         boolean setExemplarCaches = false;
         if (tanns == null) {
 System.out.println("--- exemplar!");
-            if (targetNameListCache.get(species) == null) {
+            if (targetNameListCache.get(iaClass) == null) {
 System.out.println("     gotta compute :(");
-                tanns = Annotation.getExemplars(species, myShepherd);
+                tanns = Annotation.getExemplars(iaClass, myShepherd);
                 setExemplarCaches = true;
             } else {
 System.out.println("     free ride :)");
-                tlist = targetIdsListCache.get(species);
-                tnlist = targetNameListCache.get(species);
+                tlist = targetIdsListCache.get(iaClass);
+                tnlist = targetNameListCache.get(iaClass);
             }
         }
 
@@ -314,8 +324,8 @@ System.out.println("     free ride :)");
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
         if (setExemplarCaches) {
-           targetIdsListCache.put(species, tlist);
-           targetNameListCache.put(species, tnlist);
+           targetIdsListCache.put(iaClass, tlist);
+           targetNameListCache.put(iaClass, tnlist);
         }
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
@@ -1194,8 +1204,15 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
                                                 iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0), fparams);
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
-//TODO get rid of convertSpecies stuff re: Taxonomy!!!!
-        Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
+        
+
+        String iaClass = iaResult.optString("class", null);
+
+        // This is where the iaClass/species was getting mangled on enc submission... You can still use it in a pinch now that the fields are separate. 
+        //Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
+        
+        Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
+        
         String annId = fromFancyUUID(iaResult.optJSONObject("uuid"));  //we adopt IA's annot id!  TODO should we check that this doesnt already exist? too much edge-case?
         if (annId != null) ann.setId(annId);
         return ann;
@@ -1782,9 +1799,11 @@ System.out.println("need " + annId + " from IA, i guess?");
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species");
             
             // iaClass... not your scientific name species
-            String speciesString = rtn.getJSONArray("response").getString(0);
+            String iaClass = rtn.getJSONArray("response").getString(0);
 
-            Annotation ann = new Annotation(speciesString, ft);
+            Annotation ann = new Annotation(convertSpeciesToString(rtn.getJSONArray("response").optString(0, null)), ft, iaClass);
+            convertSpeciesToString(rtn.getJSONArray("response").optString(0, null));
+
             ann.setId(annId);  //nope we dont want random uuid, silly
             rtn = RestClient.get(iaURL(context, "/api/annot/exemplar/json/" + idSuffix));
             if ((rtn != null) && (rtn.optJSONArray("response") != null)) {
@@ -1832,10 +1851,11 @@ System.out.println("need " + annId + " from IA, i guess?");
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species");
             
             //iaClass, not the human friendly species name
-            String speciesString = rtn.getJSONArray("response").getString(0);
+            String iaClass = rtn.getJSONArray("response").getString(0);
             out.println(4);
 
-            Annotation ann = new Annotation(speciesString, ft);
+            // Can we do some magic future query against the Taxonomy class for what species is associated with the iaClass???
+            Annotation ann = new Annotation(convertSpeciesToString(rtn.getJSONArray("response").optString(0, null)), ft, iaClass);
             ann.setId(annId);  //nope we dont want random uuid, silly
             rtn = RestClient.get(iaURL(context, "/api/annot/exemplar/json/" + idSuffix));
             if ((rtn != null) && (rtn.optJSONArray("response") != null)) {
