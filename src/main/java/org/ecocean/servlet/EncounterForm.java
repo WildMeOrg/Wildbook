@@ -638,8 +638,8 @@ System.out.println("enc ?= " + enc.toString());
               for(int y=0;y<numTokens;y++) {
                 String tok=str.nextToken().trim();
                 String hashedTok=ServletUtilities.hashString(tok);
-                if(myShepherd.getUserByHashedEmailAddress(tok)!=null) {
-                  User user=myShepherd.getUserByHashedEmailAddress(tok);
+                if(myShepherd.getUserByHashedEmailAddress(hashedTok)!=null) {
+                  User user=myShepherd.getUserByHashedEmailAddress(hashedTok);
                   submitters.add(user);
                 }
                 else {

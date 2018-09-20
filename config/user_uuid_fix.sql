@@ -25,7 +25,7 @@ ALTER TABLE "USERS" ADD PRIMARY KEY ("UUID");
 
 
 
--- now we need to add unique constraint to USERNAME which was previously that because of primary key (but still is NOT NULL)
+-- now we need to add unique constraint to USERNAME which was previously that because of primary key
 ALTER TABLE "USERS" ADD CONSTRAINT users_username_unique UNIQUE ("USERNAME");
 
 -- apparently "anonymous" users are added without username, so we need to do this:
