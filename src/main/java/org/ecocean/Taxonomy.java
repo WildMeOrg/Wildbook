@@ -9,6 +9,8 @@ import org.ecocean.Util;
 
 public class Taxonomy implements java.io.Serializable {
 
+  private static final long serialVersionUID = 1L;
+
   private String id;
 
   // The scientific name is the authoritative name the scientific community uses to identify what is colloquially called "a species."
@@ -16,6 +18,9 @@ public class Taxonomy implements java.io.Serializable {
   // usually "Genus species" or "Genus species subspecies"
   private String scientificName;
   private List<String> commonNames; 
+
+  private String iaClass;
+  private List<String> iaSubclasses;
 
   // A Convention: getters/setters for Taxonomy objects (in other Classes) will use noun "Taxonomy".
   // while convenience string-only methods will use noun "Species" (and might require Shepherds to see which Taxonomy objects exist in the DB, for e.g. putting a species string on an Encounter)
@@ -49,31 +54,58 @@ public class Taxonomy implements java.io.Serializable {
   public void setCommonNames(List<String> commonNames) {
     this.commonNames = commonNames;
   }
+
   public List<String> getCommonNames() {
     return commonNames;
   }
+
   public void addCommonName(String commonName) {
     this.commonNames.add(commonName);
   }
+
   public String getCommonName() {
     return getCommonName(0);
   }
+
   public String getCommonName(int i) {
     if (commonNames==null || commonNames.size()<=i) return null;
     return commonNames.get(i);
   }
 
-    public boolean equals(Taxonomy other) {
-        if ((other == null) || (scientificName == null) || (other.getScientificName() == null)) return false;
-        return scientificName.toLowerCase().equals(other.getScientificName().toLowerCase());
-    }
+  public boolean equals(Taxonomy other) {
+      if ((other == null) || (scientificName == null) || (other.getScientificName() == null)) return false;
+      return scientificName.toLowerCase().equals(other.getScientificName().toLowerCase());
+  }
 
+  public String toString() {
+      return new ToStringBuilder(this)
+              .append("id", id)
+              .append("scientificName", scientificName)
+              .toString();
+  }
 
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("id", id)
-                .append("scientificName", scientificName)
-                .toString();
-    }
+  public void setIAClass(String iaClass) {
+    this.iaClass = iaClass;
+  }
+  public String getIAClass() {
+    return iaClass;
+  }
+
+  public void setIASubclasses(List<String> subclasses) {
+    this.iaSubclasses = subclasses;
+  }
+
+  public List<String> getIASubclasses() {
+    return iaSubclasses;
+  }
+
+  public void addIASubclass(String iaSubclass) {
+    this.iaSubclasses.add(iaSubclass);
+  }
+
+  public String getIASubclass() {
+    return getIASubclasses().get(0);
+  }
+  
 
 }
