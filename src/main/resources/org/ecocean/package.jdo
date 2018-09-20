@@ -469,9 +469,13 @@
       <field name="id" primary-key="true">
       </field>
 
-	<field name="scientificName" allows-null="false">
-		<index name="TAXONOMY_SCIENTIFICNAME_INDEX" unique="true" />
-	</field>
+    	<field name="scientificName" allows-null="false">
+	    	<index name="TAXONOMY_SCIENTIFICNAME_INDEX" unique="true" />
+    	</field>
+
+      <field name="iaClass" allows-null="true">
+		    <index name="IACLASS" unique="true" />
+    	</field>
 
       <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
     </class>
@@ -486,6 +490,11 @@
       <field name="id" primary-key="true">
         <column length="36"/>
       </field>
+
+      <field name="iaClass">
+        <column name="IACLASS"/>
+      </field>
+
 		<field name="isExemplar">
 <!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here: -->
 <!--			<column default-value="0" /> -->
