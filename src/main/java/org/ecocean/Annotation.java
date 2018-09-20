@@ -79,6 +79,22 @@ public class Annotation implements java.io.Serializable {
         this.features = f;
     }
 
+    //For setting the iaClass returned from detection... No more mangled species names sent to identification
+    public Annotation(String species, Feature f, String iaClass) {
+        this.id = Util.generateUUID();
+        this.species = species;
+        this.features = new ArrayList<Feature>();
+        this.features.add(f);
+        this.iaClass = iaClass;
+    }
+
+    public Annotation(String species, ArrayList<Feature> f, String iaClass) {
+        this.id = Util.generateUUID();
+        this.species = species;
+        this.features = f;
+        this.iaClass = iaClass;
+    }
+
 /*
     public Annotation(MediaAsset ma, String species, int x, int y, int w, int h, float[] tm) {
         this.id = org.ecocean.Util.generateUUID();
