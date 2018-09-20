@@ -94,26 +94,28 @@ console.log(' . . . . getPluginType[%d] trying %s | %s', i, wildbook.IA.plugins[
             console.error('wildbook.IA.getDomResult() failed on task %s due to no resCallback function', task.id);
             return;
         }
+        var res = wildbook.IA._getDomResult(task);
+        resCallback(task, res);
+    },
 
+    //guts of above, no callback, for recursion...
+    _getDomResult: function(task) {
+        if (!task && !task.id) return;
         var res = jQuery(wildbook.IA.callPlugin('getDomResult', task, [task]));
         wildbook.IA.appendDebugDom(task, res);
 
         if (wildbook.IA.hasChildren(task)) {
             //TODO not sure if this whole .parent thing is a good idea, but for now.........
-            var parentTask = Object.assign({}, task);  //a shallow copy, but sufficient since we want to lose the children for this purpose
-            delete(parentTask.children);  //lets cut out the loopiness plz
+            //var parentTask = Object.assign({}, task);  //a shallow copy, but sufficient since we want to lose the children for this purpose
+            //delete(parentTask.children);  //lets cut out the loopiness plz
             for (var i = 0 ; i < task.children.length ; i++) {
-console.info('>>> IA.getDomResult() iterating on child %d of task %s', i, task.id);
-                task.children[i].parent = parentTask;  //technically modifying the original task... oops?
-                var cres = jQuery(wildbook.IA.callPlugin('getDomResult', task.children[i], [task.children[i]]));
-                if (cres) {
-                    res.append(cres);
-                    wildbook.IA.appendDebugDom(task.children[i], cres);
-                }
+console.info('>>> IA._getDomResult() iterating on child %d of task %s: %s', i, task.id, task.children[i].id);
+                //task.children[i].parent = parentTask;  //technically modifying the original task... oops?
+                var cres = wildbook.IA._getDomResult(task.children[i]);
+                if (cres) res.append(cres);
             }
         }
-
-        resCallback(task, res);
+        return res;
     },
 
 
