@@ -728,7 +728,7 @@ for (Feature ft : ann.getFeatures()) {
 System.out.println("     >>> " + ft + " >> " + ft.getParameters());
 }
 */
-            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getSpecies(), opt);
+            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getIAClass(), opt);
             JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize,
                                                          ((anns.size() == 1) ? taskId : null));  //we use passed taskId if only 1 ann but generate otherwise
             taskList.put(taskRes);
@@ -742,8 +742,8 @@ System.out.println("     >>> " + ft + " >> " + ft.getParameters());
 
     private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl, JSONObject queryConfigDict,
                                                JSONObject userConfidence, int limitTargetSize, String annTaskId) throws IOException {
-        String species = ann.getSpecies();
-        if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + ann + " invalid: " + species);
+        String iaClass = ann.getIAClass();
+        if ((iaClass == null) || (iaClass.equals(""))) throw new IOException("iaClass on Annotation " + ann + " invalid: " + iaClass);
         boolean success = true;
         if (annTaskId == null) annTaskId = Util.generateUUID();
         JSONObject taskRes = new JSONObject();
@@ -761,8 +761,8 @@ System.out.println("+ starting ident task " + annTaskId);
             ///note: this can all go away if/when we decide not to need limitTargetSize
             ArrayList<Annotation> exemplars = null;
             if (limitTargetSize > -1) {
-                exemplars = Annotation.getExemplars(species, myShepherd);
-                if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for species " + species);
+                exemplars = Annotation.getExemplars(iaClass, myShepherd);
+                if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for iaClass " + iaClass);
                 if (exemplars.size() > limitTargetSize) {
                     System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
                     exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
@@ -775,7 +775,7 @@ System.out.println("+ starting ident task " + annTaskId);
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
-                                                               myShepherd, species, annTaskId, baseUrl);
+                                                               myShepherd, iaClass, annTaskId, baseUrl);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;
@@ -1040,7 +1040,7 @@ System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
             if (ann == null)  {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
             /////TODO fix how this opt gets set?  maybe???
             JSONObject opt = null;
-            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getSpecies(), opt);
+            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getIAClass(), opt);
             JSONObject rtn = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, -1, null);
             /////// at this point, we can consider this current task done
             IBEISIA.setActiveTaskId(request, null);  //reset it so it can discovered when results come back

@@ -439,9 +439,9 @@ public class Annotation implements java.io.Serializable {
         }
 
 
-    static public ArrayList<Annotation> getExemplars(String species, Shepherd myShepherd) {
+    static public ArrayList<Annotation> getExemplars(String iaClass, Shepherd myShepherd) {
 //species = "Balaenoptera acutorostrata";  //for springbreak testing only!!!!!!!  FIXME
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.isExemplar && species == \"" + species + "\"";
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.isExemplar && iaClass == \"" + iaClass + "\"";
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
