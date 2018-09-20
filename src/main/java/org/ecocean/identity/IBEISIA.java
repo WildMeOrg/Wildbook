@@ -120,43 +120,45 @@ public class IBEISIA {
         //see: https://erotemic.github.io/ibeis/ibeis.web.html?highlight=add_images_json#ibeis.web.app.add_images_json
         HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
         map.put("image_uri_list", new ArrayList<JSONObject>());
-        map.put("image_uuid_list", new ArrayList<JSONObject>());
-        map.put("image_width_list", new ArrayList<Integer>());
-        map.put("image_height_list", new ArrayList<Integer>());
-        map.put("image_time_posix_list", new ArrayList<Integer>());
+        //map.put("image_uuid_list", new ArrayList<JSONObject>());
+        //map.put("image_width_list", new ArrayList<Integer>());
+        //map.put("image_height_list", new ArrayList<Integer>());
+        //map.put("image_time_posix_list", new ArrayList<Integer>());
         map.put("image_gps_lat_list", new ArrayList<Double>());
         map.put("image_gps_lon_list", new ArrayList<Double>());
 
         for (MediaAsset ma : mas) {
             if (!needToSend(ma)) continue;
             ImageAttributes iatt = ma.getImageAttributes();
-            int w = 0;
-            int h = 0;
-            if (iatt != null) {
-                w = (int) iatt.getWidth();
-                h = (int) iatt.getHeight();
-            }
+
+            // No more width or height necessary.
+            //int w = 0;
+            //int h = 0;
+            //if (iatt != null) {
+            //    w = (int) iatt.getWidth();
+            //    h = (int) iatt.getHeight();
+            //}
             //we are *required* to have a width/height to pass to IA, so lets skip...
-            if ((w < 1) || (h < 1)) {
-                System.out.println("WARNING: IBEISIA.sendMediaAssets() skipping " + ma.toString() + " - unable to find width/height");
-                continue;
-            }
+            //if ((w < 1) || (h < 1)) {
+            //    System.out.println("WARNING: IBEISIA.sendMediaAssets() skipping " + ma.toString() + " - unable to find width/height");
+            //    continue;
+            //}
 
-            map.get("image_width_list").add(w);
-            map.get("image_height_list").add(h);
+            //map.get("image_width_list").add(w);
+            //map.get("image_height_list").add(h);
 
-            map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
+            //map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
             map.get("image_uri_list").add(mediaAssetToUri(ma));
 
             map.get("image_gps_lat_list").add(ma.getLatitude());
             map.get("image_gps_lon_list").add(ma.getLongitude());
 
-            DateTime t = ma.getDateTime();
-            if (t == null) {
-                map.get("image_time_posix_list").add(0);
-            } else {
-                map.get("image_time_posix_list").add((int)Math.floor(t.getMillis() / 1000));  //IBIES-IA wants seconds since epoch
-            }
+            //DateTime t = ma.getDateTime();
+            //if (t == null) {
+            //    map.get("image_time_posix_list").add(0);
+            //} else {
+            //    map.get("image_time_posix_list").add((int)Math.floor(t.getMillis() / 1000));  //IBIES-IA wants seconds since epoch
+            //}
             markSent(ma);
             ct++;
         }
