@@ -214,11 +214,26 @@ System.out.println("sendMediaAssets(): sending " + ct);
                 System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
+            // Try and get an iaClass from the  annotation. If detection ran correctly.. it should be there.
+            // I guess fall back on the species from ann if you don't find anything? Maybe you shouldn't... because detect shouldn't have anything to do 
+            // with the human friendly "species", just ia class. Oh well, doing it anyway for now.. FIGHT ME ABOUT IT
+            String iaClass = null;
+            if (ann.getIAClass()!=null&&!"".equals(ann.getIAClass())) {
+                iaClass = ann.getIAClass();
+                System.out.println("iaClass set from Annotation.");
+            } else if (ann.getSpecies()!=null&&!"".equals(ann.getSpecies())) {
+                System.out.println("===> WARNING: annotation class sent to IA was set from Annotation.species instead of Annotation.iaClass.");
+                iaClass = ann.getSpecies();
+            } else {
+                System.out.println("===> CRITICAL ERROR: Annotation did not have a useable class candidate to send to identification from iaClass or species. ");
+                continue;
+            }
+
             int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
             map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
             map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
-            map.get("annot_species_list").add(ann.getSpecies());
+            map.get("annot_species_list").add(iaClass);
             String name = ann.findIndividualId(myShepherd);
             map.get("annot_name_list").add((name == null) ? "____" : name);
             markSent(ann);
@@ -1764,6 +1779,8 @@ System.out.println("need " + annId + " from IA, i guess?");
 
             rtn = RestClient.get(iaURL(context, "/api/annot/species/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species");
+            
+            // iaClass... not your scientific name species
             String speciesString = rtn.getJSONArray("response").getString(0);
 
             Annotation ann = new Annotation(speciesString, ft);
@@ -1812,6 +1829,8 @@ System.out.println("need " + annId + " from IA, i guess?");
 
             rtn = RestClient.get(iaURL(context, "/api/annot/species/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species");
+            
+            //iaClass, not the human friendly species name
             String speciesString = rtn.getJSONArray("response").getString(0);
             out.println(4);
 
