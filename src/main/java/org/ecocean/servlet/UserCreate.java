@@ -82,13 +82,18 @@ public class UserCreate extends HttpServlet {
 
     //create a new Role from an encounter
 
-    if ((request.getParameter("emailAddress") != null) &&  (!request.getParameter("emailAddress").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))) || (request.getParameter("isEdit")!=null))) {
+    if (  (request.getParameter("uuid") != null) && (!request.getParameter("uuid").trim().equals("") )) {
+      
+      String uuid=request.getParameter("uuid");
       
       String username=null;
       if(request.getParameter("username")!=null) {
         username=request.getParameter("username");
       }
-      String email=request.getParameter("emailAddress").trim();
+      String email=null;
+      if((request.getParameter("emailAddress")!=null)&&(!request.getParameter("emailAddress").trim().equals(""))){
+        email=request.getParameter("emailAddress").trim();
+      };
       
       String password="";
       if((request.getParameter("password")!=null)&&(!request.getParameter("password").trim().equals("")))password=request.getParameter("password").trim();
@@ -100,11 +105,18 @@ public class UserCreate extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("UserCreate.class");
         
-        User newUser=new User();
+        User newUser=null;
+        
         try{
           myShepherd.beginDBTransaction();
+          if(myShepherd.getUserByUUID(uuid)!=null){
+            newUser=myShepherd.getUserByUUID(uuid);
+          }
+          else{
+            newUser=new User(uuid);
+          }
         
-          if(myShepherd.getUserByEmailAddress(email)==null){
+          if(myShepherd.getUserByUUID(uuid)==null){
             
             //new User
             //System.out.println("hashed password: "+hashedPassword+" with salt "+salt + " from source password "+password);
@@ -122,7 +134,7 @@ public class UserCreate extends HttpServlet {
             createThisUser=true;
           }
           else{
-            newUser=myShepherd.getUserByEmailAddress(email);
+            newUser=myShepherd.getUserByUUID(uuid);
             if((!password.equals(""))&(password.equals(password2))){
               String salt=ServletUtilities.getSalt().toHex();
               String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
