@@ -417,8 +417,7 @@
                                 <% if (CommonConfiguration.allowAdoptions(context)) { %>
                                   <li class="divider"></li>
                                   <li class="dropdown-header"><%=props.getProperty("adoptions")%></li>
-                                  <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
-                                  <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
+                                  <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li class="divider"></li>
                                 <% } %>
                                 <li><a target="_blank" href="//www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
