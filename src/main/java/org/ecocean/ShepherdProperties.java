@@ -4,22 +4,22 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-//import java.util.Properties;
+import java.util.Properties;
 
 public class ShepherdProperties {
 
-  public static LinkedProperties getProperties(String fileName){
+  public static Properties getProperties(String fileName){
     return getProperties(fileName, "en");
   }
   
   
-  public static LinkedProperties getProperties(String fileName, String langCode){
+  public static Properties getProperties(String fileName, String langCode){
     
     return getProperties(fileName, langCode, "context0");
     
   }
 
-  public static LinkedProperties getProperties(String fileName, String langCode, String context){
+  public static Properties getProperties(String fileName, String langCode, String context){
     LinkedProperties props=new LinkedProperties();
 
     String shepherdDataDir="wildbook_data_dir";
@@ -31,7 +31,7 @@ public class ShepherdProperties {
     //  shepherdDataDir=CommonConfiguration.getProperty("dataDirectoryName",context);
     //}
     
-    LinkedProperties contextsProps=getContextsProperties();
+    Properties contextsProps=getContextsProperties();
     if(contextsProps.getProperty(context+"DataDir")!=null){
       shepherdDataDir=contextsProps.getProperty(context+"DataDir");
       
@@ -57,7 +57,7 @@ public class ShepherdProperties {
         //OK, we couldn't find the overridden file, and we couldn't find the local file in the webapp
         //default to the English version
         if(!langCode.equals("en")) {
-          props=getProperties(fileName, "en", context);
+          props=(LinkedProperties)getProperties(fileName, "en", context);
         }
         else {
           ioe.printStackTrace();
@@ -71,8 +71,8 @@ public class ShepherdProperties {
     return props;
   }
   
-  public static LinkedProperties getContextsProperties(){
-    LinkedProperties props=new LinkedProperties();
+  public static Properties getContextsProperties(){
+    Properties props=new Properties();
       try {
         InputStream inputStream = ShepherdProperties.class.getResourceAsStream("/bundles/contexts.properties");
         props.load(inputStream);
