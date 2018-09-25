@@ -273,7 +273,7 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
     try {
       
       
-      u = new URL(request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/"+CommonConfiguration.getProperty("patternMatchingEndPointServletName", ServletUtilities.getContext(request)));
+      u = new URL("https://"+CommonConfiguration.getURLLocation(request)+"/"+CommonConfiguration.getProperty("patternMatchingEndPointServletName", ServletUtilities.getContext(request)));
       String urlParameters  = "number=" + scanTaskID;
       byte[] postData       = urlParameters.getBytes( Charset.forName( "UTF-8" ));
       int    postDataLength = postData.length;
