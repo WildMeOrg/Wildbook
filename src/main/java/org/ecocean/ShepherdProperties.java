@@ -4,23 +4,23 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
+//import java.util.Properties;
 
 public class ShepherdProperties {
 
-  public static Properties getProperties(String fileName){
+  public static LinkedProperties getProperties(String fileName){
     return getProperties(fileName, "en");
   }
   
   
-  public static Properties getProperties(String fileName, String langCode){
+  public static LinkedProperties getProperties(String fileName, String langCode){
     
     return getProperties(fileName, langCode, "context0");
     
   }
 
-  public static Properties getProperties(String fileName, String langCode, String context){
-    Properties props=new Properties();
+  public static LinkedProperties getProperties(String fileName, String langCode, String context){
+    LinkedProperties props=new LinkedProperties();
 
     String shepherdDataDir="wildbook_data_dir";
     if(!langCode.equals("")){
@@ -31,7 +31,7 @@ public class ShepherdProperties {
     //  shepherdDataDir=CommonConfiguration.getProperty("dataDirectoryName",context);
     //}
     
-    Properties contextsProps=getContextsProperties();
+    LinkedProperties contextsProps=getContextsProperties();
     if(contextsProps.getProperty(context+"DataDir")!=null){
       shepherdDataDir=contextsProps.getProperty(context+"DataDir");
       
@@ -40,7 +40,7 @@ public class ShepherdProperties {
     //context change here!
     
     
-    Properties overrideProps=loadOverrideProps(shepherdDataDir, fileName, langCode);
+    LinkedProperties overrideProps=loadOverrideProps(shepherdDataDir, fileName, langCode);
     //System.out.println(overrideProps);
 
     if(overrideProps.size()>0){props=overrideProps;}
@@ -71,8 +71,8 @@ public class ShepherdProperties {
     return props;
   }
   
-  public static Properties getContextsProperties(){
-    Properties props=new Properties();
+  public static LinkedProperties getContextsProperties(){
+    LinkedProperties props=new LinkedProperties();
       try {
         InputStream inputStream = ShepherdProperties.class.getResourceAsStream("/bundles/contexts.properties");
         props.load(inputStream);
@@ -86,11 +86,11 @@ public class ShepherdProperties {
     return props;
   }
 
-  private static Properties loadOverrideProps(String shepherdDataDir, String fileName, String langCode) {
+  private static LinkedProperties loadOverrideProps(String shepherdDataDir, String fileName, String langCode) {
     //System.out.println("Starting loadOverrideProps");
 
-    Properties myProps=new Properties();
-    File configDir = new File(System.getProperty("catalina.base") + "/webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
+    LinkedProperties myProps=new LinkedProperties();
+    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
     //System.out.println(configDir.getAbsolutePath());
     //sometimes this ends up being the "bin" directory of the J2EE container
     //we need to fix that
