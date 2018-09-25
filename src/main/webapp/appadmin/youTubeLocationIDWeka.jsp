@@ -6,19 +6,26 @@ org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.ai.nmt.google.*,
 java.io.*,org.json.JSONObject,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
-<%!
-private String translateIfNotEnglish(String text){
-	String shortForm=text;
-	if(shortForm.length()>500){shortForm=shortForm.substring(0,499);}
-	String langCode=DetectTranslate.detectLanguage(shortForm);
-	if((!langCode.toLowerCase().equals("en"))&&(!langCode.toLowerCase().equals("und"))){
-		System.out.println("Translating: "+text);
-		text=DetectTranslate.translateToEnglish(text).replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();
-		System.out.println("Translated to: "+text);
-	}
-	return text;
-}
+java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"
 
+%>
+
+
+
+
+<%!
+private String removeUrl(String commentstr)
+{
+    String urlPattern = "((https?|ftp|gopher|telnet|file|Unsure|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
+    Pattern p = Pattern.compile(urlPattern,Pattern.CASE_INSENSITIVE);
+    Matcher m = p.matcher(commentstr);
+    int i = 0;
+    while (m.find()) {
+        commentstr = commentstr.replaceAll(m.group(i),"").trim();
+        i++;
+    }
+    return commentstr;
+}
 %>
 
 
