@@ -113,7 +113,6 @@ try{
 			sb.append("@RELATION YouTubeWhaleShark\n\n@ATTRIBUTE description String\n@ATTRIBUTE class {good,poor}\n\n@data\n");
 			
 		}
-		int gotLangCode = 0;
 		for(int i=0;i<numResults;i++){
 			
 			//YouTubeAsset itself
@@ -160,10 +159,10 @@ try{
     				videoDescription=translateIfNotEnglish(videoDescription);		
     				
     				if(!concatenate){
-    					sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',good \n");
+    					sb.append("'"+videoTitle+"','"+videoDescription+"','"+videoTags+"',good\n");
     				}
     				else{
-    					sb.append("'"+videoTitle+" "+videoDescription+" "+videoTags+"',good \n");
+    					sb.append("'"+videoTitle+" "+videoDescription+" "+videoTags+"',good\n");
     	    			
     				}
     			}
