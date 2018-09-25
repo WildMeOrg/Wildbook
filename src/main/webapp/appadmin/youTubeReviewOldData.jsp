@@ -162,6 +162,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
         jsonDetected.put("langCode", detectedLanguage);
         json.put("detected", jsonDetected);
         md.setData(json);
+        ma.setMetadata(md);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
 

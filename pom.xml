@@ -591,7 +591,7 @@
 		<dependency>
 	    <groupId>edu.stanford.nlp</groupId>
 	    <artifactId>stanford-corenlp</artifactId>
-	    <version>3.8.0</version>
+	    <version>3.9.1</version>
 		
 		 <exclusions>
 			<exclusion>  
@@ -620,7 +620,7 @@
 		<dependency>
 		    <groupId>edu.stanford.nlp</groupId>
 		    <artifactId>stanford-parser</artifactId>
-		    <version>3.7.0</version>
+		    <version>3.9.1</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
@@ -650,6 +650,26 @@
               <version>1.9.4</version>
           </dependency>
 		  -->
+
+
+<dependency>
+    <groupId>javax.xml.bind</groupId>
+    <artifactId>jaxb-api</artifactId>
+    <version>2.3.0</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-core -->
+<dependency>
+    <groupId>com.sun.xml.bind</groupId>
+    <artifactId>jaxb-core</artifactId>
+    <version>2.3.0.1</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->
+<dependency>
+    <groupId>com.sun.xml.bind</groupId>
+    <artifactId>jaxb-impl</artifactId>
+    <version>2.3.0.1</version>
+</dependency>
 
 
   </dependencies>
