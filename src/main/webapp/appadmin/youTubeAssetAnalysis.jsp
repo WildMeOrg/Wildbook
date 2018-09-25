@@ -3,7 +3,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
-org.ecocean.grid.*,org.ecocean.ai.nmt.azure.*,
+org.ecocean.grid.*,org.ecocean.ai.nmt.google.*,
 java.io.*,org.json.JSONObject,java.util.*, java.io.FileInputStream,org.ecocean.identity.IBEISIA,
  java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
