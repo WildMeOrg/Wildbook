@@ -13,7 +13,10 @@ org.ecocean.ai.utilities.*,
 java.text.SimpleDateFormat,
 java.text.DateFormat,
 org.joda.time.*,
-org.joda.time.format.DateTimeFormat"%>
+org.joda.time.format.DateTimeFormat,
+com.google.api.services.youtube.YouTube.CommentThreads,
+com.google.api.services.youtube.model.*,
+com.google.api.services.youtube.model.CommentSnippet"%>
 
 <%!
 private String translateIfNotEnglish(String text){
@@ -56,7 +59,9 @@ Shepherd myShepherd=new Shepherd(context);
 
 myShepherd.beginDBTransaction();
 
-int numFixes=0;
+int numVideos=0;
+int numCommentedVideos=0;
+int numCommentedVideosReplies=0;
 
 try{
 	
@@ -81,16 +86,19 @@ try{
 		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
 		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
 		
-		for(int i=0;i<100;i++){
+		for(int i=0;i<numResults;i++){
 			
 			//YouTubeAsset itself
 			MediaAsset ma=results.get(i);
-
+			
+			boolean hasWildMeComment=false;
+			boolean hasWildMeCommentReplies=false;
 			String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 		    
 			
             //JSONObject data=md.getData();
             if ((ma.getMetadata() != null)) {
+              numVideos++;
               MediaAssetMetadata md = ma.getMetadata();	
               if (md.getData() != null) {
             	
@@ -139,9 +147,64 @@ try{
     				
     				if(enc.getOccurrenceID()!=null){
     					occur=myShepherd.getOccurrence(enc.getOccurrenceID());
-    					videoComments=YouTube.getVideoComments(occur, context);
-    					if(videoComments==null)videoComments="";
+    					
+    					
+    					
+    					List<CommentThread> comments=YouTube.getVideoCommentsList(occur, context);
+    					if((comments==null)||(comments.size()==0))videoComments="";
+    					else{
+    						boolean isWildMeComment=false;
+    				        int numComments=comments.size();
+    				        videoComments+="<ul>\n";
+    						for(int f=0;f<numComments;f++) {
+    				            CommentThread ct=comments.get(f);
+
+    				            CommentThreadSnippet cts=ct.getSnippet();
+    				            
+    				            Comment topLevelComment=cts.getTopLevelComment();
+    				            CommentSnippet commentSnippet=topLevelComment.getSnippet();
+    				            String authorName="";
+    				            if((commentSnippet!=null)&&(commentSnippet.getAuthorDisplayName()!=null)){
+    				            	authorName=commentSnippet.getAuthorDisplayName();
+    				            	if(authorName.equals("Wild Me"))isWildMeComment=true;
+    				            }
+    				            String style="";
+  				              	if(isWildMeComment){
+  				              		style="color: green;";
+  				              		hasWildMeComment=true;
+  				              	}
+    				            videoComments+="<li style=\""+style+"\">"+authorName+":"+translateIfNotEnglish(topLevelComment.getSnippet().getTextDisplay());
+    				            
+    				            if(ct.getReplies()!=null){
+    				            	 CommentThreadReplies ctr=ct.getReplies();
+    				             
+	    				            List<Comment> replies=ctr.getComments();
+	    				            int numReplies=0;
+	    				            if(replies!=null)numReplies=replies.size();
+	    				            if(numReplies>0){
+	    				            	if(isWildMeComment)hasWildMeCommentReplies=true;
+	    				            	videoComments+="<ul>\n";
+		    				            for(int g=0;g<numReplies;g++) {
+		    				            
+		    				              Comment reply=replies.get(g);
+		    				              
+		    				              videoComments+="<li>"+translateIfNotEnglish(reply.getSnippet().getTextDisplay())+"</li>";
+		      				            
+		    				             }
+		    				            videoComments+="</ul>\n";
+	    				            }
+    				             }
+
+    				            videoComments+="</li>\n";
+    				            
+    				        }
+    						videoComments+="</ul>\n";
+    						
+    					}
+    					
+    					
     					occurID=occur.getOccurrenceID();
+
     					String tempRelativeDate=YouTube.getVideoPublishedAt(occur, context);
     					if((tempRelativeDate!=null)&&(tempRelativeDate.indexOf("T")!=-1)){
     						tempRelativeDate=tempRelativeDate.substring(0,tempRelativeDate.indexOf("T"));
@@ -190,7 +253,7 @@ try{
     	              catch(Exception e){
     	                e.printStackTrace();
     	              }
-    	              newLocationID=newLocationID.replaceAll("null", "");
+    	              if(newLocationID==null)newLocationID="";
     				%>
     				
     				<tr><td><%=occurID %></td><td><%=currentDate %></td><td><%=newDetectedDate %></td><td><%=currentLocationID %></td><td><%=newLocationID %></td><td><%=videoTitle %></td><td><%=videoDescription %></td><td><%=videoComments %></td><td><%=relativeDate %></td></tr>
@@ -203,6 +266,10 @@ try{
               
               
               }
+              
+              if(hasWildMeComment)numCommentedVideos++;
+              if(hasWildMeCommentReplies)numCommentedVideosReplies++;
+              
             }
 
 			
@@ -234,6 +301,11 @@ finally{
 %>
 
 </table>
+
+<p>Num videos: <%=numVideos %></p>
+<p>Num commented videos: <%=numCommentedVideos %></p>
+<p>Num commented videos with replies: <%=numCommentedVideosReplies %></p>
+<p>Percentage responding: <%=(new Double(numCommentedVideosReplies/numCommentedVideos)).toString() %> </p>
 
 </body>
 </html>
