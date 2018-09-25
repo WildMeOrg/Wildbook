@@ -82,7 +82,7 @@ tr.rowhighlight td, tr.rowhighlight th{
 
 <body>
 <table border="1">
-<tr><th>Occurrence</th><th>VideoID<th>Current Date</th><th>Potentially Matched Date</th><th>LocationID</th><th>New LocationID</th><th>Title Only</th><th>Description Only</th><th>Comments Only</th><th>Relative date</th></tr>
+<tr><th>Occurrence</th><th>VideoID<th>Current Date</th><th>Potentially Matched Date</th><th>LocationID</th><th>New LocationID</th><th>Title Only</th><th>Description Only</th><th>Comments Only</th><th>Raw Comments</th><th>Relative date</th></tr>
 <%
 
 myShepherd.beginDBTransaction();
@@ -137,7 +137,7 @@ try{
 		ArrayList<MediaAsset> poorDataVideos=new ArrayList<MediaAsset>();
 		ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
 		
-		for(int i=0;i<40;i++){
+		for(int i=1701;i<1800;i++){
 		//for(int i=0;i<numResults;i++){
 			
 			boolean videoHasID=false;
@@ -161,6 +161,7 @@ try{
 				String videoTitleShort=videoTitle;
 				String videoComments="";
 				String videoCommentsClean="";
+				String locIDWords="";
 				if(videoTitle.length()>1000){videoTitleShort=videoTitle.substring(0,1000);}
 				if(md.getData().optJSONObject("basic") != null){
 					videoTitle=md.getData().getJSONObject("basic").optString("title").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();
@@ -200,7 +201,7 @@ try{
     			
     			Occurrence occur=null;
     			
-    			Properties props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+    			LinkedProperties props=(LinkedProperties)ShepherdProperties.getProperties("submitActionClass.properties", "",context);
                 
     			
     			if(numEncs>0){
@@ -246,7 +247,7 @@ try{
   				              	}
     				            videoComments+="<li style=\""+style+"\">"+authorName+": "+translateIfNotEnglish(topLevelComment.getSnippet().getTextDisplay());
     				            
-    				            videoCommentsClean+=translateIfNotEnglish(topLevelComment.getSnippet().getTextDisplay());
+    				            videoCommentsClean+=translateIfNotEnglish(topLevelComment.getSnippet().getTextDisplay()).toLowerCase()+" ";
     				            
     				            
     				            if(ct.getReplies()!=null){
@@ -263,7 +264,7 @@ try{
 		    				              Comment reply=replies.get(g);
 		    				              
 		    				              videoComments+="<li>"+translateIfNotEnglish(reply.getSnippet().getTextDisplay())+"</li>";
-		    				              videoCommentsClean+=translateIfNotEnglish(reply.getSnippet().getTextDisplay());
+		    				              videoCommentsClean+=translateIfNotEnglish(reply.getSnippet().getTextDisplay()).toLowerCase()+" ";
 			      				            
 		    				             }
 		    				            videoComments+="</ul>\n";
@@ -321,13 +322,14 @@ try{
     	              String lowercaseRemarks=sb.toString().toLowerCase();
     	              try{
     	            	  
-    	            	  /*
-    	                Enumeration m_enum = props.propertyNames();
-    	                while (m_enum.hasMoreElements()) {
-    	                  String aLocationSnippet = ((String) m_enum.nextElement()).trim();
+    	            	  
+    	                Iterator m_enum = props.orderedKeys().iterator();
+    	                while (m_enum.hasNext()) {
+    	                  String aLocationSnippet = ((String) m_enum.next()).replaceFirst("\\s++$", "");
     	                  //System.out.println("     Looking for: "+aLocationSnippet);
     	                  if (lowercaseRemarks.indexOf(aLocationSnippet) != -1) {
     	                	  newLocationID = props.getProperty(aLocationSnippet);
+    	                	  locIDWords+=" "+ aLocationSnippet;
     	                    //System.out.println(".....Building an idea of location: "+location);
     	                  }
     	                }*/
@@ -362,7 +364,7 @@ try{
     	            	  
     				%>
     				
-    				<tr <%=rowClass %>><td><a href="https://www.whaleshark.org/occurrence.jsp?number=<%=occurID %>"><%=occurID %></a></td><td><a href="https://www.youtube.com/watch?v=<%=videoID %>"><%=videoID %></a></td><td><%=currentDate %></td><td><%=newDetectedDate %></td><td><%=currentLocationID %></td><td><%=newLocationID %></td><td><%=videoTitle %></td><td><%=videoDescription %></td><td><%=videoComments %></td><td><%=relativeDate %></td></tr>
+    				<tr <%=rowClass %>><td><a target="_blank" href="https://www.whaleshark.org/occurrence.jsp?number=<%=occurID %>"><%=occurID %></a></td><td><a target="_blank" href="https://www.youtube.com/watch?v=<%=videoID %>"><%=videoID %></a></td><td><%=currentDate %></td><td><%=newDetectedDate %></td><td><%=currentLocationID %></td><td><%=newLocationID %></td><td><%=videoTitle %></td><td><%=videoDescription %></td><td><%=videoComments %></td><td><%=videoCommentsClean %><br><br>LocID Words: <%=locIDWords %></br></br></td><td><%=relativeDate %></td></tr>
     				<%
     				
     			}
