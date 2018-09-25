@@ -317,7 +317,7 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 			//get video date with SUTime
 			String newDetectedDate="";
 			try{
-				newDetectedDate=SUTime.parseDateStringForBestDate(request, sb.toString(), relativeDate).replaceAll("null","");
+				newDetectedDate=SUTime.parseDateStringForBestDate(request.getSession().getServletContext().getRealPath("/"), sb.toString(), relativeDate).replaceAll("null","");
 			}
 			catch(Exception e){
 				e.printStackTrace();
