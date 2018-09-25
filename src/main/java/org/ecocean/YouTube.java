@@ -356,25 +356,20 @@ System.out.println("]=== done with .extractFrames()");
       
     }
     
-    
+    /**
+     * Returns a long String of comments and replies for an Occurrence that was derived from a YouTube video.
+     * Use this String for generic NLP processing
+     * 
+     * @param occur The Occurrence that derived from a YouTube video.
+     * @param context Standard context used in Wildbook.
+     * @return A long, pretty-print String of comments and replies without hierarchy.
+     */
     public static String getVideoComments(Occurrence occur, String context) {  //pubAfter is ms since epoch
-      //if (!isActive2()) throw new RuntimeException("YouTube API refresh token not active (invalid token?)");
-      //if (youtube == null) throw new RuntimeException("YouTube API google credentials 'youtube2' is null");
       StringBuffer response=new StringBuffer("");
       if (youtubeOauthCreds == null) init(context);
       try {
-        HashMap<String, String> parameters = new HashMap<>();
-        parameters.put("part", "snippet,replies");
-        String videoID=occur.getSocialMediaSourceID().replaceFirst("youtube:", "");
-        parameters.put("videoId", videoID);
 
-        CommentThreads.List commentThreadsListByVideoIdRequest = youtubeOauthCreds.commentThreads().list(parameters.get("part").toString());
-        if (parameters.containsKey("videoId") && parameters.get("videoId") != "") {
-            commentThreadsListByVideoIdRequest.setVideoId(parameters.get("videoId").toString());
-        }
-
-        CommentThreadListResponse commentsResponse = commentThreadsListByVideoIdRequest.execute();
-        java.util.List<CommentThread> comments=commentsResponse.getItems();
+        java.util.List<CommentThread> comments=getVideoCommentsList(occur, context);
         int numComments=comments.size();
         for(int f=0;f<numComments;f++) {
             CommentThread ct=comments.get(f);
@@ -392,6 +387,39 @@ System.out.println("]=== done with .extractFrames()");
         }
         return response.toString();
       }
+
+      catch (Exception t) {
+        t.printStackTrace();
+      }
+      return null;
+    }
+    
+    /**
+     * Returns an array of comments and replies for an Occurrence that was derived from a YouTube video.
+     * Use this array for fine-grained NLP processing.
+     * 
+     * @param occur The Occurrence that derived from a YouTube video.
+     * @param context Standard context used in Wildbook.
+     * @return An array of comments. You can iterate through each comment looking for replies.
+     */
+    public static List<CommentThread> getVideoCommentsList(Occurrence occur, String context) {  //pubAfter is ms since epoch
+      List<CommentThread> comments=new ArrayList<CommentThread>();
+      if (youtubeOauthCreds == null) init(context);
+      try {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put("part", "snippet,replies");
+        String videoID=occur.getSocialMediaSourceID().replaceFirst("youtube:", "");
+        parameters.put("videoId", videoID);
+
+        CommentThreads.List commentThreadsListByVideoIdRequest = youtubeOauthCreds.commentThreads().list(parameters.get("part").toString());
+        if (parameters.containsKey("videoId") && parameters.get("videoId") != "") {
+            commentThreadsListByVideoIdRequest.setVideoId(parameters.get("videoId").toString());
+        }
+
+        CommentThreadListResponse commentsResponse = commentThreadsListByVideoIdRequest.execute();
+        comments=commentsResponse.getItems();
+
+      }
       catch (GoogleJsonResponseException e) {
         e.printStackTrace();
         System.err.println("There was a service error: " + e.getDetails().getCode() + " : " + e.getDetails().getMessage());
@@ -399,8 +427,11 @@ System.out.println("]=== done with .extractFrames()");
       catch (Throwable t) {
         t.printStackTrace();
       }
-      return null;
+      return comments;
     }
+    
+    
+    
     
     //Given an Occurrence created from a YouTube video, return the video description
     public static String getVideoDescription(Occurrence occur, Shepherd myShepherd) {
@@ -496,25 +527,6 @@ System.out.println("]=== done with .extractFrames()");
         Video vid = listResponse.getItems().get(0);
         //System.out.println("I have a video!");
         response.append(vid.getSnippet().getPublishedAt().toString());
-        
-        /*
-        com.google.api.services.youtube.YouTube.Videos.List videosListByIdRequest = youtubeAPIKey.videos().list(parameters.get("part").toString());
-        if (parameters.containsKey("id") && parameters.get("id") != "") {
-            videosListByIdRequest.setId(parameters.get("id").toString());
-        }
-
-        VideoListResponse vidresponse = videosListByIdRequest.execute();
-        if((vidresponse!=null)&&(vidresponse.getItems()!=null)&&(vidresponse.size()>0)) {
-          
-          System.out.println("Trying to get publishedAt vidresponse: "+videoID);
-          System.out.println("Trying to get publishedAt vidresponse num videos: "+vidresponse.size());
-          
-          Video vid=vidresponse.getItems().get(0);
-          ystem.out.println("Trying to get publishedAt vidresponse num videos: I have a video!");
-          
-          response.append(vid.getSnippet().getPublishedAt().toString());
-        }
-        */
         
         //System.out.println("PublishedAt: "+ response);
 
