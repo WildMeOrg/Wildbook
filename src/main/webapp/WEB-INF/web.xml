@@ -185,7 +185,7 @@
 		  /EncounterSetTissueSample = authc, roles[researcher]
 
       /occurrenceSearch.jsp = authc, roles[researcher]
-      /occurrence.jsp = authc, roles[researcher]
+      #/occurrence.jsp = authc, roles[researcher]
       /occurrenceSearchResults.jsp = authc, roles[researcher]
 
 		   /TissueSampleSetHaplotype = authc, roles[researcher]
