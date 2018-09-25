@@ -82,7 +82,7 @@ try{
 				myDescription+=(" "+enc.getComments());
 			}
 			myDescription=myDescription.replaceAll("[^A-Za-z0-9 ]", "").replace("\n", "").trim();
-			if((!myDescription.equals(""))&&(!enc.getLocationID().trim().equals("")))sb.append("'"+myDescription+"',"+enc.getLocationID()+"\n");
+			if((!myDescription.equals(""))&&(!enc.getLocationID().trim().equals(""))&&(!enc.getLocationID().trim().equals("None")))sb.append("'"+myDescription+"',"+enc.getLocationID()+"\n");
 			
 		
 		}
