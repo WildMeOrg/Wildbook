@@ -286,7 +286,9 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
 			try{
 				newDetectedDate=SUTime.parseDateStringForBestDate(request, sb.toString(), relativeDate).replaceAll("null","");
 			}
-			catch(Exception e){}
+			catch(Exception e){
+				e.printStackTrace();
+			}
 			if(!newDetectedDate.equals("")){numDatesFound.incrementAndGet();}
 			
 			//determine new LocationID, including comments
@@ -534,7 +536,7 @@ try{
 			//YouTubeAsset itself
 			MediaAsset ma=results.get(i);
 			
-			String returnedHTML=YouTube.annotateChildrenOfYouTubeMediaAssetWithDateLocation(ma,  request,  myShepherd, context,  numVideosWithID, numVideos, numUncuratedVideos, numCommentedVideos, numCommentedVideosReplies,goodDataVideos,poorDataVideos, true,numDatesFound, numLocationIDsFound);
+			String returnedHTML=annotateChildrenOfYouTubeMediaAssetWithDateLocation(ma,  request,  myShepherd, context,  numVideosWithID, numVideos, numUncuratedVideos, numCommentedVideos, numCommentedVideosReplies,goodDataVideos,poorDataVideos, true,numDatesFound, numLocationIDsFound);
 
 			%>
 			<%=returnedHTML %>
