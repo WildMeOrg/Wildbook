@@ -88,8 +88,8 @@ context=ServletUtilities.getContext(request);
   String edit = props.getProperty("edit");
   String remove = props.getProperty("remove");
   String occurrenceNumber = props.getProperty("occurrenceNumber");
-  System.out.println("We got occurrenceNumber = "+occurrenceNumber);
-  System.out.println("We got sex = "+sex);
+  //System.out.println("We got occurrenceNumber = "+occurrenceNumber);
+  //System.out.println("We got sex = "+sex);
   
   String name = "";
   Shepherd myShepherd = new Shepherd(context);

@@ -749,13 +749,9 @@ public final class NotificationMailer implements Runnable {
       map.put("@ENCOUNTER_SEX@", enc.getSex());
       map.put("@ENCOUNTER_LIFE_STAGE@", enc.getLifeStage());
       map.put("@ENCOUNTER_COUNTRY@", enc.getCountry());
-      map.put("@ENCOUNTER_SUBMITTER_NAME@", enc.getSubmitterName());
       map.put("@ENCOUNTER_SUBMITTER_ID@", enc.getSubmitterID());
-      map.put("@ENCOUNTER_SUBMITTER_EMAIL@", enc.getSubmitterEmail());
-      map.put("@ENCOUNTER_SUBMITTER_ORGANIZATION@", enc.getSubmitterOrganization());
-      map.put("@ENCOUNTER_SUBMITTER_PROJECT@", enc.getSubmitterProject());
-      map.put("@ENCOUNTER_PHOTOGRAPHER_NAME@", enc.getPhotographerName());
-      map.put("@ENCOUNTER_PHOTOGRAPHER_EMAIL@", enc.getPhotographerEmail());
+      map.put("@ENCOUNTER_SUBMITTER_EMAIL@", enc.getSubmitterEmails().toString());
+      map.put("@ENCOUNTER_PHOTOGRAPHER_EMAIL@", enc.getPhotographerEmails().toString());
       map.put("@ENCOUNTER_COMMENTS@", enc.getComments());
       map.put("@ENCOUNTER_USER@", enc.getAssignedUsername());
     }

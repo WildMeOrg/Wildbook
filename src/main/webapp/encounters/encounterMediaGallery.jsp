@@ -3,6 +3,7 @@
 org.ecocean.media.*,
 org.ecocean.*,
 org.ecocean.identity.IBEISIA,
+org.ecocean.ia.Task,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
@@ -77,7 +78,7 @@ JSONArray all = new JSONArray();
 List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
-	//i am a bit confused here... will this ever be more than one encounter???
+	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
   	int numEncs=encs.size();
@@ -137,33 +138,6 @@ function forceLink(el) {
 	el.stopPropagation();
 }
 
-/*
-		    jQuery.ajax({
-		      url: '../ia',
-		      type: 'POST',
-		      dataType: 'json',
-		      contentType: 'application/javascript',
-		      success: function(d) {
-		        console.info('identify returned %o', d);
-		        if (d.taskID) {
-				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
-		          window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
-		        } else {
-				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
-		        }
-		      },
-		      error: function(x,y,z) {
-				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
-		        console.warn('%o %o %o', x, y, z);
-		      },
-		      data: JSON.stringify({
-		        identify: { annotationIds: [ aid ] }
-		      })
-		    });
-		  }
-*/
-
-  //console.log("numEncs = <%=numEncs%>");
   </script>
   <%
   for(int f=0;f<numEncs;f++){
@@ -204,7 +178,18 @@ function forceLink(el) {
 		  		if (ma != null) {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
+                                                j.put("taxonomyString", enc.getTaxonomyString());
+                                                List<Task> tasks = ann.getRootIATasks(imageShepherd);
+                                                for (Task t : ma.getRootIATasks(imageShepherd)) {
+                                                    if (!tasks.contains(t)) tasks.add(t);
+                                                }
+                                                JSONArray jt = new JSONArray();
+                                                for (Task t : tasks) {
+                                                    jt.put(Util.toggleJSONObject(t.toJSONObject()));
+                                                }
+                                                j.put("tasks", jt);
 						j.put("annotationId", ann.getId());
+                                                j.put("annotationIdentificationStatus", ann.getIdentificationStatus());
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
@@ -302,6 +287,7 @@ for (int i=0; i<captionLinks.size(); i++) {
 }
 
 
+
 div.gallery-download {
     text-align: center;
     font-size: 0.8em;
@@ -318,6 +304,56 @@ div.gallery-download {
 }
 .gallery-download a:hover {
     background-color: #CCA;
+
+.image-enhancer-feature-zoom {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: -103%;
+    outline: solid rgba(255,255,255,0.8) 8px;
+    overflow: hidden;
+    display: none;
+}
+.image-enhancer-wrapper:hover .image-enhancer-feature-zoom {
+    xdisplay: block;
+}
+
+.image-enhancer-feature-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.image-enhancer-feature {
+    position: absolute;
+    outline: dotted rgba(255,255,0,0.5) 1px;
+    cursor: pointer !important;
+}
+.image-enhancer-feature-focused {
+    outline: dashed rgba(50,250,50,0.7) 4px;
+}
+
+.image-enhancer-feature-aoi {
+    border: solid rgba(0,20,255,0.6) 3px;
+}
+
+.image-enhancer-wrapper:hover .image-enhancer-feature {
+    background-color: rgba(255,255,255,0.05);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6);
+}
+.image-enhancer-wrapper:hover .image-enhancer-feature-focused {
+    background-color: rgba(255,255,10,0.3);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
+}
+
+
+.image-enhancer-feature:hover {
+    z-index: 30;
+    outline: solid black 2px;
+    background-color: rgba(120,255,0,0.3) !important;
+
 }
 
 	.match-tools {
@@ -372,7 +408,7 @@ if(request.getParameter("encounterNumber")!=null){
         data: JSON.stringify({"detach":"true","EncounterID":"<%=encNum%>","MediaAssetID":maId}),
         success: function(d) {
           console.info("I detached MediaAsset "+maId+" from encounter <%=encNum%>");
-          $('#image-enhancer-wrapper-' + maId).closest('figure').remove();
+          $('[id^="image-enhancer-wrapper-' + maId + '-"]').closest('figure').remove()
 /*
           $('#remove'+maId).prev('figure').remove();
           $('#remove'+maId).after('<p style=\"text-align:center;\"><i>Image removed from encounter.</i></p>');
@@ -434,18 +470,18 @@ jQuery(document).ready(function() {
 });
 
 function doImageEnhancer(sel) {
-    var loggedIn = wildbookGlobals.username && (wildbookGlobals.username != "");
     var opt = {
     };
 
-    if (loggedIn) {
+    if (!wildbook.user.isAnonymous()) {
         opt.debug = false;
         opt.menu = [
            <%
            if(!encNum.equals("")){
         	%>
             ['remove this image', function(enh) {
-		removeAsset(enh.imgEl.prop('id').substring(11));
+		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+		removeAsset(mid);
             }],
             <%
     		}
@@ -505,6 +541,9 @@ function doImageEnhancer(sel) {
 		]);
 	}
 */
+
+        wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
+
 <%
 if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
 %>
@@ -516,7 +555,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 				alert('could not determine id');
 				return;
 			}
-			var mid = enh.imgEl.context.id.substring(11);
+			var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
 			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
 		}
             ],
@@ -528,6 +567,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 	<%
     }
 	%>
+	
 
 /*
         if (true) {
@@ -537,6 +577,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 */
 
         opt.init = [
+	    function(el, enh) { enhancerDisplayAnnots(el, enh); },
             function(el, enh) {
 console.info(' ===========>   %o %o', el, enh);
 		imageLayerKeywords(el, enh);
@@ -548,6 +589,7 @@ console.info(' ===========>   %o %o', el, enh);
 	if (!opt.init) opt.init = []; //maybe created if logged in?
 
 	opt.init.push(
+		//function(el, enh) { enhancerDisplayAnnots(el, enh); },  //TODO fix for scaled/watermark image
 		function(el, enh) { enhancerCaption(el, enh); }
 	);
 
@@ -558,7 +600,7 @@ console.info(' ===========>   %o %o', el, enh);
 }
 
 function enhancerCaption(el, opt) {
-	var mid = el.context.id.substring(11);
+	var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
 	var ma = assetById(mid);
 console.warn("====== enhancerCaption %o ", ma);
 	if (!ma || !ma.sourceAsset || !ma.sourceAsset.store.type == 'YouTube') return;
@@ -589,11 +631,102 @@ console.info(timeDisp);
 	$(el).append(ycap);
 }
 
+function enhancerDisplayAnnots(el, opt) {
+    if (opt.skipDisplayAnnots) return;
+    //var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
+    var aid = imageEnhancer.annotationIdFromElement(el.context);
+console.warn('foocontext --> %o', aid);
+    if (!aid) return;
+    var ma = assetByAnnotationId(aid);
+console.warn("====== enhancerDisplayAnnots %o ", ma);
+    if (!ma || !ma.features || !ma.annotationId) return;
+    var featwrap = $('<div class="image-enhancer-feature-wrapper" />');
+    featwrap.data('enhancerScale', el.data('enhancerScale'));
+    el.append(featwrap);
+    var featzoom = $('<div class="image-enhancer-feature-zoom" />');
+    featzoom.css('background-image', 'url(' + ma.url + ')');
+    el.append(featzoom);
+    var ord = featureSortOrder(ma.features);
+    for (var i = 0 ; i < ord.length ; i++) {
+        enhancerDisplayFeature(featwrap, opt, ma.annotationId, ma.features[ord[i]], i);
+    }
+}
+
+//this sorts features such that smallest (by area) come earlier(?) so that they will lie on top of larger ones
+function featureSortOrder(feat) {
+    var ord = new Array();
+    for (var i = 0 ; i < feat.length ; i++) {
+        var area = 0;
+        if (feat[i] && feat[i].parameters && feat[i].parameters.width && feat[i].parameters.height) {
+            area = feat[i].parameters.width * feat[i].parameters.height;
+        }
+        ord.push({i: i, area: area});
+    }
+    ord.sort(function(a,b) { return (b.area - a.area); });  //reverse numerical sort on area
+    //now we need to return an array of the .i values (offset into original array)
+    var rtn = new Array();
+    for (var i = 0 ; i < ord.length ; i++) {
+        rtn.push(ord[i].i);
+    }
+    return rtn;
+}
+
+function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta) {
+    if (!feat.type) return;  //unity, skip
+    if (!feat.parameters) return; //wtf???
+    //TODO other than boundingBox
+    var scale = el.data('enhancerScale') || 1;
+console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
+    var focused = (feat.annotationId == focusAnnId);
+    var fel = $('<div title="Annot" style="z-index: ' + (31 + (zdelta||0)) + ';" class="image-enhancer-feature" />');
+
+    var tooltip;
+    if (feat.individualId) {
+        tooltip = 'Name: <b>' + feat.individualId + '</b>';
+    } else {
+        tooltip = '<i>Unnamed individual</i>';
+    }
+    if (feat.encounterId) {
+        tooltip += '<br />Enc ' + feat.encounterId.substr(-8);
+        fel.data('encounterId', feat.encounterId);
+    }
+    if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
+
+    fel.prop('id', feat.id);
+    if (feat.annotationIsOfInterest) {
+        fel.addClass('image-enhancer-feature-aoi');
+        tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
+    }
+    if (focused) fel.addClass('image-enhancer-feature-focused');
+    fel.prop('data-tooltip', tooltip);
+    fel.css({
+        left: feat.parameters.x * scale,
+        top: feat.parameters.y * scale,
+        width: feat.parameters.width * scale,
+        height: feat.parameters.height * scale
+    });
+    fel.tooltip({ content: function() { return $(this).prop('data-tooltip'); } });
+    fel.on('click', function(ev) {
+        ev.stopPropagation();
+        var encId = $(this).data('encounterId');
+        if (!inGalleryMode() && (encId == encounterNumber)) return;  //clicking on "this" encounter when in encounter.jsp
+        document.body.innerHTML = '';
+        window.location.href = 'encounter.jsp?number=' + encId;
+    });
+    if (feat.parameters.theta) fel.css('transform', 'rotate(' + feat.parameters.theta + 'rad)');
+    el.append(fel);
+}
+
 function checkImageEnhancerResize() {
+//TODO update enhancerScale when this happens!
 	var needUpdate = false;
 	$('.image-enhancer-wrapper').each(function(i,el) {
-		var imgW = $('#figure-img-' + el.id.substring(23)).width();
-		var wrapW = $(el).width();
+            var jel = $(el);
+            var imgEl = jel.parent().find('img:first');
+//console.log('wtf: %o', el);
+//console.log('wtf: %o %o', imgEl, imgEl.width());
+		var imgW = imgEl.width();
+		var wrapW = jel.width();
 //console.warn('%o -> %o vs %o', el.id, imgW, wrapW);
 		if (imgW && wrapW && (imgW != wrapW)) needUpdate = true;
 	});
@@ -610,7 +743,7 @@ function addNewKeyword(el) {
 		console.error("could not find MediaAsset id from closest wrapper");
 		return;
 	}
-	var mid = wrapper.prop('id').substring(23);
+	var mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
 	if (!assetById(mid)) {
 		console.error("could not find MediaAsset byId(%o)", mid);
 		return;
@@ -656,24 +789,13 @@ console.info(d);
 						wildbookGlobals.keywords[id] = d.newKeywords[id];
 					}
 				}
-				//the reality is we prob only have one, mid so we save that to update the menu of
 				var mainMid = false;
 				if (d.results) {
 					for (var mid in d.results) {
-						if (!mainMid) mainMid = mid;
-						assetById(mid).keywords = [];
-						for (var id in d.results[mid]) {
-							assetById(mid).keywords.push({
-								indexname: id,
-								readableName: d.results[mid][id]
-							});
-						}
+                                            refreshKeywordsForMediaAsset(mid, d);
 					}
 				}
-				if (mainMid) {
-					$('#image-enhancer-wrapper-' + mainMid + ' .image-enhancer-keyword-wrapper').remove();
-					imageLayerKeywords($('#image-enhancer-wrapper-' + mainMid), { _mid: mainMid });
-				}
+                                if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
 			} else {
 				var msg = d.error || 'ERROR could not make change';
 				$('.popup-content').append('<p class="error">' + msg + '</p>');
@@ -707,12 +829,41 @@ console.info(d);
 }
 */
 
+function refreshKeywordsForMediaAsset(mid, data) {
+    for (var i = 0 ; i < assets.length ; i++) {
+        if (assets[i].id != mid) continue;
+        //if (!assets[i].keywords) assets[i].keywords = [];
+        assets[i].keywords = [];  //we get *all* keywords in results, so blank this!
+        for (var id in data.results[mid]) {
+            assets[i].keywords.push({
+                indexname: id,
+                readableName: data.results[mid][id]
+            });
+        }
+    }
+    //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
+    $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {   //update the ui
+        $(el).find('.image-enhancer-keyword-wrapper').remove();
+        imageLayerKeywords($(el), { _mid: mid });
+    });
+}
+
+function refreshAllKeywordPulldowns() {
+    $('.image-enhancer-keyword-wrapper').each(function(i, el) {
+        var jel = $(el);
+        var p = jel.parent();
+        var mid = imageEnhancer.mediaAssetIdFromElement(p);
+        jel.remove();
+        imageLayerKeywords(p, { _mid: mid });
+    });
+}
+
 function imageLayerKeywords(el, opt) {
 	var mid;
 	if (opt && opt._mid) {  //hack!
 		mid = opt._mid;
 	} else {
- 		mid = el.context.id.substring(11);
+ 		mid = imageEnhancer.mediaAssetIdFromElement(el.context);
 	}
 	var ma = assetById(mid);
 console.info("############## mid=%s -> %o", mid, ma);
@@ -755,7 +906,7 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 function imagePopupInfo(obj) {
 	if (!obj || !obj.imgEl || !obj.imgEl.context) return;
-	var mid = obj.imgEl.context.id.substring(11);
+	var mid = imageEnhancer.mediaAssetIdFromElement(obj.imgEl);
 	var ma = assetById(mid);
 	if (!ma) return;
 	var h = '<div>media asset id: <b>' + mid + '</b><br />';
@@ -771,7 +922,7 @@ function imagePopupInfo(obj) {
 function imagePopupInfoMenuItem(obj) {
 //console.log('MENU!!!! ----> %o', obj);
 	if (!obj || !obj.imgEl || !obj.imgEl.context) return false;
-	var mid = obj.imgEl.context.id.substring(11);
+	var mid = imageEnhancer.mediaAssetIdFromElement(obj.imgEl);
 	var ma = assetById(mid);
 	if (!ma) return false;
 	return 'image info';
@@ -784,6 +935,30 @@ function assetById(mid) {
 		if (assets[i].id == mid) return assets[i];
 	}
 	return false;
+}
+function assetByAnnotationId(aid) {
+	if (!aid || !assets || (assets.length < 1)) return false;
+	for (var i = 0 ; i < assets.length ; i++) {
+		if (assets[i].annotationId == aid) return assets[i];
+	}
+	return false;
+}
+
+function encounterNumberFromAsset(asset) {
+    if (!asset || !asset.annotationId || !asset.features) return false;
+    for (var i = 0 ; i < asset.features.length ; i++) {
+        if (asset.features[i].annotationId == asset.annotationId) return asset.features[i].encounterId;
+    }
+    return false;
+}
+
+function encounterNumberFromElement(el) {  //should be img element
+    var aid = imageEnhancer.annotationIdFromElement(el);
+    return encounterNumberFromAsset(assetByAnnotationId(aid));
+}
+
+function inGalleryMode() {
+    return (typeof(encounterNumber) == 'undefined');
 }
 
 </script>

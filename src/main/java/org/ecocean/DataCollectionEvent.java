@@ -20,9 +20,8 @@
 package org.ecocean;
 
 import javax.servlet.http.HttpServletRequest;
-import java.text.MessageFormat;
-import java.util.Properties;
-
+import java.util.ArrayList;
+import java.util.List;
 /**
  *
  *
@@ -63,7 +62,7 @@ private String institutionCode;
 private String collectionCode;
 private String datasetName;
 
-
+private List<Observation> observations = new ArrayList<>();
 /*
  * Empty constructor required for JDO persistence
  *
@@ -95,6 +94,7 @@ public DataCollectionEvent(String correspondingEncounterNumber, String type, Htt
 }
 
 public String getCorrespondingEncounterNumber(){return correspondingEncounterNumber;}
+
 public void setCorrespondingEncounterNumber(String encounterNumber){
   if(encounterNumber!=null){
     this.correspondingEncounterNumber=encounterNumber;
@@ -102,6 +102,46 @@ public void setCorrespondingEncounterNumber(String encounterNumber){
   else{
     this.correspondingEncounterNumber=null;
   }
+}
+
+public String getCorrespondingOccurrenceNumber(){return correspondingEncounterNumber;}
+
+public void setCorrespondingOccurrenceNumber(String occurrenceNumber){
+  setCorrespondingEncounterNumber(occurrenceNumber);
+}
+
+public void addObservationArrayList(ArrayList<Observation> arr) {
+  if (observations.isEmpty()) {
+    observations=arr;      
+  } else {
+   observations.addAll(arr); 
+  }
+}
+public void addObservation(Observation obs) {
+  observations.add(obs);
+}
+public Observation getObservationByName(String obName) {
+  System.out.println("Here with "+obName);
+  if (observations != null && observations.size() > 0) {
+    System.out.println("Not null and has > 0...");
+    for (Observation ob : observations) {
+      System.out.println("Matching observation and string? Name : "+ob.getName()+" Value: "+ob.getValue());
+      if (ob.getName() != null && ob.getName().equals(obName)) {
+        return ob;
+      }
+    }
+  }
+  return null;
+}
+public Observation getObservationByID(String obId) {
+  if (observations != null && observations.size() > 0) {
+    for (Observation ob : observations) {
+      if (ob.getID() != null && ob.getID().equals(obId)) {
+        return ob;
+      }
+    }
+  }
+  return null;
 }
 
 public String getDataCollectionEventID(){return dataCollectionEventID;}
@@ -166,27 +206,22 @@ public void resetAbstractClassParameters(HttpServletRequest request){
 
 }
 
-  public String getHTMLString(String langCode, String context) {
-    Properties props = ShepherdProperties.getProperties("dataCollectionEvent.properties", langCode, context);
-    StringBuilder sb = new StringBuilder();
-    if (!StringUtils.isNullOrEmpty(this.getCollectionCode())) sb.append(MessageFormat.format(props.getProperty("collectionCode"), this.getCollectionCode())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getCollectionID())) sb.append(MessageFormat.format(props.getProperty("collectionId"), this.getCollectionID())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getDatasetID())) sb.append(MessageFormat.format(props.getProperty("datasetId"), this.getDatasetID())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getDatasetName())) sb.append(MessageFormat.format(props.getProperty("datasetName"), this.getDatasetName())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getEventStartDate())) sb.append(MessageFormat.format(props.getProperty("eventStartDate"), this.getEventStartDate())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getEventEndDate())) sb.append(MessageFormat.format(props.getProperty("eventEndDate"), this.getEventEndDate())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getEventRemarks())) sb.append(MessageFormat.format(props.getProperty("eventRemarks"), this.getEventRemarks())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getFieldNotes())) sb.append(MessageFormat.format(props.getProperty("fieldNotes"), this.getFieldNotes())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getFieldNumber())) sb.append(MessageFormat.format(props.getProperty("fieldNumber"), this.getFieldNumber())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getInstitutionCode())) sb.append(MessageFormat.format(props.getProperty("institutionCode"), this.getInstitutionCode())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getInstitutionID())) sb.append(MessageFormat.format(props.getProperty("institutionId"), this.getInstitutionID())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getSamplingEffort())) sb.append(MessageFormat.format(props.getProperty("samplingEffort"), this.getSamplingEffort())).append("<br />");
-    if (!StringUtils.isNullOrEmpty(this.getSamplingProtocol())) sb.append(MessageFormat.format(props.getProperty("samplingProtocol"), this.getSamplingProtocol())).append("<br />");
-    return sb.toString();
-  }
-
-  public String getHTMLString() {
-    return getHTMLString("en", "context0");
-  }
+public String getHTMLString(){
+  String paramValues="";
+  if((this.getCollectionCode()!=null)&&(!this.getCollectionCode().equals(""))){paramValues+="     Collection code: "+this.getCollectionCode()+"<br />";}
+  if((this.getCollectionID()!=null)&&(!this.getCollectionID().equals(""))){paramValues+="     Collection ID: "+this.getCollectionID()+"<br />";}
+  if((this.getDatasetID()!=null)&&(!this.getDatasetID().equals(""))){paramValues+="     Dataset ID: "+this.getDatasetID()+"<br />";}
+  if((this.getDatasetName()!=null)&&(!this.getDatasetName().equals(""))){paramValues+="     Dataset name: "+this.getDatasetName()+"<br />";}
+  if((this.getEventStartDate()!=null)&&(!this.getEventStartDate().equals(""))){paramValues+="     Event start date: "+this.getEventStartDate()+"<br />";}
+  if((this.getEventEndDate()!=null)&&(!this.getEventEndDate().equals(""))){paramValues+="     Event end date: "+this.getEventEndDate()+"<br />";}
+  if((this.getEventRemarks()!=null)&&(!this.getEventRemarks().equals(""))){paramValues+="     Event remarks: "+this.getEventRemarks()+"<br />";}
+  if((this.getFieldNotes()!=null)&&(!this.getFieldNotes().equals(""))){paramValues+="     Field notes: "+this.getFieldNotes()+"<br />";}
+  if((this.getFieldNumber()!=null)&&(!this.getFieldNumber().equals(""))){paramValues+="     Field number: "+this.getFieldNumber()+"<br />";}
+  if((this.getInstitutionCode()!=null)&&(!this.getInstitutionCode().equals(""))){paramValues+="     Institution code: "+this.getInstitutionCode()+"<br />";}
+  if((this.getInstitutionID()!=null)&&(!this.getInstitutionID().equals(""))){paramValues+="     Institution ID: "+this.getInstitutionID()+"<br />";}
+  if((this.getSamplingEffort()!=null)&&(!this.getSamplingEffort().equals(""))){paramValues+="     Sampli]/ng effort: "+this.getSamplingEffort()+"<br />";}
+  if((this.getSamplingProtocol()!=null)&&(!this.getSamplingProtocol().equals(""))){paramValues+="     Sampling protocol: "+this.getSamplingProtocol()+"<br />";}
+  return paramValues;
+}
 
 }

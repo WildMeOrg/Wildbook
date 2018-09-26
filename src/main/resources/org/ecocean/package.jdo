@@ -2,6 +2,101 @@
 
 <jdo>
   <package name="org.ecocean">
+ 
+ 
+    <class name="Survey" identity-type="application" table="SURVEY">
+      <field name="surveyID" primary-key="true">
+        <column length="100" allows-null="true"/>
+      </field>
+
+      <field name="surveyTracks" persistence-modifier="persistent">
+        <collection element-type="org.ecocean.movement.SurveyTrack" allow-null="true"/>
+        <join/>
+      </field>
+
+      <field name="project" persistence-modifier="persistent">
+        <column length="256" allows-null="true" />
+      </field>
+
+      <field name="organization" persistence-modifier="persistent">
+        <column length="256" allows-null="true"/>
+      </field>
+      
+      <field name="comments" persistence-modifier="persistent">
+        <column length="2048" allows-null="true"/>
+      </field>
+
+      <field name="type" persistence-modifier="persistent">
+        <column length="100" allows-null="true"/>
+      </field>
+      
+      <field name="startTime" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
+      <field name="endTime" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
+      <field name="effort" persistence-modifier="persistent" element-type="org.ecocean.Measurement" allows-null="true"/>
+      
+      <field name="dateTimeCreated" persistence-modifier="persistent">
+        <column jdbc-type="String" allows-null="true"/>
+      </field>
+      
+      <field name="dateTimeModified" persistence-modifier="persistent">
+        <column jdbc-type="String" allows-null="true"/>
+      </field>
+      
+      <field name="date" persistence-modifier="persistent">
+        <column jdbc-type="String" allows-null="true"/>
+      </field>
+      
+      <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Observation" dependent-element="true" />
+        <join/>
+      </field>
+
+      <fetch-group name="count"/>
+    </class> 
+  
+    <class name="PointLocation" identity-type="application" table="POINTLOCATION">
+      <field name="pointLocationID" primary-key="true">
+        <column length="100"/>
+      </field>
+
+ 	  <field name="elevation" persistence-modifier="persistent" element-type="org.ecocean.Measurement" allows-null="true"/>
+
+      <field name="correspondingPathID" persistence-modifier="persistent">
+        <column length="100" allows-null="true" />
+      </field>
+
+      <field name="correspondingEncounterID" persistence-modifier="persistent">
+        <column length="100" allows-null="true"/>
+      </field>
+      
+      <field name="correspondingOccurrenceID" persistence-modifier="persistent">
+        <column length="100" allows-null="true"/>
+      </field>
+
+      <field name="dateTime" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
+      <field name="latitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+      
+      <field name="longitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+      
+      <field name="bearing" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
+      <fetch-group name="count"/>
+    </class>
 
     <class name="Adoption" identity-type="application">
       <field name="adopterName" persistence-modifier="persistent">
@@ -19,7 +114,7 @@
       <field name="adopterQuote" persistence-modifier="persistent">
         <column jdbc-type="LONGVARCHAR"/>
       </field>
-      <field name="adoptionStartDate" persistence-modifier="persistent">
+      <field name="adoptionStartDate" persistence-modifier="persistbent">
         <column length="100"/>
       </field>
       <field name="adoptionEndDate" persistence-modifier="persistent">
@@ -97,6 +192,7 @@
     </class>
 
     <class name="Occurrence" identity-type="application" table="OCCURRENCE">
+      <inheritance strategy="new-table"/>
       <field name="occurrenceID" primary-key="true">
         <column length="100"/>
       </field>
@@ -128,6 +224,11 @@
         <column jdbc-type="INTEGER" allows-null="true"/>
       </field>
 
+      <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Observation" dependent-element="true" />
+        <join/>
+      </field>
+
       <field name="assets" persistence-modifier="persistent" default-fetch-group="false" mapped-by="occurrence" >
           <collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
           <join />
@@ -138,6 +239,18 @@
     </class>
 
     <class name="Encounter" identity-type="application" table="ENCOUNTER">
+	
+	      <field name="submitters" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.User"/>
+        <join/>
+      </field>
+	  
+	        <field name="photographers" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.User"/>
+        <join/>
+      </field>
+	  
+	  
       <field name="catalogNumber" primary-key="true">
         <column length="100"/>
       </field>
@@ -152,6 +265,26 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
 
+      <field name="endDateInMilliseconds" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      
+      <field name="decimalLatitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
+      <field name="decimalLongitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+      
+      <field name="endDecimalLatitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
+      <field name="endDecimalLongitude" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+      
       <field name="dwcDateAddedLong" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
@@ -163,7 +296,7 @@
       <field name="maximumDepthInMeters" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
-
+      
       <field name="maximumElevationInMeters" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
@@ -177,6 +310,10 @@
       </field>
 
       <field name="country" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
+      
+      <field name="sightNo" persistence-modifier="persistent">
         <column length="512"/>
       </field>
 
@@ -278,7 +415,7 @@
       </field>
 
       <field name="annotations" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Annotation" dependent-element="true"/>
+        <collection element-type="org.ecocean.Annotation" dependent-element="false"/>
         <join/>
       </field>
 
@@ -292,9 +429,16 @@
         <join/>
       </field>
 
+      <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Observation" dependent-element="true" />
+        <join/>
+      </field>
+
       <field name="acousticTag" persistence-modifier="persistent"></field>
 
       <field name="satelliteTag" persistence-modifier="persistent"></field>
+      
+      <field name="digitalArchiveTag" persistence-modifier="persistent"></field>
 
       <fetch-group name="allSharks_min">
         <field name="approved"/>
@@ -312,6 +456,19 @@
 
       <fetch-group name="count"/>
     </class>
+
+    <class name="Taxonomy" identity-type="application">
+      <field name="id" primary-key="true">
+      </field>
+
+	<field name="scientificName" allows-null="false">
+		<index name="TAXONOMY_SCIENTIFICNAME_INDEX" unique="true" />
+	</field>
+
+      <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
+    </class>
+
+
 
     <class name="SuperSpot">
       <datastore-identity strategy="increment"/>
@@ -425,6 +582,31 @@
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
     </class>
+    
+    <class name="Observation" identity-type="data-store">
+      <inheritance strategy="new-table"/>
+      <field name="observationID" primary-key="true">
+        <column length="100"/>
+      </field>
+      <field name="value">
+        <column name="VALUE" jdbc-type="VARCHAR" length="2048"/>
+      </field>
+      <field name="name">
+        <column name="NAME"/>
+      <field name="dateAddedMilli">
+      </field>
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      <field name="dateModifiedMilli">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      <field name="parentObjectClass">
+      </field>
+        <column name="PARENTOBJECTCLASS"/>
+      </field>
+      <field name="parentObjectID">
+        <column name="PARENTOBJECTID"/>
+      </field>
+    </class>
 
     <class name="Measurement" identity-type="application">
       <inheritance strategy="new-table"/>
@@ -474,9 +656,17 @@
       <field name="fullName">
         <column name="FULLNAME"/>
       </field>
+	  
+	  <field name="uuid" primary-key="true">
+        <column name="UUID"/>
+      </field>
 
       <field name="emailAddress">
         <column name="EMAILADDRESS"/>
+      </field>
+	  
+	        <field name="hashedEmailAddress">
+        <column name="HASHEDEMAILADDRESS"/>
       </field>
 
       <field name="physicalAddress">
@@ -503,8 +693,8 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
 
-      <field name="username" primary-key="true" column="username">
-        <column length="100"/>
+      <field name="username" column="username" unique="true">
+        <column length="100" allows-null="true"/>
       </field>
 
       <field name="password" column="password">
@@ -638,6 +828,13 @@
 			<column name="PARENT_ID" />
 		</field>
 
+	</class>
+
+	<class name="SystemValue">
+		<field name="key" primary-key="true" />
+		<field name="version">
+			<column allows-null="true" />
+		</field>
 	</class>
 
   </package>

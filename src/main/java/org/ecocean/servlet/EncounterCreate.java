@@ -28,7 +28,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.ecocean.ia.*;
 import org.ecocean.media.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Iterator;
@@ -138,6 +140,7 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         JSONArray jmas = new JSONArray();
         JSONArray janns = new JSONArray();
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        List<Integer> maIds = new ArrayList<Integer>();
         for (int i = 0 ; i < jsrcs.length() ; i++) {
             JSONObject j = jsrcs.optJSONObject(i);
             if (j == null) continue;
@@ -179,6 +182,7 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
                 }
             }
             MediaAssetFactory.save(ma, myShepherd);
+            maIds.add(ma.getId());
             JSONObject jma = new JSONObject();
             jma.put("url", ma.webURL());
             jma.put("id", ma.getId());
@@ -228,6 +232,29 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
+
+        //this might be better toggled by a boolean passed in, but for now lets run it by default
+        //  (since this only acts under match.jsp which intentionally disables IA when creating the assets)
+        // TODO we also could look at .detectionStatus on assets maybe???
+        if (maIds.size() > 0) {
+            //must be done after commit above, to ensure assets are persisted (for queue thread)
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("EncounterCreate.class_IA.intake");
+            myShepherd.beginDBTransaction();
+            List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+            for (Integer id : maIds) {
+                if ((id == null) || (id < 0)) continue;
+                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                if (ma != null) allMAs.add(ma);
+            }
+            if (allMAs.size() > 0) {
+                Task task = IA.intakeMediaAssets(myShepherd, allMAs);
+                myShepherd.getPM().makePersistent(task);
+                rtn.put("IATaskId", task.getId());
+            }
+            myShepherd.commitDBTransaction();
+        }
+
         rtn.put("encounterId", enc.getCatalogNumber());
         rtn.put("success", true);
         return rtn;

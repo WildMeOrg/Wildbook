@@ -13,6 +13,7 @@
 
 
 .image-enhancer-menu {
+    z-index: 39;
     position: absolute;
     right: 4px;
     bottom: 4px;
@@ -32,7 +33,7 @@
 }
 
 .image-enhancer-menu-open {
-    z-index: 1;
+    z-index: 40;
     position: absolute;
     top: 95%;
     right: 10px;
@@ -83,6 +84,7 @@
     left: 0.5em;
     width: 8em;
     top: 0.3em;
+    z-index: 40;
 }
 
 .image-enhancer-keyword, .iek-new-wrapper {
@@ -95,6 +97,9 @@
     position: relative;
     /*height: 2.0em;*/
 	width: 150px;
+}
+.image-enhancer-keyword-wrapper:hover {
+    z-index: 200;  /* note: must be higher than highest possible annotation/feature */
 }
 .image-enhancer-keyword-wrapper:hover .image-enhancer-keyword {
     background-color: #FFF;
@@ -155,7 +160,7 @@
     border-radius: 8px;
     padding: 4px;
     background-color: rgba(255,255,255,0.8);
-    position: relative;
+    position: absolute;
     top: 50%;
     transform: translateY(-75%);
 }

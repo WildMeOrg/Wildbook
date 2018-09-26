@@ -62,6 +62,8 @@ public class Util {
   private static final String BIOLOGICALMEASUREMENTUNITS = BIOLOGICALMEASUREMENT.replaceAll("Type", "Units");
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
+  private static final String VESSEL = "vessel";
+  private static final String GENUS_SPECIES = "genusSpecies";
 
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
@@ -81,6 +83,29 @@ public class Util {
     }
     return list;
   }
+  
+  public static ArrayList<String> findVesselNames(String langCode,String context) {
+    ArrayList<String> list = new ArrayList<String>();
+    List<String> types = CommonConfiguration.getIndexedPropertyValues(VESSEL,context);
+    if (types.size() > 0) {
+      for (int i = 0; i < types.size(); i++) {
+        String type = types.get(i);
+        list.add(type);
+      }
+    }
+    return list;
+  }
+  
+  public static ArrayList<String> findSpeciesNames(String langCode, String context) {
+    ArrayList<String> nameArr = new ArrayList<>();
+    List<String> nameList = CommonConfiguration.getIndexedPropertyValues(GENUS_SPECIES,context);
+    if (nameList.size() > 0) {
+      for  (String name : nameList) {
+        nameArr.add(name);
+      }  
+    }
+    return nameArr;
+  } 
 
   public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
@@ -613,4 +638,54 @@ public class Util {
           formatted = format.format(date);
           return formatted.toString();
     }
+
+
+    public static int count(Iterator it) {
+      int num = 0;
+      while (it.hasNext()) {
+        Object elem = it.next();
+        num++;
+      }
+      return num;
+    }
+
+    // replaces wrong-slashes with right-slashes
+    public static String windowsFileStringToLinux(String windowsFileString) {
+      return windowsFileString.replaceAll("\\\\","/");
+    }
+    public static boolean fileExists(String filepath) {
+      File f = new File(filepath);
+      return (f.exists() && !f.isDirectory());
+    } 
+
+    //handles fuzzy case where url?key=value wants to test that 'key' is "set" (namely exists *and* is not explicitely "false")
+    public static boolean requestParameterSet(String value) {
+        if (value == null) return false;
+        value = value.toLowerCase();
+        return !(value.equals("false") || value.equals("f") || value.equals("0"));
+    }
+    //a slightly(!) more generic(!?) version of above
+    public static boolean booleanNotFalse(String value) {
+        return requestParameterSet(value);
+    }
+
+    
+    public static String basicSanitize(String input) {
+      String sanitized = null;
+      if (input!=null) {
+        sanitized = input;
+        sanitized = input.replace(":", "");
+        sanitized = input.replace(";", "");
+        sanitized = sanitized.replace("\"", "");
+        sanitized = sanitized.replace("'", "");
+        sanitized = sanitized.replace("(", "");
+        sanitized = sanitized.replace(")", "");
+        sanitized = sanitized.replace("*", "");
+        sanitized = sanitized.replace("%", "");        
+      }
+      return sanitized;
+    }
+
 }
+
+

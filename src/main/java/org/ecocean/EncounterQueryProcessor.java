@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 //import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -15,8 +16,7 @@ import java.util.Vector;
 import java.io.*;
 
 import javax.jdo.Query;
-
-
+import javax.measure.quantity.Length;
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -77,7 +77,7 @@ public class EncounterQueryProcessor {
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
-            prettyPrint.append("<br />");
+            prettyPrint.append("<br/>");
     }
     //end username filters-----------------------------------------------
 
@@ -293,6 +293,78 @@ public class EncounterQueryProcessor {
     }
     //end behavior filters-----------------------------------------------
     //------------------------------------------------------------------
+    
+    //begin observation filters -----------------------------------------
+    boolean hasValue = false;
+    if (request.getParameter("numSearchedObs")!=null) {
+      if (request.getParameter("observationKey1")!=null&&!request.getParameter("observationKey1").equals("")) {
+        hasValue = true;
+      }
+    }  
+    Enumeration<String> allParams = request.getParameterNames();
+    if (allParams!=null&&hasValue) {
+      String keyID = "observationKey";
+      String valID = "observationValue";
+      HashMap<String,String> obKeys = new HashMap<>();
+      HashMap<String,String> obVals = new HashMap<>();
+      StringBuilder obQuery = new StringBuilder();
+      int numObsSearched = 0;
+      while (allParams.hasMoreElements()) {
+        String thisParam = allParams.nextElement();
+        if (thisParam!=null&&thisParam.startsWith(keyID)) {
+          numObsSearched++;
+          System.out.println("Num Obs Searched? "+numObsSearched);
+          String keyParam = request.getParameter(thisParam);
+          String keyNum = thisParam.replace(keyID,"");
+          if (keyParam!=null&&!keyParam.equals("")) {
+            obKeys.put(keyNum,keyParam);            
+          }
+        }
+        if (thisParam!=null&&thisParam.startsWith(valID)) {
+          String valParam = request.getParameter(thisParam);
+          String valNum = thisParam.replace(valID,"");
+          if (valParam!=null&&!valParam.equals("")) {
+            obVals.put(valNum,valParam);            
+          }
+        }
+      }  
+      for (int i=1;i<=numObsSearched;i++) {
+        String num = String.valueOf(i);
+        if (Util.basicSanitize(obKeys.get(num))!=null) {
+          String thisKey = Util.basicSanitize(obKeys.get(num));
+          prettyPrint.append("observation ");
+          prettyPrint.append(thisKey);
+          prettyPrint.append("<br/>");
+          String qAsString = obQuery.toString().trim();
+          System.out.println("Query As String"+qAsString);
+          if (qAsString.length()>=2&&!qAsString.substring(qAsString.length()-2).equals("&&")) {
+            obQuery.append("&&");
+          }
+          obQuery.append("(observations.contains(observation"+num+") && ");
+          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
+          if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
+            String thisVal = Util.basicSanitize(obVals.get(num));
+            prettyPrint.append(" is ");
+            prettyPrint.append(thisVal);              
+            obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim())); 
+          }
+          obQuery.append(")");
+        }
+        if (obQuery.length() > 0) {
+          if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+            filter += " && ";
+          }
+          filter += obQuery.toString();
+          for (int j = 0; j < numObsSearched; j++) {
+            updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + j);
+          }
+          System.out.println("ObQuery: "+obQuery);
+          System.out.println("Filter? "+filter);
+        }
+      }  
+    }
+    
+    //-------------------------------------------------------------------
 
     //Tag Filters--------------------------------------------------------
 
@@ -1018,10 +1090,32 @@ public class EncounterQueryProcessor {
     //submitter or photographer name filter------------------------------------------
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
-      String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
+      
+      
+      //String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
+      String filterString=""+
+         "("
+             + "(submitters.contains(submitter) && ((submitter.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) || "
+             + "(photographers.contains(photographer) && ((photographer.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographer.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) "
+             +"||(informothers.toLowerCase().indexOf('"+nameString+"') != -1)"
+          
+          +")";
+      
+      
+      
+      if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter;org.ecocean.User photographer";}
+      else{
+        if(!jdoqlVariableDeclaration.contains("org.ecocean.User submitter")){jdoqlVariableDeclaration+=";org.ecocean.User submitter";}
+        if(!jdoqlVariableDeclaration.contains("org.ecocean.User photographer")){jdoqlVariableDeclaration+=";org.ecocean.User photographer";}
+
+      }
+      
+      
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
-      prettyPrint.append("nameField contains: \""+nameString+"\"<br />");
+      
+      prettyPrint.append("Related fullName or emailAddress contains: \""+nameString+"\"<br />");
+      
     }
     //end name and email filter--------------------------------------------------------------------------------------
 
