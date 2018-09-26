@@ -41,10 +41,10 @@ public class SUTime {
 
 
 
-  private static String getRuleFilepaths(HttpServletRequest request,String... files) {
+  private static String getRuleFilepaths(String rootDir,String... files) {
     String rulesDir="";
     try {
-      rulesDir = request.getSession().getServletContext().getRealPath("/WEB-INF/data/sutime/rules");
+      rulesDir = rootDir+"/WEB-INF/data/sutime/rules";
     }
     catch(Exception npe) {
       //OK, we couldn't find a servlet context, so let's try to get the files from a hardcoded override directory
@@ -64,26 +64,27 @@ public class SUTime {
   }
 
  
-  private static Properties getTimeAnnotatorProperties(HttpServletRequest request) {
+  private static Properties getTimeAnnotatorProperties(String rootDir) {
     // Parses request and set up properties for time annotators
     
     System.out.println("Entering "+"SUTime.getTimeAnnotatorProperties");
     
-    boolean markTimeRanges =
-            parseBoolean(request.getParameter("markTimeRanges"));
-    boolean includeNested =
-            parseBoolean(request.getParameter("includeNested"));
-    boolean includeRange =
-            parseBoolean(request.getParameter("includeRange"));
+    boolean markTimeRanges =false;
+            //parseBoolean(request.getParameter("markTimeRanges"));
+    boolean includeNested =false;
+            //parseBoolean(request.getParameter("includeNested"));
+    boolean includeRange =false;
+            //parseBoolean(request.getParameter("includeRange"));
 
-    String heuristicLevel = request.getParameter("relativeHeuristicLevel");
+    String heuristicLevel = null;
+        //request.getParameter("relativeHeuristicLevel");
     Options.RelativeHeuristicLevel relativeHeuristicLevel =
             Options.RelativeHeuristicLevel.NONE;
     if ( ! StringUtils.isNullOrEmpty(heuristicLevel)) {
       relativeHeuristicLevel = Options.RelativeHeuristicLevel.valueOf(heuristicLevel);
     }
     String ruleFile = null;
-    ruleFile = getRuleFilepaths(request, "defs.sutime.txt", "english.sutime.txt", "english.holidays.sutime.txt");
+    ruleFile = getRuleFilepaths(rootDir, "defs.sutime.txt", "english.sutime.txt", "english.holidays.sutime.txt");
 
 
     // Create properties
@@ -103,7 +104,7 @@ public class SUTime {
       props.setProperty("sutime.binder.1", "edu.stanford.nlp.time.JollyDayHolidays");
       
       try {
-        props.setProperty("sutime.binder.1.xml", request.getSession().getServletContext().getRealPath("/WEB-INF/data/holidays/Holidays_sutime.xml"));
+        props.setProperty("sutime.binder.1.xml", (rootDir+"/WEB-INF/data/holidays/Holidays_sutime.xml"));
       }
       catch(Exception npe) {
         props.setProperty("sutime.binder.1.xml", "/data/wildbook_data_dir/WEB-INF/data/holidays/Holidays_sutime.xml");
@@ -153,30 +154,31 @@ public class SUTime {
   
   //use the current date as the reference date
   private static List<CoreMap> getDates(String query,
-      HttpServletRequest request,
+      String rootDir,
         SUTimePipeline pipeline) throws IOException {
         
       String dateString = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-      return getDates(query, request, pipeline, dateString);
+      return getDates(query, rootDir, pipeline, dateString);
   }
   
   
   //use a provided date as a reference date
   private static List<CoreMap> getDates(String query,
-                        HttpServletRequest request,
+                        String rootDir,
                           SUTimePipeline pipeline, String dateString)
     throws IOException {
 
     System.out.println("Entering SUTime.getDates!");
     
-    boolean includeOffsets = parseBoolean(request.getParameter("includeOffsets"));
+    boolean includeOffsets = false;
+    //boolean includeOffsets = parseBoolean(request.getParameter("includeOffsets"));
     if ( ! StringUtils.isNullOrEmpty(query)) {
-      Properties props = getTimeAnnotatorProperties(request);
+      Properties props = getTimeAnnotatorProperties(rootDir);
       System.out.println(("Found props: "+props.toString()));
-      String annotatorType = request.getParameter("annotator");
-      if (annotatorType == null) {
-        annotatorType = "sutime";
-      }
+      //String annotatorType = request.getParameter("annotator");
+      //if (annotatorType == null) {
+        String annotatorType = "sutime";
+      //}
       Annotator timeAnnotator = pipeline.getTimeAnnotator(annotatorType, props);
       if (timeAnnotator != null) {
         Annotation anno = pipeline.process(query, dateString, timeAnnotator);
@@ -199,7 +201,7 @@ public class SUTime {
   }
   
   
-  public static SUTimePipeline createPipeline(HttpServletRequest request) {
+  public static SUTimePipeline createPipeline(String rootDir) {
     
     System.out.println("Creating the SUTimePipeline!");
     SUTimePipeline pipeline; // = null;
@@ -207,8 +209,8 @@ public class SUTime {
     
     //check if we're calling this from a servlet context, which we should be
     try{
-      dataDir=request.getSession().getServletContext().getRealPath("/WEB-INF/data");
-      System.setProperty("de.jollyday.config", request.getSession().getServletContext().getRealPath("/WEB-INF/classes/holidays/jollyday.properties"));
+      dataDir=rootDir+"/WEB-INF/data";
+      System.setProperty("de.jollyday.config", (rootDir+"/WEB-INF/classes/holidays/jollyday.properties"));
     }
     catch(Exception npe) {
       
@@ -226,17 +228,17 @@ public class SUTime {
     
   }
   
-  public static ArrayList<String> parseStringForDates(HttpServletRequest request, String text) {
+  public static ArrayList<String> parseStringForDates(String rootDir, String text) {
     String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-    return parseStringForDates(request, text, relativeDate);
+    return parseStringForDates(rootDir, text, relativeDate);
   }
   
   
-  public static ArrayList<String> parseStringForDates(HttpServletRequest request, String text, String relativeDate) {
+  public static ArrayList<String> parseStringForDates(String rootDir, String text, String relativeDate) {
     
     ArrayList<String> arrayListDates = new ArrayList<String>();
     
-    SUTimePipeline pipeline=createPipeline(request);
+    SUTimePipeline pipeline=createPipeline(rootDir);
     
     //clean up the text
     System.out.println("parseDates with text " + text);
@@ -249,7 +251,7 @@ public class SUTime {
     //System.out.println("Cleaned up text to text2: " + text2);
     
     
-
+    /*
       try {
         if (request.getCharacterEncoding() == null) {
           request.setCharacterEncoding("utf-8");
@@ -258,10 +260,11 @@ public class SUTime {
       catch(Exception e) {
         e.printStackTrace();
       }
+      */
 
       try {
         
-        List<CoreMap> timexAnnsAll=getDates(text,request, pipeline, relativeDate);
+        List<CoreMap> timexAnnsAll=getDates(text,rootDir, pipeline, relativeDate);
         
         for (CoreMap cm : timexAnnsAll) {
           Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
@@ -285,14 +288,14 @@ public class SUTime {
   }  
   
   //
-  public static String parseDateStringForBestDate(HttpServletRequest request, String text) {
+  public static String parseDateStringForBestDate(String rootDir, String text) {
     String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-    return parseDateStringForBestDate(request, text, relativeDate);
+    return parseDateStringForBestDate(rootDir, text, relativeDate);
   }
   
   
-  public static String parseDateStringForBestDate(HttpServletRequest request, String text, String relativeDate) {
-          ArrayList<String> arrayListDates=parseStringForDates(request, text, relativeDate);
+  public static String parseDateStringForBestDate(String rootDir, String text, String relativeDate) {
+          ArrayList<String> arrayListDates=parseStringForDates(rootDir, text, relativeDate);
           String selectedDate = "";
           try{
             selectedDate = selectBestDateFromCandidates(arrayListDates);
@@ -553,12 +556,12 @@ public static java.util.Date getYesterday() {
 }
 
 //overloaded version to deal with tweets
-public static String parseDateStringForBestDate(HttpServletRequest request, String text, Status tweet) throws Exception{
+public static String parseDateStringForBestDate(String rootDir, String text, Status tweet) throws Exception{
 System.out.println("Entering nlpDateParse twitter version with text " + text);
 //create my pipeline with the help of the annotators I added.
 
 
-  String selectedDate=parseDateStringForBestDate(request, text);
+  String selectedDate=parseDateStringForBestDate(rootDir, text);
 
   if(selectedDate == null | selectedDate.equals("")){
     try{
@@ -580,5 +583,4 @@ System.out.println("Entering nlpDateParse twitter version with text " + text);
 
 
 }
-
 

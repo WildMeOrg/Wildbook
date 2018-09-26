@@ -7,6 +7,7 @@ import org.ecocean.YouTube;
 import org.ecocean.ai.nlp.SUTime;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
 import org.ecocean.ai.ocr.google.GoogleOcr;
+import org.ecocean.ai.ocr.azure.AzureOcr;
 import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.LinkedProperties;
@@ -2844,6 +2845,8 @@ return Util.generateUUID();
         System.out.println(">>>>>> detection created " + occ.toString());
 
         
+        
+        
         //prep the YouTube video date for SUTimee analysis
         String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         String tempRelativeDate=null;
@@ -2939,36 +2942,22 @@ return Util.generateUUID();
                 MediaAsset myAsset = assets.get(0);
                 MediaAsset parent = myAsset.getParent(myShepherd);
                 if(parent!=null){
-             
-                  
-                  //first, set metadata lanuage on the mediaasset
-                  MediaAssetMetadata md = parent.getMetadata();
-                  JSONObject json= md.getData();
-                  JSONObject jsonDetected=new JSONObject();
-                  jsonDetected.put("langCode", detectedLanguage);
-                  json.put("detected", jsonDetected);
-                  md.setData(json);
-                  myShepherd.commitDBTransaction();
-                  myShepherd.beginDBTransaction();
-                  
-                    //second, commence OCR!
-                    ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
-                    if((frames!=null)&&(frames.size()>0)){
-                        
-  
-                        //Google OCR
-                        //ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
-                        //ocrRemarks = GoogleOcr.detectText(bytesFrames);
-                        //if(ocrRemarks==null)ocrRemarks="";
-                        //System.out.println("I found Google OCR remarks: "+ocrRemarks);
-  
-                        //Azure OCR 
-                        ocrRemarks = AzureOcr.detectText(frames);
-                        if(ocrRemarks==null)ocrRemarks="";
-                        System.out.println("I found Azure OCR remarks: "+ocrRemarks);
-                      }
-                  } 
-                  else {
+                  ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
+                  if((frames!=null)&&(frames.size()>0)){
+                      
+
+                      //Google OCR
+                      //ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
+                      //ocrRemarks = GoogleOcr.detectText(bytesFrames);
+                      //if(ocrRemarks==null)ocrRemarks="";
+                      //System.out.println("I found Google OCR remarks: "+ocrRemarks);
+
+                      //Azure OCR 
+                      ocrRemarks = AzureOcr.detectText(frames, detectedLanguage);
+                      if(ocrRemarks==null)ocrRemarks="";
+                      System.out.println("I found Azure OCR remarks: "+ocrRemarks);
+                    }
+                  } else {
                     System.out.println("I could not find any frames from YouTubeAssetStore.findFrames for asset:"+myAsset.getId()+" from Encounter "+myEnc.getCatalogNumber());
                   }
               }
@@ -3040,7 +3029,7 @@ return Util.generateUUID();
                     System.out.println(">>>>>> looking for date with NLP");
                     //call Stanford NLP function to find and select a date from ytRemarks
                     //String myDate= ServletUtilities.nlpDateParse(remarks);
-                    String myDate=SUTime.parseDateStringForBestDate(request, remarks, relativeDate).replaceAll("null","");
+                    String myDate=SUTime.parseDateStringForBestDate(rootDir, remarks, relativeDate).replaceAll("null","");
                     System.out.println("Finished SUTime.parseDateStringForBestDate: "+myDate);;
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
