@@ -2689,6 +2689,7 @@ System.out.println("queryConfigDict() got species=" + species + "; and opt = " +
         return id;
     }
 
+/*
     public static void primeIA() {
       primeIA(ContextConfiguration.getDefaultContext());
     }
@@ -2727,6 +2728,7 @@ System.out.println("-- priming IBEISIA **complete**");
         new Thread(r).start();
 System.out.println(">>>>>> AFTER : " + isIAPrimed());
     }
+*/
 
     public static synchronized boolean isIAPrimed() {
 System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet().size());

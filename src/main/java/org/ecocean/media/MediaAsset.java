@@ -31,6 +31,7 @@ import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
+import org.ecocean.acm.AcmBase;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -75,7 +76,8 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
  * MediaAsset describes a photo or video that can be displayed or used
  * for processing and analysis.
  */
-public class MediaAsset implements java.io.Serializable {
+//public class MediaAsset implements java.io.Serializable {
+public class MediaAsset extends AcmBase {
     static final long serialVersionUID = 8844223450447974780L;
     protected int id = MediaAssetFactory.NOT_SAVED;
 
