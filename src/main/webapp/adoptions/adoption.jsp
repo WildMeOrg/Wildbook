@@ -35,37 +35,19 @@ context=ServletUtilities.getContext(request);
 	  String adoptionEndDate = "";
 	  String adopterQuote = "";
 	  String adoptionManager = "";
-	  String sharkForm = "";
-	  String encounterForm = "";
+	  String sharkNum = "";
+	  String encNum = "";
 	  String notes = "";
 	  String adoptionType = "";
 	  String stripeID="";
 	
-	  String servletURL = "../AdoptionAction";
-	
-	  if (request.getParameter("individual") != null) {
-	    sharkForm = request.getParameter("individual");
-	  }
-	
+	  String servletURL = "../AdoptionAction";	
 	  boolean isOwner = true;
 	
-	  /**
-	  if (request.isUserInRole("admin")) {
-	    isOwner = true;
-	  } else if (request.getParameter("number") != null) {
-	
-	    if (tempAD.getAdoptionManager().trim().equals(request.getRemoteUser())) {
-	      isOwner = true;
-	    }
-	  }
-	  */
-	
-
 	%>
 	
 	
 	  <style type="text/css">
-	    <!--
 	    table.adoption {
 	      border-width: 1px 1px 1px 1px;
 	      border-spacing: 0px;
@@ -75,36 +57,12 @@ context=ServletUtilities.getContext(request);
 	      background-color: white;
 	    }
 	
-	    -->
-	  </style>
+
+	</style>
 	
-	 <jsp:include page="../header.jsp" flush="true" />
+	<jsp:include page="../header.jsp" flush="true" />
 	
 	<script language="javascript" src="../prototype.js"></script>
-	<script type="text/javascript" src="../calendarview.js"></script>
-	<script type="text/javascript" src="../calendarview2.js"></script>
-	
-	<!--
-	<script type="text/javascript">
-	      window.onload = function() {
-	
-	        Calendar.setup({
-	          dateField     : 'adoptionStartDate',
-	          parentElement : 'calendar'
-	
-	        })
-	        Calendar2.setup({
-	          dateField     : 'adoptionEndDate',
-	          parentElement : 'calendar2'
-	
-	        })
-	
-		  }
-	</script>
-	-->
-	
-	
-	
 	
 	<div class="container maincontent">
 	
@@ -124,18 +82,35 @@ context=ServletUtilities.getContext(request);
 	    adoptionEndDate = tempAD.getAdoptionEndDate();
 	    adopterQuote = tempAD.getAdopterQuote();
 	    adoptionManager = tempAD.getAdoptionManager();
-	    sharkForm = tempAD.getMarkedIndividual();
-	    if (tempAD.getEncounter() != null) {
-	      encounterForm = tempAD.getEncounter();
+			if (tempAD.getMarkedIndividual()!=null) {
+				sharkNum = tempAD.getMarkedIndividual();
+			}
+	    if (tempAD.getEncounter()!=null) {
+	      encNum = tempAD.getEncounter();
 	    }
 	    notes = tempAD.getNotes();
 	    adoptionType = tempAD.getAdoptionType();
 	    if(tempAD.getStripeCustomerId()!=null){
 	    	stripeID=tempAD.getStripeCustomerId();
 	    }
+	}
+
+	if ((sharkNum==null||"".equals(sharkNum))&&request.getParameter("individual") != null) {
+		sharkNum = request.getParameter("individual");
+	}
+	if ((encNum==null||"".equals(encNum))&&request.getParameter("encounter") != null) {
+		encNum = request.getParameter("encounter");
+		if ("".equals(sharkNum)) {
+			try {
+				String indyID = myShepherd.getEncounter(encNum).getIndividualID();
+			} catch (Exception e) {
+				System.out.println(" Failed to retrieve Individual ID.");
+				e.printStackTrace();
+			}
+		}
+	}
 
 	%>
-	
 	
 	<h1 class="intro"> Adoption Administration</h1>
 	
@@ -160,14 +135,6 @@ context=ServletUtilities.getContext(request);
 	</table>
 	<br/>
 	
-	<%
-	  String shark = "";
-	  if (request.getParameter("individual") != null) {
-	    shark = request.getParameter("individual");
-	  }
-	%>
-	
-	
 	<table class="adoption">
 	<tr>
 	<td>
@@ -179,19 +146,14 @@ context=ServletUtilities.getContext(request);
 	<%
 	} else {
 	%>
-	
 	<h3><a name="create" id="create"></a>Create adoption</h3>
 	<%
-	  }
-	
-	  if (isOwner) {
+	}
 	%>
+
 	<form action="<%=servletURL%>" method="post"
 	      enctype="multipart/form-data" name="adoption_submission"
 	      target="_self" dir="ltr" accept-charset="UTF-8">
-	  <%
-	    }
-	  %>
 	
 	  <table>
 	    <tr>
@@ -245,8 +207,12 @@ context=ServletUtilities.getContext(request);
 	    <tr>
 	      <td>Marked Individual:</td>
 	      <td><input name="shark" type="text" size="30"
-	                 value="<%=sharkForm%>"> </input> <%if (!sharkForm.equals("")) { %>
-	        <a href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
+	                 value="<%=sharkNum%>"> </input> 
+					<%
+					if (sharkNum!=null&&!sharkNum.equals("")) { 
+					%>
+	        <a href="../individuals.jsp?number=<%=sharkNum%>">Link</a> 
+					<%
 	          }
 	        %>
 	      </td>
@@ -255,9 +221,9 @@ context=ServletUtilities.getContext(request);
 	    <tr>
 	      <td>Encounter:</td>
 	      <td><input name="encounter" type="text" size="30"
-	                 value="<%=encounterForm%>"> </input> <%if (!encounterForm.equals("")) { %>
+	                 value="<%=encNum%>"> </input> <%if (encNum!=null&&!"".equals(encNum)) { %>
 	
-	        <a href="../encounters/encounter.jsp?number=<%=encounterForm%>">Link</a>
+	        <a href="../encounters/encounter.jsp?number=<%=encNum%>">Link</a>
 	
 	        <%
 	          }
@@ -326,38 +292,30 @@ context=ServletUtilities.getContext(request);
 	
 	    <tr>
 	      <td>Adoption start date:</td>
-	      <td><input id="adoptionStartDate" name="adoptionStartDate"
-	                 type="text" size="30" value="<%=adoptionStartDate%>"> <em>(e.g.
+	      <td><input id="adoptionStartDate" name="adoptionStartDate" type="text" size="30" value="<%=adoptionStartDate%>"> <em>(e.g.
 	        2009-05-15) </input> </em></td>
 	    </tr>
 	
 	    <tr>
 	      <td>Adoption end date:</td>
-	      <td><input name="adoptionEndDate" type="text" size="30"
-	                 value="<%=adoptionEndDate%>"> </input> <em>(e.g. 2010-05-15) </em></td>
+	      <td><input name="adoptionEndDate" type="text" size="30" value="<%=adoptionEndDate%>"> </input> <em>(e.g. 2010-05-15) </em></td>
 	    </tr>
 	
-	    <!--
-				 			 <tr>
-				 <td>Adoption end date:</td>
-				 <td><div id="calendar2"></div>
-	   				 <div id="date2">
-					  <input  class="dateField" id="adoptionEndDate" name="adoptionEndDate" type="text" size="30" value="<%=adoptionEndDate%>"></input>
-				</div>
+			<tr>
+				<td>Adoption end date:</td>
+					<td><div id="calendar2"></div>
+						<div id="date2">
+								<input  class="dateField" id="adoptionEndDate" name="adoptionEndDate" type="text" size="30" value="<%=adoptionEndDate%>"></input>
+						</div>
 					</td>
-				</tr>
-				 -->
+			</tr>
 	
 	    <tr>
 	      <td>Adoption manager (user):</td>
 	      <td>
-	        <%if (request.getRemoteUser() != null) {%> <input name="adoptionManager"
-	                                                          type="text"
-	                                                          value="<%=request.getRemoteUser()%>"
-	                                                          value="<%=adoptionManager%>"></input> <%} else {%>
-	        <input
-	          name="adoptionManager" type="text" value="N/A"
-	          value="<%=adoptionManager%>"></input> <%}%>
+	        <%if (request.getRemoteUser() != null) {%> 
+					<input name="adoptionManager" type="text" value="<%=request.getRemoteUser()%>" value="<%=adoptionManager%>"></input> <%} else {%>
+	        <input name="adoptionManager" type="text" value="N/A" value="<%=adoptionManager%>"></input> <%}%>
 	      </td>
 	    </tr>
 	    <tr>
@@ -367,78 +325,49 @@ context=ServletUtilities.getContext(request);
 	
 	        <%
 	          if (request.getParameter("number") != null) {
-	        %> <br/>
-	        <input type="hidden" name="number" value="<%=id%>"/> <%
+	        %> 
+					<br/>
+	        <input type="hidden" name="number" value="<%=id%>"/> 
+					<%
 	          }
-	
 	        %>
 	      </td>
 	    </tr>
-	
-	    <%
-	      if (isOwner) {
-	    %>
-	
+
 	    <tr>
 	      <td><input type="submit" name="Submit" value="Submit"/></td>
 	    </tr>
-	
-	    <%
-	      }
-	    %>
 	  </table>
 	  <br/>
-	
-	  <%
-	    if (isOwner) {
-	  %>
 	</form>
-	<%
-	  }
-	%>
 	</td>
 	</tr>
 	</table>
 	<br/>
-	<%
-	  if (isOwner) {
-	%>
-	<p>&nbsp;</p>
-	<table class="adoption" width="720px">
-	  <tr>
-	    <td>
-	      <h3><a name="delete" id="delete"></a>Delete this adoption</h3>
-	    </td>
-	  </tr>
-	  <tr>
-	    <td>
-	      <form action="emailCancelAdoption.jsp" method="get">
-	      <input type="hidden" name="adoption" value="<%=id%>"/> 
-	        <input type="hidden" name="number" value="<%=sharkForm%>"/> 
-	         <input type="hidden" name="stripeID" value="<%=stripeID%>"/> 
-	        
-	        
-	        <input name="Delete"
-	                                                             type="submit" value="Delete"/></form>
-	      <br/>
-	    </td>
-	  </tr>
-	</table>
-	<br/>
-	<%
-	  }
-  	} //end if is adoption
-  	else{
-  		%>
-  		
-  		<p>I could not find the adoption <%=request.getParameter("number") %>.</p>
-  		
-  	<%
-  	}
+			<p>&nbsp;</p>
+			<table class="adoption" width="720px">
+				<tr>
+					<td>
+						<h3><a name="delete" id="delete"></a>Delete this adoption</h3>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<form action="emailCancelAdoption.jsp" method="get">
+						<input type="hidden" name="adoption" value="<%=id%>"/> 
+							<input type="hidden" name="number" value="<%=sharkNum%>"/> 
+							<input type="hidden" name="stripeID" value="<%=stripeID%>"/> 
+							<input name="Delete" type="submit" value="Delete"/></form>
+						<br/>
+					</td>
+				</tr>
+			</table>
+			<br/>
+			<%
 	  
-  }
-  catch(Exception e){e.printStackTrace();}
-  finally{
+  } catch (Exception e) {
+		e.printStackTrace();
+	} finally {
   	myShepherd.rollbackDBTransaction();
   	myShepherd.closeDBTransaction();
   }
