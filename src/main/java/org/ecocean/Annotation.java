@@ -9,6 +9,7 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.acm.AcmBase;
 import org.ecocean.ia.Task;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -24,7 +25,8 @@ import javax.servlet.http.HttpServletRequest;
 
 //import java.time.LocalDateTime;
 
-public class Annotation implements java.io.Serializable {
+//public class Annotation implements java.io.Serializable {
+public class Annotation extends AcmBase {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
     private String species;  //TODO change to Taxonomy object!  (note: or make it akin to "class" on IA... but better name?)
