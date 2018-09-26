@@ -76,8 +76,7 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
  * MediaAsset describes a photo or video that can be displayed or used
  * for processing and analysis.
  */
-//public class MediaAsset implements java.io.Serializable {
-public class MediaAsset extends AcmBase {
+public class MediaAsset implements java.io.Serializable {
     static final long serialVersionUID = 8844223450447974780L;
     protected int id = MediaAssetFactory.NOT_SAVED;
 
@@ -136,6 +135,9 @@ public class MediaAsset extends AcmBase {
     //private Double metaLatitude;
     //private Double metaLongitude;
 
+    private String acmId;
+
+
 
     /**
      * To be called by AssetStore factory method.
@@ -175,6 +177,13 @@ public class MediaAsset extends AcmBase {
     }
     public void setAccessControl(HttpServletRequest request) {
         this.setAccessControl(new AccessControl(request));
+    }
+
+    public void setAcmId(String id) {
+        this.acmId = id;
+    }
+    public String getAcmId() {
+        return this.acmId;
     }
 
     private URL getUrl(final AssetStore store, final Path path) {
