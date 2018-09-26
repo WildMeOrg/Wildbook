@@ -25,8 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 
 //import java.time.LocalDateTime;
 
-//public class Annotation implements java.io.Serializable {
-public class Annotation extends AcmBase {
+public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
     private String species;  //TODO change to Taxonomy object!  (note: or make it akin to "class" on IA... but better name?)
@@ -35,6 +34,7 @@ public class Annotation extends AcmBase {
     private Boolean isOfInterest = null;  //aka AoI (Annotation of Interest)
     protected String identificationStatus;
     private ArrayList<Feature> features;
+    protected String acmId;
 
 ////// these will go away after transition to Features
     private int x;
@@ -109,6 +109,13 @@ public class Annotation extends AcmBase {
         __getMediaAsset().addFeature(f);
         addFeature(f);
         return f;
+    }
+
+    public void setAcmId(String id) {
+        this.acmId = id;
+    }
+    public String getAcmId() {
+        return this.acmId;
     }
 
     public ArrayList<Feature> getFeatures() {
