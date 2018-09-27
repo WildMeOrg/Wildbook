@@ -36,16 +36,22 @@ public class IAPluginManager {
 
     //StartupWildbook calls this
     public static void startup(ServletContextEvent sce) {
-        String context = "context0";  //TODO ?????
         System.out.println("INFO: IAPluginManager.startup() called");
+//TODO do we only call this in ONE context based on sce?????  FIXME
+        for (String context : plugins.keySet()) {
+            for (IAPlugin p : plugins.get(context)) {
+                p.startup(sce);
+            }
+        }
     }
 
-    //creates static instances of each (enabled) plugin, for use here
+    //creates static instances of each (enabled) plugin (and initialized them), for use here
     public static List<IAPlugin> initPlugins(String context) {
         List<IAPlugin> list = new ArrayList<IAPlugin>();
         for (Class c : getAllPluginClasses(context)) {
             IAPlugin p = getIAPluginInstanceFromClass(c, context);
             if (p.isEnabled()) list.add(p);
+            p.init(context);
         }
         plugins.put(context, list);
         return list;
