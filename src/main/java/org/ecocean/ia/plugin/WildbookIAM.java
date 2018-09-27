@@ -5,15 +5,18 @@ import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.ia.IA;
 import org.ecocean.RestClient;
-import org.ecocean.media.MediaAsset;
+import org.ecocean.media.*;
 import org.ecocean.Annotation;
+import org.ecocean.acm.AcmUtil;
 import java.util.List;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
+import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -55,6 +58,10 @@ public class WildbookIAM extends IAPlugin {
     }
 
 
+    public boolean isPrimed() {
+        return primed;
+    }
+
     public void prime() {
         IA.log("INFO: WildbookIAM.prime(" + this.context + ") called");
         primed = false;
@@ -82,13 +89,17 @@ public class WildbookIAM extends IAPlugin {
                 }
                 IA.log("INFO: WildbookIAM.prime(" + context + ") sending " + sendAnns.size() + " annots (of " + exemAnns.size() + ") and " + mas.size() + " images");
                 try {
-                    sendMediaAssets(mas);
-                    sendAnnotations(sendAnns);
+                    sendMediaAssets(mas, false);
+                    sendAnnotations(sendAnns, false);
                 } catch (Exception ex) {
                     IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
                     ex.printStackTrace();
                 }
-                myShepherd.rollbackDBTransaction();
+                for (MediaAsset ma : mas) {
+System.out.println("B: " + ma.getAcmId() + " --> " + ma);
+                    MediaAssetFactory.save(ma, myShepherd);
+                }
+                myShepherd.commitDBTransaction();  //MAs and annots may have had acmIds changed
                 myShepherd.closeDBTransaction();
                 primed = true;
                 IA.log("INFO: prime(" + context + ") complete");
@@ -99,11 +110,115 @@ System.out.println(">>>>>> AFTER : " + primed);
     }
 
 
-    public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas) {
-        return null;
+    public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = IA.getProperty(context, "IBEISIARestUrlAddImages");
+        if (u == null) throw new MalformedURLException("WildbookIAM configuration value IBEISIARestUrlAddImages is not set");
+        URL url = new URL(u);
+        int ct = 0;
+
+        //sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
+        List<String> iaImageIds = new ArrayList<String>();
+        if (checkFirst) iaImageIds = iaImageIds();
+
+        HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
+        map.put("image_uri_list", new ArrayList<JSONObject>());
+        map.put("image_unixtime_list", new ArrayList<Integer>());
+        map.put("image_gps_lat_list", new ArrayList<Double>());
+        map.put("image_gps_lon_list", new ArrayList<Double>());
+
+        List<MediaAsset> acmList = new ArrayList<MediaAsset>(); //for rectifyMediaAssetIds below
+        for (MediaAsset ma : mas) {
+            if (iaImageIds.contains(ma.getAcmId())) continue;
+            acmList.add(ma);
+            map.get("image_uri_list").add(mediaAssetToUri(ma));
+            map.get("image_gps_lat_list").add(ma.getLatitude());
+            map.get("image_gps_lon_list").add(ma.getLongitude());
+            DateTime t = ma.getDateTime();
+            if (t == null) {
+                map.get("image_unixtime_list").add(null);
+            } else {
+                map.get("image_unixtime_list").add((int)Math.floor(t.getMillis() / 1000));  //IA wants seconds since epoch
+            }
+            ct++;
+        }
+
+System.out.println("sendMediaAssets(): sending " + ct);
+        if (ct < 1) return null;  //null for "none to send" ?  is this cool?
+        JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+System.out.println("sendMediaAssets() -> " + rtn);
+        List<String> acmIds = acmIdsFromResponse(rtn);
+        if (acmIds == null) {
+            IA.log("WARNING: WildbookIAM.sendMediaAssets() could not get list of acmIds from response: " + rtn);
+        } else {
+            int numChanged = AcmUtil.rectifyMediaAssetIds(acmList, acmIds);
+            IA.log("INFO: WildbookIAM.sendMediaAssets() updated " + numChanged + " MediaAsset(s) acmId(s) via rectifyMediaAssetIds()");
+for (MediaAsset ma : acmList) {
+System.out.println("A: " + ma.getAcmId() + " --> " + ma);
+}
+        }
+        return rtn;
     }
-    public JSONObject sendAnnotations(ArrayList<Annotation> anns) {
-        return null;
+
+    public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
+        if (u == null) throw new MalformedURLException("WildbookIAM configuration value IBEISIARestUrlAddAnnotations is not set");
+        URL url = new URL(u);
+        int ct = 0;
+
+        //sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
+        List<String> iaAnnotIds = new ArrayList<String>();
+        if (checkFirst) iaAnnotIds = iaAnnotationIds();
+
+        HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
+        map.put("image_uuid_list", new ArrayList<String>());
+        map.put("annot_uuid_list", new ArrayList<String>());
+        map.put("annot_species_list", new ArrayList<String>());
+        map.put("annot_bbox_list", new ArrayList<int[]>());
+        map.put("annot_name_list", new ArrayList<String>());
+
+        List<Annotation> acmList = new ArrayList<Annotation>(); //for rectifyAnnotationIds below
+        for (Annotation ann : anns) {
+            if (iaAnnotIds.contains(ann.getAcmId())) continue;
+/*
+            if (!validForIdentification(ann)) {
+                System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
+                continue;
+            }
+*/
+            int[] bbox = ann.getBbox();
+            map.get("annot_bbox_list").add(bbox);
+            map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
+            map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
+            map.get("annot_species_list").add(ann.getSpecies());
+            //String name = ann.findIndividualId(myShepherd);
+            //map.get("annot_name_list").add((name == null) ? "____" : name);
+            ct++;
+        }
+
+System.out.println("sendAnnotations(): sending " + ct);
+        if (ct < 1) return null;  //null for "none to send" ?  is this cool?
+        JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+System.out.println("sendAnnotations() -> " + rtn);
+        List<String> acmIds = acmIdsFromResponse(rtn);
+        if (acmIds == null) {
+            IA.log("WARNING: WildbookIAM.sendAnnotations() could not get list of acmIds from response: " + rtn);
+        } else {
+            int numChanged = AcmUtil.rectifyAnnotationIds(acmList, acmIds);
+            IA.log("INFO: WildbookIAM.sendAnnotations() updated " + numChanged + " Annotation(s) acmId(s) via rectifyAnnotationIds()");
+        }
+        return rtn;
+    }
+
+
+    public static List<String> acmIdsFromResponse(JSONObject rtn) {
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) return null;
+        List<String> ids = new ArrayList<String>();
+        for (int i = 0 ; i < rtn.getJSONArray("response").length() ; i++) {
+            if (rtn.getJSONArray("response").optJSONObject(i) == null) continue;
+            ids.add(fromFancyUUID(rtn.getJSONArray("response").getJSONObject(i)));
+        }
+System.out.println("fromResponse ---> " + ids);
+        return ids;
     }
 
     //instance version of below (since context is known)
@@ -184,5 +299,19 @@ System.out.println(">>>>>> AFTER : " + primed);
         return j;
     }
 
+    private static Object mediaAssetToUri(MediaAsset ma) {
+        //URL curl = ma.containerURLIfPresent();  //what is this??
+        //if (curl == null) curl = ma.webURL();
+        URL curl = ma.webURL();
+        if (ma.getStore() instanceof LocalAssetStore) {
+            if (curl == null) return null;
+            return curl.toString();
+        } else if (ma.getStore() instanceof S3AssetStore) {
+            return ma.getParameters();
+        } else {
+            if (curl == null) return null;
+            return curl.toString();
+        }
+    }
 
 }

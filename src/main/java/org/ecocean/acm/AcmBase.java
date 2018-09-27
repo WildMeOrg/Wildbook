@@ -1,3 +1,8 @@
+/*
+    note: this was an attempt to add a base class under Annotation and MediaAsset...
+    but ultimately failed due to not being able to configure DataNucleus to do the right thing in the db. :(
+*/
+
 package org.ecocean.acm;
 
 import java.io.Serializable;
