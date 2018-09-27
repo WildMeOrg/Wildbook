@@ -42,7 +42,7 @@ public class FileQueue extends Queue {
     public static synchronized void init(String context) throws IOException {
         File qd = setQueueDir(context);
         if (qd == null) throw new IOException("ERROR: unable to FileQueue.setQueueDir()");
-        System.out.println("[INFO] FileQueue.init() complete");
+        System.out.println("[INFO] FileQueue.init(" + context + ") complete");
     }
 
     public static File setQueueDir(String context) throws IOException {

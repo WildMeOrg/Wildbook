@@ -58,7 +58,7 @@ public class WildbookIAM extends IAPlugin {
     public void prime() {
         IA.log("INFO: WildbookIAM.prime(" + this.context + ") called");
         primed = false;
-        if (!isEnabled() || true) return;
+        if (!isEnabled()) return;
 
         final List<String> iaAnnotIds = iaAnnotationIds();
         final List<String> iaImageIds = iaImageIds();
@@ -118,11 +118,16 @@ System.out.println(">>>>>> AFTER : " + primed);
             jids = apiGetJSONArray("/api/annot/json/", context);
         } catch (Exception ex) {
             ex.printStackTrace();
-            IA.log("ERROR: WildbookIAM.iaAnnotationsIds() returning empty; failed due to " + ex.toString());
+            IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " + ex.toString());
         }
         if (jids != null) {
-            for (int i = 0 ; i < jids.length() ; i++) {
-                if (jids.optJSONObject(i) != null) ids.add(fromFancyUUID(jids.getJSONObject(i)));
+            try {
+                for (int i = 0 ; i < jids.length() ; i++) {
+                    if (jids.optJSONObject(i) != null) ids.add(fromFancyUUID(jids.getJSONObject(i)));
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                IA.log("ERROR: WildbookIAM.iaAnnotationIds() parsing error " + ex.toString());
             }
         }
         return ids;
@@ -142,8 +147,13 @@ System.out.println(">>>>>> AFTER : " + primed);
             IA.log("ERROR: WildbookIAM.iaImageIds() returning empty; failed due to " + ex.toString());
         }
         if (jids != null) {
-            for (int i = 0 ; i < jids.length() ; i++) {
-                if (jids.optJSONObject(i) != null) ids.add(fromFancyUUID(jids.getJSONObject(i)));
+            try {
+                for (int i = 0 ; i < jids.length() ; i++) {
+                    if (jids.optJSONObject(i) != null) ids.add(fromFancyUUID(jids.getJSONObject(i)));
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                IA.log("ERROR: WildbookIAM.iaImageIds() parsing error " + ex.toString());
             }
         }
         return ids;
