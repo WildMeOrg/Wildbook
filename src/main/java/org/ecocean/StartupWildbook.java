@@ -119,7 +119,7 @@ public class StartupWildbook implements ServletContextListener {
         String context = "context0";  //TODO ??? how????
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
         if (skipInit(sce, null)) {
-            System.out.println("- SKIPPED initialization by /tmp/WB_SKIP_INIT");
+            System.out.println("- SKIPPED initialization due to skipInit()");
             return;
         }
 
@@ -207,6 +207,11 @@ public class StartupWildbook implements ServletContextListener {
     }
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {
+        ServletContext sc = sce.getServletContext();
+        if ("".equals(sc.getContextPath())) {
+            System.out.println("++ StartupWildbook.skipInit() skipping ROOT (empty string context path)");
+            return true;
+        }
         String fname = "/tmp/WB_SKIP_INIT" + ((extra == null) ? "" : "_" + extra);
         boolean skip = new File(fname).exists();
         System.out.println("++ StartupWildbook.skipInit() test on " + extra + " [" + fname + "] --> " + skip);
