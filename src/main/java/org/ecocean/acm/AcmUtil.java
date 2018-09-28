@@ -33,6 +33,21 @@ public class AcmUtil {
     }
 
     public static int rectifyAnnotationIds(List<Annotation> anns, List<String> acmIds) {
-return -1;
+        if ((anns == null) || (acmIds == null) || (anns.size() != acmIds.size())) {
+            IA.log("ERROR: AcmUtil.rectifyAnnotationIds() has invalid lists passed; failing");
+            return -1;
+        }
+        int numChanged = 0;
+        for (int i = 0 ; i < anns.size() ; i++) {
+            if (anns.get(i).getAcmId() == null) {
+                anns.get(i).setAcmId(acmIds.get(i));
+                numChanged++;
+            } else if (!anns.get(i).getAcmId().equals(acmIds.get(i))) {
+                IA.log("WARNING: AcmUtil.rectifyAnnotationIds() changing acmId from " + anns.get(i).getAcmId() + " to " + acmIds.get(i) + " on " + anns.get(i));
+                anns.get(i).setAcmId(acmIds.get(i));
+                numChanged++;
+            }
+        }
+        return numChanged;
     }
 }
