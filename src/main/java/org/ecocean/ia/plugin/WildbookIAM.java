@@ -95,18 +95,20 @@ public class WildbookIAM extends IAPlugin {
                     IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
                     ex.printStackTrace();
                 }
+/*
                 for (MediaAsset ma : mas) {
 System.out.println("B: " + ma.getAcmId() + " --> " + ma);
                     MediaAssetFactory.save(ma, myShepherd);
                 }
+*/
                 myShepherd.commitDBTransaction();  //MAs and annots may have had acmIds changed
                 myShepherd.closeDBTransaction();
                 primed = true;
-                IA.log("INFO: prime(" + context + ") complete");
+                IA.log("INFO: WildbookIAM.prime(" + context + ") complete");
             }
         };
         new Thread(r).start();
-System.out.println(">>>>>> AFTER : " + primed);
+System.out.println(">>>>>> AFTER prime() [forked]: " + primed);
     }
 
 
@@ -142,7 +144,7 @@ System.out.println(">>>>>> AFTER : " + primed);
             ct++;
         }
 
-System.out.println("sendMediaAssets(): sending " + ct);
+        IA.log("INFO: WildbookIAM.sendMediaAssets() is sending " + ct);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?
         JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
 System.out.println("sendMediaAssets() -> " + rtn);
@@ -152,9 +154,6 @@ System.out.println("sendMediaAssets() -> " + rtn);
         } else {
             int numChanged = AcmUtil.rectifyMediaAssetIds(acmList, acmIds);
             IA.log("INFO: WildbookIAM.sendMediaAssets() updated " + numChanged + " MediaAsset(s) acmId(s) via rectifyMediaAssetIds()");
-for (MediaAsset ma : acmList) {
-System.out.println("A: " + ma.getAcmId() + " --> " + ma);
-}
         }
         return rtn;
     }
@@ -164,6 +163,10 @@ System.out.println("A: " + ma.getAcmId() + " --> " + ma);
         if (u == null) throw new MalformedURLException("WildbookIAM configuration value IBEISIARestUrlAddAnnotations is not set");
         URL url = new URL(u);
         int ct = 0;
+        //may be different shepherd, but findIndividualId() below will only work if its all persisted anyway. :/
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("WildbookIAM.sendAnnotations");
+        myShepherd.beginDBTransaction();
 
         //sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
         List<String> iaAnnotIds = new ArrayList<String>();
@@ -171,10 +174,10 @@ System.out.println("A: " + ma.getAcmId() + " --> " + ma);
 
         HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
         map.put("image_uuid_list", new ArrayList<String>());
-        map.put("annot_uuid_list", new ArrayList<String>());
         map.put("annot_species_list", new ArrayList<String>());
         map.put("annot_bbox_list", new ArrayList<int[]>());
         map.put("annot_name_list", new ArrayList<String>());
+        map.put("annot_theta_list", new ArrayList<Double>());
 
         List<Annotation> acmList = new ArrayList<Annotation>(); //for rectifyAnnotationIds below
         for (Annotation ann : anns) {
@@ -185,18 +188,30 @@ System.out.println("A: " + ma.getAcmId() + " --> " + ma);
                 continue;
             }
 */
+            if (ann.getMediaAsset() == null) {
+                IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset for " + ann + "; skipping!");
+                continue;
+            }
+            JSONObject iid = toFancyUUID(ann.getMediaAsset().getAcmId());
+            if (iid == null) {
+                IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset.acmId for " + ann.getMediaAsset() + " on " + ann + "; skipping!");
+                continue;
+            }
+            acmList.add(ann);
+            map.get("image_uuid_list").add(iid);
             int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
-            map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
-            map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
             map.get("annot_species_list").add(ann.getSpecies());
-            //String name = ann.findIndividualId(myShepherd);
-            //map.get("annot_name_list").add((name == null) ? "____" : name);
+            map.get("annot_theta_list").add(ann.getTheta());
+            String name = ann.findIndividualId(myShepherd);
+            map.get("annot_name_list").add((name == null) ? "____" : name);
             ct++;
         }
+        myShepherd.rollbackDBTransaction();
 
-System.out.println("sendAnnotations(): sending " + ct);
+        IA.log("INFO: WildbookIAM.sendAnnotations() is sending " + ct);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?
+System.out.println("sendAnnotations(): data -->\n" + map);
         JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
 System.out.println("sendAnnotations() -> " + rtn);
         List<String> acmIds = acmIdsFromResponse(rtn);
