@@ -591,6 +591,16 @@ public class Shepherd {
     return tempMA;
   }
 
+  public Annotation getAnnotation(String num) {
+    Annotation tempMA = null;
+    try {
+      tempMA = ((Annotation) (pm.getObjectById(pm.newObjectIdInstance(Annotation.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempMA;
+  }
+
   public MediaAssetSet getMediaAssetSet(String num) {
     MediaAssetSet tempMA = null;
     try {
