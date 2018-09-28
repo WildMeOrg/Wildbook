@@ -104,11 +104,14 @@ private void tryToGet(String jobID, String context, HttpServletRequest request) 
 	jlog.put("_response", statusResponse);
 
 
+  System.out.println("Detect Callback Calling IBEISIA.log with taskID "+taskID);
 	IBEISIA.log(taskID, jobID, jlog, context);
 
 	JSONObject all = new JSONObject();
 	all.put("jobStatus", jlog);
-  System.out.println(">>>>------[ jobID = " + jobID + " -> taskID = " + taskID + " ]----------------------------------------------------");
+  System.out.println(">>>>------[ jobID = " + jobID + " -> taskID = " + taskID + " ]----(IBEISIADetectCallback)----------------------------------");
+
+  // taskID above is what we need to attach to the annotation
 
   try {
     myShepherd.beginDBTransaction();
@@ -316,8 +319,7 @@ private Annotation lynxDetectCallback(JSONObject jobResItem, String assetUUID, S
 
 
   // here we create what will be used as the IA ID task ID
-  newAnn.setIdentificationStatus(Util.generateUUID());
-
+  newAnn.setIdentificationStatus("processing");
 
   System.out.println("I have a new annotation!");
   System.out.println("newAnn = "+newAnn.toString());

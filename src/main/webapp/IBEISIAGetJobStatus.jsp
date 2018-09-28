@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
 java.util.Map,
+java.util.List,
 java.util.ArrayList,
 java.io.BufferedReader,
 java.io.IOException,
@@ -14,8 +15,7 @@ org.ecocean.servlet.ServletUtilities,
 org.ecocean.identity.IBEISIA,
 org.ecocean.identity.IdentityServiceLog,
 org.ecocean.Annotation,
-org.ecocean.media.*
-              "
+org.ecocean.media.*"
 %>
 
 
@@ -97,16 +97,18 @@ System.out.println(statusResponse.toString());
 	} else {
 		jlog.put("taskID", taskID);
 	}
-
 	jlog.put("_action", "getJobStatus");
 	jlog.put("_response", statusResponse);
 
-
 	IBEISIA.log(taskID, jobID, jlog, context);
+
+	// get annot ID from results
+
 
 	JSONObject all = new JSONObject();
 	all.put("jobStatus", jlog);
-System.out.println(">>>>------[ jobID = " + jobID + " -> taskID = " + taskID + " ]----------------------------------------------------");
+	
+	System.out.println(">>>>------[ jobID = " + jobID + " -> taskID = " + taskID + " ]---(IBEISIAGetJobStatus)----------------------------------");
 
 try {
 	if ((statusResponse != null) && statusResponse.has("status") &&
@@ -121,12 +123,20 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		rlog.put("jobID", jobID);
 		rlog.put("_action", "getJobResult");
 		rlog.put("_response", resultResponse);
+		// drew: rlog is the jsonobject with our annot id in it.
 		IBEISIA.log(taskID, jobID, rlog, context);
 		all.put("jobResult", rlog);
+
+System.out.println("		getJobStatus checkpoint a");
+
 
 		JSONObject proc = IBEISIA.processCallback(taskID, rlog, context);
 
 System.out.println("processCallback returned --> " + proc);
+// we can get what we need from proc
+
+
+
 	}
 } catch (Exception ex) {
 	System.out.println("whoops got exception: " + ex.toString());
@@ -136,6 +146,34 @@ finally{
 	//myShepherd.rollbackDBTransaction();
 	//myShepherd.closeDBTransaction();
 }
+
+	// begin logging update
+	System.out.println("begin logging update!");
+	Shepherd myShepherd = new Shepherd(context);
+	myShepherd.setAction("IBEISIAGetJobStatus.jsp");
+	myShepherd.beginDBTransaction();
+	// this is the correct taskID which is not being attached to our annotation.
+	List<Annotation> anns = IBEISIA.getAnns(taskID, myShepherd);
+	for (Annotation ann: anns) {
+		System.out.println("IBEISIA.getAnns returned ann "+ann);
+		if (ann!=null) {
+			System.out.println("IBEISIAGetJobStatus.getLatestAnn got ann "+ann);
+			ann.setIdentificationStatus(taskID);
+			System.out.println(".    logging update! ann "+ann+" setIDStatus "+taskID);
+			IBEISIA.log(taskID, ann.getId(), jobID, jlog, context);
+		} else {
+			System.out.println("IBEISIAGetJobStatus: GOT NO ANN");
+		}
+
+	}
+	// lynx-branch-only hack where taskID is stored in identificationStatus
+	myShepherd.commitDBTransaction();
+	myShepherd.closeDBTransaction();
+	// end logging update
+
+
+
+
 
 	all.put("_timestamp", System.currentTimeMillis());
 System.out.println("-------- >>> " + all.toString() + "\n##################################################################");

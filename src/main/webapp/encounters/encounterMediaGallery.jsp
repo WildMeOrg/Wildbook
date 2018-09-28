@@ -164,7 +164,14 @@ try {
 		  else {
 		  	for (Annotation ann: anns) {
 		      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+			  System.out.println("taskIDs: tasks is "+tasks);
+			  int tasksLength = (tasks==null) ? 0 : tasks.length;
+			  for (int i=0; i<tasksLength; i++) {
+			  	System.out.println("	tasks = "+tasks[i]);
+			  }
+
 		      MediaAsset ma = ann.getMediaAsset();
+		      String maId = (ma!=null) ? String.valueOf(ma.getId()) : null;
 		      String filename = ma.getFilename();
 
 		      String individualID="";
@@ -188,8 +195,29 @@ try {
 
           String idStatus = ann.getIdentificationStatus();
           taskIDs.add(idStatus);
+          System.out.println("taskIDs: added "+idStatus);
+		  String[] otherTasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+		  System.out.println("taskIDs: otherTask is "+otherTasks);
+		  int otherLength = (otherTasks==null) ? 0 : otherTasks.length;
+		  for (int i=0; i<otherLength; i++) {
+		  	System.out.println("otherTask = "+otherTasks[i]);
+		  }
 
-          if (idStatus==null) idStatus="Waiting for detection... (refresh page for changes)";
+		  // try again with maId
+		  System.out.println("taskIDs: now trying with maId "+maId);
+		  otherTasks = IBEISIA.findTaskIDsFromObjectID(maId, imageShepherd);
+		  System.out.println("taskIDs: otherTask is "+otherTasks);
+		  otherLength = (otherTasks==null) ? 0 : otherTasks.length;
+		  for (int i=0; i<otherLength; i++) {
+		  	System.out.println("otherTask = "+otherTasks[i]);
+		  }
+
+          if (idStatus==null) {
+          	idStatus="Waiting for detection... (refresh page for changes)";
+          }
+          else if ("processing".equals(idStatus)) {
+          	idStatus="Waiting for identification... (refresh page for changes)";
+	      }
           else {
             // we know that ann has a not-null idStatus.
             idStatus = "Identification has been run.";
@@ -358,6 +386,7 @@ if(request.getParameter("encounterNumber")!=null){
     if (<%=isGrid%>) {
       maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     } else {
+    	// this is populating the taskIDs
       maLib.maJsonToFigureElemCaption2(elem, $('#enc-gallery'), captions[index], mainCaptions[index], taskIDs[index]);
     }
 
@@ -454,7 +483,10 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 				alert('could not determine id');
 				return;
 			}
-      var taskID = enh.imgEl.data('enh-taskid');
+      		var taskID = enh.imgEl.data('enh-taskid');
+      		console.log("media gallery parsed taskId = "+taskID);
+      		console.log("complete enh object: "+JSON.stringify(enh));
+      		console.log("complete imgEl.data object: "+JSON.stringify(enh.imgEl.data()));
 			wildbook.openInTab('matchResults.jsp?number=<%=encNum%>&taskId=' + taskID);
 		}
             ],

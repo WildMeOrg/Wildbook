@@ -1330,6 +1330,55 @@ System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber
         return rtn;
     }
 
+    public static Annotation getLatestAnn(String taskID, Shepherd myShepherd) {
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
+        // try every job!
+        for (IdentityServiceLog log: logs) {
+            JSONObject status = log.getStatusJson();
+            try {
+                JSONObject _response  = status.    getJSONObject("_response");
+                JSONObject response1  = _response. getJSONObject("response");
+                JSONObject jsonResult = response1. getJSONObject("json_result");
+                JSONObject inferDict  = jsonResult.getJSONObject("inference_dict");
+                JSONObject clustDict  = inferDict. getJSONObject("cluster_dict");
+                JSONArray  annotUuids = clustDict. getJSONArray ("annot_uuid_list");
+                JSONObject annotUuid0 = annotUuids.getJSONObject(0);
+                String     annotId    = annotUuid0.getString    ("__UUID__");
+                Annotation ann = myShepherd.getAnnotation(annotId);
+                if (ann!=null) return ann;
+            } catch (Exception e) {
+                System.out.println("(Probably JSON-related) Exception on IBEISIA.getLatestAnnId(taskID)!");
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    public static List<Annotation> getAnns(String taskID, Shepherd myShepherd) {
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
+        // try every job!
+        List<Annotation> anns = new ArrayList<Annotation>();
+        for (IdentityServiceLog log: logs) {
+            JSONObject status = log.getStatusJson();
+            try {
+                JSONObject _response  = status.    getJSONObject("_response");
+                JSONObject response1  = _response. getJSONObject("response");
+                JSONObject jsonResult = response1. getJSONObject("json_result");
+                JSONObject inferDict  = jsonResult.getJSONObject("inference_dict");
+                JSONObject clustDict  = inferDict. getJSONObject("cluster_dict");
+                JSONArray  annotUuids = clustDict. getJSONArray ("annot_uuid_list");
+                JSONObject annotUuid0 = annotUuids.getJSONObject(0);
+                String     annotId    = annotUuid0.getString    ("__UUID__");
+                Annotation ann = myShepherd.getAnnotation(annotId);
+                if (ann!=null) anns.add(ann);
+            } catch (Exception e) {
+                System.out.println("(Probably JSON-related) Exception on IBEISIA.getLatestAnnId(taskID)!");
+                e.printStackTrace();
+            }
+        }
+        return anns;
+    }
+
 
     private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, String context) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
