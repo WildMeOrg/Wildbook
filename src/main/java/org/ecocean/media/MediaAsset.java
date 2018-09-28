@@ -691,7 +691,7 @@ public class MediaAsset implements java.io.Serializable {
         //note, this next line means bestType may get bumped *up* for anon user.... so we should TODO some logic in there if ever needed
         if (AccessControl.simpleUserString(request) == null) bestType = "watermark";
         if (store instanceof URLAssetStore) bestType = "original";  //this is cuz it is assumed to be a "public" url
-System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
+// System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
 
         //gotta consider that we are the best!
         if (this.hasLabel("_" + bestType)) return this;
@@ -708,7 +708,7 @@ System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
         for (String t : types) {
             if (t.equals(bestType)) gotBest = true;
             if (!gotBest) continue;  //skip over any "better" types until we get to best we can use
-System.out.println("   ....  ??? do we have a " + t);
+// System.out.println("   ....  ??? do we have a " + t);
             //now try to see if we have one!
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
             if ((kids != null) && (kids.size() > 0)) return kids.get(0); ///not sure how to pick if we have more than one!  "probably rare" case anyway....
