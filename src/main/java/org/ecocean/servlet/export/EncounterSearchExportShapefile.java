@@ -12,6 +12,10 @@ import org.ecocean.servlet.ServletUtilities;
 
 
 
+
+
+
+
 import java.util.zip.ZipEntry;
 import java.io.File;
 import java.io.IOException;
@@ -24,13 +28,17 @@ import java.io.Serializable;
 import org.geotools.data.*;
 import org.geotools.data.shapefile.*;
 import org.geotools.data.simple.*;
-import org.geotools.feature.FeatureCollections;
+import org.geotools.feature.DefaultFeatureCollection;
+//import org.geotools.feature.FeatureCollections;
+//import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.*;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.simple.*;
+import org.opengis.geometry.primitive.Point;
 
-import com.vividsolutions.jts.geom.*;
+//import com.vividsolutions.jts.geom.*;
 //import java.sql.Date;
 //import java.net.URI;
 
@@ -77,7 +85,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
     * We create a FeatureCollection into which we will put each Feature created from a record
     * in the input csv data file
     */
-    SimpleFeatureCollection collection = FeatureCollections.newCollection();
+    DefaultFeatureCollection collection = new DefaultFeatureCollection();
     /*
     * GeometryFactory will be used to create the geometry attribute of each feature (a Point
     * object for the location)
@@ -120,7 +128,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
           
           if ((enc.getDecimalLongitude()!=null) && (enc.getDecimalLatitude() != null)) {
             //let's also populate the Shapefile
-            Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
+            org.locationtech.jts.geom.Point point = geometryFactory.createPoint(new org.locationtech.jts.geom.Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
             SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType(context));
             featureBuilder.add(point);
             if(enc.getDateInMilliseconds()!=null){
