@@ -52,14 +52,15 @@ public class UserDelete extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    String email = request.getParameter("email").trim();
 
 
     myShepherd.beginDBTransaction();
-    if (myShepherd.getUserByEmailAddress(email)!=null) {
+    if ((request.getParameter("uuid")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)) {
 
       try {
-        User ad = myShepherd.getUserByEmailAddress(email);
+        User ad = myShepherd.getUserByUUID(request.getParameter("uuid"));
+        
+        
         
         //first delete the roles
         if(ad.getUsername()!=null) {
@@ -75,23 +76,51 @@ public class UserDelete extends HttpServlet {
           }
       }
         
+        //remove the User from Encounters
+        List<Encounter> encs=myShepherd.getEncountersForSubmitter(ad, myShepherd);
+        
+        for(int l=0;l<encs.size();l++){
+          Encounter enc=encs.get(l);
+
+          List<User> peeps=enc.getSubmitters();
+          peeps.remove(ad);
+          enc.setSubmitters(peeps);
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+      encs=myShepherd.getEncountersForPhotographer(ad, myShepherd);
+        for(int l=0;l<encs.size();l++){
+          Encounter enc=encs.get(l);
+
+          List<User> peeps=enc.getPhotographers();
+          peeps.remove(ad);
+          enc.setPhotographers(peeps);
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+        
+        
         
         //now delete the user
         myShepherd.getPM().deletePersistent(ad);
+        myShepherd.commitDBTransaction();
 
       } 
       catch (Exception le) {
         locked = true;
         le.printStackTrace();
         myShepherd.rollbackDBTransaction();
+
+      }
+      finally{
         myShepherd.closeDBTransaction();
       }
 
       if (!locked) {
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.commitDBTransaction();
+        //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully removed user account '" + email + "'.");
+        out.println("<strong>Success!</strong> I have successfully removed user account '" + request.getParameter("uuid") + "'.");
 
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));

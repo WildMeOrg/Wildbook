@@ -19,13 +19,13 @@
 	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
 	int numRoles=roles.size();
   	int numRoleDefinitions=roleDefinitions.size();
-    
-    
     int numResults = 0;
-
 
     List<User> users = new ArrayList<User>();
     myShepherd.beginDBTransaction();
+
+	//String currentEmail = request.getParameter("email")	;
+	String currentUUID = request.getParameter("uuid")	;
     
     try{
 	    String order ="username ASC NULLS LAST";	    
@@ -213,7 +213,7 @@
 	
 	function rowClick(el) {
 		console.log(el);
-		var w = window.open('users.jsp?isEdit=true&email=' + el.getAttribute('data-id')+'#editUser', '_self');
+		var w = window.open('users.jsp?isEdit=true&uuid=' + el.getAttribute('data-id')+'#editUser', '_self');
 		w.focus();
 		return false;
 	}
@@ -246,7 +246,7 @@
 		$('#results-table td').html('');
 		for (var i = 0 ; i < results.length ; i++) {
 			//$('#results-table tbody tr')[i].title = searchResults[results[i]].individualID;
-			$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].emailAddress);
+			$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].uuid);
 			for (var c = 0 ; c < colDefn.length ; c++) {
 				$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
 			}
@@ -271,7 +271,7 @@
 		$('#results-table tbody tr').show();
 		for (var i = 0 ; i < results.length ; i++) {
 			//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
-			$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].emailAddress);
+			$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].uuid);
 			for (var c = 0 ; c < colDefn.length ; c++) {
 				$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
 			}
@@ -444,6 +444,18 @@
 		return myRoles.replace('<br>','');
 		
 	}
+
+	//Checkbox switch for delete user
+	function deleteUser() {
+		if (document.getElementById("deleteCheck").checked) {
+			$('#deleteButton').show();
+			$('#Create').hide();
+		} else {
+			$('#deleteButton').hide();
+			$('#Create').show();
+		}
+	}
+
 	
 	</script>
 	
@@ -506,11 +518,12 @@
     		    String userProject="";
     		    String userStatement="";
     		    String userURL="";
+    		    String uuid="";
     		    String receiveEmails="checked=\"checked\"";
     		    boolean hasProfilePhoto=false;
     		    
-    		    if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByEmailAddress(request.getParameter("email"))!=null)){
-    		    	User thisUser=myShepherd.getUserByEmailAddress(request.getParameter("email"));
+    		    if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)){
+    		    	User thisUser=myShepherd.getUserByUUID(request.getParameter("uuid"));
     		    	if(thisUser.getUsername()!=null){
     		    		localUsername=thisUser.getUsername();
     		    	}
@@ -537,7 +550,13 @@
     		    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
     		    	}
     		    	if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
+    		    	uuid=thisUser.getUUID();
     		    }
+    		    else if(request.getParameter("uuid")==null){
+                	
+                	uuid=Util.generateUUID();
+
+                }
     		    
     		    %>
     		    
@@ -586,7 +605,10 @@
                         	//disabled="disabled=\"disabled\"";
                         	readonly="readonly=\"readonly\"";
                         }
-                        %>
+
+                    	%>
+                   	 	<input name="uuid" type="hidden" value="<%=uuid %>" id="uuid" />       												
+                   		
                         <td>Username: <input name="username" type="text" size="15" maxlength="90" value="<%=localUsername %>" ></input></td>
                         
                         <td>Password: <input name="password" type="password" size="15" maxlength="90"></input></td>
@@ -596,14 +618,19 @@
 
             		</tr>
                     <tr><td colspan="3">Full name: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
-                    <tr><td colspan="2">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>" required></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+                    <tr><td colspan="2">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
                     <tr><td colspan="3">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
                      <tr><td colspan="3">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
                           
                     <tr><td colspan="3">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
 		     <tr><td colspan="3" valign="top">User Statement (255 char. max): <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
                     
-                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
+                    <tr>
+						<td colspan="3">
+							<input class="btn btn-sm btn-block" name="Create" type="submit" id="Create" value="Create" />
+						
+						</td>
+					</tr>
             </table>
             </td>
             <td>
@@ -624,7 +651,7 @@
 								<%
 								for(int q=0;q<numRoles;q++){
 									String selected="";
-									if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByEmailAddress(request.getParameter("email").trim())!=null)){
+									if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid").trim())!=null)){
 										if(myShepherd.doesUserHaveRole(localUsername,roles.get(q),("context"+d))){
 											selected="selected=\"true\"";
 										}
@@ -653,9 +680,31 @@
             
             </form>
             </tr>
+            
+
+            
             </table>
     	
     </p>
+    
+                <%
+            if((request.getParameter("isEdit")!=null)&&(request.isUserInRole("admin"))){
+            %>
+            <h2>Do you want to delete this user?</h2>
+            <table width="100%">
+                <tr>
+			      <td height="30" class="para" colspan="2">
+			        <form onsubmit="return confirm('Are you sure you want to delete this user?');" name="deleteUser" class="editFormMeta" method="post" action="../UserDelete?context=context0" >
+			              <input name="uuid" type="hidden" value="<%=uuid%>" />
+			              <input align="absmiddle" name="approve" type="submit" class="btn btn-sm btn-block deleteUserBtn" id="deleteUserButton" style="background-color: red;" value="Delete User" />
+			        </form>
+			      	
+			      </td>
+			    </tr>
+    		</table>
+            <%
+            }
+            %>
 
 <%
     }

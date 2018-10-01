@@ -771,9 +771,14 @@ public class Shepherd {
   
   
   public List<User> getUsersWithUsername() {
+    return getUsersWithUsername("username ascending");
+  }
+  
+  public List<User> getUsersWithUsername(String ordering) {
     List<User> users=null;
     String filter="SELECT FROM org.ecocean.User WHERE username != null";   
     Query query=getPM().newQuery(filter);
+    query.setOrdering(ordering);
     Collection c = (Collection) (query.execute());
     users=new ArrayList<User>(c);
     query.closeAll();
@@ -4509,6 +4514,30 @@ public class Shepherd {
     query.closeAll();
     return usernames;
 }
+  
+
+  public List<Encounter> getEncountersForSubmitter(User user, Shepherd myShepherd){
+      ArrayList<Encounter> users=new ArrayList<Encounter>();
+      String filter="SELECT FROM org.ecocean.Encounter WHERE submitters.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      Query query=myShepherd.getPM().newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      if(c!=null){users=new ArrayList<Encounter>(c);}
+      query.closeAll();
+      return users;
+  }
+
+
+
+  public List<Encounter> getEncountersForPhotographer(User user, Shepherd myShepherd){
+      ArrayList<Encounter> users=new ArrayList<Encounter>();
+      String filter="SELECT FROM org.ecocean.Encounter WHERE photographers.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      Query query=myShepherd.getPM().newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      if(c!=null){users=new ArrayList<Encounter>(c);}
+      query.closeAll();
+      return users;
+  }
+
 
 
 } //end Shepherd class
