@@ -631,7 +631,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
             IBEISIA.waitForIAPriming();
             boolean success = true;
             try {
-                res.put("sendMediaAssets", IBEISIA.sendMediaAssets(mas,context));
+                res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas,context));
                 JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context);
                 res.put("sendDetect", sent);
                 String jobId = null;
