@@ -9,6 +9,7 @@
 		<field name="id" primary-key="true" value-strategy="identity"/>
 		<field name="acmId">
 			<column length="100"/>
+			<index name="MEDIAASSET_ACMID_INDEX" />
 		</field>
 		<field name="uuid">
 			<index name="MEDIAASSET_UUID_INDEX" unique="true" />

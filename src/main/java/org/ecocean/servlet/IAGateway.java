@@ -428,7 +428,8 @@ System.out.println("############################ rtn -> \n" + rtn);
                     if ((alist == null) || (alist.length() < 1)) continue;
                     String uuid = IBEISIA.fromFancyUUID(ilist.optJSONObject(i));
                     if (uuid == null) continue;
-                    MediaAsset ma = MediaAssetFactory.loadByUuid(uuid, myShepherd);
+                    //FIXME / note?  loadByAcmId could be grabbing from **more than one** matching MA.  but this code may be obsolete?
+                    MediaAsset ma = MediaAssetFactory.loadByAcmId(uuid, myShepherd);
 System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid + " -> ma:" + ma);
                     if (ma == null) continue;
                     JSONArray thisAnns = new JSONArray();
