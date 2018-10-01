@@ -759,22 +759,22 @@ System.out.println("+ starting ident task " + annTaskId);
             //TODO we might want to cache this examplars list (per species) yes?
 
             ///note: this can all go away if/when we decide not to need limitTargetSize
-            ArrayList<Annotation> exemplars = null;
+            ArrayList<Annotation> matchingSet = null;
             if (limitTargetSize > -1) {
-                exemplars = Annotation.getExemplars(species, myShepherd);
-                if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for species " + species);
-                if (exemplars.size() > limitTargetSize) {
-                    System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
-                    exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
+                matchingSet = Annotation.getMatchingSet(species, myShepherd);
+                if ((matchingSet == null) || (matchingSet.size() < 10)) throw new IOException("suspiciously empty matchingSet for species " + species);
+                if (matchingSet.size() > limitTargetSize) {
+                    System.out.println("WARNING: limited identification matchingSet size from " + matchingSet.size() + " to " + limitTargetSize);
+                    matchingSet = new ArrayList(matchingSet.subList(0, limitTargetSize));
                 }
-                taskRes.put("exemplarsSize", exemplars.size());
+                taskRes.put("matchingSetSize", matchingSet.size());
             }
             /// end can-go-away
 
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
-            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
+            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
                                                                myShepherd, species, annTaskId, baseUrl);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
