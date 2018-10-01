@@ -1343,7 +1343,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     String iuuid = fromFancyUUID(jiuuid);
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
-                        if (ma.getUUID().equals(iuuid)) {
+                        if (ma.getAcmId().equals(iuuid)) {
                             asset = ma;
                             break;
                         }
@@ -1835,7 +1835,8 @@ System.out.println("need " + annId + " from IA, i guess?");
 
 
     public static MediaAsset grabMediaAsset(String maUUID, Shepherd myShepherd) {
-        MediaAsset ma = MediaAssetFactory.loadByUuid(maUUID, myShepherd);
+        //note: there may be more than one acmId with this value, but for this case we dont (cant?) care...
+        MediaAsset ma = MediaAssetFactory.loadByAcmId(maUUID, myShepherd);
         if (ma != null) return ma;
         return getMediaAssetFromIA(maUUID, myShepherd);
     }
