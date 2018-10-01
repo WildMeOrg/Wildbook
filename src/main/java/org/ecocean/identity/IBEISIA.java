@@ -15,6 +15,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.Taxonomy;
 import org.ecocean.ia.*;
+import org.ecocean.ia.plugin.*;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.servlet.ServletUtilities;
@@ -104,13 +105,14 @@ public class IBEISIA {
         a longer wait time.  there is, however, a chance that waitForIAPriming() times out with a RuntimeException thrown.
     */
 
+
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
-    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        return sendMediaAssets(mas, null, context);
+    public static JSONObject __sendMediaAssets(ArrayList<MediaAsset> mas, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return __sendMediaAssets(mas, null, context);
     }
 
     //other is a HashMap of additional properties to build lists out of (e.g. Encounter ids and so on), that do not live in/on MediaAsset
-    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, HashMap<MediaAsset,HashMap<String,Object>> other, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject __sendMediaAssets(ArrayList<MediaAsset> mas, HashMap<MediaAsset,HashMap<String,Object>> other, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendMediaAssets() called without IA primed");
         String u = IA.getProperty(context, "IBEISIARestUrlAddImages");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
@@ -170,7 +172,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
 
             //Annotation ann = new Annotation(ma, species);
 
-    public static JSONObject sendAnnotations(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject __sendAnnotations(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendAnnotations() called without IA primed");
         String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddAnnotations is not set");
@@ -251,7 +253,7 @@ System.out.println("sendAnnotations(): sending " + ct);
                 continue;
             }
             if (species == null) species = ann.getSpecies();
-            qlist.add(toFancyUUID(ann.getUUID()));
+            qlist.add(toFancyUUID(ann.getAcmId()));
 /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
             //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
             qnlist.add(toFancyUUID(Util.generateUUID()));
@@ -278,7 +280,7 @@ System.out.println("     free ride :)");
                 System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
                 continue;
             }
-            tlist.add(toFancyUUID(ann.getUUID()));
+            tlist.add(toFancyUUID(ann.getAcmId()));
             String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
             if (Util.isUUID(indivId)) {
@@ -330,7 +332,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
 
         for (MediaAsset ma : mas) {
-            malist.add(toFancyUUID(ma.getUUID()));
+            malist.add(toFancyUUID(ma.getAcmId()));
         }
         map.put("image_uuid_list", malist);
 
@@ -621,6 +623,7 @@ WARN: IBEISIA.beginIdentity() failed due to an exception: org.json.JSONException
 org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
 */
     //should return true if we attempted to add missing and caller should try again
+/////////////// HOPEFULLY THE NEED FOR THIS IS DEPRECATED NOW?
     public static boolean iaCheckMissing(JSONObject res, String context) {
 /////System.out.println("########## iaCheckMissing res -> " + res);
 //if (res != null) throw new RuntimeException("fubar!");
@@ -659,7 +662,7 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
 System.out.println("**** attempting to make up for missing Annotation(s): " + anns.toString());
                 JSONObject srtn = null;
                 try {
-                    sendAnnotations(anns, context);
+                    __sendAnnotations(anns, context);
                 } catch (Exception ex) { }
 System.out.println(" returned --> " + srtn);
                 if ((srtn != null) && (srtn.getJSONObject("status") != null) && srtn.getJSONObject("status").getBoolean("success")) tryAgain = true;  //it "worked"?
@@ -775,8 +778,8 @@ System.out.println(qanns);
 System.out.println(tanns);
 System.out.println(allAnns);
 */
-            results.put("sendMediaAssets", sendMediaAssets(mas, myShepherd.getContext()));
-            results.put("sendAnnotations", sendAnnotations(allAnns, myShepherd.getContext()));
+            results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
+            results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext()));
 
             if (isExemplar) tanns = null;  //reset it for sendIdentify() below
 
@@ -2562,8 +2565,8 @@ System.out.println(qanns);
 System.out.println(tanns);
 System.out.println(allAnns);
 */
-            results.put("sendMediaAssets", sendMediaAssets(mas, myShepherd.getContext()));
-            results.put("sendAnnotations", sendAnnotations(allAnns, myShepherd.getContext()));
+            results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
+            results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext()));
 
             //this should attempt to repair missing Annotations
 
@@ -3227,8 +3230,7 @@ System.out.println(">>>>------[ jobId = " + jobId + " -> taskId = " + taskId + "
                 statusResponse.getJSONObject("status").getBoolean("success") &&
                 statusResponse.has("response") && statusResponse.getJSONObject("response").has("status") &&
                 "ok".equals(statusResponse.getJSONObject("response").getString("status")) &&
-                "completed".equals(statusResponse.getJSONObject("response").getString("jobstatus")) &&
-                "ok".equals(statusResponse.getJSONObject("response").getString("exec_status"))) {
+                "completed".equals(statusResponse.getJSONObject("response").getString("jobstatus"))) {
 System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobId + ")");
                 JSONObject resultResponse = getJobResult(jobId, context);
                 JSONObject rlog = new JSONObject();
@@ -3275,5 +3277,19 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
     }
 
 
+
+    //duct-tape piecemeal fixes for IA-Next
+    public static WildbookIAM getPluginInstance(String context) {
+        IAPlugin p = IAPluginManager.getIAPluginInstanceFromClass(WildbookIAM.class, context);
+        return (WildbookIAM)p;
+    }
+    public static JSONObject sendMediaAssetsNew(ArrayList<MediaAsset> mas, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        WildbookIAM plugin = getPluginInstance(context);
+        return plugin.sendMediaAssets(mas, true);
+    }
+    public static JSONObject sendAnnotationsNew(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        WildbookIAM plugin = getPluginInstance(context);
+        return plugin.sendAnnotations(anns, true);
+    }
 
 }

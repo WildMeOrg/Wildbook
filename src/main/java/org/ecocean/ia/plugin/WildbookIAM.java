@@ -30,7 +30,6 @@ import org.ecocean.identity.IBEISIA;
 
 */
 public class WildbookIAM extends IAPlugin {
-    private boolean primed = false;
     private String context = null;
 
     public WildbookIAM() {
@@ -58,13 +57,14 @@ public class WildbookIAM extends IAPlugin {
     }
 
 
+    //for now "primed" is stored in IBEISIA still.  <scratches head>
     public boolean isPrimed() {
-        return primed;
+        return IBEISIA.isIAPrimed();
     }
 
     public void prime() {
         IA.log("INFO: WildbookIAM.prime(" + this.context + ") called");
-        primed = false;
+        IBEISIA.setIAPrimed(false);
         if (!isEnabled()) return;
 
         final List<String> iaAnnotIds = iaAnnotationIds();
@@ -103,12 +103,11 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
 */
                 myShepherd.commitDBTransaction();  //MAs and annots may have had acmIds changed
                 myShepherd.closeDBTransaction();
-                primed = true;
+                IBEISIA.setIAPrimed(true);
                 IA.log("INFO: WildbookIAM.prime(" + context + ") complete");
             }
         };
         new Thread(r).start();
-System.out.println(">>>>>> AFTER prime() [forked]: " + primed);
     }
 
 
