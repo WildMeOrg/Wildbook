@@ -633,12 +633,12 @@ System.out.println("enc ?= " + enc.toString());
               for(int y=0;y<numTokens;y++) {
                 String tok=str.nextToken().trim();
                 String hashedTok=ServletUtilities.hashString(tok);
-                if(myShepherd.getUserByHashedEmailAddress(tok)!=null) {
-                  User user=myShepherd.getUserByHashedEmailAddress(tok);
+                if(myShepherd.getUserByHashedEmailAddress(hashedTok)!=null) {
+                  User user=myShepherd.getUserByHashedEmailAddress(hashedTok);
                   submitters.add(user);
                 }
                 else {
-                  User user=new User(tok);
+                  User user=new User(tok,Util.generateUUID());
                   user.setAffiliation(subO);
                   user.setUserProject(subP);
                   if((numTokens==1)&&(subN!=null)){user.setFullName(subN);}
@@ -668,7 +668,7 @@ System.out.println("enc ?= " + enc.toString());
                   photographers.add(user);
                 }
                 else {
-                  User user=new User(tok);
+                  User user=new User(tok,Util.generateUUID());
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
                   myShepherd.beginDBTransaction();

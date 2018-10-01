@@ -80,9 +80,20 @@ public class User implements Serializable {
   	  this.lastLogin=-1;
   	}
   	
-    public User(String email){
-      uuid=Util.generateUUID();
+    public User(String email,String uuid){
+      this.uuid=uuid;
       setEmailAddress(email);
+      setReceiveEmails(false);
+      String salt=ServletUtilities.getSalt().toHex();
+      String pass=Util.generateUUID();
+      String hashedPassword=ServletUtilities.hashAndSaltPassword(pass, salt);
+      setPassword(hashedPassword);
+      RefreshDate();
+      this.lastLogin=-1;
+    }
+    
+    public User(String uuid){
+      this.uuid=uuid;
       setReceiveEmails(false);
       String salt=ServletUtilities.getSalt().toHex();
       String pass=Util.generateUUID();

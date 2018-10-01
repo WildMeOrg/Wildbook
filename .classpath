@@ -14,8 +14,8 @@
   <classpathentry kind="var" path="M2_REPO/javax/xml/bind/jaxb-api/2.2.7/jaxb-api-2.2.7.jar"/>
   <classpathentry kind="var" path="M2_REPO/javax/servlet/javax.servlet-api/3.0.1/javax.servlet-api-3.0.1.jar"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-  <classpathentry kind="var" path="M2_REPO/com/healthmarketscience/jackcess/jackcess/2.1.7/jackcess-2.1.7.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/healthmarketscience/jackcess/jackcess/1.2.14.2/jackcess-1.2.14.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.0/commons-lang-2.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/javax/javaee-api/7.0/javaee-api-7.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sun/mail/javax.mail/1.5.0/javax.mail-1.5.0.jar"/>
@@ -246,4 +246,33 @@
   <classpathentry kind="var" path="M2_REPO/org/glassfish/javax.json/1.0.4/javax.json-1.0.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/sutime-stanford-corenlp-models/sutime-stanford-corenlp-models/3.6.0/sutime-stanford-corenlp-models-3.6.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/edu/stanford/nlp/stanford-parser/3.7.0/stanford-parser-3.7.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/nz/ac/waikato/cms/weka/weka-stable/3.8.2/weka-stable-3.8.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/nz/ac/waikato/cms/weka/thirdparty/java-cup-11b/2015.03.26/java-cup-11b-2015.03.26.jar"/>
+  <classpathentry kind="var" path="M2_REPO/nz/ac/waikato/cms/weka/thirdparty/java-cup-11b-runtime/2015.03.26/java-cup-11b-runtime-2015.03.26.jar"/>
+  <classpathentry kind="var" path="M2_REPO/nz/ac/waikato/cms/weka/thirdparty/bounce/0.18/bounce-0.18.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/googlecode/matrix-toolkits-java/mtj/1.0.4/mtj-1.0.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/net/sourceforge/f2j/arpack_combined_all/0.1/arpack_combined_all-0.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/core/1.1/core-1.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_ref-osx-x86_64/1.1/netlib-native_ref-osx-x86_64-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/native_ref-java/1.1/native_ref-java-1.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/jniloader/1.1/jniloader-1.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_ref-linux-x86_64/1.1/netlib-native_ref-linux-x86_64-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_ref-linux-i686/1.1/netlib-native_ref-linux-i686-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_ref-win-x86_64/1.1/netlib-native_ref-win-x86_64-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_ref-win-i686/1.1/netlib-native_ref-win-i686-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_ref-linux-armhf/1.1/netlib-native_ref-linux-armhf-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_system-osx-x86_64/1.1/netlib-native_system-osx-x86_64-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/native_system-java/1.1/native_system-java-1.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_system-linux-x86_64/1.1/netlib-native_system-linux-x86_64-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_system-linux-i686/1.1/netlib-native_system-linux-i686-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_system-linux-armhf/1.1/netlib-native_system-linux-armhf-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_system-win-x86_64/1.1/netlib-native_system-win-x86_64-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/github/fommil/netlib/netlib-native_system-win-i686/1.1/netlib-native_system-win-i686-1.1-natives.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/googlecode/netlib-java/netlib-java/1.1/netlib-java-1.1.jar"/>
+  <classpathentry kind="src" path="target/generated-sources/annotations">
+		<attributes>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
