@@ -75,10 +75,10 @@ public class WildbookIAM extends IAPlugin {
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("WildbookIAM.prime");
                 myShepherd.beginDBTransaction();
-                ArrayList<Annotation> exemAnns = Annotation.getExemplars(myShepherd);
+                ArrayList<Annotation> matchingSet = Annotation.getMatchingSet(myShepherd);
                 ArrayList<Annotation> sendAnns = new ArrayList<Annotation>();
                 ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
-                for (Annotation ann : exemAnns) {
+                for (Annotation ann : matchingSet) {
                     if (iaAnnotIds.contains(ann.getAcmId())) continue;  //no need to send
                     sendAnns.add(ann);
                     MediaAsset ma = ann.getDerivedMediaAsset();
@@ -87,7 +87,7 @@ public class WildbookIAM extends IAPlugin {
                     if (iaImageIds.contains(ma.getAcmId())) continue;
                     mas.add(ma);
                 }
-                IA.log("INFO: WildbookIAM.prime(" + context + ") sending " + sendAnns.size() + " annots (of " + exemAnns.size() + ") and " + mas.size() + " images");
+                IA.log("INFO: WildbookIAM.prime(" + context + ") sending " + sendAnns.size() + " annots (of " + matchingSet.size() + ") and " + mas.size() + " images");
                 try {
                     sendMediaAssets(mas, false);
                     sendAnnotations(sendAnns, false);

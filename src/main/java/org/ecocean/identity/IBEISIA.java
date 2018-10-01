@@ -264,7 +264,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 System.out.println("--- exemplar!");
             if (targetNameListCache.get(species) == null) {
 System.out.println("     gotta compute :(");
-                tanns = Annotation.getExemplars(species, myShepherd);
+                tanns = Annotation.getMatchingSet(species, myShepherd);
                 setExemplarCaches = true;
             } else {
 System.out.println("     free ride :)");
@@ -754,7 +754,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                 isExemplar = true;
                 if ((alreadySentExemplar.get(species) == null) || !alreadySentExemplar.get(species)) {
 System.out.println("   ... have to set tanns.  :(");
-                    tanns = Annotation.getExemplars(species, myShepherd);
+                    tanns = Annotation.getMatchingSet(species, myShepherd);
                     alreadySentExemplar.put(species, true);
                 }
             }
@@ -2704,7 +2704,7 @@ System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("IBEISIA.class.run");
                 myShepherd.beginDBTransaction();
-                ArrayList<Annotation> anns = Annotation.getExemplars(myShepherd);
+                ArrayList<Annotation> anns = Annotation.getMatchingSet(myShepherd);
 System.out.println("-- priming IBEISIA (anns size: " + anns.size() + ")");
                 ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
                 for (Annotation ann : anns) {
