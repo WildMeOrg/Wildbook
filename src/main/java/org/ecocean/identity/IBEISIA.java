@@ -1158,8 +1158,8 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
-        String annId = fromFancyUUID(iaResult.optJSONObject("uuid"));  //we adopt IA's annot id!  TODO should we check that this doesnt already exist? too much edge-case?
-        if (annId != null) ann.setId(annId);
+        ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
+        ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
         return ann;
     }
 
