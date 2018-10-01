@@ -27,3 +27,5 @@ src/main/caribwhale_data_dir
 *.swp
 
 \.classpath
+
+catalina\.base_IS_UNDEFINED/logs/
