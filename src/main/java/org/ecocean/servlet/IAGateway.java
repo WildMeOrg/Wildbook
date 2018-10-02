@@ -729,7 +729,7 @@ for (Feature ft : ann.getFeatures()) {
 System.out.println("     >>> " + ft + " >> " + ft.getParameters());
 }
 */
-            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getSpecies(), opt);
+            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getIAClass(), opt);
             JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize,
                                                          ((anns.size() == 1) ? taskId : null));  //we use passed taskId if only 1 ann but generate otherwise
             taskList.put(taskRes);
@@ -743,8 +743,8 @@ System.out.println("     >>> " + ft + " >> " + ft.getParameters());
 
     private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl, JSONObject queryConfigDict,
                                                JSONObject userConfidence, int limitTargetSize, String annTaskId) throws IOException {
-        String species = ann.getSpecies();
-        if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + ann + " invalid: " + species);
+        String iaClass = ann.getIAClass();
+        if ((iaClass == null) || (iaClass.equals(""))) throw new IOException("iaClass on Annotation " + ann + " invalid: " + iaClass);
         boolean success = true;
         if (annTaskId == null) annTaskId = Util.generateUUID();
         JSONObject taskRes = new JSONObject();
@@ -1041,7 +1041,7 @@ System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
             if (ann == null)  {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
             /////TODO fix how this opt gets set?  maybe???
             JSONObject opt = null;
-            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getSpecies(), opt);
+            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getIAClass(), opt);
             JSONObject rtn = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, -1, null);
             /////// at this point, we can consider this current task done
             IBEISIA.setActiveTaskId(request, null);  //reset it so it can discovered when results come back

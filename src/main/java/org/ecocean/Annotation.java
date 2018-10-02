@@ -1,4 +1,4 @@
-package org.ecocean;
+
 
 /*
   TODO note: this is very ibeis-specific concept of "Annotation"
@@ -447,9 +447,9 @@ public class Annotation implements java.io.Serializable {
           return this.sanitizeMedia(request, false);
         }
 
-
-    static public ArrayList<Annotation> getMatchingSet(String species, Shepherd myShepherd) {
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.matchAgainst && species == \"" + species + "\"";
+    static public ArrayList<Annotation> getMatchingSet(String iaClass, Shepherd myShepherd) {
+//species = "Balaenoptera acutorostrata";  //for springbreak testing only!!!!!!!  FIXME
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.matchAgainst && iaClass == \"" + iaClass + "\"";
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
