@@ -53,7 +53,8 @@ java.util.Properties" %>
 		shown.add(ann);
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
 		h += "<li>species: <b>" + ((ann.getSpecies() == null) ? "[null]" : ann.getSpecies()) + "</b></li>";
-                h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
+		h += "<li>iaClass: <b>" + ((ann.getIAClass() == null) ? "[null]" : ann.getIAClass()) + "</b></li>";
+        h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
 		h += "<li>features: " + showFeatureList(ann.getFeatures()) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd)) + "</li>";
 		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset()) + "</li>";
