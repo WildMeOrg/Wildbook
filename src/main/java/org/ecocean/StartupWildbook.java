@@ -134,6 +134,7 @@ public class StartupWildbook implements ServletContextListener {
         }
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
+        // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
         startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
         TwitterBot.startServices(context);
     }

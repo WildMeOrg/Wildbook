@@ -1,6 +1,12 @@
 package org.ecocean.ia.plugin;
 
 import javax.servlet.ServletContextEvent;
+import org.ecocean.Shepherd;
+import org.ecocean.ia.IA;
+import org.ecocean.Annotation;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.ia.Task;
+import java.util.List;
 
 
 /*
@@ -13,9 +19,6 @@ import javax.servlet.ServletContextEvent;
 */
 
 public abstract class IAPlugin implements java.io.Serializable {
-    //protected Integer id;
-    //protected String name;
-
     protected IAPlugin() {
         init("context0");  // :( 
     }
@@ -30,4 +33,7 @@ public abstract class IAPlugin implements java.io.Serializable {
 
     //called by StatupWildbook (if plugin enabled) -- override if applicable
     public abstract void startup(ServletContextEvent sce);
+
+    public abstract Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas);
+    public abstract Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns);
 }
