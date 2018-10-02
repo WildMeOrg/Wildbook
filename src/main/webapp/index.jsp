@@ -322,8 +322,8 @@ try{
 
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
-    numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
-    numUsersWithRoles = myShepherd.getNumUsers()-numDataContributors;
+    numUsersWithRoles=myShepherd.getAllUsernamesWithRoles().size();
+    //numDataContributors = myShepherd.getNumUsers()-numDataContributors;
 
 
 }
@@ -595,10 +595,11 @@ finally{
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
             </section>
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> citizen scientists</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> researchers</i></p>
             </section>
+
         </div>
 
         <hr/>
