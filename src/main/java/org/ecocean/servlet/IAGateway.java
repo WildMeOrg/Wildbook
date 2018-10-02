@@ -762,11 +762,11 @@ System.out.println("+ starting ident task " + annTaskId);
             ///note: this can all go away if/when we decide not to need limitTargetSize
             ArrayList<Annotation> matchingSet = null;
             if (limitTargetSize > -1) {
-                exemplars = Annotation.getExemplars(iaClass, myShepherd);
-                if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for iaClass " + iaClass);
-                if (exemplars.size() > limitTargetSize) {
-                    System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
-                    exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
+                matchingSet = Annotation.getMatchingSet(iaClass, myShepherd);
+                if ((matchingSet == null) || (matchingSet.size() < 10)) throw new IOException("suspiciously empty exemplar set for iaClass " + iaClass);
+                if (matchingSet.size() > limitTargetSize) {
+                    System.out.println("WARNING: limited identification matchingSet list size from " + matchingSet.size() + " to " + limitTargetSize);
+                    matchingSet = new ArrayList(matchingSet.subList(0, limitTargetSize));
                 }
                 taskRes.put("matchingSetSize", matchingSet.size());
             }
@@ -775,7 +775,7 @@ System.out.println("+ starting ident task " + annTaskId);
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
-            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
+            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
                                                                myShepherd, iaClass, annTaskId, baseUrl);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
