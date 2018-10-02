@@ -428,7 +428,8 @@ System.out.println("############################ rtn -> \n" + rtn);
                     if ((alist == null) || (alist.length() < 1)) continue;
                     String uuid = IBEISIA.fromFancyUUID(ilist.optJSONObject(i));
                     if (uuid == null) continue;
-                    MediaAsset ma = MediaAssetFactory.loadByUuid(uuid, myShepherd);
+                    //FIXME / note?  loadByAcmId could be grabbing from **more than one** matching MA.  but this code may be obsolete?
+                    MediaAsset ma = MediaAssetFactory.loadByAcmId(uuid, myShepherd);
 System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid + " -> ma:" + ma);
                     if (ma == null) continue;
                     JSONArray thisAnns = new JSONArray();
@@ -631,7 +632,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
             IBEISIA.waitForIAPriming();
             boolean success = true;
             try {
-                res.put("sendMediaAssets", IBEISIA.sendMediaAssets(mas,context));
+                res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas,context));
                 JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context);
                 res.put("sendDetect", sent);
                 String jobId = null;
@@ -759,22 +760,22 @@ System.out.println("+ starting ident task " + annTaskId);
             //TODO we might want to cache this examplars list (per species) yes?
 
             ///note: this can all go away if/when we decide not to need limitTargetSize
-            ArrayList<Annotation> exemplars = null;
+            ArrayList<Annotation> matchingSet = null;
             if (limitTargetSize > -1) {
-                exemplars = Annotation.getExemplars(iaClass, myShepherd);
-                if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for iaClass " + iaClass);
-                if (exemplars.size() > limitTargetSize) {
-                    System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
-                    exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
+                matchingSet = Annotation.getMatchingSet(iaClass, myShepherd);
+                if ((matchingSet == null) || (matchingSet.size() < 10)) throw new IOException("suspiciously empty matchingSet for species " + iaClass);
+                if (matchingSet.size() > limitTargetSize) {
+                    System.out.println("WARNING: limited identification matchingSet size from " + matchingSet.size() + " to " + limitTargetSize);
+                    matchingSet = new ArrayList(matchingSet.subList(0, limitTargetSize));
                 }
-                taskRes.put("exemplarsSize", exemplars.size());
+                taskRes.put("matchingSetSize", matchingSet.size());
             }
             /// end can-go-away
 
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
-            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
+            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
                                                                myShepherd, iaClass, annTaskId, baseUrl);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);

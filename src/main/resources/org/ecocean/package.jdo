@@ -490,6 +490,9 @@
       <field name="id" primary-key="true">
         <column length="36"/>
       </field>
+	<field name="acmId">
+		<column length="100"/>
+	</field>
 
       <field name="iaClass">
         <column name="IACLASS"/>
@@ -501,6 +504,11 @@
 <!-- this is for postgresql-->
 			<column default-value="false" />
 
+		</field>
+
+		<field name="matchAgainst">
+			<column default-value="false" />
+			<index name="ANNOTATION_MATCHAGAINST_idx" />
 		</field>
 
             	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >

@@ -28,4 +28,4 @@ src/main/caribwhale_data_dir
 
 \.classpath
 
-catalina\.base_IS_UNDEFINED/logs/
+catalina.base_IS_UNDEFINED
