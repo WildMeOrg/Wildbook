@@ -4,6 +4,7 @@ import javax.servlet.ServletContextEvent;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.Task;
 import org.ecocean.RestClient;
 import org.ecocean.media.*;
 import org.ecocean.Annotation;
@@ -19,6 +20,7 @@ import java.security.InvalidKeyException;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 //NOTE!  this steals **a lot** from IBEISIA right now. eventually lets move it all here and kill that off!
 import org.ecocean.identity.IBEISIA;
@@ -39,16 +41,19 @@ public class WildbookIAM extends IAPlugin {
         super(context);
     }
 
+    @Override
     public boolean isEnabled() {
         return true;  //FIXME
     }
 
+    @Override
     public boolean init(String context) {
         this.context = context;
         IA.log("WildbookIAM init() called on context " + context);
         return true;
     }
 
+    @Override
     public void startup(ServletContextEvent sce) {
         //TODO genericize this to be under .ia (with startup hooks for *any* IA plugin)
         //if we dont need identificaiton, no need to prime
@@ -56,6 +61,15 @@ public class WildbookIAM extends IAPlugin {
         if (!skipIdent && !org.ecocean.StartupWildbook.skipInit(sce, "PRIMEIA")) prime();
     }
 
+    //TODO we need to "reclaim" these from IA.intake() stuff!
+    @Override
+    public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
+        return null;
+    }
+    @Override
+    public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
+        return null;
+    }
 
     //for now "primed" is stored in IBEISIA still.  <scratches head>
     public boolean isPrimed() {
@@ -326,6 +340,13 @@ System.out.println("fromResponse ---> " + ids);
             if (curl == null) return null;
             return curl.toString();
         }
+    }
+
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("WildbookIAM IA Plugin")
+                .toString();
     }
 
 }
