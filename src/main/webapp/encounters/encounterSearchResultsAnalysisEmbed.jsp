@@ -20,14 +20,13 @@
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration" %>
 
 
   <%
-  //System.out.println("jdoQLstring is: "+request.getParameter("jdoqlString"));
+  System.out.println("jdoQLstring is: "+request.getParameter("jdoqlString"));
   String context="context0";
   context=ServletUtilities.getContext(request);
   
@@ -191,6 +190,7 @@
  			
  			//let's prep the bar charts for encounters per year
  			Hashtable<Integer,Integer> encountersPerYear= new Hashtable<Integer,Integer>();
+ 			Hashtable<Integer,Integer> encountersPerYearAI= new Hashtable<Integer,Integer>();
  					
  		
  	int numPhotos=0;
@@ -271,8 +271,7 @@
  			 int weekOfYear=cal.get(Calendar.WEEK_OF_YEAR);
  			 %>
  			 
- 			 <!-- zzzAdding this date: week of year is <%=weekOfYear  %> for date: <%=thisEnc.getDate() %> -->
- 			 
+
  			 <%
  			 Integer valueForWeek=frequencyWeeks.get(weekOfYear)+1;
  			 frequencyWeeks.put(weekOfYear, valueForWeek);
@@ -288,9 +287,18 @@
  				 encountersPerYear.put(year, new Integer(0));
  				
  			 }
+ 			 if(!encountersPerYearAI.containsKey(year)){
+ 				 encountersPerYearAI.put(year, new Integer(0));
+ 				
+ 			 }
  			 
  			Integer valueForYear=encountersPerYear.get(year)+1;
- 			encountersPerYear.put(year, valueForYear);
+ 			if((thisEnc.getSubmitterID()!=null)&&(thisEnc.getSubmitterID().equals("wildbookai"))){
+ 				encountersPerYearAI.put(year, valueForYear);
+ 			}
+ 			else{
+ 				encountersPerYear.put(year, valueForYear);
+ 			}
  			//System.out.println("    I just put: "+year+":"+valueForYear);	 
  	        
  		 }
@@ -583,40 +591,47 @@
         chart.draw(data, options);
       }
       
-      google.setOnLoadCallback(drawSpeciesChart);
-      function drawSpeciesChart() {
-        var speciesData = new google.visualization.DataTable();
-        speciesData.addColumn('string', '<%=encprops.getProperty("species") %>');
-        speciesData.addColumn('number', '<%=encprops.getProperty("numberRecorded") %>');
-        speciesData.addRows([
-          <%
-          List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context); 
-          int numSpecies = speciesHashtable.size();
-          Enumeration<String> speciesKeys=speciesHashtable.keys();
-
-          while(speciesKeys.hasMoreElements()){
-        	  String keyName=speciesKeys.nextElement();
-        	  //System.out.println(keyName);
-          %>
-          ['<%=keyName%>',    <%=speciesHashtable.get(keyName) %>]
-		  <%
-		  if(speciesKeys.hasMoreElements()){
-		  %>
-		  ,
-		  <%
-		  }
-         }
-		 %>
-          
-        ]);
-     var speciesOptions = {
-          width: 450, height: 300,
-          title: '<%=encprops.getProperty("speciesChartTitle") %>',
-          //colors: ['#0000FF','#FF00FF']
-        };
-      var speciesChart = new google.visualization.PieChart(document.getElementById('specieschart_div'));
-        speciesChart.draw(speciesData, speciesOptions);
+      <%
+      if(CommonConfiguration.showProperty("showTaxonomy",context)){
+      %>
+	      
+	      google.setOnLoadCallback(drawSpeciesChart);
+	      function drawSpeciesChart() {
+	        var speciesData = new google.visualization.DataTable();
+	        speciesData.addColumn('string', '<%=encprops.getProperty("species") %>');
+	        speciesData.addColumn('number', '<%=encprops.getProperty("numberRecorded") %>');
+	        speciesData.addRows([
+	          <%
+	          List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context); 
+	          int numSpecies = speciesHashtable.size();
+	          Enumeration<String> speciesKeys=speciesHashtable.keys();
+	
+	          while(speciesKeys.hasMoreElements()){
+	        	  String keyName=speciesKeys.nextElement();
+	        	  //System.out.println(keyName);
+	          %>
+	          ['<%=keyName%>',    <%=speciesHashtable.get(keyName) %>]
+			  <%
+			  if(speciesKeys.hasMoreElements()){
+			  %>
+			  ,
+			  <%
+			  }
+	         }
+			 %>
+	          
+	        ]);
+	     var speciesOptions = {
+	          width: 450, height: 300,
+	          title: '<%=encprops.getProperty("speciesChartTitle") %>',
+	          //colors: ['#0000FF','#FF00FF']
+	        };
+	      var speciesChart = new google.visualization.PieChart(document.getElementById('specieschart_div'));
+	        speciesChart.draw(speciesData, speciesOptions);
+	      }
+	  <%
       }
+      %>
       
       
       //countries chart
@@ -768,7 +783,9 @@
    function drawYearAddedChart() {
      var yearAddedData = new google.visualization.DataTable();
      yearAddedData.addColumn('string', '<%=encprops.getProperty("weekNumber") %>');
-     yearAddedData.addColumn('number', '<%=encprops.getProperty("numberEncounters") %>');
+     yearAddedData.addColumn('number', '<%=encprops.getProperty("human") %>');
+     yearAddedData.addColumn('number', '<%=encprops.getProperty("ai") %>');
+     
      yearAddedData.addRows([
        <%
        
@@ -776,27 +793,36 @@
        
        //let's do some quality control
        int numYears=encountersPerYear.size();
-       
+       int numYearsAI=encountersPerYearAI.size();
        
        //first determine list range
        int minYearAddedValue=999999;
        int maxYearAddedValue=-1;
        Enumeration<Integer> years=encountersPerYear.keys();
-       //System.out.println("numYears is:"+numYears);
-      
        while(years.hasMoreElements()){
     	   Integer thisYear=years.nextElement();
     	   if(thisYear<minYearAddedValue)minYearAddedValue=thisYear;
     	   if(thisYear>maxYearAddedValue)maxYearAddedValue=thisYear;
 
        }
+       Enumeration<Integer> yearsAI=encountersPerYearAI.keys();
+       while(yearsAI.hasMoreElements()){
+    	   Integer thisYear=yearsAI.nextElement();
+    	   if(thisYear<minYearAddedValue)minYearAddedValue=thisYear;
+    	   if(thisYear>maxYearAddedValue)maxYearAddedValue=thisYear;
+
+       }
+       //end determine list range
        
 
        
        for(int q=minYearAddedValue;q<=maxYearAddedValue;q++){
      	  if(!encountersPerYear.containsKey(new Integer(q))){encountersPerYear.put(new Integer(q), new Integer(0));}
+     	 	if(!encountersPerYearAI.containsKey(new Integer(q))){encountersPerYearAI.put(new Integer(q), new Integer(0));}
+        	
        		%>
-       		['<%=q%>',<%=encountersPerYear.get(new Integer(q)).toString() %>]
+       		['<%=q%>',<%=encountersPerYear.get(new Integer(q)).toString() %>,<%=encountersPerYearAI.get(new Integer(q)).toString() %>]
+		  	
 		  	<%
 		  	if(q<maxYearAddedValue){
 		  	%>
@@ -813,6 +839,7 @@
        title: '<%=encprops.getProperty("encountersByYearTitle") %>',
        hAxis: {title: '<%=encprops.getProperty("year") %>'},
        vAxis: {title: '<%=encprops.getProperty("numberEncounters") %>'},
+       isStacked: true,
      };
    var yearAddedChart = new google.visualization.ColumnChart(document.getElementById('yearadded_div'));
    yearAddedChart.draw(yearAddedData, yearAddedChartOptions);
@@ -965,11 +992,11 @@
 		<%
         }
 		
-        if(CommonConfiguration.showProperty("showCountry",context)){
+        //if(CommonConfiguration.showProperty("showCountry",context)){
         %>
 		<div id="countrieschart_div"></div>
 		<%
-        }
+        //}
 		%>
  	<div id="discoveryCurve_div"></div>
  	<div id="frequency_div"></div>
