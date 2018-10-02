@@ -759,7 +759,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
         }
 
-        JSONObject queryConfigDict = queryConfigDict(myShepherd, species, opt);
+        JSONObject queryConfigDict = queryConfigDict(myShepherd, opt);
 
         return beginIdentifyAnnotations(qanns, tanns, queryConfigDict, null, myShepherd, species, taskID, baseUrl);
     }
@@ -1181,7 +1181,8 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult, Shepherd myShepherd, String context, String rootDir) {
         if (iaResult == null) return null;
 
-        Taxonomy tax = iaTaxonomyMap(myShepherd, context).get(iaResult.optString("class", "_FAIL_"));
+        String iaClass = iaResult.optString("class", "_FAIL_");
+        Taxonomy tax = iaTaxonomyMap(myShepherd, context).get(iaClass);
         if (tax == null) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: bailing on IA results due to invalid species detected -- " + iaResult.toString());
             return null;
@@ -1194,7 +1195,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
                                                 iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0), fparams);
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
-        Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
+        Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
         ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
         return ann;
@@ -2709,8 +2710,8 @@ System.out.println("using qid -> " + qid);
     }
 
     //not really sure what/how to do this...
-    public static JSONObject queryConfigDict(Shepherd myShepherd, String species, JSONObject opt) {
-System.out.println("queryConfigDict() got species=" + species + "; and opt = " + opt);
+    public static JSONObject queryConfigDict(Shepherd myShepherd, JSONObject opt) {
+System.out.println("queryConfigDict() get opt = " + opt);
         if (opt == null) return null;
 
         // and this is oriented curvature + weighted dynamic time-warping
