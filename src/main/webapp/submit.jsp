@@ -778,7 +778,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 <%
 }
 %>
-<h3>Hello?</h3>
 
   <fieldset>
     <div class="form-group">
