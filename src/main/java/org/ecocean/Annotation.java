@@ -1,9 +1,12 @@
 
 
+
 /*
   TODO note: this is very ibeis-specific concept of "Annotation"
      we should probably consider a general version which can be manipulated into an ibeis one somehow
 */
+
+package org.ecocean;
 
 import org.ecocean.ImageAttributes;
 import org.ecocean.media.Feature;
