@@ -28,7 +28,11 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
-    private String species;  //TODO change to Taxonomy object!  (note: or make it akin to "class" on IA... but better name?)
+
+    private String species; 
+
+    private String iaClass; // This is just how it gonna be for now. Swap the methods to draw from Taxonomy later if ya like?
+
     private String name;
     private boolean isExemplar = false;
     private Boolean isOfInterest = null;  //aka AoI (Annotation of Interest)
@@ -284,6 +288,13 @@ public class Annotation implements java.io.Serializable {
     }
     public void setSpecies(String s) {
         species = s;
+    }
+
+    public String getIAClass() {
+        return iaClass;
+    }
+    public void setIAClass(String iaClass) {
+        this.iaClass = iaClass;
     }
 
     public String getName() {
