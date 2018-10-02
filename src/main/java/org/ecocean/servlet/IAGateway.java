@@ -723,13 +723,7 @@ System.out.println("anns -> " + anns);
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         for (Annotation ann : anns) {
-/*
-System.out.println(ann + " ############################ " + ann.getFeatures());
-for (Feature ft : ann.getFeatures()) {
-System.out.println("     >>> " + ft + " >> " + ft.getParameters());
-}
-*/
-            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getIAClass(), opt);
+            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
             JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize,
                                                          ((anns.size() == 1) ? taskId : null));  //we use passed taskId if only 1 ann but generate otherwise
             taskList.put(taskRes);
@@ -1041,7 +1035,7 @@ System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
             if (ann == null)  {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
             /////TODO fix how this opt gets set?  maybe???
             JSONObject opt = null;
-            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getIAClass(), opt);
+            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
             JSONObject rtn = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, -1, null);
             /////// at this point, we can consider this current task done
             IBEISIA.setActiveTaskId(request, null);  //reset it so it can discovered when results come back
