@@ -9,6 +9,7 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.acm.AcmBase;
 import org.ecocean.ia.Task;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -33,6 +34,11 @@ public class Annotation implements java.io.Serializable {
     private Boolean isOfInterest = null;  //aka AoI (Annotation of Interest)
     protected String identificationStatus;
     private ArrayList<Feature> features;
+    protected String acmId;
+
+    //this is used to decide "should we match against this"  problem is: that is not very (IA-)algorithm agnostic
+    //  hoping this will be obsoleted by ACM and friends
+    private boolean matchAgainst = false;
 
 ////// these will go away after transition to Features
     private int x;
@@ -116,6 +122,13 @@ public class Annotation implements java.io.Serializable {
         __getMediaAsset().addFeature(f);
         addFeature(f);
         return f;
+    }
+
+    public void setAcmId(String id) {
+        this.acmId = id;
+    }
+    public String getAcmId() {
+        return this.acmId;
     }
 
     public ArrayList<Feature> getFeatures() {
@@ -303,6 +316,13 @@ public class Annotation implements java.io.Serializable {
         isOfInterest = b;
     }
 
+    public boolean getMatchAgainst() {
+        return matchAgainst;
+    }
+    public void setMatchAgainst(boolean b) {
+        matchAgainst = b;
+    }
+
     public String getIdentificationStatus() {
       return this.identificationStatus;
     }
@@ -437,9 +457,8 @@ public class Annotation implements java.io.Serializable {
         }
 
 
-    static public ArrayList<Annotation> getExemplars(String species, Shepherd myShepherd) {
-//species = "Balaenoptera acutorostrata";  //for springbreak testing only!!!!!!!  FIXME
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.isExemplar && species == \"" + species + "\"";
+    static public ArrayList<Annotation> getMatchingSet(String species, Shepherd myShepherd) {
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.matchAgainst && species == \"" + species + "\"";
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
@@ -452,8 +471,8 @@ public class Annotation implements java.io.Serializable {
     }
 
     //for *any/all* species
-    static public ArrayList<Annotation> getExemplars(Shepherd myShepherd) {
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.isExemplar";
+    static public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.matchAgainst";
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
