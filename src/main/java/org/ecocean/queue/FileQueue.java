@@ -42,16 +42,17 @@ public class FileQueue extends Queue {
     public static synchronized void init(String context) throws IOException {
         File qd = setQueueDir(context);
         if (qd == null) throw new IOException("ERROR: unable to FileQueue.setQueueDir()");
-        System.out.println("[INFO] FileQueue.init() complete");
+        System.out.println("[INFO] FileQueue.init(" + context + ") complete");
     }
 
-    public static File setQueueDir(String context) throws IOException {
+    public static synchronized File setQueueDir(String context) throws IOException {
         if (queueBaseDir != null) return queueBaseDir;  //hey we have one already!
         String qd = Queue.getProperty(context, "filequeue_basedir");
         if (qd == null) qd = CommonConfiguration.getProperty("ScheduledQueueDir", "context0");  //legacy
 
         if (qd == null) {  //lets try to make one *somewhere*
-            queueBaseDir = Files.createTempDirectory("WildbookFileQueue").toFile();
+            //queueBaseDir = Files.createTempDirectory("WildbookFileQueue").toFile();
+            queueBaseDir = new File("/tmp/WildbookFileQueue");
             System.out.println("INFO: default (temporary) queueBaseDir being used: " + queueBaseDir);
         } else {
             queueBaseDir = new File(qd);
