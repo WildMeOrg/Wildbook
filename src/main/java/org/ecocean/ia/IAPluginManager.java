@@ -4,7 +4,11 @@
 
 package org.ecocean.ia;
 
+import org.ecocean.Shepherd;
 import org.ecocean.ia.plugin.*;
+import org.ecocean.ia.Task;
+import org.ecocean.Annotation;
+import org.ecocean.media.MediaAsset;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -12,7 +16,6 @@ import java.util.HashMap;
 import javax.servlet.ServletContextEvent;
 
 /*
-import org.ecocean.Shepherd;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
@@ -47,6 +50,7 @@ public class IAPluginManager {
 
     //creates static instances of each (enabled) plugin (and initialized them), for use here
     public static List<IAPlugin> initPlugins(String context) {
+        if (plugins.get(context) != null) return plugins.get(context);
         List<IAPlugin> list = new ArrayList<IAPlugin>();
         for (Class c : getAllPluginClasses(context)) {
             IAPlugin p = getIAPluginInstanceFromClass(c, context);
@@ -62,6 +66,7 @@ public class IAPluginManager {
     public static List<Class> getAllPluginClasses(String context) {
         List<Class> all = new ArrayList<Class>();
         all.add(org.ecocean.ia.plugin.WildbookIAM.class);
+        all.add(org.ecocean.ia.plugin.TestPlugin.class);
         return all;
     }
 
@@ -74,6 +79,47 @@ public class IAPluginManager {
             throw new RuntimeException("ERROR: IAPluginManager.getIAPluginInstanceFromClass() broke -- " + ex.toString());
         }
         return (IAPlugin)p;
+    }
+
+
+    public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
+        String context = myShepherd.getContext();
+        if (plugins.get(context) == null) {
+            IA.log("WARNING: IAPluginManager.intakeMediaAssets() had no plugin(s) for context " + context);
+            return null;
+        }
+        Task rootTask = new Task();
+        rootTask.setObjectMediaAssets(mas);
+        for (IAPlugin p : plugins.get(context)) {
+            Task subTask = p.intakeMediaAssets(myShepherd, mas);
+            if (subTask == null) {
+                IA.log("WARNING: IAPluginManager.intakeMediaAssets() got NULL for " + p);
+            } else {
+                IA.log("INFO: IAPluginManager.intakeMediaAssets() got " + subTask + " for " + p);
+                rootTask.addChild(subTask);
+            }
+        }
+        return rootTask;
+    }
+
+    public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
+        String context = myShepherd.getContext();
+        if (plugins.get(context) == null) {
+            IA.log("WARNING: IAPluginManager.intakeAnnotations() had no plugin(s) for context " + context);
+            return null;
+        }
+        Task rootTask = new Task();
+        rootTask.setObjectAnnotations(anns);
+        for (IAPlugin p : plugins.get(context)) {
+            Task subTask = p.intakeAnnotations(myShepherd, anns);
+            if (subTask == null) {
+                IA.log("WARNING: IAPluginManager.intakeAnnotations() got NULL for " + p);
+            } else {
+                IA.log("INFO: IAPluginManager.intakeAnnotations() got " + subTask + " for " + p);
+                rootTask.addChild(subTask);
+            }
+        }
+        return rootTask;
     }
 
 /*

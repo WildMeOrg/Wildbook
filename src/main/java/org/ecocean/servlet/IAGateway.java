@@ -765,7 +765,7 @@ System.out.println("+ starting ident task " + annTaskId);
                 matchingSet = Annotation.getMatchingSet(iaClass, myShepherd);
                 if ((matchingSet == null) || (matchingSet.size() < 10)) throw new IOException("suspiciously empty matchingSet for species " + iaClass);
                 if (matchingSet.size() > limitTargetSize) {
-                    System.out.println("WARNING: limited identification matchingSet size from " + matchingSet.size() + " to " + limitTargetSize);
+                    System.out.println("WARNING: limited identification matchingSet list size from " + matchingSet.size() + " to " + limitTargetSize);
                     matchingSet = new ArrayList(matchingSet.subList(0, limitTargetSize));
                 }
                 taskRes.put("matchingSetSize", matchingSet.size());

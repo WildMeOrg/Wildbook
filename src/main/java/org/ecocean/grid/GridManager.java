@@ -490,6 +490,13 @@ public class GridManager {
         i--;
       }
     }
+    for (int i = 0; i < toDo.size(); i++) {
+      if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
+        toDo.remove(i);
+        //numScanWorkItems--;
+        i--;
+      }
+    }
   }
 
   public void removeCompletedWorkItemsForTask(String taskID) {

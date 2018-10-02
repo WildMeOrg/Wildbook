@@ -2,6 +2,7 @@
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
+org.ecocean.ia.Task,
 java.util.ArrayList,
 org.json.JSONObject,
 java.util.Properties" %>
@@ -16,7 +17,8 @@ java.util.Properties" %>
 
 	private String niceJson(JSONObject j) {
 		if (j == null) return "<b>[none]</b>";
-		return "<pre class=\"json\">" + j.toString().replaceAll(",", ",\n") + "</pre>";
+		//return "<pre class=\"json\">" + j.toString().replaceAll(",", ",\n") + "</pre>";
+		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
 	}
 
 	private String showEncounter(Encounter enc) {
@@ -58,6 +60,55 @@ java.util.Properties" %>
 		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset()) + "</li>";
 		return h + "</ul></div>";
 	}
+
+        private String showTask(Task task) {
+            String h = "<div><b>" + task.getId() + "</b> " + task.toString() + "<ul>";
+            Task parent = task.getParent();
+            if (parent == null) {
+                h += "<li><b><i>No parent</i></b></li>";
+            } else {
+                h += "<li><b>Parent: <a href=\"?type=Task&id=" + parent.getId() + "\">" + parent.getId() + "</a></b> <span class=\"quiet\">" + parent.toString() + "</span>";
+                if (parent.numChildren() > 1) {  //must be > 1 cuz we need siblings
+                    h += "<ol>";
+                    for (Task kid : parent.getChildren()) {
+                        if (kid.equals(task)) continue;
+                        h += "<li><a title=\"sibling\" href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
+                    }
+                    h += "</ol>";
+                }
+                h += "</li>";
+            }
+            h += "<li><b>" + task.numChildren() + " children</b> Task(s)";
+            if (task.numChildren() > 0) {
+                h += "<ol>";
+                for (Task kid : task.getChildren()) {
+                    h += "<li><a href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
+                }
+                h += "</ol>";
+            }
+            h += "</li>";
+            h += "<li><b>" + task.countMediaAssetObjects() + " MediaAsset</b> object(s)";
+            if (task.countMediaAssetObjects() > 0) {
+                h += "<ol>";
+                for (MediaAsset ma : task.getMediaAssetObjects()) {
+                    h += "<li><a href=\"?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a> <span class=\"quiet\">" + ma.toString() + "</span></li>";
+                }
+                h += "</ol>";
+            }
+            h += "</li>";
+            h += "<li><b>" + task.countAnnotationObjects() + " Annotation</b> object(s)";
+            if (task.countAnnotationObjects() > 0) {
+                h += "<ol>";
+                for (Annotation ann : task.getAnnotationObjects()) {
+                    h += "<li><a href=\"?type=Annotation&id=" + ann.getId() + "\">" + ann.getId() + "</a> <span class=\"quiet\">" + ann.toString() + "</span></li>";
+                }
+                h += "</ol>";
+            }
+            h += "</li>";
+            h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
+            h += "</ul>";
+            return h;
+        }
 
 	private String showLabels(ArrayList<String> l) {
 		if ((l == null) || (l.size() < 1)) return "[none]";
@@ -154,6 +205,19 @@ if (!rawOutput(type)) {
 	color: #888;
 }
 
+.quiet {
+    color: #999;
+    font-size: 0.85em;
+}
+
+pre.json {
+    font-size: 0.85em;
+    color: #666;
+    padding: 8px 8px 8px 15px;
+    border-radius: 3px;
+    background-color: #EEE;
+}
+
 </style>
 
 <script>
@@ -241,6 +305,15 @@ if (type.equals("Encounter")) {
 	try {
 		Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true)));
 		out.println(showAnnotation(ann));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		needForm = true;
+	}
+
+} else if (type.equals("Task")) {
+	try {
+		Task task = ((Task) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Task.class, id), true)));
+		out.println(showTask(task));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		needForm = true;
