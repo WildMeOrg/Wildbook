@@ -14,6 +14,7 @@ import java.net.URL;
 import org.ecocean.*;
 import org.ecocean.queue.*;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.IAPluginManager;
 import org.ecocean.grid.MatchGraphCreationThread;
 //import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
@@ -115,25 +116,26 @@ public class StartupWildbook implements ServletContextListener {
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
-        System.out.println("* StartupWildbook initialized for: " + servletContextInfo(sContext));
+        String context = "context0";  //TODO ??? how????
+        System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
         if (skipInit(sce, null)) {
-            System.out.println("- SKIPPED initialization by /tmp/WB_SKIP_INIT");
+            System.out.println("- SKIPPED initialization due to skipInit()");
             return;
         }
 
-        //TODO genericize this to be under .ia (with startup hooks for *any* IA plugin)
-        //if we dont need identificaiton, no need to prime
-        boolean skipIdent = Util.booleanNotFalse(IA.getProperty("context0", "IBEISIADisableIdentification"));  //oof hardcoded context!
-        if (!skipIdent && !skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
+        //initialize the plugin (instances)
+        IAPluginManager.initPlugins(context);
+        //this should be handling all plugin startups
+        IAPluginManager.startup(sce);
 
         //NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
-        if (Util.booleanNotFalse(IA.getProperty("context0", "sharkGrid.startMatchGraph"))) {
+        if (Util.booleanNotFalse(IA.getProperty(context, "sharkGrid.startMatchGraph"))) {
             createMatchGraph();
         }
 
-        //TODO genericize starting "all" consumers ... configurable? how?  etc.  oof... more hardcoded contexts. :(
-        startIAQueues("context0");
-        TwitterBot.startServices("context0");
+        //TODO genericize starting "all" consumers ... configurable? how?  etc.
+        startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
+        TwitterBot.startServices(context);
     }
 
 
@@ -204,7 +206,12 @@ public class StartupWildbook implements ServletContextListener {
       es.execute(new MatchGraphCreationThread());
     }
 
-    private static boolean skipInit(ServletContextEvent sce, String extra) {
+    public static boolean skipInit(ServletContextEvent sce, String extra) {
+        ServletContext sc = sce.getServletContext();
+        if ("".equals(sc.getContextPath())) {
+            System.out.println("++ StartupWildbook.skipInit() skipping ROOT (empty string context path)");
+            return true;
+        }
         String fname = "/tmp/WB_SKIP_INIT" + ((extra == null) ? "" : "_" + extra);
         boolean skip = new File(fname).exists();
         System.out.println("++ StartupWildbook.skipInit() test on " + extra + " [" + fname + "] --> " + skip);
