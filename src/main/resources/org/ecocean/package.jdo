@@ -465,10 +465,6 @@
 	    	<index name="TAXONOMY_SCIENTIFICNAME_INDEX" unique="true" />
     	</field>
 
-      <field name="iaClass" allows-null="true">
-		    <index name="IACLASS" unique="true" />
-    	</field>
-
       <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
     </class>
 
