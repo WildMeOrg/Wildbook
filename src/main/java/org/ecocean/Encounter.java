@@ -2046,8 +2046,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
-	else{genus=null;}
-    updateAnnotationTaxonomy();
+	  else{genus=null;}
   }
 
   public String getSpecificEpithet() {
@@ -2056,20 +2055,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
-	else{specificEpithet=null;}
-    updateAnnotationTaxonomy();
+	  else{specificEpithet=null;}
   }
 
-    private void updateAnnotationTaxonomy() {
-        if ((getAnnotations() == null) || (getAnnotations().size() < 1)) return;
-        for (Annotation ann : getAnnotations()) {
-            ann.setSpecies(getTaxonomyString());  //TODO in some perfect world this would use IA-specific mapping calls and/or yet-to-be-made Taxonomy class etc
-        }
-    }
-
-    public String getTaxonomyString() {
-        return Util.taxonomyString(getGenus(), getSpecificEpithet());
-    }
+  public String getTaxonomyString() {
+      return Util.taxonomyString(getGenus(), getSpecificEpithet());
+  }
 
   public String getPatterningCode(){ return patterningCode;}
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
