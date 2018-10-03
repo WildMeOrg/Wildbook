@@ -214,7 +214,7 @@ System.out.println("sendMediaAssets() -> " + rtn);
             map.get("image_uuid_list").add(iid);
             int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
-            map.get("annot_species_list").add(ann.getSpecies());
+            map.get("annot_species_list").add(ann.getSpecies(myShepherd));
             map.get("annot_theta_list").add(ann.getTheta());
             String name = ann.findIndividualId(myShepherd);
             map.get("annot_name_list").add((name == null) ? "____" : name);
