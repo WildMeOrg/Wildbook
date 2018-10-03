@@ -460,31 +460,48 @@ public class Annotation implements java.io.Serializable {
         public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
           return this.sanitizeMedia(request, false);
         }
-
-    static public ArrayList<Annotation> getMatchingSet(String iaClass, Shepherd myShepherd) {
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.matchAgainst && iaClass == \"" + iaClass + "\"";
+     
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        ArrayList<Encounter> encs = new ArrayList<Encounter>();
+        Encounter myEnc = this.findEncounter(myShepherd);
+        String myGenus = myEnc.getGenus();
+        String mySpecificEpithet = myEnc.getSpecificEpithet();
+        String filter;
+        if (mySpecificEpithet!=null&&!"".equals(mySpecificEpithet)&&myGenus!=null&&!"".equals(myGenus)) {
+            filter = "SELECT FROM org.ecocean.Encounter WHERE specificEpithet == \""+mySpecificEpithet+"\" && genus == \""+myGenus+"\" ";
+        } else {
+            System.out.println("NO MATCHING SET: The parent encounter for Annotation id="+this.id+" has not specified specificEpithet and genus.");
+            return anns; 
+        }
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
         Iterator it = c.iterator();
+
         while (it.hasNext()) {
-            anns.add((Annotation)it.next());
+            Encounter enc = (Encounter) it.next();
+            if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
+                for (Annotation ann : enc.getAnnotations()) {
+                    if (ann.matchAgainst) {
+                        anns.add(ann);
+                    }
+                }
+            }
         }
         query.closeAll();
         return anns;
     }
 
-    //for *any/all* species
-    static public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.matchAgainst";
+    static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst";
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
         Iterator it = c.iterator();
         while (it.hasNext()) {
-            anns.add((Annotation)it.next());
+            Annotation ann = (Annotation) it.next(); 
+            anns.add(ann);
         }
-        query.closeAll();
         return anns;
     }
 
