@@ -774,7 +774,7 @@ System.out.println("+ starting ident task " + annTaskId);
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
-                                                               myShepherd, iaClass, annTaskId, baseUrl);
+                                                               myShepherd, annTaskId, baseUrl);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;
