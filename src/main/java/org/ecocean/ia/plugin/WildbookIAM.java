@@ -89,7 +89,7 @@ public class WildbookIAM extends IAPlugin {
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("WildbookIAM.prime");
                 myShepherd.beginDBTransaction();
-                ArrayList<Annotation> matchingSet = Annotation.getMatchingSet(myShepherd);
+                ArrayList<Annotation> matchingSet = Annotation.getMatchingSetAllSpecies(myShepherd);
                 ArrayList<Annotation> sendAnns = new ArrayList<Annotation>();
                 ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
                 for (Annotation ann : matchingSet) {
