@@ -149,7 +149,7 @@
         var map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID,
+          mapTypeId: google.maps.MapTypeId.TERRAIN,
           fullscreenControl: true
         });
     	  
@@ -223,7 +223,7 @@ if(rEncounters.size()>0){
     		individualLinkString="<strong><a target=\"_blank\" href=\"//"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.getIndividualID()+"\">"+thisEnc.getIndividualID()+"</a></strong><br />";
     	}
     	%>
-    	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img align=\"top\" border=\"1\" src=\"<%=thisEnc.getThumbnailUrl(context) %>\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+    	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img class=\"lazyload\" align=\"top\" border=\"1\" width=\"100px\" height=\"75px\"  src=\"../cust/mantamatcher/img/individual_placeholder_image.jpg\" data-src=\"<%=thisEnc.getThumbnailUrl(context) %>\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
  
           
            
