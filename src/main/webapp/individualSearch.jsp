@@ -1717,7 +1717,7 @@ else {
       <%
       	Shepherd inShepherd=new Shepherd("context0");
       inShepherd.setAction("individualSearch.jsp2");
-        List<User> users = inShepherd.getUsersWithUsername("fullName ascending");
+        List<User> users = inShepherd.getUsersWithUsername("username ascending");
         int numUsers = users.size();
 
       %>
@@ -1733,7 +1733,7 @@ else {
             }
 
         	%>
-        	<option value="<%=username%>"><%=userFullName%></option>
+        	<option value="<%=username%>"><%=username%></option>
         	<%
           }
         %>
