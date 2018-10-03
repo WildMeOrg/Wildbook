@@ -393,7 +393,6 @@ public class Encounter implements java.io.Serializable {
         this.catalogNumber = Util.generateUUID();
         this.annotations = anns;
         this.setDateFromAssets();
-        this.setSpeciesFromAnnotations();
         this.setLatLonFromAssets();
         this.setDWCDateAdded();
         this.setDWCDateLastModified();
@@ -2178,16 +2177,6 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
             if (dt != null) break;  //we just take the first one
         }
         if (dt != null) setDateInMilliseconds(dt.getMillis());
-    }
-
-    public void setSpeciesFromAnnotations() {
-        if ((annotations == null) || (annotations.size() < 1)) return;
-        String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
-        this.setGenus(null);  //we reset these no matter what, so only parts get set as available
-        this.setSpecificEpithet(null);
-        if (sp == null) return;
-        if (sp.length > 0) this.setGenus(sp[0]);
-        if (sp.length > 1) this.setSpecificEpithet(sp[1]);
     }
 
     //find the first one(s) we can
