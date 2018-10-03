@@ -286,11 +286,9 @@ public class Annotation implements java.io.Serializable {
         return sibs;
     }
 
-    public String getSpecies() {
-        return species;
-    }
-    public void setSpecies(String s) {
-        species = s;
+    public String getSpecies(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+        return enc.getGenus()+" "+enc.getSpecificEpithet();
     }
 
     public String getIAClass() {
@@ -346,7 +344,7 @@ public class Annotation implements java.io.Serializable {
             }
         }
         if (found == null) return null;
-        int[] bbox = new int[4];
+        int[] bbox = new int[4];        
         if (found.isUnity()) {
             bbox[0] = 0;
             bbox[1] = 0;
@@ -422,7 +420,7 @@ public class Annotation implements java.io.Serializable {
             org.datanucleus.api.rest.orgjson.JSONObject jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
             jobj.put("id", id);
             jobj.put("isExemplar", this.getIsExemplar());
-            jobj.put("species", this.getSpecies());
+            jobj.put("species", this.getIAClass());
             jobj.put("annotationIsOfInterest", this.getIsOfInterest());
             if (this.getFeatures() != null) {
                 org.datanucleus.api.rest.orgjson.JSONArray feats = new org.datanucleus.api.rest.orgjson.JSONArray();
@@ -585,7 +583,8 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.setDWCDateAdded();
             newEnc.setDWCDateLastModified();
             newEnc.resetDateInMilliseconds();
-            newEnc.setSpeciesFromAnnotations();
+            newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
+            newEnc.setGenus(someEnc.getGenus());
         }
         return newEnc;
 
