@@ -824,14 +824,6 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
         
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
-
-        System.out.println("WHAT YOU GOT?!?!?!??!?!");
-        System.out.println("");
-        System.out.println("QANNS = "+qanns);
-        System.out.println(" TANNS = "+tanns);
-        System.out.println("");
-        System.out.println("?!?!?!?!?!??!?!??!?!?!?");
-
         
         try {
             for (Annotation ann : qanns) {
