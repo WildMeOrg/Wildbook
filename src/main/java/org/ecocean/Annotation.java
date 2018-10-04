@@ -463,6 +463,7 @@ public class Annotation implements java.io.Serializable {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         ArrayList<Encounter> encs = new ArrayList<Encounter>();
         Encounter myEnc = this.findEncounter(myShepherd);
+        System.out.println("Getting matching set for annotation. Retrieved encounter = "+myEnc.getCatalogNumber());
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         String filter;
@@ -475,8 +476,9 @@ public class Annotation implements java.io.Serializable {
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
         Iterator it = c.iterator();
-
+        int count = 0;
         while (it.hasNext()) {
+            count++;
             Encounter enc = (Encounter) it.next();
             if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
                 for (Annotation ann : enc.getAnnotations()) {
@@ -486,6 +488,8 @@ public class Annotation implements java.io.Serializable {
                 }
             }
         }
+        System.out.println("Did the query return any encounters? It got: "+count); 
+        
         query.closeAll();
         return anns;
     }
