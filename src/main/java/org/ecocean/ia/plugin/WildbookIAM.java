@@ -3,6 +3,7 @@ package org.ecocean.ia.plugin;
 import javax.servlet.ServletContextEvent;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
+import org.ecocean.ShepherdPMF;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.RestClient;
@@ -39,6 +40,7 @@ public class WildbookIAM extends IAPlugin {
     }
     public WildbookIAM(String context) {
         super(context);
+        this.context = context;
     }
 
     @Override
@@ -177,7 +179,12 @@ System.out.println("sendMediaAssets() -> " + rtn);
         URL url = new URL(u);
         int ct = 0;
         //may be different shepherd, but findIndividualId() below will only work if its all persisted anyway. :/
-        Shepherd myShepherd = new Shepherd(context);
+        Shepherd myShepherd = null;
+        try {
+            myShepherd = new Shepherd(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         myShepherd.setAction("WildbookIAM.sendAnnotations");
         myShepherd.beginDBTransaction();
 
