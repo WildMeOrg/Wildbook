@@ -221,11 +221,8 @@ System.out.println("sendMediaAssets(): sending " + ct);
             if (ann.getIAClass()!=null&&!"".equals(ann.getIAClass())) {
                 iaClass = ann.getIAClass();
                 System.out.println("iaClass set from Annotation.");
-            } else if (ann.getSpecies()!=null&&!"".equals(ann.getSpecies())) {
-                System.out.println("===> WARNING: annotation class sent to IA was set from Annotation.species instead of Annotation.iaClass.");
-                iaClass = ann.getSpecies();
             } else {
-                System.out.println("===> CRITICAL ERROR: Annotation did not have a useable class candidate to send to identification from iaClass or species. ");
+                System.out.println("===> CRITICAL ERROR: Annotation did not have a useable class candidate to send to identification for iaClass. ");
                 continue;
             }
 
@@ -300,7 +297,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 System.out.println("--- exemplar!");
             if (targetNameListCache.get(species) == null) {
 System.out.println("     gotta compute :(");
-                tanns = Annotation.getMatchingSet(species, myShepherd);
+                tanns = qanns.get(0).getMatchingSet(myShepherd);
                 setExemplarCaches = true;
             } else {
 System.out.println("     free ride :)");
@@ -764,20 +761,45 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         return beginIdentifyAnnotations(qanns, tanns, queryConfigDict, null, myShepherd, species, taskID, baseUrl);
     }
 
+    private static String getAnnotationSpeciesFromArray(ArrayList<Annotation> qanns, Shepherd myShepherd) {
+        // Accept the species from the first Ann in the list, complain if inconsistancies. 
+        String species = null;
+        for (Annotation ann : qanns) {
+            Encounter enc = ann.findEncounter(myShepherd);
+            String tempSpecies = enc.getGenus()+" "+enc.getSpecificEpithet();
+            //AAAAACCCKKKK squishy
+            if (species!=null&&species!=tempSpecies) {    
+                System.out.println("WARNING:SEVERE: beginIdentifyAnnotations called on qann array with inconsistant species at Encounter level!");
+                System.out.println("Species A: "+species+" Species B: "+tempSpecies);
+            } else {
+                species = tempSpecies;
+            }
+        }
+        return species;
+    }
+
+    // If you realllllly want to send species I'll just swallow it. 
+    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl) {
+        System.out.println("INFO: You no longer need to send species with call to beginIdentifyAnnotations. It is derived from the Annotation's Encounters now.");
+        return beginIdentifyAnnotations(qanns,tanns,queryConfigDict, userConfidence, myShepherd, taskID, baseUrl);
+     }
+
     //actually ties the whole thing together and starts a job with all the pieces needed
     // note: if tanns is null, that means we get all exemplar for species
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                                      JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl) {
-        if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
-        //TODO possibly could exclude qencs from tencs?
-        String jobID = "-1";
+                                                      JSONObject userConfidence, Shepherd myShepherd, String taskID, String baseUrl) {
+
+                                                          
+                                                          if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
+                                                          //TODO possibly could exclude qencs from tencs?
+                                                          String jobID = "-1";
         JSONObject results = new JSONObject();
         results.put("success", false);  //pessimism!
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
-
+        
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
-
+        
         try {
             for (Annotation ann : qanns) {
                 allAnns.add(ann);
@@ -785,14 +807,15 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                 if (ma == null) ma = ann.getMediaAsset();
                 if (ma != null) mas.add(ma);
             }
-
+            
             boolean isExemplar = false;
             if (tanns == null) {
                 isExemplar = true;
-                if ((alreadySentExemplar.get(species) == null) || !alreadySentExemplar.get(species)) {
-System.out.println("   ... have to set tanns.  :(");
-                    tanns = Annotation.getMatchingSet(species, myShepherd);
-                    alreadySentExemplar.put(species, true);
+                String iaClass = qanns.get(0).getIAClass();
+                if ((alreadySentExemplar.get(iaClass) == null) || !alreadySentExemplar.get(iaClass)) {
+System.out.println("   ... have to set tanns. Matching set being built from the first ann in the list.  :(");
+                    tanns = qanns.get(0).getMatchingSet(myShepherd);
+                    alreadySentExemplar.put(iaClass, true);
                 }
             }
 
