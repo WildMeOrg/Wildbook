@@ -805,7 +805,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
     // If you realllllly want to send species I'll just swallow it. 
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl) {
-        System.out.println("INFO: You no longer need to send species with call to beginIdentifyAnnotations. It is derived from the Annotation's Encounters now.");
+        System.out.println("INFO: You no longer need to send species with call to beginIdentifyAnnotations. It is derived from the Annotation's Encounters.");
         return beginIdentifyAnnotations(qanns,tanns,queryConfigDict, userConfidence, myShepherd, taskID, baseUrl);
      }
 
@@ -815,26 +815,35 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                                                       JSONObject userConfidence, Shepherd myShepherd, String taskID, String baseUrl) {
 
                                                           
-                                                          if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
-                                                          //TODO possibly could exclude qencs from tencs?
-                                                          String jobID = "-1";
+        if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
+        //TODO possibly could exclude qencs from tencs?
+        String jobID = "-1";
         JSONObject results = new JSONObject();
         results.put("success", false);  //pessimism!
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
         
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
+
+        System.out.println("WHAT YOU GOT?!?!?!??!?!");
+        System.out.println("");
+        System.out.println("QANNS = "+qanns);
+        System.out.println(" TANNS = "+tanns);
+        System.out.println("");
+        System.out.println("?!?!?!?!?!??!?!??!?!?!?");
+
         
         try {
             for (Annotation ann : qanns) {
                 allAnns.add(ann);
                 MediaAsset ma = ann.getDerivedMediaAsset();
                 if (ma == null) ma = ann.getMediaAsset();
+                System.out.println("Adding MA to list for sending to sendMediaAssetsNew...");
                 if (ma != null) mas.add(ma);
             }
             
             boolean isExemplar = false;
-            if (tanns == null) {
+            if (tanns==null||tanns.isEmpty()) {
                 isExemplar = true;
                 String iaClass = qanns.get(0).getIAClass();
                 if ((alreadySentExemplar.get(iaClass) == null) || !alreadySentExemplar.get(iaClass)) {
@@ -845,13 +854,14 @@ System.out.println("   ... have to set tanns. Matching set being built from the 
             }
 
 System.out.println("- mark 2");
-            if (tanns != null) {
-            for (Annotation ann : tanns) {
-                allAnns.add(ann);
-                MediaAsset ma = ann.getDerivedMediaAsset();
-                if (ma == null) ma = ann.getMediaAsset();
-                if (ma != null) mas.add(ma);
-            }
+            if (tanns!=null&&!tanns.isEmpty()) {
+                System.out.println("INFO: tanns, (matchingSet) is not null. Contains "+tanns.size()+" annotations.");
+                for (Annotation ann : tanns) {
+                    allAnns.add(ann);
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) mas.add(ma);
+                }
             }
 
 /*
@@ -3406,10 +3416,12 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
     }
     public static JSONObject sendMediaAssetsNew(ArrayList<MediaAsset> mas, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         WildbookIAM plugin = getPluginInstance(context);
+        System.out.println("---------------------> sendMediaAssetsNew got: "+mas+" Using context: "+context);
         return plugin.sendMediaAssets(mas, true);
     }
     public static JSONObject sendAnnotationsNew(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         WildbookIAM plugin = getPluginInstance(context);
+        System.out.println("---------------------> sendAnnotationsNew got: "+anns+" Using context: "+context);
         return plugin.sendAnnotations(anns, true);
     }
 
