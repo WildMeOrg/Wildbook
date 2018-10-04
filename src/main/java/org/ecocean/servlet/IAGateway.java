@@ -737,8 +737,8 @@ System.out.println("anns -> " + anns);
 
     private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl, JSONObject queryConfigDict,
                                                JSONObject userConfidence, int limitTargetSize, String annTaskId) throws IOException {
-        String iaClass = ann.getIAClass();
-        if ((iaClass == null) || (iaClass.equals(""))) throw new IOException("iaClass on Annotation " + ann + " invalid: " + iaClass);
+
+        //String iaClass = ann.getIAClass();
         boolean success = true;
         if (annTaskId == null) annTaskId = Util.generateUUID();
         JSONObject taskRes = new JSONObject();
@@ -756,11 +756,15 @@ System.out.println("+ starting ident task " + annTaskId);
             ///note: this can all go away if/when we decide not to need limitTargetSize
             ArrayList<Annotation> matchingSet = null;
             if (limitTargetSize > -1) {
-                matchingSet = Annotation.getMatchingSet(iaClass, myShepherd);
-                if ((matchingSet == null) || (matchingSet.size() < 10)) throw new IOException("suspiciously empty exemplar set for iaClass " + iaClass);
+                matchingSet = ann.getMatchingSet(myShepherd);
+                if ((matchingSet == null) || (matchingSet.size() < 5)) {
+                    System.out.println("=======> Small matching set for this Annotation id= "+ann.getId());
+                    System.out.println("=======> Set size is: "+matchingSet.size());
+                    System.out.println("=======> Specific Epithet is: "+ann.findEncounter(myShepherd).getSpecificEpithet()+"    Genus is: "+ann.findEncounter(myShepherd).getGenus());   
+                }
                 if (matchingSet.size() > limitTargetSize) {
                     System.out.println("WARNING: limited identification matchingSet list size from " + matchingSet.size() + " to " + limitTargetSize);
-                    matchingSet = new ArrayList(matchingSet.subList(0, limitTargetSize));
+                    matchingSet = new ArrayList<Annotation>(matchingSet.subList(0, limitTargetSize));
                 }
                 taskRes.put("matchingSetSize", matchingSet.size());
             }
@@ -1251,7 +1255,6 @@ System.out.println("--- BEFORE _doIdentify() ---");
             System.out.println("ERROR: processCallbackQueueMessage() failed to parse JSON from " + message);
             return;
         }
- 
         //System.out.println("NOT YET IMPLEMENTED!  processCallbackQueueMessage got: " + message);
         IBEISIA.callbackFromQueue(jmsg);
     }
