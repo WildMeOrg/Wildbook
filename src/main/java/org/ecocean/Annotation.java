@@ -286,10 +286,8 @@ public class Annotation implements java.io.Serializable {
         return sibs;
     }
 
-    public String getSpecies(Shepherd myShepherd) {
-        Encounter enc = this.findEncounter(myShepherd);
-        return enc.getGenus()+" "+enc.getSpecificEpithet();
-    }
+    //since we are going to loose .species property here, getSpecies() has gone away!
+    //  (it has kind of been replaced by WildbookIAM.getIASpecies()
 
     public String getIAClass() {
         return iaClass;
@@ -463,11 +461,15 @@ public class Annotation implements java.io.Serializable {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         ArrayList<Encounter> encs = new ArrayList<Encounter>();
         Encounter myEnc = this.findEncounter(myShepherd);
+        if (myEnc == null) {
+            System.out.println("WARNING: getMatchingSet() could not find Encounter for " + this);
+            return anns;
+        }
         System.out.println("Getting matching set for annotation. Retrieved encounter = "+myEnc.getCatalogNumber());
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         String filter;
-        if (mySpecificEpithet!=null&&!"".equals(mySpecificEpithet)&&myGenus!=null&&!"".equals(myGenus)) {
+        if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
             filter = "SELECT FROM org.ecocean.Encounter WHERE specificEpithet == \""+mySpecificEpithet+"\" && genus == \""+myGenus+"\" ";
         } else {
             System.out.println("NO MATCHING SET: The parent encounter for Annotation id="+this.id+" has not specified specificEpithet and genus.");
@@ -504,6 +506,7 @@ public class Annotation implements java.io.Serializable {
             Annotation ann = (Annotation) it.next(); 
             anns.add(ann);
         }
+        query.closeAll();
         return anns;
     }
 
