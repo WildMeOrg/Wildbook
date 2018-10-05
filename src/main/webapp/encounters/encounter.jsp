@@ -2465,6 +2465,7 @@ $(document).ready(function() {
 																			int numUsers = usernames.size();
 																			for (int i = 0; i < numUsers; i++) {
 																				String thisUsername = usernames.get(i);
+																				if (thisUsername==null) continue;
 																				User thisUser2 = userShepherd.getUser(thisUsername);
 																				String thisUserFullname = thisUsername;
 																				if (thisUser2.getFullName() != null) {
