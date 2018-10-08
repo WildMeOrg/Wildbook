@@ -419,7 +419,7 @@ System.out.println("############################ rtn -> \n" + rtn);
                 FeatureType.initAll(myShepherd);
                 for (int i = 0 ; i < slist.length() ; i++) {
                     int stillNeedingReview = rlist.length();
-                    if (slist.optDouble(i, -1.0) < IBEISIA.getDetectionCutoffValue()) continue;
+                    if (slist.optDouble(i, -1.0) < IBEISIA.getDetectionCutoffValue(context)) continue;
                     /* decrementing this here, which may be "unwise" since this can "fail" in a bunch of ways (below); however, most of them
                        are error-like in nature, and should be dealt with in ways which i feel arent handled well yet.  this likely needs
                        to be reconsidered at some point... sigh.  -jon 20160613    TODO */
@@ -428,7 +428,8 @@ System.out.println("############################ rtn -> \n" + rtn);
                     if ((alist == null) || (alist.length() < 1)) continue;
                     String uuid = IBEISIA.fromFancyUUID(ilist.optJSONObject(i));
                     if (uuid == null) continue;
-                    MediaAsset ma = MediaAssetFactory.loadByUuid(uuid, myShepherd);
+                    //FIXME / note?  loadByAcmId could be grabbing from **more than one** matching MA.  but this code may be obsolete?
+                    MediaAsset ma = MediaAssetFactory.loadByAcmId(uuid, myShepherd);
 System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid + " -> ma:" + ma);
                     if (ma == null) continue;
                     JSONArray thisAnns = new JSONArray();
@@ -520,7 +521,8 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         e.printStackTrace();
     }
 
-    if (j.optBoolean("enqueue", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
+    //v2 "forces" queueing -- onward to the glorious future!
+    if (j.optBoolean("enqueue", false) || j.optBoolean("v2", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
         //TODO if queue is not active/okay, fallback to synchronous???
         //TODO could probably add other stuff (e.g. security/user etc)
         j.put("__context", context);
@@ -533,10 +535,9 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         } else {
             j.put("taskId", taskId);
         }
-System.out.println("A-LOAD");
         Task task = Task.load(taskId, myShepherd);
         if (task == null) task = new Task(taskId);
-System.out.println("A-LOADED");
+        task.setParameters(j.optJSONObject("taskParameters")); //optional
         myShepherd.getPM().makePersistent(task);
         myShepherd.commitDBTransaction();  //hack
         //myShepherd.closeDBTransaction();
@@ -631,7 +632,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
             IBEISIA.waitForIAPriming();
             boolean success = true;
             try {
-                res.put("sendMediaAssets", IBEISIA.sendMediaAssets(mas,context));
+                res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas,context));
                 JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context);
                 res.put("sendDetect", sent);
                 String jobId = null;
@@ -722,13 +723,7 @@ System.out.println("anns -> " + anns);
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         for (Annotation ann : anns) {
-/*
-System.out.println(ann + " ############################ " + ann.getFeatures());
-for (Feature ft : ann.getFeatures()) {
-System.out.println("     >>> " + ft + " >> " + ft.getParameters());
-}
-*/
-            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getSpecies(), opt);
+            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
             JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize,
                                                          ((anns.size() == 1) ? taskId : null));  //we use passed taskId if only 1 ann but generate otherwise
             taskList.put(taskRes);
@@ -742,8 +737,8 @@ System.out.println("     >>> " + ft + " >> " + ft.getParameters());
 
     private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl, JSONObject queryConfigDict,
                                                JSONObject userConfidence, int limitTargetSize, String annTaskId) throws IOException {
-        String species = ann.getSpecies();
-        if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + ann + " invalid: " + species);
+
+        //String iaClass = ann.getIAClass();
         boolean success = true;
         if (annTaskId == null) annTaskId = Util.generateUUID();
         JSONObject taskRes = new JSONObject();
@@ -759,23 +754,27 @@ System.out.println("+ starting ident task " + annTaskId);
             //TODO we might want to cache this examplars list (per species) yes?
 
             ///note: this can all go away if/when we decide not to need limitTargetSize
-            ArrayList<Annotation> exemplars = null;
+            ArrayList<Annotation> matchingSet = null;
             if (limitTargetSize > -1) {
-                exemplars = Annotation.getExemplars(species, myShepherd);
-                if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for species " + species);
-                if (exemplars.size() > limitTargetSize) {
-                    System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
-                    exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
+                matchingSet = ann.getMatchingSet(myShepherd);
+                if ((matchingSet == null) || (matchingSet.size() < 5)) {
+                    System.out.println("=======> Small matching set for this Annotation id= "+ann.getId());
+                    System.out.println("=======> Set size is: "+matchingSet.size());
+                    System.out.println("=======> Specific Epithet is: "+ann.findEncounter(myShepherd).getSpecificEpithet()+"    Genus is: "+ann.findEncounter(myShepherd).getGenus());   
                 }
-                taskRes.put("exemplarsSize", exemplars.size());
+                if (matchingSet.size() > limitTargetSize) {
+                    System.out.println("WARNING: limited identification matchingSet list size from " + matchingSet.size() + " to " + limitTargetSize);
+                    matchingSet = new ArrayList<Annotation>(matchingSet.subList(0, limitTargetSize));
+                }
+                taskRes.put("matchingSetSize", matchingSet.size());
             }
             /// end can-go-away
 
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
-            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
-                                                               myShepherd, species, annTaskId, baseUrl);
+            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
+                                                               myShepherd, annTaskId, baseUrl);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;
@@ -1040,7 +1039,7 @@ System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
             if (ann == null)  {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
             /////TODO fix how this opt gets set?  maybe???
             JSONObject opt = null;
-            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, ann.getSpecies(), opt);
+            JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
             JSONObject rtn = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, -1, null);
             /////// at this point, we can consider this current task done
             IBEISIA.setActiveTaskId(request, null);  //reset it so it can discovered when results come back
@@ -1256,7 +1255,6 @@ System.out.println("--- BEFORE _doIdentify() ---");
             System.out.println("ERROR: processCallbackQueueMessage() failed to parse JSON from " + message);
             return;
         }
- 
         //System.out.println("NOT YET IMPLEMENTED!  processCallbackQueueMessage got: " + message);
         IBEISIA.callbackFromQueue(jmsg);
     }

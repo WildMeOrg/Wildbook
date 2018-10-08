@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--M
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
@@ -42,7 +42,7 @@
 
 
 
-  <display-name>Shepherd Project Framework for Mark-Recapture Studies</display-name>
+  <display-name>Wildbook®</display-name>
   <description>
     Photo-identification Library
   </description>

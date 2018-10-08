@@ -3,6 +3,7 @@
 org.ecocean.media.*,
 org.ecocean.*,
 org.ecocean.identity.IBEISIA,
+org.ecocean.ia.Task,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
@@ -84,51 +85,6 @@ try {
 
   %><script>
 
-function isGenusSpeciesSet(asset) {
-	return (asset && asset.species);
-}
-
-var identTasks = [];
-function startIdentify(ma) {
-	//TODO this is tailored for flukebook basically.  see: Great Future Where Multiple IA Plugins Are Seemlessly Supported
-	_identAjax(ma);  //default; pattern-match
-	_identAjax(ma, { OC_WDTW: true });  //will do trailing edge match
-}
-
-function _identAjax(ma, opt) {
-	if (!ma) return _identCallback({ success: false, error: '_identAjax called with no MediaAsset' });
-	var aid = ma.annotationId;
-	if (!aid) return _identCallback({ success: false, error: '_identAjax called with no annotationId on asset', asset: ma });
-	var jdata = { identify: { annotationIds: [ aid ] }, enqueue: true };
-	//var jdata = { identify: { annotationIds: [ aid ], limitTargetSize: 10 } };  //debugging (small set to compare against)
-	if (opt) jdata.identify.opt = opt;
-	jQuery.ajax({
-		url: '../ia',
-		type: 'POST',
-		dataType: 'json',
-		contentType: 'application/javascript',
-		success: function(d) { _identCallback(d); },
-		error: function(x,y,z) {
-			console.warn('_identAjax error on %o: %o %o %o', ma, x, y, z);
-			_identCallback({ success: false, error: 'error ' + x});
-		},
-		data: JSON.stringify(jdata)
-	});
-}
-
-function _identCallback(res) {
-console.log("_identCallback got %o", res);
-	identTasks.push(res);
-	if (identTasks.length > 1) {
-console.info('completed _identAjax calls with %o', identTasks);
-		var ids = '';
-		for (var i = 0 ; i < identTasks.length ; i++) {
-			if (identTasks[i].success) ids += '&taskId=' + identTasks[i].taskId;
-		}
-		if (ids) window.location.href = 'matchResultsMulti.jsp?' + ids.substring(1);
-	}
-}
-
 
 function forceLink(el) {
 	var address = el.href;
@@ -136,33 +92,6 @@ function forceLink(el) {
 	el.stopPropagation();
 }
 
-/*
-		    jQuery.ajax({
-		      url: '../ia',
-		      type: 'POST',
-		      dataType: 'json',
-		      contentType: 'application/javascript',
-		      success: function(d) {
-		        console.info('identify returned %o', d);
-		        if (d.taskID) {
-				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
-		          window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
-		        } else {
-				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
-		        }
-		      },
-		      error: function(x,y,z) {
-				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
-		        console.warn('%o %o %o', x, y, z);
-		      },
-		      data: JSON.stringify({
-		        identify: { annotationIds: [ aid ] }
-		      })
-		    });
-		  }
-*/
-
-  //console.log("numEncs = <%=numEncs%>");
   </script>
   <%
   for(int f=0;f<numEncs;f++){
@@ -203,7 +132,18 @@ function forceLink(el) {
 		  		if (ma != null) {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
+                                                j.put("taxonomyString", enc.getTaxonomyString());
+                                                List<Task> tasks = ann.getRootIATasks(imageShepherd);
+                                                for (Task t : ma.getRootIATasks(imageShepherd)) {
+                                                    if (!tasks.contains(t)) tasks.add(t);
+                                                }
+                                                JSONArray jt = new JSONArray();
+                                                for (Task t : tasks) {
+                                                    jt.put(Util.toggleJSONObject(t.toJSONObject()));
+                                                }
+                                                j.put("tasks", jt);
 						j.put("annotationId", ann.getId());
+                                                j.put("annotationIdentificationStatus", ann.getIdentificationStatus());
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
@@ -441,11 +381,10 @@ jQuery(document).ready(function() {
 });
 
 function doImageEnhancer(sel) {
-    var loggedIn = wildbookGlobals.username && (wildbookGlobals.username != "");
     var opt = {
     };
 
-    if (loggedIn) {
+    if (!wildbook.user.isAnonymous()) {
         opt.debug = false;
         opt.menu = [
            <%
@@ -509,6 +448,7 @@ function doImageEnhancer(sel) {
 		]);
 	}
 */
+        wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%
 if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
 %>

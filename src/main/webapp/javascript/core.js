@@ -58,11 +58,6 @@ console.log('is %o', ajax);
 */
 
 
-    iaEnabled: function() {
-        //FIXME when IBEISIA is caught up to current
-        return (wildbookGlobals && wildbookGlobals.iaStatus && wildbookGlobals.iaStatus.map && wildbookGlobals.iaStatus.map.iaEnabled);
-    },
-
     // h/t http://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
     isValidDate: function(d) {
         if (Object.prototype.toString.call(d) !== "[object Date]") return false;
@@ -218,6 +213,11 @@ console.log('is %o', ajax);
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     },
 
+    // h/t https://davidwalsh.name/merge-arrays-javascript
+    arrayMerge: function(arr, append) {
+        Array.prototype.push.apply(arr, append);
+    },
+
     isValidEmailAddress: function(addr) {
         var regex = new RegExp(wildbookGlobals.validEmailRegexPattern);
         return regex.test(addr);
@@ -225,7 +225,17 @@ console.log('is %o', ajax);
 
     openInTab: function(url) {
         var win = window.open(url, '_blank');
-        win.focus();
+        if (win) win.focus();
+    },
+
+    //this is its own mess of stuff related to the logged in user
+    user: {
+        getUsername: function() {
+            return wildbookGlobals.username || null;
+        },
+        isAnonymous: function() {
+            return !wildbookGlobals.username;
+        }
     }
 
 };

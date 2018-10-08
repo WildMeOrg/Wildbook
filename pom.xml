@@ -635,26 +635,8 @@
 		    <artifactId>stanford-parser</artifactId>
 		    <version>3.9.1</version>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
-		<!--
-		<dependency>
-		    <groupId>net.sourceforge.tess4j</groupId>
-		    <artifactId>tess4j</artifactId>
-		    <version>3.4.0</version>
-		</dependency>
-		-->
-
-
-  <!-- natural date language processing-->
-  <!--
-  <dependency>
-    <groupId>com.joestelmach</groupId>
-    <artifactId>natty</artifactId>
-    <version>0.13</version>
-  </dependency>
-  -->
-      <!-- YouTube Data V3 support -->
+		
+  <!-- YouTube Data V3 support -->
       <!-- This dependency is only used for the Topics API sample, which requires the Jackson JSON parser -->
 <!--         
 		 <dependency>

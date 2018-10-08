@@ -461,9 +461,9 @@
       <field name="id" primary-key="true">
       </field>
 
-	<field name="scientificName" allows-null="false">
-		<index name="TAXONOMY_SCIENTIFICNAME_INDEX" unique="true" />
-	</field>
+    	<field name="scientificName" allows-null="false">
+	    	<index name="TAXONOMY_SCIENTIFICNAME_INDEX" unique="true" />
+    	</field>
 
       <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
     </class>
@@ -478,12 +478,25 @@
       <field name="id" primary-key="true">
         <column length="36"/>
       </field>
+
+      <field name="iaClass">
+        <column name="IACLASS"/>
+      </field>
+
+	<field name="acmId">
+		<column length="100"/>
+	</field>
 		<field name="isExemplar">
 <!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here: -->
 <!--			<column default-value="0" /> -->
 <!-- this is for postgresql-->
 			<column default-value="false" />
 
+		</field>
+
+		<field name="matchAgainst">
+			<column default-value="false" />
+			<index name="ANNOTATION_MATCHAGAINST_idx" />
 		</field>
 
             	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >

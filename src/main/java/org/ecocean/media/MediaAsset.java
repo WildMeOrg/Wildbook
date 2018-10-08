@@ -30,6 +30,8 @@ import org.ecocean.Util;
 import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Encounter;
+import org.ecocean.ia.Task;
+import org.ecocean.acm.AcmBase;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -133,6 +135,9 @@ public class MediaAsset implements java.io.Serializable {
     //private Double metaLatitude;
     //private Double metaLongitude;
 
+    private String acmId;
+
+
 
     /**
      * To be called by AssetStore factory method.
@@ -172,6 +177,13 @@ public class MediaAsset implements java.io.Serializable {
     }
     public void setAccessControl(HttpServletRequest request) {
         this.setAccessControl(new AccessControl(request));
+    }
+
+    public void setAcmId(String id) {
+        this.acmId = id;
+    }
+    public String getAcmId() {
+        return this.acmId;
     }
 
     private URL getUrl(final AssetStore store, final Path path) {
@@ -1263,6 +1275,10 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public boolean isValidChildType(String type) {
         if (store == null) return false;
         return store.isValidChildType(type);
+    }
+
+    public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
+        return Task.getRootTasksFor(this, myShepherd);
     }
 
 

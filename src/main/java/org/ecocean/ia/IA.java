@@ -266,5 +266,8 @@ System.out.println(i + " -> " + ma);
         }
     }
 
+    public static void log(String msg) {
+        System.out.println(new org.joda.time.DateTime() + " " + msg);
+    }
 
 }
