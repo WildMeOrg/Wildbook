@@ -26,7 +26,6 @@ import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.ia.Task;
-import org.ecocean.datacollection.*;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
 
