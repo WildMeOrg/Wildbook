@@ -2179,6 +2179,20 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (dt != null) setDateInMilliseconds(dt.getMillis());
     }
 
+    //this can(should?) fail in a lot of cases, since we may not know
+    public void setSpeciesFromAnnotations() {
+        if ((annotations == null) || (annotations.size() < 1)) return;
+        String[] sp = null;
+        for (Annotation ann : annotations) {
+            sp = IBEISIA.convertSpecies(annotations.get(0).getIAClass());
+            if (sp != null) break;  //use first one we get
+        }
+        //note: now we require (exactly) two parts ... please fix this, Taxonomy class!
+        if ((sp == null) || (sp.length != 2)) return;
+        this.setGenus(sp[0]);
+        this.setSpecificEpithet(sp[1]);
+    }
+
     //find the first one(s) we can
     public void setLatLonFromAssets() {
         if ((annotations == null) || (annotations.size() < 1)) return;

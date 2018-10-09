@@ -218,7 +218,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
             // I guess fall back on the species from ann if you don't find anything? Maybe you shouldn't... because detect shouldn't have anything to do 
             // with the human friendly "species", just ia class. Oh well, doing it anyway for now.. FIGHT ME ABOUT IT
             String iaClass = null;
-            if (ann.getIAClass()!=null&&!"".equals(ann.getIAClass())) {
+            if (Util.stringExists(ann.getIAClass())) {
                 iaClass = ann.getIAClass();
                 System.out.println("iaClass set from Annotation.");
             } else {
@@ -284,8 +284,7 @@ System.out.println("sendAnnotations(): sending " + ct);
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
                 continue;
             }
-            if (species == null) species = ann.getSpecies(myShepherd);
-
+            if (species == null) species = org.ecocean.ia.plugin.WildbookIAM.getIASpecies(ann, myShepherd);
             qlist.add(toFancyUUID(ann.getAcmId()));
 /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
             //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
@@ -786,6 +785,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         return beginIdentifyAnnotations(qanns, tanns, queryConfigDict, null, myShepherd, species, taskID, baseUrl);
     }
 
+/*  i think this method is unused???   -jon
     private static String getAnnotationSpeciesFromArray(ArrayList<Annotation> qanns, Shepherd myShepherd) {
         // Accept the species from the first Ann in the list, complain if inconsistancies. 
         String species = null;
@@ -802,6 +802,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         }
         return species;
     }
+*/
 
     // If you realllllly want to send species I'll just swallow it. 
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl) {
@@ -1259,7 +1260,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
     public static String[] convertSpecies(String iaClassLabel) {
         if (iaClassLabel == null) return null;
         if (speciesMap.containsKey(iaClassLabel)) return speciesMap.get(iaClassLabel);
-        return iaClassLabel.split("_| ");
+        return null;  //we FAIL now if no explicit mapping.... sorry
     }
 
     public static String getTaskType(ArrayList<IdentityServiceLog> logs) {

@@ -221,7 +221,8 @@ System.out.println("sendMediaAssets() -> " + rtn);
             map.get("image_uuid_list").add(iid);
             int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
-            map.get("annot_species_list").add(ann.getSpecies(myShepherd));
+//TODO both of these shepherd/db calls can probably be combined !!!  FIXME
+            map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
             map.get("annot_theta_list").add(ann.getTheta());
             String name = ann.findIndividualId(myShepherd);
             map.get("annot_name_list").add((name == null) ? "____" : name);
@@ -349,6 +350,16 @@ System.out.println("fromResponse ---> " + ids);
         }
     }
 
+    //this is used to give a string to IA for annot_species_list specifially
+    //  hence the term "IASpecies"
+    public static String getIASpecies(Annotation ann, Shepherd myShepherd) {
+        //NOTE: returning null here is probably "bad" btw....
+        org.ecocean.Encounter enc = ann.findEncounter(myShepherd);
+        if (enc == null) return null;
+        String ts = enc.getTaxonomyString();
+        if (ts == null) return null;
+        return ts.replaceAll(" ", "_");
+    }
 
     public String toString() {
         return new ToStringBuilder(this)

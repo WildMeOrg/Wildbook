@@ -76,6 +76,7 @@ public class IA {
         Task task = new Task();
         myShepherd.storeNewTask(task);
         task.setObjectMediaAssets(mas);
+        myShepherd.storeNewTask(task);
 
         //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
         JSONArray maArr = new JSONArray();
@@ -129,6 +130,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
                 tasks.add(t);
             }
         }
+        myShepherd.storeNewTask(topTask);
 
         //these are re-used in every task
         JSONArray annArr = new JSONArray();
