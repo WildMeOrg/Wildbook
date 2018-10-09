@@ -25,6 +25,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
+import org.ecocean.ia.Task;
 import org.ecocean.datacollection.*;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
@@ -366,18 +367,34 @@ public class Shepherd {
   }
 
 
-  public boolean storeNewTask(ScanTask task) {
-    //beginDBTransaction();
+  public boolean storeNewScanTask(ScanTask scanTask) {
+    beginDBTransaction();
     try {
-      pm.makePersistent(task);
+      pm.makePersistent(scanTask);
+      commitDBTransaction();
       return true;
     } catch (Exception e) {
-      System.out.println("I failed to store the new task number: " + task.getUniqueNumber());
+      rollbackDBTransaction();
+      e.printStackTrace();
+      System.out.println("I failed to store the new ScanTask number: " + scanTask.getUniqueNumber());
       return false;
     }
 
   }
 
+  public boolean storeNewTask(Task task) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(task);
+      commitDBTransaction();
+      return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      e.printStackTrace();
+      System.out.println("I failed to store the new IA Task with ID: " + task.getId());
+      return false;
+    }
+  }
 
   public boolean storeNewCollaboration(Collaboration collab) {
     beginDBTransaction();
