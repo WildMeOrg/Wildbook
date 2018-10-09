@@ -186,7 +186,8 @@ public class Collaboration implements java.io.Serializable {
 */
 	}
 	public static boolean canCollaborate(User u1, User u2, String context) {
-		return canCollaborate(context, u1.getUsername(), u2.getUsername());
+		return ( u1.hasSharing() && u2.hasSharing() &&
+			     canCollaborate(context, u1.getUsername(), u2.getUsername()));
 	}
 	public static boolean canCollaborate(String context, String u1, String u2) {
 		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
@@ -237,6 +238,19 @@ public class Collaboration implements java.io.Serializable {
 		}
 	}
 
+	// here "View" is a weaker action than "Access". 
+	// "View" means "you can see that the data exists but may not necessarily access the data"
+	public static boolean canUserViewOwnedObject(String ownerName, HttpServletRequest request, Shepherd myShepherd) {
+		User viewer = myShepherd.getUser(request);
+		User owner = myShepherd.getUser(ownerName);
+		return canUserViewOwnedObject(viewer, owner);
+	}
+
+	public static boolean canUserViewOwnedObject(User viewer, User owner) {
+		return (viewer!=null && 
+				viewer.hasSharing() && 
+				(owner==null || owner.hasSharing()));
+	}
 
 	public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
 		String context = ServletUtilities.getContext(request);

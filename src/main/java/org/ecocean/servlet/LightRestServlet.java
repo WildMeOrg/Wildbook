@@ -27,6 +27,8 @@ import java.util.StringTokenizer;
 
 import org.ecocean.ShepherdPMF;
 import org.ecocean.Util;
+import org.ecocean.Shepherd;
+import org.ecocean.security.Collaboration;
 // import each class we have capability for
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
@@ -86,6 +88,7 @@ public class LightRestServlet extends HttpServlet
 
     public static final NucleusLogger LOGGER_REST = NucleusLogger.getLoggerInstance("DataNucleus.REST");
 
+    Shepherd myShepherd;
     PersistenceManagerFactory pmf;
     PersistenceNucleusContext nucCtx;
     HttpServletRequest thisRequest;
@@ -216,13 +219,15 @@ public class LightRestServlet extends HttpServlet
     {
 
         System.out.println("        LIGHTREST: doGet called");
-      resp.setHeader("Access-Control-Allow-Origin", "*");
-      getPMF(req);
+        resp.setHeader("Access-Control-Allow-Origin", "*");
+        getPMF(req);
         // Retrieve any fetch group that needs applying to the fetch
         String fetchParam = req.getParameter("fetch");
 
-                String encodings = req.getHeader("Accept-Encoding");
-                boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
+        String encodings = req.getHeader("Accept-Encoding");
+        boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
+
+        myShepherd = new Shepherd(req);
 
         try
         {
@@ -923,7 +928,7 @@ System.out.println(thisRequest);
 
             if (isEnc) {
 
-                JSONObject jobj = getEncLightJson((Encounter) obj);
+                JSONObject jobj = getEncLightJson((Encounter) obj, req);
                 return jobj;
 
             }
@@ -1006,7 +1011,13 @@ System.out.println("??? TRY COMPRESS ??");
             thisRequest = req;
         }
 
-        private JSONObject getEncLightJson(Encounter enc) {
+        private JSONObject getEncLightJson(Encounter enc, HttpServletRequest req) {
+
+            if (!Collaboration.canUserViewOwnedObject(enc.getSubmitterID(), req, myShepherd)) return null;
+
+            // would be time to check for viewing permissions
+
+
             JSONObject jobj = new JSONObject();
             for (String fieldName: Encounter_Light_Str_Fields) {
                 try {

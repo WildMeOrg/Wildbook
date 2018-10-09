@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.*" %>
 
 
 
@@ -60,8 +60,10 @@
     request.setAttribute("gpsOnly", "yes");
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
-    
 
+    // security
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+    rEncounters = hiddenData.securityScrubbedResults(rEncounters);
     		
     		
   %>
