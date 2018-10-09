@@ -714,6 +714,23 @@ function fetchProgress(ev) {
 console.info(percent);
 }
 
+// a functor!
+function _notUndefined(fieldName) {
+  function _helperFunc(o) {	
+    if (o[fieldName] == undefined) return '';
+    return o[fieldName];
+  }
+  return _helperFunc;
+}
+// non-functor version!
+function _notUndefinedValue(obj, fieldName) {
+  function _helperFunc(o) {	
+    if (o[fieldName] == undefined) return '';
+    return o[fieldName];
+  }
+  return _helperFunc(obj);
+}
+
 
 function _colIndividual(o) {
 	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
@@ -747,10 +764,9 @@ function _colNumberLocations(o) {
 
 
 function _colTaxonomy(o) {
-	var animal = 'n/a';
-	if (o.get('genus')) return o.get('genus');
-	if (o.get('specificEpithet')) return o.get('specificEpithet');
-	return 'n/a';
+	var genus = _notUndefinedValue(o, 'genus');
+	var species = _notUndefinedValue(o, 'species');
+	return genus+' '+species;
 }
 
 function _occurrenceID(o) {
@@ -781,13 +797,10 @@ function _colModified(o) {
 }
 
 function _submitterID(o) {
-	var submitterID = o.get('submitterID');
-	var submitterProject = o.get('submitterProject');
-	var submitterName = o.get('submitterName');
-	var m = o.get('submitterProject');
-	if (!m || /^\s*$/.test(m)) m = o.get('submitterName');
-	if (!m || /^\s*$/.test(m)) m = o.get('submitterID');
-	return m;
+	if (o['submitterID']      != undefined) return o['submitterID'];
+	if (o['submitterProject'] != undefined) return o['submitterProject'];
+	if (o['submitterName']    != undefined) return o['submitterName'];
+	return '';
 }
 
 function _textExtraction(n) {
@@ -897,10 +910,6 @@ function _colEncDateSort(o) {
 //	return d.getTime();
 //}
 
-function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
-}
 
 function _colFileName(o) {
   if (!o.get('annotations')) return 'none';

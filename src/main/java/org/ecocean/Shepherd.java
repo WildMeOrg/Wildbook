@@ -102,6 +102,10 @@ public class Shepherd {
     }
   }
 
+  public Shepherd(HttpServletRequest req) {
+    this(ServletUtilities.getContext(req));
+  }
+
     public String getContext() {
         return localContext;
     }

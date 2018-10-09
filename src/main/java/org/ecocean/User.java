@@ -41,17 +41,19 @@ public class User implements Serializable {
 
   private long lastLogin=-1;
   
-  	private String username;
-  	private String password ;
-  	private String salt;
-  	private String uuid;
+	private String username;
+	private String password ;
+	private String salt;
+	private String uuid;
+	
+	//String currentContext;
   	
-  	//String currentContext;
-  	
-  	
-  	private boolean acceptedUserAgreement=false;
+  private boolean acceptedUserAgreement=false;
   
   private boolean receiveEmails=true; 
+
+  // turning this off means the user is greedy and mean: they never share data and nobody ever shares with them
+  private Boolean sharing=true;
 
 	private HashMap<String,String> social;
   	
@@ -197,7 +199,14 @@ public class User implements Serializable {
     return this.dateInMilliseconds;
   }
 
-
+  public boolean hasSharing() {
+    // if you haven't specified a sharing policy YOU'RE SHARING
+    if (sharing==null) return true;
+    return sharing;
+  }
+  public void setSharing(boolean sharing) {
+    this.sharing = sharing;
+  }
 
 
   	public long getUserID() {

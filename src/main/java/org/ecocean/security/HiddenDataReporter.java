@@ -1,5 +1,6 @@
 package org.ecocean.security;
 
+import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.MarkedIndividual;
@@ -40,12 +41,25 @@ abstract class HiddenDataReporter<T> {
 	protected final HttpServletRequest request; // the whole thing only makes sense in the context of a request (which has attached user object)
 	public final String className; // frustrating that I can't figure out how to get this generically from <T>
 
+	// so we don't have to make a new Shepherd for each canUserView call
+	protected Shepherd myShepherd;
 
+	// for when you're only viewing data in a table e.g. searchResults
+	// (if viewOnly we care about canUserViewObject, if !viewOnly we care about canUserAccessObject)
+	boolean viewOnly;
 	public HiddenDataReporter(String className, Vector tObjectsToFilter, HttpServletRequest request) {
+		this(className, tObjectsToFilter, request, false);
+	}
+	public HiddenDataReporter(String className, Vector tObjectsToFilter, HttpServletRequest request, boolean viewOnly) {
 		this.className = className;
 		this.request = request;
+		this.myShepherd = new Shepherd(request);
 		this.hiddenIdsToOwners = new HashMap<String,String>();
-		if (tObjectsToFilter!=null) this.loadAllByPermission(tObjectsToFilter);
+		this.viewOnly = viewOnly;
+		if (tObjectsToFilter!=null) {
+			if (viewOnly) this.loadAllViewable(tObjectsToFilter);
+			else this.loadAllByPermission(tObjectsToFilter);
+		}
 	}
 
 	// if you just want to scrub the search results vector
@@ -63,12 +77,30 @@ abstract class HiddenDataReporter<T> {
 	public Vector securityScrubbedResults(Vector tObjectsToFilter) {
 		return securityScrubbedResults(tObjectsToFilter, false);
 	}
+	public Vector viewableResults(Vector tObjectsToFilter) {
+		return viewableResults(tObjectsToFilter, false);
+	}
+	public Vector viewableResults(Vector tObjectsToFilter, boolean hiddenIdsToOwnersIsValid) {
+		if (!hiddenIdsToOwnersIsValid) loadAllViewable(tObjectsToFilter);
+		Vector cleanResults = new Vector();
+		for (Object untypedObj: tObjectsToFilter) {
+			T typedObj = (T) untypedObj;
+			// if hiddenData doesn't contain the object, add it to clean results
+			if (!this.contains(typedObj)) cleanResults.add(untypedObj);
+		}
+		return cleanResults;
+	}
 	// since different WB objects use diff conventions
 	// the HiddenDataReporter logic is the same for all inheriting classes and built from
 	// these basic pieces. You can make a HDR for anything with these methods.
 	abstract protected String getOwnerUsername(T elem);
 	abstract protected String getDatabaseId(T elem);
 	abstract protected boolean canUserAccess(T elem);
+	protected boolean canUserView(T elem) {
+		String ownerName = getOwnerUsername(elem);
+		return Collaboration.canUserViewOwnedObject(ownerName, request, myShepherd);
+	}
+
 	// getCollabUrl directs the search user (who submitted req) to a page where they
 	// can initialize a collaboration with the data owner (of databaseId). This way we don't have
 	// to reveal contact info in exports, and leave collaboration-initialization
@@ -95,6 +127,15 @@ abstract class HiddenDataReporter<T> {
 			if (!canUserAccess(dataPoint)) this.add(dataPoint);
 		}
 	}
+
+	// calls 'add' on each of tObjects depending on canUserView
+	public void loadAllViewable(Vector tObjects) {
+		for (Object tObject: tObjects) {
+			T dataPoint = (T) tObject;
+			if (!canUserView(dataPoint)) this.add(dataPoint);
+		}
+	}
+
 
 	// total number of hidden objects
 	public int size() {
