@@ -25,7 +25,9 @@ src/main/caribwhale_data_dir
 /src/main/webapp/javascript/git-info.json
 .vscode/
 *.swp
-
 \.classpath
-
+.classpath
+\.factorypath
+.factorypath 
+.settings
 catalina.base_IS_UNDEFINED
