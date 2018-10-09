@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.HiddenIndividualReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 
 
@@ -73,6 +73,9 @@
 	    MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
 	    rIndividuals = result.getResult();
 	
+		// viewOnly=true arg means this hiddenData relates to viewing the summary results
+		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true);
+		rIndividuals = hiddenData.viewableResults(rIndividuals, true);
 	
 	    if (rIndividuals.size() < listNum) {
 	      listNum = rIndividuals.size();

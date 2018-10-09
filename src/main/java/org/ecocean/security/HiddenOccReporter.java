@@ -8,9 +8,13 @@ public class HiddenOccReporter extends HiddenDataReporter<Occurrence> {
 	
 	protected static final String className = "Occurrence";
 
+	public HiddenOccReporter(Vector tObjectsToFilter, HttpServletRequest request, boolean viewOnly) {
+		super(className, tObjectsToFilter, request, viewOnly);
+	}
 	public HiddenOccReporter(Vector tObjectsToFilter, HttpServletRequest request) {
 		super(className, tObjectsToFilter, request);
 	}
+
 
 	// atomic methods that HiddenDataReporter methods call
 	protected String getOwnerUsername(Occurrence occ) {

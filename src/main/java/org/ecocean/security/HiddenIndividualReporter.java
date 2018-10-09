@@ -8,6 +8,9 @@ public class HiddenIndividualReporter extends HiddenDataReporter<MarkedIndividua
 
 	protected static final String className = "Individual";
 
+	public HiddenIndividualReporter(Vector tObjectsToFilter, HttpServletRequest request, boolean viewOnly) {
+		super(className, tObjectsToFilter, request, viewOnly);
+	}
 	public HiddenIndividualReporter(Vector tObjectsToFilter, HttpServletRequest request) {
 		super(className, tObjectsToFilter, request);
 	}
