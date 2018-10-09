@@ -1,7 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
-	      org.ecocean.media.MediaAsset,
+	            org.ecocean.media.MediaAsset,
+              org.ecocean.security.HiddenIndividualReporter,
               java.util.ArrayList,
               java.util.List,
               java.util.Map,
@@ -132,6 +133,9 @@ else{
 
 }
 
+// security
+HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
+rIndividuals = hiddenData.viewableResults(rIndividuals);
 
 
 if (rIndividuals.size() < listNum) {
