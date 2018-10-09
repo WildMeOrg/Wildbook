@@ -22,6 +22,9 @@ public class HiddenEncReporter extends HiddenDataReporter<Encounter> {
 	protected boolean canUserAccess(Encounter enc) {
 		return enc.canUserAccess(this.request);
 	}
+	protected boolean canUserView() {
+		
+	}
 	public String getCollabUrl (String encId ) {
 		return Encounter.getWebUrl(encId, this.request);
 	}
