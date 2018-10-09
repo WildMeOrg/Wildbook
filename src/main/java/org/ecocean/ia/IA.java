@@ -74,8 +74,8 @@ public class IA {
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
         if ((mas == null) || (mas.size() < 1)) return null;
         Task task = new Task();
-        myShepherd.storeNewTask(task);
         task.setObjectMediaAssets(mas);
+        myShepherd.storeNewTask(task);
 
         //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
         JSONArray maArr = new JSONArray();
@@ -105,7 +105,6 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
         if ((anns == null) || (anns.size() < 1)) return null;
         Task topTask = new Task();
-        myShepherd.storeNewTask(topTask);
         topTask.setObjectAnnotations(anns);
         String context = myShepherd.getContext();
 
@@ -129,6 +128,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
                 tasks.add(t);
             }
         }
+        myShepherd.storeNewTask(topTask);
 
         //these are re-used in every task
         JSONArray annArr = new JSONArray();
