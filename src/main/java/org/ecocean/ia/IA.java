@@ -75,6 +75,7 @@ public class IA {
         if ((mas == null) || (mas.size() < 1)) return null;
         Task task = new Task();
         task.setObjectMediaAssets(mas);
+        myShepherd.storeNewTask(task);
 
         //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
         JSONArray maArr = new JSONArray();
@@ -127,6 +128,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
                 tasks.add(t);
             }
         }
+        myShepherd.storeNewTask(topTask);
 
         //these are re-used in every task
         JSONArray annArr = new JSONArray();
@@ -170,6 +172,7 @@ System.out.println("JIN JIN JIN: " + jin);
         String taskId = jin.optString("taskId", Util.generateUUID());
         Task topTask = Task.load(taskId, myShepherd);
         if (topTask == null) topTask = new Task(taskId);
+        myShepherd.storeNewTask(topTask);
         JSONObject opt = jin.optJSONObject("opt");  // should use this to decide how to branch differently than "default"
 
         //for now (TODO) we just send MAs off to detection and annots off to identification
@@ -204,8 +207,6 @@ System.out.println(i + " -> " + ma);
             System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
             topTask.addChild(atask);
         }
-        myShepherd.getPM().makePersistent(topTask);
-        myShepherd.commitDBTransaction();
     }
 
     //via IAGateway servlet, we handle the work

@@ -538,7 +538,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         Task task = Task.load(taskId, myShepherd);
         if (task == null) task = new Task(taskId);
         task.setParameters(j.optJSONObject("taskParameters")); //optional
-        myShepherd.getPM().makePersistent(task);
+        myShepherd.storeNewTask(task);
         myShepherd.commitDBTransaction();  //hack
         //myShepherd.closeDBTransaction();
 

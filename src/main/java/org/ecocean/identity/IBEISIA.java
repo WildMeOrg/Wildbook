@@ -1321,8 +1321,7 @@ System.out.println("     ---> " + annIds);
                 Task task = IA.intakeAnnotations(myShepherd2, needIdentifying);
                 rtn.put("identificationTaskId", task.getId());
                 if (parentTask != null) parentTask.addChild(task);
-                myShepherd2.getPM().makePersistent(task);
-                myShepherd2.commitDBTransaction();
+                myShepherd2.storeNewTask(task);
             } else {
                 myShepherd2.rollbackDBTransaction();
             }

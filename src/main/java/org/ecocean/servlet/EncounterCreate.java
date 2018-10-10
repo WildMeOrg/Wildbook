@@ -249,7 +249,7 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
             }
             if (allMAs.size() > 0) {
                 Task task = IA.intakeMediaAssets(myShepherd, allMAs);
-                myShepherd.getPM().makePersistent(task);
+                myShepherd.storeNewTask(task);
                 rtn.put("IATaskId", task.getId());
             }
             myShepherd.commitDBTransaction();
