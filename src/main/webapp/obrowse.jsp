@@ -47,6 +47,17 @@ java.util.Properties" %>
 		return h + "</ul></div>";
 	}
 
+	private String showAltAnnotations(ArrayList<Annotation> anns) {
+		if (anns.size()<=1) return ""; 
+		String alternatives = "<div><p>Other Annotations that share this ACM ID:</p>";
+		alternatives += "<ul>";
+		for (Annotation ann : anns) {
+			alternatives += "<li>Annotation: <a href=\"?type=Annotation&id="+ann.getId()+"\">"+ann.getId()+"</a></li>";
+		}
+		alternatives += "</ul></div>";
+		return alternatives;
+	}
+
 	private String showAnnotation(Annotation ann) {
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
@@ -54,6 +65,9 @@ java.util.Properties" %>
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
 		h += "<li>iaClass: <b>" + ((ann.getIAClass() == null) ? "[null]" : ann.getIAClass()) + "</b></li>";
         h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
+		if (ann.getAcmId()!=null) {
+			h += "<li>ACM Id: <b>"+ann.getAcmId()+"</b></li>";
+		}
 		h += "<li>features: " + showFeatureList(ann.getFeatures()) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd)) + "</li>";
 		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset()) + "</li>";
@@ -149,6 +163,9 @@ java.util.Properties" %>
 		h += "<li>store: <b>" + ma.getStore() + "</b></li>";
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
+		if (ma.getAcmId()!=null) {
+			h += "<li>AcmId: " + ma.getAcmId() + "</li>";
+		} 
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
@@ -166,6 +183,9 @@ java.util.Properties" %>
 
 String id = request.getParameter("id");
 String type = request.getParameter("type");
+
+// IA debuggin use.. Can retrieve Annotations 
+String acmId = request.getParameter("acmId");
 
 if (!rawOutput(type)) {
 %>
@@ -301,12 +321,23 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("Annotation")) {
-	try {
-		Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true)));
-		out.println(showAnnotation(ann));
-	} catch (Exception ex) {
-		out.println("<p>ERROR: " + ex.toString() + "</p>");
-		needForm = true;
+	if (id!=null&&acmId==null) {
+		try {
+			Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true)));
+			out.println(showAnnotation(ann));
+		} catch (Exception ex) {
+			out.println("<p>ERROR: " + ex.toString() + "</p>");
+			needForm = true;
+		}
+	} else if (acmId!=null) {
+		try {
+			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
+			out.println(showAltAnnotations(anns));
+			out.println(showAnnotation(anns.get(0)));
+		} catch (Exception e) {
+			out.println("<p>ERROR: " + e.toString() + "</p>");
+			needForm = true;
+		}
 	}
 
 } else if (type.equals("Task")) {
