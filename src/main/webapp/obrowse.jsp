@@ -167,6 +167,9 @@ java.util.Properties" %>
 String id = request.getParameter("id");
 String type = request.getParameter("type");
 
+// IA debuggin use.. Can retrieve Annotations 
+String acmId = request.getParameter("acmId");
+
 if (!rawOutput(type)) {
 %>
 <html><head><title>obrowse</title>
@@ -301,12 +304,22 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("Annotation")) {
-	try {
-		Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true)));
-		out.println(showAnnotation(ann));
-	} catch (Exception ex) {
-		out.println("<p>ERROR: " + ex.toString() + "</p>");
-		needForm = true;
+	if (id!=null&&acmId==null) {
+		try {
+			Annotation ann = myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true)));
+			out.println(showAnnotation(ann));
+		} catch (Exception ex) {
+			out.println("<p>ERROR: " + ex.toString() + "</p>");
+			needForm = true;
+		}
+	} else if (acmId!=null) {
+		try {
+			Annotation ann = myShepherd.getAnnotationWithACMId(acmId);
+			out.println(showAnnotation(ann));
+		} catch (Exception e) {
+			out.println("<p>ERROR: " + ex.toString() + "</p>");
+			needForm = true;
+		}
 	}
 
 } else if (type.equals("Task")) {

@@ -4266,6 +4266,15 @@ public class Shepherd {
     return al;
   }
 
+  public ArrayList<Annotation> getAnnotationWithACMId(String acmId){
+    String filter="SELECT FROM org.ecocean.Annotation WHERE acmId == \""+acmId+"\" ";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    ArrayList<Annotation> al=new ArrayList<Annotation>(c);
+    query.closeAll();
+    return al;
+  }
+
   //used to describe where this Shepherd is and what it is supposed to be doing
   public void setAction(String newAction){
 
