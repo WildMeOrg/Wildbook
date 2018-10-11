@@ -1519,7 +1519,8 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         for (int i = 0 ; i < ids.length ; i++) {
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, ids[i]), true)));
 System.out.println("**** " + ann);
-            if (ann != null) anns.put(ids[i], ann);
+System.out.println("****** ACMID for this ann = "+ann.getAcmId());
+            if (ann != null) anns.put(ann.getAcmId(), ann);
         }
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
@@ -1546,11 +1547,11 @@ System.out.println("**** " + ann);
                 //NOTE: it *seems like* annot_uuid_1 is *always* the member that is from the query_annot_uuid_list... but?? is it? NOTE: Mark and Chris assumed this was true in the line below that looks like String matchUuid = rlist.getJSONObject(i).optJSONObject("annot_uuid_2");
 
                 //NOTE: will the review_pair_list and confidence_list always be in descending order? IF not, then TODO we'll have to only select the best match (what if there's more than one really good match)
-                String annId = fromFancyUUID(rlist.getJSONObject(i).getJSONObject("annot_uuid_1"));  //gets not opts here... so ungraceful fail possible
-                if (!needReviewMap.containsKey(annId)) needReviewMap.put(annId, false); //only set first, so if set true it stays true
+                String acmId = fromFancyUUID(rlist.getJSONObject(i).getJSONObject("annot_uuid_1"));  //gets not opts here... so ungraceful fail possible
+                if (!needReviewMap.containsKey(acmId)) needReviewMap.put(acmId, false); //only set first, so if set true it stays true
                 if (needIdentificationReview(rlist, clist, i, context)) {
                     needReview = true;
-                    needReviewMap.put(annId, true);
+                    needReviewMap.put(acmId, true);
                 }
             }
         }
@@ -1565,7 +1566,7 @@ System.out.println("**** " + ann);
             jlog.put("needReviewMap", needReviewMap);
             for (String id : needReviewMap.keySet()) {
                 if (!anns.containsKey(id)) {
-                    System.out.println("WARNING: processCallbackIdentify() unable to load Annotation " + id + " to set identificationStatus");
+                    System.out.println("WARNING: processCallbackIdentify() unable to load Annotation with ACMID " + id + " to set identificationStatus");
                 } else {
                     anns.get(id).setIdentificationStatus(STATUS_PENDING);
                 }
