@@ -143,10 +143,14 @@ public class Task implements java.io.Serializable {
     }
     //convenience method to construct the JSONObject from key/value
     public void setParameters(String key, Object value) {
-        if (key == null) return;  //nope
-        JSONObject j = new JSONObject();
-        j.put(key, value);  //value object type better be kosher for JSONObject.  :/
-        parameters = j.toString();
+        try {
+            if (key == null) return;  //nope
+            JSONObject j = new JSONObject();
+            j.put(key, value);  //value object type better be kosher for JSONObject.  :/
+            parameters = j.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public JSONObject toJSONObject() {
