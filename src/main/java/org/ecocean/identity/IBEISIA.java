@@ -1331,7 +1331,7 @@ System.out.println("**** type ---------------> [" + type + "]");
                     String maId = (String) keys.next();
 System.out.println("maId -> " + maId);
                     JSONArray annIds = newAnns.optJSONArray(maId);
-                    if (annIds == null) continue;
+                    if (annIds == null) continue;   
 System.out.println("     ---> " + annIds);
                     for (int i = 0 ; i < annIds.length() ; i++) {
                         String aid = annIds.optString(i, null);
@@ -3409,12 +3409,12 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
     }
     public static JSONObject sendMediaAssetsNew(ArrayList<MediaAsset> mas, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         WildbookIAM plugin = getPluginInstance(context);
-        System.out.println("---------------------> sendMediaAssetsNew got: "+mas+" Using context: "+context);
+        //System.out.println("---------------------> sendMediaAssetsNew got: "+mas+" Using context: "+context);
         return plugin.sendMediaAssets(mas, true);
     }
     public static JSONObject sendAnnotationsNew(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         WildbookIAM plugin = getPluginInstance(context);
-        System.out.println("---------------------> sendAnnotationsNew got: "+anns+" Using context: "+context);
+        //System.out.println("---------------------> sendAnnotationsNew got: "+anns+" Using context: "+context);
         return plugin.sendAnnotations(anns, true);
     }
 
