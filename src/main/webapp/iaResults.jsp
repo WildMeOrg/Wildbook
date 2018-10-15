@@ -11,8 +11,8 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 String context = ServletUtilities.getContext(request);
 
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
-if (request.getParameter("annotId") != null) {
-	String annId = request.getParameter("annotId");
+if (request.getParameter("acmId") != null) {
+	String acmId = request.getParameter("acmId");
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
@@ -20,13 +20,14 @@ if (request.getParameter("annotId") != null) {
 	JSONObject rtn = new JSONObject("{\"success\": false}");
 	//Encounter enc = null;
 	try {
-        	ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
+        	ann = myShepherd.getAnnotationsWithACMId(acmId);
 	} catch (Exception ex) {}
 	if (ann == null) {
+		console.log('Could not retrieve an Annotation with this acmId: '+acmId);
 		rtn.put("error", "unknown error");
 	} else {
 		rtn.put("success", true);
-		rtn.put("annId", annId);
+		rtn.put("annId", ann.getId());
 		MediaAsset ma = ann.getMediaAsset();
 		if (ma != null) {
 			rtn.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
@@ -380,23 +381,29 @@ function showTaskResult(res, taskId) {
 	}
 }
 
+// Fix the acmId ---> annotID situation here. 
+function displayAnnot(taskId, acmId, num, score) {
+console.info('%d ===> %s', num, acmId);
+console.info('Looking for acmId...');
 
-function displayAnnot(taskId, annId, num, score) {
-console.info('%d ===> %s', num, annId);
-	var h = '<div data-annid="' + annId + '" class="annot-summary annot-summary-' + annId + '">';
-	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
-	var perCol = Math.ceil(RESMAX / 3);
-	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
-	//now the image guts
-	h = '<div title="annotId=' + annId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + annId + '">';
-	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
-	$('#task-' + taskId).append(h);
 	$.ajax({
-		url: 'iaResults.jsp?annotId=' + annId,  //hacktacular!
+		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
 		complete: function(d) { displayAnnotDetails(taskId, d, num); }
 	});
+
+
+	var h = '<div data-annid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
+	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
+	var perCol = Math.ceil(RESMAX / 3);
+	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
+
+
+	//now the image guts
+	h = '<div title="annotId=' + acmId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
+	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
+	$('#task-' + taskId).append(h);
 }
 
 function displayAnnotDetails(taskId, res, num) {

@@ -17,7 +17,7 @@ wildbook.IA = {
     //  this string is used to find sub-object under this IA, e.g. wildbook.IA.IBEIS.js
     getPluginType: function(task) {
         if (!task) return false;
-console.info('>>>>> %o', task);
+//console.info('>>>>> %o', task);
         if (typeof task.parameters != 'object') return '__NULL__';
 
         //TODO fix weakness that earlier plugins can basically hijack this logic (possible fix: let everyone vote etc?)
