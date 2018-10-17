@@ -387,6 +387,7 @@ function showTaskResult(res, taskId) {
 	}
 }
 
+// Fix the acmId ---> annotID situation here. 
 
 function displayAnnot(taskId, acmId, num, score) {
 console.info('%d ===> %s', num, acmId);
@@ -394,12 +395,14 @@ console.info('%d ===> %s', num, acmId);
 	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
+
+
 	//now the image guts
 	h = '<div title="acmId=' + acmId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 	$('#task-' + taskId).append(h);
 	$.ajax({
-		url: 'iaResults2.jsp?acmId=' + acmId,  //hacktacular!
+		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
 		complete: function(d) { displayAnnotDetails(taskId, d, num); }
@@ -702,3 +705,4 @@ function approveNewIndividual(el) {
 
 
 </script>
+

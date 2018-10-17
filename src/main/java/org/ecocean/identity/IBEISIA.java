@@ -1337,7 +1337,7 @@ System.out.println("**** type ---------------> [" + type + "]");
                     String maId = (String) keys.next();
 System.out.println("maId -> " + maId);
                     JSONArray annIds = newAnns.optJSONArray(maId);
-                    if (annIds == null) continue;
+                    if (annIds == null) continue;   
 System.out.println("     ---> " + annIds);
                     for (int i = 0 ; i < annIds.length() ; i++) {
                         String aid = annIds.optString(i, null);

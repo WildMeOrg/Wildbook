@@ -1017,7 +1017,6 @@ System.out.println("depth --> " + fv.get("depth").toString());
             String newnum = "";
             if (!spamBot) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
-                //enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
                 enc.refreshAssetFormats(myShepherd);
 
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
@@ -1027,6 +1026,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+                org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
             }
 
       if (newnum.equals("fail")) {
