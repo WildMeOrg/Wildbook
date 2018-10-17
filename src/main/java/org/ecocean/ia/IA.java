@@ -106,28 +106,28 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
         if ((anns == null) || (anns.size() < 1)) return null;
         Task topTask = new Task();
-        myShepherd.storeNewTask(topTask);
         topTask.setObjectAnnotations(anns);
         String context = myShepherd.getContext();
-
+        
         /*
-            what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
-            for this we use IBEISIA.identOpts to decide how many flavors of identification we need to do!   if have more than
-            one we need to make a set of subtasks
+        what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
+        for this we use IBEISIA.identOpts to decide how many flavors of identification we need to do!   if have more than
+        one we need to make a set of subtasks
         */
         List<JSONObject> opts = IBEISIA.identOpts(context);
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
         if (opts.size() == 1) {
-            topTask.setParameters("ibeis.identification", opts.get(0));
+            topTask.setParameters("{\"ibeis.identification\": null}");
             tasks.add(topTask);  //topTask will be used as *the*(only) task -- no children
         } else {
             for (int i = 0 ; i < opts.size() ; i++) {
                 Task t = new Task();
                 t.setObjectAnnotations(anns);
-                t.setParameters("ibeis.identification", opts.get(i));
+                t.setParameters("{\"ibeis.identification\": null}");
                 topTask.addChild(t);
                 tasks.add(t);
+                myShepherd.storeNewTask(topTask);
             }
         }
         myShepherd.storeNewTask(topTask);
@@ -173,8 +173,14 @@ System.out.println("JIN JIN JIN: " + jin);
         myShepherd.beginDBTransaction();
         String taskId = jin.optString("taskId", Util.generateUUID());
         Task topTask = Task.load(taskId, myShepherd);
-        if (topTask == null) topTask = new Task(taskId);
-        myShepherd.storeNewTask(topTask);
+        if (topTask == null) {
+            topTask = new Task(taskId);
+            myShepherd.storeNewTask(topTask);
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> topTask null in IA.handleRest() method... Creating new.");
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> This was the one that doesn't show associations..   ");
+        } else {
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> handleRest was able to retrieve an existing task!");
+        }
         JSONObject opt = jin.optJSONObject("opt");  // should use this to decide how to branch differently than "default"
 
         //for now (TODO) we just send MAs off to detection and annots off to identification

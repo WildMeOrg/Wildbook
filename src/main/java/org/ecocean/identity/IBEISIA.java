@@ -1018,21 +1018,27 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     //this finds the *most recent* taskID associated with this IBEIS-IA jobID
     public static String findTaskIDFromJobID(String jobID, String context) {
       Shepherd myShepherd=new Shepherd(context);
+      System.out.println("============================= TASK ID IN findTaskIDFromJobID ===========");
+      System.out.println("============================= jobID= "+jobID+"   context= "+context+" ===========");
+      System.out.println("");
       myShepherd.setAction("IBEISIA.findTaskIDFromJobID");
       myShepherd.beginDBTransaction();
       ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByServiceJobID(SERVICE_NAME, jobID, myShepherd);
         if (logs == null) {
+	  System.out.println("======================== LOGS WERE NULL FOR THIS JOB! ========================");
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
           return null;
         }
         for (int i = logs.size() - 1 ; i >= 0 ; i--) {
-            if (logs.get(i).getTaskID() != null) {
+            if (logs.get(i).getTaskID() != null) {	
               String id=logs.get(i).getTaskID();
               myShepherd.rollbackDBTransaction();
               myShepherd.closeDBTransaction();
-              return id;
+              System.out.println("======================= LOGS SIZE: "+logs.size()+" ==== ID???= "+id+" =================="); 
+	      return id;
             }  //get first one we find. too bad!
+	    
         }
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
@@ -3409,12 +3415,12 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
     }
     public static JSONObject sendMediaAssetsNew(ArrayList<MediaAsset> mas, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         WildbookIAM plugin = getPluginInstance(context);
-        System.out.println("---------------------> sendMediaAssetsNew got: "+mas+" Using context: "+context);
+        //System.out.println("---------------------> sendMediaAssetsNew got: "+mas+" Using context: "+context);
         return plugin.sendMediaAssets(mas, true);
     }
     public static JSONObject sendAnnotationsNew(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         WildbookIAM plugin = getPluginInstance(context);
-        System.out.println("---------------------> sendAnnotationsNew got: "+anns+" Using context: "+context);
+        //System.out.println("---------------------> sendAnnotationsNew got: "+anns+" Using context: "+context);
         return plugin.sendAnnotations(anns, true);
     }
 
