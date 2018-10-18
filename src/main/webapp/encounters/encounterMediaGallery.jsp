@@ -33,7 +33,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd imageShepherd = new Shepherd(context);
 imageShepherd.setAction("encounterMediaGallery.jsp");
-boolean loggedIn = imageShepherd.isUserLoggedIn(request);
+boolean isUserLoggedIn = imageShepherd.isUserLoggedIn(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
 String encNum="";
