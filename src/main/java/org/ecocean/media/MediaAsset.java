@@ -474,6 +474,20 @@ public class MediaAsset implements java.io.Serializable {
         return store.cacheLocal(this, force);
     }
 
+    public void refresh(Shepherd myShepherd) {
+        try {
+            myShepherd.getPM().refresh(this);
+        } catch (Exception e) {e.printStackTrace();}
+    }
+
+    public void refreshIfLoggedIn(Shepherd myShepherd, boolean userLoggedIn) {
+        if (userLoggedIn) {
+            try {
+                myShepherd.getPM().refresh(this);
+            } catch (Exception e) {e.printStackTrace();}
+        }
+    }
+
     //indisputable attributes about the image (e.g. type, dimensions, colorspaces etc)
     // this is (seemingly?) always derived from MediaAssetMetadata, so .. yeah. make sure that is set (see note by getMetadata() )
     public ImageAttributes getImageAttributes() {
