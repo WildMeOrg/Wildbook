@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,
-org.json.JSONObject,
+org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 org.ecocean.identity.IdentityServiceLog,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
@@ -16,22 +16,28 @@ if (request.getParameter("acmId") != null) {
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
-       	Annotation ann = null;
+       	ArrayList<Annotation> anns = null;
 	JSONObject rtn = new JSONObject("{\"success\": false}");
 	//Encounter enc = null;
 	try {
-        	ann = myShepherd.getAnnotationsWithACMId(acmId);
+        	anns = myShepherd.getAnnotationsWithACMId(acmId);
 	} catch (Exception ex) {}
-	if (ann == null) {
-		console.log('Could not retrieve an Annotation with this acmId: '+acmId);
+	if ((anns == null) || (anns.size() < 1)) {
 		rtn.put("error", "unknown error");
 	} else {
-		rtn.put("success", true);
-		rtn.put("annId", ann.getId());
+            JSONArray janns = new JSONArray();
+            for (Annotation ann : anns) {
+                JSONObject jann = new JSONObject();
+                jann.put("id", ann.getId());
+                jann.put("acmId", ann.getAcmId());
 		MediaAsset ma = ann.getMediaAsset();
 		if (ma != null) {
-			rtn.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
+			jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
 		}
+                janns.put(jann);
+            }
+	    rtn.put("success", true);
+            rtn.put("annotations", janns);
 	}
 /*
 	if ((qann != null) && (qann.getMediaAsset() != null)) {
@@ -382,88 +388,131 @@ function showTaskResult(res, taskId) {
 }
 
 // Fix the acmId ---> annotID situation here. 
+
 function displayAnnot(taskId, acmId, num, score) {
 console.info('%d ===> %s', num, acmId);
-console.info('Looking for acmId...');
-
-	$.ajax({
-		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
-		type: 'GET',
-		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num); }
-	});
-
-
-	var h = '<div data-annid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
+	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
 	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
 
 
 	//now the image guts
-	h = '<div title="annotId=' + acmId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
+	h = '<div title="acmId=' + acmId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 	$('#task-' + taskId).append(h);
+	$.ajax({
+		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
+		type: 'GET',
+		dataType: 'json',
+		complete: function(d) { displayAnnotDetails(taskId, d, num); }
+	});
 }
 
 function displayAnnotDetails(taskId, res, num) {
 	var isQueryAnnot = (num < 0);
-	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error) {
+	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
 		console.warn('error on (task %s) res = %o', taskId, res);
 		return;
 	}
-	var encId = false;
-	var indivId = false;
-	var imgInfo = '';
-	if (res.responseJSON.asset) {
-		if (res.responseJSON.asset.url) {
-			$('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<img src="' + res.responseJSON.asset.url + '" />');
-		} else {
-			$('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
-		}
-		if (res.responseJSON.asset.dateTime) {
-			imgInfo += ' <b>' + res.responseJSON.asset.dateTime.substring(0,16) + '</b> ';
-		}
-		if (res.responseJSON.asset.filename) {
-			var fn = res.responseJSON.asset.filename;
-			var i = fn.lastIndexOf('/');
-			if (i > -1) fn = fn.substring(i + 1);
-			imgInfo += ' ' + fn + ' ';
-		}
-		if (res.responseJSON.asset.features && (res.responseJSON.asset.features.length > 0)) {
-			encId = res.responseJSON.asset.features[0].encounterId;
-			indivId = res.responseJSON.asset.features[0].individualId;
-			var h = 'Matching results';
-			if (encId) {
-				h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
-				//h += '<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
-				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
-			}
-			if (indivId) {
-				h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
-				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>');
-			}
-			if (encId || indivId) {
-				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + res.responseJSON.annId +'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
-			}
+        /*
+            we may have gotten more than one annot back from the acmId, so we have to account for them all.  currently we handle
+            this as follows:
+            (a) if it is the query annot, we *should* be able to find the id of the annot by looking at task.annotationIds.
+            (b) if we cannot, or if target/dict annots, then we collect data about *all* possibly annots and show that
+        */
 
-			h += '<div id="enc-action">' + matchInstructions + '</div>';
-			if (isQueryAnnot) {
-				if (h) $('#encounter-info .enc-title').html(h);
-				if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
-                                var qdata = {
-					annotId: res.responseJSON.annId,
-					encId: encId,
-					indivId: indivId
-                                };
+	//var encId = false;
+	//var indivId = false;
+	var imgInfo = '';
+        var mainAnnId = false; //this is basically to set as data('annid') on our div (cuz we need one?)
+        var mainAsset = false;
+        var otherAnnots = [];
+        var h = 'Matching results';
+        var acmId;
+
+        for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
+            acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
+            console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
+            if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
+                console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
+                mainAnnId = res.responseJSON.annotations[i].id;
+            }
+            //we "should" only need the first asset we find -- as they "should" all be identical!
+            if (!res.responseJSON.annotations[i].asset) continue;  //no asset, meh continue
+            if (mainAsset) {
+                otherAnnots.push(res.responseJSON.annotations[i]);
+            } else {
+                mainAsset = res.responseJSON.annotations[i].asset;
+            }
+        }
+
+        if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
+
+        if (mainAsset) {
+console.info('mainAsset -> %o', mainAsset);
+            if (mainAsset.url) {
+                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="' + mainAsset.url + '" />');
+            } else {
+                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
+            }
+            if (mainAsset.dateTime) {
+                imgInfo += ' <b>' + mainAsset.dateTime.substring(0,16) + '</b> ';
+            }
+            if (mainAsset.filename) {
+                var fn = mainAsset.filename;
+                var j = fn.lastIndexOf('/');
+                if (j > -1) fn = fn.substring(j + 1);
+                imgInfo += ' ' + fn + ' ';
+            }
+            if (mainAsset.features && (mainAsset.features.length > 0)) {
+                var encId = mainAsset.features[0].encounterId;
+                var indivId = mainAsset.features[0].individualId;
+                if (encId) {
+                    h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+                }
+                if (indivId) {
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>');
+                }
+
+                if (encId || indivId) {
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+                }
+                h += '<div id="enc-action">' + matchInstructions + '</div>';
+                if (isQueryAnnot) {
+                    if (h) $('#encounter-info .enc-title').html(h);
+                    if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
+                    var qdata = {
+                        annotId: mainAnnId,
+                        encId: encId,
+                        indivId: indivId
+                    }
 console.info('qdata[%s] = %o', taskId, qdata);
-                                $('#task-' + taskId).data(qdata);
-			} else {
-				if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
-			}
-		}
-	}
-	if (imgInfo) $('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<div class="img-info">' + imgInfo + '</div>');
+                        $('#task-' + taskId).data(qdata);
+                } else {
+                    if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
+                }
+            }  //end if (mainAsset.features...)
+        }  //end if (mainAsset)
+
+    if (otherAnnots.length > 0) {
+        imgInfo += '<div><i>Alternate references:</i><ul>';
+        for (var i = 0 ; i < otherAnnots.length ; i++) {
+            imgInfo += '<li title="Annot ' + otherAnnots[i].id + '"><b>Annot ' + otherAnnots[i].id.substring(0,12) + '</b>';
+            if (otherAnnots[i].asset && otherAnnots[i].asset.features && (otherAnnots[i].asset.features.length > 0)) {
+                var encId = otherAnnots[i].asset.features[0].encounterId;
+                var indivId = otherAnnots[i].asset.features[0].individualId;
+                if (encId) imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
+                if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
+            }
+            imgInfo += '</li>';
+        }
+        imgInfo += '</ul></div>';
+    }
+
+    if (imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
 
@@ -508,11 +557,11 @@ function annotCheckboxReset() {
 
 function annotClick(ev) {
 	//console.log(ev);
-	var annId = ev.currentTarget.getAttribute('data-annid');
+	var acmId = ev.currentTarget.getAttribute('data-acmid');
 	var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
-	//console.warn('%o | %o', taskId, annId);
+	//console.warn('%o | %o', taskId, acmId);
 	$('#task-' + taskId + ' .annot-wrapper-dict').hide();
-	$('#task-' + taskId + ' .annot-' + annId).show();
+	$('#task-' + taskId + ' .annot-' + acmId).show();
 }
 
 function score_sort(cm_dict, topn) {
@@ -663,7 +712,7 @@ function approvalButtonClick(encID, indivID, encID2) {
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
-	var url = 'matchResultsMulti.jsp?number=' + encID + '&individualID=' + indivID;
+	var url = 'iaResults.jsp?number=' + encID + '&individualID=' + indivID;
 	if (encID2) url += '&enc2=' + encID2;
 	jQuery.ajax({
 		url: url,
@@ -696,3 +745,4 @@ function approveNewIndividual(el) {
 
 
 </script>
+
