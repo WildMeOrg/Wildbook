@@ -507,7 +507,6 @@ public class Shepherd {
     //pmf=null;
   }
 
-
   public Encounter getEncounter(String num) {
     Encounter tempEnc = null;
     try {
@@ -517,8 +516,6 @@ public class Shepherd {
     }
     return tempEnc;
   }
-
-
 
   public MediaAsset getMediaAsset(String num) {
     MediaAsset tempMA = null;
@@ -4539,6 +4536,13 @@ public class Shepherd {
   public User getLoggedInUser(HttpServletRequest request) {
     if (request == null || request.getUserPrincipal() == null) return null;
     return getUser(request.getUserPrincipal().getName());
+  }
+
+  public boolean isUserLoggedIn(HttpServletRequest request) {
+    if (this.getLoggedInUser(request)!=null) {
+      return true;
+    }
+    return false;
   }
 
   public List<Encounter> getEncountersForSubmitter(User user, Shepherd myShepherd){
