@@ -33,6 +33,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd imageShepherd = new Shepherd(context);
 imageShepherd.setAction("encounterMediaGallery.jsp");
+boolean loggedIn = imageShepherd.isUserLoggedIn(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
 String encNum="";
@@ -106,6 +107,7 @@ function forceLink(el) {
 		  	for (Annotation ann: anns) {
 		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
 		      MediaAsset ma = ann.getMediaAsset();
+			  ma.refreshIfLogggedIn(imageShepherd, isUserLoggedIn);
 		      String filename = ma.getFilename();
 		      
 		      String individualID="";
