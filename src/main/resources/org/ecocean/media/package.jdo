@@ -44,7 +44,7 @@
 
 		<field name="labels" serialized="true" column="LABELS" />
 
-            	<field name="features" persistence-modifier="persistent" default-fetch-group="false" mapped-by="asset" >
+            	<field name="features" persistence-modifier="persistent" default-fetch-group="true" mapped-by="asset" >
                 	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
                 	<join />
             	</field>
