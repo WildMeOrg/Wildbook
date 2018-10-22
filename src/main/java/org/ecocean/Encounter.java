@@ -3359,6 +3359,11 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     }
     
     public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
+    public void addSubmitter(User user) {
+        if (user == null) return;
+        if (submitters == null) submitters = new ArrayList<User>();
+        if (!submitters.contains(user)) submitters.add(user);
+    }
     public void setPhotographers(List<User> photographers) {this.photographers=photographers;}
     
     
