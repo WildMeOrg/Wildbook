@@ -87,7 +87,7 @@ if (filename != null) {
             sourceOriginal.toString(),
             "-fill", "#DDD",
             "-annotate", "+30+30",
-            "Wildbook\u00AE Test Match Image - NOT VALID DATA - FOR TEST PURPOSES ONLY - " + System.currentTimeMillis(),
+            "Wildbook\u00AE Test Match Image - NOT VALID DATA - FOR TEST PURPOSES ONLY - " + System.currentTimeMillis() + ":" + testId,
             "-gravity", "Center",
             "-append",
             sourceMunged.toString()
@@ -140,6 +140,8 @@ if (filename != null) {
             enc.setDateInMilliseconds(System.currentTimeMillis());
             enc.setState("__TEST_ENCOUNTER__");
             enc.addSubmitter(AccessControl.getUser(request, myShepherd));
+            enc.addComments("<i style=\"color: red; font-size: 1.5em;\">This is a <b>TEST ENCOUNTER</b> used to test IA functionality.</i>");
+            enc.setLocationID("__TEST__");
 	    out.println("<li><a target=\"_new\" title=\"" + ann.toString() + "\" href=\"obrowse.jsp?type=Annotation&id=" + ann.getId() + "\">Annotation " + ann.getId() + "</a></li>");
 	    out.println("<li><a target=\"_new\" title=\"" + enc.toString() + "\" href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a></li>");
             myShepherd.getPM().makePersistent(enc);
