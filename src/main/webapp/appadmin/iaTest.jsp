@@ -7,6 +7,7 @@ java.io.IOException,
 java.io.InputStream,
 java.io.InputStreamReader,
 java.io.File,
+org.ecocean.ia.Task,
 org.json.JSONObject,
 
 org.ecocean.identity.IBEISIA,
@@ -28,8 +29,10 @@ img.small {
 }
 .results {
     background-color: #DFD;
+    min-height: 250px;
 }
 .controls {
+    clear: both;
     margin-top: 30px;
 }
 
@@ -47,7 +50,6 @@ function process() {
 </script>
 </head>
 <body>
-<img class="small" src="images/iaTestCollage.jpg?<%=System.currentTimeMillis()%>" />
 <h1>Test IA</h1>
 
 
@@ -61,6 +63,7 @@ Shepherd myShepherd = new Shepherd(context);
 
 String uploadTmpDir = CommonConfiguration.getUploadTmpDir(context);
 String filename = request.getParameter("filename");
+String taxonomy = request.getParameter("taxonomy");
 
 
 if (filename != null) {
@@ -108,8 +111,6 @@ if (filename != null) {
             System.out.println("Trouble running processor [" + command + "]" + ioe.toString());
         }
 
-
-
         MediaAsset ma = null;
         JSONObject sp = astore.createParameters(sourceMunged, "TEST_" + testId);
 	sp.put("_iaTest", System.currentTimeMillis());
@@ -123,6 +124,7 @@ if (filename != null) {
             myShepherd.rollbackDBTransaction();
 
         } else {
+            out.println("<div><i>creating objects:</i><ul>");
             try {
                 ma.updateMetadata();
             } catch (IOException ioe) {
@@ -131,19 +133,28 @@ if (filename != null) {
             ma.addLabel("_original");
             MediaAssetFactory.save(ma, myShepherd);
 	    ma.updateStandardChildren(myShepherd);
-	    out.println("<p>created <a target=\"_new\" title=\"" + ma.toString() + "\" href=\"obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">MediaAsset " + ma.getId() + "</a><img class=\"small\" src=\"" + ma.webURL() + "\" /></p>");
+	    out.println("<li><a target=\"_new\" title=\"" + ma.toString() + "\" href=\"obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">MediaAsset " + ma.getId() + "</a><img class=\"small\" src=\"" + ma.webURL() + "\" /></li>");
 	    System.out.println("iaTest.jsp: " + sourceMunged.toString() + " --> " + ma.getId());
+            Annotation ann = new Annotation(taxonomy, ma);
+            enc = new Encounter(ann);
+            enc.setDateInMilliseconds(System.currentTimeMillis());
+            enc.setState("__TEST_ENCOUNTER__");
+            enc.addSubmitter(AccessControl.getUser(request));
+	    out.println("<li><a target=\"_new\" title=\"" + ann.toString() + "\" href=\"obrowse.jsp?type=Annotation&id=" + ann.getId() + "\">Annotation " + ann.getId() + "</a></li>");
+	    out.println("<li><a target=\"_new\" title=\"" + enc.toString() + "\" href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a></li>");
+            myShepherd.getPM().makePersistent(enc);
 	    myShepherd.commitDBTransaction();
+	    myShepherd.beginDBTransaction();
+            Task task = org.ecocean.ia.IA.intake(myShepherd, ma);
+            myShepherd.storeNewTask(task);
+	    myShepherd.commitDBTransaction();
+	    out.println("<li><a target=\"_new\" title=\"" + task.toString() + "\" href=\"obrowse.jsp?type=Task&id=" + task.getId() + "\">Task " + task.getId() + "</a></li>");
+            out.println("</ul></div>");
+            org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
         }
 
     } else {
         out.println("<p class=\"error\">File <b>" + sourceOriginal + "</b> does not exist.</p>");
-    }
-
-    
-    if (enc != null) {
-        out.println("<p>created: <b>" + enc + "</b></p>");
-
     }
 
     out.println("</div>");
@@ -164,6 +175,7 @@ for (Taxonomy t : tax.values()) {
 </select>
 
 
+<img class="small" src="images/iaTestCollage.jpg?<%=System.currentTimeMillis()%>" />
 <select id="select-image">
 <option value="<%=COLLAGE%>">Test Collage (right)</option>
 <%
@@ -176,7 +188,7 @@ for (final File f : udir.listFiles()) {
 %>
 </select>
 <p style="color: #AAA; margin-left: 100px; font-size: 0.8em;">
-Upload tmp dir: <b><%=uploadTmpDir%></b>
+Dir for test images: <b><%=uploadTmpDir%></b>
 </p>
 
 
