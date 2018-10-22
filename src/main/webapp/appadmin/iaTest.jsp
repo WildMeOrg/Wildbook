@@ -139,7 +139,7 @@ if (filename != null) {
             enc = new Encounter(ann);
             enc.setDateInMilliseconds(System.currentTimeMillis());
             enc.setState("__TEST_ENCOUNTER__");
-            enc.addSubmitter(AccessControl.getUser(request));
+            enc.addSubmitter(AccessControl.getUser(request, myShepherd));
 	    out.println("<li><a target=\"_new\" title=\"" + ann.toString() + "\" href=\"obrowse.jsp?type=Annotation&id=" + ann.getId() + "\">Annotation " + ann.getId() + "</a></li>");
 	    out.println("<li><a target=\"_new\" title=\"" + enc.toString() + "\" href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a></li>");
             myShepherd.getPM().makePersistent(enc);
