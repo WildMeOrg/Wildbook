@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.io.File,java.io.FileInputStream, java.util.*, org.ecocean.security.Collaboration" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.security.HiddenIndividualReporter,org.ecocean.*,java.io.File,java.io.FileInputStream, java.util.*, org.ecocean.security.Collaboration" %>
 
 
   <%
@@ -46,11 +46,15 @@
 
     //Iterator allIndividuals;
     Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
+    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
+    rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 
     myShepherd.beginDBTransaction();
 
     MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, "individualID ascending");
     rIndividuals = queryResult.getResult();
+
+
 
     String[] keywords = request.getParameterValues("keyword");
     if (keywords == null) {
