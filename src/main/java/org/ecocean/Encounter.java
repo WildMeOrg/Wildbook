@@ -344,6 +344,9 @@ public class Encounter implements java.io.Serializable {
   // (from a standard list like Escort Male)
   private String groupRole;
 
+  // identifies the import/dataset this came from for data provenance
+  private String dataSource;
+
   //start constructors
 
   /**
@@ -1057,6 +1060,13 @@ public class Encounter implements java.io.Serializable {
   }
   public void setGroupRole(String role) {
     this.groupRole = role;
+  }
+
+  public String getDataSource() {
+    return dataSource;
+  }
+  public void setDataSource(String dataSource) {
+    this.dataSource = dataSource;
   }
   
   public String getImageOriginalName() {
