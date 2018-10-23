@@ -175,6 +175,19 @@
  	 				}
  	 				
  	 			}
+ 	 		
+ 	 		
+ 	 		//let's prep the Top Taggers chart
+ 	 		Hashtable<String,List<String>> taggersHashtable = new Hashtable<String,List<String>>();
+ 	 			for(int gg=0;gg<numUsers;gg++){
+ 	 				if(allUsers.get(gg).getFullName()!=null){
+ 	 				String thisUser=allUsers.get(gg).getFullName();
+ 	 				if(thisUser!=null){
+ 	 					taggersHashtable.put(thisUser, new ArrayList<String>());
+ 	 				}
+ 	 				}
+ 	 				
+ 	 			}
  	
  			
  			//let's prep the data structures for the discovery curve
@@ -371,6 +384,22 @@
 	      	 		//numCountryEntries++;  
 			 }
 		 }
+		 
+		 
+		 //top taggers check
+		 if((thisEnc.getSubmitterID()!=null)&&(thisEnc.getIndividualID()!=null)&&(myShepherd.getUser(thisEnc.getSubmitterID())!=null)){
+			 User user=myShepherd.getUser(thisEnc.getSubmitterID());
+			 if(user.getFullName()!=null){
+			 if(taggersHashtable.containsKey(user.getFullName())){
+				 List<String> whatITagged=taggersHashtable.get(user.getFullName());
+				 if(!whatITagged.contains(thisEnc.getIndividualID())){
+					 whatITagged.add(thisEnc.getIndividualID());
+					 taggersHashtable.put(user.getFullName(), whatITagged);
+				 }  
+			 }
+		 }
+		 }
+		 
  	    
  		//measurement
 		for(int b=0;b<numMeasurementEventTypes;b++){
@@ -702,7 +731,44 @@
      var usersChart = new google.visualization.PieChart(document.getElementById('userschart_div'));
        usersChart.draw(usersData, usersOptions);
      }
-      
+     
+     
+     //top taggers chart
+      google.setOnLoadCallback(drawTopTaggersChart);
+     function drawTopTaggersChart() {
+       var taggersData = new google.visualization.DataTable();
+       taggersData.addColumn('string', '<%=encprops.getProperty("user") %>');
+       taggersData.addColumn('number', '<%=encprops.getProperty("numberIndividualsTagged") %>');
+       taggersData.addRows([
+         <%
+         Enumeration<String> usersKeys2=taggersHashtable.keys();
+
+         while(usersKeys2.hasMoreElements()){
+       	  String keyName=usersKeys2.nextElement();
+       	 %>
+         ['<%=keyName.replaceAll("\'","").replaceAll("\"","") %>',    <%=taggersHashtable.get(keyName).size() %>]
+		  <%
+		  if(usersKeys2.hasMoreElements()){
+		  %>
+		  ,
+		  <%
+		  }
+        }
+		 %>
+         
+       ]);
+   taggersData.sort({column: 1, desc: true});
+   if(taggersData.getNumberOfRows()>10){taggersData.removeRows(10,(taggersData.getNumberOfRows()-10));}
+    var taggersOptions = {
+         width: 450, height: 300,
+         title: '<%=encprops.getProperty("topTaggers") %>',
+         
+       };
+    
+     var taggersChart = new google.visualization.ColumnChart(document.getElementById('topTaggers_div'));
+       taggersChart.draw(taggersData, taggersOptions);
+     }
+     // 
       
       //discovery curve
       google.setOnLoadCallback(drawDiscoveryCurve);
@@ -1005,6 +1071,7 @@
  	<div id="citsci_div"></div>
  	<div id="yearadded_div"></div>
  	<div id="yeartotals_div"></div>
+ 	<div id="topTaggers_div"></div>
  <%
  
      } 

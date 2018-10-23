@@ -6,6 +6,7 @@ import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * <code>User</code> stores information about a contact/user.
@@ -322,5 +323,13 @@ public class User implements Serializable {
     //public void setCurrentContext(String newContext){currentContext=newContext;}
 		
 		public String getUUID() {return uuid;}
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("uuid", uuid)
+                .append("username", username)
+                .append("fullName", fullName)
+                .toString();
+    }
 
 }

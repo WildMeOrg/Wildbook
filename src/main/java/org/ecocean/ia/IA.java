@@ -118,13 +118,13 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
         if (opts.size() == 1) {
-            topTask.setParameters("{\"ibeis.identification\": null}");
+            topTask.setParameters("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
             tasks.add(topTask);  //topTask will be used as *the*(only) task -- no children
         } else {
             for (int i = 0 ; i < opts.size() ; i++) {
                 Task t = new Task();
                 t.setObjectAnnotations(anns);
-                t.setParameters("{\"ibeis.identification\": null}");
+                t.setParameters("ibeis.identification", ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));
                 topTask.addChild(t);
                 tasks.add(t);
                 myShepherd.storeNewTask(topTask);
