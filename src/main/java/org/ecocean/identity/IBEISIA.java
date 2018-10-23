@@ -3316,7 +3316,10 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
 
     public static boolean validForIdentification(Annotation ann) {
         if (ann == null) return false;
-        System.out.println("BBOX features -> " + ann.getFeatures()); //please leave this line in (ask jon... sigh)
+        //System.out.println("BBOX features -> " + ann.getFeatures()); //please leave this line in (ask jon... sigh)
+        List<Feature> forceJdoToUnpackTheseFeatures = ann.getFeatures();
+        String ungodlyHackString = "";
+        if (forceJdoToUnpackTheseFeatures!=null) ungodlyHackString = forceJdoToUnpackTheseFeatures.toString();
         int[] bbox = ann.getBbox();
         if (bbox == null) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
