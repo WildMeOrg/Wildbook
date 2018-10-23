@@ -484,7 +484,7 @@ public class Annotation implements java.io.Serializable {
             Encounter enc = (Encounter) it.next();
             if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
                 for (Annotation ann : enc.getAnnotations()) {
-                    if (ann.matchAgainst) {
+                    if (ann.matchAgainst&&ann.getIAClass()!=null&&this.iaClass!=null&&(ann.getIAClass().equals(this.iaClass))) {
                         anns.add(ann);
                     }
                 }
