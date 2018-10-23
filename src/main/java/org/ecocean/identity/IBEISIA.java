@@ -354,6 +354,7 @@ System.out.println("     free ride :)");
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
 System.out.println("tlist.size()=" + tlist.size());
+System.out.println("qlist.size()=" + qlist.size());
 System.out.println(map);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
@@ -774,10 +775,22 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         ArrayList<Annotation> qanns = new ArrayList<Annotation>();
         ArrayList<Annotation> tanns = new ArrayList<Annotation>();
         for (Encounter enc : queryEncs) {
-            if (enc.getAnnotations() != null) qanns.addAll(enc.getAnnotations());
+            if (enc.getAnnotations() != null) {
+                for (Annotation ann : enc.getAnnotations()) {
+                    if (validForIdentification(ann,context)){
+                        qanns.add(ann);
+                    }
+                }
+            }
         }
         for (Encounter enc : targetEncs) {
-            if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
+            if (enc.getAnnotations() != null) {
+                for (Annotation ann : enc.getAnnotations()) {
+                    if (validForIdentification(ann,context)){
+                        tanns.add(ann);
+                    }
+                }
+            }
         }
 
         JSONObject queryConfigDict = queryConfigDict(myShepherd, opt);
@@ -874,6 +887,7 @@ System.out.println(allAnns);
             while (tryAgain) {
                 identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
                 tryAgain = iaCheckMissing(identRtn, myShepherd.getContext());
+                System.out.println("Trying again in beginIdentifyAnnotations()... qaans has: "+qanns.size()+" taans has: "+tanns.size());
             }
             results.put("sendIdentify", identRtn);
 
@@ -3398,10 +3412,9 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
             return false;
         }
         ArrayList<String> idClasses = getAllIdentificationClasses(context);
-        if (ann.getIAClass()!=null&&idClasses.contains(ann.getIAClass())) {
-            System.out.println("Valid ID Class!!! ------------------> "+ann.getIAClass());
+        if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty())) {
             return true;
-        }
+        } 
         System.out.println("NOTE: IBEISIA.validForIdentification() failing - The annotation IAClass "+ann.getIAClass()+" was not present in the IA.properties list. Valid possibilities: ");
         for (String idClass : idClasses) {
             System.out.println(idClass);
@@ -3416,7 +3429,6 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
         while (className!=null) {
             className = IA.getProperty(context, "identificationClass"+i);
             allClasses.add(className);
-            System.out.println("Classname in get all ID classes??? "+className);
             i++;
         }
         return allClasses; 
