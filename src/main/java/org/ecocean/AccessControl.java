@@ -57,4 +57,8 @@ public class AccessControl implements java.io.Serializable {
         if (request == null) return null;
         return ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
     }
+    public static User getUser(final HttpServletRequest request, Shepherd myShepherd) {
+        if ((request == null) || (request.getUserPrincipal() == null) || (request.getUserPrincipal().getName() == null)) return null;
+        return myShepherd.getUser(request.getUserPrincipal().getName());
+    }
 }

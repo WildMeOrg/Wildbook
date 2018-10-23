@@ -129,11 +129,12 @@ public class StartupWildbook implements ServletContextListener {
         IAPluginManager.startup(sce);
 
         //NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
-        if (Util.booleanNotFalse(IA.getProperty(context, "sharkGrid.startMatchGraph"))) {
+        if (CommonConfiguration.useSpotPatternRecognition(context)) {
             createMatchGraph();
         }
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
+        // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
         startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
         TwitterBot.startServices(context);
     }

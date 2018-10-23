@@ -1,9 +1,12 @@
-package org.ecocean;
+
+
 
 /*
   TODO note: this is very ibeis-specific concept of "Annotation"
      we should probably consider a general version which can be manipulated into an ibeis one somehow
 */
+
+package org.ecocean;
 
 import org.ecocean.ImageAttributes;
 import org.ecocean.media.Feature;
@@ -28,7 +31,11 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
-    private String species;  //TODO change to Taxonomy object!  (note: or make it akin to "class" on IA... but better name?)
+
+    private String species; 
+
+    private String iaClass; // This is just how it gonna be for now. Swap the methods to draw from Taxonomy later if ya like?
+
     private String name;
     private boolean isExemplar = false;
     private Boolean isOfInterest = null;  //aka AoI (Annotation of Interest)
@@ -86,6 +93,22 @@ public class Annotation implements java.io.Serializable {
         this.id = Util.generateUUID();
         this.species = species;
         this.features = f;
+    }
+
+    //For setting the iaClass returned from detection... No more mangled species names sent to identification
+    public Annotation(String species, Feature f, String iaClass) {
+        this.id = Util.generateUUID();
+        this.species = species;
+        this.features = new ArrayList<Feature>();
+        this.features.add(f);
+        this.iaClass = iaClass;
+    }
+
+    public Annotation(String species, ArrayList<Feature> f, String iaClass) {
+        this.id = Util.generateUUID();
+        this.species = species;
+        this.features = f;
+        this.iaClass = iaClass;
     }
 
 /*
@@ -288,11 +311,14 @@ public class Annotation implements java.io.Serializable {
         return sibs;
     }
 
-    public String getSpecies() {
-        return species;
+    //since we are going to loose .species property here, getSpecies() has gone away!
+    //  (it has kind of been replaced by WildbookIAM.getIASpecies()
+
+    public String getIAClass() {
+        return iaClass;
     }
-    public void setSpecies(String s) {
-        species = s;
+    public void setIAClass(String iaClass) {
+        this.iaClass = iaClass;
     }
 
     public String getName() {
@@ -341,7 +367,7 @@ public class Annotation implements java.io.Serializable {
             }
         }
         if (found == null) return null;
-        int[] bbox = new int[4];
+        int[] bbox = new int[4];        
         if (found.isUnity()) {
             bbox[0] = 0;
             bbox[1] = 0;
@@ -417,7 +443,7 @@ public class Annotation implements java.io.Serializable {
             org.datanucleus.api.rest.orgjson.JSONObject jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
             jobj.put("id", id);
             jobj.put("isExemplar", this.getIsExemplar());
-            jobj.put("species", this.getSpecies());
+            jobj.put("species", this.getIAClass());
             jobj.put("annotationIsOfInterest", this.getIsOfInterest());
             if (this.getFeatures() != null) {
                 org.datanucleus.api.rest.orgjson.JSONArray feats = new org.datanucleus.api.rest.orgjson.JSONArray();
@@ -455,30 +481,55 @@ public class Annotation implements java.io.Serializable {
         public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
           return this.sanitizeMedia(request, false);
         }
-
-
-    static public ArrayList<Annotation> getMatchingSet(String species, Shepherd myShepherd) {
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.matchAgainst && species == \"" + species + "\"";
+     
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        ArrayList<Encounter> encs = new ArrayList<Encounter>();
+        Encounter myEnc = this.findEncounter(myShepherd);
+        if (myEnc == null) {
+            System.out.println("WARNING: getMatchingSet() could not find Encounter for " + this);
+            return anns;
+        }
+        System.out.println("Getting matching set for annotation. Retrieved encounter = "+myEnc.getCatalogNumber());
+        String myGenus = myEnc.getGenus();
+        String mySpecificEpithet = myEnc.getSpecificEpithet();
+        String filter;
+        if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
+            filter = "SELECT FROM org.ecocean.Encounter WHERE specificEpithet == \""+mySpecificEpithet+"\" && genus == \""+myGenus+"\" ";
+        } else {
+            System.out.println("NO MATCHING SET: The parent encounter for Annotation id="+this.id+" has not specified specificEpithet and genus.");
+            return anns; 
+        }
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
         Iterator it = c.iterator();
+        int count = 0;
         while (it.hasNext()) {
-            anns.add((Annotation)it.next());
+            count++;
+            Encounter enc = (Encounter) it.next();
+            if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
+                for (Annotation ann : enc.getAnnotations()) {
+                    if (ann.matchAgainst) {
+                        anns.add(ann);
+                    }
+                }
+            }
         }
+        System.out.println("Did the query return any encounters? It got: "+count); 
+        
         query.closeAll();
         return anns;
     }
 
-    //for *any/all* species
-    static public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.matchAgainst";
+    static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst";
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
         Iterator it = c.iterator();
         while (it.hasNext()) {
-            anns.add((Annotation)it.next());
+            Annotation ann = (Annotation) it.next(); 
+            anns.add(ann);
         }
         query.closeAll();
         return anns;
@@ -564,7 +615,8 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.setDWCDateAdded();
             newEnc.setDWCDateLastModified();
             newEnc.resetDateInMilliseconds();
-            newEnc.setSpeciesFromAnnotations();
+            newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
+            newEnc.setGenus(someEnc.getGenus());
         }
         return newEnc;
 

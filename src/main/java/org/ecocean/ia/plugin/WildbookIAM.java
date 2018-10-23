@@ -3,7 +3,9 @@ package org.ecocean.ia.plugin;
 import javax.servlet.ServletContextEvent;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
+import org.ecocean.ShepherdPMF;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.Task;
 import org.ecocean.RestClient;
 import org.ecocean.media.*;
 import org.ecocean.Annotation;
@@ -19,6 +21,7 @@ import java.security.InvalidKeyException;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 //NOTE!  this steals **a lot** from IBEISIA right now. eventually lets move it all here and kill that off!
 import org.ecocean.identity.IBEISIA;
@@ -37,18 +40,22 @@ public class WildbookIAM extends IAPlugin {
     }
     public WildbookIAM(String context) {
         super(context);
+        this.context = context;
     }
 
+    @Override
     public boolean isEnabled() {
         return true;  //FIXME
     }
 
+    @Override
     public boolean init(String context) {
         this.context = context;
         IA.log("WildbookIAM init() called on context " + context);
         return true;
     }
 
+    @Override
     public void startup(ServletContextEvent sce) {
         //TODO genericize this to be under .ia (with startup hooks for *any* IA plugin)
         //if we dont need identificaiton, no need to prime
@@ -56,6 +63,15 @@ public class WildbookIAM extends IAPlugin {
         if (!skipIdent && !org.ecocean.StartupWildbook.skipInit(sce, "PRIMEIA")) prime();
     }
 
+    //TODO we need to "reclaim" these from IA.intake() stuff!
+    @Override
+    public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
+        return null;
+    }
+    @Override
+    public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
+        return null;
+    }
 
     //for now "primed" is stored in IBEISIA still.  <scratches head>
     public boolean isPrimed() {
@@ -75,7 +91,7 @@ public class WildbookIAM extends IAPlugin {
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("WildbookIAM.prime");
                 myShepherd.beginDBTransaction();
-                ArrayList<Annotation> matchingSet = Annotation.getMatchingSet(myShepherd);
+                ArrayList<Annotation> matchingSet = Annotation.getMatchingSetAllSpecies(myShepherd);
                 ArrayList<Annotation> sendAnns = new ArrayList<Annotation>();
                 ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
                 for (Annotation ann : matchingSet) {
@@ -163,7 +179,12 @@ System.out.println("sendMediaAssets() -> " + rtn);
         URL url = new URL(u);
         int ct = 0;
         //may be different shepherd, but findIndividualId() below will only work if its all persisted anyway. :/
-        Shepherd myShepherd = new Shepherd(context);
+        Shepherd myShepherd = null;
+        try {
+            myShepherd = new Shepherd(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         myShepherd.setAction("WildbookIAM.sendAnnotations");
         myShepherd.beginDBTransaction();
 
@@ -200,7 +221,8 @@ System.out.println("sendMediaAssets() -> " + rtn);
             map.get("image_uuid_list").add(iid);
             int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
-            map.get("annot_species_list").add(ann.getSpecies());
+//TODO both of these shepherd/db calls can probably be combined !!!  FIXME
+            map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
             map.get("annot_theta_list").add(ann.getTheta());
             String name = ann.findIndividualId(myShepherd);
             map.get("annot_name_list").add((name == null) ? "____" : name);
@@ -326,6 +348,23 @@ System.out.println("fromResponse ---> " + ids);
             if (curl == null) return null;
             return curl.toString();
         }
+    }
+
+    //this is used to give a string to IA for annot_species_list specifially
+    //  hence the term "IASpecies"
+    public static String getIASpecies(Annotation ann, Shepherd myShepherd) {
+        //NOTE: returning null here is probably "bad" btw....
+        org.ecocean.Encounter enc = ann.findEncounter(myShepherd);
+        if (enc == null) return null;
+        String ts = enc.getTaxonomyString();
+        if (ts == null) return null;
+        return ts.replaceAll(" ", "_");
+    }
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("WildbookIAM IA Plugin")
+                .toString();
     }
 
 }
