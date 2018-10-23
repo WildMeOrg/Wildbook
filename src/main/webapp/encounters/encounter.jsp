@@ -2167,7 +2167,6 @@ $(document).ready(function() {
 		                                  </em>
 		                 
 		                                    <br/>
-											Rewriting for Wildbook 7...
 		                                        </p>
 		
 		            

@@ -2277,8 +2277,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
-	else{genus=null;}
-    updateAnnotationTaxonomy();
+	  else{genus=null;}
   }
   // we need these methods because our side-effected setGenus will silently break an import (!!!!!) in an edge case I cannot identify
   public void setGenusOnly(String genus) {
@@ -2294,20 +2293,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
-	else{specificEpithet=null;}
-    updateAnnotationTaxonomy();
+	  else{specificEpithet=null;}
   }
 
-    private void updateAnnotationTaxonomy() {
-        if ((getAnnotations() == null) || (getAnnotations().size() < 1)) return;
-        for (Annotation ann : getAnnotations()) {
-            ann.setSpecies(getTaxonomyString());  //TODO in some perfect world this would use IA-specific mapping calls and/or yet-to-be-made Taxonomy class etc
-        }
-    }
-
-    public String getTaxonomyString() {
-        return Util.taxonomyString(getGenus(), getSpecificEpithet());
-    }
+  public String getTaxonomyString() {
+      return Util.taxonomyString(getGenus(), getSpecificEpithet());
+  }
 
   public String getPatterningCode(){ return patterningCode;}
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
@@ -2327,14 +2318,18 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (dt != null) setDateInMilliseconds(dt.getMillis());
     }
 
+    //this can(should?) fail in a lot of cases, since we may not know
     public void setSpeciesFromAnnotations() {
         if ((annotations == null) || (annotations.size() < 1)) return;
-        String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
-        this.setGenus(null);  //we reset these no matter what, so only parts get set as available
-        this.setSpecificEpithet(null);
-        if (sp == null) return;
-        if (sp.length > 0) this.setGenus(sp[0]);
-        if (sp.length > 1) this.setSpecificEpithet(sp[1]);
+        String[] sp = null;
+        for (Annotation ann : annotations) {
+            sp = IBEISIA.convertSpecies(annotations.get(0).getIAClass());
+            if (sp != null) break;  //use first one we get
+        }
+        //note: now we require (exactly) two parts ... please fix this, Taxonomy class!
+        if ((sp == null) || (sp.length != 2)) return;
+        this.setGenus(sp[0]);
+        this.setSpecificEpithet(sp[1]);
     }
 
     //find the first one(s) we can
@@ -3663,6 +3658,11 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     }
     
     public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
+    public void addSubmitter(User user) {
+        if (user == null) return;
+        if (submitters == null) submitters = new ArrayList<User>();
+        if (!submitters.contains(user)) submitters.add(user);
+    }
     public void setPhotographers(List<User> photographers) {this.photographers=photographers;}
     
     
