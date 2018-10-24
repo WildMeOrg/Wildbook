@@ -133,7 +133,7 @@ if (filename != null) {
             ma.addLabel("_original");
             MediaAssetFactory.save(ma, myShepherd);
 	    ma.updateStandardChildren(myShepherd);
-	    out.println("<li><a target=\"_new\" title=\"" + ma.toString() + "\" href=\"obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">MediaAsset " + ma.getId() + "</a><img class=\"small\" src=\"" + ma.webURL() + "\" /></li>");
+	    out.println("<li><a target=\"_new\" title=\"" + ma.toString() + "\" href=\"../obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">MediaAsset " + ma.getId() + "</a><img class=\"small\" src=\"" + ma.webURL() + "\" /></li>");
 	    System.out.println("iaTest.jsp: " + sourceMunged.toString() + " --> " + ma.getId());
             Annotation ann = new Annotation(taxonomy, ma);
             enc = new Encounter(ann);
@@ -143,15 +143,15 @@ if (filename != null) {
             enc.addComments("<i style=\"color: red; font-size: 1.5em;\">This is a <b>TEST ENCOUNTER</b> used to test IA functionality.</i>");
             enc.setLocationID("__TEST__");
             enc.setTaxonomyFromString(taxonomy);
-	    out.println("<li><a target=\"_new\" title=\"" + ann.toString() + "\" href=\"obrowse.jsp?type=Annotation&id=" + ann.getId() + "\">Annotation " + ann.getId() + "</a></li>");
-	    out.println("<li><a target=\"_new\" title=\"" + enc.toString() + "\" href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a></li>");
+	    out.println("<li><a target=\"_new\" title=\"" + ann.toString() + "\" href=\"../obrowse.jsp?type=Annotation&id=" + ann.getId() + "\">Annotation " + ann.getId() + "</a></li>");
+	    out.println("<li><a target=\"_new\" title=\"" + enc.toString() + "\" href=\"../obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a></li>");
             myShepherd.getPM().makePersistent(enc);
 	    myShepherd.commitDBTransaction();
 	    myShepherd.beginDBTransaction();
             Task task = org.ecocean.ia.IA.intake(myShepherd, ma);
             myShepherd.storeNewTask(task);
 	    myShepherd.commitDBTransaction();
-	    out.println("<li><a target=\"_new\" title=\"" + task.toString() + "\" href=\"obrowse.jsp?type=Task&id=" + task.getId() + "\">Task " + task.getId() + "</a></li>");
+	    out.println("<li><a target=\"_new\" title=\"" + task.toString() + "\" href=\"../obrowse.jsp?type=Task&id=" + task.getId() + "\">Task " + task.getId() + "</a></li>");
             out.println("</ul></div>");
             org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
         }
@@ -178,7 +178,7 @@ for (Taxonomy t : tax.values()) {
 </select>
 
 
-<img class="small" src="images/iaTestCollage.jpg?<%=System.currentTimeMillis()%>" />
+<img class="small" src="../images/iaTestCollage.jpg?<%=System.currentTimeMillis()%>" />
 <select id="select-image">
 <option value="<%=COLLAGE%>">Test Collage (right)</option>
 <%
