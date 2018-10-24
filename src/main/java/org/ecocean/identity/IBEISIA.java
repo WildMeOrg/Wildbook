@@ -279,13 +279,23 @@ System.out.println("sendAnnotations(): sending " + ct);
 
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         //String species = null;
-        String species = null;
+        String iaClass = null;
         for (Annotation ann : qanns) {
             if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
                 continue;
             }
-            if (species == null) species = org.ecocean.ia.plugin.WildbookIAM.getIASpecies(ann, myShepherd);
+
+            //if (species == null) species = org.ecocean.ia.plugin.WildbookIAM.getIASpecies(ann, myShepherd);
+            // Should we fall back on gleaning species from the Enc? We do it to find the iaClass initially.. Redundant? Squishy? Discuss.
+            if (iaClass==null) {
+                if (ann.getIAClass()!=null) {
+                    iaClass = ann.getIAClass();
+                } else {
+                    iaClass = org.ecocean.ia.plugin.WildbookIAM.getIASpecies(ann, myShepherd);
+                }
+            }
+
             qlist.add(toFancyUUID(ann.getAcmId()));
 /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
             //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
@@ -304,14 +314,14 @@ System.out.println("sendAnnotations(): sending " + ct);
         boolean setExemplarCaches = false;
         if (tanns == null) {
 System.out.println("--- exemplar!");
-            if (targetNameListCache.get(species) == null) {
+            if (targetNameListCache.get(iaClass) == null) {
 System.out.println("     gotta compute :(");
                 tanns = qanns.get(0).getMatchingSet(myShepherd);
                 setExemplarCaches = true;
             } else {
 System.out.println("     free ride :)");
-                tlist = targetIdsListCache.get(species);
-                tnlist = targetNameListCache.get(species);
+                tlist = targetIdsListCache.get(iaClass);
+                tnlist = targetNameListCache.get(iaClass);
             }
         }
 
@@ -341,8 +351,8 @@ System.out.println("     free ride :)");
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
         if (setExemplarCaches) {
-           targetIdsListCache.put(species, tlist);
-           targetNameListCache.put(species, tnlist);
+           targetIdsListCache.put(iaClass, tlist);
+           targetNameListCache.put(iaClass, tnlist);
         }
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
@@ -358,8 +368,8 @@ System.out.println("     free ride :)");
 
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
-System.out.println("tlist.size()=" + tlist.size());
-System.out.println("qlist.size()=" + qlist.size());
+System.out.println("tlist.size()=" + tlist.size()+" annnnd tnlist.size()="+tnlist.size());
+System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size());
 System.out.println(map);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
@@ -833,8 +843,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
     // note: if tanns is null, that means we get all exemplar for species
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                                       JSONObject userConfidence, Shepherd myShepherd, String taskID, String baseUrl) {
-
-                                                          
+                                            
         if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
@@ -847,13 +856,14 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         
         try {
             for (Annotation ann : qanns) {
-
                 if (validForIdentification(ann, myShepherd.getContext())) {
                     allAnns.add(ann);
                     MediaAsset ma = ann.getDerivedMediaAsset();
                     if (ma == null) ma = ann.getMediaAsset();
-                    System.out.println("Adding MA to list for sending to sendMediaAssetsNew...");
-                    if (ma != null) mas.add(ma);
+                    if (ma != null) {
+                        mas.add(ma);
+                        System.out.println("Adding MA to list for sending to sendMediaAssetsNew...");
+                    }    
                 }
             }
             
@@ -888,8 +898,16 @@ System.out.println(allAnns);
             results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
             results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext()));
 
-            if (isExemplar) tanns = null;  //reset it for sendIdentify() below
+            if (tanns!=null) {
+                System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
+            } else {
+                System.out.println("                               ... qanns has: "+qanns.size()+" ... taans is null! Target is all annotations.");
+            }
 
+            if (isExemplar) {
+                System.out.println("                               ... isExemplar! Setting taans to null for sendIdentify.");
+                tanns = null;  //reset it for sendIdentify() below
+            }
             //this should attempt to repair missing Annotations
             boolean tryAgain = true;
             JSONObject identRtn = null;
@@ -904,11 +922,6 @@ System.out.println(allAnns);
                     return results; 
                 }
 
-                if (tanns!=null) {
-                    System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
-                } else {
-                    System.out.println("                               ... qanns has: "+qanns.size()+" ... taans is null! Target is all annotations.");
-                }
 
             }
 		
@@ -1056,8 +1069,8 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     //this finds the *most recent* taskID associated with this IBEIS-IA jobID
     public static String findTaskIDFromJobID(String jobID, String context) {
       Shepherd myShepherd=new Shepherd(context);
-      System.out.println("============================= TASK ID IN findTaskIDFromJobID ===========");
-      System.out.println("============================= jobID= "+jobID+"   context= "+context+" ===========");
+      System.out.println("===========================     TASK ID IN findTaskIDFromJobID      ===========");
+      System.out.println("=========================== jobID= "+jobID+"   context= "+context+" ===========");
       System.out.println("");
       myShepherd.setAction("IBEISIA.findTaskIDFromJobID");
       myShepherd.beginDBTransaction();
