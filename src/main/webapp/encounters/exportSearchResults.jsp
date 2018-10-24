@@ -124,7 +124,7 @@
 		    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("mappedResults")%>
 		  </a></li>
 		   <li><a
-		     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
+		     href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
 		   </a></li>
 		      <li><a
 		     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>
