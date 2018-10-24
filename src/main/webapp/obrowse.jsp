@@ -176,6 +176,10 @@ if (!rawOutput(type)) {
 <script src="tools/jquery/js/jquery.min.js"></script>
 <style>
 
+body {
+    font-family: arial, sans;
+}
+
 .img-margin {
     float: right;
     display: inline-block;
@@ -255,7 +259,13 @@ function drawFeature(id) {
 <%
 }  //above skipped for MediaAssetMetadata (raw json)
 
-myShepherd = new Shepherd("context0");
+String context = "context0";
+if (Util.requestParameterSet(request.getParameter("evict"))) {
+    org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+    out.println("<p style=\"padding: 10px 0; text-align: center; background-color: #FAA;\"><b>.evictAll()</b> called on PMF data store cache.</p>");
+}
+
+myShepherd = new Shepherd(context);
 myShepherd.setAction("obrowse.jsp");
 myShepherd.beginDBTransaction();
 
