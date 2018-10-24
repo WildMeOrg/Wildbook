@@ -128,6 +128,7 @@ java.util.Properties" %>
             }
             h += "</li>";
             h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
+            h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
             h += "</ul>";
             return h;
         }
