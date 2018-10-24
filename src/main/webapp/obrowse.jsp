@@ -53,6 +53,7 @@ java.util.Properties" %>
 		shown.add(ann);
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
 		h += "<li>iaClass: <b>" + ((ann.getIAClass() == null) ? "[null]" : ann.getIAClass()) + "</b></li>";
+		h += "<li>acmId: <b>" + ann.getAcmId() + "</b></li>";
 		h += "<li>matchAgainst: <b>" + ann.getMatchAgainst() + "</b></li>";
 		h += "<li>identificationStatus: <b>" + ann.getIdentificationStatus() + "</b></li>";
         h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
