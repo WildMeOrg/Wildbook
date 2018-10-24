@@ -40,6 +40,7 @@ import java.util.StringTokenizer;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.net.URL;
 
@@ -293,9 +294,9 @@ System.out.println("sendAnnotations(): sending " + ct);
         }
         // Do we have a qaan? We need one, or load a failure response.
         if (qlist.isEmpty()) {
-            JSONObject noQueryAnn = new JSONObject();
-            noQueryAnn.append("status", "rejected");
-            noQueryAnn.append("error", "No query annotation was valid for identification. ");
+	        JSONObject noQueryAnn = new JSONObject();
+            noQueryAnn.put("status", new JSONObject().put("message", "rejected"));
+            noQueryAnn.put("error", "No query annotation was valid for identification. ");
             return noQueryAnn;
         }
 
@@ -667,8 +668,10 @@ org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
     public static boolean iaCheckMissing(JSONObject res, String context) {
 /////System.out.println("########## iaCheckMissing res -> " + res);
 //if (res != null) throw new RuntimeException("fubar!");
-        if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
-        boolean tryAgain = false;
+	try {
+        	if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
+    } catch (JSONException je) {}  // You don't always get an error code.. Especially if the anns got swatted before sending
+	boolean tryAgain = false;
 
 //TODO handle loop where we keep trying to add same objects but keep failing (e.g. store count of attempts internally in class?)
 
@@ -873,9 +876,24 @@ System.out.println(allAnns);
             JSONObject identRtn = null;
             while (tryAgain) {
                 identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
-                tryAgain = iaCheckMissing(identRtn, myShepherd.getContext());
-                System.out.println("Trying again in beginIdentifyAnnotations()... qaans has: "+qanns.size()+" taans has: "+tanns.size());
+                System.out.println("identRtn contains ========> "+identRtn.toString());
+                if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
+                    tryAgain = iaCheckMissing(identRtn, myShepherd.getContext());   
+                } else {
+                    results.put("error", identRtn.get("status"));
+                    results.put("success", false);
+                    return results; 
+                }
+
+                if (tanns!=null) {
+                    System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
+                } else {
+                    System.out.println("                               ... qanns has: "+qanns.size()+" ... taans is null! Target is all annotations.");
+                }
+
             }
+		
+
             results.put("sendIdentify", identRtn);
 
 System.out.println("sendIdentify ---> " + identRtn);
