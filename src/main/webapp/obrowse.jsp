@@ -324,7 +324,7 @@ if (type.equals("Encounter")) {
 		}
 	} else if (acmId!=null) {
 		try {
-			Annotation ann = myShepherd.getAnnotationWithACMId(acmId);
+			Annotation ann = myShepherd.getAnnotationsWithACMId(acmId);
 			out.println(showAnnotation(ann));
 		} catch (Exception e) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
