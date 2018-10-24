@@ -1209,7 +1209,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
         if (iaResult == null) return null;
 
         String iaClass = iaResult.optString("class", "_FAIL_");
-        Taxonomy tax = iaTaxonomyMap(myShepherd, context).get(iaClass);
+        Taxonomy tax = iaTaxonomyMap(myShepherd).get(iaClass);
         if (tax == null) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: bailing on IA results due to invalid species detected -- " + iaResult.toString());
             return null;
@@ -1228,6 +1228,12 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         return ann;
     }
 
+    //this is the "preferred" way to go from iaClass to Taxonomy (and thus then .getScientificName() or whatever)
+    public static Taxonomy iaClassToTaxonomy(String iaClass, Shepherd myShepherd) {
+        if (iaClass == null) return null;
+        return iaTaxonomyMap(myShepherd).get(iaClass);
+    }
+    //see above
     public static String convertSpeciesToString(String iaClassLabel) {
         String[] s = convertSpecies(iaClassLabel);
         if (s == null) return null;
@@ -3241,7 +3247,8 @@ return Util.generateUUID();
 
 
     //TODO cache???
-    public static HashMap<String,Taxonomy> iaTaxonomyMap(Shepherd myShepherd, String context) {
+    public static HashMap<String,Taxonomy> iaTaxonomyMap(Shepherd myShepherd) {
+        String context = myShepherd.getContext();
         HashMap<String,Taxonomy> map = new HashMap<String,Taxonomy>();
         String sciName = "";
         int i = 0;
