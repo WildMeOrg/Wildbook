@@ -53,6 +53,8 @@ java.util.Properties" %>
 		shown.add(ann);
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
 		h += "<li>iaClass: <b>" + ((ann.getIAClass() == null) ? "[null]" : ann.getIAClass()) + "</b></li>";
+		h += "<li>matchAgainst: <b>" + ann.getMatchAgainst() + "</b></li>";
+		h += "<li>identificationStatus: <b>" + ann.getIdentificationStatus() + "</b></li>";
         h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
 		h += "<li>features: " + showFeatureList(ann.getFeatures()) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd)) + "</li>";
@@ -150,6 +152,7 @@ java.util.Properties" %>
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
+		h += "<li>detectionStatus: <b>" + ma.getDetectionStatus() + "</b></li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
