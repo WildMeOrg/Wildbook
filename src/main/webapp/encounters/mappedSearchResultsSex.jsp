@@ -247,7 +247,7 @@ myShepherd.rollbackDBTransaction();
    </a></li>
    <li><a class="active"><%=encprops.getProperty("mappedResults") %>
    </a></li>
-   <li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
+   <li><a href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
    </a></li>
          <li><a href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
    </a></li>
