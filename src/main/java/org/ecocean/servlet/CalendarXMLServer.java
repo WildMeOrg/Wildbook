@@ -33,6 +33,7 @@ import java.util.Vector;
 import java.util.Iterator;
 
 import org.ecocean.*;
+import org.ecocean.security.HiddenEncReporter;
 
 
 /**
@@ -79,6 +80,11 @@ public class CalendarXMLServer extends HttpServlet {
     
     EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
     rEncounters = queryResult.getResult();
+
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+    rEncounters = hiddenData.securityScrubbedResults(rEncounters);
+
+
     //rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
     
     

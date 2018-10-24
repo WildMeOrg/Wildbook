@@ -46,15 +46,14 @@
 
     //Iterator allIndividuals;
     Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
-    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
-    rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 
     myShepherd.beginDBTransaction();
 
     MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, "individualID ascending");
     rIndividuals = queryResult.getResult();
 
-
+    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
+    rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 
     String[] keywords = request.getParameterValues("keyword");
     if (keywords == null) {
