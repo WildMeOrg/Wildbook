@@ -1494,17 +1494,15 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
             rtn.put("error", "could not find any Annotation ids from logs");
             return rtn;
         }
-        HashMap<String,Annotation> anns = new HashMap<String,Annotation>();
-        Shepherd myShepherd=new Shepherd(context);
+        HashMap<String,Annotation> anns = new HashMap<String,Annotation>();  //NOTE: the key is now the acmId !!
+        Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.processCallbackIdentify");
         myShepherd.beginDBTransaction();
         for (int i = 0 ; i < ids.length ; i++) {
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, ids[i]), true)));
 System.out.println("**** " + ann);
-            if (ann != null) anns.put(ids[i], ann);
+            if (ann != null) anns.put((ann.getAcmId() != null) ? ann.getAcmId() : ann.getId(), ann);
         }
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
         int numCreated = 0;
         JSONObject infDict = null;
         JSONObject j = null;
@@ -1517,6 +1515,8 @@ System.out.println("**** " + ann);
         }
         if (infDict == null) {
             rtn.put("error", "could not parse inference_dict from results");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return rtn;
         }
         boolean needReview = false;  //set as a whole
@@ -1564,6 +1564,8 @@ System.out.println("**** " + ann);
         }
 
         log(taskID, null, jlog, myShepherd.getContext());
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
         return rtn;
     }
 
