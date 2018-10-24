@@ -15,14 +15,34 @@ java.util.Properties" %>
 		return "(form)";
 	}
 
+    private String format(String label, String value) {
+        return format(label, value, null);
+    }
+    private String format(String label, String value, String alt) {
+        String out = "";
+        alt = (alt == null) ? "" : " title=\"" + alt + "\" ";
+        if (label != null) out += "<span class=\"format-label\">" + label + ": </span>";
+        if ((value == null) || (value.equals("none"))) {
+            out += "<span " + alt + "class=\"format-value format-" + value + "\">" + value + "</span>";
+        } else {
+            out += "<span " + alt + "class=\"format-value\">" + value + "</span>";
+        }
+        return out;
+    }
+    private String format(String label, Boolean value) {
+        String out = "";
+        if (label != null) out += "<span class=\"format-label\">" + label + ": </span>";
+        out += "<span class=\"format-value format-boolean format-" + value + "\">" + value + "</span>";
+        return out;
+    }
 	private String niceJson(JSONObject j) {
-		if (j == null) return "<b>[none]</b>";
+		if (j == null) return format(null, "none");
 		//return "<pre class=\"json\">" + j.toString().replaceAll(",", ",\n") + "</pre>";
 		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
 	}
 
 	private String showEncounter(Encounter enc) {
-		if (enc == null) return "<b>[none]</b>";
+		if (enc == null) return format(null, "none");
 		String h = "<div class=\"encounter shown\"><a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">Encounter <b>" + enc.getCatalogNumber() + "</b></a>";
 		if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
 			h += "<div>Annotations:<ul>";
@@ -35,8 +55,8 @@ java.util.Properties" %>
 	}
 
 	private String showFeature(Feature f) {
-		if (f == null) return "<b>[none]</b>";
-		if (shown.contains(f)) return "<div class=\"feature shown\">Feature <b>" + f.getId() + "</b></div>";
+		if (f == null) return format(null, "none");
+		if (shown.contains(f)) return "<div class=\"feature shown\">" + format("Feature", f.getId(), f.toString()) + "</div>";
 		shown.add(f);
 		String h = "<div class=\"feature\">Feature <b>" + f.getId() + "</b><ul>";
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
@@ -52,11 +72,11 @@ java.util.Properties" %>
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
 		shown.add(ann);
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
-		h += "<li>iaClass: <b>" + ((ann.getIAClass() == null) ? "[null]" : ann.getIAClass()) + "</b></li>";
-		h += "<li>acmId: <b>" + ann.getAcmId() + "</b></li>";
-		h += "<li>matchAgainst: <b>" + ann.getMatchAgainst() + "</b></li>";
-		h += "<li>identificationStatus: <b>" + ann.getIdentificationStatus() + "</b></li>";
-        h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
+		h += "<li>" + format("iaClass", ann.getIAClass()) + "</li>";
+		h += "<li>" + format("acmId", ann.getAcmId()) + "</li>";
+		h += "<li>" + format("matchAgainst", ann.getMatchAgainst()) + "</li>";
+		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
+                h += "<li>" + format("AoI", ann.getIsOfInterest()) + "</li>";
 		h += "<li>features: " + showFeatureList(ann.getFeatures()) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd)) + "</li>";
 		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset()) + "</li>";
@@ -127,7 +147,7 @@ java.util.Properties" %>
 	}
 
 	private String showFeatureList(ArrayList<Feature> l) {
-		if ((l == null) || (l.size() < 1)) return "[none]";
+		if ((l == null) || (l.size() < 1)) return format(null, "none");
 		String h = "<ul>";
 		for (int i = 0 ; i < l.size() ; i++) {
 			h += "<li>" + showFeature(l.get(i)) + "</li>";
@@ -184,6 +204,31 @@ body {
 .img-margin {
     float: right;
     display: inline-block;
+}
+
+.format-label {
+    font-size: 0.9em;
+    color: #777;
+}
+.format-value {
+    font-weight: bold;
+}
+.format-null, .format-none, .format-boolean {
+    font-size: 0.8em;
+    color: #888;
+    background-color: #DDD;
+    border-radius: 3px;
+    padding: 2px 4px;
+}
+.format-true {
+    text-transform: uppercase;
+    color: #FFF;
+    background-color: #6B6;
+}
+.format-false {
+    text-transform: uppercase;
+    color: #FFF;
+    background-color: #B66;
 }
 
 #img-wrapper {
