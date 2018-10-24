@@ -142,6 +142,7 @@ if (filename != null) {
             enc.addSubmitter(AccessControl.getUser(request, myShepherd));
             enc.addComments("<i style=\"color: red; font-size: 1.5em;\">This is a <b>TEST ENCOUNTER</b> used to test IA functionality.</i>");
             enc.setLocationID("__TEST__");
+            enc.setTaxonomyFromString(taxonomy);
 	    out.println("<li><a target=\"_new\" title=\"" + ann.toString() + "\" href=\"obrowse.jsp?type=Annotation&id=" + ann.getId() + "\">Annotation " + ann.getId() + "</a></li>");
 	    out.println("<li><a target=\"_new\" title=\"" + enc.toString() + "\" href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a></li>");
             myShepherd.getPM().makePersistent(enc);
@@ -163,7 +164,7 @@ if (filename != null) {
 }
 
 
-HashMap<String,Taxonomy> tax = IBEISIA.iaTaxonomyMap(myShepherd, context);
+HashMap<String,Taxonomy> tax = IBEISIA.iaTaxonomyMap(myShepherd);
 %>
 
 <div class="controls">
