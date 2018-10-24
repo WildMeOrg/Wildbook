@@ -366,7 +366,7 @@ if (type.equals("Encounter")) {
 } else if (type.equals("Annotation")) {
 	if (id!=null&&acmId==null) {
 		try {
-			Annotation ann = myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true)));
+			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
 			out.println(showAnnotation(ann));
 		} catch (Exception ex) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
@@ -374,10 +374,14 @@ if (type.equals("Encounter")) {
 		}
 	} else if (acmId!=null) {
 		try {
-			Annotation ann = myShepherd.getAnnotationsWithACMId(acmId);
-			out.println(showAnnotation(ann));
+			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
+                        if ((anns == null) || (anns.size() < 1)) {
+                            out.println("none with acmId " + acmId);
+                        } else {
+			    out.println(showAnnotation(anns.get(0)));
+                        }
 		} catch (Exception e) {
-			out.println("<p>ERROR: " + ex.toString() + "</p>");
+			out.println("<p>ERROR: " + e.toString() + "</p>");
 			needForm = true;
 		}
 	}
