@@ -284,14 +284,8 @@ f<%@ page contentType="text/html; charset=utf-8"
 
 <%
 
-<<<<<<< HEAD
   startNum = startNum + encounterIncrementer;
   endNum = endNum + encounterIncrementer;
-=======
-
-  //startNum = startNum + encounterIncrementer;
-  //endNum = endNum + encounterIncrementer;
->>>>>>> e701660... FIX: gallery range fix
 
 %>
 
