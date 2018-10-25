@@ -109,19 +109,19 @@ java.util.Properties" %>
                 h += "</ol>";
             }
             h += "</li>";
-            h += "<li><b>" + task.countMediaAssetObjects() + " MediaAsset</b> object(s)";
-            if (task.countMediaAssetObjects() > 0) {
+            h += "<li><b>" + task.countObjectMediaAssets() + " MediaAsset</b> object(s)";
+            if (task.hasObjectMediaAssets()) {
                 h += "<ol>";
-                for (MediaAsset ma : task.getMediaAssetObjects()) {
+                for (MediaAsset ma : task.getObjectMediaAssets()) {
                     h += "<li><a href=\"?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a> <span class=\"quiet\">" + ma.toString() + "</span></li>";
                 }
                 h += "</ol>";
             }
             h += "</li>";
-            h += "<li><b>" + task.countAnnotationObjects() + " Annotation</b> object(s)";
-            if (task.countAnnotationObjects() > 0) {
+            h += "<li><b>" + task.countObjectAnnotations() + " Annotation</b> object(s)";
+            if (task.hasObjectAnnotations()) {
                 h += "<ol>";
-                for (Annotation ann : task.getAnnotationObjects()) {
+                for (Annotation ann : task.getObjectAnnotations()) {
                     h += "<li><a href=\"?type=Annotation&id=" + ann.getId() + "\">" + ann.getId() + "</a> <span class=\"quiet\">" + ann.toString() + "</span></li>";
                 }
                 h += "</ol>";
