@@ -87,7 +87,7 @@ java.util.Properties" %>
             String h = "<div><b>" + task.getId() + "</b> " + task.toString() + "<ul>";
             Task parent = task.getParent();
             if (parent == null) {
-                h += "<li><b><i>No parent</i></b></li>";
+                h += "<li><i class=\"format-value format-none\">No parent</i></li>";
             } else {
                 h += "<li><b>Parent: <a href=\"?type=Task&id=" + parent.getId() + "\">" + parent.getId() + "</a></b> <span class=\"quiet\">" + parent.toString() + "</span>";
                 if (parent.numChildren() > 1) {  //must be > 1 cuz we need siblings

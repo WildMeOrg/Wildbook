@@ -286,9 +286,21 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 						}
 					}
 				} else {
-					if (!timers[tid]) timers[tid] = { attempts: 0 };
-					timers[tid].attempts++;
-					timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+                                        var latest = -1;
+                                        if (d && d[0] && d[0].timestamp) latest = d[0].timestamp;
+                                        if (latest > 0) {
+                                            var age = serverTimeDiff(latest);
+                                            if (age > (1 * 60 * 60 * 1000)) {
+                                                console.log('giving up on old task latest=%d -> %.2f', latest, age / (60*60*1000));
+                                                if (timers && timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+                                                timers[tid] = { attempts: 9999999 };
+						$('#wait-message-' + tid).html('error starting initiating IA job').removeClass('throbbing');;
+                                            }
+                                        } else {
+					    if (!timers[tid]) timers[tid] = { attempts: 0 };
+					    timers[tid].attempts++;
+					    timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+                                        }
 				}
 			} else {
 				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
@@ -305,6 +317,12 @@ console.info('!!>> got %o', d);
 
 function approxServerTime() {
 	return serverTimestamp + (new Date().getTime() - pageStartTimestamp);
+}
+
+//st is a server timestamp (i.e. using its clock, like data fields set on server)
+//  this returns millisec different from (approx) server time... basically its age
+function serverTimeDiff(st) {
+    return approxServerTime() - st;
 }
 
 function manualCallback(tid) {
