@@ -719,12 +719,34 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
         }
 System.out.println("anns -> " + anns);
 
+        Task parentTask = Task.load(taskId, myShepherd);
+        if (parentTask == null) {
+            System.out.println("WARNING: IAGateway._doIdentify() could not load Task id=" + taskId + "; creating it... yrros");
+            parentTask = new Task(taskId);
+        }
+
         JSONArray taskList = new JSONArray();
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
-        for (Annotation ann : anns) {
+        List<String> taskIds = new ArrayList<String>();
+        if (anns.size() > 1) {  //need to create child Tasks
+            JSONObject params = parentTask.getParameters();
+            parentTask.setParameters((String)null);  //reset this, kids inherit params
+            for (int i = 0 ; i < anns.size() ; i++) {
+                Task newTask = new Task(parentTask);
+                newTask.setParameters(params);
+                newTask.addObject(anns.get(i));
+                taskIds.add(newTask.getId());
+                myShepherd.storeNewTask(newTask);
+            }
+            myShepherd.storeNewTask(parentTask);
+        } else {  //we just use the existing "parent" task
+            taskIds.add(parentTask.getId());
+        }
+        for (int i = 0 ; i < anns.size() ; i++) {
+            Annotation ann = anns.get(i);
             JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
-            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, taskId);
+            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, taskIds.get(i));
             taskList.put(taskRes);
         }
         if (limitTargetSize > -1) res.put("_limitTargetSize", limitTargetSize);

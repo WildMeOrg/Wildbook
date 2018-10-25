@@ -77,6 +77,11 @@ public class Taxonomy implements java.io.Serializable {
       return scientificName.toLowerCase().equals(other.getScientificName().toLowerCase());
   }
 
+    //really only for Encounter.  :(   someday this will go away! (plz)
+    //  should be *no more than* two.... :(
+    public String[] getGenusSpecificEpithet() {
+        return Util.stringToGenusSpecificEpithet(this.scientificName);
+    }
   public String toString() {
       return new ToStringBuilder(this)
               .append("id", id)

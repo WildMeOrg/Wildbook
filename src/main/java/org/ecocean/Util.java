@@ -397,6 +397,21 @@ public class Util {
         return null;
     }
 
+    // will always be null, String[1] or String[2]
+    public static String[] stringToGenusSpecificEpithet(String s) {
+        if (s == null) return null;
+        String[] gs = null;
+        int i = s.indexOf(" ");
+        if (i < 0) {
+            gs = new String[1];
+            gs[0] = s;
+        } else {
+            gs = new String[2];
+            gs[0] = s.substring(0, i);
+            gs[1] = s.substring(i + 1);
+        }
+        return gs;
+    }
 
     //a generic version of our uuid-dir-structure-creating algorithm -- adjust as needed!?
     // TODO check for incoming slashes and similar weirdness

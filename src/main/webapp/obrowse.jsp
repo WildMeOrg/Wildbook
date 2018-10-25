@@ -15,14 +15,34 @@ java.util.Properties" %>
 		return "(form)";
 	}
 
+    private String format(String label, String value) {
+        return format(label, value, null);
+    }
+    private String format(String label, String value, String alt) {
+        String out = "";
+        alt = (alt == null) ? "" : " title=\"" + alt + "\" ";
+        if (label != null) out += "<span class=\"format-label\">" + label + ": </span>";
+        if ((value == null) || (value.equals("none"))) {
+            out += "<span " + alt + "class=\"format-value format-" + value + "\">" + value + "</span>";
+        } else {
+            out += "<span " + alt + "class=\"format-value\">" + value + "</span>";
+        }
+        return out;
+    }
+    private String format(String label, Boolean value) {
+        String out = "";
+        if (label != null) out += "<span class=\"format-label\">" + label + ": </span>";
+        out += "<span class=\"format-value format-boolean format-" + value + "\">" + value + "</span>";
+        return out;
+    }
 	private String niceJson(JSONObject j) {
-		if (j == null) return "<b>[none]</b>";
+		if (j == null) return format(null, "none");
 		//return "<pre class=\"json\">" + j.toString().replaceAll(",", ",\n") + "</pre>";
 		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
 	}
 
 	private String showEncounter(Encounter enc) {
-		if (enc == null) return "<b>[none]</b>";
+		if (enc == null) return format(null, "none");
 		String h = "<div class=\"encounter shown\"><a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">Encounter <b>" + enc.getCatalogNumber() + "</b></a>";
 		if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
 			h += "<div>Annotations:<ul>";
@@ -35,8 +55,8 @@ java.util.Properties" %>
 	}
 
 	private String showFeature(Feature f) {
-		if (f == null) return "<b>[none]</b>";
-		if (shown.contains(f)) return "<div class=\"feature shown\">Feature <b>" + f.getId() + "</b></div>";
+		if (f == null) return format(null, "none");
+		if (shown.contains(f)) return "<div class=\"feature shown\">" + format("Feature", f.getId(), f.toString()) + "</div>";
 		shown.add(f);
 		String h = "<div class=\"feature\">Feature <b>" + f.getId() + "</b><ul>";
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
@@ -63,11 +83,11 @@ java.util.Properties" %>
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
 		shown.add(ann);
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
-		h += "<li>iaClass: <b>" + ((ann.getIAClass() == null) ? "[null]" : ann.getIAClass()) + "</b></li>";
-        h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
-		if (ann.getAcmId()!=null) {
-			h += "<li>ACM Id: <b>"+ann.getAcmId()+"</b></li>";
-		}
+		h += "<li>" + format("iaClass", ann.getIAClass()) + "</li>";
+		h += "<li>" + format("acmId", ann.getAcmId()) + "</li>";
+		h += "<li>" + format("matchAgainst", ann.getMatchAgainst()) + "</li>";
+		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
+                h += "<li>" + format("AoI", ann.getIsOfInterest()) + "</li>";
 		h += "<li>features: " + showFeatureList(ann.getFeatures()) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd)) + "</li>";
 		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset()) + "</li>";
@@ -100,25 +120,27 @@ java.util.Properties" %>
                 h += "</ol>";
             }
             h += "</li>";
-            h += "<li><b>" + task.countMediaAssetObjects() + " MediaAsset</b> object(s)";
-            if (task.countMediaAssetObjects() > 0) {
+            h += "<li><b>" + task.countObjectMediaAssets() + " MediaAsset</b> object(s)";
+            if (task.hasObjectMediaAssets()) {
                 h += "<ol>";
-                for (MediaAsset ma : task.getMediaAssetObjects()) {
+                for (MediaAsset ma : task.getObjectMediaAssets()) {
                     h += "<li><a href=\"?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a> <span class=\"quiet\">" + ma.toString() + "</span></li>";
                 }
                 h += "</ol>";
             }
             h += "</li>";
-            h += "<li><b>" + task.countAnnotationObjects() + " Annotation</b> object(s)";
-            if (task.countAnnotationObjects() > 0) {
+            h += "<li><b>" + task.countObjectAnnotations() + " Annotation</b> object(s)";
+            if (task.hasObjectAnnotations()) {
                 h += "<ol>";
-                for (Annotation ann : task.getAnnotationObjects()) {
+                for (Annotation ann : task.getObjectAnnotations()) {
                     h += "<li><a href=\"?type=Annotation&id=" + ann.getId() + "\">" + ann.getId() + "</a> <span class=\"quiet\">" + ann.toString() + "</span></li>";
                 }
                 h += "</ol>";
             }
             h += "</li>";
             h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
+            h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
+            h += "<li><a target=\"_new\" href=\"ia?v2&includeChildren&taskId=" + task.getId() + "\">JSON task tree</a></li>";
             h += "</ul>";
             return h;
         }
@@ -138,7 +160,7 @@ java.util.Properties" %>
 	}
 
 	private String showFeatureList(ArrayList<Feature> l) {
-		if ((l == null) || (l.size() < 1)) return "[none]";
+		if ((l == null) || (l.size() < 1)) return format(null, "none");
 		String h = "<ul>";
 		for (int i = 0 ; i < l.size() ; i++) {
 			h += "<li>" + showFeature(l.get(i)) + "</li>";
@@ -167,6 +189,7 @@ java.util.Properties" %>
 			h += "<li>AcmId: " + ma.getAcmId() + "</li>";
 		} 
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
+		h += "<li>detectionStatus: <b>" + ma.getDetectionStatus() + "</b></li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
@@ -200,6 +223,31 @@ body {
 .img-margin {
     float: right;
     display: inline-block;
+}
+
+.format-label {
+    font-size: 0.9em;
+    color: #777;
+}
+.format-value {
+    font-weight: bold;
+}
+.format-null, .format-none, .format-boolean {
+    font-size: 0.8em;
+    color: #888;
+    background-color: #DDD;
+    border-radius: 3px;
+    padding: 2px 4px;
+}
+.format-true {
+    text-transform: uppercase;
+    color: #FFF;
+    background-color: #6B6;
+}
+.format-false {
+    text-transform: uppercase;
+    color: #FFF;
+    background-color: #B66;
 }
 
 #img-wrapper {
@@ -239,6 +287,7 @@ pre.json {
     padding: 8px 8px 8px 15px;
     border-radius: 3px;
     background-color: #EEE;
+    display: inline-flex;
 }
 
 </style>
@@ -333,7 +382,7 @@ if (type.equals("Encounter")) {
 } else if (type.equals("Annotation")) {
 	if (id!=null&&acmId==null) {
 		try {
-			Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true)));
+			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
 			out.println(showAnnotation(ann));
 		} catch (Exception ex) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
@@ -342,8 +391,11 @@ if (type.equals("Encounter")) {
 	} else if (acmId!=null) {
 		try {
 			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
-			out.println(showAltAnnotations(anns));
-			out.println(showAnnotation(anns.get(0)));
+                        if ((anns == null) || (anns.size() < 1)) {
+                            out.println("none with acmId " + acmId);
+                        } else {
+			    out.println(showAnnotation(anns.get(0)));
+                        }
 		} catch (Exception e) {
 			out.println("<p>ERROR: " + e.toString() + "</p>");
 			needForm = true;
