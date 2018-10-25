@@ -414,7 +414,7 @@ context=ServletUtilities.getContext(request);
 		    			<img src="images/microscope.gif" height="32px" width="*" />
 		    		<%}
 		    		//if the encounter has a measurement, show the measurement icon
-		    		if(enc.hasMeasurementsEvents()){%>	
+		    		if(enc.hasMeasurementEvents()){%>	
 		    			<img src="images/ruler.png" height="32px" width="*" />
 		        	<%}%>
 		    		
