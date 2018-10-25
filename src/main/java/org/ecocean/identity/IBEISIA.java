@@ -1209,7 +1209,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
         if (iaResult == null) return null;
 
         String iaClass = iaResult.optString("class", "_FAIL_");
-        Taxonomy tax = iaTaxonomyMap(myShepherd, context).get(iaClass);
+        Taxonomy tax = iaTaxonomyMap(myShepherd).get(iaClass);
         if (tax == null) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: bailing on IA results due to invalid species detected -- " + iaResult.toString());
             return null;
@@ -1228,6 +1228,12 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         return ann;
     }
 
+    //this is the "preferred" way to go from iaClass to Taxonomy (and thus then .getScientificName() or whatever)
+    public static Taxonomy iaClassToTaxonomy(String iaClass, Shepherd myShepherd) {
+        if (iaClass == null) return null;
+        return iaTaxonomyMap(myShepherd).get(iaClass);
+    }
+    //see above
     public static String convertSpeciesToString(String iaClassLabel) {
         String[] s = convertSpecies(iaClassLabel);
         if (s == null) return null;
@@ -1488,17 +1494,15 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
             rtn.put("error", "could not find any Annotation ids from logs");
             return rtn;
         }
-        HashMap<String,Annotation> anns = new HashMap<String,Annotation>();
-        Shepherd myShepherd=new Shepherd(context);
+        HashMap<String,Annotation> anns = new HashMap<String,Annotation>();  //NOTE: the key is now the acmId !!
+        Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.processCallbackIdentify");
         myShepherd.beginDBTransaction();
         for (int i = 0 ; i < ids.length ; i++) {
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, ids[i]), true)));
 System.out.println("**** " + ann);
-            if (ann != null) anns.put(ids[i], ann);
+            if (ann != null) anns.put((ann.getAcmId() != null) ? ann.getAcmId() : ann.getId(), ann);
         }
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
         int numCreated = 0;
         JSONObject infDict = null;
         JSONObject j = null;
@@ -1511,6 +1515,8 @@ System.out.println("**** " + ann);
         }
         if (infDict == null) {
             rtn.put("error", "could not parse inference_dict from results");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return rtn;
         }
         boolean needReview = false;  //set as a whole
@@ -1558,6 +1564,8 @@ System.out.println("**** " + ann);
         }
 
         log(taskID, null, jlog, myShepherd.getContext());
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
         return rtn;
     }
 
@@ -3245,7 +3253,8 @@ return Util.generateUUID();
 
 
     //TODO cache???
-    public static HashMap<String,Taxonomy> iaTaxonomyMap(Shepherd myShepherd, String context) {
+    public static HashMap<String,Taxonomy> iaTaxonomyMap(Shepherd myShepherd) {
+        String context = myShepherd.getContext();
         HashMap<String,Taxonomy> map = new HashMap<String,Taxonomy>();
         String sciName = "";
         int i = 0;
