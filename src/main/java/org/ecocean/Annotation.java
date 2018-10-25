@@ -569,6 +569,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         for (Annotation ann : sibs) {
             Encounter enc = ann.findEncounter(myShepherd);
             if (ann.isTrivial()) {
+                ann.setMatchAgainst(false);
                 if (enc == null) {  //weird case, but yneverknow (trivial annot with no encounter?)
                     ann.detachFromMediaAsset();  //but this.annot is now on asset, so we are good: kill ann!
                 } else {
