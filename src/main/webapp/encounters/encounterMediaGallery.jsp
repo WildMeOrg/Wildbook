@@ -99,6 +99,8 @@ function forceLink(el) {
 		  Encounter enc = encs.get(f);
 		  System.out.println("EMG: starting for enc "+enc.getCatalogNumber());
 
+      if (!enc.canUserAccess(request)) continue;
+
 		  ArrayList<Annotation> anns = enc.getAnnotations();
 		JSONObject iaTasks = new JSONObject();
 
