@@ -4501,6 +4501,19 @@ public class Shepherd {
     return al;
   }
 
+  public ArrayList<Annotation> getAnnotationsWithACMId(String acmId){
+    String filter = "this.acmId == \""+acmId+"\"";
+    Extent annClass = pm.getExtent(Annotation.class, true);
+    Query anns = pm.newQuery(annClass, filter);
+    Collection c = (Collection) (anns.execute());
+    ArrayList<Annotation> al = new ArrayList(c);
+    anns.closeAll();
+    if((al!=null)&&(al.size()>0)) {
+      return al;
+    }
+    return null;
+  }
+
   //used to describe where this Shepherd is and what it is supposed to be doing
   public void setAction(String newAction){
 

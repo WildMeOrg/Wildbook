@@ -64,10 +64,16 @@ public class Taxonomy implements java.io.Serializable {
     return commonNames.get(i);
   }
 
-  public boolean equals(Taxonomy other) {
-      if ((other == null) || (scientificName == null) || (other.getScientificName() == null)) return false;
-      return scientificName.toLowerCase().equals(other.getScientificName().toLowerCase());
-  }
+    public boolean equals(Taxonomy other) {
+        if ((other == null) || (scientificName == null) || (other.getScientificName() == null)) return false;
+        return scientificName.toLowerCase().equals(other.getScientificName().toLowerCase());
+    }
+
+    //really only for Encounter.  :(   someday this will go away! (plz)
+    //  should be *no more than* two.... :(
+    public String[] getGenusSpecificEpithet() {
+        return Util.stringToGenusSpecificEpithet(this.scientificName);
+    }
 
 
   public String toString() {

@@ -17,8 +17,28 @@ java.util.Properties" %>
 		return "(form)";
 	}
 
+    private String format(String label, String value) {
+        return format(label, value, null);
+    }
+    private String format(String label, String value, String alt) {
+        String out = "";
+        alt = (alt == null) ? "" : " title=\"" + alt + "\" ";
+        if (label != null) out += "<span class=\"format-label\">" + label + ": </span>";
+        if ((value == null) || (value.equals("none"))) {
+            out += "<span " + alt + "class=\"format-value format-" + value + "\">" + value + "</span>";
+        } else {
+            out += "<span " + alt + "class=\"format-value\">" + value + "</span>";
+        }
+        return out;
+    }
+    private String format(String label, Boolean value) {
+        String out = "";
+        if (label != null) out += "<span class=\"format-label\">" + label + ": </span>";
+        out += "<span class=\"format-value format-boolean format-" + value + "\">" + value + "</span>";
+        return out;
+    }
 	private String niceJson(JSONObject j) {
-		if (j == null) return "<b>[none]</b>";
+		if (j == null) return format(null, "none");
 		//return "<pre class=\"json\">" + j.toString().replaceAll(",", ",\n") + "</pre>";
 		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
 	}
@@ -29,12 +49,6 @@ java.util.Properties" %>
 		if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
 			h += "<div>Annotations:<ul>";
 			for (int i = 0 ; i < enc.getAnnotations().size() ; i++) {
-				Annotation ann = enc.getAnnotations().get(i);
-				if (ann!=null) {
-					h += "<li><a href=\"obrowse.jsp?type=Annotation&id=" + enc.getAnnotations().get(i).getId() + "\">Annotation " + enc.getAnnotations().get(i).getId() + "</a></li>";
-				} else {
-					h += "<li>NULL Annotation!</li>";
-				}
 			}
 			h += "</ul></div>";
 		} else if(enc.getAnnotations()==null){
@@ -147,6 +161,7 @@ java.util.Properties" %>
             }
             h += "</li>";
             h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
+            h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
             h += "</ul>";
             return h;
         }
@@ -192,6 +207,7 @@ java.util.Properties" %>
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures(), req) + "</li>";
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
+		h += "<li>detectionStatus: <b>" + ma.getDetectionStatus() + "</b></li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
@@ -263,15 +279,47 @@ java.util.Properties" %>
 String id = request.getParameter("id");
 String type = request.getParameter("type");
 
+// IA debuggin use.. Can retrieve Annotations 
+String acmId = request.getParameter("acmId");
+
 if (!rawOutput(type)) {
 %>
 <html><head><title>obrowse</title>
 <script src="tools/jquery/js/jquery.min.js"></script>
 <style>
 
+body {
+    font-family: arial, sans;
+}
+
 .img-margin {
     float: right;
     display: inline-block;
+}
+
+.format-label {
+    font-size: 0.9em;
+    color: #777;
+}
+.format-value {
+    font-weight: bold;
+}
+.format-null, .format-none, .format-boolean {
+    font-size: 0.8em;
+    color: #888;
+    background-color: #DDD;
+    border-radius: 3px;
+    padding: 2px 4px;
+}
+.format-true {
+    text-transform: uppercase;
+    color: #FFF;
+    background-color: #6B6;
+}
+.format-false {
+    text-transform: uppercase;
+    color: #FFF;
+    background-color: #B66;
 }
 
 #img-wrapper {
@@ -348,7 +396,13 @@ function drawFeature(id) {
 <%
 }  //above skipped for MediaAssetMetadata (raw json)
 
-myShepherd = new Shepherd("context0");
+String context = "context0";
+if (Util.requestParameterSet(request.getParameter("evict"))) {
+    org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+    out.println("<p style=\"padding: 10px 0; text-align: center; background-color: #FAA;\"><b>.evictAll()</b> called on PMF data store cache.</p>");
+}
+
+myShepherd = new Shepherd(context);
 myShepherd.setAction("obrowse.jsp");
 myShepherd.beginDBTransaction();
 
@@ -409,13 +463,26 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("Annotation")) {
-	try {
-		Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true)));
-		out.println(showAnnotation(ann, request));
-	} catch (Exception ex) {
-		out.println("<p>ERROR: " + ex.toString() + "</p>");
-		ex.printStackTrace();
-		needForm = true;
+	if (id!=null&&acmId==null) {
+		try {
+			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
+			out.println(showAnnotation(ann));
+		} catch (Exception ex) {
+			out.println("<p>ERROR: " + ex.toString() + "</p>");
+			needForm = true;
+		}
+	} else if (acmId!=null) {
+		try {
+			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
+                        if ((anns == null) || (anns.size() < 1)) {
+                            out.println("none with acmId " + acmId);
+                        } else {
+			    out.println(showAnnotation(anns.get(0), request));
+                        }
+		} catch (Exception e) {
+			out.println("<p>ERROR: " + e.toString() + "</p>");
+			needForm = true;
+		}
 	}
 
 } else if (type.equals("Task")) {
