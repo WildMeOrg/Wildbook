@@ -94,9 +94,21 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 	MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(request.getParameter("individualID"));
 	if ((indiv == null) && (enc != null) && (enc2 != null)) {
-//TODO make actual individual yo!!!!
-//indiv.addComment(????)
-		res.put("error", "Creating a new MarkedIndividual currently not supported. YET! Sorry.");
+		if (request.getParameter("individualID")!=null&&!"".equals(request.getParameter("individualID").trim())) {
+			try {
+				MarkedIndividual newIndiv = new MarkedIndividual(request.getParameter("individualID"), enc);
+				myShepherd.storeNewMarkedIndividual(newIndiv);
+				enc.setIndividualID(newIndiv.getId());
+				newIndiv.addEncounter(enc2, context);
+				res.put("success", true);
+			} catch (Exception e) {
+				e.printStackTrace();
+				res.put("error", "Please enter a different Individual ID.");
+			}
+		} else {
+			res.put("error", "Please enter a new Individual ID.");
+		}
+		//indiv.addComment(????)
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
@@ -111,7 +123,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		return;
 	}
 
-// TODO enc.setMatchedBy() + comments + etc?????
+	// TODO enc.setMatchedBy() + comments + etc?????
 	enc.setIndividualID(indiv.getIndividualID());
 	enc.setState("approved");
 	indiv.addEncounter(enc, context);
