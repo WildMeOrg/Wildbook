@@ -241,12 +241,14 @@ public class Collaboration implements java.io.Serializable {
 	// here "View" is a weaker action than "Access". 
 	// "View" means "you can see that the data exists but may not necessarily access the data"
 	public static boolean canUserViewOwnedObject(String ownerName, HttpServletRequest request, Shepherd myShepherd) {
+		if (ownerName == null || request.isUserInRole("admin")) return true;
 		User viewer = myShepherd.getUser(request);
 		User owner = myShepherd.getUser(ownerName);
 		return canUserViewOwnedObject(viewer, owner);
 	}
 
 	public static boolean canUserViewOwnedObject(User viewer, User owner) {
+		if (viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
 		return (viewer!=null && 
 				viewer.hasSharing() && 
 				(owner==null || owner.hasSharing()));
