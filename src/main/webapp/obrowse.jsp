@@ -120,7 +120,7 @@ java.util.Properties" %>
             String h = "<div><b>" + task.getId() + "</b> " + task.toString() + "<ul>";
             Task parent = task.getParent();
             if (parent == null) {
-                h += "<li><b><i>No parent</i></b></li>";
+                h += "<li><i class=\"format-value format-none\">No parent</i></li>";
             } else {
                 h += "<li><b>Parent: <a href=\"?type=Task&id=" + parent.getId() + "\">" + parent.getId() + "</a></b> <span class=\"quiet\">" + parent.toString() + "</span>";
                 if (parent.numChildren() > 1) {  //must be > 1 cuz we need siblings
@@ -142,19 +142,19 @@ java.util.Properties" %>
                 h += "</ol>";
             }
             h += "</li>";
-            h += "<li><b>" + task.countMediaAssetObjects() + " MediaAsset</b> object(s)";
-            if (task.countMediaAssetObjects() > 0) {
+            h += "<li><b>" + task.countObjectMediaAssets() + " MediaAsset</b> object(s)";
+            if (task.hasObjectMediaAssets()) {
                 h += "<ol>";
-                for (MediaAsset ma : task.getMediaAssetObjects()) {
+                for (MediaAsset ma : task.getObjectMediaAssets()) {
                     h += "<li><a href=\"?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a> <span class=\"quiet\">" + ma.toString() + "</span></li>";
                 }
                 h += "</ol>";
             }
             h += "</li>";
-            h += "<li><b>" + task.countAnnotationObjects() + " Annotation</b> object(s)";
-            if (task.countAnnotationObjects() > 0) {
+            h += "<li><b>" + task.countObjectAnnotations() + " Annotation</b> object(s)";
+            if (task.hasObjectAnnotations()) {
                 h += "<ol>";
-                for (Annotation ann : task.getAnnotationObjects()) {
+                for (Annotation ann : task.getObjectAnnotations()) {
                     h += "<li><a href=\"?type=Annotation&id=" + ann.getId() + "\">" + ann.getId() + "</a> <span class=\"quiet\">" + ann.toString() + "</span></li>";
                 }
                 h += "</ol>";
@@ -162,6 +162,7 @@ java.util.Properties" %>
             h += "</li>";
             h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
             h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
+            h += "<li><a target=\"_new\" href=\"ia?v2&includeChildren&taskId=" + task.getId() + "\">JSON task tree</a></li>";
             h += "</ul>";
             return h;
         }
@@ -359,6 +360,7 @@ pre.json {
     padding: 8px 8px 8px 15px;
     border-radius: 3px;
     background-color: #EEE;
+    display: inline-flex;
 }
 
 </style>
