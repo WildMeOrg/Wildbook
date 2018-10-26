@@ -250,7 +250,7 @@ console.warn('------------------- grabTaskResult(%s)', tid);
 		success: function(d) {
 		    $('#wait-message-' + tid).remove();  //in case it already exists from previous
 console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
-                    $('#task-debug-' + tid).append('<b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
+                    $('#task-debug-' + tid).append('<br /><b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
 			for (var i = 0 ; i < d.length ; i++) {
 				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
 					if (!jobIdMap[tid]) jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
@@ -286,9 +286,25 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 						}
 					}
 				} else {
-					if (!timers[tid]) timers[tid] = { attempts: 0 };
-					timers[tid].attempts++;
-					timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+                                        var latest = -1;
+                                        if (d && d[0] && d[0].timestamp) latest = d[0].timestamp;
+                                        var gaveUp = false;
+                                        if (latest > 0) {
+                                            var age = serverTimeDiff(latest);
+console.info('age = %.2fmin', age / (60*1000));
+                                            if (age > (12 * 60 * 1000)) {
+                                                console.log('giving up on old task latest=%d -> %.2fmin', latest, age / (60*1000));
+                                                if (timers && timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+                                                timers[tid] = { attempts: 9999999 };
+						$('#wait-message-' + tid).html('error initiating IA job').removeClass('throbbing');;
+                                                gaveUp = true;
+                                            }
+                                        }
+                                        if (!gaveUp) {
+					    if (!timers[tid]) timers[tid] = { attempts: 0 };
+					    timers[tid].attempts++;
+					    timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+                                        }
 				}
 			} else {
 				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
@@ -305,6 +321,12 @@ console.info('!!>> got %o', d);
 
 function approxServerTime() {
 	return serverTimestamp + (new Date().getTime() - pageStartTimestamp);
+}
+
+//st is a server timestamp (i.e. using its clock, like data fields set on server)
+//  this returns millisec different from (approx) server time... basically its age
+function serverTimeDiff(st) {
+    return approxServerTime() - st;
 }
 
 function manualCallback(tid) {
