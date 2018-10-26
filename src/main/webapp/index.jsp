@@ -533,7 +533,7 @@ jQuery(function($) {
     <div class="col-md-6 col-md-offset-3">
 
       <p>
-        Saimaassa uiskentelee yli 300 norppaa. Tavoitteenamme on tunnistaa niist&auml; mahdollisimman moni. Siihen tarvitsemme my&ouml;s sinun apuasi! Otamme ilolla vastaan kuvia saimaannorpista, ja jo tunnistettuihin viiksiniekkoihin p&auml;&auml;set tutustumaan galleriassa. Kuvien lis&auml;ksi olemme kiinnostuneita my&ouml;s n&auml;k&ouml;havainnoista, sill&auml; nekin auttavat t&auml;m&auml;n eritt&auml;in uhanalaisen hylkeen suojelussa.
+        Saimaassa uiskentelee vajaat 400 norppaa. Tavoitteenamme on tunnistaa niist&auml; mahdollisimman moni. Siihen tarvitsemme my&ouml;s sinun apuasi! Otamme ilolla vastaan kuvia saimaannorpista, ja jo tunnistettuihin viiksiniekkoihin p&auml;&auml;set tutustumaan galleriassa. Kuvien lis&auml;ksi olemme kiinnostuneita my&ouml;s n&auml;k&ouml;havainnoista, sill&auml; nekin auttavat t&auml;m&auml;n eritt&auml;in uhanalaisen hylkeen suojelussa.
       </p>
       <p style="font-size:2em;color:#999">
         <a href="https://www.facebook.com/sharer/sharer.php?&endorseimage=http://norppagalleria.wwf.fi/images/pic_for_social_media.jpg&u=http://norppagalleria.wwf.fi&title=Tutustu sin&auml;kin Pullervoon, Terttuun, Teemuun ja satoihin muihin saimaannorppiin WWF:n Norppagalleriassa!  #Norppagalleria" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
