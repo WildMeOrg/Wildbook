@@ -495,13 +495,13 @@ console.info('mainAsset -> %o', mainAsset);
 					$('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
                     
 		    if (!indivId) {
-				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="enc-indiv'+encId+'"></span>');			
+				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
 		    }
 
 		}
                 if (indivId) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="enc-indiv'+encId+'"><a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a></span>');
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"><a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a></span>');
                 }
 
                 if (encId || indivId) {
@@ -732,18 +732,15 @@ function approvalButtonClick(encID, indivID, encID2) {
 		success: function(d) {
 console.warn(d);
 			if (d.success) {
-
 				jQuery(msgTarget).html('<i><b>Update successful</b></i>');
 				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a>';
-				$("#enc-indiv"+encID).html(indivLink);
 				if (encID2) {
-					$("#enc-indiv"+encID2).html(indivLink);
 					$(".enc-title .indiv-link").remove();
 					$(".enc-title #enc-action").remove();
 					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
+					$("#encnum"+encID2).append(indivLink);
 				}
-				
 			} else {
 				console.warn('error returned: %o', d);
 				jQuery(msgTarget).html('Error updating encounter: <b>' + d.error + '</b>');
@@ -766,3 +763,5 @@ function approveNewIndividual(el) {
 
 
 </script>
+
+
