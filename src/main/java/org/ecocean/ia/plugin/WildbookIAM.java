@@ -105,8 +105,9 @@ public class WildbookIAM extends IAPlugin {
                 }
                 IA.log("INFO: WildbookIAM.prime(" + context + ") sending " + sendAnns.size() + " annots (of " + matchingSet.size() + ") and " + mas.size() + " images");
                 try {
-                    sendMediaAssets(mas, false);
-                    sendAnnotations(sendAnns, false);
+                    //think we can checkFirst on both of these -- no need to re-send anything during priming
+                    sendMediaAssets(mas, true);
+                    sendAnnotations(sendAnns, true);
                 } catch (Exception ex) {
                     IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
                     ex.printStackTrace();
