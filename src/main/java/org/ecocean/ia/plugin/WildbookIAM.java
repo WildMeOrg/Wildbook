@@ -251,8 +251,12 @@ System.out.println("sendAnnotations() -> " + rtn);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) return null;
         List<String> ids = new ArrayList<String>();
         for (int i = 0 ; i < rtn.getJSONArray("response").length() ; i++) {
-            if (rtn.getJSONArray("response").optJSONObject(i) == null) continue;
-            ids.add(fromFancyUUID(rtn.getJSONArray("response").getJSONObject(i)));
+            if (rtn.getJSONArray("response").optJSONObject(i) == null) {
+                //IA returns null when it cant localize/etc, so we need to add this to keep array length the same
+                ids.add(null);
+            } else {
+                ids.add(fromFancyUUID(rtn.getJSONArray("response").getJSONObject(i)));
+            }
         }
 System.out.println("fromResponse ---> " + ids);
         return ids;
