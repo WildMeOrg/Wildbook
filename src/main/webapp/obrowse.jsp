@@ -468,7 +468,7 @@ if (type.equals("Encounter")) {
 	if (id!=null&&acmId==null) {
 		try {
 			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
-			out.println(showAnnotation(ann));
+			out.println(showAnnotation(ann, request));
 		} catch (Exception ex) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
 			needForm = true;
