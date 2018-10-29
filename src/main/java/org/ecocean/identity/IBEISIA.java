@@ -1225,6 +1225,11 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
         ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
+        System.out.println("Verifying that new Ann can be matched against with iaClass...");
+        if (validForIdentification(ann, context)) {
+            ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
+        }
+        
         return ann;
     }
 
