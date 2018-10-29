@@ -203,14 +203,16 @@ System.out.println("sendMediaAssets() -> " + rtn);
         List<Annotation> acmList = new ArrayList<Annotation>(); //for rectifyAnnotationIds below
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
-/*
-            if (!validForIdentification(ann)) {
-                System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
-                continue;
-            }
-*/
             if (ann.getMediaAsset() == null) {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset for " + ann + "; skipping!");
+                continue;
+            }
+            if (ann.getMediaAsset().getAcmId() == null) {
+                IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find acmId for " + ann + " (MediaAsset id=" + ann.getMediaAsset().getId() + " not added to IA?); skipping!");
+                continue;
+            }
+            if (IBEISIA.validForIdentification(ann)) {
+                IA.log("WARNING: WildbookIAM.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
             JSONObject iid = toFancyUUID(ann.getMediaAsset().getAcmId());
