@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,
-org.json.JSONObject,
+org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 org.ecocean.identity.IdentityServiceLog,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
@@ -11,26 +11,33 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 String context = ServletUtilities.getContext(request);
 
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
-if (request.getParameter("annotId") != null) {
-	String annId = request.getParameter("annotId");
+if (request.getParameter("acmId") != null) {
+	String acmId = request.getParameter("acmId");
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
-       	Annotation ann = null;
+       	ArrayList<Annotation> anns = null;
 	JSONObject rtn = new JSONObject("{\"success\": false}");
 	//Encounter enc = null;
 	try {
-        	ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
+        	anns = myShepherd.getAnnotationsWithACMId(acmId);
 	} catch (Exception ex) {}
-	if (ann == null) {
+	if ((anns == null) || (anns.size() < 1)) {
 		rtn.put("error", "unknown error");
 	} else {
-		rtn.put("success", true);
-		rtn.put("annId", annId);
+            JSONArray janns = new JSONArray();
+            for (Annotation ann : anns) {
+                JSONObject jann = new JSONObject();
+                jann.put("id", ann.getId());
+                jann.put("acmId", ann.getAcmId());
 		MediaAsset ma = ann.getMediaAsset();
 		if (ma != null) {
-			rtn.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
+			jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
 		}
+                janns.put(jann);
+            }
+	    rtn.put("success", true);
+            rtn.put("annotations", janns);
 	}
 /*
 	if ((qann != null) && (qann.getMediaAsset() != null)) {
@@ -255,8 +262,8 @@ function grabTaskResult(tid) {
 		dataType: 'json',
 		success: function(d) {
 		    $('#wait-message-' + tid).remove();  //in case it already exists from previous
-//console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
-                    $('#task-debug-' + tid).append('<b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
+console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
+                    $('#task-debug-' + tid).append('<br /><b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
 			for (var i = 0 ; i < d.length ; i++) {
 				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
 					if (!jobIdMap[tid]) jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
@@ -292,9 +299,25 @@ function grabTaskResult(tid) {
 						}
 					}
 				} else {
-					if (!timers[tid]) timers[tid] = { attempts: 0 };
-					timers[tid].attempts++;
-					timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+                                        var latest = -1;
+                                        if (d && d[0] && d[0].timestamp) latest = d[0].timestamp;
+                                        var gaveUp = false;
+                                        if (latest > 0) {
+                                            var age = serverTimeDiff(latest);
+console.info('age = %.2fmin', age / (60*1000));
+                                            if (age > (12 * 60 * 1000)) {
+                                                console.log('giving up on old task latest=%d -> %.2fmin', latest, age / (60*1000));
+                                                if (timers && timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+                                                timers[tid] = { attempts: 9999999 };
+						$('#wait-message-' + tid).html('error initiating IA job').removeClass('throbbing');;
+                                                gaveUp = true;
+                                            }
+                                        }
+                                        if (!gaveUp) {
+					    if (!timers[tid]) timers[tid] = { attempts: 0 };
+					    timers[tid].attempts++;
+					    timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+                                        }
 				}
 			} else {
 				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
@@ -311,6 +334,12 @@ console.info('!!>> got %o', d);
 
 function approxServerTime() {
 	return serverTimestamp + (new Date().getTime() - pageStartTimestamp);
+}
+
+//st is a server timestamp (i.e. using its clock, like data fields set on server)
+//  this returns millisec different from (approx) server time... basically its age
+function serverTimeDiff(st) {
+    return approxServerTime() - st;
 }
 
 function manualCallback(tid) {
@@ -393,19 +422,22 @@ function showTaskResult(res, taskId) {
 	}
 }
 
+// Fix the acmId ---> annotID situation here. 
 
-function displayAnnot(taskId, annId, num, score) {
-console.info('%d ===> %s', num, annId);
-	var h = '<div data-annid="' + annId + '" class="annot-summary annot-summary-' + annId + '">';
+function displayAnnot(taskId, acmId, num, score) {
+console.info('%d ===> %s', num, acmId);
+	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
 	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
+
+
 	//now the image guts
-	h = '<div title="annotId=' + annId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + annId + '">';
+	h = '<div title="acmId=' + acmId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 	$('#task-' + taskId).append(h);
 	$.ajax({
-		url: 'iaResults.jsp?annotId=' + annId,  //hacktacular!
+		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
 		complete: function(d) { displayAnnotDetails(taskId, d, num); }
@@ -414,44 +446,25 @@ console.info('%d ===> %s', num, annId);
 
 function displayAnnotDetails(taskId, res, num) {
 	var isQueryAnnot = (num < 0);
-	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error) {
+	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
 		console.warn('error on (task %s) res = %o', taskId, res);
 		return;
 	}
-	var encId = false;
-	var indivId = false;
+        /*
+            we may have gotten more than one annot back from the acmId, so we have to account for them all.  currently we handle
+            this as follows:
+            (a) if it is the query annot, we *should* be able to find the id of the annot by looking at task.annotationIds.
+            (b) if we cannot, or if target/dict annots, then we collect data about *all* possibly annots and show that
+        */
+
+	//var encId = false;
+	//var indivId = false;
 	var imgInfo = '';
-	if (res.responseJSON.asset) {
-		if (res.responseJSON.asset.url) {
-			$('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<img src="' + res.responseJSON.asset.url + '" />');
-		} else {
-			$('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
-		}
-		if (res.responseJSON.asset.dateTime) {
-			imgInfo += ' <b>' + res.responseJSON.asset.dateTime.substring(0,16) + '</b> ';
-		}
-		if (res.responseJSON.asset.filename) {
-			var fn = res.responseJSON.asset.filename;
-			var i = fn.lastIndexOf('/');
-			if (i > -1) fn = fn.substring(i + 1);
-			imgInfo += ' ' + fn + ' ';
-		}
-		if (res.responseJSON.asset.features && (res.responseJSON.asset.features.length > 0)) {
-			encId = res.responseJSON.asset.features[0].encounterId;
-			indivId = res.responseJSON.asset.features[0].individualId;
-			var h = 'Matching results';
-			if (encId) {
-				h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
-				//h += '<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>';
-				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
-			}
-			if (indivId) {
-				h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
-				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>');
-			}
-			if (encId || indivId) {
-				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + res.responseJSON.annId +'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
-			}
+        var mainAnnId = false; //this is basically to set as data('annid') on our div (cuz we need one?)
+        var mainAsset = false;
+        var otherAnnots = [];
+        var h = 'Matching results';
+        var acmId;
 
         for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
@@ -492,16 +505,11 @@ console.info('mainAsset -> %o', mainAsset);
                 var indivId = mainAsset.features[0].individualId;
                 if (encId) {
                     h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
-					$('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
-                    
-		    if (!indivId) {
-				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
-		    }
-
-		}
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+                }
                 if (indivId) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"><a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a></span>');
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>');
                 }
 
                 if (encId || indivId) {
@@ -517,13 +525,29 @@ console.info('mainAsset -> %o', mainAsset);
                         indivId: indivId
                     }
 console.info('qdata[%s] = %o', taskId, qdata);
-                                $('#task-' + taskId).data(qdata);
-			} else {
-				if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
-			}
-		}
-	}
-	if (imgInfo) $('#task-' + taskId + ' .annot-' + res.responseJSON.annId).append('<div class="img-info">' + imgInfo + '</div>');
+                        $('#task-' + taskId).data(qdata);
+                } else {
+                    if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
+                }
+            }  //end if (mainAsset.features...)
+        }  //end if (mainAsset)
+
+    if (otherAnnots.length > 0) {
+        imgInfo += '<div><i>Alternate references:</i><ul>';
+        for (var i = 0 ; i < otherAnnots.length ; i++) {
+            imgInfo += '<li title="Annot ' + otherAnnots[i].id + '"><b>Annot ' + otherAnnots[i].id.substring(0,12) + '</b>';
+            if (otherAnnots[i].asset && otherAnnots[i].asset.features && (otherAnnots[i].asset.features.length > 0)) {
+                var encId = otherAnnots[i].asset.features[0].encounterId;
+                var indivId = otherAnnots[i].asset.features[0].individualId;
+                if (encId) imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
+                if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
+            }
+            imgInfo += '</li>';
+        }
+        imgInfo += '</ul></div>';
+    }
+
+    if (imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
 
@@ -568,11 +592,11 @@ function annotCheckboxReset() {
 
 function annotClick(ev) {
 	//console.log(ev);
-	var annId = ev.currentTarget.getAttribute('data-annid');
+	var acmId = ev.currentTarget.getAttribute('data-acmid');
 	var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
-	//console.warn('%o | %o', taskId, annId);
+	//console.warn('%o | %o', taskId, acmId);
 	$('#task-' + taskId + ' .annot-wrapper-dict').hide();
-	$('#task-' + taskId + ' .annot-' + annId).show();
+	$('#task-' + taskId + ' .annot-' + acmId).show();
 }
 
 function score_sort(cm_dict, topn) {
@@ -723,7 +747,7 @@ function approvalButtonClick(encID, indivID, encID2) {
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
-	var url = 'matchResultsMulti.jsp?number=' + encID + '&individualID=' + indivID;
+	var url = 'iaResults.jsp?number=' + encID + '&individualID=' + indivID;
 	if (encID2) url += '&enc2=' + encID2;
 	jQuery.ajax({
 		url: url,
@@ -763,5 +787,4 @@ function approveNewIndividual(el) {
 
 
 </script>
-
 

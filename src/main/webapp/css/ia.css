@@ -50,8 +50,17 @@
 	font-size: 0.8em;
 }
 
+
+/* these hide stuff for detection jobs; but dont hide task-content as it contains children tasks! */
+.task-title.task-type-detection {
+    display: none;
+}
+.task-summary.task-type-detection {
+    display: none;
+}
+
 .task-content {
-	height: 700px;
+	/* height: 700px; */
 }
 .annot-wrapper {
 	width: 48%;
