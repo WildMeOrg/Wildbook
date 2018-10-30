@@ -103,8 +103,21 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
     }
 
     //similar behavior to above: basically fake /ia api call, but via queue
-    public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
-        if ((anns == null) || (anns.size() < 1)) return null;
+    public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> inputAnns) {
+        // Kick all anns not valid for identification, and dont' make a task for them. 
+        // Nothin to do == no task. 
+        
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+
+        if (inputAnns==null) return null;
+
+        for (Annotation ann : inputAnns) {
+            if (ann.getMatchAgainst()) {
+                anns.add(ann);
+            }
+        }
+        if (anns.size() < 1) return null;
+
         Task topTask = new Task();
         topTask.setObjectAnnotations(anns);
         String context = myShepherd.getContext();
