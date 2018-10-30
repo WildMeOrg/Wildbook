@@ -210,7 +210,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
         myShepherd.beginDBTransaction();
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
-            if (!validForIdentification(ann)) {
+            if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
@@ -279,7 +279,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         String species = null;
         for (Annotation ann : qanns) {
-            if (!validForIdentification(ann)) {
+            if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
                 continue;
             }
@@ -307,7 +307,7 @@ System.out.println("     free ride :)");
         }
 
         if (tanns != null) for (Annotation ann : tanns) {
-            if (!validForIdentification(ann)) {
+            if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
                 continue;
             }
@@ -3367,15 +3367,39 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
         return;
     }
 
-    public static boolean validForIdentification(Annotation ann) {
+    public static boolean validForIdentification(Annotation ann, String context)  {
         if (ann == null) return false;
         int[] bbox = ann.getBbox();
         if (bbox == null) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
             return false;
         }
-        return true;
+        ArrayList<String> idClasses = getAllIdentificationClasses(context);
+        if (ann.getIAClass()!=null&&idClasses.contains(ann.getIAClass())) {
+            System.out.println("Valid ID Class!!! ------------------> "+ann.getIAClass());
+            return true;
+        }
+        System.out.println("NOTE: IBEISIA.validForIdentification() failing - The annotation IAClass "+ann.getIAClass()+" was not present in the IA.properties list. Valid possibilities: ");
+        for (String idClass : idClasses) {
+            System.out.println(idClass);
+        }
+        return false;
     }
+
+    public static ArrayList<String> getAllIdentificationClasses(String context) {
+        String className = "";
+        ArrayList<String> allClasses = new ArrayList<String>();
+        int i = 0;
+        while (className!=null) {
+            className = IA.getProperty(context, "identificationClass"+i);
+            allClasses.add(className);
+            System.out.println("Classname in get all ID classes??? "+className);
+            i++;
+        }
+        return allClasses; 
+    }
+
+
 
     //does this task want us to skip identification?
     public static boolean taskParametersSkipIdent(Task task) {
