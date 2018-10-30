@@ -105,8 +105,9 @@ public class WildbookIAM extends IAPlugin {
                 }
                 IA.log("INFO: WildbookIAM.prime(" + context + ") sending " + sendAnns.size() + " annots (of " + matchingSet.size() + ") and " + mas.size() + " images");
                 try {
-                    sendMediaAssets(mas, false);
-                    sendAnnotations(sendAnns, false);
+                    //think we can checkFirst on both of these -- no need to re-send anything during priming
+                    sendMediaAssets(mas, true);
+                    sendAnnotations(sendAnns, true);
                 } catch (Exception ex) {
                     IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
                     ex.printStackTrace();
@@ -202,14 +203,16 @@ System.out.println("sendMediaAssets() -> " + rtn);
         List<Annotation> acmList = new ArrayList<Annotation>(); //for rectifyAnnotationIds below
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
-/*
-            if (!validForIdentification(ann)) {
-                System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
-                continue;
-            }
-*/
             if (ann.getMediaAsset() == null) {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset for " + ann + "; skipping!");
+                continue;
+            }
+            if (ann.getMediaAsset().getAcmId() == null) {
+                IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find acmId for " + ann + " (MediaAsset id=" + ann.getMediaAsset().getId() + " not added to IA?); skipping!");
+                continue;
+            }
+            if (IBEISIA.validForIdentification(ann)) {
+                IA.log("WARNING: WildbookIAM.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
             JSONObject iid = toFancyUUID(ann.getMediaAsset().getAcmId());
@@ -250,8 +253,12 @@ System.out.println("sendAnnotations() -> " + rtn);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) return null;
         List<String> ids = new ArrayList<String>();
         for (int i = 0 ; i < rtn.getJSONArray("response").length() ; i++) {
-            if (rtn.getJSONArray("response").optJSONObject(i) == null) continue;
-            ids.add(fromFancyUUID(rtn.getJSONArray("response").getJSONObject(i)));
+            if (rtn.getJSONArray("response").optJSONObject(i) == null) {
+                //IA returns null when it cant localize/etc, so we need to add this to keep array length the same
+                ids.add(null);
+            } else {
+                ids.add(fromFancyUUID(rtn.getJSONArray("response").getJSONObject(i)));
+            }
         }
 System.out.println("fromResponse ---> " + ids);
         return ids;
