@@ -291,6 +291,13 @@ System.out.println("sendAnnotations(): sending " + ct);
 */
             qnlist.add(IA_UNKNOWN_NAME);
         }
+        // Do we have a qaan? We need one, or load a failure response.
+        if (qlist.isEmpty()) {
+            JSONObject noQueryAnn = new JSONObject();
+            noQueryAnn.append("status", "rejected");
+            noQueryAnn.append("error", "No query annotation was valid for identification. ");
+            return noQueryAnn;
+        }
 
         boolean setExemplarCaches = false;
         if (tanns == null) {
@@ -337,6 +344,8 @@ System.out.println("     free ride :)");
         }
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
+        //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing.. 
+        // If the list is null it will check against everything. 
         map.put("query_annot_name_list", qnlist);
         map.put("database_annot_name_list", tnlist);
 
@@ -350,7 +359,6 @@ myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
-
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
@@ -817,11 +825,14 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         
         try {
             for (Annotation ann : qanns) {
-                allAnns.add(ann);
-                MediaAsset ma = ann.getDerivedMediaAsset();
-                if (ma == null) ma = ann.getMediaAsset();
-                System.out.println("Adding MA to list for sending to sendMediaAssetsNew...");
-                if (ma != null) mas.add(ma);
+
+                if (validForIdentification(ann, myShepherd.getContext())) {
+                    allAnns.add(ann);
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    System.out.println("Adding MA to list for sending to sendMediaAssetsNew...");
+                    if (ma != null) mas.add(ma);
+                }
             }
             
             boolean isExemplar = false;
