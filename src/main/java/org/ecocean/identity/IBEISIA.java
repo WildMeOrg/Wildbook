@@ -1281,10 +1281,10 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
-        ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
+        ann.setMatchAgainst(true);
         System.out.println("Verifying that new Ann can be matched against with iaClass...");
         if (validForIdentification(ann, context)) {
-            ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
+            ann.setMatchAgainst(true); 
         }
         
         return ann;
@@ -3457,6 +3457,7 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
         int i = 0;
         while (className!=null) {
             className = IA.getProperty(context, "identificationClass"+i);
+            if (className==null) break; 
             allClasses.add(className);
             i++;
         }
