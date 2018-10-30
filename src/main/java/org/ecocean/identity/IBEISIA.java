@@ -993,7 +993,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 
     //this finds the *most recent* taskID associated with this IBEIS-IA jobID
     public static String findTaskIDFromJobID(String jobID, String context) {
-      Shepherd myShepherd=new Shepherd(context);
+      Shepherd myShepherd=new Shepherd(context);    
       myShepherd.setAction("IBEISIA.findTaskIDFromJobID");
       myShepherd.beginDBTransaction();
       ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByServiceJobID(SERVICE_NAME, jobID, myShepherd);
@@ -1304,6 +1304,8 @@ System.out.println("**** type ---------------> [" + type + "]");
             myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
             myShepherd2.beginDBTransaction();
             Task parentTask = Task.load(taskID, myShepherd2);
+            //Task parametersSkipIdent looks at the parent task.. It works for non-ID Wildbooks. If you are sending multiple annotations from a single image, and some need 
+            // ID, some don't, you need to check downstream.
             if (taskParametersSkipIdent(parentTask)) {
                 System.out.println("NOTICE: IBEISIA.processCallback() " + parentTask + " skipped identification");
             } else {
@@ -1324,9 +1326,13 @@ System.out.println("     ---> " + annIds);
             }
             if (needIdentifying.size() > 0) {
                 Task task = IA.intakeAnnotations(myShepherd2, needIdentifying);
-                rtn.put("identificationTaskId", task.getId());
-                if (parentTask != null) parentTask.addChild(task);
-                myShepherd2.storeNewTask(task);
+                // Here is a place we check downstream. IA.intakeAnnotations() will check the anns vs the identification classes in IA.properties,
+                // and return null if nobody was valid. 
+                if (task!=null) {
+                    rtn.put("identificationTaskId", task.getId());
+                    if (parentTask != null) parentTask.addChild(task);
+                    myShepherd2.storeNewTask(task);
+                }
             } else {
                 myShepherd2.rollbackDBTransaction();
             }
