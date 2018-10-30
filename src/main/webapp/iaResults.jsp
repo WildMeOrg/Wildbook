@@ -248,14 +248,14 @@ function grabTaskResult(tid) {
         alreadyGrabbed[tid] = true;
 	var mostRecent = false;
 	var gotResult = false;
-console.warn('------------------- grabTaskResult(%s)', tid);
+//console.warn('------------------- grabTaskResult(%s)', tid);
 	$.ajax({
 		url: 'iaLogs.jsp?taskId=' + tid,
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
 		    $('#wait-message-' + tid).remove();  //in case it already exists from previous
-console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
+//console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
                     $('#task-debug-' + tid).append('<b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
 			for (var i = 0 ; i < d.length ; i++) {
 				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
@@ -453,15 +453,69 @@ function displayAnnotDetails(taskId, res, num) {
 				$('#task-' + taskId + ' .annot-summary-' + res.responseJSON.annId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + res.responseJSON.annId +'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
 			}
 
-			h += '<div id="enc-action">' + matchInstructions + '</div>';
-			if (isQueryAnnot) {
-				if (h) $('#encounter-info .enc-title').html(h);
-				if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
-                                var qdata = {
-					annotId: res.responseJSON.annId,
-					encId: encId,
-					indivId: indivId
-                                };
+        for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
+            acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
+            console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
+            if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
+                console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
+                mainAnnId = res.responseJSON.annotations[i].id;
+            }
+            //we "should" only need the first asset we find -- as they "should" all be identical!
+            if (!res.responseJSON.annotations[i].asset) continue;  //no asset, meh continue
+            if (mainAsset) {
+                otherAnnots.push(res.responseJSON.annotations[i]);
+            } else {
+                mainAsset = res.responseJSON.annotations[i].asset;
+            }
+        }
+
+        if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
+
+        if (mainAsset) {
+console.info('mainAsset -> %o', mainAsset);
+            if (mainAsset.url) {
+                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="' + mainAsset.url + '" />');
+            } else {
+                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
+            }
+            if (mainAsset.dateTime) {
+                imgInfo += ' <b>' + mainAsset.dateTime.substring(0,16) + '</b> ';
+            }
+            if (mainAsset.filename) {
+                var fn = mainAsset.filename;
+                var j = fn.lastIndexOf('/');
+                if (j > -1) fn = fn.substring(j + 1);
+                imgInfo += ' ' + fn + ' ';
+            }
+            if (mainAsset.features && (mainAsset.features.length > 0)) {
+                var encId = mainAsset.features[0].encounterId;
+                var indivId = mainAsset.features[0].individualId;
+                if (encId) {
+                    h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
+					$('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+                    
+		    if (!indivId) {
+				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="enc-indiv'+encId+'"></span>');			
+		    }
+
+		}
+                if (indivId) {
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="enc-indiv'+encId+'"><a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a></span>');
+                }
+
+                if (encId || indivId) {
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+                }
+                h += '<div id="enc-action">' + matchInstructions + '</div>';
+                if (isQueryAnnot) {
+                    if (h) $('#encounter-info .enc-title').html(h);
+                    if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
+                    var qdata = {
+                        annotId: mainAnnId,
+                        encId: encId,
+                        indivId: indivId
+                    }
 console.info('qdata[%s] = %o', taskId, qdata);
                                 $('#task-' + taskId).data(qdata);
 			} else {
@@ -678,8 +732,18 @@ function approvalButtonClick(encID, indivID, encID2) {
 		success: function(d) {
 console.warn(d);
 			if (d.success) {
-				jQuery(msgTarget).html('<i><b>Update successful</b> - please wait....</i>');
-				//////window.location.href = 'encounters/encounter.jsp?number=' + encID;
+
+				jQuery(msgTarget).html('<i><b>Update successful</b></i>');
+				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a>';
+				$("#enc-indiv"+encID).html(indivLink);
+				if (encID2) {
+					$("#enc-indiv"+encID2).html(indivLink);
+					$(".enc-title .indiv-link").remove();
+					$(".enc-title #enc-action").remove();
+					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a></span>');
+					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
+				}
+				
 			} else {
 				console.warn('error returned: %o', d);
 				jQuery(msgTarget).html('Error updating encounter: <b>' + d.error + '</b>');
