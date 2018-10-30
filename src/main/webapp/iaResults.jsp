@@ -91,7 +91,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			try {
 				MarkedIndividual newIndiv = new MarkedIndividual(request.getParameter("individualID"), enc);
 				myShepherd.storeNewMarkedIndividual(newIndiv);
-				enc.setIndividualID(newIndiv.getId());
+				enc.setIndividualID(newIndiv.getIndividualID());
+				enc2.setIndividualID(newIndiv.getIndividualID());
 				newIndiv.addEncounter(enc2, context);
 				res.put("success", true);
 			} catch (Exception e) {
