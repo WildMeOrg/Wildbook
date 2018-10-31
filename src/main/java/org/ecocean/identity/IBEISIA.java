@@ -368,7 +368,11 @@ System.out.println("     free ride :)");
 
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
-System.out.println("tlist.size()=" + tlist.size()+" annnnd tnlist.size()="+tnlist.size());
+if (tlist!=null&&tnlist!=null) {
+    System.out.println("tlist.size()=" + tlist.size()+" annnnd tnlist.size()="+tnlist.size());
+} else {
+    System.out.println("tlist == null! Checking against all.");
+}
 System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size());
 System.out.println(map);
 myShepherd.rollbackDBTransaction();
