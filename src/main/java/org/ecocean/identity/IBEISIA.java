@@ -40,6 +40,7 @@ import java.util.StringTokenizer;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.net.URL;
 
@@ -277,13 +278,24 @@ System.out.println("sendAnnotations(): sending " + ct);
         ArrayList<String> tnlist = new ArrayList<String>();
 
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
-        String species = null;
+        //String species = null;
+        String iaClass = null;
         for (Annotation ann : qanns) {
             if (!validForIdentification(ann)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
                 continue;
             }
-            if (species == null) species = org.ecocean.ia.plugin.WildbookIAM.getIASpecies(ann, myShepherd);
+
+            //if (species == null) species = org.ecocean.ia.plugin.WildbookIAM.getIASpecies(ann, myShepherd);
+            // Should we fall back on gleaning species from the Enc? We do it to find the iaClass initially.. Redundant? Squishy? Discuss.
+            if (iaClass==null) {
+                if (ann.getIAClass()!=null) {
+                    iaClass = ann.getIAClass();
+                } else {
+                    iaClass = org.ecocean.ia.plugin.WildbookIAM.getIASpecies(ann, myShepherd);
+                }
+            }
+
             qlist.add(toFancyUUID(ann.getAcmId()));
 /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
             //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
@@ -291,18 +303,25 @@ System.out.println("sendAnnotations(): sending " + ct);
 */
             qnlist.add(IA_UNKNOWN_NAME);
         }
+        // Do we have a qaan? We need one, or load a failure response.
+        if (qlist.isEmpty()) {
+	        JSONObject noQueryAnn = new JSONObject();
+            noQueryAnn.put("status", new JSONObject().put("message", "rejected"));
+            noQueryAnn.put("error", "No query annotation was valid for identification. ");
+            return noQueryAnn;
+        }
 
         boolean setExemplarCaches = false;
         if (tanns == null) {
 System.out.println("--- exemplar!");
-            if (targetNameListCache.get(species) == null) {
+            if (targetNameListCache.get(iaClass) == null) {
 System.out.println("     gotta compute :(");
                 tanns = qanns.get(0).getMatchingSet(myShepherd);
                 setExemplarCaches = true;
             } else {
 System.out.println("     free ride :)");
-                tlist = targetIdsListCache.get(species);
-                tnlist = targetNameListCache.get(species);
+                tlist = targetIdsListCache.get(iaClass);
+                tnlist = targetNameListCache.get(iaClass);
             }
         }
 
@@ -332,24 +351,26 @@ System.out.println("     free ride :)");
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
         if (setExemplarCaches) {
-           targetIdsListCache.put(species, tlist);
-           targetNameListCache.put(species, tnlist);
+           targetIdsListCache.put(iaClass, tlist);
+           targetNameListCache.put(iaClass, tnlist);
         }
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
+        //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing.. 
+        // If the list is null it will check against everything. 
         map.put("query_annot_name_list", qnlist);
         map.put("database_annot_name_list", tnlist);
 
 
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
-System.out.println("tlist.size()=" + tlist.size());
+System.out.println("tlist.size()=" + tlist.size()+" annnnd tnlist.size()="+tnlist.size());
+System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size());
 System.out.println(map);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
-
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
@@ -658,8 +679,10 @@ org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
     public static boolean iaCheckMissing(JSONObject res, String context) {
 /////System.out.println("########## iaCheckMissing res -> " + res);
 //if (res != null) throw new RuntimeException("fubar!");
-        if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
-        boolean tryAgain = false;
+	try {
+        	if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
+    } catch (JSONException je) {}  // You don't always get an error code.. Especially if the anns got swatted before sending
+	boolean tryAgain = false;
 
 //TODO handle loop where we keep trying to add same objects but keep failing (e.g. store count of attempts internally in class?)
 
@@ -750,10 +773,22 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         ArrayList<Annotation> qanns = new ArrayList<Annotation>();
         ArrayList<Annotation> tanns = new ArrayList<Annotation>();
         for (Encounter enc : queryEncs) {
-            if (enc.getAnnotations() != null) qanns.addAll(enc.getAnnotations());
+            if (enc.getAnnotations() != null) {
+                for (Annotation ann : enc.getAnnotations()) {
+                    if (validForIdentification(ann)){
+                        qanns.add(ann);
+                    }
+                }
+            }
         }
         for (Encounter enc : targetEncs) {
-            if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
+            if (enc.getAnnotations() != null) {
+                for (Annotation ann : enc.getAnnotations()) {
+                    if (validForIdentification(ann)){
+                        tanns.add(ann);
+                    }
+                }
+            }
         }
 
         JSONObject queryConfigDict = queryConfigDict(myShepherd, opt);
@@ -790,8 +825,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
     // note: if tanns is null, that means we get all exemplar for species
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                                       JSONObject userConfidence, Shepherd myShepherd, String taskID, String baseUrl) {
-
-                                                          
+                                            
         if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
@@ -804,11 +838,15 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         
         try {
             for (Annotation ann : qanns) {
-                allAnns.add(ann);
-                MediaAsset ma = ann.getDerivedMediaAsset();
-                if (ma == null) ma = ann.getMediaAsset();
-                System.out.println("Adding MA to list for sending to sendMediaAssetsNew...");
-                if (ma != null) mas.add(ma);
+                if (validForIdentification(ann)) {
+                    allAnns.add(ann);
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) {
+                        mas.add(ma);
+                        System.out.println("Adding MA to list for sending to sendMediaAssetsNew...");
+                    }    
+                }
             }
             
             boolean isExemplar = false;
@@ -842,15 +880,34 @@ System.out.println(allAnns);
             results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
             results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext()));
 
-            if (isExemplar) tanns = null;  //reset it for sendIdentify() below
+            if (tanns!=null) {
+                System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
+            } else {
+                System.out.println("                               ... qanns has: "+qanns.size()+" ... taans is null! Target is all annotations.");
+            }
 
+            if (isExemplar) {
+                System.out.println("                               ... isExemplar! Setting taans to null for sendIdentify.");
+                tanns = null;  //reset it for sendIdentify() below
+            }
             //this should attempt to repair missing Annotations
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
                 identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
-                tryAgain = iaCheckMissing(identRtn, myShepherd.getContext());
+                System.out.println("identRtn contains ========> "+identRtn.toString());
+                if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
+                    tryAgain = iaCheckMissing(identRtn, myShepherd.getContext());   
+                } else {
+                    results.put("error", identRtn.get("status"));
+                    results.put("success", false);
+                    return results; 
+                }
+
+
             }
+		
+
             results.put("sendIdentify", identRtn);
 
 System.out.println("sendIdentify ---> " + identRtn);
@@ -993,7 +1050,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 
     //this finds the *most recent* taskID associated with this IBEIS-IA jobID
     public static String findTaskIDFromJobID(String jobID, String context) {
-      Shepherd myShepherd=new Shepherd(context);
+      Shepherd myShepherd=new Shepherd(context);    
       myShepherd.setAction("IBEISIA.findTaskIDFromJobID");
       myShepherd.beginDBTransaction();
       ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByServiceJobID(SERVICE_NAME, jobID, myShepherd);
@@ -1224,7 +1281,9 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
-        ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
+        if (validForIdentification(ann)) {
+            ann.setMatchAgainst(true); 
+        }
         return ann;
     }
 
@@ -1305,6 +1364,8 @@ System.out.println("**** type ---------------> [" + type + "]");
             myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
             myShepherd2.beginDBTransaction();
             Task parentTask = Task.load(taskID, myShepherd2);
+            //Task parametersSkipIdent looks at the parent task.. It works for non-ID Wildbooks. If you are sending multiple annotations from a single image, and some need 
+            // ID, some don't, you need to check downstream.
             if (taskParametersSkipIdent(parentTask)) {
                 System.out.println("NOTICE: IBEISIA.processCallback() " + parentTask + " skipped identification");
             } else {
@@ -1325,9 +1386,13 @@ System.out.println("     ---> " + annIds);
             }
             if (needIdentifying.size() > 0) {
                 Task task = IA.intakeAnnotations(myShepherd2, needIdentifying);
-                rtn.put("identificationTaskId", task.getId());
-                if (parentTask != null) parentTask.addChild(task);
-                myShepherd2.storeNewTask(task);
+                // Here is a place we check downstream. IA.intakeAnnotations() will check the anns vs the identification classes in IA.properties,
+                // and return null if nobody was valid. 
+                if (task!=null) {
+                    rtn.put("identificationTaskId", task.getId());
+                    if (parentTask != null) parentTask.addChild(task);
+                    myShepherd2.storeNewTask(task);
+                }
             } else {
                 myShepherd2.rollbackDBTransaction();
             }
@@ -3357,7 +3422,17 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
         return;
     }
 
-    public static boolean validForIdentification(Annotation ann) {
+
+    public static boolean validIAClassForIdentification(Annotation ann, String context) {
+        ArrayList<String> idClasses = getAllIdentificationClasses(context);
+        if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty())) {
+            return true;
+        }
+        return false; 
+    }
+
+
+    public static boolean validForIdentification(Annotation ann)  {
         if (ann == null) return false;
         int[] bbox = ann.getBbox();
         if (bbox == null) {
@@ -3366,6 +3441,21 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
         }
         return true;
     }
+
+    public static ArrayList<String> getAllIdentificationClasses(String context) {
+        String className = "";
+        ArrayList<String> allClasses = new ArrayList<String>();
+        int i = 0;
+        while (className!=null) {
+            className = IA.getProperty(context, "identificationClass"+i);
+            if (className==null) break; 
+            allClasses.add(className);
+            i++;
+        }
+        return allClasses; 
+    }
+
+
 
     //does this task want us to skip identification?
     public static boolean taskParametersSkipIdent(Task task) {
