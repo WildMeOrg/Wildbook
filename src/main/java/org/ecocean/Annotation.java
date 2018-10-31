@@ -484,8 +484,15 @@ public class Annotation implements java.io.Serializable {
             Encounter enc = (Encounter) it.next();
             if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
                 for (Annotation ann : enc.getAnnotations()) {
-                    if (ann.matchAgainst&&ann.getIAClass()!=null&&this.iaClass!=null&&(ann.getIAClass().equals(this.iaClass))) {
-                        anns.add(ann);
+
+                    // Hey! There is some code here that checks against iaClass commented out. This will maybe be important in the 
+                    // future as we start to detect more parts ect... but for now lets leave it out for the good of Wildbooks with older data!
+                    if (ann.getMatchAgainst()) {
+                        //if  ((ann.getIAClass()!=null&&this.iaClass!=null&&ann.getIAClass().equals(this.iaClass))) {
+                            anns.add(ann);
+                        //} else if (this.iaClass==null&&ann.getIAClass()!=null) {
+                        //    anns.add(ann);
+                        //}
                     }
                 }
             }
