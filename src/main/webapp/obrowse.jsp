@@ -176,6 +176,7 @@ java.util.Properties" %>
 		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
 		h += "<li>detectionStatus: <b>" + ma.getDetectionStatus() + "</b></li>";
+		h += "<li>" + format("acmId", ma.getAcmId()) + "</li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
