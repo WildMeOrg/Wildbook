@@ -562,13 +562,31 @@ console.info('taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAn
 	} else if (queryAnnotation.indivId) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
 	} else {
-		h = '<input onChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
+                //disable onChange for now -- as autocomplete will trigger!
+		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
-		h += ' /> <input type="button" value="Set individual on both encounters" />'
+		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
 	}
 	$('#enc-action').html(h);
+        setIndivAutocomplete($('#enc-action .needs-autocomplete'));
 	return true;
+}
+
+function setIndivAutocomplete(el) {
+    if (!el || !el.length) return;
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(el[0], args);
 }
 
 function annotCheckboxReset() {
