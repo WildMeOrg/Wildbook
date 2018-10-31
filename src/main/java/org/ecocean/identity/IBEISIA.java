@@ -2743,19 +2743,11 @@ System.out.println("using qid -> " + qid);
         return res;
     }
 
-    //not really sure what/how to do this...
+    //right now this just uses opt.queryConfigDict as query_config_dict so it passes thru as-is
     public static JSONObject queryConfigDict(Shepherd myShepherd, JSONObject opt) {
 System.out.println("queryConfigDict() get opt = " + opt);
         if (opt == null) return null;
-
-        // and this is oriented curvature + weighted dynamic time-warping
-        if (opt.optBoolean("OC_WDTW", false)) return new JSONObject("{\"pipeline_root\": \"OC_WDTW\"}");
-
-        //boring fallback...
-        return null;
-
-        // this is trailing edge matching but takes foreeeevvvver
-        //return new JSONObject("{\"pipeline_root\": \"BC_DTW\"}");
+        return opt.optJSONObject("queryConfigDict");
     }
 
     private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
