@@ -43,6 +43,7 @@
 .task-title {
 	background-color: #FAA;
 	margin: 10px 0;
+	clear: both;
 	padding: 8px;
 }
 .task-title-id {
