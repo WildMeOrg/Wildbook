@@ -211,7 +211,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
         myShepherd.beginDBTransaction();
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
-            if (!validForIdentification(ann, context)) {
+            if (!validForIdentification(ann)) {
                 System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
@@ -281,7 +281,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         //String species = null;
         String iaClass = null;
         for (Annotation ann : qanns) {
-            if (!validForIdentification(ann, context)) {
+            if (!validForIdentification(ann)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
                 continue;
             }
@@ -326,7 +326,7 @@ System.out.println("     free ride :)");
         }
 
         if (tanns != null) for (Annotation ann : tanns) {
-            if (!validForIdentification(ann, context)) {
+            if (!validForIdentification(ann)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
                 continue;
             }
@@ -775,7 +775,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         for (Encounter enc : queryEncs) {
             if (enc.getAnnotations() != null) {
                 for (Annotation ann : enc.getAnnotations()) {
-                    if (validForIdentification(ann,context)){
+                    if (validForIdentification(ann)){
                         qanns.add(ann);
                     }
                 }
@@ -784,7 +784,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         for (Encounter enc : targetEncs) {
             if (enc.getAnnotations() != null) {
                 for (Annotation ann : enc.getAnnotations()) {
-                    if (validForIdentification(ann,context)){
+                    if (validForIdentification(ann)){
                         tanns.add(ann);
                     }
                 }
@@ -838,7 +838,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         
         try {
             for (Annotation ann : qanns) {
-                if (validForIdentification(ann, myShepherd.getContext())) {
+                if (validForIdentification(ann)) {
                     allAnns.add(ann);
                     MediaAsset ma = ann.getDerivedMediaAsset();
                     if (ma == null) ma = ann.getMediaAsset();
@@ -1281,12 +1281,9 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
-        ann.setMatchAgainst(true);
-        System.out.println("Verifying that new Ann can be matched against with iaClass...");
-        if (validForIdentification(ann, context)) {
+        if (validForIdentification(ann)) {
             ann.setMatchAgainst(true); 
         }
-        
         return ann;
     }
 
@@ -3433,22 +3430,24 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
         return;
     }
 
-    public static boolean validForIdentification(Annotation ann, String context)  {
+
+    public static boolean validIAClassForIdentification(Annotation ann, String context) {
+        ArrayList<String> idClasses = getAllIdentificationClasses(context);
+        if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty())) {
+            return true;
+        }
+        return false; 
+    }
+
+
+    public static boolean validForIdentification(Annotation ann)  {
         if (ann == null) return false;
         int[] bbox = ann.getBbox();
         if (bbox == null) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
             return false;
         }
-        ArrayList<String> idClasses = getAllIdentificationClasses(context);
-        if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty())) {
-            return true;
-        } 
-        System.out.println("NOTE: IBEISIA.validForIdentification() failing - The annotation IAClass "+ann.getIAClass()+" was not present in the IA.properties list. Valid possibilities: ");
-        for (String idClass : idClasses) {
-            System.out.println(idClass);
-        }
-        return false;
+        return true;
     }
 
     public static ArrayList<String> getAllIdentificationClasses(String context) {
