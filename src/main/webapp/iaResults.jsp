@@ -94,9 +94,22 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 	MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(request.getParameter("individualID"));
 	if ((indiv == null) && (enc != null) && (enc2 != null)) {
-//TODO make actual individual yo!!!!
-//indiv.addComment(????)
-		res.put("error", "Creating a new MarkedIndividual currently not supported. YET! Sorry.");
+		if (request.getParameter("individualID")!=null&&!"".equals(request.getParameter("individualID").trim())) {
+			try {
+				MarkedIndividual newIndiv = new MarkedIndividual(request.getParameter("individualID"), enc);
+				myShepherd.storeNewMarkedIndividual(newIndiv);
+				enc.setIndividualID(newIndiv.getIndividualID());
+				enc2.setIndividualID(newIndiv.getIndividualID());
+				newIndiv.addEncounter(enc2, context);
+				res.put("success", true);
+			} catch (Exception e) {
+				e.printStackTrace();
+				res.put("error", "Please enter a different Individual ID.");
+			}
+		} else {
+			res.put("error", "Please enter a new Individual ID.");
+		}
+		//indiv.addComment(????)
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
@@ -111,7 +124,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		return;
 	}
 
-// TODO enc.setMatchedBy() + comments + etc?????
+	// TODO enc.setMatchedBy() + comments + etc?????
 	enc.setIndividualID(indiv.getIndividualID());
 	enc.setState("approved");
 	indiv.addEncounter(enc, context);
@@ -242,7 +255,7 @@ function grabTaskResult(tid) {
         alreadyGrabbed[tid] = true;
 	var mostRecent = false;
 	var gotResult = false;
-console.warn('------------------- grabTaskResult(%s)', tid);
+//console.warn('------------------- grabTaskResult(%s)', tid);
 	$.ajax({
 		url: 'iaLogs.jsp?taskId=' + tid,
 		type: 'GET',
@@ -562,13 +575,31 @@ console.info('taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAn
 	} else if (queryAnnotation.indivId) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
 	} else {
-		h = '<input onChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
+                //disable onChange for now -- as autocomplete will trigger!
+		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
-		h += ' /> <input type="button" value="Set individual on both encounters" />'
+		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
 	}
 	$('#enc-action').html(h);
+        setIndivAutocomplete($('#enc-action .needs-autocomplete'));
 	return true;
+}
+
+function setIndivAutocomplete(el) {
+    if (!el || !el.length) return;
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(el[0], args);
 }
 
 function annotCheckboxReset() {
@@ -743,8 +774,15 @@ function approvalButtonClick(encID, indivID, encID2) {
 		success: function(d) {
 console.warn(d);
 			if (d.success) {
-				jQuery(msgTarget).html('<i><b>Update successful</b> - please wait....</i>');
-				//////window.location.href = 'encounters/encounter.jsp?number=' + encID;
+				jQuery(msgTarget).html('<i><b>Update successful</b></i>');
+				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a>';
+				if (encID2) {
+					$(".enc-title .indiv-link").remove();
+					$(".enc-title #enc-action").remove();
+					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a></span>');
+					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
+					$("#encnum"+encID2).append(indivLink);
+				}
 			} else {
 				console.warn('error returned: %o', d);
 				jQuery(msgTarget).html('Error updating encounter: <b>' + d.error + '</b>');
