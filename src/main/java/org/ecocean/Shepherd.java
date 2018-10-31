@@ -2552,6 +2552,17 @@ public class Shepherd {
     return tempShark;
   }
 
+  public Task getTask(String id) {
+    Task theTask = null;
+    try {
+      theTask = ((org.ecocean.ia.Task) (pm.getObjectById(pm.newObjectIdInstance(Task.class, id.trim()), true)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return theTask;
+  }
+
   public MarkedIndividual getMarkedIndividualQuiet(String name) {
     MarkedIndividual indiv = null;
     try {
