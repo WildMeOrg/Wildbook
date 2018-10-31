@@ -172,7 +172,7 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
                 map.get("image_unixtime_list").add((int)Math.floor(t.getMillis() / 1000));  //IA wants seconds since epoch
             }
 
-            if ((i > 0) && ((i % batchSize == 0) || (i == (mas.size() - 1)))) {  //end of the batch or the whole thing
+            if ( (i == (mas.size() - 1))  ||  ((i > 0) && (i % batchSize == 0)) ) {   //end of all; or end of a batch
                 if (acmList.size() > 0) {
                     IA.log("INFO: WildbookIAM.sendMediaAssets() is sending " + acmList.size() + " with batchSize=" + batchSize + " (" + batchCt + " of " + numBatches + " batches)");
                     JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
