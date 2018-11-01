@@ -359,10 +359,20 @@ System.out.println("     free ride :)");
         //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing.. 
         // If the list is null it will check against everything. 
         map.put("query_annot_name_list", qnlist);
-        if  (tnlist.size()==0) {
-            tnlist=null;
+
+
+	if  (tlist==null||tlist.size()==0) {
+            map.put("database_annot_uuid_list", null);
+        } else if (tnlist!=null&&tnlist.size()>0) {
+            map.put("database_annot_uuid_list", tlist);
         }
-        map.put("database_annot_name_list", tnlist);
+
+
+        if  (tnlist==null||tnlist.size()==0) {
+            map.put("database_annot_name_list", null);
+        } else if (tnlist!=null&&tnlist.size()>0) {
+            map.put("database_annot_name_list", tnlist);
+        }
 
 
 
@@ -1306,7 +1316,6 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
-        ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
         System.out.println("Verifying that new Ann can be matched against with iaClass...");
         if (validForIdentification(ann, context)) {
             ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
