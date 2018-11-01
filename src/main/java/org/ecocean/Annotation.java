@@ -482,8 +482,14 @@ public class Annotation implements java.io.Serializable {
             Encounter enc = (Encounter) it.next();
             if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
                 for (Annotation ann : enc.getAnnotations()) {
-                    if (ann.matchAgainst&&ann.getIAClass()!=null&&this.iaClass!=null&&(ann.getIAClass().equals(this.iaClass))) {
-                        anns.add(ann);
+                    //Gross hack! - This is necessary because detecting greens is unreliable if you don't have a good profile shot.
+ 		    //We want to seperate on iaClass part, but not species. 
+                    
+                    //if (ann.matchAgainst&&ann.getIAClass()!=null&&this.iaClass!=null&&(ann.getIAClass().equals(this.iaClass))) {
+                    if (ann.matchAgainst) {
+                        if (ann.getPartIfPresent().equals(this.getPartIfPresent())) {
+                            anns.add(ann);
+                        }
                     }
                 }
             }
@@ -493,6 +499,16 @@ public class Annotation implements java.io.Serializable {
         query.closeAll();
         return anns;
     }
+
+    public String getPartIfPresent() {
+        String thisPart = "";
+        if (this.iaClass!=null&&this.iaClass.contains("+")) {
+            String[] arr = this.iaClass.split("\\+");
+            thisPart = arr[arr.length-1];
+        }
+        return thisPart;
+    }
+
 
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
