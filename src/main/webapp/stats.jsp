@@ -42,7 +42,8 @@ for (Encounter enc : recent) {
 }
 stats.put("recentEncounters", jarr);
 
-long startTime = System.currentTimeMillis() + (1000*60*60*24*30);
+long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
+stats.put("topSpottersStartTime", startTime);
 Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
 jarr = new JSONArray();
 for (String username : spotters.keySet()) {
