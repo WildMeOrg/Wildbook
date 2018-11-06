@@ -98,7 +98,7 @@ java.util.Properties" %>
             String h = "<div><b>" + task.getId() + "</b> " + task.toString() + "<ul>";
             Task parent = task.getParent();
             if (parent == null) {
-                h += "<li><b><i>No parent</i></b></li>";
+                h += "<li><i class=\"format-value format-none\">No parent</i></li>";
             } else {
                 h += "<li><b>Parent: <a href=\"?type=Task&id=" + parent.getId() + "\">" + parent.getId() + "</a></b> <span class=\"quiet\">" + parent.toString() + "</span>";
                 if (parent.numChildren() > 1) {  //must be > 1 cuz we need siblings
@@ -190,6 +190,7 @@ java.util.Properties" %>
 		} 
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
 		h += "<li>detectionStatus: <b>" + ma.getDetectionStatus() + "</b></li>";
+		h += "<li>" + format("acmId", ma.getAcmId()) + "</li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
