@@ -124,7 +124,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		return;
 	}
 
-	// TODO enc.setMatchedBy() + comments + etc?????
+// TODO enc.setMatchedBy() + comments + etc?????
 	enc.setIndividualID(indiv.getIndividualID());
 	enc.setState("approved");
 	indiv.addEncounter(enc, context);
@@ -384,14 +384,21 @@ function showTaskResult(res, taskId) {
 	console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRESULT showTaskResult() %o on %s", res, res.taskId);
 	if (res.status && res.status._response && res.status._response.response && res.status._response.response.json_result &&
 			res.status._response.response.json_result.cm_dict) {
-		var isEdgeMatching = (res.status._response.response.json_result.query_config_dict &&
-			(res.status._response.response.json_result.query_config_dict.pipeline_root == 'OC_WDTW'));
+		var algoInfo = (res.status._response.response.json_result.query_config_dict &&
+			res.status._response.response.json_result.query_config_dict.pipeline_root);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
 		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
-		var h = 'Matches based on <b>' + (isEdgeMatching ? 'trailing edge' : 'pattern') + '</b>';
+                var algoDesc = '<span title="' + algoInfo + '">pattern</span>';
+                if (algoInfo == 'CurvRankFluke') {
+                    algoDesc = 'trailing edge (CurvRank)';
+                } else if (algoInfo == 'OC_WDTW') {
+                    algoDesc = 'trailing edge (OC/WDTW)';
+                }
+console.log('algoDesc %o %s %s', res.status._response.response.json_result.query_config_dict, algoInfo, algoDesc);
+		var h = 'Matches based on <b>' + algoDesc + '</b>';
 		if (res.timestamp) {
 			var d = new Date(res.timestamp);
 			h += '<span style="color: #FFF; margin: 0 11px; font-size: 0.7em;">' + d.toLocaleString() + '</span>';
