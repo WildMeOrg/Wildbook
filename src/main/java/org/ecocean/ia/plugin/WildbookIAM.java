@@ -105,8 +105,9 @@ public class WildbookIAM extends IAPlugin {
                 }
                 IA.log("INFO: WildbookIAM.prime(" + context + ") sending " + sendAnns.size() + " annots (of " + matchingSet.size() + ") and " + mas.size() + " images");
                 try {
-                    sendMediaAssets(mas, false);
-                    sendAnnotations(sendAnns, false);
+                    //think we can checkFirst on both of these -- no need to re-send anything during priming
+                    sendMediaAssets(mas, true);
+                    sendAnnotations(sendAnns, true);
                 } catch (Exception ex) {
                     IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
                     ex.printStackTrace();
@@ -126,25 +127,39 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
         new Thread(r).start();
     }
 
+/*
+    note: sendMediaAssets() and sendAnnotations() need to be *batched* now in small chunks, particularly sendMediaAssets().
+    this is because we **must** get the return value from the POST, in order that we can map the corresponding (returned) acmId
+    values.  if we *timeout* in the POST, this *will not happen*.  and it is a lengthy process on the IA side: as IA must grab
+    the image over the network and generate the acmId from it!  hence, batchSize... which we kind of guestimate and cross our fingers.
+*/
 
     public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = IA.getProperty(context, "IBEISIARestUrlAddImages");
         if (u == null) throw new MalformedURLException("WildbookIAM configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
-        int ct = 0;
+        int batchSize = 30;
+        int numBatches = Math.round(mas.size() / batchSize);
 
         //sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
         List<String> iaImageIds = new ArrayList<String>();
         if (checkFirst) iaImageIds = iaImageIds();
 
+        //initial initialization(!)
         HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
         map.put("image_uri_list", new ArrayList<JSONObject>());
         map.put("image_unixtime_list", new ArrayList<Integer>());
         map.put("image_gps_lat_list", new ArrayList<Double>());
         map.put("image_gps_lon_list", new ArrayList<Double>());
-
         List<MediaAsset> acmList = new ArrayList<MediaAsset>(); //for rectifyMediaAssetIds below
-        for (MediaAsset ma : mas) {
+        int batchCt = 1;
+        JSONObject allRtn = new JSONObject();
+        allRtn.put("_batchSize", batchSize);
+        allRtn.put("_totalSize", mas.size());
+        JSONArray bres = new JSONArray();
+
+        for (int i = 0 ; i < mas.size() ; i++) {
+            MediaAsset ma = mas.get(i);
             if (iaImageIds.contains(ma.getAcmId())) continue;
             acmList.add(ma);
             map.get("image_uri_list").add(mediaAssetToUri(ma));
@@ -156,21 +171,34 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
             } else {
                 map.get("image_unixtime_list").add((int)Math.floor(t.getMillis() / 1000));  //IA wants seconds since epoch
             }
-            ct++;
-        }
 
-        IA.log("INFO: WildbookIAM.sendMediaAssets() is sending " + ct);
-        if (ct < 1) return null;  //null for "none to send" ?  is this cool?
-        JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
-System.out.println("sendMediaAssets() -> " + rtn);
-        List<String> acmIds = acmIdsFromResponse(rtn);
-        if (acmIds == null) {
-            IA.log("WARNING: WildbookIAM.sendMediaAssets() could not get list of acmIds from response: " + rtn);
-        } else {
-            int numChanged = AcmUtil.rectifyMediaAssetIds(acmList, acmIds);
-            IA.log("INFO: WildbookIAM.sendMediaAssets() updated " + numChanged + " MediaAsset(s) acmId(s) via rectifyMediaAssetIds()");
+            if ( (i == (mas.size() - 1))  ||  ((i > 0) && (i % batchSize == 0)) ) {   //end of all; or end of a batch
+                if (acmList.size() > 0) {
+                    IA.log("INFO: WildbookIAM.sendMediaAssets() is sending " + acmList.size() + " with batchSize=" + batchSize + " (" + batchCt + " of " + numBatches + " batches)");
+                    JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
+                    List<String> acmIds = acmIdsFromResponse(rtn);
+                    if (acmIds == null) {
+                        IA.log("WARNING: WildbookIAM.sendMediaAssets() could not get list of acmIds from response: " + rtn);
+                    } else {
+                        int numChanged = AcmUtil.rectifyMediaAssetIds(acmList, acmIds);
+                        IA.log("INFO: WildbookIAM.sendMediaAssets() updated " + numChanged + " MediaAsset(s) acmId(s) via rectifyMediaAssetIds()");
+                    }
+                    bres.put(rtn);
+                    //initialize for next batch (if any)
+                    map.put("image_uri_list", new ArrayList<JSONObject>());
+                    map.put("image_unixtime_list", new ArrayList<Integer>());
+                    map.put("image_gps_lat_list", new ArrayList<Double>());
+                    map.put("image_gps_lon_list", new ArrayList<Double>());
+                    acmList = new ArrayList<MediaAsset>();
+                } else {
+                    bres.put("EMPTY BATCH");
+                }
+                batchCt++;
+            }
         }
-        return rtn;
+        allRtn.put("batchResults", bres);
+        return allRtn;
     }
 
     public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
@@ -202,14 +230,16 @@ System.out.println("sendMediaAssets() -> " + rtn);
         List<Annotation> acmList = new ArrayList<Annotation>(); //for rectifyAnnotationIds below
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
-/*
-            if (!validForIdentification(ann)) {
-                System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
-                continue;
-            }
-*/
             if (ann.getMediaAsset() == null) {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset for " + ann + "; skipping!");
+                continue;
+            }
+            if (ann.getMediaAsset().getAcmId() == null) {
+                IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find acmId for " + ann + " (MediaAsset id=" + ann.getMediaAsset().getId() + " not added to IA?); skipping!");
+                continue;
+            }
+            if (IBEISIA.validForIdentification(ann, context)) {
+                IA.log("WARNING: WildbookIAM.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
             JSONObject iid = toFancyUUID(ann.getMediaAsset().getAcmId());
@@ -250,8 +280,12 @@ System.out.println("sendAnnotations() -> " + rtn);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) return null;
         List<String> ids = new ArrayList<String>();
         for (int i = 0 ; i < rtn.getJSONArray("response").length() ; i++) {
-            if (rtn.getJSONArray("response").optJSONObject(i) == null) continue;
-            ids.add(fromFancyUUID(rtn.getJSONArray("response").getJSONObject(i)));
+            if (rtn.getJSONArray("response").optJSONObject(i) == null) {
+                //IA returns null when it cant localize/etc, so we need to add this to keep array length the same
+                ids.add(null);
+            } else {
+                ids.add(fromFancyUUID(rtn.getJSONArray("response").getJSONObject(i)));
+            }
         }
 System.out.println("fromResponse ---> " + ids);
         return ids;

@@ -237,8 +237,51 @@ console.log('is %o', ajax);
         isAnonymous: function() {
             return !wildbookGlobals.username;
         }
-    }
+    },
 
+
+    /*
+        'args' can be pretty extensive here, so check out autocomplete() docs.
+        some useful(?) examples:
+            * select: function(ev, ui) {}   // item is selected
+            * appendTo: $('#some-element')
+            * resMap: (optional) custom function to map /SiteSearch?term= results to {label:, value:, type:}
+        if nothing passed, required ones are generated
+    */
+    makeAutocomplete: function(el, args) {
+        if (typeof args != 'object') args = {};
+
+        //this is "default behavior"
+        //  item has:  item.species, item.label, item.type, item.value
+        if (!args.resMap) args.resMap = function(data) {
+            var res = $.map(data, function(item) {
+                var label = item.label;
+                if (item.type == 'user') {
+                    label = 'User: ' + label;
+                } 
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+
+        if (!args.source) args.source = function(request, response) {
+//console.info('autocomplete.request %o', request);
+            $.ajax({
+                url: wildbookGlobals.baseUrl + '/SiteSearch',
+                dataType: "json",
+                data: {
+                    term: request.term
+                },
+                success: function( data ) {
+                    var res = args.resMap(data);
+//console.info('autocomplete.res->%o', res);
+                    response(res);
+                }
+            });
+        };
+
+        $(el).autocomplete(args);
+    }
 };
 
 
