@@ -12,8 +12,15 @@ org.json.JSONArray,
 com.google.api.services.youtube.model.SearchResult,
 org.ecocean.media.*,
 org.ecocean.servlet.ServletUtilities,
-java.util.ArrayList
-              "
+java.util.ArrayList,
+weka.core.Instance,
+weka.core.Attribute,
+weka.core.DenseInstance, 
+org.ecocean.ai.weka.Classify,
+weka.core.Instances,
+org.ecocean.ai.nmt.azure.*,
+org.ecocean.ai.utilities.AIUtilities
+"
 %>
 
 
@@ -116,6 +123,28 @@ if (keyword == null) {
 				String filterString=phrasesToIgnoreVideo.get(i);
 				if((consolidatedRemarks.indexOf(filterString)!=-1)||(consolidatedRemarks.indexOf(filterString.replaceAll(" ",""))!=-1))filterMe=true;
 			}
+			
+			//handle description		
+			String desc="";
+			if((snip.getDescription()!=null)&&(!snip.getDescription().trim().equals(""))){
+				desc=snip.getDescription();
+				String titleDesc=DetectTranslate.detectLanguage(desc);
+				if((!titleDesc.equals("unk"))&&(!titleDesc.equals("en")))title=DetectTranslate.translateToEnglish(desc);
+			}
+			
+			String consolidatedRemarks=title+" "+desc;
+			//consolidatedRemarks=consolidatedRemarks.replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase().replaceAll("whale shark", "whaleshark");
+			consolidatedRemarks=AIUtilities.youtubePredictorPrepareString(consolidatedRemarks);
+			weka_instance.setValue(merged, consolidatedRemarks);
+			
+			//old iterating filter of string matching		
+			//for(int i=0;i<numPhrases;i++){
+				//String filterString=phrasesToIgnoreVideo.get(i);
+				//if((consolidatedRemarks.indexOf(filterString)!=-1)||(consolidatedRemarks.indexOf(filterString.replaceAll(" ",""))!=-1))filterMe=true;
+			//}
+			
+			Double classValue=Classify.classifyWithFilteredClassifier(weka_instance, fullPathToClassifierFile);
+			if(classValue.intValue()==1){filterMe=true;}
 			
 			if(!filterMe)varr.put(new JSONObject(vid.toString()));
 			
