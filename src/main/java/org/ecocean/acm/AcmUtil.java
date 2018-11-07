@@ -20,10 +20,14 @@ public class AcmUtil {
         }
         int numChanged = 0;
         for (int i = 0 ; i < mas.size() ; i++) {
-            if (mas.get(i).getAcmId() == null) {
+            if (mas.get(i) == null) {
+                IA.log("WARNING: bizarre! AcmUtil.rectifyMediaAssetIds() has null MediaAsset at i=" + i + "; skipping");
+            } else if (acmIds.get(i) == null) {
+                IA.log("INFO: AcmUtil.rectifyMediaAssetIds() has null acmId response for " + mas.get(i) + "; skipping");
+            } else if (mas.get(i).getAcmId() == null) {
                 mas.get(i).setAcmId(acmIds.get(i));
                 numChanged++;
-            } else if (!mas.get(i).getAcmId().equals(acmIds.get(i))) {
+            } else if (!mas.get(i).getAcmId().equals(acmIds.get(i))) {  //maybe we care a little more about changing the acmId ??
                 IA.log("WARNING: AcmUtil.rectifyMediaAssetIds() changing acmId from " + mas.get(i).getAcmId() + " to " + acmIds.get(i) + " on " + mas.get(i));
                 mas.get(i).setAcmId(acmIds.get(i));
                 numChanged++;
@@ -39,7 +43,11 @@ public class AcmUtil {
         }
         int numChanged = 0;
         for (int i = 0 ; i < anns.size() ; i++) {
-            if (anns.get(i).getAcmId() == null) {
+            if (anns.get(i) == null) {
+                IA.log("WARNING: bizarre! AcmUtil.rectifyAnnotationIds() has null Annotation at i=" + i + "; skipping");
+            } else if (acmIds.get(i) == null) {
+                IA.log("INFO: AcmUtil.rectifyAnnotationIds() has null acmId response for " + anns.get(i) + "; skipping");
+            } else if (anns.get(i).getAcmId() == null) {
                 anns.get(i).setAcmId(acmIds.get(i));
                 numChanged++;
             } else if (!anns.get(i).getAcmId().equals(acmIds.get(i))) {
