@@ -94,9 +94,22 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 	MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(request.getParameter("individualID"));
 	if ((indiv == null) && (enc != null) && (enc2 != null)) {
-//TODO make actual individual yo!!!!
-//indiv.addComment(????)
-		res.put("error", "Creating a new MarkedIndividual currently not supported. YET! Sorry.");
+		if (request.getParameter("individualID")!=null&&!"".equals(request.getParameter("individualID").trim())) {
+			try {
+				MarkedIndividual newIndiv = new MarkedIndividual(request.getParameter("individualID"), enc);
+				myShepherd.storeNewMarkedIndividual(newIndiv);
+				enc.setIndividualID(newIndiv.getIndividualID());
+				enc2.setIndividualID(newIndiv.getIndividualID());
+				newIndiv.addEncounter(enc2, context);
+				res.put("success", true);
+			} catch (Exception e) {
+				e.printStackTrace();
+				res.put("error", "Please enter a different Individual ID.");
+			}
+		} else {
+			res.put("error", "Please enter a new Individual ID.");
+		}
+		//indiv.addComment(????)
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
@@ -242,7 +255,7 @@ function grabTaskResult(tid) {
         alreadyGrabbed[tid] = true;
 	var mostRecent = false;
 	var gotResult = false;
-console.warn('------------------- grabTaskResult(%s)', tid);
+//console.warn('------------------- grabTaskResult(%s)', tid);
 	$.ajax({
 		url: 'iaLogs.jsp?taskId=' + tid,
 		type: 'GET',
@@ -250,7 +263,7 @@ console.warn('------------------- grabTaskResult(%s)', tid);
 		success: function(d) {
 		    $('#wait-message-' + tid).remove();  //in case it already exists from previous
 console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
-                    $('#task-debug-' + tid).append('<b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
+                    $('#task-debug-' + tid).append('<br /><b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
 			for (var i = 0 ; i < d.length ; i++) {
 				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
 					if (!jobIdMap[tid]) jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
@@ -286,9 +299,25 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 						}
 					}
 				} else {
-					if (!timers[tid]) timers[tid] = { attempts: 0 };
-					timers[tid].attempts++;
-					timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+                                        var latest = -1;
+                                        if (d && d[0] && d[0].timestamp) latest = d[0].timestamp;
+                                        var gaveUp = false;
+                                        if (latest > 0) {
+                                            var age = serverTimeDiff(latest);
+console.info('age = %.2fmin', age / (60*1000));
+                                            if (age > (12 * 60 * 1000)) {
+                                                console.log('giving up on old task latest=%d -> %.2fmin', latest, age / (60*1000));
+                                                if (timers && timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+                                                timers[tid] = { attempts: 9999999 };
+						$('#wait-message-' + tid).html('error initiating IA job').removeClass('throbbing');;
+                                                gaveUp = true;
+                                            }
+                                        }
+                                        if (!gaveUp) {
+					    if (!timers[tid]) timers[tid] = { attempts: 0 };
+					    timers[tid].attempts++;
+					    timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
+                                        }
 				}
 			} else {
 				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
@@ -305,6 +334,12 @@ console.info('!!>> got %o', d);
 
 function approxServerTime() {
 	return serverTimestamp + (new Date().getTime() - pageStartTimestamp);
+}
+
+//st is a server timestamp (i.e. using its clock, like data fields set on server)
+//  this returns millisec different from (approx) server time... basically its age
+function serverTimeDiff(st) {
+    return approxServerTime() - st;
 }
 
 function manualCallback(tid) {
@@ -349,14 +384,21 @@ function showTaskResult(res, taskId) {
 	console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRESULT showTaskResult() %o on %s", res, res.taskId);
 	if (res.status && res.status._response && res.status._response.response && res.status._response.response.json_result &&
 			res.status._response.response.json_result.cm_dict) {
-		var isEdgeMatching = (res.status._response.response.json_result.query_config_dict &&
-			(res.status._response.response.json_result.query_config_dict.pipeline_root == 'OC_WDTW'));
+		var algoInfo = (res.status._response.response.json_result.query_config_dict &&
+			res.status._response.response.json_result.query_config_dict.pipeline_root);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
 		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
-		var h = 'Matches based on <b>' + (isEdgeMatching ? 'trailing edge' : 'pattern') + '</b>';
+                var algoDesc = '<span title="' + algoInfo + '">pattern</span>';
+                if (algoInfo == 'CurvRankFluke') {
+                    algoDesc = 'trailing edge (CurvRank)';
+                } else if (algoInfo == 'OC_WDTW') {
+                    algoDesc = 'trailing edge (OC/WDTW)';
+                }
+console.log('algoDesc %o %s %s', res.status._response.response.json_result.query_config_dict, algoInfo, algoDesc);
+		var h = 'Matches based on <b>' + algoDesc + '</b>';
 		if (res.timestamp) {
 			var d = new Date(res.timestamp);
 			h += '<span style="color: #FFF; margin: 0 11px; font-size: 0.7em;">' + d.toLocaleString() + '</span>';
@@ -540,13 +582,31 @@ console.info('taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAn
 	} else if (queryAnnotation.indivId) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
 	} else {
-		h = '<input onChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
+                //disable onChange for now -- as autocomplete will trigger!
+		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
-		h += ' /> <input type="button" value="Set individual on both encounters" />'
+		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
 	}
 	$('#enc-action').html(h);
+        setIndivAutocomplete($('#enc-action .needs-autocomplete'));
 	return true;
+}
+
+function setIndivAutocomplete(el) {
+    if (!el || !el.length) return;
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(el[0], args);
 }
 
 function annotCheckboxReset() {
@@ -721,8 +781,15 @@ function approvalButtonClick(encID, indivID, encID2) {
 		success: function(d) {
 console.warn(d);
 			if (d.success) {
-				jQuery(msgTarget).html('<i><b>Update successful</b> - please wait....</i>');
-				//////window.location.href = 'encounters/encounter.jsp?number=' + encID;
+				jQuery(msgTarget).html('<i><b>Update successful</b></i>');
+				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a>';
+				if (encID2) {
+					$(".enc-title .indiv-link").remove();
+					$(".enc-title #enc-action").remove();
+					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a></span>');
+					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
+					$("#encnum"+encID2).append(indivLink);
+				}
 			} else {
 				console.warn('error returned: %o', d);
 				jQuery(msgTarget).html('Error updating encounter: <b>' + d.error + '</b>');
