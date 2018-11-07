@@ -19,8 +19,9 @@ weka.core.Attribute,
 weka.core.DenseInstance, 
 org.ecocean.ai.weka.Classify,
 weka.core.Instances,
-org.ecocean.ai.nmt.azure.*
-              "
+org.ecocean.ai.nmt.azure.*,
+org.ecocean.ai.utilities.AIUtilities
+"
 %>
 
 
@@ -161,7 +162,8 @@ if (keyword == null) {
 			}
 			
 			String consolidatedRemarks=title+" "+desc;
-			consolidatedRemarks=consolidatedRemarks.replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase().replaceAll("whale shark", "whaleshark");
+			//consolidatedRemarks=consolidatedRemarks.replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase().replaceAll("whale shark", "whaleshark");
+			consolidatedRemarks=AIUtilities.youtubePredictorPrepareString(consolidatedRemarks);
 			weka_instance.setValue(merged, consolidatedRemarks);
 			
 			//old iterating filter of string matching		

@@ -271,6 +271,8 @@
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
 				
+				/ExportWekaPredictorARFF = authc, roles[admin]
+				
 
             </param-value>
         </init-param>
@@ -1265,6 +1267,16 @@
       <url-pattern>/SideFeed</url-pattern>
   </servlet-mapping>
   -->
+  
+    <servlet>
+    <servlet-name>ExportWekaPredictorARFF</servlet-name>
+    <servlet-class>org.ecocean.ai.servlet.export.ExportWekaPredictorARFF</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+    <servlet-name>ExportWekaPredictorARFF</servlet-name>
+    <url-pattern>/ExportWekaPredictorARFF</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>WorkspaceServer</servlet-name>
