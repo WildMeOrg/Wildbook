@@ -111,8 +111,8 @@ public class IBEISIA {
 
     //cache-like, in order to speed up IA; TODO make this some kind of smarter class
     private static HashMap<String,String> cacheAnnotIndiv = new HashMap<String,String>();
-    private static HashMap<String,ArrayList<JSONObject>> targetIdsListCache = new HashMap<String,ArrayList<JSONObject>>();
-    private static HashMap<String,ArrayList<String>> targetNameListCache = new HashMap<String,ArrayList<String>>();
+    private static volatile HashMap<String,ArrayList<JSONObject>> targetIdsListCache = new HashMap<String,ArrayList<JSONObject>>();
+    private static volatile HashMap<String,ArrayList<String>> targetNameListCache = new HashMap<String,ArrayList<String>>();
 
     private static String iaBaseURL = null;  //gets set the first time it is needed by iaURL()
 
@@ -1314,14 +1314,40 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
                                                 iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0), fparams);
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
+
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
         System.out.println("Verifying that new Ann can be matched against with iaClass...");
         if (validForIdentification(ann, context)) {
-            ann.setMatchAgainst(true);  //TODO how do we decide when this is true for real?
+
+            ann.setMatchAgainst(true);
+            addAnnotationToIdentificationCache(ann, myShepherd);
         }
         
         return ann;
+    }
+
+    // Lets do this whenever matchAgainst is set for a new ann so you can run id against submissions you just made. 
+    //private static volatile HashMap<String,ArrayList<JSONObject>> targetIdsListCache = new HashMap<String,ArrayList<JSONObject>>();
+    //private static volatile HashMap<String,ArrayList<String>> targetNameListCache = new HashMap<String,ArrayList<String>>();
+
+    public static void addAnnotationToIdentificationCache(Annotation ann, Shepherd myShepherd) {
+        try {
+            String iaClass = ann.getIAClass();
+            if (iaClass!=null) {
+                ArrayList<String> nameList = targetNameListCache.get(iaClass);
+                ArrayList<JSONObject> idList = targetIdsListCache.get(iaClass);
+                if (nameList!=null&&idList!=null) {
+                    if (!idList.isEmpty()&&!nameList.isEmpty()) {
+                        nameList.add(IA_UNKNOWN_NAME);
+                        targetNameListCache.put(iaClass, nameList);
+                        idList.add(toFancyUUID(ann.getAcmId()));
+                    } 
+                } 
+            }
+        } catch (NullPointerException npe) {
+            npe.printStackTrace();
+        }
     }
 
     //this is the "preferred" way to go from iaClass to Taxonomy (and thus then .getScientificName() or whatever)
