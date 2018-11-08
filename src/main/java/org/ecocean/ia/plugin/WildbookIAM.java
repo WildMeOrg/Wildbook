@@ -139,7 +139,7 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
         if (u == null) throw new MalformedURLException("WildbookIAM configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
         int batchSize = 30;
-        int numBatches = Math.round(mas.size() / batchSize);
+        int numBatches = Math.floor(mas.size() / batchSize) + 1;
 
         //sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
         List<String> iaImageIds = new ArrayList<String>();
