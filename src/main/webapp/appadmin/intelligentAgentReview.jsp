@@ -291,7 +291,7 @@ Shepherd myShepherd=new Shepherd(context);
 
 <div class="container maincontent">
 
-	<h1 class="intro">Intelligent Agent Review</h1>
+	<h1 class="intro"><img src="../images/wildbookIntelligentAgent.gif" width="200px" height="150px"> Intelligent Agent Data Review</h1>
 
 
 

@@ -24,7 +24,7 @@ var role;
 
 function setupFamilyTree(individualID) {
 
-  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?SELECT%20FROM%20org.ecocean.social.Relationship%20WHERE%20(this.type%20==%22Familial%22)%20&&%20(this.markedIndividualName1%20==%20%22" + individualID + "%22%20||%20this.markedIndividualName2%20==%20%22" + individualID + "%22)", function(error, json){
+  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.social.Relationship WHERE (this.type == \"Familial\") && (this.markedIndividualName1 == \"" + individualID + "\" || this.markedIndividualName2 == \"" + individualID + "\")"), function(error, json){
 
     if(error) {
       return console.error(error);
