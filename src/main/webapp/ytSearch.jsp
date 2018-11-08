@@ -10,6 +10,7 @@ org.joda.time.DateTime,
 org.json.JSONObject,
 org.json.JSONArray,
 com.google.api.services.youtube.model.SearchResult,
+com.google.api.services.youtube.model.SearchResultSnippet,
 org.ecocean.media.*,
 org.ecocean.servlet.ServletUtilities,
 java.util.ArrayList,
@@ -46,6 +47,8 @@ try {
 rtn.put("since", sinceMS);
 rtn.put("sinceDateTime", new DateTime(sinceMS));
 
+/*
+//old string filtering method
 ArrayList<String> phrasesToIgnoreVideo=new ArrayList<String>();
 phrasesToIgnoreVideo.add("documentary");
 phrasesToIgnoreVideo.add("documental");
@@ -90,10 +93,32 @@ phrasesToIgnoreVideo.add("children");
 phrasesToIgnoreVideo.add("digital code generator");
 phrasesToIgnoreVideo.add("blue whale game");
 phrasesToIgnoreVideo.add("deeeep.io");
-
-
-
+phrasesToIgnoreVideo.add("subnautica");
+phrasesToIgnoreVideo.add("gift card");
 int numPhrases=phrasesToIgnoreVideo.size();
+*/
+
+//WEKA ML filtering
+String fullPathToClassifierFile="/data/whaleshark_data_dirs/shepherd_data_dir/wekaModels/youtubeRandomForest.model";
+
+ArrayList<Attribute> attributeList = new ArrayList<Attribute>(2);
+
+Attribute merged = new Attribute("merged", true);
+
+ArrayList<String> classVal = new ArrayList<String>();
+classVal.add("good");
+classVal.add("poor");
+
+attributeList.add(merged);
+attributeList.add(new Attribute("@@class@@",classVal));
+
+Instances data = new Instances("TestInstances",attributeList,2);
+data.setClassIndex(data.numAttributes()-1);
+
+Instance weka_instance = new DenseInstance(data.numAttributes());
+data.add(weka_instance);
+weka_instance.setDataset(data);
+//end WEKA prep for ML
 
 
 String keyword = request.getParameter("keyword");
@@ -117,11 +142,15 @@ if (keyword == null) {
 		for (SearchResult vid : vids) {
 			
 			//check the video for strings that indicate non-data videos (e.g., video games, documentaries, etc.)
+			SearchResultSnippet snip=vid.getSnippet();
 			boolean filterMe=false;
-			String consolidatedRemarks=vid.toString().toLowerCase();
-			for(int i=0;i<numPhrases;i++){
-				String filterString=phrasesToIgnoreVideo.get(i);
-				if((consolidatedRemarks.indexOf(filterString)!=-1)||(consolidatedRemarks.indexOf(filterString.replaceAll(" ",""))!=-1))filterMe=true;
+			
+			//handle title		
+			String title="";
+			if((snip.getTitle()!=null)&&(!snip.getTitle().trim().equals(""))){
+				title=snip.getTitle();
+				String titleLang=DetectTranslate.detectLanguage(title);
+				if((!titleLang.equals("unk"))&&(!titleLang.equals("en")))title=DetectTranslate.translateToEnglish(title);
 			}
 			
 			//handle description		
