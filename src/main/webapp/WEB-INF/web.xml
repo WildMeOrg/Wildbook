@@ -273,6 +273,8 @@
 				
 				/ExportWekaPredictorARFF = authc, roles[admin]
 				
+				/pictureBook.jsp = authc, roles[researcher]
+				
 
             </param-value>
         </init-param>
