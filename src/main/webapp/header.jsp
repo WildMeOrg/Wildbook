@@ -375,8 +375,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
 
-                              <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
-
                               <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
 
                               <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
@@ -388,7 +386,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <%
                         }
                         %>
-                          <li><a href="http://wiki.whaleshark.org/doku.php?id=user_agreement" target="_blank"><%=props.getProperty("userAgreement")%></a></li>
 
                           <!--  examples of navigation dividers
                           <li class="divider"></li>
