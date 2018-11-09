@@ -56,9 +56,6 @@ String dataDir = ServletUtilities.dataDir(context, rootDir);
 String fullPathToClassifierFile	= Classify.getClassifierFileFullPath(dataDir);
 boolean wekaAvailable = new File(fullPathToClassifierFile).exists();
 
-out.println(dataDir);
-out.pritnln(wekaAvailable);
-if (rootDir != null) return;
 ArrayList<Attribute> attributeList = new ArrayList<Attribute>(2);
 
 Attribute merged = new Attribute("merged", true);
@@ -127,7 +124,7 @@ if (keyword == null) {
 			//consolidatedRemarks=consolidatedRemarks.replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase().replaceAll("whale shark", "whaleshark");
 			consolidatedRemarks=AIUtilities.youtubePredictorPrepareString(consolidatedRemarks);
 
-                        if (wekaEnabled) {
+                        if (wekaAvailable) {
 			    weka_instance.setValue(merged, consolidatedRemarks);
 			    Double classValue=Classify.classifyWithFilteredClassifier(weka_instance, fullPathToClassifierFile);
 			    if (classValue.intValue()==1) filterMe=true;
