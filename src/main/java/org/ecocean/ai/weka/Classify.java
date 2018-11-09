@@ -12,6 +12,11 @@ import weka.core.Instances;
 
 public class Classify {
 
+
+    public static String getClassifierFileFullPath(String dataDir) {
+        return dataDir + "/wekaModels/youtubeRandomForest.model";
+    }
+
   /*
    * Assumes you're using a Weka FilteredClassifier that will do any necessary filter to the Instance (e.g., StringToWord) as a part of the classification.
    * 

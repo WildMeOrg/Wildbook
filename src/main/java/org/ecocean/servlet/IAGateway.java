@@ -629,7 +629,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
                 res.put("_occurrenceNote", "created " + occs.size() + " Occurrences out of " + mas.size() + " MediaAssets");
             }
 
-            IBEISIA.waitForIAPriming();
+            //IBEISIA.waitForIAPriming();  no need to wait for priming for detection!
             boolean success = true;
             try {
                 res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas,context));

@@ -249,12 +249,12 @@
 
 	
 	      <field name="submitters" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.User"/>
+        <collection element-type="org.ecocean.User" dependent-element="false"/>
         <join/>
       </field>
 	  
 	        <field name="photographers" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.User"/>
+        <collection element-type="org.ecocean.User" dependent-element="false"/>
         <join/>
       </field>
 	  

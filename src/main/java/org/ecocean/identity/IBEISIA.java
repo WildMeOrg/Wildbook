@@ -359,6 +359,17 @@ System.out.println("     free ride :)");
         //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing.. 
         // If the list is null it will check against everything. 
         map.put("query_annot_name_list", qnlist);
+        //if we have no target lists, pass null for "all"
+        if (Util.collectionIsEmptyOrNull(tlist)) {
+            map.put("database_annot_uuid_list", null);
+        } else {
+            map.put("database_annot_uuid_list", tlist);
+        }
+        if (Util.collectionIsEmptyOrNull(tnlist)) {
+            map.put("database_annot_name_list", null);
+        } else {
+            map.put("database_annot_name_list", tnlist);
+        }
 
 
 	if  (tlist==null||tlist.size()==0) {
@@ -378,10 +389,10 @@ System.out.println("     free ride :)");
 
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
-if (tlist!=null&&tnlist!=null) {
-    System.out.println("tlist.size()=" + tlist.size()+" annnnd tnlist.size()="+tnlist.size());
+if (Util.collectionIsEmptyOrNull(tlist) || Util.collectionIsEmptyOrNull(tnlist)) {
+    System.out.println("tlist/tnlist == null! Checking against all.");
 } else {
-    System.out.println("tlist == null! Checking against all.");
+    System.out.println("tlist.size()=" + tlist.size()+" annnnd tnlist.size()="+tnlist.size());
 }
 System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size());
 System.out.println(map);
@@ -473,30 +484,6 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
              json_result: "[{"qaid": 492, "daid_list": [493], "score_list": [1.5081310272216797], "qauuid": {"__UUID__": "f6b27df2-5d81-4e62-b770-b56fe1dcf5c2"}, "dauuid_list": [{"__UUID__": "d88c974b-c746-49db-8178-e7b7414708cf"}]}]"
        there would be one element for each queried annotation (492 here)... but we are FOR NOW always only sending one.  we should TODO adapt for many-to-many eventually?
     */
-    public static JSONObject OLDgetTaskResults(String taskID, String context) {
-        JSONObject rtn = getTaskResultsBasic(taskID, context);
-        if ((rtn == null) || !rtn.optBoolean("success", false)) return rtn;  //all the ways we can fail
-        JSONArray resOut = new JSONArray();
-        JSONArray res = (JSONArray)rtn.get("_json_result");
-
-        for (int i = 0 ; i < res.length() ; i++) {
-            JSONObject el = new JSONObject();
-            el.put("score_list", res.getJSONObject(i).get("score_list"));
-            el.put("query_annot_uuid", fromFancyUUID(res.getJSONObject(i).getJSONObject("qauuid")));
-            JSONArray matches = new JSONArray();
-            JSONArray dlist = res.getJSONObject(i).getJSONArray("dauuid_list");
-            for (int d = 0 ; d < dlist.length() ; d++) {
-                matches.put(fromFancyUUID(dlist.getJSONObject(d)));
-            }
-            el.put("match_annot_list", matches);
-            resOut.put(el);
-        }
-
-        rtn.put("results", resOut);
-        rtn.remove("_json_result");
-        return rtn;
-    }
-
 
     //this is "new" identification results
     public static JSONObject getTaskResults(String taskID, String context) {
@@ -1629,6 +1616,7 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         for (int i = 0 ; i < ids.length ; i++) {
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, ids[i]), true)));
 System.out.println("**** " + ann);
+            //"should not happen" that we have an annot with no acmId, since this is result post-IA (which needs acmId)
             if (ann != null) anns.put((ann.getAcmId() != null) ? ann.getAcmId() : ann.getId(), ann);
         }
         int numCreated = 0;
@@ -1671,6 +1659,7 @@ System.out.println("**** " + ann);
         rtn.put("success", true);
         rtn.put("needReview", needReview);
         jlog.put("needReview", needReview);
+        ArrayList<Annotation> needNameResolution = new ArrayList<Annotation>();
         if (needReview) {
             jlog.put("needReviewMap", needReviewMap);
             for (String id : needReviewMap.keySet()) {
@@ -1680,10 +1669,17 @@ System.out.println("**** " + ann);
                     anns.get(id).setIdentificationStatus(STATUS_PENDING);
                 }
             }
+            for (String aid : anns.keySet()) {  //set annots *not* in needReviewMap complete.  (will there even be any?)
+                if (!needReviewMap.keySet().contains(aid)) {
+                    anns.get(aid).setIdentificationStatus(STATUS_COMPLETE);
+                    needNameResolution.add(anns.get(aid));
+                }
+            }
 
         } else {
             for (String aid : anns.keySet()) {
                 anns.get(aid).setIdentificationStatus(STATUS_COMPLETE);
+                needNameResolution.add(anns.get(aid));
             }
             jlog.put("loopComplete", true);
             rtn.put("loopComplete", true);
@@ -1691,6 +1687,7 @@ System.out.println("**** " + ann);
             exitIdentificationLoop(infDict, myShepherd);
         }
 
+        resolveNames(needNameResolution, j.optJSONObject("cm_dict"), myShepherd);
         log(taskID, null, jlog, myShepherd.getContext());
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
@@ -1916,6 +1913,7 @@ System.out.println("need " + annId + " from IA, i guess?");
     }
 
 
+    //TODO this is not acmId-safe!!  FIXME!!
     public static Annotation getAnnotationFromIA(String annId, Shepherd myShepherd) {
         String context = myShepherd.getContext();
 
@@ -1945,10 +1943,8 @@ System.out.println("need " + annId + " from IA, i guess?");
             
             // iaClass... not your scientific name species
             String iaClass = rtn.getJSONArray("response").getString(0);
-
             Annotation ann = new Annotation(convertSpeciesToString(rtn.getJSONArray("response").optString(0, null)), ft, iaClass);
             convertSpeciesToString(rtn.getJSONArray("response").optString(0, null));
-
             ann.setId(annId);  //nope we dont want random uuid, silly
             rtn = RestClient.get(iaURL(context, "/api/annot/exemplar/json/" + idSuffix));
             if ((rtn != null) && (rtn.optJSONArray("response") != null)) {
@@ -3527,6 +3523,11 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
     }
 
 
+    private static void resolveNames(ArrayList<Annotation> anns, JSONObject cmDict, Shepherd myShepherd) {
+// TODO under development!
+//cmDict has a structure like:  { acmId1: { dname_list: [], dannot_uuid_list: [] } } .... um, i think?
+        //resolveNames(anns, j.optJSONObject("cm_dict"), myShepherd);
+    }
 
     //duct-tape piecemeal fixes for IA-Next
     public static WildbookIAM getPluginInstance(String context) {

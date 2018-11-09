@@ -419,7 +419,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		if (max > RESMAX) max = RESMAX;
 		for (var i = 0 ; i < max ; i++) {
 			var d = sorted[i].split(/\s/);
-			displayAnnot(res.taskId, d[1], i, d[0]);
+			displayAnnot(res.taskId, d[1], i, d[0] / 1000);
 		}
 		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
@@ -638,9 +638,9 @@ console.warn('score_sort() cm_dict %o', cm_dict);
 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
 	for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
 		if (cm_dict.score_list[i] < 0) continue;
-		sorta.push(cm_dict.score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
+		sorta.push(cm_dict.score_list[i] * 1000 + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
 	}
-	sorta.sort().reverse();
+	sorta.sort(function(a,b) { return parseFloat(a) - parseFloat(b); }).reverse();
 	return sorta;
 }
 
