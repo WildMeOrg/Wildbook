@@ -371,22 +371,6 @@ System.out.println("     free ride :)");
             map.put("database_annot_name_list", tnlist);
         }
 
-
-	if  (tlist==null||tlist.size()==0) {
-            map.put("database_annot_uuid_list", null);
-        } else if (tnlist!=null&&tnlist.size()>0) {
-            map.put("database_annot_uuid_list", tlist);
-        }
-
-
-        if  (tnlist==null||tnlist.size()==0) {
-            map.put("database_annot_name_list", null);
-        } else if (tnlist!=null&&tnlist.size()>0) {
-            map.put("database_annot_name_list", tnlist);
-        }
-
-
-
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
 if (Util.collectionIsEmptyOrNull(tlist) || Util.collectionIsEmptyOrNull(tnlist)) {
