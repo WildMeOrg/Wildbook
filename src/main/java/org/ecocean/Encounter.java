@@ -770,6 +770,13 @@ public class Encounter implements java.io.Serializable {
     return photographerPhone;
   }
 
+  public String getWebUrl(HttpServletRequest req) {
+    return getWebUrl(this.getCatalogNumber(), req);
+  }
+  public static String getWebUrl(String encId, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/encounters/encounter.jsp?number="+encId);
+  }
+
   /**
    * Sets the phone number of the person who took the primaryImage this encounter.
    */
@@ -1980,6 +1987,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
     return null;
   }
+  public boolean hasDynamicProperty(String name) {
+    return ( this.getDynamicPropertyValue(name) != null );
+  }
 
   public void removeDynamicProperty(String name) {
     name = name.replaceAll(";", "_").trim().replaceAll("%20", " ");
@@ -2942,7 +2952,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 		return blk;
 	}
 
-
 /*
 in short, this rebuilds (or builds for the first time) ALL *derived* images (etc?) for this encounter.
 it is a baby step into the future of MediaAssets that hopefully will provide a smooth(er) transition to that.
@@ -3387,13 +3396,25 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
-    public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
     public void addSubmitter(User user) {
         if (user == null) return;
         if (submitters == null) submitters = new ArrayList<User>();
         if (!submitters.contains(user)) submitters.add(user);
     }
-    public void setPhotographers(List<User> photographers) {this.photographers=photographers;}
-    
+
+    public void setSubmitters(List<User> submitters) {
+      if(submitters==null){this.submitters=null;}
+      else{
+        this.submitters=submitters;
+      }
+      
+    }
+    public void setPhotographers(List<User> photographers) {
+      if(photographers==null){this.photographers=null;}
+      else{
+        this.photographers=photographers;
+      }
+    }
+
     
 }
