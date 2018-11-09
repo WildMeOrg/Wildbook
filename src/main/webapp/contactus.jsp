@@ -18,37 +18,31 @@
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
-          <h1 class="intro">Contact us </h1>
-     
+  <h1 class="intro">Contact Us</h1>
+  <p>The Internet of Turtles team welcomes your comments and questions.</p>
 
-        <p>The team welcomes your comments and questions.</p>
+  <p>Please email us at <em>services at wildme dot org</em>, and one of us will respond as quickly as possible.</p>
 
-<p>Please email us at <em>info at whaleshark dot org</em>, and one of us will respond as quickly as possible.</p>
+  <p>Internet of Turtles is an instance of <a href="http://www.wildbook.org/doku.php">Wildbook</a> software for mark recapture, which is a project by 501(c)3 non-profit <a href="https://www.wildme.org/">Wild Me</a>.</p>
 
-<h2>Photos for Media Publications about Wildbook for Turtles</h2>
-<p>The following photos from Wild Me Director Dr. Simon Pierce may be used freely, for editorial purposes, in return for a link back to https://www.simonjpierce.com (online) and/or correct attribution (print).</p>
-<p>
-	<img src="images/-simon-pierce-1140612.jpg" width="500px" height="*"/><br>
-	<img src="images/-simon-pierce-1140648.jpg" width="500px" height="*"/><br>
-	<img src="images/-simon-pierce-1180243.jpg" width="500px" height="*"/><br>
-	<img src="images/-simon-pierce-1260314.jpg" width="500px" height="*"/><br>
-	<img src="images/-simon-pierce-7180025.jpg" width="500px" height="*"/><br>
-</p>
+  <h2>Photos for Media Publications about Wildbook for Turtles</h2>
+  <h2>Logos</h2>
+  
+  <p>The following logos may be used inconjunction with our project.</p>
 
-<h2>Logos</h2>
-The following logos may be used inconjunction with our project.
+  <h3>Internet of Turtles</h3>
 
-<h3>Wild Me</h3>
+  <p><img src="images/iot_logo.png" width="400px" height="*" /></p>
 
-<p><img src="images/wild-me-logo-high-resolution.png" width="500px" height="*" /></p>
+  <h3>Wild Me</h3>
 
-<h3>Wildbook&reg;</h3>
+  <p><img src="images/wild-me-logo-high-resolution.png" width="300px" height="*" /></p>
 
-<p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>
+  <h3>Wildbook&reg;</h3>
 
+  <p><img src="images/WildBook_logo_300dpi-04.png" width="300px" height="*" /></p>
 
-   
-      <!-- end maintext -->
-      </div>
+</div>
 
+<jsp:include page="footer.jsp" flush="true"/>
 
