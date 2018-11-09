@@ -185,14 +185,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <li><a href="#" title="">English</a></li>
                      -->
 
-
-
+                      <li>
+                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
+                      </li>
                       <%
-                      if (CommonConfiguration.getWikiLocation(context)!=null) {
-                      %>
-                        <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
-                      <%
-                      }
+
 
 
 
@@ -446,9 +443,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                            </ul>
                       </li>
 
-                      <li>
-                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
-                      </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
