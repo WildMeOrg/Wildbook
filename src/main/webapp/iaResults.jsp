@@ -406,7 +406,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 		h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" style="margin-left: 30px; font-size: 0.8em; color: #777;">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
 		$('#task-' + res.taskId + ' .task-title-id').html(h);
-		displayAnnot(res.taskId, qannotId, -1, -1);
+		displayAnnot(res.taskId, qannotId, -1, -1, -1);
 
 		var sorted = score_sort(res.status._response.response.json_result['cm_dict'][qannotId]);
 		if (!sorted || (sorted.length < 1)) {
@@ -417,9 +417,27 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		}
 		var max = sorted.length;
 		if (max > RESMAX) max = RESMAX;
+		// ----- BEGIN Hotspotter IA Illustration: here we construct the illustration link URLs for each dannot -----
+		// these URLs are passed-along and rendered in html by displayAnnotDetails
+		var resJSON = res.status._response.response.json_result['cm_dict'][qannotId];
+		// names conforming to IA args
+		var extern_reference = resJSON.dannot_extern_reference;
+		var query_annot_uuid = qannotId;
+		var version = "heatmask";
+
 		for (var i = 0 ; i < max ; i++) {
 			var d = sorted[i].split(/\s/);
-			displayAnnot(res.taskId, d[1], i, d[0] / 1000);
+			var acmId = d[0];
+			var database_annot_uuid = d[1];
+
+			var illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
+			illustUrl += "&query_annot_uuid="+query_annot_uuid;
+			illustUrl += "&database_annot_uuid="+database_annot_uuid;
+			illustUrl += "&version="+version;
+			console.log("ILLUSTRATION "+i+" "+illustUrl);
+
+			displayAnnot(res.taskId, d[1], i, d[0], illustUrl);
+			// ----- END Hotspotter IA Illustration-----
 		}
 		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
@@ -431,7 +449,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 // Fix the acmId ---> annotID situation here. 
 
-function displayAnnot(taskId, acmId, num, score) {
+function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
 	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
 	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
@@ -447,11 +465,11 @@ console.info('%d ===> %s', num, acmId);
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl); }
 	});
 }
 
-function displayAnnotDetails(taskId, res, num) {
+function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 	var isQueryAnnot = (num < 0);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
 		console.warn('error on (task %s) res = %o', taskId, res);
@@ -493,6 +511,7 @@ function displayAnnotDetails(taskId, res, num) {
 
         if (mainAsset) {
 console.info('mainAsset -> %o', mainAsset);
+console.info('illustrationUrl '+illustrationUrl);
             if (mainAsset.url) {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="' + mainAsset.url + '" />');
             } else {
@@ -542,6 +561,17 @@ console.info('qdata[%s] = %o', taskId, qdata);
                     if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
                 }
             }  //end if (mainAsset.features...)
+            // Illustration
+            if (illustrationUrl) {
+            	var selector = '#task-' + taskId + ' .annot-summary-' + acmId;
+            	// TODO: generify
+            	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
+            	illustrationUrl = iaBase+illustrationUrl
+            	var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect match</a></span>';
+            	console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
+            	$(selector).append(illustrationHtml);
+            }
+
         }  //end if (mainAsset)
 
     if (otherAnnots.length > 0) {

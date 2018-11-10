@@ -100,11 +100,18 @@
 	transform: scale(1.2);
 }
 
-.annot-action-checkbox-inactive {
+div div .annot-action-checkbox-inactive {
+	visibility: hidden;
+	margin: 0.45em; /* vertically centers-ish */
+}
+span.illustrationLink {
 	visibility: hidden;
 }
-
+.annot-summary:hover span.illustrationLink {
+	visibility: visible;
+}
 .annot-summary:hover .annot-action-checkbox-inactive {
+	visibility: visible;
 	cursor: pointer;
 	display: inline-block;
 }
