@@ -51,6 +51,17 @@
 	font-size: 0.8em;
 }
 
+.task-divider {
+	/* This whole thing is way too hackey for my taste but it gets a margin between the tasks */
+	clear: both;
+	visibility: hidden;
+	margin-bottom: 50px; /* twice the standard iaResults margin so tasks are visual units */
+}
+
+.task-divider:first-of-type {
+	/* task-divider is prepended so we don't want it above the first task */
+	display: none;
+}
 
 /* these hide stuff for detection jobs; but dont hide task-content as it contains children tasks! */
 .task-title.task-type-detection {
