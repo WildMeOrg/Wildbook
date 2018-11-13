@@ -184,6 +184,10 @@ public class WriteOutScanTask extends HttpServlet {
       root.addAttribute("maxTriangleRotation", maxTriangleRotation);
       root.addAttribute("C", C);
       int numMatches=matches.length;
+      
+      //hard limit this to 100 matches...no human really goes beyond this...
+      if(numMatches>100)numMatches=100;
+      
       for (int i = 0; i < numMatches; i++) {
         try{
           MatchObject mo = matches[i];
@@ -326,7 +330,13 @@ public class WriteOutScanTask extends HttpServlet {
       Element root = document.addElement("matchSet");
       root.addAttribute("scanDate", (new java.util.Date()).toString());
       //System.out.println("Total num matches for I3S printing: "+matches.length);
-      for (int i = 0; i < matches.length; i++) {
+      
+      int numMatches=matches.length;
+      
+      //hard limit this to 100 matches...no human really goes beyond this...
+      if(numMatches>100)numMatches=100;
+      
+      for (int i = 0; i < numMatches; i++) {
         try {
           //System.out.println();
           MatchObject mo = matches[i];
