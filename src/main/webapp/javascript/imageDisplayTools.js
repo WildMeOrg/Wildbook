@@ -574,7 +574,8 @@ console.warn('>>>>>>>>>>>>>>>>>>>>>>>>> %o', url);
 
 maLib.mkImg = function(maJson) {
     var url = maLib.getUrl(maJson);
-    return '<img class="lazyload" id="figure-img-' + maJson.id + ':' + maJson.annotationId + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-annotationId="' + maJson.annotationId + '" src="/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
+    //return '<img class="lazyload" id="figure-img-' + maJson.id + ':' + maJson.annotationId + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-annotationId="' + maJson.annotationId + '" src="/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
+    return '<img id="figure-img-' + maJson.id + ':' + maJson.annotationId + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-annotationId="' + maJson.annotationId + '" src="' + url + '" itemprop="contentUrl" />';
 }
 
 // execute above function
