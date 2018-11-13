@@ -85,13 +85,13 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	    		localFullName=thisUser.getFullName();
 	    	}
 	    	if(thisUser.getUserProject()!=null){
-	    userProject=thisUser.getUserProject();
+	    		userProject=thisUser.getUserProject();
 	    	}
 	    	if(thisUser.getUserStatement()!=null){
-		userStatement=thisUser.getUserStatement();
+				userStatement=thisUser.getUserStatement();
 	    	}
 	    	if(thisUser.getUserURL()!=null){
-		userURL=thisUser.getUserURL();
+				userURL=thisUser.getUserURL();
 	    	}
 	    	if(thisUser.getUserImage()!=null){
 	    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
