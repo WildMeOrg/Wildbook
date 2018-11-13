@@ -3,7 +3,8 @@ wildbook.IA.plugins.push({
     name: 'Wildbook-IA (aka IBEIS)',
     getDomResult: function(task) {
         var gt = this.getGeneralType(task);
-	var h = '<div class="task-content task-type-' + gt + '" id="task-' + task.id + '">';
+    var h = '<hr class="task-divider" />'
+	    h += '<div class="task-content task-type-' + gt + '" id="task-' + task.id + '">';
         h += '<div class="task-title task-type-' + gt + '" onDblClick="$(\'#task-debug-' + task.id + '\').show();"><span class="task-title-id"><b>Task ' + task.id + '</b></span></div>';
         h += '<div class="task-summary task-type-' + gt + '"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div>';
         h += '</div>';
