@@ -31,21 +31,19 @@ if (session.getAttribute("message") != null) {
 }
 
 
-  	
-  	
-  Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("myAccount.jsp");
-  	//get the available user roles
-  	List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
-	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
-	int numRoles=roles.size();
-  	int numRoleDefinitions=roleDefinitions.size();
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("myAccount.jsp");
+//get the available user roles
+List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
+List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
+int numRoles=roles.size();
+int numRoleDefinitions=roleDefinitions.size();
 
 //handle some cache-related security
-  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 %>
 
 <jsp:include page="header.jsp" flush="true"/>
@@ -57,161 +55,141 @@ if (session.getAttribute("message") != null) {
 	<p>
 
     	
-    		    <table width="100%" class="tissueSample">
+   		<table width="100%" class="tissueSample">
     		    
 
     		    
-    		    <%
-    		    //let's set up any pre-defined values if appropriate
-    		    String localUsername="";
-    		    String localAffiliation="";
-    		    String localEmail="";
-    		    String localFullName="";
-    		    String profilePhotoURL="images/empty_profile.jpg";
-    		    String userProject="";
-    		    String userStatement="";
-    		    String userURL="";
-    		    String receiveEmails="checked=\"checked\"";
-    		    boolean hasProfilePhoto=false;
+	    <%
+	    //let's set up any pre-defined values if appropriate
+	    String localUsername="";
+	    String localAffiliation="";
+	    String localEmail="";
+	    String localFullName="";
+	    String profilePhotoURL="images/empty_profile.jpg";
+	    String userProject="";
+	    String userStatement="";
+	    String userURL="";
+	    String receiveEmails="checked=\"checked\"";
+	    boolean hasProfilePhoto=false;
+	    
+	    User thisUser=myShepherd.getUser(request.getUserPrincipal().getName());
+	    	localUsername=thisUser.getUsername();
+	    	if(thisUser.getAffiliation()!=null){
+	    		localAffiliation=thisUser.getAffiliation();
+	    	}
+	    	if(thisUser.getEmailAddress()!=null){
+	    		localEmail=thisUser.getEmailAddress();
+	    	}
+	    	if(!thisUser.getReceiveEmails()){receiveEmails="";}
+	    	if(thisUser.getFullName()!=null){
+	    		localFullName=thisUser.getFullName();
+	    	}
+	    	if(thisUser.getUserProject()!=null){
+	    userProject=thisUser.getUserProject();
+	    	}
+	    	if(thisUser.getUserStatement()!=null){
+		userStatement=thisUser.getUserStatement();
+	    	}
+	    	if(thisUser.getUserURL()!=null){
+		userURL=thisUser.getUserURL();
+	    	}
+	    	if(thisUser.getUserImage()!=null){
+	    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+	    	}
+	    	if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
+	    
+	    
+	    %>
     		    
-    		    User thisUser=myShepherd.getUser(request.getUserPrincipal().getName());
-    		    	localUsername=thisUser.getUsername();
-    		    	if(thisUser.getAffiliation()!=null){
-    		    		localAffiliation=thisUser.getAffiliation();
-    		    	}
-    		    	if(thisUser.getEmailAddress()!=null){
-    		    		localEmail=thisUser.getEmailAddress();
-    		    	}
-    		    	if(!thisUser.getReceiveEmails()){receiveEmails="";}
-    		    	if(thisUser.getFullName()!=null){
-    		    		localFullName=thisUser.getFullName();
-    		    	}
-    		    	if(thisUser.getUserProject()!=null){
-			    userProject=thisUser.getUserProject();
-    		    	}
-    		    	if(thisUser.getUserStatement()!=null){
-				userStatement=thisUser.getUserStatement();
-    		    	}
-    		    	if(thisUser.getUserURL()!=null){
-				userURL=thisUser.getUserURL();
-    		    	}
-    		    	if(thisUser.getUserImage()!=null){
-    		    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-    		    	}
-    		    	if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
-    		    
-    		    
-    		    %>
-    		    
-    		        		    <tr>
-		        		    	<td>
-		        		    		<table border="0">
-		        		    			<tr>
-		        		    				<td style="border: solid 0">
-		        		    					<img src="<%=profilePhotoURL%>" width="200px" height="*" />
-		        		    				</td>
-		        		    			</tr>
-		        		    		
-		        		    			<tr>
-		        		    					<td style="border: solid 0"><form action="MyAccountAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
-        												<img src="images/upload_small.gif" align="absmiddle" />&nbsp;<%=props.getProperty("uploadPhoto") %><br /> 
-		        		    						 <input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
-        												<input name="file2add" type="file" size="20" />
-        												<input name="addtlFile" type="submit" id="addtlFile" value="<%=props.getProperty("upload") %>" />
-        											</form>
-		        		    					</td>
-		        		    				</tr>
-		        		    				<%
-		        		    				if(hasProfilePhoto){
-		        		    				%>
-		        		    					<tr><td style="border: solid 0"><%=props.getProperty("deleteProfile") %>&nbsp;<a href="MyAccountRemoveProfileImage"><img src="images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
-		        		    			
-		        		    				<%
-		        		    				}
-		        		    			
-		        		    			%>
-		        		    			</table>
-		        		    		
-		        		    	</td>
-		        	<form action="UserSelfUpdate?context=context0" method="post" id="editUser">	    
-    		    	<td><table width="100%" class="tissueSample">
-      				<tr>
-            	
-                        
-                        <td style="border-bottom: 0px white;"><%=props.getProperty("newPassword") %> <input name="password" type="password" size="15" maxlength="90" ></input></td>
-                        <td style="border-bottom: 0px white;" colspan="2"><%=props.getProperty("confirm") %> <%=props.getProperty("newPassword") %> <input name="password2" type="password" size="15" maxlength="90" ></input></td>
-                        
-                        
-
-            		</tr>
-            		<tr><td colspan="3" style="border-top: 0px white;font-style:italic;"><%=props.getProperty("leaveBlankNoChangePassword") %></td></tr>
-                    <tr><td colspan="3"><%=props.getProperty("fullname") %> <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
-                    <tr><td colspan="2"><%=props.getProperty("emailAddress") %> <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1"><%=props.getProperty("receiveEmails") %> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
-                    <tr><td colspan="3"><%=props.getProperty("affiliation") %> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
-                     <tr><td colspan="3"><%=props.getProperty("researchProject") %> <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
-                          
-                    <tr><td colspan="3"><%=props.getProperty("projectURL") %> <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
-		     <tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement") %> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
-                    
-                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="<%=props.getProperty("update") %>" /></td></tr>
-            </table>
-            </td>
-            <td>
-            <table>
-           
-            <%
-            List<String> contexts=ContextConfiguration.getContextNames();
-            int numContexts=contexts.size();
-            for(int d=0;d<numContexts;d++){
-            	if(myShepherd.doesUserHaveAnyRoleInContext(localUsername, context)){
-            	%>
-            	 <tr>
-            <td>
-            
-            
-            <%=props.getProperty("roles4") %> <%=ContextConfiguration.getNameForContext(("context"+d)) %> 
-                        	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5" disabled="disabled">
-                        		<%
-								for(int q=0;q<numRoles;q++){
-									//String selected="";
-									if(myShepherd.getUser(request.getUserPrincipal().getName())!=null){
-										if(myShepherd.doesUserHaveRole(request.getUserPrincipal().getName(),roles.get(q),("context"+d))){
-											%>
-											<option value="<%=roles.get(q)%>"><%=roles.get(q)%></option>
-											<% 
+		    <tr>
+		    	<td>
+		    		<table border="0">
+		    			<tr>
+		    				<td style="border: solid 0">
+		    					<img src="<%=profilePhotoURL%>" width="200px" height="*" />
+		    				</td>
+		    			</tr>
+		    		
+		    			<tr>
+	    					<td style="border: solid 0">
+	    						<form action="MyAccountAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
+									<img src="images/upload_small.gif" align="absmiddle" />&nbsp;<%=props.getProperty("uploadPhoto") %><br /> 
+	    						 	<input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
+									<input name="file2add" type="file" size="20" />
+									<input name="addtlFile" type="submit" id="addtlFile" value="<%=props.getProperty("upload") %>" />
+								</form>
+	    					</td>
+	    				</tr>
+		    				<%
+		    				if(hasProfilePhoto){
+		    				%>
+		    					<tr><td style="border: solid 0"><%=props.getProperty("deleteProfile") %>&nbsp;<a href="MyAccountRemoveProfileImage"><img src="images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
+		    			
+		    				<%
+		    				}
+		    			%>
+		    		</table>
+	    		
+	    		</td>
+	        	<form action="UserSelfUpdate?context=context0" method="post" id="editUser">	    
+			    	<td><table width="100%" class="tissueSample">
+	  					<tr>        
+	                        <td style="border-bottom: 0px white;"><%=props.getProperty("newPassword") %> <input name="password" type="password" size="15" maxlength="90" ></input></td>
+	                        <td style="border-bottom: 0px white;" colspan="2"><%=props.getProperty("confirm") %> <%=props.getProperty("newPassword") %> <input name="password2" type="password" size="15" maxlength="90" ></input></td>
+	            		</tr>
+	            		<tr><td colspan="3" style="border-top: 0px white;font-style:italic;"><%=props.getProperty("leaveBlankNoChangePassword") %></td></tr>
+	                    <tr><td colspan="3"><%=props.getProperty("fullname") %> <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
+	                    <tr><td colspan="2"><%=props.getProperty("emailAddress") %> <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1"><%=props.getProperty("receiveEmails") %> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+	                    <tr><td colspan="3"><%=props.getProperty("affiliation") %> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
+	                    <tr><td colspan="3"><%=props.getProperty("researchProject") %> <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
+	                          
+	                    <tr><td colspan="3"><%=props.getProperty("projectURL") %> <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
+			     		
+			     		<tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement") %> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
+	                    
+	                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="<%=props.getProperty("update") %>" /></td></tr>
+	            	</table></td>
+	            
+	            	<td><table>
+	            		<%
+			            List<String> contexts=ContextConfiguration.getContextNames();
+			            int numContexts=contexts.size();
+			            for(int d=0;d<numContexts;d++){
+			            	if(myShepherd.doesUserHaveAnyRoleInContext(localUsername, context)){
+			            	%>
+			            	<tr><td>            
+					            <%=props.getProperty("roles4") %> <%=ContextConfiguration.getNameForContext(("context"+d)) %> 
+					        	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5" disabled="disabled">
+					        		<%
+									for(int q=0;q<numRoles;q++){
+										//String selected="";
+										if(myShepherd.getUser(request.getUserPrincipal().getName())!=null &&
+										   myShepherd.doesUserHaveRole(request.getUserPrincipal().getName(),roles.get(q),("context"+d))
+										){
+											%><option value="<%=roles.get(q)%>"><%=roles.get(q)%></option><% 
 										}
 									}
-									
-					    		    	
-								
-								}
-								%>
-                                
-            				</select>
-            
-            
-            </td>
+									%>
+								</select>
+				            
+			            	</td></tr>
+				            <%	
+				            }
+			            } // end for loop over contexts
+			            %>
+		            </table></td>	
+	            </form>
             </tr>
-            <%	
-            }
-            }
-            %>
-            
-            </table>
-				
-            </td>	
-            
-            
-            </form>
-            </tr>
-            </table>
-<br ></br>
-<h2><%=props.getProperty("socialMediaConnections") %></h2>
-<div style="padding-bottom: 10px;">
-<%
-	String types[] = new String[] {"facebook", "flickr"};
+        </table>
+	<br ></br>
 
-if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
+	<h2><%=props.getProperty("socialMediaConnections") %></h2>
+
+	<div style="padding-bottom: 10px;">
+	<%
+		String types[] = new String[] {"facebook", "flickr"};
+
+	if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
 
 		String socialType="facebook";
 		if (thisUser.getSocial(socialType) == null) {
@@ -219,18 +197,18 @@ if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(C
 		} else {
 			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\""+props.getProperty("disconnect")+"\" /></div>");
 		}
-}
-if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
-
-	String socialType="flickr";
-	if (thisUser.getSocial(socialType) == null) {
-		out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\""+props.getProperty("connect2")+ socialType + "\" /></div>");
-	} else {
-		out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\""+props.getProperty("disconnect")+"\" /></div>");
 	}
-}
-%>
-</div>
+	if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
+
+		String socialType="flickr";
+		if (thisUser.getSocial(socialType) == null) {
+			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\""+props.getProperty("connect2")+ socialType + "\" /></div>");
+		} else {
+			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\""+props.getProperty("disconnect")+"\" /></div>");
+		}
+	}
+	%>
+	</div>
 
 <%
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
@@ -296,7 +274,7 @@ if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(Com
 
 %>
     	
-    </p>
+    </p> <!-- end content p -->
     
     <h2><%=props.getProperty("myData") %></h2>
     
