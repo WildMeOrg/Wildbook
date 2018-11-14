@@ -1733,7 +1733,7 @@ public class Shepherd {
   public Iterator<Survey> getAllSurveys(Query acceptedSurveys, Map<String, Object> paramMap) {
     Collection c;
     try {
-      System.out.println("getAllOccurrences is called on query "+acceptedSurveys+" and paramMap "+paramMap);
+      System.out.println("getAllSurveys is called on query "+acceptedSurveys+" and paramMap "+paramMap);
       c = (Collection) (acceptedSurveys.executeWithMap(paramMap));
       ArrayList list = new ArrayList(c);
       System.out.println("getAllSurveys got "+list.size()+" surveys");
