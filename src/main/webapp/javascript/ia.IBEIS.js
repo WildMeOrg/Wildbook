@@ -57,7 +57,7 @@ wildbook.IA.plugins.push({
                     var ma = assetById(mid);
                     if (ma.taxonomyString) {
                         var data = {
-                            annotationIds: [ ma.annotationId ]
+                            annotationIds: [ ma.annotation.id ]
                         };
                         imageEnhancer.popup('<h2>Starting matching....</h2>');
                         wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -116,9 +116,9 @@ wildbook.IA.plugins.push({
             statusText: ma.detectionStatus,
             taskId: ma.tasks[ma.tasks.length - 1].id
         };
-        if (ma.annotationIdentificationStatus) {
-            rtn.status = ma.annotationIdentificationStatus;
-            rtn.statusText += '/' + ma.annotationIdentificationStatus;
+        if (ma.annotation && ma.annotation.identificationStatus) {
+            rtn.status = ma.annotation.identificationStatus;
+            rtn.statusText += '/' + ma.annotation.identificationStatus;
         }
         if (!rtn.status) {  //no old-world props on objs
             rtn.status = 'pending';
