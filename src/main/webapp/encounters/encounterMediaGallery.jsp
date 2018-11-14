@@ -142,8 +142,12 @@ function forceLink(el) {
                                                     jt.put(Util.toggleJSONObject(t.toJSONObject()));
                                                 }
                                                 j.put("tasks", jt);
-						j.put("annotationId", ann.getId());
-                                                j.put("annotationIdentificationStatus", ann.getIdentificationStatus());
+                                                JSONObject ja = new JSONObject();
+						ja.put("id", ann.getId());
+                                                //ja.put("acmId", ann.getAcmId());
+                                                ja.put("iaClass", ann.getIAClass());
+                                                ja.put("identificationStatus", ann.getIdentificationStatus());
+                                                j.put("annotation", ja);
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
@@ -500,7 +504,7 @@ console.warn('foocontext --> %o', aid);
     if (!aid) return;
     var ma = assetByAnnotationId(aid);
 console.warn("====== enhancerDisplayAnnots %o ", ma);
-    if (!ma || !ma.features || !ma.annotationId) return;
+    if (!ma || !ma.features || !ma.annotation || !ma.annotation.id) return;
     var featwrap = $('<div class="image-enhancer-feature-wrapper" />');
     featwrap.data('enhancerScale', el.data('enhancerScale'));
     el.append(featwrap);
@@ -509,7 +513,7 @@ console.warn("====== enhancerDisplayAnnots %o ", ma);
     el.append(featzoom);
     var ord = featureSortOrder(ma.features);
     for (var i = 0 ; i < ord.length ; i++) {
-        enhancerDisplayFeature(featwrap, opt, ma.annotationId, ma.features[ord[i]], i);
+        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i);
     }
 }
 
@@ -800,15 +804,15 @@ function assetById(mid) {
 function assetByAnnotationId(aid) {
 	if (!aid || !assets || (assets.length < 1)) return false;
 	for (var i = 0 ; i < assets.length ; i++) {
-		if (assets[i].annotationId == aid) return assets[i];
+		if (assets[i].annotation && (assets[i].annotation.id == aid)) return assets[i];
 	}
 	return false;
 }
 
 function encounterNumberFromAsset(asset) {
-    if (!asset || !asset.annotationId || !asset.features) return false;
+    if (!asset || !asset.annotation || !asset.annotation.id || !asset.features) return false;
     for (var i = 0 ; i < asset.features.length ; i++) {
-        if (asset.features[i].annotationId == asset.annotationId) return asset.features[i].encounterId;
+        if (asset.features[i].annotationId == asset.annotation.id) return asset.features[i].encounterId;
     }
     return false;
 }
