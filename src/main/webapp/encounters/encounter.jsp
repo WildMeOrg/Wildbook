@@ -295,7 +295,24 @@ td.measurement{
           	    ne_long_element.value = location.lng();
 	}
 	</script>
-
+	
+<script>
+function setIndivAutocomplete(el) {
+    if (!el || !el.length) return;
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(el[0], args);
+}
+</script>
 
 
   <script>
@@ -585,13 +602,13 @@ $(function() {
 
 								} //end while
 
-				String individuo=encprops.getProperty("unassigned");
+				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
 				if(enc.getIndividualID()!=null){
-					individuo=encprops.getProperty("of")+"&nbsp;<a href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
+					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
 				}
     			%>
                	<h1 class="<%=classColor%>" id="headerText">
-                	<%=encprops.getProperty("title") %> <%=individuo %> <%=livingStatus %>
+                	<%=encprops.getProperty("title") %> <%=individuo %></a> <%=livingStatus %>
                 </h1>
 
 
@@ -1355,7 +1372,8 @@ if(enc.getLocation()!=null){
 
                     <script type="text/javascript">
                     $(document).ready(function() {
-
+                    	
+                    	
                       $("#Add").click(function(event) {
                         event.preventDefault();
 
@@ -1374,6 +1392,12 @@ if(enc.getLocation()!=null){
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
                           $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
+                          
+                          $('#topid').prop('href', '../individuals.jsp?number=' + individual);
+                          $("#topid").html(individual);
+                          
+                          //add topid update here
+                          
                           $("#displayMatchedBy").html(matchType);
 
                         })
@@ -1437,15 +1461,26 @@ if(enc.getLocation()!=null){
                       </div>
                         <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
                     </form>
+					
+					<script type="text/javascript">
+	                    $(document).ready(function() {
+	                    	
+	                    	//set autocomplete on #individualAddEncounterInput above
+	                    	setIndivAutocomplete($('#individualAddEncounterInput'));
+	                    });
+                    </script>
 
-									<p><strong>--<%=encprops.getProperty("or") %>--</strong><p>
-									<%
-  									}
-  		 	  	  					//Remove from MarkedIndividual if not unassigned
-		  							%>
 
-                    <script type="text/javascript">
+       
+
+
+					<%
+  					}
+  					else{
+					%>
+             <script type="text/javascript">
                     $(document).ready(function() {
+                    
 
                       $("#individualRemoveEncounterBtn").click(function(event) {
                         event.preventDefault();
@@ -1458,12 +1493,13 @@ if(enc.getLocation()!=null){
                         $.post("../IndividualRemoveEncounter", {"number": number},
                         function(response) {
                           $("#setRemoveResultDiv").show();
-                          $("#removeSuccessDiv").html("<strong>Success:</strong> Encounter #" + number + " was successfully removed from " + individual + ".");
+                          $("#removeSuccessDiv").html("<strong>Success:</strong> Encounter " + number + " was successfully removed from " + individual + ".");
                           $("#removeErrorDiv").empty();
                           $("#removeShark").hide();
                           $("#removeLabel").hide();
                           $("#manageIdentityMessage").hide();
                           $("#displayIndividualID").html("");
+                          $("#topid").html("<%=encprops.getProperty("unassigned") %>");
                         })
                         .fail(function(response) {
                           $("#setRemoveResultDiv").show();
@@ -1476,79 +1512,9 @@ if(enc.getLocation()!=null){
                       });
                     });
                     </script>
-
-
-					<%
-
-					if(!enc.hasMarkedIndividual()) {
-					%>
-
-                  <script type="text/javascript">
-                  $(document).ready(function() {
-
-                    $("#createSharkBtn").click(function(event) {
-                      event.preventDefault();
-
-                      $("#createSharkBtn").hide();
-
-                      var number = $("#individualCreateNumber").val();
-                      var individual = $("#createSharkIndividual").val();
-                      var action = $("#individualCreateAction").val();
-                      var noemail = $("input:checkbox:checked").val();
-
-                      $.post("../IndividualCreate", {"number": number, "individual": individual, "action": action, "noemail": noemail},
-                      function() {
-                        $("#indCreateCheck").show();
-                        $("#createSharkDiv").addClass("has-success");
-                        $("#displayIndividualID").html(individual);
-                        $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
-                      })
-                      .fail(function(response) {
-                        $("#individualCreateErrorDiv, #indCreateError").show();
-                        $("#individualCreateErrorDiv").html(response.responseText);
-                        $("#createSharkDiv").addClass("has-error");
-                      });
-                    });
-
-                    $("#createSharkIndividual").click(function() {
-                      $("#individualCreateErrorDiv, #indCreateError, #indCreateCheck").hide();
-                      $("#createSharkDiv").removeClass("has-success");
-                      $("#createSharkDiv").removeClass("has-error");
-                      $("#createSharkBtn").show();
-                    });
-                  });
-                  </script>
-
-
-
-                  <div class="highlight resultMessageDiv" id="individualCreateErrorDiv"></div>
-
-                  <form name="createShark" class="editForm">
-                    <input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
-                    <input name="action" type="hidden" value="create" id="individualCreateAction"/>
-                    <div class="form-group row">
-                      <div class="col-sm-4">
-                        <p><strong><%=encprops.getProperty("createMarkedIndividual")%></strong></p>
-                      </div>
-                      <div class="col-sm-5 col-xs-10" id="createSharkDiv">
-                        <input name="individual" type="text" id="createSharkIndividual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>"/>
-                        <span class="form-control-feedback" id="indCreateCheck">&check;</span>
-                        <span class="form-control-feedback" id="indCreateError">X</span>
-                      </div>
-                    </div>
-                    <div class="form-group row">
-                      <div class="col-sm-5 col-xs-10">
-                        <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
-                      </div>
-                    </div>
-                    <input name="Create" type="submit" id="createSharkBtn" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
-                  </form>
-								<%
-								}
-									else{
-										%>
-
-										                    <div id="setRemoveResultDiv" class="resultMessageDiv">
+                    
+                    
+					<div id="setRemoveResultDiv" class="resultMessageDiv">
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
                     </div>
