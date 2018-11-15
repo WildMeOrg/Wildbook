@@ -292,7 +292,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
 
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-	                    long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
+                            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
 
 	                    //System.out.println("  I think my startTime is: "+startTime);
 

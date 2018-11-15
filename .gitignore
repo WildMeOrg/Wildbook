@@ -26,6 +26,7 @@ src/main/caribwhale_data_dir
 .vscode/
 *.swp
 
+\.classpath
 .classpath
 
 catalina.base_IS_UNDEFINED

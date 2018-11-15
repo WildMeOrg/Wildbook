@@ -2618,6 +2618,17 @@ public class Shepherd {
     return tempShark;
   }
 
+  public Task getTask(String id) {
+    Task theTask = null;
+    try {
+      theTask = ((org.ecocean.ia.Task) (pm.getObjectById(pm.newObjectIdInstance(Task.class, id.trim()), true)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return theTask;
+  }
+
   public MarkedIndividual getMarkedIndividualQuiet(String name) {
     MarkedIndividual indiv = null;
     try {
@@ -4354,6 +4365,19 @@ public class Shepherd {
     ArrayList<Annotation> al=new ArrayList<Annotation>(c);
     query.closeAll();
     return al;
+  }
+
+  public ArrayList<Annotation> getAnnotationsWithACMId(String acmId){
+    String filter = "this.acmId == \""+acmId+"\"";
+    Extent annClass = pm.getExtent(Annotation.class, true);
+    Query anns = pm.newQuery(annClass, filter);
+    Collection c = (Collection) (anns.execute());
+    ArrayList<Annotation> al = new ArrayList(c);
+    anns.closeAll();
+    if((al!=null)&&(al.size()>0)) {
+      return al;
+    }
+    return null;
   }
 
   //used to describe where this Shepherd is and what it is supposed to be doing

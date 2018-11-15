@@ -2071,6 +2071,35 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       return Util.taxonomyString(getGenus(), getSpecificEpithet());
   }
 
+    //right now this updates .genus and .specificEpithet ... but in some glorious future we will just store Taxonomy!
+    //  note that "null" cases will leave *current values untouched* (does not reset them)
+    public void setTaxonomy(Taxonomy tax) {
+        if (tax == null) return;
+        String[] gs = tax.getGenusSpecificEpithet();
+        if ((gs == null) || (gs.length < 1)) return;
+        if (gs.length == 1) {
+            this.genus = gs[0];
+            this.specificEpithet = null;
+        } else {
+            this.genus = gs[0];
+            this.specificEpithet = gs[1];
+        }
+    }
+    public void setTaxonomyFromString(String s) {  //basically scientific name (will get split on space)
+        String[] gs = Util.stringToGenusSpecificEpithet(s);
+        if ((gs == null) || (gs.length < 1)) return;
+        if (gs.length == 1) {
+            this.genus = gs[0];
+            this.specificEpithet = null;
+        } else {
+            this.genus = gs[0];
+            this.specificEpithet = gs[1];
+        }
+    }
+    public void setTaxonomyFromIAClass(String iaClass, Shepherd myShepherd) {
+        setTaxonomy(IBEISIA.iaClassToTaxonomy(iaClass, myShepherd));
+    }
+
   public String getPatterningCode(){ return patterningCode;}
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
 
@@ -3367,6 +3396,12 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
+    public void addSubmitter(User user) {
+        if (user == null) return;
+        if (submitters == null) submitters = new ArrayList<User>();
+        if (!submitters.contains(user)) submitters.add(user);
+    }
+
     public void setSubmitters(List<User> submitters) {
       if(submitters==null){this.submitters=null;}
       else{
@@ -3380,6 +3415,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         this.photographers=photographers;
       }
     }
-    
+
     
 }

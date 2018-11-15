@@ -48,8 +48,8 @@ public class AzureOcr {
         String responseString = "";
 
         try {
-            Properties azureProps = ShepherdProperties.getProperties("azureOCR.properties","");
-            String subscriptionKey = azureProps.getProperty("subscriptionKey");
+            Properties azureProps = ShepherdProperties.getProperties("azure.properties","");
+            String subscriptionKey = azureProps.getProperty("subscriptionKeyOCR");
 
             CloseableHttpClient httpClient = HttpClientBuilder.create().build();
     
@@ -62,8 +62,7 @@ public class AzureOcr {
             HttpPost request = new HttpPost(uri);
     
             request.setHeader("Content-Type", "application/json");
-            // DONT FORGET TO NOT PUSH THIS KEY UUUUPPP!!!
-            request.setHeader("Ocp-Apim-Subscription-Key", "050d5fffb1f54a3c9365f1e96bd883bd");
+            request.setHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
 
             StringEntity requestEntity = new StringEntity("{\"url\":\"" + url + "\"}");
             request.setEntity(requestEntity);

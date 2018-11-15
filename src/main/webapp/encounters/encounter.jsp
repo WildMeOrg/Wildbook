@@ -2002,7 +2002,6 @@ if(enc.getLocation()!=null){
 		                                  </em>
 		                 
 		                                    <br/>
-											Rewriting for Wildbook 7...
 		                                        </p>
 		
 		            

@@ -20,6 +20,7 @@ weka.core.DenseInstance,
 org.ecocean.ai.weka.Classify,
 weka.core.Instances,
 org.ecocean.ai.nmt.azure.*,
+org.ecocean.ai.agent.AgentUtil,
 org.ecocean.ai.utilities.AIUtilities
 "
 %>
@@ -47,59 +48,13 @@ try {
 rtn.put("since", sinceMS);
 rtn.put("sinceDateTime", new DateTime(sinceMS));
 
-/*
-//old string filtering method
-ArrayList<String> phrasesToIgnoreVideo=new ArrayList<String>();
-phrasesToIgnoreVideo.add("documentary");
-phrasesToIgnoreVideo.add("documental");
-phrasesToIgnoreVideo.add("hungry shark world");
-phrasesToIgnoreVideo.add("hungry shark game");
-phrasesToIgnoreVideo.add("hungry shark evolution");
-phrasesToIgnoreVideo.add("dory");
-phrasesToIgnoreVideo.add("nemo");
-phrasesToIgnoreVideo.add("abyssrium");
-phrasesToIgnoreVideo.add("whale shark card");
-phrasesToIgnoreVideo.add("tarjeta tiburón ballena");
-phrasesToIgnoreVideo.add("octonaut");
-phrasesToIgnoreVideo.add("gta");
-phrasesToIgnoreVideo.add("grand theft auto");
-phrasesToIgnoreVideo.add("megalodon");
-phrasesToIgnoreVideo.add("abzu");
-phrasesToIgnoreVideo.add("bbc");
-phrasesToIgnoreVideo.add("disney");
-phrasesToIgnoreVideo.add("white shark");
-phrasesToIgnoreVideo.add("top 10");
-phrasesToIgnoreVideo.add("tap tap");
-phrasesToIgnoreVideo.add("nickelodeon");
-phrasesToIgnoreVideo.add("attack");
-phrasesToIgnoreVideo.add("paw patrol");
-phrasesToIgnoreVideo.add("aliexpress");
-phrasesToIgnoreVideo.add("shark tank");
-phrasesToIgnoreVideo.add("rockstar");
-phrasesToIgnoreVideo.add("tubmates");
-phrasesToIgnoreVideo.add("photoshop");
-phrasesToIgnoreVideo.add("animal facts");
-phrasesToIgnoreVideo.add("tiggu");
-phrasesToIgnoreVideo.add("banjo");
-phrasesToIgnoreVideo.add("aquarium");
-phrasesToIgnoreVideo.add("shark simulator");
-phrasesToIgnoreVideo.add("ultimate shark simulator");
-phrasesToIgnoreVideo.add("ultimatesharksimulator");
-phrasesToIgnoreVideo.add("animal planet");
-phrasesToIgnoreVideo.add("deer");
-phrasesToIgnoreVideo.add("shark week");
-phrasesToIgnoreVideo.add("kids");
-phrasesToIgnoreVideo.add("children");
-phrasesToIgnoreVideo.add("digital code generator");
-phrasesToIgnoreVideo.add("blue whale game");
-phrasesToIgnoreVideo.add("deeeep.io");
-phrasesToIgnoreVideo.add("subnautica");
-phrasesToIgnoreVideo.add("gift card");
-int numPhrases=phrasesToIgnoreVideo.size();
-*/
 
 //WEKA ML filtering
-String fullPathToClassifierFile="/data/whaleshark_data_dirs/shepherd_data_dir/wekaModels/youtubeRandomForest.model";
+
+String rootDir = getServletContext().getRealPath("/");
+String dataDir = ServletUtilities.dataDir(context, rootDir);
+String fullPathToClassifierFile	= Classify.getClassifierFileFullPath(dataDir);
+boolean wekaAvailable = new File(fullPathToClassifierFile).exists();
 
 ArrayList<Attribute> attributeList = new ArrayList<Attribute>(2);
 
@@ -112,13 +67,17 @@ classVal.add("poor");
 attributeList.add(merged);
 attributeList.add(new Attribute("@@class@@",classVal));
 
-Instances data = new Instances("TestInstances",attributeList,2);
-data.setClassIndex(data.numAttributes()-1);
+Instances data = null;
+Instance weka_instance = null;
 
-Instance weka_instance = new DenseInstance(data.numAttributes());
-data.add(weka_instance);
-weka_instance.setDataset(data);
-//end WEKA prep for ML
+if (wekaAvailable) {
+    data = new Instances("TestInstances",attributeList,2);
+    data.setClassIndex(data.numAttributes()-1);
+    weka_instance = new DenseInstance(data.numAttributes());
+    data.add(weka_instance);
+    weka_instance.setDataset(data);
+    //end WEKA prep for ML
+}
 
 
 String keyword = request.getParameter("keyword");
@@ -164,19 +123,16 @@ if (keyword == null) {
 			String consolidatedRemarks=title+" "+desc;
 			//consolidatedRemarks=consolidatedRemarks.replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase().replaceAll("whale shark", "whaleshark");
 			consolidatedRemarks=AIUtilities.youtubePredictorPrepareString(consolidatedRemarks);
-			weka_instance.setValue(merged, consolidatedRemarks);
-			
-			//old iterating filter of string matching		
-			//for(int i=0;i<numPhrases;i++){
-				//String filterString=phrasesToIgnoreVideo.get(i);
-				//if((consolidatedRemarks.indexOf(filterString)!=-1)||(consolidatedRemarks.indexOf(filterString.replaceAll(" ",""))!=-1))filterMe=true;
-			//}
-			
-			Double classValue=Classify.classifyWithFilteredClassifier(weka_instance, fullPathToClassifierFile);
-			if(classValue.intValue()==1){filterMe=true;}
-			
+
+                        if (wekaAvailable) {
+			    weka_instance.setValue(merged, consolidatedRemarks);
+			    Double classValue=Classify.classifyWithFilteredClassifier(weka_instance, fullPathToClassifierFile);
+			    if (classValue.intValue()==1) filterMe=true;
+                        }
+
+                        if (!filterMe) filterMe = AgentUtil.youtubeFilterOld(context, consolidatedRemarks);  //try old method!
+
 			if(!filterMe)varr.put(new JSONObject(vid.toString()));
-			
 			
 		}
 		rtn.put("videos", varr);

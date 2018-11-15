@@ -34,18 +34,15 @@ public class DetectTranslate {
     }
     
     //AZURE - generic post...
-    private static String postToAzure(URL url, String content) {
-        Properties azureProps = ShepherdProperties.getProperties("azureNMT.properties","");
-        String subscriptionKey = azureProps.getProperty("subscriptionKey");
-        StringBuilder response = new StringBuilder ();
-        try {
-            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Content-Length", content.length() + "");
-            connection.setRequestProperty("Ocp-Apim-Subscription-Key", subscriptionKey);
-            connection.setRequestProperty("X-ClientTraceId", java.util.UUID.randomUUID().toString());
-            connection.setDoOutput(true);
+    private static String postToAzure(URL url, String content) throws Exception {
+        Properties azureProps = ShepherdProperties.getProperties("azure.properties","");
+        String subscriptionKey = azureProps.getProperty("subscriptionKeyNMT");
+        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Content-Length", content.length() + "");
+        connection.setRequestProperty("Ocp-Apim-Subscription-Key", subscriptionKey);
+        connection.setRequestProperty("X-ClientTraceId", java.util.UUID.randomUUID().toString());
 
             DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
             byte[] encoded_content = content.getBytes("UTF-8");
