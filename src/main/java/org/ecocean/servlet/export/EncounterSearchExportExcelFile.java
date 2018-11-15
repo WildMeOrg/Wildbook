@@ -161,16 +161,18 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         sheet.addCell(label24);
         Label label25 = new Label(25, 0, "Sex");
         sheet.addCell(label25);
-        Label label26 = new Label(26, 0, "Notes");
+        Label label26 = new Label(26, 0, "Life Stage");
         sheet.addCell(label26);
-        Label label27 = new Label(27, 0, "Length (m)");
+        Label label27 = new Label(27, 0, "Notes");
         sheet.addCell(label27);
-        Label label28 = new Label(28, 0, "Marked Individual");
+        Label label28 = new Label(28, 0, "Length (m)");
         sheet.addCell(label28);
-        Label label29 = new Label(29, 0, "Location ID");
+        Label label29 = new Label(29, 0, "Marked Individual");
         sheet.addCell(label29);
-        Label label30 = new Label(30, 0, "Submitter Email Address");
+        Label label30 = new Label(30, 0, "Location ID");
         sheet.addCell(label30);
+        Label label31 = new Label(31, 0, "Submitter Email Address");
+        sheet.addCell(label31);
         
         // Excel export =========================================================
         int count = 0;
@@ -290,25 +292,31 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               Label lSex = new Label(25, count, enc.getSex());
               sheet.addCell(lSex);
             }
-            if(enc.getComments()!=null){
-              Label lNumberx26 = new Label(26, count, enc.getComments().replaceAll("<br>", ". ").replaceAll("\n", "").replaceAll("\r", ""));
-              sheet.addCell(lNumberx26);
+
+            if (enc.getLifeStage() != null) {
+                Label lNumberx26 = new Label(26, count, enc.getLifeStage());
+                sheet.addCell(lNumberx26);
             }
-            if(enc.getSizeAsDouble()!=null){
-              Label lNumberx27 = new Label(27, count, enc.getSizeAsDouble().toString());
+
+            if(enc.getComments()!=null){
+              Label lNumberx27 = new Label(27, count, enc.getComments().replaceAll("<br>", ". ").replaceAll("\n", "").replaceAll("\r", ""));
               sheet.addCell(lNumberx27);
             }
-            if (enc.getIndividualID()!=null) {
-              Label lNumberx28 = new Label(28, count, enc.getIndividualID());
+            if(enc.getSizeAsDouble()!=null){
+              Label lNumberx28 = new Label(28, count, enc.getSizeAsDouble().toString());
               sheet.addCell(lNumberx28);
             }
-            if (enc.getLocationCode() != null) {
-              Label lNumberx29 = new Label(29, count, enc.getLocationCode());
+            if (enc.getIndividualID()!=null) {
+              Label lNumberx29 = new Label(29, count, enc.getIndividualID());
               sheet.addCell(lNumberx29);
             }
+            if (enc.getLocationCode() != null) {
+              Label lNumberx30 = new Label(30, count, enc.getLocationCode());
+              sheet.addCell(lNumberx30);
+            }
             if (enc.getSubmitterEmail() != null) {
-                Label lNumberx30 = new Label(30, count, enc.getSubmitterEmail());
-                sheet.addCell(lNumberx30);
+                Label lNumberx31 = new Label(31, count, enc.getSubmitterEmail());
+                sheet.addCell(lNumberx31);
             }
 
          } //end for loop iterating encounters   
