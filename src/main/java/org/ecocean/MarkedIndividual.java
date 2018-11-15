@@ -774,6 +774,15 @@ public class MarkedIndividual implements java.io.Serializable {
     return lastSize;
   }
 
+    public String getLastLifeStage() {
+        Encounter[] encs = this.getDateSortedEncounters();
+        if ((encs == null) || (encs.length < 1)) return null;
+        for (int i = 0 ; i < encs.length ; i++) {
+            if (encs[i].getLifeStage() != null) return encs[i].getLifeStage();
+        }
+        return null;
+    }
+
   public boolean wasSightedInLocationCode(String locationCode) {
 
         for (int c = 0; c < encounters.size(); c++) {
