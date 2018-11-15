@@ -134,9 +134,9 @@ public class StartupWildbook implements ServletContextListener {
         IAPluginManager.startup(sce);
 
         //NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
-        if (CommonConfiguration.useSpotPatternRecognition(context)) {
-            createMatchGraph();
-        }
+        //if (CommonConfiguration.useSpotPatternRecognition(context)) {
+        //    createMatchGraph();
+        //}
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
         // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
