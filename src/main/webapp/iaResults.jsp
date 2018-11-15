@@ -153,6 +153,12 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 <jsp:include page="header.jsp" flush="true" />
 
 <div class="container maincontent">
+
+	<div id="initial-waiter" class="waiting throbbing">
+		<p>waiting for results</p>
+	</div>
+
+
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
@@ -252,6 +258,7 @@ console.info("grabTaskResultsAll %s TRYING.....", task.id);
 }
 
 function grabTaskResult(tid) {
+	$("#initial-waiter").remove();
         alreadyGrabbed[tid] = true;
 	var mostRecent = false;
 	var gotResult = false;
