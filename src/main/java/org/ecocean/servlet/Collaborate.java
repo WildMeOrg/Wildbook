@@ -65,6 +65,7 @@ public class Collaborate extends HttpServlet {
 	HashMap rtn = new HashMap();
 	rtn.put("success", false);
 
+	System.out.println("/Collaborate: beginning servlet doPost");
 
 	if (request.getUserPrincipal() == null) {
 		rtn.put("message", props.getProperty("inviteResponseMessageAnon"));
@@ -75,7 +76,7 @@ public class Collaborate extends HttpServlet {
 
 	} else if (request.getParameter("getNotifications") != null) {
 		List<Collaboration> collabs = Collaboration.collaborationsForUser(context, currentUsername, Collaboration.STATE_INITIALIZED);
-		System.out.println("Collaborate: inside getNotifications: collabs = "+collabs);
+		System.out.println("/Collaborate: inside getNotifications: collabs = "+collabs);
 		String html = "";
 		for (Collaboration c : collabs) {
 			if (!c.getUsername1().equals(currentUsername)) {  //this user did not initiate
@@ -92,12 +93,16 @@ public class Collaborate extends HttpServlet {
 	} else if ((username == null) || username.equals("")) {
 		rtn.put("message", props.getProperty("inviteResponseMessageNoUsername"));
 	} else if ((approve != null) && !approve.equals("")) {
-		Collaboration collab = Collaboration.collaborationBetweenUsers(context, currentUsername, username);
+		myShepherd.beginDBTransaction();
+		Collaboration collab = Collaboration.collaborationBetweenUsers(myShepherd, currentUsername, username);
+		System.out.println("/Collaborate: inside approve: approve = "+approve+" and collab = "+collab);
 		if ((collab == null) || !collab.getState().equals(Collaboration.STATE_INITIALIZED)) {
 			rtn.put("message", props.getProperty("approvalResponseMessageBad"));
 		} else if (approve.equals("yes")) {
-			myShepherd.beginDBTransaction();
 			collab.setState(Collaboration.STATE_APPROVED);
+			System.out.println("/Collaborate: collab has been set to approved!");
+			System.out.println("/Collaborate: new .getState() = "+collab.getState()+" for collab "+collab);
+			myShepherd.updateDBTransaction();
 			myShepherd.commitDBTransaction();
 			rtn.put("success", true);
 		} else {
@@ -138,6 +143,7 @@ public class Collaborate extends HttpServlet {
 			rtn.put("success", true);
 		}
 	}
+	System.out.println("/Collab: before printwriter stuff, about to return "+rtn);
 
     PrintWriter out = response.getWriter();
 	if (useJson) {
@@ -156,6 +162,7 @@ public class Collaborate extends HttpServlet {
 		if (rtn.get("message") != null) out.println("<p class=\"collaboration-invite-message\">" + rtn.get("message") + "</p>");
 		out.println(ServletUtilities.getFooter(context));
 	}
+	System.out.println("/Collab: about to return "+rtn);
 
 	out.close();
   }
