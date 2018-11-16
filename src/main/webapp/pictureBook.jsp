@@ -22,7 +22,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int maxPages = 100;
+  int maxPages = 10;
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
@@ -147,6 +147,54 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	span.pictureBook-MA {
 		display: none;
 	}
+
+	html, body {
+		height: 100%;
+	}
+
+	div.pictureBook-page {
+		height: 100vh;
+	}
+	div.pictureBook-images {
+		max-height: 50%;
+		position: relative;
+		display: inline-block;
+		overflow: hidden;
+		max-height: 50%;
+		top: 0
+	}
+	div.pictureBook-headerImage {
+		max-height: 25%;
+		position: relative;
+	}
+	div.pictureBook-headerImage img{
+		max-height: 25vh;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    	width: 100%;
+	}
+	div.pictureBook-subImage img {
+		max-height: 25vh;
+	}
+	div.pictureBook-images table {
+		width: 50%;
+		margin: 0 auto;
+	}
+
+	div.pictureBook-subImage {
+		max-height: 12.5%;
+		position: relative;
+	}
+	tr.pictureBook-subImages td {
+		width: 50%;
+	}
+	table.pictureBook-table {
+    margin-left: auto;
+    margin-right: auto;
+	}
+
+
 </style>
 
 <div class="pictureBook-container">
@@ -182,35 +230,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 		%>
 		<style>
-		html, body {
-   		height: 100%;
-		}
-			div.pictureBook-page {
-			}
-			div.pictureBook-images {
-				max-height: 50%;
-				position: relative;
-			}
-			div.pictureBook-headerImage {
-				max-height: 25%;
-				position: relative;
-			}
-			div.pictureBook-headerImage img{
-		    display: block;
-		    margin-left: auto;
-		    margin-right: auto;
-			}
-			div.pictureBook-subImage {
-				max-height: 12.5%;
-				position: relative;
-			}
-			tr.pictureBook-subImages td {
-				width: 50%;
-			}
-			table.pictureBook-table {
-		    margin-left: auto;
-		    margin-right: auto;
-			}
 		</style>
 
 
