@@ -18,6 +18,8 @@
 
 package org.ecocean.media;
 
+import java.util.regex.*;
+
 import twitter4j.Status;
 import java.io.File;
 import java.nio.file.Path;
@@ -30,6 +32,7 @@ import org.ecocean.media.MediaAssetMetadata;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.ecocean.Shepherd;
 
 /*
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -46,7 +49,6 @@ import java.nio.file.Paths;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import org.ecocean.Util;
-import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Annotation;
 import org.ecocean.Twitter;
@@ -92,6 +94,9 @@ public class TwitterAssetStore extends AssetStore {
         p.put("id", tweetId);
         return create(p);
     }
+    public MediaAsset create(final long tweetId) {
+        return create(Long.toString(tweetId));
+    }
     public MediaAsset create(final String id, final String type) {
         JSONObject p = new JSONObject();
         p.put("id", id);
@@ -126,12 +131,21 @@ public class TwitterAssetStore extends AssetStore {
 
     @Override
     public URL webURL(final MediaAsset ma) {
-        String id = idFromParameters(ma.getParameters());
         if (id == null) return null;
+        String u = null;
+        if (ma.hasLabel("_original")) {
+            String id = idFromParameters(ma.getParameters());
+            if (id == null) return null;
+            u = "https://www.twitter.com/statuses/" + id;
+        } else if (ma.hasLabel("_entity")) {
+            //could also use params.type ("photo") if need be?
+            if (ma.getParameters() != null) u = ma.getParameters().optString("media_url", null);
+        }
+        if (u == null) return null;  //dunno/how!
         try {
-//TODO fix this to use actual urls derived from json that is (hopefully) in metadata
-            return new URL("https://www.twitter.com/statuses/" + id);  //guess this only works for tweets, not media?
+            return new URL(u);
         } catch (java.net.MalformedURLException ex) {   //"should never happen"
+            System.out.println("TwitterAssetStore.webURL() on " + ma + ": " + ex.toString());
             return null;
         }
     }
@@ -170,6 +184,7 @@ public class TwitterAssetStore extends AssetStore {
     }
 
 /*   TODO not really sure what to do with updateChild() and friends here..... hmmmm...
+     presently opting to create these manually via entitiesAsMediaAssets() (which will utilize .parent property)
 
     public List<String> allChildTypes() {
         return Arrays.asList(new String[]{"entity"});
@@ -189,8 +204,11 @@ public class TwitterAssetStore extends AssetStore {
 */
 
 ///// note: might also want to walk .entities.urls -- https://dev.twitter.com/overview/api/entities-in-twitter-objects#urls
+// aside(?) we might want to generate similary from a Status object (aka tweet)
+//   see:  http://twitter4j.org/javadoc/twitter4j/EntitySupport.html#getMediaEntities--
     public static List<MediaAsset> entitiesAsMediaAssets(MediaAsset ma) {
         JSONObject raw = getRawJSONObject(ma);
+        // System.out.println(raw.toString());
         AssetStore store = ma.getStore();
         if (raw == null) return null;
         if ((raw.optJSONObject("extended_entities") == null) || (raw.getJSONObject("extended_entities").optJSONArray("media") == null)) return null;
@@ -201,6 +219,9 @@ public class TwitterAssetStore extends AssetStore {
             if (p == null) continue;
             p.put("id", p.optString("id_str", null));  //squash the long id at "id" with string
             MediaAsset kid = store.create(p);
+            kid.addLabel("_entity");
+            setEntityMetadata(kid);
+            kid.getMetadata().getDataAsString();
             kid.setParentId(ma.getId());
             //derivationMethods?  metadata? (of image) etc.... ??
             mas.add(kid);
@@ -208,123 +229,45 @@ public class TwitterAssetStore extends AssetStore {
         return mas;
     }
 
+/*   remove?  TODO
+    public static List<MediaAsset> entitiesAsMediaAssetsGsonObj(MediaAsset ma, Long parentTweetId) {
+        JSONObject raw = getRawJSONObject(ma);
+        // System.out.println(raw.toString());
+        AssetStore store = ma.getStore();
+        if (raw == null) return null;
+        if ((raw.optJSONArray("extendedMediaEntities") == null)){
+          System.out.println("aw.optJSONArray('extendedMediaEntities') is null");
+          return null;
+        }
+        List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        JSONArray jarr = raw.getJSONArray("extendedMediaEntities");
+        for (int i = 0 ; i < jarr.length() ; i++) {
+            JSONObject p = jarr.optJSONObject(i);
+            if (p == null) continue;
+            p.put("id", p.optString("id", null));  //squash the long id at "id" with string
+            MediaAsset kid = store.create(p);
+            kid.addLabel("_entity");
+            kid.addLabel("_parentTweet:" + Long.toString(parentTweetId));
+            setEntityMetadata(kid);
+            kid.getMetadata().getDataAsString(); //TODO no idea what this does -MF
+            kid.setParentId(ma.getId());
+            //derivationMethods?  metadata? (of image) etc.... ??
+            mas.add(kid);
+            System.out.println("i is: " + Integer.toString(i));
+            JSONObject test = TwitterUtil.toJSONObject(kid);
+            System.out.println(TwitterUtil.toJSONString(test));
+        }
+        return mas;
+    }
+*/
+
     //this assumes we already set metadata
     public static JSONObject getRawJSONObject(MediaAsset ma) {
         if (ma == null) return null;
         MediaAssetMetadata md = ma.getMetadata();
-        if ((md == null) || (md.getData() == null)) return null;
+        if ((md == null) || (md.getData() == null) || (md.getDataAsString() == null)) return null;
         return md.getData().optJSONObject(METADATA_KEY_RAWJSON);
     }
-    
-/*
-    //most likely you want grabAndParse() really.
-    //  how should we thread in bkgd??? ... probably this should by synchrous, but stuff can bg when needed (e.g. extractMetadata)
-    public static List<File> grab(MediaAsset ma) throws java.io.IOException {
-        if (ma == null) return null;
-        String id = idFromParameters(ma.getParameters());
-        if (id == null) return null;
-        //when fetched: (1) parse .json and set metadata.detailed; (2) create child assets (using default store!) for video & thumb
-        File dir = Files.createTempDirectory("youtube_get_" + id + "_" + ma.getId() + "_").toFile();
-System.out.println("TwitterAssetStore.grab(" + ma + ") tempdir = " + dir);
-        return Twitter.grab(id, dir);
-    }
-
-
-    //returns success (stuff grabbed and parsed)
-    // 'wait' refers only for other process, if we need to do the grabbing, right now it will always wait for that
-    //    NOTE: wait is untested!  TODO
-    public static boolean grabAndParse(Shepherd myShepherd, MediaAsset ma, boolean wait) throws IOException {
-        boolean processing = ((ma.getDerivationMethod() != null) && ma.getDerivationMethod().optBoolean("_processing", false));
-        int count = 0;
-        int max = 100;
-        while (processing && (count < max)) {
-            System.out.println("INFO: TwitterAssetStore(" + ma + ").grabAndParse, waiting with count=" + count);
-            if (!wait) return false;
-            try {
-                Thread.sleep(2000);
-            } catch (java.lang.InterruptedException ex) {}
-            count++;
-            if (count >= max) return false;
-            processing = ((ma.getDerivationMethod() != null) && ma.getDerivationMethod().optBoolean("_processing", false));
-        }
-        //get here, we must not be processing, so lets do that!
-        ma.addDerivationMethod("_processing", true);
-        List<File> grabbed = TwitterAssetStore.grab(ma);
-        for (File f : grabbed) {
-System.out.println("- [" + f.getName() + "] grabAndParse: " + f);
-            if (f.getName().matches(".+.info.json$")) {
-                List<String> lines = Files.readAllLines(f.toPath(), Charset.defaultCharset());
-                JSONObject detailed = null;
-                try {
-                    detailed = new JSONObject(StringUtils.join(lines, ""));
-                } catch (JSONException jex) {
-                    System.out.println("ERROR: " + ma + " grabAndParse() failed to parse Twitter .info.json - " + jex.toString());
-                }
-//System.out.println("detailed -> " + detailed);
-                if (detailed != null) {
-                    JSONObject mj = new JSONObject();
-                    if (ma.getMetadata() != null) {
-                        ma.getMetadata().getDataAsString();  //HACK gets around weird dn caching issue. :(
-                        mj = ma.getMetadata().getData();
-                    }
-                    mj.put("detailed", detailed);
-                    ma.setMetadata(new MediaAssetMetadata(mj));
-                }
-
-            //note: these persist the children they make, fbow ?
-            } else if (f.getName().matches(".+.jpg$")) {
-                _createThumbChild(myShepherd, ma, f);
-            } else if (f.getName().matches(".+.mp4$")) {
-                _createVideoChild(myShepherd, ma, f);
-            }
-        }
-        return true;
-    }
-
-    private static MediaAsset _createThumbChild(Shepherd myShepherd, MediaAsset parent, File f) throws java.io.IOException {
-        if ((f == null) || !f.exists()) {
-            System.out.println("WARNING: could not create thumb child for " + parent + ", file failure on " + f + "; skipping");
-            return null;
-        }
-        AssetStore astore = AssetStore.getDefault(myShepherd);
-        if (astore == null) {
-            System.out.println("WARNING: could not create thumb child for " + parent + ", no valid asset store");
-            return null;
-        }
-        JSONObject sp = astore.createParameters(f);
-        sp.put("key", parent.getUUID() + "/" + f.getName());
-        MediaAsset kid = new MediaAsset(astore, sp);
-        kid.copyIn(f);
-        kid.setParentId(parent.getId());
-        kid.addLabel("_thumb");
-        kid.updateMinimalMetadata();
-        MediaAssetFactory.save(kid, myShepherd);
-System.out.println("thumb child created: " + kid);
-        return kid;
-    }
-
-    private static MediaAsset _createVideoChild(Shepherd myShepherd, MediaAsset parent, File f) throws java.io.IOException {
-        if ((f == null) || !f.exists()) {
-            System.out.println("WARNING: could not create video child for " + parent + ", file failure on " + f + "; skipping");
-            return null;
-        }
-        AssetStore astore = AssetStore.getDefault(myShepherd);
-        if (astore == null) {
-            System.out.println("WARNING: could not create video child for " + parent + ", no valid asset store");
-            return null;
-        }
-        JSONObject sp = astore.createParameters(f);
-        sp.put("key", parent.getUUID() + "/" + f.getName());
-        MediaAsset kid = new MediaAsset(astore, sp);
-        kid.copyIn(f);
-        kid.setParentId(parent.getId());
-        kid.addLabel("_video");
-        kid.updateMinimalMetadata();
-        MediaAssetFactory.save(kid, myShepherd);
-System.out.println("video child created: " + kid);
-        return kid;
-    }
-*/
 
     //currently there really only is "minimal" for tweets: namely the json data from twitter
     //  this is keyed as "twitterRawJson"
@@ -338,9 +281,65 @@ System.out.println("video child created: " + kid);
         return new MediaAssetMetadata(data);
     }
 
-
 /*
-    //this finds "a" (first? one?) YoutubeAssetStore if we have any.  (null if not)
+    public Long getParentTweetIdFromLabels(ArrayList<String> labels) throws Exception{
+      Long returnVal = null;
+      for(int i = 0; i<labels.size(); i++){
+        try{
+          returnVal = parseParentTweetId(labels.get(i));
+        } catch(Exception e){
+          continue;
+        }
+      }
+      if(returnVal == null){
+        throw new Exception("returnVal in getParentTweetIdFromLabels is null");
+      } else{
+        return returnVal;
+      }
+    }
+
+    public Long parseParentTweetId(String label) throws Exception{
+      Long returnVal = null;
+      String PATTERN = "_parentTweet:(\\d+)"; //doesn't seem as robust as
+      Pattern pattern = Pattern.compile(PATTERN);
+      Matcher matcher = pattern.matcher(label);
+      if(matcher.matches()){
+        returnVal = Long.parseLong(matcher.group(1));
+      }
+      if(returnVal == null){
+        throw new Exception("returnVal in parseParentTweetId is null");
+      } else{
+        return returnVal;
+      }
+    }
+*/
+
+    private static void setEntityMetadata(MediaAsset ma) {
+        if (ma.getParameters() == null) return;
+        JSONObject d = new JSONObject("{\"attributes\": {} }");
+        if ((ma.getParameters().optJSONObject("sizes") != null) && (ma.getParameters().getJSONObject("sizes").optJSONObject("large") != null)) {
+            d.getJSONObject("attributes").put("width", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("w", 0));
+            d.getJSONObject("attributes").put("height", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("h", 0));
+        }
+
+	String mimeGuess = ma.getParameters().optString("type", "unknown");
+	if (mimeGuess.equals("photo")) mimeGuess = "image";
+	mimeGuess += "/";
+	String url = ma.getParameters().optString("media_url", "__fail__").toLowerCase();
+        if (url.endsWith(".jpg") || url.endsWith(".jpeg")) {
+            mimeGuess += "jpeg";
+        } else if (url.endsWith(".png")) {
+            mimeGuess += "png";
+        } else if (url.endsWith(".gif")) {
+            mimeGuess += "gif";
+        } else {
+            mimeGuess += "unknown";
+        }
+	d.getJSONObject("attributes").put("contentType", mimeGuess);
+        ma.setMetadata(new MediaAssetMetadata(d));
+    }
+
+    //this finds "a" (first? one?) TwitterAssetStore if we have any.  (null if not)
     public static TwitterAssetStore find(Shepherd myShepherd) {
         AssetStore.init(AssetStoreFactory.getStores(myShepherd));
         if ((AssetStore.getStores() == null) || (AssetStore.getStores().size() < 1)) return null;
@@ -349,8 +348,6 @@ System.out.println("video child created: " + kid);
         }
         return null;
     }
-*/
+
 
 }
-
-

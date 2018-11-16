@@ -28,6 +28,8 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
+  
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
@@ -62,7 +64,7 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="javascript/geoxml3.js"></script>
 <script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
@@ -1165,12 +1167,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 
-        <tr>
-	  <td><br /><strong><%=props.getProperty("submitterName")%>:</strong>
-	    <input name="nameField" type="text" size="60"> <br> <em><%=props.getProperty("namesBlank")%>
-	    </em>
-	  </td>
-</tr>
+
       </table>
 
     </div>
@@ -1720,7 +1717,7 @@ else {
       <%
       	Shepherd inShepherd=new Shepherd("context0");
       inShepherd.setAction("individualSearch.jsp2");
-        List<User> users = inShepherd.getAllUsers();
+        List<User> users = inShepherd.getUsersWithUsername("username ascending");
         int numUsers = users.size();
 
       %>
@@ -1736,7 +1733,7 @@ else {
             }
 
         	%>
-        	<option value="<%=username%>"><%=userFullName%></option>
+        	<option value="<%=username%>"><%=username%></option>
         	<%
           }
         %>

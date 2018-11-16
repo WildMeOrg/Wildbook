@@ -141,8 +141,6 @@ if (rIndividuals.size() < listNum) {
 %>
 
 
-<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
-<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
 
 
 <style>
@@ -285,7 +283,6 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 
-//myShepherd.beginDBTransaction();
 
 %>
 
@@ -299,11 +296,18 @@ int numDataContributors=0;
 
     <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
+    <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true"><%=props.getProperty("adoptableSharks") %></a></button>
+
   </div>
 </nav>
 
 <div class="container-fluid">
   <section class="container-fluid main-section front-gallery galleria">
+
+  <% if (request.getParameter("adoptableSharks")!=null) { %>
+    <h3><%=props.getProperty("numAdoptable").replaceAll("%NUM%", (new Integer(countAdoptable)).toString()) %></h3>
+    <p><%=props.getProperty("adoptOne") %> <strong><a href="adoptashark.jsp"><%=props.getProperty("learnMore") %></a></strong></p>
+  <% } %>
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
 
@@ -528,7 +532,7 @@ int numDataContributors=0;
           }
           %>
 
-          see more
+          <%=props.getProperty("seeMore") %>
 
 &nbsp;&nbsp;&nbsp;&nbsp;<a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>

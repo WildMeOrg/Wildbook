@@ -20,6 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.ai.nmt.google.DetectTranslate;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import java.util.Properties;
 
 import javax.jdo.*;
 
@@ -129,6 +132,49 @@ public class IndividualAddEncounter extends HttpServlet {
             }
             
             
+            try{
+              //let's do a YouTube post-back check
+              System.out.println("In IndividualAddEncounter trying to fire YouTube..");
+              if(enc2add.getOccurrenceID()!=null){
+                if(myShepherd.isOccurrence(enc2add.getOccurrenceID())){
+                  System.out.println("...In IndividualAddEncounter found an occurrence..");
+                  Occurrence occur=myShepherd.getOccurrence(enc2add.getOccurrenceID());
+                  //TBD-support more than just en language
+                  
+                  //determine language for response
+                  String ytRemarks=enc2add.getOccurrenceRemarks().trim().toLowerCase();
+                  int commentEnd=ytRemarks.indexOf("from youtube video:");
+                  if(commentEnd>0){
+                    ytRemarks=ytRemarks.substring(commentEnd);
+                  }
+                  String detectedLanguage="en";
+                  try{
+                    detectedLanguage= DetectTranslate.detectLanguage(ytRemarks);
+
+                    if(!detectedLanguage.toLowerCase().startsWith("en")){
+                      ytRemarks= DetectTranslate.translateToEnglish(ytRemarks);
+                    }
+                    if(detectedLanguage.startsWith("es")){detectedLanguage="es";}
+                    else{detectedLanguage="en";}
+                  }
+                  catch(Exception e){
+                    System.out.println("I hit an exception trying to detect language.");
+                    e.printStackTrace();
+                  }
+                  //end determine language for response
+
+                  
+                  
+                  Properties ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+                  String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
+                  System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
+                  YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd, context);
+                }
+              }
+            }
+            catch(Exception e){e.printStackTrace();}
+            
+            
             
           } catch (Exception le) {
             System.out.println("Hit locked exception on action: " + action);
@@ -168,12 +214,12 @@ public class IndividualAddEncounter extends HttpServlet {
 
       			  // Notify submitters, photographers, and informOthers values
               Set<String> cSubmitters = new HashSet<>();
-              if (enc2add.getSubmitterEmail() != null)
-                cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getSubmitterEmail()));
-              if (enc2add.getPhotographerEmail() != null)
-                cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getPhotographerEmail()));
+              if (enc2add.getSubmitterEmails() != null)cSubmitters.addAll(enc2add.getSubmitterEmails());
+              if (enc2add.getPhotographerEmails() != null)cSubmitters.addAll(enc2add.getPhotographerEmails());
+
               if (enc2add.getInformOthers() != null)
                 cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getInformOthers()));
+              
               for (String emailTo : cSubmitters) {
                 if (!"".equals(emailTo)) {
                   tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
@@ -183,7 +229,7 @@ public class IndividualAddEncounter extends HttpServlet {
               }
 
       			  // Notify other who need to know
-              Set<String> cOthers = new HashSet<>(addToMe.getAllEmailsToUpdate());
+              Set<String> cOthers = new HashSet<>(allAssociatedEmails);
               cOthers.removeAll(cSubmitters);
               //System.out.println("cOthers size is: "+cOthers.size());
               for (String emailTo : cOthers) {
@@ -241,10 +287,12 @@ public class IndividualAddEncounter extends HttpServlet {
             out.println(ServletUtilities.getFooter(context));
             String message = "Encounter #" + request.getParameter("number") + " was added to " + request.getParameter("individual") + ".";
 
+            /*
             if (request.getParameter("noemail") == null) {
               ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
               ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
             }
+            */
             es.shutdown();
           }
 

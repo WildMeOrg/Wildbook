@@ -166,6 +166,7 @@ public final class NotificationMailer implements Runnable {
   private EmailTemplate mailer;
   /** Flag indicating whether setup failed. */
   private boolean failedSetup;
+  private String urlScheme="http";
 
   /**
    * Creates a new NotificationMailer instance.
@@ -193,11 +194,6 @@ public final class NotificationMailer implements Runnable {
     boolean useSSL = CommonConfiguration.getMailHostSslOption(context);
     String mailAuth = CommonConfiguration.getMailAuth(context);
     String[] mAuth = null;
-
-    // default map initialization
-    this.map = CommonConfiguration.getEmailReplacementStrings(context);
-    this.map.putAll(map);
-
     if (mailAuth != null && mailAuth.contains(":"))
       mAuth = mailAuth.split(":", 2);
     try {
@@ -210,8 +206,8 @@ public final class NotificationMailer implements Runnable {
       // Perform tag replacements.
       System.out.println("About to perform string replacements");
 
-      if (this.map != null) {
-        for (Map.Entry<String, String> me : this.map.entrySet()) {
+      if (map != null) {
+        for (Map.Entry<String, String> me : map.entrySet()) {
           try {
             mailer.replace(me.getKey(), me.getValue() == null ? "" : me.getValue());
           }
@@ -221,7 +217,7 @@ public final class NotificationMailer implements Runnable {
           }
         }
         // Remove REMOVEME section when not applicable (i.e. no hashed email info).
-        if (this.map.containsKey("@URL_LOCATION@") && this.map.containsKey(EMAIL_HASH_TAG) && this.map.containsKey(EMAIL_NOTRACK)) {
+        if (map.containsKey("@URL_LOCATION@") && map.containsKey(EMAIL_HASH_TAG) && map.containsKey(EMAIL_NOTRACK)) {
           mailer.replaceInPlainText("@REMOVEME_START@", null, false);
           mailer.replaceInPlainText("@REMOVEME_END@", null, false);
           if (mailer.hasHtmlText()) {
@@ -229,9 +225,9 @@ public final class NotificationMailer implements Runnable {
             mailer.replaceInHtmlText("<!--@REMOVEME_END@-->", null, false);
           }
           // Extra layer to help prevent chance of URL spoof attacks.
-          String noTrack = this.map.get(EMAIL_NOTRACK);
+          String noTrack = map.get(EMAIL_NOTRACK);
           if (noTrack.matches("([a-z]+)=(.+)")) {
-            String link = String.format("http://%s/DontTrack?%s&email=%s", this.map.get("@URL_LOCATION@"), noTrack, this.map.get(EMAIL_HASH_TAG));
+            String link = String.format(urlScheme+"://%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
             mailer.replace("@REMOVEME_LINK@", link, true);
           }
         } else {
@@ -553,9 +549,9 @@ public final class NotificationMailer implements Runnable {
    * @param ind MarkedIndividual for which to add tag data
    * @return map instance for tag replacement in email template
    */
-  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Adoption adp) {
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Adoption adp, String scheme) {
     Map<String, String> map = new HashMap<>();
-    addTags(map, req, adp);
+    addTags(map, req, adp, scheme);
     return map;
   }
 
@@ -580,7 +576,7 @@ public final class NotificationMailer implements Runnable {
    */
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind) {
     Map<String, String> map = new HashMap<>();
-    addTags(map, req, ind);
+    addTags(map, req, ind, req.getScheme());
     return map;
   }
 
@@ -616,7 +612,7 @@ public final class NotificationMailer implements Runnable {
    */
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc) {
     Map<String, String> map = new HashMap<>();
-    addTags(map, req, enc);
+    addTags(map, req, enc,req.getScheme());
     return map;
   }
 
@@ -632,32 +628,40 @@ public final class NotificationMailer implements Runnable {
    * @param enc Encounter for which to add tag data
    * @return map instance for tag replacement in email template
    */
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Encounter enc, String scheme) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, ind, scheme);
+    addTags(map, req, enc, scheme);
+    return map;
+  }
+  
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Encounter enc) {
-    Map<String, String> map = new HashMap<>();
-    addTags(map, req, ind);
-    addTags(map, req, enc);
-    return map;
+    return createBasicTagMap(req, ind, enc,req.getScheme());
   }
 
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Adoption adp, String scheme) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, ind,scheme);
+    addTags(map, req, adp,scheme);
+    return map;
+  }
+  
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Adoption adp) {
+    return createBasicTagMap(req, ind, adp, req.getScheme());
+  }
+
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc, Adoption adp, String scheme) {
     Map<String, String> map = new HashMap<>();
-    addTags(map, req, ind);
-    addTags(map, req, adp);
+    addTags(map, req, enc,scheme);
+    addTags(map, req, adp,scheme);
     return map;
   }
 
-  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc, Adoption adp) {
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc, Adoption adp, MarkedIndividual ind, String scheme) {
     Map<String, String> map = new HashMap<>();
-    addTags(map, req, enc);
-    addTags(map, req, adp);
-    return map;
-  }
-
-  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc, Adoption adp, MarkedIndividual ind) {
-    Map<String, String> map = new HashMap<>();
-    addTags(map, req, enc);
-    addTags(map, req, adp);
-    addTags(map, req, ind);
+    addTags(map, req, enc, scheme);
+    addTags(map, req, adp, scheme);
+    addTags(map, req, ind,scheme);
     return map;
   }
 
@@ -668,10 +672,10 @@ public final class NotificationMailer implements Runnable {
    * @param ind MarkedIndividual for which to add tag data
    * @param map map to which to add tag data
    */
-  private static void addTags(Map<String, String> map, HttpServletRequest req, MarkedIndividual ind) {
+  private static void addTags(Map<String, String> map, HttpServletRequest req, MarkedIndividual ind, String scheme) {
     Objects.requireNonNull(map);
     if (!map.containsKey("@URL_LOCATION@"))
-      map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
+      map.put("@URL_LOCATION@", String.format(scheme+"://%s", CommonConfiguration.getURLLocation(req)));
     if (ind != null) {
       map.put("@INDIVIDUAL_LINK@", String.format("%s/individuals.jsp?number=%s", map.get("@URL_LOCATION@"), ind.getIndividualID()));
       map.put("@INDIVIDUAL_ID@", ind.getIndividualID());
@@ -691,10 +695,10 @@ public final class NotificationMailer implements Runnable {
    * @param ind Adoption for which to add tag data
    * @param map map to which to add tag data
    */
-  private static void addTags(Map<String, String> map, HttpServletRequest req, Adoption adp) {
+  private static void addTags(Map<String, String> map, HttpServletRequest req, Adoption adp, String scheme) {
     Objects.requireNonNull(map);
     if (!map.containsKey("@URL_LOCATION@"))
-      map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
+      map.put("@URL_LOCATION@", String.format(scheme+"://%s", CommonConfiguration.getURLLocation(req)));
     if (adp != null) {
       map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptions/emailCancelAdoption.jsp?number=%s&stripeID=%s&adoption=%s", map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(), adp.getID()));
       map.put("@ADOPTION_ALTERATION_LINK@", String.format("%s/adoptions/emailAlterAdoption.jsp?number=%s&stripeID=%s&adoption=%s", map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(), adp.getID()));
@@ -721,10 +725,10 @@ public final class NotificationMailer implements Runnable {
    * @param enc Encounter for which to add tag data
    * @return map instance for tag replacement in email template
    */
-  private static void addTags(Map<String, String> map, HttpServletRequest req, Encounter enc) {
+  private static void addTags(Map<String, String> map, HttpServletRequest req, Encounter enc, String scheme) {
     Objects.requireNonNull(map);
     if (!map.containsKey("@URL_LOCATION@"))
-      map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
+      map.put("@URL_LOCATION@", String.format(scheme+"://%s", CommonConfiguration.getURLLocation(req)));
     if (enc != null) {
       // Add useful encounter fields.
       map.put("@ENCOUNTER_LINK@", String.format("%s/encounters/encounter.jsp?number=%s", map.get("@URL_LOCATION@"), enc.getCatalogNumber()));
@@ -737,13 +741,9 @@ public final class NotificationMailer implements Runnable {
       map.put("@ENCOUNTER_SEX@", enc.getSex());
       map.put("@ENCOUNTER_LIFE_STAGE@", enc.getLifeStage());
       map.put("@ENCOUNTER_COUNTRY@", enc.getCountry());
-      map.put("@ENCOUNTER_SUBMITTER_NAME@", enc.getSubmitterName());
       map.put("@ENCOUNTER_SUBMITTER_ID@", enc.getSubmitterID());
-      map.put("@ENCOUNTER_SUBMITTER_EMAIL@", enc.getSubmitterEmail());
-      map.put("@ENCOUNTER_SUBMITTER_ORGANIZATION@", enc.getSubmitterOrganization());
-      map.put("@ENCOUNTER_SUBMITTER_PROJECT@", enc.getSubmitterProject());
-      map.put("@ENCOUNTER_PHOTOGRAPHER_NAME@", enc.getPhotographerName());
-      map.put("@ENCOUNTER_PHOTOGRAPHER_EMAIL@", enc.getPhotographerEmail());
+      map.put("@ENCOUNTER_SUBMITTER_EMAIL@", enc.getSubmitterEmails().toString());
+      map.put("@ENCOUNTER_PHOTOGRAPHER_EMAIL@", enc.getPhotographerEmails().toString());
       map.put("@ENCOUNTER_COMMENTS@", enc.getComments());
       map.put("@ENCOUNTER_USER@", enc.getAssignedUsername());
     }
@@ -806,4 +806,7 @@ public final class NotificationMailer implements Runnable {
     String subj = mailer.getSubject();
     mailer.setSubject(subj == null ? text : subj + text);
   }
+  
+  public void setUrlScheme(String scheme){this.urlScheme=scheme;}
+  
 }

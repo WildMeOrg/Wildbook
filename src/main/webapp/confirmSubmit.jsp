@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.Dimension, java.io.File, java.util.*, java.util.concurrent.ThreadPoolExecutor, javax.servlet.http.HttpSession" %>
-<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
+         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, 
+         java.io.File, java.util.*, javax.servlet.http.HttpSession" %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
@@ -59,14 +59,14 @@ new_message.append("<html><body>");
     "/encounters/encounter" +
     ".jsp?number="+ number);
   new_message.append("<br><br>Quick stats:<br>");
-  String photographer = "None";
-  boolean emailPhoto = false;
+  //String photographer = "None";
+  //boolean emailPhoto = false;
   //get all needed DB reads out of the way in case Dynamic Image fails
   String addText = "";
-  boolean hasImages = true;
-  String submitter = "";
-  String informOthers = "";
-  String informMe = "";
+  //boolean hasImages = true;
+  //String submitter = "";
+  //String informOthers = "";
+  //String informMe = "";
 
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir);
@@ -97,102 +97,43 @@ new_message.append("<html><body>");
     	  //informMe = email_props.getProperty(enc.getLocationCode());
         
         //the new way loads email addresses based on User object roles matching location ID
-        informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+
         
-        
-      } else {
-        hasImages = false;
-      }
+      } 
+      //else {
+      //  hasImages = false;
+      //}
       new_message.append("Location: " + enc.getLocation() + "<br>");
       new_message.append("Date: " + enc.getDate() + "<br>");
       if(enc.getSex()!=null){
       	new_message.append("Sex: " + enc.getSex() + "<br>");
       }
-      new_message.append("Submitter: " + enc.getSubmitterName() + "<br>");
-      new_message.append("Email: " + enc.getSubmitterEmail() + "<br>");
-      new_message.append("Photographer: " + enc.getPhotographerName() + "<br>");
-      new_message.append("Email: " + enc.getPhotographerEmail() + "<br>");
+      //new_message.append("Submitter: " + enc.getSubmitterName() + "<br>");
+      //new_message.append("Email: " + enc.getSubmitterEmail() + "<br>");
+      //new_message.append("Photographer: " + enc.getPhotographerName() + "<br>");
+      //new_message.append("Email: " + enc.getPhotographerEmail() + "<br>");
       new_message.append("Comments: " + enc.getComments() + "<br>");
       new_message.append("</body></html>");
-      submitter = enc.getSubmitterEmail();
+      //submitter = enc.getSubmitterEmail();
+     /*
       if ((enc.getPhotographerEmail() != null) && (!enc.getPhotographerEmail().equals("None")) && (!enc.getPhotographerEmail().equals(""))) {
         photographer = enc.getPhotographerEmail();
         emailPhoto = true;
       }
+	*/
+     
 
-      if ((enc.getInformOthers() != null) && (!enc.getInformOthers().equals(""))) {
-        informOthers = enc.getInformOthers();
-      }
 
     } catch (Exception e) {
       System.out.println("Error encountered in confirmSubmit.jsp:");
       e.printStackTrace();
     }
     myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
+    //myShepherd.closeDBTransaction();
     
   }
+  
 
-  String thumbLocation = "file-"+thisEncounterDir.getAbsolutePath() + "/thumb.jpg";
-  if (myShepherd.isAcceptableVideoFile(addText)) {
-    addText = rootWebappPath+"/images/video_thumb.jpg";
-  } 
-  else if(myShepherd.isAcceptableImageFile(addText)){
-    addText = thisEncounterDir.getAbsolutePath() + "/" + addText;
-  }
-  else if(addText.equals("")){
-	  addText = rootWebappPath+"/images/no_images.jpg";
-  }
-
-
-  //File file2process = new File(getServletContext().getRealPath(("/" + addText)));
-
-  File file2process = new File(addText);
-	File thumbFile = new File(thumbLocation.substring(5));
-
-
-  if(file2process.exists() && myShepherd.isAcceptableImageFile(file2process.getName())){
-  	int intWidth = 100;
-  	int intHeight = 75;
-  	int thumbnailHeight = 75;
-  	int thumbnailWidth = 100;
-
-
-  	String height = "";
-  	String width = "";
-
-  	Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
-
-  width = Double.toString(imageDimensions.getWidth());
-  height = Double.toString(imageDimensions.getHeight());
-
-  intHeight = ((new Double(height)).intValue());
-  intWidth = ((new Double(width)).intValue());
-
-  if (intWidth > thumbnailWidth) {
-    double scalingFactor = intWidth / thumbnailWidth;
-    intWidth = (int) (intWidth / scalingFactor);
-    intHeight = (int) (intHeight / scalingFactor);
-    if (intHeight < thumbnailHeight) {
-      thumbnailHeight = intHeight;
-    }
-  } else {
-    thumbnailWidth = intWidth;
-    thumbnailHeight = intHeight;
-  }
-
-
-%>
-
-
-<di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>" border="0" fillPaint="#ffffff"
-        output="<%=thumbLocation%>" expAfter="0" threading="limited" align="left" valign="left">
-  <di:image width="<%=Integer.toString(intWidth) %>" height="<%=Integer.toString(intHeight) %>"
-            srcurl="<%=addText%>"/>
-</di:img>
-
-<%
-}
 %>
 
 <h1 class="intro"><%=props.getProperty("success") %></h1>
@@ -212,61 +153,7 @@ new_message.append("<html><body>");
 <%
 
 
-if(CommonConfiguration.sendEmailNotifications(context)){
-
-  // Retrieve background service for processing emails
-  ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-
-  // Email new submission address(es) defined in commonConfiguration.properties
-  Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
-  List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
-  String mailSubj = "New encounter submission: " + number;
-  for (String emailTo : mailTo) {
-    NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo, "newSubmission-summary", tagMap);
-    es.execute(mailer);
-  }
-
-  // Email those assigned this location code
-  if (informMe != null) {
-    List<String> cOther = NotificationMailer.splitEmails(informMe);
-    for (String emailTo : cOther) {
-      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap));
-    }
-  }
-
-  // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
-  tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc.getCatalogNumber());
-
-  // Email submitter and photographer
-  if (submitter != null) {
-    List<String> cOther = NotificationMailer.splitEmails(submitter);
-    for (String emailTo : cOther) {
-      String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
-      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission", tagMap));
-    }
-  }
-  if (emailPhoto && photographer != null) {
-    List<String> cOther = NotificationMailer.splitEmails(photographer);
-    for (String emailTo : cOther) {
-      String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
-      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission", tagMap));
-    }
-  }
-
-  // Email interested others
-  if (informOthers != null) {
-    List<String> cOther = NotificationMailer.splitEmails(informOthers);
-    for (String emailTo : cOther) {
-      String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
-      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission", tagMap));
-    }
-  }
-  es.shutdown();
-}
-
+myShepherd.closeDBTransaction();
 myShepherd=null;
 
 %>

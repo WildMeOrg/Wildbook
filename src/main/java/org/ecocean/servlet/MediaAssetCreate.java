@@ -20,6 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.ia.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,8 +30,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.ecocean.media.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.net.URL;
 
 import java.io.*;
 
@@ -61,6 +64,7 @@ public class MediaAssetCreate extends HttpServlet {
         myShepherd.beginDBTransaction();
         myShepherd.getPM().makePersistent(maSet);
         myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
 
         response.setContentType("text/plain");
         JSONObject res = new JSONObject();
@@ -87,6 +91,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 ....
             ]
         },
+    "skipIA": false,  //default is do-not-skipIA, but you may want off when done later (e.g. match.jsp which does in CreateEncounter)
 .... (other types) ...
     ]
 
@@ -96,15 +101,59 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         String context="context0";
         //context=ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.beginDBTransaction();
+
         //set up for response
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
-
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-        JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
-        myShepherd.commitDBTransaction();
+
+        if (!ReCAPTCHA.sessionIsHuman(request)) {
+            System.out.println("WARNING: MediaAssetCreate failed sessionIsHuman()");
+            response.setStatus(403);
+            out.println("ERROR");
+            out.close();
+            return;
+        }
+        
+        JSONObject res=new JSONObject();
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MediaAssetCreate.class_nonum");
+        myShepherd.beginDBTransaction();
+        try{
+          res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
+          myShepherd.commitDBTransaction();
+        }
+        catch(IOException ioe){
+          ioe.printStackTrace();
+          myShepherd.rollbackDBTransaction();}
+        finally{
+          myShepherd.closeDBTransaction();
+        }
+
+        //this has to be after commit (so queue can find them from different thread), so we do a little work here
+        if (!j.optBoolean("skipIA", false)) {
+            JSONArray ids = res.optJSONArray("allMediaAssetIds");
+            if ((ids != null) && (ids.length() > 0)) {
+                myShepherd = new Shepherd(context);
+                myShepherd.setAction("MediaAssetCreate.class_IA.intake");
+                myShepherd.beginDBTransaction();
+                List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+                for (int i = 0 ; i < ids.length() ; i++) {
+                    int id = ids.optInt(i, -1);
+                    if (id < 0) continue;
+                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                    if (ma != null) allMAs.add(ma);
+                }
+                if (allMAs.size() > 0) {
+                    Task task = IA.intakeMediaAssets(myShepherd, allMAs);
+                    myShepherd.storeNewTask(task);
+                    res.put("IATaskId", task.getId());
+                }
+                myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
+            }
+        }
+
         out.println(res.toString());
         out.close();
     }
@@ -120,6 +169,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
     NOTE: for now we dont allow user to set AssetStore, so we have some "hard-coded" ways to deal with:
     - S3 (via CommonConfiguration settings)
     - local (via CommonConfiguration tmp dir and "filename" value)
+    - URL
 */
         String uploadTmpDir = CommonConfiguration.getUploadTmpDir(context);
         S3AssetStore sourceStoreS3 = null;
@@ -138,6 +188,7 @@ System.out.println("source config -> " + cfg.toString());
         AssetStore targetStore = AssetStore.getDefault(myShepherd); //see below about disabled user-provided stores
         HashMap<String,MediaAssetSet> sets = new HashMap<String,MediaAssetSet>();
         ArrayList<MediaAsset> haveNoSet = new ArrayList<MediaAsset>();
+        URLAssetStore urlStore = URLAssetStore.find(myShepherd);   //this is only needed if we get passed params for url
 
         for (int i = 0 ; i < jarr.length() ; i++) {
             JSONObject st = jarr.optJSONObject(i);
@@ -185,16 +236,26 @@ System.out.println("source config -> " + cfg.toString());
 
                 //TODO we should probably also use the "SETID/" prefix (see below) standard for local too right?????
                 String fname = params.optString("filename", null);
+                String url = params.optString("url", null);
+                String accessKey = params.optString("accessKey", null);  //kinda specialty use to validate certain anon-uploaded cases (e.g. match.jsp)
                 if (fname != null) {  //this is local
                     if (fname.indexOf("..") > -1) continue;  //no hax0ring plz
                     File inFile = new File(uploadTmpDir, fname);
                     params = targetStore.createParameters(inFile);
+                    if (accessKey != null) params.put("accessKey", accessKey);
                     targetMA = targetStore.create(params);
                     try {
                         targetMA.copyIn(inFile);
                     } catch (Exception ex) {
                         System.out.println("WARNING: MediaAssetCreate failed to copyIn " + inFile + " to " + targetMA + ": " + ex.toString());
                         success = false;
+                    }
+
+                } else if (url != null) {
+                    if (urlStore == null) {
+                        System.out.println("WARNING: MediaAssetCreate found no URLAssetStore; skipping url param " + url);
+                    } else {
+                        targetMA = urlStore.create(params);
                     }
 
                 } else {  //if we fall thru, then we are going to assume S3
@@ -208,6 +269,7 @@ System.out.println("source config -> " + cfg.toString());
 
                     File fakeFile = new File(params.get("key").toString());
                     params = targetStore.createParameters(fakeFile); //really just use bucket here
+                    if (accessKey != null) params.put("accessKey", accessKey);
                     String dirId = setId;
                     if (dirId == null) dirId = Util.generateUUID();
                     params.put("key", Util.hashDirectories(dirId, "/") + "/" + fakeFile.getName());
@@ -250,16 +312,21 @@ System.out.println("no MediaAssetSet; created " + targetMA);
         }
 
         JSONObject js = new JSONObject();
+        JSONArray allMAIds = new JSONArray();
         for (MediaAssetSet s : sets.values()) {
             JSONArray jmas = new JSONArray();
             if ((s.getMediaAssets() != null) && (s.getMediaAssets().size() > 0)) {
                 for (MediaAsset ma : s.getMediaAssets()) {
                     JSONObject jma = new JSONObject();
-                    jma.put("id", ma.getId());
+                    try {
+                        jma = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true));
+                    } catch (Exception ex) {
+                        System.out.println("WARNING: failed sanitizeJson on " + ma + ": " + ex.toString());
+                    }
                     jma.put("_debug", ma.toString());
                     jma.put("_params", ma.getParameters().toString());
-                    jma.put("_url", ma.webURL());
                     jmas.put(jma);
+                    allMAIds.put(ma.getId());
                 }
             }
             if (jmas.length() > 0) js.put(s.getId(), jmas);
@@ -270,15 +337,23 @@ System.out.println("no MediaAssetSet; created " + targetMA);
             JSONArray jmas = new JSONArray();
             for (MediaAsset ma : haveNoSet) {
                 JSONObject jma = new JSONObject();
-                jma.put("id", ma.getId());
+                try {
+                    jma = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true));
+                } catch (Exception ex) {
+                    System.out.println("WARNING: failed sanitizeJson on " + ma + ": " + ex.toString());
+                }
+                //"url" does not get set in sanitizeJson cuz it uses a new Shepherd object, sigh.  so:
+                URL u = ma.safeURL(myShepherd);
+                if (u != null) jma.put("url", u.toString());
                 jma.put("_debug", ma.toString());
                 jma.put("_params", ma.getParameters().toString());
-                jma.put("_url", ma.webURL());
                 jmas.put(jma);
+                allMAIds.put(ma.getId());
             }
             rtn.put("withoutSet", jmas);
         }
 
+        rtn.put("allMediaAssetIds", allMAIds);
         rtn.put("success", true);
         return rtn;
     }

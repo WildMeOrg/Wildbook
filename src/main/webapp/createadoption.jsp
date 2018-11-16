@@ -102,7 +102,7 @@ context=ServletUtilities.getContext(request);
   </section>
 
 	<%-- BEGIN STRIPE FORM --%>
-	<form action="StripePayment" method="POST" id="payment-form" lang="en">
+	<form action="StripePayment" method="POST" id="payment-form" accept-charset="UTF-8">
 		<div class="form-header">
 	    <h2>Financial Information</h2>
 			<img src="cust/mantamatcher/img/circle-divider.png"/>

@@ -1,5 +1,22 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, 
+         org.ecocean.servlet.ServletUtilities, java.io.File, 
+         java.io.FileOutputStream, java.io.OutputStreamWriter, 
+         java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, 
+         org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, 
+         org.datanucleus.api.jdo.JDOPersistenceManager,
+         java.nio.charset.StandardCharsets,
+         java.net.URLEncoder " %>
+
+
+<%!
+
+String dispToString(Integer i) {
+	if (i==null) return "";
+	return i.toString();
+}
+
+%>
 
 
 <%
@@ -40,9 +57,9 @@ if (queryString==null) queryString = ""; // so .replace() methods below don't br
 
 //--let's estimate the number of results that might be unique
 
-  int numUniqueEncounters = 0;
-  int numUnidentifiedEncounters = 0;
-  int numDuplicateEncounters = 0;
+  Integer numUniqueEncounters = null;
+  Integer numUnidentifiedEncounters = null;
+  Integer numDuplicateEncounters = null;
 
 %>
 
@@ -267,20 +284,21 @@ td.tdw:hover div {
 <script type="text/javascript">
 
 	var needIAStatus = false;
+
 /*
-
-
 
     <strong><%=encprops.getProperty("markedIndividual")%>
     <strong><%=encprops.getProperty("number")%>
-  if (CommonConfiguration.showProperty("showTaxonomy",context)) {
-    <strong><%=encprops.getProperty("taxonomy")%>
-    <strong><%=encprops.getProperty("submitterName")%>
-    <strong><%=encprops.getProperty("date")%>
-    <strong><%=encprops.getProperty("location")%>
-    <strong><%=encprops.getProperty("locationID")%>
-    <strong><%=encprops.getProperty("occurrenceID")%>
+    if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
+    	
+	    <strong><%=encprops.getProperty("taxonomy")%>
+	    <strong><%=encprops.getProperty("submitterName")%>
+	    <strong><%=encprops.getProperty("date")%>
+	    <strong><%=encprops.getProperty("location")%>
+	    <strong><%=encprops.getProperty("locationID")%>
+	    <strong><%=encprops.getProperty("occurrenceID")%>
 */
+
 
 <%
 	String encsJson = "false";
@@ -310,14 +328,14 @@ String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, p
 
 var searchResults = <%=encsJson%>;
 
-var jdoql = '<%= filter.replaceAll("'", "\\\\'") %>';
+var jdoql = '<%= URLEncoder.encode(filter,StandardCharsets.UTF_8.toString()) %>';
 
 var testColumns = {
-	thumb: { label: 'Thumb', val: _colThumb },
+	//thumb: { label: 'Thumb', val: _colThumb },
 	individualID: { label: 'ID', val: _colIndLink },
 	date: { label: 'Date', val: _colEncDate },
 	verbatimLocality: { label: 'Location' },
-	locationID: { label: 'Location ID' },
+	//locationID: { label: 'Location ID' },
 	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
 	submitterID: { label: 'Submitter' },
 	creationDate: { label: 'Created', val: _colCreationDate },
@@ -340,30 +358,17 @@ $(document).keydown(function(k) {
 
 
 var colDefn = [
-	/*
-	{
-		key: 'thumb',
-		label: 'Thumb',
-		value: _colThumb,
-		nosort: true,
-	},*/
+
 	{
 		key: 'individualID',
 		label: 'ID',
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
 	},
-	/*
   {
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
   },
-  
-  {
-    key: 'filename',
-    label: 'Filename(s)',
-    value: _colFileName,
-  },*/
 	{
 		key: 'date',
 		label: '<%=encprops.getProperty("date")%>',
@@ -389,6 +394,7 @@ var colDefn = [
 	{
 		key: 'submitterName',
 		label: '<%=encprops.getProperty("submitterName")%>',
+		value: _submitterID,
 	},
 	{
 		key: 'creationDate',
@@ -601,9 +607,9 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
-		var private = searchResults[results[i]].get('_sanitized') || false;
+		var privateResults = searchResults[results[i]].get('_sanitized') || false;
 		var title = 'Encounter ' + searchResults[results[i]].id;
-		if (private) {
+		if (privateResults) {
 			title += ' [private]';
 			$($('#results-table tbody tr')[i]).addClass('collab-private');
 		} else {
@@ -768,13 +774,10 @@ function _colNumberLocations(o) {
 
 
 function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return '';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
-}
-
-function _locID(o) {
-	if (o.get('locationID') == 'None') return '';
-	return o.get('locationID');
+	var animal = 'n/a';
+	if (o.get('genus')) return o.get('genus');
+	if (o.get('specificEpithet')) return o.get('specificEpithet');
+	return 'n/a';
 }
 
 function _huntingState(o) {
@@ -804,6 +807,11 @@ function _colModified(o) {
 	return d.toLocaleDateString();
 }
 
+function _submitterID(o) {
+	var m = o.get('submitterName');
+	if (!m) m = o.get('submitterProject');
+	return m;
+}
 
 function _textExtraction(n) {
 	var s = $(n).text();
@@ -922,6 +930,11 @@ function _colFileName(o) {
   var outStrings = [];
   for (id in o.get('annotations')) {
     var ann = o.get('annotations')[id];
+    //note: assuming 0th feature "may be bad" ?   TODO
+    if (ann.features && ann.features.length && ann.features[0].mediaAsset && ann.features[0].mediaAsset.filename) {
+      outStrings.push(ann.features[0].mediaAsset.filename);
+    }
+/*
     if (ann.mediaAsset != undefined) {
       var urlString = ann.mediaAsset.url;
       var pieces = urlString.split('/');
@@ -930,6 +943,7 @@ function _colFileName(o) {
       //console.log('\t added url string: '+ann.mediaAsset.url);
     }
     console.log('\t no mediaAsset found in annotation '+JSON.stringify(ann));
+*/
   }
   return outStrings.join(',\n');
 }
@@ -987,7 +1001,7 @@ function _colIA(o) {
 
 function _colAnnIASummary(annId, sum) {
 	console.log('%s ------> %o', annId, sum);
-	var mostRecent = 0;
+		var mostRecent = 0;
 	var mostRecentTaskId = false;
 	var flav = ['success-match', 'success-miss', 'pending', 'error', 'unknown'];
 	var r = {};
@@ -1178,9 +1192,9 @@ console.log(t);
           if (request.getUserPrincipal()!=null) {
         %>
         <br/>
-        <span id="count-ided"><%=numUniqueEncounters%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
-        <span id="count-unid"><%=numUnidentifiedEncounters%></span> <%=encprops.getProperty("unidentified")%><br/>
-        <span id="count-dailydup"><%=(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
+        <span id="count-ided"><%=dispToString(numUniqueEncounters)%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
+        <span id="count-unid"><%=dispToString(numUnidentifiedEncounters)%></span> <%=encprops.getProperty("unidentified")%><br/>
+        <span id="count-dailydup"><%=dispToString(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
         <%
           }
         %>
@@ -1216,10 +1230,7 @@ console.log(t);
     </td>
   </tr>
 </table>
-
-
-</p>
-
+</div>
 
 <%
   }
@@ -1231,5 +1242,7 @@ console.log(t);
   //rEncounters = null;
 
 %>
-</div>
+
+
+
 <jsp:include page="../footer.jsp" flush="true"/>

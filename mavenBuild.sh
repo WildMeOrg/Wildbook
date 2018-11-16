@@ -1,3 +1,4 @@
 #!/bin/bash
-sudo mvn clean
-mvn install -DskipTests -Dmaven.javadoc.skip=true
+
+mvn clean install -DskipTests -Dmaven.javadoc.skip=true 
+

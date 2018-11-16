@@ -29,8 +29,10 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -47,13 +49,15 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.MailThreadExecutorService;
 import org.ecocean.Util;
 import org.ecocean.Encounter;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
 import org.ecocean.StudySite;
 import org.ecocean.media.*;
-import org.ecocean.identity.IBEISIA;
+import org.ecocean.ia.Task;
+import org.ecocean.NotificationMailer;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
@@ -82,7 +86,6 @@ import org.apache.shiro.web.util.WebUtils;
 //import org.ecocean.*;
 import org.ecocean.security.SocialAuth;
 import org.ecocean.Annotation;
-
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
@@ -92,6 +95,7 @@ import org.pac4j.oauth.client.FacebookClient;
 //import org.pac4j.oauth.client.YahooClient;
 import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
+import org.ecocean.mmutil.FileUtilities;
 
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
@@ -211,7 +215,6 @@ private final String UPLOAD_DIRECTORY = "/tmp";
     return list;
   }
 /*
-
 got regular field (measurement(weight))=(111)
 got regular field (measurement(weightunits))=(kilograms)
 got regular field (measurement(weightsamplingProtocol))=(samplingProtocol1)
@@ -221,7 +224,6 @@ got regular field (measurement(lengthsamplingProtocol))=(samplingProtocol0)
 got regular field (measurement(height))=(333)
 got regular field (measurement(heightunits))=(meters)
 got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
-
       Map<String, Object> measurements = theForm.getMeasurements();
       for (String key : measurements.keySet()) {
         if (!key.endsWith("units") && !key.endsWith("samplingProtocol")) {
@@ -273,7 +275,6 @@ System.out.println("rootDir=" + rootDir);
         fbImages.add(request.getParameter("socialphoto_" + fbi));
         fbi++;
     }
-
 System.out.println(fbImages);
     if (fbImages.size() > 0) {
         FacebookClient fbclient = null;
@@ -287,14 +288,12 @@ System.out.println(fbImages);
             String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/XXXSocialConnect?type=facebook";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             fbclient.setCallbackUrl(callbackUrl);
-
             OAuthCredentials credentials = null;
             try {
                 credentials = fbclient.getCredentials(ctx);
             } catch (Exception ex) {
                 System.out.println("caught exception on facebook credentials: " + ex.toString());
             }
-
             if (credentials != null) {
                 FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
                 User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
@@ -306,12 +305,10 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                     session.setAttribute("message", "disconnected from facebook");
                     response.sendRedirect("myAccount.jsp");
                     return;
-
                 } else if (fbuser != null) {
                     session.setAttribute("error", "looks like this account is already connected to an account");
                     response.sendRedirect("myAccount.jsp");
                     return;
-
                 } else {  //lets do this
                     user.setSocial("facebook", facebookProfile.getId());
                     //myShepherd.getPM().makePersistent(user);
@@ -320,7 +317,6 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                     return;
                 }
             } else {
-
 System.out.println("*** trying redirect?");
                 try {
                     fbclient.redirect(ctx, false, false);
@@ -330,7 +326,6 @@ System.out.println("*** trying redirect?");
                 return;
             }
     }
-
 */
       //private Map<String, Object> measurements = new HashMap<String, Object>();
       //Map<String, Object> metalTags = new HashMap<String, Object>();
@@ -407,10 +402,14 @@ System.out.println("*** trying redirect?");
         }
 
         if (fv.get("social_files_id") != null) {
+          System.out.println("BBB: Social_files_id: "+fv.get("social_files_id"));
+          
             //TODO better checking of files (size, type etc)
             File socDir = new File(ServletUtilities.dataDir(context, rootDir) + "/social_files/" + fv.get("social_files_id"));
             for (File sf : socDir.listFiles()) {
                 socialFiles.add(sf);
+                System.out.println("BBB: Adding social file : "+sf.getName());
+                
                 filesOK.add(sf.getName());
             }
             filesBad = new HashMap<String, String>();
@@ -453,10 +452,9 @@ System.out.println("*** trying redirect?");
 
 
       String locCode = "";
-System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
+      System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
             if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
                 locCode = fv.get("locationID").toString();
-
             }
         //see if the location code can be determined and set based on the location String reported
             else if (fv.get("location") != null) {
@@ -626,7 +624,7 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 
 System.out.println("about to do enc()");
 
-            Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
+            Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"));
             boolean llSet = false;
             //Encounter enc = new Encounter();
             //System.out.println("Submission detected date: "+enc.getDate());
@@ -641,56 +639,29 @@ System.out.println("enc ?= " + enc.toString());
             AssetStore astore = AssetStore.getDefault(myShepherd);
             ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
 
+            //for directly uploaded files
             for (FileItem item : formFiles) {
-                JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
-                sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
-                MediaAsset ma = new MediaAsset(astore, sp);
-                File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
-                File tmpDir = tmpFile.getParentFile();
-                if (!tmpDir.exists()) tmpDir.mkdirs();
-//System.out.println("attempting to write uploaded file to " + tmpFile);
-                try {
-		    item.write(tmpFile);
-                } catch (Exception ex) {
-                    System.out.println("Could not write " + tmpFile + ": " + ex.toString());
-                }
-                if (tmpFile.exists()) {
-                    ma.addLabel("_original");
-                    ma.copyIn(tmpFile);
-                    ma.updateMetadata();
-
-                    String filename = ma.getFilename();
-                    System.out.println("EncounterForm got filename "+filename);
-
-                    //myShepherd.
-
-                    // Here we see if we can get the StudySite name.
-                    String newStuName = getTrappingStationFromWwfSpainFilename(filename);
-                    //
-                    DateTime parsedDate = getDateFromWwfSpainFilename(filename);
-                    System.out.println("	EncounterForm got date "+parsedDate);
-
-                    if (parsedDate!=null) enc.setDateInMilliseconds(parsedDate.getMillis());
-
-
-
-
-                    // we take the shortest non-empty parsed name as the final study site name (there's only one per encounter after all)
-                    if (stuName==null || "".equals(stuName) || (newStuName!=null && newStuName.length()<stuName.length())) {
-                    	stuName = newStuName;
-                    }
-
-
-
-                    // this is adding the trivial annotation for the mediaasset (non-IA)
-                    newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
-                    assetsForDetection.add(ma);
-                } else {
-                    System.out.println("failed to write file " + tmpFile);
-                }
+              //convert each FileItem into a MediaAsset
+              makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
             }
 
             ///////////////////TODO social files also!!!
+            System.out.println("BBB: Checking if we have social files...");
+            
+            if(socialFiles.size()>0){
+              int numSocialFiles=socialFiles.size();
+              System.out.println("BBB: Trying to persist social files: "+numSocialFiles);
+              
+              DiskFileItemFactory factory = new DiskFileItemFactory();
+              
+              for(int q=0;q<numSocialFiles;q++){
+                File item=socialFiles.get(q);
+                makeMediaAssetsFromJavaFileObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
+                
+              }
+              
+            }
+            
 
             if (fv.get("mediaAssetSetId") != null) {
                 MediaAssetSet maSet = ((MediaAssetSet) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAssetSet.class, fv.get("mediaAssetSetId")), true)));
@@ -711,7 +682,70 @@ System.out.println("enc ?= " + enc.toString());
             enc.setGenus(genus);
             enc.setSpecificEpithet(specificEpithet);
 
-
+            
+            //User management
+            String subN=getVal(fv, "submitterName");
+            String subE=getVal(fv, "submitterEmail");
+            String subO=getVal(fv, "submitterOrganization");
+            String subP=getVal(fv, "submitterProject");
+            //User user=null;
+            List<User> submitters=new ArrayList<User>();
+            if((subE!=null)&&(!subE.trim().equals(""))) {
+              
+              StringTokenizer str=new StringTokenizer(subE,",");
+              int numTokens=str.countTokens();
+              for(int y=0;y<numTokens;y++) {
+                String tok=str.nextToken().trim();
+                String hashedTok=ServletUtilities.hashString(tok);
+                if(myShepherd.getUserByHashedEmailAddress(hashedTok)!=null) {
+                  User user=myShepherd.getUserByHashedEmailAddress(hashedTok);
+                  submitters.add(user);
+                }
+                else {
+                  User user=new User(tok,Util.generateUUID());
+                  user.setAffiliation(subO);
+                  user.setUserProject(subP);
+                  if((numTokens==1)&&(subN!=null)){user.setFullName(subN);}
+                  myShepherd.getPM().makePersistent(user);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  
+                  submitters.add(user);
+                }
+              }
+            }
+            enc.setSubmitters(submitters);
+            //end submitter-user processing
+            
+            //User management - photographer processing
+            String photoN=getVal(fv, "photographerName");
+            String photoE=getVal(fv, "photographerEmail");
+            List<User> photographers=new ArrayList<User>();
+            if((photoE!=null)&&(!photoE.trim().equals(""))) {
+              
+              StringTokenizer str=new StringTokenizer(photoE,",");
+              int numTokens=str.countTokens();
+              for(int y=0;y<numTokens;y++) {
+                String tok=str.nextToken().trim();
+                if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
+                  User user=myShepherd.getUserByEmailAddress(tok);
+                  photographers.add(user);
+                }
+                else {
+                  User user=new User(tok,Util.generateUUID());
+                  myShepherd.getPM().makePersistent(user);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  photographers.add(user);
+                }
+              }
+            }
+            enc.setPhotographers(photographers);
+            //end photographer-user processing
+            
+            
+            
+            
 /*
             String baseDir = ServletUtilities.dataDir(context, rootDir);
             ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
@@ -727,7 +761,6 @@ System.out.println("enc ?= " + enc.toString());
                     System.out.println("failed to save " + item.toString() + ": " + ex.toString());
                 }
             }
-
             for (File sf : socialFiles) {
 								File encDir = new File(enc.dir(baseDir));
 								if (!encDir.exists()) encDir.mkdirs();
@@ -927,16 +960,15 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
 
       //enc.setMeasureUnits("Meters");
-      enc.setSubmitterPhone(getVal(fv, "submitterPhone"));
-      enc.setSubmitterAddress(getVal(fv, "submitterAddress"));
-      enc.setSubmitterOrganization(getVal(fv, "submitterOrganization"));
-      enc.setSubmitterProject(getVal(fv, "submitterProject"));
+     // enc.setSubmitterPhone(getVal(fv, "submitterPhone"));
+      //enc.setSubmitterAddress(getVal(fv, "submitterAddress"));
 
-      enc.setPhotographerPhone(getVal(fv, "photographerPhone"));
-      enc.setPhotographerAddress(getVal(fv, "photographerAddress"));
-      enc.setPhotographerName(getVal(fv, "photographerName"));
-      enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
-      enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + request.getRemoteHost() + "</p>");
+
+     // enc.setPhotographerPhone(getVal(fv, "photographerPhone"));
+     // enc.setPhotographerAddress(getVal(fv, "photographerAddress"));
+     // enc.setPhotographerName(getVal(fv, "photographerName"));
+     // enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
+      enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + ServletUtilities.getRemoteHost(request) + "</p>");
       //enc.approved = false;
 
       enc.addComments(processingNotes.toString());
@@ -1075,57 +1107,55 @@ System.out.println("depth --> " + fv.get("depth").toString());
 	    enc.setDWCDateLastModified(strOutputDateTime);
 
 
-	    //this will try to set from MediaAssetMetadata -- ymmv
-	    if (!llSet) enc.setLatLonFromAssets();
-	    if (enc.getYear() < 1) enc.setDateFromAssets();
-
-      // modifications for WWF spain
-	    System.out.println("   EncounterForm: about to setDateFromAssets. Old date = "+enc.getDate());
-	    enc.setDateFromAssets();
-	    System.out.println("   EncounterForm: setDateFromAssets result "+enc.getDate());
-
-	    System.out.println("   EncounterForm: parsed study site name "+stuName);
 
 
-	    // StudySite done last so common fields (e.g. Population, Gov Area, lat/long) can be shared
-	    StudySite stu = myShepherd.getStudySiteByName(stuName);
-	    if (stu==null) {
-	    	stu = new StudySite(stuName, enc);
-	    	myShepherd.storeNewStudySite(stu);
-	    }
-	    enc.setStudySite(stu);
-	    System.out.println("	EncounterForm: set encounter study site ID to "+ enc.getStudySiteID());
+      //xxxxxxxx
 
 
+      //String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
+
+      //new additions for DarwinCore
+      enc.setDWCGlobalUniqueIdentifier(guid);
+      enc.setDWCImageURL((request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID));
+
+      //populate DarwinCore dates
+
+      //DateTimeFormatter fmt = ISODateTimeFormat.date();
+      //String strOutputDateTime = fmt.print(dt);
+      enc.setDWCDateAdded(strOutputDateTime);
+      enc.setDWCDateAdded(new Long(dt.toDateTime().getMillis()));
+      //System.out.println("I set the date as a LONG to: "+enc.getDWCDateAddedLong());
+      enc.setDWCDateLastModified(strOutputDateTime);
 
 
-	    String newnum = "";
-	    if (!spamBot) {
-	        newnum = myShepherd.storeNewEncounter(enc, encID);
-	        //enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
-	        enc.refreshAssetFormats(myShepherd);
+        //this will try to set from MediaAssetMetadata -- ymmv
+        if (!llSet) enc.setLatLonFromAssets();
+        if (enc.getYear() < 1) enc.setDateFromAssets();
 
-	        Logger log = LoggerFactory.getLogger(EncounterForm.class);
-	        log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
-					System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+            String newnum = "";
+            if (!spamBot) {
+                newnum = myShepherd.storeNewEncounter(enc, encID);
+                enc.refreshAssetFormats(myShepherd);
 
-	        myShepherd.commitDBTransaction();
-	        myShepherd.closeDBTransaction();
-	        myShepherd.beginDBTransaction();
-
-	        String baseUrl = "";
-	        try {baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());}
-	        catch (Exception E) {};
-	        if (assetsForDetection.size() > 0) System.out.println("About to send assets! First asset = "+assetsForDetection.get(0).toString());
-	        IBEISIA.beginDetect(assetsForDetection, baseUrl, context);
-	    }
-
+                //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
+                //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
+                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
+                myShepherd.storeNewTask(task);
+                Logger log = LoggerFactory.getLogger(EncounterForm.class);
+                log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
+System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+                org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+            }
 
       if (newnum.equals("fail")) {
         request.setAttribute("number", "fail");
         return;
       }
 
+      
+      
+      
+      
 
 
       System.out.println("Encounter form is sending stuff to detection!");
@@ -1147,7 +1177,93 @@ System.out.println("depth --> " + fv.get("depth").toString());
       System.out.println("Ending data submission.");
       System.out.println("again checking encounter studysiteID: "+enc.getStudySiteID());
       if (!spamBot) {
+        
+        //send submitter on to confirmSubmit.jsp
         response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
+        
+        
+        //start email appropriate parties
+        if(CommonConfiguration.sendEmailNotifications(context)){
+          myShepherd.beginDBTransaction();
+          try{
+            // Retrieve background service for processing emails
+            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+            Properties submitProps= ShepherdProperties.getProperties("submit.properties", ServletUtilities.getLanguageCode(request),context);
+            // Email new submission address(es) defined in commonConfiguration.properties
+            Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+            List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
+            String mailSubj = submitProps.getProperty("newEncounter") + enc.getCatalogNumber();
+            for (String emailTo : mailTo) {
+              NotificationMailer mailer = new NotificationMailer(context, ServletUtilities.getLanguageCode(request), emailTo, "newSubmission-summary", tagMap);
+              mailer.setUrlScheme(request.getScheme());
+              es.execute(mailer);
+            }
+          
+            // Email those assigned this location code
+            String informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+            if (informMe != null) {
+              List<String> cOther = NotificationMailer.splitEmails(informMe);
+              for (String emailTo : cOther) {
+                NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                  es.execute(mailer);
+              }
+            }
+          
+            // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
+            tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc.getCatalogNumber());
+          
+
+            // Email submitter and photographer
+            if ((enc.getPhotographerEmails()!=null)&&(enc.getPhotographerEmails().size()>0)) {
+              List<String> cOther = enc.getPhotographerEmails();
+              for (String emailTo : cOther) {
+                String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+              }
+            }
+            if ((enc.getSubmitterEmails()!=null)&&(enc.getSubmitterEmails().size()>0)) {
+              List<String> cOther = enc.getSubmitterEmails();
+              for (String emailTo : cOther) {
+
+                String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+              }
+            }
+          
+            // Email interested others
+            
+              
+            if ((enc.getInformOthers() != null) && (!enc.getInformOthers().trim().equals(""))) {
+              List<String> cOther = NotificationMailer.splitEmails(enc.getInformOthers());
+              for (String emailTo : cOther) {
+                String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+              }
+            }
+            es.shutdown();
+          }
+          catch(Exception e){
+            e.printStackTrace();
+          }
+          finally{
+            myShepherd.rollbackDBTransaction();
+            
+          }
+        } //end email appropriate parties
+        
+        
+        
+        
       } else {
         response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/spambot.jsp");
       }
@@ -1158,6 +1274,77 @@ System.out.println("depth --> " + fv.get("depth").toString());
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
     //return null;
+  }
+  
+  private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
+    sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+    MediaAsset ma = new MediaAsset(astore, sp);
+    File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
+    File tmpDir = tmpFile.getParentFile();
+    if (!tmpDir.exists()) tmpDir.mkdirs();
+//System.out.println("attempting to write uploaded file to " + tmpFile);
+    try {
+      item.write(tmpFile);
+    } catch (Exception ex) {
+        System.out.println("Could not write " + tmpFile + ": " + ex.toString());
+    }
+    if (tmpFile.exists()) {
+      
+      try{
+        ma.addLabel("_original");
+        ma.copyIn(tmpFile);
+        ma.updateMetadata();
+        newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
+      }
+      catch(IOException ioe){
+        System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
+        ioe.printStackTrace();
+      }
+        
+        
+    } 
+    else {
+        System.out.println("failed to write file " + tmpFile);
+    }
+  }
+  
+  private void makeMediaAssetsFromJavaFileObject(File item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+    
+    System.out.println("Entering makeMediaAssetsFromJavaFileObject");
+    
+    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
+    sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+    MediaAsset ma = new MediaAsset(astore, sp);
+    File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
+    File tmpDir = tmpFile.getParentFile();
+    if (!tmpDir.exists()) tmpDir.mkdirs();
+//System.out.println("attempting to write uploaded file to " + tmpFile);
+    try {
+      FileUtilities.copyFile(item, tmpFile);
+      //item.write(tmpFile);
+    } catch (Exception ex) {
+        System.out.println("Could not write " + tmpFile + ": " + ex.toString());
+    }
+    if (tmpFile.exists()) {
+      
+      try{
+        ma.addLabel("_original");
+        ma.copyIn(tmpFile);
+        ma.updateMetadata();
+        newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
+        System.out.println("Added new annotation for: "+item.getName());
+      }
+      catch(IOException ioe){
+        System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
+        ioe.printStackTrace();
+      }
+        
+        
+    } 
+    else {
+        System.out.println("failed to write file " + tmpFile);
+    }
   }
 
 

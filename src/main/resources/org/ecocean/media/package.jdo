@@ -7,6 +7,10 @@
 
 	<class name="MediaAsset" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity"/>
+		<field name="acmId">
+			<column length="100"/>
+			<index name="MEDIAASSET_ACMID_INDEX" />
+		</field>
 		<field name="uuid">
 			<index name="MEDIAASSET_UUID_INDEX" unique="true" />
 		</field>
@@ -17,7 +21,7 @@
             	<field name="revision" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
-		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" default-fetch-group="true" />
+		<field name="metadata" persistence-modifier="persistent" cacheable="false" element-type="org.ecocean.media.MediaAssetMetadata" default-fetch-group="true" />
 		<field name="parametersAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
 		</field>

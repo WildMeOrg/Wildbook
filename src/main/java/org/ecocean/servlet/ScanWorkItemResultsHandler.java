@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,12 +42,15 @@ import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-//import java.net.HttpURLConnection;
+import java.net.HttpURLConnection;
+
 import javax.net.ssl.HttpsURLConnection;
+
 import java.io.DataOutputStream;
 import java.nio.charset.Charset;
 import java.util.Vector;
 import java.util.ArrayList;
+import java.util.zip.GZIPInputStream;
 
 
 public class ScanWorkItemResultsHandler extends HttpServlet {
@@ -103,7 +107,10 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
     try {
 
       // get an input stream and Vector of results from the applet
-      inputFromApplet = new ObjectInputStream(request.getInputStream());
+      
+      //inputFromApplet = new ObjectInputStream(request.getInputStream());
+      inputFromApplet = new ObjectInputStream(new BufferedInputStream(new GZIPInputStream(request.getInputStream())));
+      
       Vector returnedResults = new Vector();
       returnedResults = (Vector) receiveObject(inputFromApplet);
       inputFromApplet.close();
@@ -129,56 +136,72 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       //System.out.println(".....trying to check in # results:  "+returnedSize);
 
       //int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
-      int numComplete=0;
+      //int numComplete=0;
       //int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
       int numGenerated=0;
       //int numTaskTot = numComplete + numGenerated;
       int numTaskTot=0;
-      String scanTaskID="";
+      //String scanTaskID="";
       
-      ArrayList<String> tasksCompleted=new ArrayList<String>();
+      ArrayList<String> tasksAddressed=new ArrayList<String>();
       
       for (int m = 0; m < returnedSize; m++) {
         ScanWorkItemResult wir = (ScanWorkItemResult) returnedResults.get(m);
         
-        if(!wir.getUniqueNumberTask().equals(scanTaskID)){
-          scanTaskID=wir.getUniqueNumberTask();
-        }
+        //if(!wir.getUniqueNumberTask().equals(scanTaskID)){
+        //String scanTaskID=wir.getUniqueNumberTask();
+        //}
 
         
         //String swiUniqueNum = wir.getUniqueNumberWorkItem();
         String taskNum = wir.getUniqueNumberTask();
-        if(!affectedScanTasks.contains(taskNum)){affectedScanTasks.add(taskNum);}
+        if(!tasksAddressed.contains(taskNum)){tasksAddressed.add(taskNum);}
+        
+        //if(!affectedScanTasks.contains(taskNum)){affectedScanTasks.add(taskNum);}
 
         gm.checkinResult(wir);
         
         //auto-generate XML file of results if appropriate
-        numComplete = gm.getNumWorkItemsCompleteForTask(scanTaskID);
-        numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
-        numTaskTot = numComplete + numGenerated;
+
+
+
+      }
+      
+      int numTasksAddressed=tasksAddressed.size();
+      for(int m=0;m<numTasksAddressed;m++){
+        String scanTaskID=tasksAddressed.get(m);
+        
+        int numComplete = gm.getNumWorkItemsCompleteForTask(scanTaskID);
+        //numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
+        //numTaskTot = numComplete + numGenerated;
         
         //ScanTask st=myShepherd.getScanTask(scanTaskID);
         
         //if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
-        if ((numComplete > 0) && (gm.getScanTaskSize(scanTaskID)!=null) && (numComplete >= gm.getScanTaskSize(scanTaskID).intValue())) {
+        if ((numComplete > 0)  && (gm.getNumWorkItemsIncompleteForTask(scanTaskID)==0)) {
           
           
           
-          if(!tasksCompleted.contains(scanTaskID)){
+          //if(!tasksCompleted.contains(scanTaskID)){
           
             Shepherd myShepherd=new Shepherd(context);
             myShepherd.setAction("ScanWorkItemResultsHandler.class");
             myShepherd.beginDBTransaction();
-            ScanTask st=myShepherd.getScanTask(scanTaskID);
-            if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            tasksCompleted.add(scanTaskID);
-          }
+            try{
+              ScanTask st=myShepherd.getScanTask(scanTaskID);
+              if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
+            }
+            catch(Exception e){
+              e.printStackTrace();
+            }
+            finally{
+              myShepherd.rollbackDBTransaction();
+              myShepherd.closeDBTransaction();
+            }
+            //tasksCompleted.add(scanTaskID);
+          //}
           
         }
-
-
       }
 
 
@@ -244,7 +267,7 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
     URL u=null;
     //InputStream inputStreamFromServlet=null;
     //BufferedReader in=null;
-    HttpsURLConnection finishConnection=null;
+    HttpURLConnection finishConnection=null;
     DataOutputStream wr=null;
     
     try {
@@ -260,8 +283,12 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
       
       System.out.println("...writing out scanTask result: "+scanTaskID+" to URL: "+u.toString());
       
-      
-      finishConnection = (HttpsURLConnection)u.openConnection();
+      if(request.getScheme().equals("https")){
+        finishConnection = (HttpsURLConnection)u.openConnection();
+      }
+      else{
+        finishConnection = (HttpURLConnection)u.openConnection();
+      }
       
       finishConnection.setDoOutput( true );
       finishConnection.setDoInput ( true );

@@ -1,15 +1,19 @@
 package org.ecocean;
 
-import java.io.Writer;
 import javax.servlet.jsp.JspWriter;
+import javax.servlet.http.HttpServletRequest;
 
+import java.io.Writer;
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.util.List;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
-
-import org.ecocean.datacollection.DataPoint;
 
 /*
  * An almost entirely static / functional class for printing html UI elements
@@ -23,58 +27,47 @@ public class ClassEditTemplate {
   public ClassEditTemplate() {
   }
 
-  public static void updateObjectField(Object obj, String setterName, String valueAsString) throws NoSuchMethodException {
+  public static void invokeObjectMethod(Object obj, String methodName, String valueAsString) throws NoSuchMethodException {
     try {
-      Class c = findTypeOfField(obj.getClass(), setterName);
+      Class c = findTypeOfField(obj.getClass(), methodName);
 
       if (c == Double.class){
         Double dbl = Double.parseDouble(valueAsString);
-        Method setter = obj.getClass().getMethod(setterName, Double.class);
+        Method setter = obj.getClass().getMethod(methodName, Double.class);
         setter.invoke(obj, dbl);
-        System.out.println("updateObjectField: just invoked "+setterName+" with value "+dbl);
+        System.out.println("updateObjectField: just invoked "+methodName+" with value "+dbl);
       }
 
       if (c == Integer.class){
         Integer in = Integer.parseInt(valueAsString);
-        Method setter = obj.getClass().getMethod(setterName, Integer.class);
+        Method setter = obj.getClass().getMethod(methodName, Integer.class);
         setter.invoke(obj, in);
-        System.out.println("updateObjectField: just invoked "+setterName+" with value "+in);
+        System.out.println("updateObjectField: just invoked "+methodName+" with value "+in);
       }
 
       if (c == Boolean.class){
         Boolean bo = Boolean.parseBoolean(valueAsString);
-        Method setter = obj.getClass().getMethod(setterName, Boolean.class);
+        Method setter = obj.getClass().getMethod(methodName, Boolean.class);
         setter.invoke(obj, bo);
-        System.out.println("updateObjectField: just invoked "+setterName+" with value "+bo);
+        System.out.println("updateObjectField: just invoked "+methodName+" with value "+bo);
       }
 
       if (c == String.class){
-        Method setter = obj.getClass().getMethod(setterName, String.class);
+        Method setter = obj.getClass().getMethod(methodName, String.class);
         setter.invoke(obj, valueAsString);
-        System.out.println("updateObjectField: just invoked "+setterName+" with value "+valueAsString);
+        System.out.println("updateObjectField: just invoked "+methodName+" with value "+valueAsString);
       }
 
       if (c == DateTime.class){
-        DateTime dt = null;
-        if (isLongString(valueAsString)) dt = new DateTime(Long.parseLong(valueAsString));
-        else dt = DateTime.parse(valueAsString);
-        Method setter = obj.getClass().getMethod(setterName, DateTime.class);
+        DateTime dt = DateTime.parse(valueAsString);
+        Method setter = obj.getClass().getMethod(methodName, DateTime.class);
         setter.invoke(obj, dt);
-        System.out.println("updateObjectField: just invoked "+setterName+" with value "+dt);
+        System.out.println("updateObjectField: just invoked "+methodName+" with value "+dt);
 
       }
     } catch (Exception e) {
-      System.out.println("updateObjectField: was not able to invoke "+setterName+" with value "+valueAsString);
+      System.out.println("updateObjectField: was not able to invoke "+methodName+" with value "+valueAsString);
       e.printStackTrace();
-    }
-  }
-
-  private static boolean isLongString(String str) {
-    try {
-      Long l = Long.parseLong(str);
-      return true;
-    } catch (NumberFormatException nfe) {
-      return false;
     }
   }
 
@@ -119,7 +112,7 @@ public class ClassEditTemplate {
            "(?<=[A-Za-z])(?=[^A-Za-z])"
         ),
         " "
-     ).toLowerCase();
+     );
   }
 
 
@@ -147,14 +140,6 @@ public class ClassEditTemplate {
     String fieldName = getMeth.getName().substring(3);
     return constructInputElemName(classNamePrefix, fieldName);
   }
-
-  public static String inputElemName(DataPoint dp, String classNamePrefix) {
-    String fieldName = dp.getName();
-    if (dp.getNumber()!=null) fieldName = fieldName + (dp.getNumber() + 1);
-    return constructInputElemName(classNamePrefix+"-dp-"+dp.getID(), fieldName);
-  }
-
-
 
   public static boolean isDisplayableGetter(Method method) {
     try {
@@ -204,32 +189,42 @@ public class ClassEditTemplate {
 
   }
 
-  public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
-    printOutClassFieldModifierRow(obj, dp, out, "context0");
+  public static void printOutClassFieldModifierRows(Object obj, String[] fieldNames, javax.servlet.jsp.JspWriter out) {
+    for (String fieldName : fieldNames) {
+      try {
+        printOutClassFieldModifierRow(obj, fieldName, out);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 
-  public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out, String context) throws IOException, IllegalAccessException, InvocationTargetException {
-    String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
-    String classNamePrefix = ""; // e.g. "occ"
-    if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
-    else classNamePrefix = className.toLowerCase();
-
-    String printValue = dp.getValueString();
-    if (printValue == null) System.out.println("It's really null! I knew it!");
-    //if (printValue.equals("null")) printValue = "";
-    String fieldName = splitCamelCase(dp.getNumberedName());
-    String inputName = inputElemName(dp, classNamePrefix);
-
-    boolean isSequential = dp.isSequential();
-
-    if (dp.isCategorical(context)) {
-      printOutClassFieldSelectorRow(fieldName, printValue, dp.getCategoriesAsStrings(context), inputName, out, isSequential);
-      //printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
-    } else if (dp.getClass().getSimpleName().equals("Instant")) {
-      printOutDateTimeModifierRow(fieldName, printValue, dp.getUnits(), inputName, out, isSequential);
-    } else {
-      printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out, isSequential);
+  // like the above but checks posValueProps to see if there are property-defined values for the class
+  public static void printOutClassFieldModifierRows(Object obj, String[] fieldNames, javax.servlet.jsp.JspWriter out, Properties posValueProps) {
+    for (String fieldName : fieldNames) {
+      try {
+        if (Util.hasProperty(fieldName+"0", posValueProps)) {
+          printOutClassFieldModifierRow(obj, fieldName, Util.getIndexedPropertyValues(fieldName, posValueProps), out);
+        }
+        else printOutClassFieldModifierRow(obj, fieldName, out);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
+  }
+
+
+  public static void printOutClassFieldModifierRow(Object obj, String fieldName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    String getterName = "get" + fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
+    Method getter = obj.getClass().getMethod(getterName);
+    printOutClassFieldModifierRow(obj, getter, out);
+  }
+
+  public static void printOutClassFieldModifierRow(Object obj, String fieldName, List<String> posValues, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    String getterName = "get" + fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
+    Method getter = obj.getClass().getMethod(getterName);
+    //printOutClassFieldModifierRow(obj, getter, out);
+    printOutClassFieldModifierRow(obj, getter, posValues, out);
   }
 
 
@@ -245,11 +240,11 @@ public class ClassEditTemplate {
     String fieldName = prettyFieldNameFromGetMethod(getMethod);
     String inputName = inputElemName(getMethod, classNamePrefix);
 
-    printOutClassFieldModifierRow(fieldName, printValue, (String) null, inputName, out, false);
+    printOutClassFieldModifierRow(fieldName, printValue, (String) null, inputName, out);
 
   }
 
-  public static void printOutClassFieldModifierRow(Object obj, Method getMethod, String[] setOptions, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+  public static void printOutClassFieldModifierRow(Object obj, Method getMethod, List<String> posValues, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
     if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
@@ -261,181 +256,66 @@ public class ClassEditTemplate {
     String fieldName = prettyFieldNameFromGetMethod(getMethod);
     String inputName = inputElemName(getMethod, classNamePrefix);
 
-    printOutClassFieldSelectorRow(fieldName, printValue, setOptions, inputName, out, false);
+    System.out.println("printing out "+fieldName+" with pos values "+posValues);
+
+    printOutClassFieldModifierRow(fieldName, printValue, posValues, inputName, out);
 
   }
 
 
 
   // custom method to replicate a very specific table row format on this page
-  public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException, IllegalAccessException, InvocationTargetException {
-    printFieldRowStart(printValue, out, isSequential);
+  public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
 
-    printFieldLabelCell(fieldName, out);
-    printInputCell(inputName, printValue, out);
-    printUnitsCell(units, out);
-    printUndoCell(out);
-
-    out.println("\n</tr>");
-  }
-
-  public static void printOutSequentialClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out, boolean isTemplate) throws IOException, IllegalAccessException, InvocationTargetException {
-    printSequentialFieldRowStart(printValue, out, isTemplate);
-
-    printFieldLabelCell(fieldName, out);
-    printInputCell(inputName, printValue, out);
-    printUnitsCell(units, out);
-    printUndoCell(out);
-
-    out.println("\n</tr>");
-  }
-
-
-  // custom method to replicate a very specific table row format on this page
-  public static void printOutDateTimeModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException, IllegalAccessException, InvocationTargetException {
-    printFieldRowStart(printValue, out, isSequential);
-
-    printFieldLabelCell(fieldName, out);
-    printDateTimeCell(inputName, printValue, out);
-    printUnitsCell(units, out);
-    printUndoCell(out);
-
-    out.println("\n</tr>");
-  }
-
-  public static void printOutDateTimeModifierRow(Object obj, Method getMethod, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
-
-    String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
-    String classNamePrefix = ""; // e.g. "occ"
-    if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
-    else classNamePrefix = className.toLowerCase();
-
-    String printValue;
-    if (getMethod.invoke(obj)==null) printValue = "";
-    else printValue = getMethod.invoke(obj).toString();
-    String fieldName = prettyFieldNameFromGetMethod(getMethod);
-    String inputName = inputElemName(getMethod, classNamePrefix);
-
-    System.out.println("About to printOutDateTimeModifierRow("+fieldName+", "+printValue+", null, "+inputName+", out, false)");
-
-    printOutDateTimeModifierRow(fieldName, printValue, (String) null, inputName, out, false);
-
-  }
-
-
-  public static void printOutClassFieldSelectorRow(String fieldName, String printValue, String[] possibleValues, String inputName, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException, IllegalAccessException, InvocationTargetException {
-
-    System.out.println("printOutClassFieldSelectorRow!");
-
-    printFieldRowStart(printValue, out, isSequential);
-
-    printFieldLabelCell(fieldName, out);
-    printSelectCell(inputName, printValue, possibleValues, out);
-    printSelectUndoCell(out);
-
-    out.println("\n</tr>");
-  }
-
-
-  public static void printInput(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("\t\t<input name=\""+inputName+"\" value=\""+printValue+"\" />");
-  }
-
-  public static void printInputCell(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("<tr data-original-value=\""+printValue+"\">");
+    out.println("\t<td class=\"fieldName\">"+fieldName+"</td>");
     out.println("\t<td class=\"value\">");
-    printInput(inputName, printValue, out);
-    out.println("</td>");
-  }
-
-  public static void printDateTimeCell(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("\t<td class=\"display\">");
-    printDisplayDateTimeSetter(inputName, printValue, out);
-    printMillisDateTimeSetter(inputName, printValue, out);
-    out.println("</td>");
-  }
-
-
-  public static void printDisplayDateTimeSetter(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("<input class=\"form-control datepicker display\" type=\"text\"");
-    out.println("name=\"display-"+inputName+"\" ");
+    out.println("\t\t<input ");
+    out.println("name=\""+inputName+"\" ");
     out.println("value=\""+printValue+"\"");
     out.println("/>");
-  }
+    out.println("\t</td>");
 
-  public static void printMillisDateTimeSetter(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("<input class=\"form-control datepicker millis\" type=\"text\" style=\"display:none;\"");
-    out.println("name=\""+inputName+"\" ");
-    //out.println("value=\""+printValue+"\"");
-    out.println("/>");
-  }
-
-
-  public static void printSelectCell(String inputName, String printValue, String[] possibleValues, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("\t<td class=\"value\">");
-    printSelect(inputName, printValue, possibleValues, out);
-    out.println("</td>");
-  }
-
-  public static void printSelect(String inputName, String printValue, String[] possibleValues, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("<script>console.log(\"printSelect called on inputName="+inputName+", printValue="+printValue+"\")</script>");
-    out.println("<select name=\""+inputName+"\">");
-    printOption("", printValue, out); // gotta be able to unset the values
-    for (String possibleValue : possibleValues) printOption(possibleValue, printValue, out);
-    out.println("</select>");
-  }
-  public static void printOption(String possibleValue, String currentValue, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("\t<option value=\""+possibleValue+"\"");
-    if (possibleValue!=null && possibleValue.equals(currentValue)) {
-      out.print("selected=\"selected\"");
-    }
-    out.print("> "+possibleValue+" </option>");
-  }
-
-
-  public static void printFieldLabelCell(String fieldName, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("\t<td class=\"fieldName\">"+fieldName+"</td>");
-  }
-
-  public static void printUndoCell(javax.servlet.jsp.JspWriter out) throws IOException {
     out.println("<td class=\"undo-container\">");
     out.println("<div title=\"undo this change\" class=\"undo-button\">&#8635;</div>");
     out.println("</td>");
-  }
 
-  public static void printSelectUndoCell(javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("<td class=\"undo-container\">");
-    out.println("<div title=\"undo this change\" class=\"select-undo-button\">&#8635;</div>");
-    out.println("</td>");
-  }
-
-
-
-
-
-
-
-  public static void printUnitsCell(String units, javax.servlet.jsp.JspWriter out) throws IOException {
     if (units!=null && !units.equals("")) {
-      out.println("<td class=\"unit-label\">"+units+"</td>");
+      out.println("<td>"+units+"</td>");
     }
+
+    out.println("\n</tr>");
   }
 
-  public static void printFieldRowStart(String dataOriginalValue, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException {
-    if (isSequential) {
-      out.println("<tr class=\"sequential\" data-original-value=\""+dataOriginalValue+"\">");
-    } else {
-      out.println("<tr data-original-value=\""+dataOriginalValue+"\">");
-    }
-  }
 
-  public static void printSequentialFieldRowStart(String dataOriginalValue, javax.servlet.jsp.JspWriter out, boolean isTemplate) throws IOException {
-    if (isTemplate) {
-      out.println("<tr class=\"sequential template\" data-original-value=\""+dataOriginalValue+"\">");
-    } else {
-      out.println("<tr class=\"sequential\" data-original-value=\""+dataOriginalValue+"\">");
-    }
-  }
+  // custom method to replicate a very specific table row format on this page
+  public static void printOutClassFieldModifierRow(String fieldName, String printValue, List<String> posValues, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
 
+    System.out.println("hello from posValues!");
+    out.println("<tr data-original-value=\""+printValue+"\">");
+    out.println("\t<td class=\"fieldName\">"+fieldName+"</td>");
+    out.println("\t<td class=\"value\">");
+
+    // selects active value
+    if (printValue==null) printValue="";
+    String SELECTED = " selected=\"selected\" ";
+    String thisSelStr = (printValue.equals("")) ? SELECTED : "";
+
+    out.println("\t\t<select name=\""+inputName+"\">");
+    out.println("\t\t\t<option value=\"\" "+thisSelStr+" ></option>");
+    for (String valStr: posValues) {
+      thisSelStr = (printValue.equals(valStr)) ? SELECTED : "";
+      out.println("\t\t\t<option value=\""+valStr+"\" "+thisSelStr+">"+valStr+"</option>");
+    }
+    out.println("\t\t</select>");
+    out.println("\t</td>");
+
+    out.println("<td class=\"undo-container\">");
+    out.println("<div title=\"undo this change\" class=\"undo-button\">&#8635;</div>");
+    out.println("</td>");
+
+    out.println("\n</tr>");
+  }
 
 
 
@@ -453,30 +333,45 @@ public class ClassEditTemplate {
     printUnmodifiableField(fieldName, printValue, out);
   }
 
+  public static void saveUpdatedFields(Object obj, HttpServletRequest request, Shepherd myShepherd) throws NoSuchMethodException {
+
+    String relevantParamPrefix = getPrefixName(obj) + ":";
+    System.out.println("ClassEditTemplate: Saving updated fields...");
+    Enumeration en = request.getParameterNames();
+    while (en.hasMoreElements()) {
+
+      String pname = (String) en.nextElement();
+      if (pname.indexOf(relevantParamPrefix) == 0) {
+        String setterName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
+        String value = request.getParameter(pname);
+        invokeObjectMethod(obj, setterName, value);
+      }
+
+    }
+    myShepherd.commitDBTransaction();
+    System.out.println("ClassEditTemplate transaction committed");
+  }
+
+
   public static void printUnmodifiableField(String fieldName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     out.println("\n<tr>");
-    out.println("\n\t<td><em>"+fieldName+"</em></td>");
-    out.println("\n\t<td><em>"+printValue+"</em></td>");
+    out.println("\n\t<td>"+fieldName+"</td>");
+    out.println("\n\t<td>"+printValue+"</td>");
     out.println("\n</tr>");
   }
 
-  // inverse of createNumberedRowFromTemplate's oldName -> newName process
-  public static String getDataNameFromParameter(String pname) {
-    String afterColon = pname.split(":")[1];
-    String afterDash  = afterColon.split("-")[1];
-    return splitCamelCase(afterDash).toLowerCase().replaceAll("[0-9]","");
+  public static String getPrefixName(Object obj) {
+    return getPrefixName(obj.getClass().getSimpleName());
   }
 
-  public static Integer getDataNumberFromParameter(String pname) {
-    String afterColon = pname.split(":")[1];
-    String afterDash  = afterColon.split("-")[1];
-    return getIntegerFromString(afterDash);
+  public static String getPrefixName(String className) {
+    if (className.length()>2) return(className.substring(0,3).toLowerCase());
+    else return(className.toLowerCase());
   }
 
-  public static Integer getIntegerFromString(String str) {
-    String justNum = str.replaceAll("[^0-9]", "");
-    return Integer.valueOf(justNum);
-  }
+
+
+
 
 
 }

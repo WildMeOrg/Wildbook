@@ -20,9 +20,9 @@ public class ShepherdProperties {
   }
 
   public static Properties getProperties(String fileName, String langCode, String context){
-    Properties props=new Properties();
+    LinkedProperties props=new LinkedProperties();
 
-    String shepherdDataDir="shepherd_data_dir";
+    String shepherdDataDir="wildbook_data_dir";
     if(!langCode.equals("")){
       langCode=langCode+"/";
     }
@@ -40,7 +40,7 @@ public class ShepherdProperties {
     //context change here!
     
     
-    Properties overrideProps=loadOverrideProps(shepherdDataDir, fileName, langCode);
+    LinkedProperties overrideProps=loadOverrideProps(shepherdDataDir, fileName, langCode);
     //System.out.println(overrideProps);
 
     if(overrideProps.size()>0){props=overrideProps;}
@@ -53,10 +53,18 @@ public class ShepherdProperties {
         inputStream.close();
       }
       catch (IOException ioe) {
-        ioe.printStackTrace();
-      } catch (Exception e) {
-        System.out.println("Horrible exception within the Properties!");
-        e.printStackTrace();
+        
+        //OK, we couldn't find the overridden file, and we couldn't find the local file in the webapp
+        //default to the English version
+        if(!langCode.equals("en")) {
+          props=(LinkedProperties)getProperties(fileName, "en", context);
+        }
+        else {
+          ioe.printStackTrace();
+        }
+        
+        
+        
       }
     }
 
@@ -78,10 +86,10 @@ public class ShepherdProperties {
     return props;
   }
 
-  private static Properties loadOverrideProps(String shepherdDataDir, String fileName, String langCode) {
+  private static LinkedProperties loadOverrideProps(String shepherdDataDir, String fileName, String langCode) {
     //System.out.println("Starting loadOverrideProps");
 
-    Properties myProps=new Properties();
+    LinkedProperties myProps=new LinkedProperties();
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
     //System.out.println(configDir.getAbsolutePath());
     //sometimes this ends up being the "bin" directory of the J2EE container

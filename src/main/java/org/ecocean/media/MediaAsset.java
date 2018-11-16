@@ -29,7 +29,9 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
 import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.identity.IBEISIA;
-//import org.ecocean.Encounter;
+import org.ecocean.Encounter;
+import org.ecocean.ia.Task;
+import org.ecocean.acm.AcmBase;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -41,6 +43,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Set;
 import java.util.List;
+import java.util.Base64;
 import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -111,7 +114,10 @@ public class MediaAsset implements java.io.Serializable {
 
     protected DateTime userDateTime;
 
-
+    // Variables used in the Survey, SurveyTrack, Path, Location model
+    
+    private String correspondingSurveyTrackID;
+    private String correspondingSurveyID;
 
 
     //protected MediaAssetType type;
@@ -128,6 +134,9 @@ public class MediaAsset implements java.io.Serializable {
     //private LocalDateTime metaTimestamp;
     //private Double metaLatitude;
     //private Double metaLongitude;
+
+    private String acmId;
+
 
 
     /**
@@ -170,6 +179,13 @@ public class MediaAsset implements java.io.Serializable {
         this.setAccessControl(new AccessControl(request));
     }
 
+    public void setAcmId(String id) {
+        this.acmId = id;
+    }
+    public String getAcmId() {
+        return this.acmId;
+    }
+
     private URL getUrl(final AssetStore store, final Path path) {
         if (store == null) {
             return null;
@@ -206,6 +222,32 @@ public class MediaAsset implements java.io.Serializable {
 
     public void setOccurrence(Occurrence occ) {
       this.occurrence = occ;
+    }
+    
+    public void setCorrespondingSurveyTrackID(String id) {
+      if (id != null && !id.equals("")) {
+        correspondingSurveyTrackID = id;
+      }
+    }
+
+    public String getCorrespondingSurveyTrackID() {
+      if (correspondingSurveyTrackID != null) {
+        return correspondingSurveyTrackID;
+      }
+      return null;
+    }
+    
+    public void setCorrespondingSurveyID(String id) {
+      if (id != null && !id.equals("")) {
+        correspondingSurveyID = id;
+      }
+    }
+    
+    public String getCorrespondingSurveyID() {
+      if (correspondingSurveyID != null) {
+        return correspondingSurveyID;
+      }
+      return null;
     }
 
     public String getDetectionStatus() {
@@ -271,11 +313,16 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public MediaAsset getParentRoot(Shepherd myShepherd) {
-        Integer pid = this.getParentId();
-        if (pid == null) return this;
-        MediaAsset par = MediaAssetFactory.load(pid, myShepherd);
-        if (par == null) return this;  //orphaned!  fail!!
+        MediaAsset par = this.getParent(myShepherd);
+        if (par == null) return this;  //reached the root!
         return par.getParentRoot(myShepherd);
+    }
+
+    //returns null if no parent
+    public MediaAsset getParent(Shepherd myShepherd) {
+        Integer pid = this.getParentId();
+        if (pid == null) return null;
+        return MediaAssetFactory.load(pid, myShepherd);
     }
 
     public JSONObject getParameters() {
@@ -293,38 +340,6 @@ public class MediaAsset implements java.io.Serializable {
         }
         parameters = p;
         parametersAsString = p.toString();
-    }
-
-    private static boolean isAscii(char ch) {
-      return ch < 128;
-    }
-    private static boolean isAscii(String str) {
-      char[] chars = str.toCharArray();
-      for (char ch: chars) {
-        if (!isAscii(ch) || (ch=='ñ')) return false;
-      }
-      return true;
-    }
-    // public boolean isCleanForIBEIS() {
-    //   try {
-    //     String thePath = parameters.getString("path");
-    //     return (isAscii(thePath) && this.isMimeTypeMajor("image") && this.getWidth()!=0 && this.getHeight()!=0);
-    //   } catch (Exception e) {
-    //     return false;
-    //   }
-    // }
-    public boolean isCleanForIBEIS() {
-      boolean ans = (this.isMimeTypeMajor("image") &&
-              this.getWidth()!=0 &&
-              this.getHeight()!=0);
-      if (!ans) {
-        System.out.print("Dirty Asset report for asset "+this.getId()+": ");
-        if (!this.isMimeTypeMajor("image")) System.out.print("Not an image (mimeTypeMajor = "+this.getMimeTypeMajor()+"). ");
-        if (this.getWidth()==0) System.out.print("Width=0. ");
-        if (this.getHeight()==0) System.out.print("Height=0. ");
-        System.out.println();
-      }
-      return ans;
     }
 
 
@@ -424,6 +439,13 @@ public class MediaAsset implements java.io.Serializable {
             f.asset = this;
         }
     }
+    //note: this will outright deletes feature (from db, blame datanucleus), and thus will
+    // break the reference from Annotation-Feature that (likely) existed ... oops?
+    public void removeFeature(Feature f) {
+        if (features == null) return;
+        System.out.println("INFO: removeFeature() killing off " + f + " from " + this);
+        features.remove(f);
+    }
 
     //kinda sorta really only for Encounter.findAllMediaByFeatureId()
     public boolean hasFeatures(String[] featureIds) {
@@ -484,9 +506,15 @@ public class MediaAsset implements java.io.Serializable {
      human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
      FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string),
               then (b) crawl metadata.exif for something date-y
+
+        TODO maybe someday this actually should be *only* punting to store.getDateTime() ????
     */
     public DateTime getDateTime() {
         if (this.userDateTime != null) return this.userDateTime;
+        if (this.store != null) {
+            DateTime dt = this.store.getDateTime(this);
+            if (dt != null) return dt;
+        }
         if (getMetadata() == null) return null;
         String adt = getMetadata().getAttributes().optString("dateTime", null);
         if (adt != null) return DateTime.parse(adt);  //lets hope it is in iso8601 format like it should be!
@@ -551,17 +579,19 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     //if unity feature is appropriate, generates that; otherwise does a boundingBox one
-    public Feature generateFeatureFromBbox(double w, double h, double x, double y) {
+    //   'params' is extra params to use, and can be null
+    public Feature generateFeatureFromBbox(double w, double h, double x, double y, JSONObject params) {
         Feature f = null;
         if ((x != 0) || (y != 0) || (w != this.getWidth()) || (h != this.getHeight())) {
-            JSONObject p = new JSONObject();
-            p.put("width", w);
-            p.put("height", h);
-            p.put("x", x);
-            p.put("y", y);
-            f = new Feature("org.ecocean.boundingBox", p);
+            if (params == null) params = new JSONObject();
+            params.put("width", w);
+            params.put("height", h);
+            params.put("x", x);
+            params.put("y", y);
+            f = new Feature("org.ecocean.boundingBox", params);
             this.addFeature(f);
         } else {
+            //oopsy this ignores extra params!   TODO FIXME should we change this?
             f = this.generateUnityFeature();
         }
         return f;
@@ -639,12 +669,13 @@ public class MediaAsset implements java.io.Serializable {
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
         }
-
         try {
             int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
-            if (i == 0) return new URL(store.getUsage().substring(16));
+            if (i == 0) {
+                String localURL = store.getUsage().substring(16);
+                return new URL(localURL);
+            } 
         } catch (java.net.MalformedURLException ex) {}
-
         return store.webURL(this);
     }
 
@@ -675,6 +706,7 @@ public class MediaAsset implements java.io.Serializable {
         //the throw-away Shepherd object is [mostly!] ok here since we arent returning the MediaAsset it is used to find
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAsset.safeURL");
+        myShepherd.beginDBTransaction();
         URL u = safeURL(myShepherd, request);
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
@@ -683,15 +715,35 @@ public class MediaAsset implements java.io.Serializable {
     public URL safeURL() {
         return safeURL((HttpServletRequest)null);
     }
+
+    public URL containerURLIfPresent() {
+        String containerName = CommonConfiguration.getProperty("containerName","context0");
+
+        URL localURL = store.getConfig().getURL("webroot"); 
+        if (localURL == null) return null;
+        String hostname = localURL.getHost(); 
+
+        if (containerName!=null&&containerName!="") {
+            try {
+                System.out.println("Using containerName for MediaAsset URL domain..");
+                return new URL(store.webURL(this).getProtocol(), containerName, 80, store.webURL(this).getFile());
+            } catch (java.net.MalformedURLException ex) {}
+        }
+        try {
+            return new URL(hostname);
+        } catch (java.net.MalformedURLException mue) {}
+        return null;
+    }
+
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request, String bestType) {
         if (store == null) return null;
         //this logic is simplistic now, but TODO make more complex (e.g. configurable) later....
         //TODO should be block "original" ???  is that overkill??
         if (bestType == null) bestType = "master";
         //note, this next line means bestType may get bumped *up* for anon user.... so we should TODO some logic in there if ever needed
-        if (AccessControl.simpleUserString(request) == null) bestType = "watermark";
+        if (AccessControl.isAnonymous(request)) bestType = "watermark";
         if (store instanceof URLAssetStore) bestType = "original";  //this is cuz it is assumed to be a "public" url
-// System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
+//System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
 
         //gotta consider that we are the best!
         if (this.hasLabel("_" + bestType)) return this;
@@ -701,6 +753,10 @@ public class MediaAsset implements java.io.Serializable {
         if (parentId != null) {
             top = MediaAssetFactory.load(parentId, myShepherd);
             if (top == null) throw new RuntimeException("bestSafeAsset() failed to find parent on " + this);
+            if (!top.hasLabel("_original")) {
+                //System.out.println("INFO: " + this + " had a non-_original parent of " + top + "; so using this");
+                return this;  //we stick with this cuz we are kinda at a dead end
+            }
         }
 
         boolean gotBest = false;
@@ -708,7 +764,7 @@ public class MediaAsset implements java.io.Serializable {
         for (String t : types) {
             if (t.equals(bestType)) gotBest = true;
             if (!gotBest) continue;  //skip over any "better" types until we get to best we can use
-// System.out.println("   ....  ??? do we have a " + t);
+//System.out.println("   ....  ??? do we have a " + t);
             //now try to see if we have one!
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
             if ((kids != null) && (kids.size() > 0)) return kids.get(0); ///not sure how to pick if we have more than one!  "probably rare" case anyway....
@@ -825,15 +881,16 @@ public class MediaAsset implements java.io.Serializable {
     }
 
 
-	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
                 org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
             return sanitizeJson(request, jobj, true);
         }
 
         //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
-	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
               org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
               jobj.put("id", this.getId());
+                jobj.put("detectionStatus", this.getDetectionStatus());
               jobj.remove("parametersAsString");
             //jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
 
@@ -841,6 +898,12 @@ public class MediaAsset implements java.io.Serializable {
             HashMap<String,String> s = new HashMap<String,String>();
             s.put("type", store.getType().toString());
             jobj.put("store", s);
+
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MediaAsset.class_1");
+            myShepherd.beginDBTransaction();
+
             ArrayList<Feature> fts = getFeatures();
             if ((fts != null) && (fts.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray jarr = new org.datanucleus.api.rest.orgjson.JSONArray();
@@ -848,9 +911,27 @@ public class MediaAsset implements java.io.Serializable {
                     org.datanucleus.api.rest.orgjson.JSONObject jf = new org.datanucleus.api.rest.orgjson.JSONObject();
                     Feature ft = fts.get(i);
                     jf.put("id", ft.getId());
-                    jf.put("type", ft.getType());
+                    try {  //for some reason(?) this will get a jdo error for "row not found".  why???  anyhow, we catch it
+                        jf.put("type", ft.getType());
+                    } catch (Exception ex) {
+                        jf.put("type", "unknown");
+                        System.out.println("ERROR: MediaAsset.sanitizeJson() on " + this.toString() + " threw " + ex.toString());
+                    }
                     JSONObject p = ft.getParameters();
                     if (p != null) jf.put("parameters", Util.toggleJSONObject(p));
+
+                    //we add this stuff for gallery/image to link to co-occurring indiv/enc
+                    Annotation ann = ft.getAnnotation();
+                    if (ann != null) {
+                        jf.put("annotationId", ann.getId());
+                        jf.put("annotationIsOfInterest", ann.getIsOfInterest());
+                        Encounter enc = ann.findEncounter(myShepherd);
+                        if (enc != null) {
+                            jf.put("encounterId", enc.getCatalogNumber());
+                            if (enc.hasMarkedIndividual()) jf.put("individualId", enc.getIndividualID());
+                        }
+                    }
+
                     jarr.put(jf);
                 }
                 jobj.put("features", jarr);
@@ -863,15 +944,11 @@ public class MediaAsset implements java.io.Serializable {
             if (dt != null) jobj.put("dateTime", dt.toString());  //DateTime.toString() gives iso8601, noice!
 
             //note? warning? i guess this will traverse... gulp?
-            String context = ServletUtilities.getContext(request);
-            Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("MediaAsset.class");
-            myShepherd.beginDBTransaction();
-
             URL u = safeURL(myShepherd, request);
             if (u != null) jobj.put("url", u.toString());
 
-            ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
+            ArrayList<MediaAsset> kids = null;
+            if (!jobj.optBoolean("_skipChildren", false)) kids = this.findChildren(myShepherd);
             myShepherd.rollbackDBTransaction();
             if ((kids != null) && (kids.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray k = new org.datanucleus.api.rest.orgjson.JSONArray();
@@ -885,6 +962,7 @@ public class MediaAsset implements java.io.Serializable {
               jobj.put("userLatitude",this.getLatitude());
               jobj.put("userLongitude",this.getLongitude());
               jobj.put("userDateTime",this.getUserDateTime());
+              jobj.put("filename", this.getFilename());  //this can "vary" depending on store type
             }
 
             jobj.put("occurrenceID",this.getOccurrenceID());
@@ -901,7 +979,7 @@ public class MediaAsset implements java.io.Serializable {
                 }
                 jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
             }
-
+            
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
 
@@ -910,14 +988,11 @@ public class MediaAsset implements java.io.Serializable {
 
 
     public String toString() {
-
-        String storeStr = (store==null) ? "null" : store.toString();
-
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("parent", parentId)
                 .append("labels", ((labels == null) ? "" : labels.toString()))
-                .append("store", storeStr)
+                .append("store", store.toString())
                 .toString();
     }
 
@@ -1037,7 +1112,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public ArrayList<Keyword> getKeywords() {
         return keywords;
     }
-
+    
     public boolean hasKeyword(String keywordName){
       if(keywords!=null){
         int numKeywords=keywords.size();
@@ -1046,15 +1121,21 @@ System.out.println(">> updateStandardChildren(): type = " + type);
           if((kw.getIndexname().equals(keywordName))||(kw.getReadableName().equals(keywordName))){return true;}
         }
       }
-
+      
       return false;
     }
-
+    
     public boolean hasKeyword(Keyword key){
       if(keywords!=null){
         if(keywords.contains(key)){return true;}
       }
       return false;
+    }
+    
+    public void removeKeyword(Keyword k) {
+      if (keywords != null) {
+        if (keywords.contains(k)) keywords.remove(k);
+      }
     }
 
 
@@ -1103,6 +1184,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     }
     public void setMetadata(MediaAssetMetadata md) {
         metadata = md;
+    }
+    public void setMetadata() throws IOException {
+        setMetadata(updateMetadata());
     }
     public MediaAssetMetadata updateMetadata() throws IOException {  //TODO should this overwrite existing, or append?
         if (store == null) return null;
@@ -1164,14 +1248,19 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         if (b64 == null) throw new IOException("copyInBase64() null string");
         byte[] imgBytes = new byte[100];
         try {
-            imgBytes = DatatypeConverter.parseBase64Binary(b64);
+            imgBytes = Base64.getDecoder().decode(b64);
         } catch (IllegalArgumentException ex) {
             throw new IOException("copyInBase64() could not parse: " + ex.toString());
         }
         File file = (this.localPath() != null) ? this.localPath().toFile() : File.createTempFile("b64-" + Util.generateUUID(), ".tmp");
+        File parentDir = file.getParentFile();
+        if (!parentDir.exists()) parentDir.mkdirs();
         FileOutputStream stream = new FileOutputStream(file);
         try {
             stream.write(imgBytes);
+        } catch (Exception e) {
+            System.out.println("Exception from Writing FileOutputStream with imgBytes");
+            e.printStackTrace();
         } finally {
             stream.close();
         }
@@ -1186,6 +1275,10 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public boolean isValidChildType(String type) {
         if (store == null) return false;
         return store.isValidChildType(type);
+    }
+
+    public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
+        return Task.getRootTasksFor(this, myShepherd);
     }
 
 

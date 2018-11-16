@@ -535,9 +535,8 @@ public class RestServlet extends HttpServlet
             }
 
             Object pc = RESTUtils.getObjectFromJSONObject(jsonobj, className, ec);
-                        boolean restAccessOk = true;  //nope! now we are letting anyone in (go spring break! woohoo!)
                         //boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
-                        //boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
+                        boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
 /*
 System.out.println(jsonobj);
 System.out.println("+++++");
@@ -894,10 +893,13 @@ System.out.println(thisRequest);
                 for (Object obj : (Collection)result) {
                     cls = obj.getClass();
                     if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+                    else if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
+                    
                 }
             } else {
                 cls = result.getClass();
                 if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+                else  if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
             }
             return out;
         }

@@ -18,11 +18,24 @@ import org.joda.time.LocalDateTime;
 
 import org.json.JSONObject;
 import org.json.JSONException;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.text.DateFormat;
+import java.util.TimeZone;
+
+import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
+
 
 //EXIF-related imports
 import java.io.File;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
@@ -55,6 +68,8 @@ public class Util {
   private static final String BIOLOGICALMEASUREMENTUNITS = BIOLOGICALMEASUREMENT.replaceAll("Type", "Units");
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
+  private static final String VESSEL = "vessel";
+  private static final String GENUS_SPECIES = "genusSpecies";
 
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
@@ -74,6 +89,29 @@ public class Util {
     }
     return list;
   }
+  
+  public static ArrayList<String> findVesselNames(String langCode,String context) {
+    ArrayList<String> list = new ArrayList<String>();
+    List<String> types = CommonConfiguration.getIndexedPropertyValues(VESSEL,context);
+    if (types.size() > 0) {
+      for (int i = 0; i < types.size(); i++) {
+        String type = types.get(i);
+        list.add(type);
+      }
+    }
+    return list;
+  }
+  
+  public static ArrayList<String> findSpeciesNames(String langCode, String context) {
+    ArrayList<String> nameArr = new ArrayList<>();
+    List<String> nameList = CommonConfiguration.getIndexedPropertyValues(GENUS_SPECIES,context);
+    if (nameList.size() > 0) {
+      for  (String name : nameList) {
+        nameArr.add(name);
+      }  
+    }
+    return nameArr;
+  } 
 
   public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
@@ -291,8 +329,13 @@ public class Util {
         coords=new ArrayList<Point2D>(encsSize);
         for(int i=0;i<encsSize;i++){
           Encounter e=encs.get(i);
-          int lat=(int)e.getDecimalLatitudeAsDouble();
-          int longie=(int)e.getDecimalLongitudeAsDouble();
+            // updating this to handle empty (null) values
+            //  note: forcing this to an int was legacy code.  seems "bad" (loss of accuracy); but doing anyway!  2017-03-16  -jon   FIXME?
+            if ((e.getDecimalLatitudeAsDouble() == null) || (e.getDecimalLongitudeAsDouble() == null)) continue;
+            int lat = (int)Math.round(e.getDecimalLatitudeAsDouble());
+            int longie = (int)Math.round(e.getDecimalLongitudeAsDouble());
+          //int lat=(int)e.getDecimalLatitudeAsDouble();
+          //int longie=(int)e.getDecimalLongitudeAsDouble();
           Point2D myPoint=new Point2D(lat,longie);
           if(!coords.contains(myPoint)){
             coords.add(myPoint);
@@ -361,6 +404,21 @@ public class Util {
         return null;
     }
 
+    // will always be null, String[1] or String[2]
+    public static String[] stringToGenusSpecificEpithet(String s) {
+        if (s == null) return null;
+        String[] gs = null;
+        int i = s.indexOf(" ");
+        if (i < 0) {
+            gs = new String[1];
+            gs[0] = s;
+        } else {
+            gs = new String[2];
+            gs[0] = s.substring(0, i);
+            gs[1] = s.substring(i + 1);
+        }
+        return gs;
+    }
 
     //a generic version of our uuid-dir-structure-creating algorithm -- adjust as needed!?
     // TODO check for incoming slashes and similar weirdness
@@ -475,6 +533,42 @@ public class Util {
         return ll.toString();
     }
 
+
+
+    // http://stackoverflow.com/a/15190787
+    public static String stripAccents(String s)
+    {
+        String str = Normalizer.normalize(s, Normalizer.Form.NFD);
+        str = str.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return str;
+    }
+
+    public static String utf8ize(String str) {
+      String value = str.replaceAll("ñ","ñ"); // AAAAAAAAAAAAAAA
+      return value;
+    }
+
+
+
+    public static boolean stringsEqual(String str1, String str2) {
+      if (str1==null) return (str2==null);
+      return str1.equals(str2);
+    }
+
+
+    //   h/t  https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
+    public static String validEmailRegexPattern() {
+        //return "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";  //THIS FAILED on sito.org+foo@gmail.com !!
+        return "^[_A-Za-z0-9-\\+\\.]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+    }
+
+    public static boolean isValidEmailAddress(String email) {
+        if (email == null) return false;
+        java.util.regex.Pattern patt = java.util.regex.Pattern.compile(validEmailRegexPattern());
+        java.util.regex.Matcher matcher = patt.matcher(email);
+        return matcher.matches();
+    }
+
     // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
     public static int getNumSections(int collectionSize, int itemsPerSection) {
       return (collectionSize - 1)/itemsPerSection + 1;
@@ -505,6 +599,12 @@ public class Util {
       return (lower.substring(0,1).toUpperCase() + lower.substring(1));
     }
 
+    public static String capitolizeFirstLetter(String str) {
+      if (str.length()<=1) return (str.toUpperCase());
+      return (str.substring(0,1).toUpperCase() + str.substring(1));
+    }
+
+
     public static boolean requestHasVal(HttpServletRequest request, String paramName) {
       return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
     }
@@ -527,10 +627,6 @@ public class Util {
       return str.replaceAll("%20", " ").trim();
     }
 
-    public static String cleanWebStringForJdo(String str) {
-      return undoUrlEncoding(str.toLowerCase());
-    }
-
     public static <T> String toString(Enumeration<T> things) {
       StringBuilder result = new StringBuilder("[");
       while (things.hasMoreElements()) {
@@ -547,32 +643,105 @@ public class Util {
       return obj.toString();
     }
 
-    // http://stackoverflow.com/a/15190787
-    public static String stripAccents(String s)
-    {
-        String str = Normalizer.normalize(s, Normalizer.Form.NFD);
-        str = str.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
-        return str;
-    }
-
-    public static String utf8ize(String str) {
-      String value = str.replaceAll("ñ","ñ"); // AAAAAAAAAAAAAAA
-      return value;
-    }
-
-
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals("") && !str.equals("None"));
+      return (str!=null && !str.equals(""));
     }
 
-    public static boolean stringsEqual(String str1, String str2) {
-      if (str1==null) return (str2==null);
-      return str1.equals(str2);
+    //these two utility functions handle the case where the argument (Collection, and subclasses like Lists) is null!
+    public static boolean collectionIsEmptyOrNull(Collection c) {
+        return (collectionSize(c) == 0);
+    }
+    public static int collectionSize(Collection c) {
+        if (c == null) return 0;
+        return c.size();
     }
 
+    public static boolean hasProperty(String key, Properties props) {
+      return (props.getProperty(key) != null);
+    }
+
+    // given "animalType"
+    public static List<String> getIndexedPropertyValues(String key, Properties props) {
+      List<String> values = new ArrayList<String>();
+      for (int i=0; hasProperty((key+i), props); i++) {
+        values.add(props.getProperty(key+i));
+      }
+      return values;
+    }
+
+    public static void writeToFile(String data, String path) throws FileNotFoundException {
+      PrintWriter out = new PrintWriter(path);
+      out.println(data);
+      out.close();
+    }
+
+    public static String readFromFile(String path) throws FileNotFoundException, IOException {
+      FileInputStream inputStream = new FileInputStream(path);
+      String readData = IOUtils.toString(inputStream);
+      return readData;
+    }
+
+    public static String convertEpochTimeToHumanReadable (long epochTime){
+      Date date = new Date(epochTime);
+          DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+          format.setTimeZone(TimeZone.getTimeZone("Etc/GMT"));
+          String formatted = format.format(date);
+          formatted = format.format(date);
+          return formatted.toString();
+    }
+
+
+    public static int count(Iterator it) {
+      int num = 0;
+      while (it.hasNext()) {
+        Object elem = it.next();
+        num++;
+      }
+      return num;
+    }
+
+    // replaces wrong-slashes with right-slashes
+    public static String windowsFileStringToLinux(String windowsFileString) {
+      return windowsFileString.replaceAll("\\\\","/");
+    }
+    public static boolean fileExists(String filepath) {
+      File f = new File(filepath);
+      return (f.exists() && !f.isDirectory());
+    } 
+
+    //handles fuzzy case where url?key=value wants to test that 'key' is "set" (namely exists *and* is not explicitely "false")
+    public static boolean requestParameterSet(String value) {
+        if (value == null) return false;
+        value = value.toLowerCase();
+        return !(value.equals("false") || value.equals("f") || value.equals("0"));
+    }
+    //a slightly(!) more generic(!?) version of above
+    public static boolean booleanNotFalse(String value) {
+        return requestParameterSet(value);
+    }
+    
     // convenience method for comparing string values
     public static boolean shouldReplace(String val1, String val2) {
       return (stringExists(val1) && !stringExists(val2));
     }
 
+    
+    public static String basicSanitize(String input) {
+      String sanitized = null;
+      if (input!=null) {
+        sanitized = input;
+        sanitized = input.replace(":", "");
+        sanitized = input.replace(";", "");
+        sanitized = sanitized.replace("\"", "");
+        sanitized = sanitized.replace("'", "");
+        sanitized = sanitized.replace("(", "");
+        sanitized = sanitized.replace(")", "");
+        sanitized = sanitized.replace("*", "");
+        sanitized = sanitized.replace("%", "");        
+      }
+      return sanitized;
+    }
+
 }
+
+

@@ -21,6 +21,7 @@ package org.ecocean;
 
 import java.io.IOException;
 import java.util.*;
+import java.net.URL;
 
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
@@ -169,6 +170,33 @@ public class MarkedIndividual implements java.io.Serializable {
 
  }
 
+   public boolean addEncounterNoCommit(Encounter newEncounter) {
+
+      newEncounter.assignToMarkedIndividual(individualID);
+
+      //get and therefore set the haplotype if necessary
+      getHaplotype();
+
+      boolean isNew=true;
+      for(int i=0;i<encounters.size();i++) {
+        Encounter tempEnc=(Encounter)encounters.get(i);
+        if(tempEnc.getEncounterNumber().equals(newEncounter.getEncounterNumber())) {
+          isNew=false;
+        }
+      }
+
+      //prevent duplicate addition of encounters
+      if(isNew){
+        encounters.add(newEncounter);
+        numberEncounters++;
+        //refreshDependentProperties(context);
+      }
+      setTaxonomyFromEncounters();  //will only set if has no value
+      setSexFromEncounters();       //likewise
+      return isNew;
+
+  }
+
    /**Removes an encounter from this MarkedIndividual.
    *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
    *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
@@ -229,7 +257,7 @@ public class MarkedIndividual implements java.io.Serializable {
 	}
 	
 	 public String refreshDateLastestSighting() {
-	    Encounter[] sorted = this.getDateSortedEncounters(true);
+	    Encounter[] sorted = this.getDateSortedEncounters();
 	    if (sorted.length < 1) return null;
 	    Encounter last = sorted[0];
 	    if (last.getYear() < 1) return null;
@@ -604,6 +632,22 @@ public class MarkedIndividual implements java.io.Serializable {
     EncounterDateComparator dc = new EncounterDateComparator(reverse);
     Arrays.sort(encs2, dc);
     return encs2;
+  }
+
+  public Encounter[] getDateSortedEncounters(int limit) {
+    return (getDateSortedEncounters(false, limit));
+  }
+
+  public Encounter[] getDateSortedEncounters(boolean reverse, int limit) {
+    Encounter[] allEncs = getDateSortedEncounters(reverse);
+    return (Arrays.copyOfRange(allEncs, 0, Math.min(limit,allEncs.length)));
+  }
+  
+  public static String getWebUrl(String individualID, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/individuals.jsp?number="+individualID);
+  }
+  public String getWebUrl(HttpServletRequest req) {
+    return getWebUrl(this.getIndividualID(), req);
   }
 
   //sorted with the most recent first
@@ -1562,7 +1606,7 @@ public boolean hasGeneticSex(){
 *@return ArrayList of all emails to inform
 */
 public List<String> getAllEmailsToUpdate(){
-	ArrayList notifyUs=new ArrayList();
+	ArrayList<String> notifyUs=new ArrayList<String>();
 
 	int numEncounters=encounters.size();
 	//int numUnidetifiableEncounters=unidentifiableEncounters.size();
@@ -1570,6 +1614,9 @@ public List<String> getAllEmailsToUpdate(){
 	//process encounters
 	for(int i=0;i<numEncounters;i++){
 		Encounter enc=(Encounter)encounters.get(i);
+		
+		
+		/*
 		if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().trim().equals(""))){
 			String submitter = enc.getSubmitterEmail();
 			if (submitter.indexOf(",") != -1) {
@@ -1592,6 +1639,20 @@ public List<String> getAllEmailsToUpdate(){
 					}
 					else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
 		}
+		*/
+		
+		List<User> allUsers=new ArrayList<User>();
+		if(enc.getSubmitters()!=null)allUsers.addAll(enc.getSubmitters());
+		if(enc.getPhotographers()!=null)allUsers.addAll(enc.getPhotographers());
+		int numUsers=allUsers.size();
+		for(int k=0;k<numUsers;k++){
+		  User use=allUsers.get(k);
+		  if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+		    notifyUs.add(use.getEmailAddress());
+		  }
+		}
+		
+		
 		if((enc.getInformOthers()!=null)&&(!enc.getInformOthers().trim().equals(""))){
 							String photog = enc.getInformOthers();
 							if (photog.indexOf(",") != -1) {
@@ -1842,8 +1903,12 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return resultArray;
   }
 
-
+  
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
+    return getExemplarImages(req, 5);
+  }
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req, int numResults) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
@@ -1858,9 +1923,20 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           if (ma != null) {
             //JSONObject j = new JSONObject();
             JSONObject j = ma.sanitizeJson(req, new JSONObject());
-            
-            
-            
+
+            //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
+            // we have a throw-away shepherd here which is fine since we only care about the url ultimately
+            URL midURL = null;
+            String context = ServletUtilities.getContext(req);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MarkedIndividual.getExemplarImages");
+            myShepherd.beginDBTransaction();
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+            if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+            if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+
             if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
               
               
@@ -1879,13 +1955,107 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             
             
           }
+          if(al.size()>numResults){return al;}
         }
     //}
     }
     return al;
 
   }
-  
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImagesWithKeywords(HttpServletRequest req, List<String> kwNames) throws JSONException {
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+
+    List<String> kwNamesLeft = new ArrayList<String>(kwNames); // a copy of kwNames
+    //boolean haveProfilePhoto=false;
+    for (Encounter enc : this.getDateSortedEncounters()) {
+      //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+        ArrayList<Annotation> anns = enc.getAnnotations();
+        if ((anns == null) || (anns.size() < 1)) {
+          continue;
+        }
+        for (Annotation ann: anns) {
+          //if (!ann.isTrivial()) continue;
+          MediaAsset ma = ann.getMediaAsset();
+          if (ma != null) {
+            //JSONObject j = new JSONObject();
+            JSONObject j = ma.sanitizeJson(req, new JSONObject());
+
+            //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
+            // we have a throw-away shepherd here which is fine since we only care about the url ultimately
+            URL midURL = null;
+            String context = ServletUtilities.getContext(req);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MarkedIndividual.getExemplarImages");
+            myShepherd.beginDBTransaction();
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+            if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+            if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+
+            if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+              
+              //here is the keyword filtering logic
+              String removeThisName=null; // awkward to avoid concurrent modification by removing kwName in the loop
+              for (String kwName: kwNamesLeft) {
+                if (ma.hasKeyword(kwName)) {
+                  // position variable & logic ensures the keywords are returned in the same order
+                  int position = kwNames.indexOf(kwName);
+                  if (position>al.size()) position = al.size();
+                  al.add(position, j); // we can ensure the first listed keyword is returned first
+                  removeThisName=kwName;
+                  break; // breaks the loop on this ma only
+                }
+              }
+              if (removeThisName!=null) kwNamesLeft.remove(removeThisName);
+            }
+          }
+        }
+    //}
+    }
+    return al;
+
+  }
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames) throws JSONException {
+    return getBestKeywordPhotos(req, kwNames, false);
+  }
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords) throws JSONException {
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+    Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
+
+    List<MediaAsset> assets = new ArrayList<MediaAsset>();
+    for (String kwName: kwNames) {
+      MediaAsset ma = myShepherd.getBestKeywordPhoto(this, kwName);
+      if (ma!=null) assets.add(ma);
+    }
+
+    if (tryNoKeywords) {
+      int numMissingPhotos = 3-assets.size();
+      List<MediaAsset> leftovers = myShepherd.getPhotosForIndividual(this, numMissingPhotos);
+      for (MediaAsset assy: leftovers) {
+        if (!assets.contains(assy)) assets.add(assy);
+      }
+    }
+
+    for (MediaAsset ma: assets) {
+      JSONObject j = ma.sanitizeJson(req, new JSONObject());
+      ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+      URL midURL = null;
+      if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+      if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+      if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+        al.add(j);
+      }
+    }
+
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+    return al;
+  }
+
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
     
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);

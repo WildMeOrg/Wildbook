@@ -12,15 +12,28 @@ import javax.servlet.ServletContext;
 import java.net.URL;
 
 import org.ecocean.*;
+import org.ecocean.queue.*;
+import org.ecocean.ia.IA;
+import org.ecocean.ia.IAPluginManager;
+import org.ecocean.grid.MatchGraphCreationThread;
+//import org.ecocean.grid.ScanTaskCleanupThread;
+import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+
+import java.util.concurrent.ThreadPoolExecutor;
+
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
+
+import java.util.concurrent.ThreadPoolExecutor;
+
+
 
 // This little collection of functions will be called on webapp start. static Its main purpose is to check that certain
 // global variables are initialized, and do so if necessary.
@@ -57,13 +70,18 @@ public class StartupWildbook implements ServletContextListener {
         Role newRole1=new Role("tomcat","admin");
         newRole1.setContext("context0");
         myShepherd.getPM().makePersistent(newRole1);
+        Role newRole2=new Role("tomcat","researcher");
+        newRole2.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole2);
+        Role newRole3=new Role("tomcat", "machinelearning");
+        newRole3.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole3);
         Role newRole4=new Role("tomcat","destroyer");
         newRole4.setContext("context0");
         myShepherd.getPM().makePersistent(newRole4);
-
-        Role newRole7=new Role("tomcat","rest");
-        newRole7.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole7);
+        Role newRole5=new Role("tomcat","rest");
+        newRole5.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole5);
         myShepherd.commitDBTransaction();
         System.out.println("Creating tomcat user account...");
         }
@@ -78,7 +96,6 @@ public class StartupWildbook implements ServletContextListener {
     String urlLoc = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request);
     String dataUrl = urlLoc + "/wildbook_data_dir";
     myShepherd.beginDBTransaction();
-    System.out.println("Setting localAssetStore url to "+dataUrl);
     LocalAssetStore as = new LocalAssetStore("Default Local AssetStore", new File(dataDir).toPath(), dataUrl, true);
     myShepherd.getPM().makePersistent(as);
     myShepherd.commitDBTransaction();
@@ -98,53 +115,139 @@ public class StartupWildbook implements ServletContextListener {
 
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
-        System.out.println("* StartupWildbook initialized called");
-        ServletContext context = sce.getServletContext();
+        ServletContext sContext = sce.getServletContext();
+        String context = "context0";  //TODO ??? how????
+        System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
+        if (skipInit(sce, null)) {
+            System.out.println("- SKIPPED initialization due to skipInit()");
+            return;
+        }
+
+        //initialize the plugin (instances)
+        IAPluginManager.initPlugins(context);
+        //this should be handling all plugin startups
+        IAPluginManager.startup(sce);
+
+        //NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
+        if (CommonConfiguration.useSpotPatternRecognition(context)) {
+            createMatchGraph();
+        }
+
+        //TODO genericize starting "all" consumers ... configurable? how?  etc.
+        // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
+        startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
+        TwitterBot.startServices(context);
+    }
+
+
+    private void startIAQueues(String context) {
+        class IAMessageHandler extends QueueMessageHandler {
+            public boolean handler(String msg) {
+                org.ecocean.servlet.IAGateway.processQueueMessage(msg);  //yeah we need to move this somewhere else...
+                return true;
+            }
+        }
+        class IACallbackMessageHandler extends QueueMessageHandler {
+            public boolean handler(String msg) {
+                org.ecocean.servlet.IAGateway.processCallbackQueueMessage(msg);  //yeah we need to move this somewhere else...
+                return true;
+            }
+        }
+
+        if (!IBEISIA.iaEnabled()) {
+            System.out.println("+ INFO: IA not enabled; IA queue service not started");
+            return;
+        }
+
+        Queue queue = null;
+        try {
+            queue = QueueUtil.getBest(context, "IA");
+        } catch (java.io.IOException ex) {
+            System.out.println("+ ERROR: IA queue startup exception: " + ex.toString());
+        }
+        Queue queueCallback = null;
+        try {
+            queueCallback = QueueUtil.getBest(context, "IACallback");
+        } catch (java.io.IOException ex) {
+            System.out.println("+ ERROR: IACallback queue startup exception: " + ex.toString());
+        }
+        if ((queue == null) || (queueCallback == null)) {
+            System.out.println("+ WARNING: IA queue service(s) NOT started");
+            return;
+        }
+
+        IAMessageHandler qh = new IAMessageHandler();
+        try {
+            queue.consume(qh);
+            System.out.println("+ StartupWildbook.startIAQueues() queue.consume() started on " + queue.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() queue.consume() FAILED on " + queue.toString() + ": " + iox.toString());
+        }
+        IACallbackMessageHandler qh2 = new IACallbackMessageHandler();
+        try {
+            queueCallback.consume(qh2);
+            System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() started on " + queueCallback.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
+        }
+    }
+
+
+    public void contextDestroyed(ServletContextEvent sce) {
+        ServletContext sContext = sce.getServletContext();
+        System.out.println("* StartupWildbook destroyed called for: " + servletContextInfo(sContext));
+        QueueUtil.cleanup();
+        TwitterBot.cleanup();
+    }
+
+
+    public static void createMatchGraph(){
+      System.out.println("Entering createMatchGraph StartupWildbook method.");
+      ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
+      es.execute(new MatchGraphCreationThread());
+    }
+
+    public static boolean skipInit(ServletContextEvent sce, String extra) {
+        ServletContext sc = sce.getServletContext();
+        if ("".equals(sc.getContextPath())) {
+            System.out.println("++ StartupWildbook.skipInit() skipping ROOT (empty string context path)");
+            return true;
+        }
+        String fname = "/tmp/WB_SKIP_INIT" + ((extra == null) ? "" : "_" + extra);
+        boolean skip = new File(fname).exists();
+        System.out.println("++ StartupWildbook.skipInit() test on " + extra + " [" + fname + "] --> " + skip);
+        return skip;
+    }
+
+/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem... 
+    //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
+    private static boolean properStartupResource(ServletContextEvent sce) {
+        if (sce == null) return false;
+        ServletContext context = sce.getServletContext(); 
+        if (context == null) return false;
         URL res = null;
         try {
             res = context.getResource("/");
-        } catch (Exception ex) {}
-System.out.println("  StartupWildbook.contextInitialized() res = " + res);
-        //this is very hacky but lets it prime IA only during tomcat restart (not .war deploy)
-        //if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
-        if ((res != null) && res.toString().equals("jndi:/localhost/")) {
-            IBEISIA.primeIA();
+        } catch (Exception ex) {
+            System.out.println("  ERROR: StartupWildbook.properStartupResource() .getResource() threw exception: " + ex);
+            return false;
         }
+System.out.println("  StartupWildbook.properStartupResource() res = " + res);
+        if (res == null) return false;
+        return res.toString().equals("jndi:/localhost/uptest/");
+    }
+*/
 
-        //File qdir = ScheduledQueue.setQueueDir(context);
-        File qdir = null; //testing to see if this block causes issues
-        if (qdir == null) {
-            System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
-        } else {
-            System.out.println("+ queue service starting; dir = " + qdir.toString());
-            final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
-            ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
-                int count = 0;
-                public void run() {
-                    ++count;
-                    boolean cont = ScheduledQueue.checkQueue();
-                    //System.out.println("==== ScheduledQueue run [count " + count + "]; queueDir=" + ScheduledQueue.getQueueDir() + "; continue = " + cont + " ====");
-                    if (!cont) {
-                        System.out.println(":::: ScheduledQueue shutdown via discontinue signal ::::");
-                        schedExec.shutdown();
-                    }
-                }
-            },
-            10,  //initial delay  ... TODO these could be configurable, obvs
-            10,  //period delay *after* execution finishes
-            TimeUnit.SECONDS);
-            System.out.println("---- about to awaitTermination() ----");
-            try {
-                schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
-            } catch (java.lang.InterruptedException ex) {
-                System.out.println("WARNING: queue interrupted! " + ex.toString());
-            }
-            System.out.println("==== schedExec.shutdown() called, apparently");
+
+    public static String servletContextInfo(ServletContext sc) {
+        if (sc == null) return null;
+        try {
+            return sc.getServletContextName() + " [" + sc.getContextPath() + " via " + sc.getRealPath("/") + "]";
+        } catch (Exception ex) {
+            System.out.println("WARNING: StartupWildbook.servletContextInfo() threw " + ex.toString());
+            return "<unknown>";
         }
-
     }
 
-    public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("* StartupWildbook destroyed called");
-    }
 }
+

@@ -39,6 +39,7 @@ import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.zip.GZIPInputStream;
 
 
 public class ScanResultsServlet extends HttpServlet {
@@ -54,7 +55,8 @@ public class ScanResultsServlet extends HttpServlet {
     Object obj = new Vector();
     try {
       obj = (Object) con.readObject();
-    } catch (java.lang.NullPointerException npe) {
+    } 
+    catch (java.lang.NullPointerException npe) {
       System.out.println("scanResultsServlet received an empty results set...no matches whatsoever.");
       return obj;
     }
@@ -178,10 +180,13 @@ public class ScanResultsServlet extends HttpServlet {
     context=ServletUtilities.getContext(request);
     //set up a shepherd for DB transactions
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("ScanResultsServlet.class");
 
     //System.out.println("scanResultsServlet: I am starting up.");
     response.setContentType("application/octet-stream");
-    HttpSession session = request.getSession();
+    //HttpSession session = request.getSession();
+   
+    
     String num = "";
     String newEncDate = "";
     String newEncShark = "";
@@ -202,14 +207,21 @@ public class ScanResultsServlet extends HttpServlet {
       System.out.println("!!!!DB access problem in scanResultsServlets!!!!");
     }
     myShepherd.rollbackDBTransaction();
+    
+    
+    
     ObjectInputStream inputFromApplet = null;
     try {
       
       PrintWriter out = null;
-      BufferedReader inTest = null;
+      //BufferedReader inTest = null;
 
       // get an input stream from the applet
-      inputFromApplet = new ObjectInputStream(request.getInputStream());
+      
+      //inputFromApplet = new ObjectInputStream(request.getInputStream());
+      
+      inputFromApplet = new ObjectInputStream(new BufferedInputStream(new GZIPInputStream(request.getInputStream())));
+      
       System.out.println("scanResultsServlet: I successfully opened a stream from the applet.");
 
       // read the serialized results data from applet
@@ -219,7 +231,7 @@ public class ScanResultsServlet extends HttpServlet {
 
       System.out.println("scanResultsServlet: I successfully closed the stream.");
 
-      myShepherd.matches = results;
+      //myShepherd.matches = results;
 
       //put results into a cookie in case user selected temporary scan
       //session.setAttribute( num, myShepherd);
