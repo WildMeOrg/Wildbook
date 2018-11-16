@@ -1,5 +1,12 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, 
+         org.ecocean.servlet.ServletUtilities, java.io.File, 
+         java.io.FileOutputStream, java.io.OutputStreamWriter, 
+         java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, 
+         org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, 
+         org.datanucleus.api.jdo.JDOPersistenceManager,
+         java.nio.charset.StandardCharsets,
+         java.net.URLEncoder " %>
 
 
 <%!
@@ -320,7 +327,7 @@ String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, p
 
 var searchResults = <%=encsJson%>;
 
-var jdoql = '<%= filter.replaceAll("'", "\\\\'") %>';
+var jdoql = '<%= URLEncoder.encode(filter,StandardCharsets.UTF_8.toString()) %>';
 
 var testColumns = {
 	thumb: { label: 'Thumb', val: _colThumb },

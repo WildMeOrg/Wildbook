@@ -82,142 +82,183 @@ public class UserCreate extends HttpServlet {
 
     //create a new Role from an encounter
 
-    if ((request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))) || (request.getParameter("isEdit")!=null))) {
+    if (  (request.getParameter("uuid") != null) && (!request.getParameter("uuid").trim().equals("") )) {
       
-      String username=request.getParameter("username").trim();
+      String uuid=request.getParameter("uuid");
+      
+      String username=null;
+      if(request.getParameter("username")!=null) {
+        username=request.getParameter("username");
+      }
+      String email=null;
+      if((request.getParameter("emailAddress")!=null)&&(!request.getParameter("emailAddress").trim().equals(""))){
+        email=request.getParameter("emailAddress").trim();
+      };
       
       String password="";
-      if(!isEdit)password=request.getParameter("password").trim();
+      if((request.getParameter("password")!=null)&&(!request.getParameter("password").trim().equals("")))password=request.getParameter("password").trim();
       String password2="";
-      if(!isEdit)password2=request.getParameter("password2").trim();
+      if((request.getParameter("password2")!=null)&&(!request.getParameter("password2").trim().equals("")))password2=request.getParameter("password2").trim();
       
       if((password.equals(password2))||(isEdit)){
         
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("UserCreate.class");
         
-        User newUser=new User();
-      
-        myShepherd.beginDBTransaction();
-      
-        if(myShepherd.getUser(username)==null){
-          
-          
-          String salt=ServletUtilities.getSalt().toHex();
-          String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
-          //System.out.println("hashed password: "+hashedPassword+" with salt "+salt + " from source password "+password);
-          newUser=new User(username,hashedPassword,salt);
-          myShepherd.getPM().makePersistent(newUser);
-          createThisUser=true;
-        }
-        else{
-          newUser=myShepherd.getUser(username);
-        }
+        User newUser=null;
         
-        //here handle all of the other User fields (e.g., email address, etc.)
-        if((request.getParameter("fullName")!=null)&&(!request.getParameter("fullName").trim().equals(""))){
-          newUser.setFullName(request.getParameter("fullName").trim());
-        }
-        else if(isEdit&&(request.getParameter("fullName")!=null)&&(request.getParameter("fullName").trim().equals(""))){newUser.setFullName(null);}
+        try{
+          myShepherd.beginDBTransaction();
+          if(myShepherd.getUserByUUID(uuid)!=null){
+            newUser=myShepherd.getUserByUUID(uuid);
+          }
+          else{
+            newUser=new User(uuid);
+          }
         
-        if(request.getParameter("receiveEmails")!=null){
-          newUser.setReceiveEmails(true);
-        }
-        else{newUser.setReceiveEmails(false);}
-        
-        if((request.getParameter("emailAddress")!=null)&&(!request.getParameter("emailAddress").trim().equals(""))){
-          newUser.setEmailAddress(request.getParameter("emailAddress").trim());
-        }
-        else if(isEdit&&(request.getParameter("emailAddress")!=null)&&(request.getParameter("emailAddress").trim().equals(""))){newUser.setEmailAddress(null);}
-        
-        if((request.getParameter("affiliation")!=null)&&(!request.getParameter("affiliation").trim().equals(""))){
-          newUser.setAffiliation(request.getParameter("affiliation").trim());
-        }
-        else if(isEdit&&(request.getParameter("affiliation")!=null)&&(request.getParameter("affiliation").trim().equals(""))){newUser.setAffiliation(null);}
-        
-        if((request.getParameter("userProject")!=null)&&(!request.getParameter("userProject").trim().equals(""))){
-          newUser.setUserProject(request.getParameter("userProject").trim());
-        }
-        else if(isEdit&&(request.getParameter("userProject")!=null)&&(request.getParameter("userProject").trim().equals(""))){newUser.setUserProject(null);}
-        
-        if((request.getParameter("userStatement")!=null)&&(!request.getParameter("userStatement").trim().equals(""))){
-          newUser.setUserStatement(request.getParameter("userStatement").trim());
-        }
-        else if(isEdit&&(request.getParameter("userStatement")!=null)&&(request.getParameter("userStatement").trim().equals(""))){newUser.setUserStatement(null);}
-        
-        if((request.getParameter("userURL")!=null)&&(!request.getParameter("userURL").trim().equals(""))){
-          newUser.setUserURL(request.getParameter("userURL").trim());
-        }
-        else if(isEdit&&(request.getParameter("userURL")!=null)&&(request.getParameter("userURL").trim().equals(""))){newUser.setUserURL(null);}
-        
-        newUser.RefreshDate();
-        
-        
-        
-        //now handle roles
-        
-        //if this is not a new user, we need to blow away all old roles
-        List<Role> preexistingRoles=new ArrayList<Role>();
-        if(!createThisUser){
-          //get existing roles for this existing user
-          preexistingRoles=myShepherd.getAllRolesForUser(username);
-          myShepherd.getPM().deletePersistentAll(preexistingRoles);
-        }
-        
-        
-        //start role processing
-        
-        List<String> contexts=ContextConfiguration.getContextNames();
-        int numContexts=contexts.size();
-        //System.out.println("numContexts is: "+numContexts);
-        for(int d=0;d<numContexts;d++){
-        
-          String[] roles=request.getParameterValues("context"+d+"rolename");
-          if(roles!=null){
-          int numRoles=roles.length;
-          //System.out.println("numRoles in context"+d+" is: "+numRoles);
-          for(int i=0;i<numRoles;i++){
-
-            String thisRole=roles[i].trim();
-             if(!thisRole.trim().equals("")){
-            Role role=new Role();
-            if(myShepherd.getRole(thisRole,username,("context"+d))==null){
+          if(myShepherd.getUserByUUID(uuid)==null){
             
-              role.setRolename(thisRole);
-              role.setUsername(username);
-              role.setContext("context"+d);
-              myShepherd.getPM().makePersistent(role);
-              addedRoles+=("SEPARATORSTART"+ContextConfiguration.getNameForContext("context"+d)+":"+roles[i]+"SEPARATOREND");
-              //System.out.println(addedRoles);
-              myShepherd.commitDBTransaction();
-              myShepherd.beginDBTransaction();
-              //System.out.println("Creating role: context"+d+thisRole);
+            //new User
+            //System.out.println("hashed password: "+hashedPassword+" with salt "+salt + " from source password "+password);
+            if((username!=null)&&(!password.equals(""))) {
+              
+              String salt=ServletUtilities.getSalt().toHex();
+              String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
+              newUser=new User(username,hashedPassword,salt);
+  
+            }
+            else {
+              newUser=new User(email);
+            }
+            myShepherd.getPM().makePersistent(newUser);
+            createThisUser=true;
+          }
+          else{
+            newUser=myShepherd.getUserByUUID(uuid);
+            if((!password.equals(""))&(password.equals(password2))){
+              String salt=ServletUtilities.getSalt().toHex();
+              String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
+              newUser.setPassword(hashedPassword);
+              newUser.setSalt(salt);
             }
           }
+          
+          //here handle all of the other User fields (e.g., email address, etc.)
+          
+          if((request.getParameter("username")!=null)&&(!request.getParameter("username").trim().equals(""))){
+            newUser.setUsername(request.getParameter("username").trim());
           }
+          else if(isEdit&&(request.getParameter("username")!=null)&&(request.getParameter("username").trim().equals(""))){newUser.setUsername(null);}
+          
+          
+          
+          if((request.getParameter("fullName")!=null)&&(!request.getParameter("fullName").trim().equals(""))){
+            newUser.setFullName(request.getParameter("fullName").trim());
           }
-        }
-        //end role processing
-        
-        
-
+          else if(isEdit&&(request.getParameter("fullName")!=null)&&(request.getParameter("fullName").trim().equals(""))){newUser.setFullName(null);}
+          
+          if(request.getParameter("receiveEmails")!=null){
+            newUser.setReceiveEmails(true);
+          }
+          else{newUser.setReceiveEmails(false);}
+          
+          if((request.getParameter("emailAddress")!=null)&&(!request.getParameter("emailAddress").trim().equals(""))){
+            newUser.setEmailAddress(request.getParameter("emailAddress").trim());
+          }
+          else if(isEdit&&(request.getParameter("emailAddress")!=null)&&(request.getParameter("emailAddress").trim().equals(""))){newUser.setEmailAddress(null);}
+          
+          if((request.getParameter("affiliation")!=null)&&(!request.getParameter("affiliation").trim().equals(""))){
+            newUser.setAffiliation(request.getParameter("affiliation").trim());
+          }
+          else if(isEdit&&(request.getParameter("affiliation")!=null)&&(request.getParameter("affiliation").trim().equals(""))){newUser.setAffiliation(null);}
+          
+          if((request.getParameter("userProject")!=null)&&(!request.getParameter("userProject").trim().equals(""))){
+            newUser.setUserProject(request.getParameter("userProject").trim());
+          }
+          else if(isEdit&&(request.getParameter("userProject")!=null)&&(request.getParameter("userProject").trim().equals(""))){newUser.setUserProject(null);}
+          
+          if((request.getParameter("userStatement")!=null)&&(!request.getParameter("userStatement").trim().equals(""))){
+            newUser.setUserStatement(request.getParameter("userStatement").trim());
+          }
+          else if(isEdit&&(request.getParameter("userStatement")!=null)&&(request.getParameter("userStatement").trim().equals(""))){newUser.setUserStatement(null);}
+          
+          if((request.getParameter("userURL")!=null)&&(!request.getParameter("userURL").trim().equals(""))){
+            newUser.setUserURL(request.getParameter("userURL").trim());
+          }
+          else if(isEdit&&(request.getParameter("userURL")!=null)&&(request.getParameter("userURL").trim().equals(""))){newUser.setUserURL(null);}
+          
+          newUser.RefreshDate();
+          
+          
+          
+          //now handle roles
+          
+          //if this is not a new user, we need to blow away all old roles
+          List<Role> preexistingRoles=new ArrayList<Role>();
+          if(!createThisUser){
+            //get existing roles for this existing user
+            preexistingRoles=myShepherd.getAllRolesForUser(username);
+            myShepherd.getPM().deletePersistentAll(preexistingRoles);
+          }
+          
+          
+          //start role processing
+          
+          List<String> contexts=ContextConfiguration.getContextNames();
+          int numContexts=contexts.size();
+          //System.out.println("numContexts is: "+numContexts);
+          for(int d=0;d<numContexts;d++){
+          
+            String[] roles=request.getParameterValues("context"+d+"rolename");
+            if(roles!=null){
+            int numRoles=roles.length;
+            //System.out.println("numRoles in context"+d+" is: "+numRoles);
+            for(int i=0;i<numRoles;i++){
+  
+              String thisRole=roles[i].trim();
+               if(!thisRole.trim().equals("")){
+              Role role=new Role();
+              if(myShepherd.getRole(thisRole,username,("context"+d))==null){
+              
+                role.setRolename(thisRole);
+                role.setUsername(username);
+                role.setContext("context"+d);
+                myShepherd.getPM().makePersistent(role);
+                addedRoles+=("SEPARATORSTART"+ContextConfiguration.getNameForContext("context"+d)+":"+roles[i]+"SEPARATOREND");
+                //System.out.println(addedRoles);
+                myShepherd.commitDBTransaction();
+                myShepherd.beginDBTransaction();
+                //System.out.println("Creating role: context"+d+thisRole);
+              }
+            }
+            }
+            }
+          }
+          //end role processing
+          //output success statement
+          out.println(ServletUtilities.getHeader(request));
+          if(createThisUser){
+            out.println("<strong>Success:</strong> User '" + StringEscapeUtils.escapeHtml4(username) + "' was successfully created with added roles: <ul>" + addedRoles.replaceAll("SEPARATORSTART", "<li>").replaceAll("SEPARATOREND", "</li>")+"</ul>");
+          }
+          else{
+            out.println("<strong>Success:</strong> User '" + StringEscapeUtils.escapeHtml4(username) + "' was successfully updated and has assigned roles: <ul>" + addedRoles.replaceAll("SEPARATORSTART", "<li>").replaceAll("SEPARATOREND", "</li>")+"</ul>");
+            
+          }
+          out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
+          out.println(ServletUtilities.getFooter(context));
+          
+          
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }  
+      finally{
         myShepherd.commitDBTransaction();    
         myShepherd.closeDBTransaction();
         myShepherd=null;
-       
+      }
 
-            //output success statement
-            out.println(ServletUtilities.getHeader(request));
-            if(createThisUser){
-              out.println("<strong>Success:</strong> User '" + StringEscapeUtils.escapeHtml4(username) + "' was successfully created with added roles: <ul>" + addedRoles.replaceAll("SEPARATORSTART", "<li>").replaceAll("SEPARATOREND", "</li>")+"</ul>");
-            }
-            else{
-              out.println("<strong>Success:</strong> User '" + StringEscapeUtils.escapeHtml4(username) + "' was successfully updated and has assigned roles: <ul>" + addedRoles.replaceAll("SEPARATORSTART", "<li>").replaceAll("SEPARATOREND", "</li>")+"</ul>");
-              
-            }
-            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
-            
+
     }
     else{
         //output failure statement
@@ -233,7 +274,7 @@ public class UserCreate extends HttpServlet {
 else{
   //output failure statement
   out.println(ServletUtilities.getHeader(request));
-  out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
+  out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username, email, and/or password information I needed.");
   out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
   out.println(ServletUtilities.getFooter(context));
   

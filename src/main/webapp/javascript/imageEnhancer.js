@@ -96,10 +96,15 @@ console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
     setEnhancerScale: function(img) {
         var ji = $(img);
         var id = ji.data('enh-mediaassetid');
+        var asset = assetById(id);
         var aid = ji.data('enh-annotationid');
         var w = $('#image-enhancer-wrapper-' + id + '-' + aid);
+        //imgWidth is tricky... lazyloading means the actual image might not be here. but hey we (should?) have metadata width!
+        var imgWidth = 1024;  //fallback, sorry. :(
+        if (asset && asset.metadata && asset.metadata.width) imgWidth = asset.metadata.width;
+        var scale = ji.width() / imgWidth;
         //var scale = ji.width() / img.naturalWidth;
-        var scale = ji.width() / 4000;
+        //var scale = ji.width() / 4000;
         console.warn("########## [%s] scale = %o", id, scale);
         w.data('enhancerScale', scale);
         ji.data('enhancerScale', scale);
@@ -225,6 +230,9 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
         var p = jQuery('.image-enhancer-popup .popup-content');
         if (h) p.html(h);
         return p;
+    },
+    popupClose: function() {
+        jQuery('.image-enhancer-popup').remove();
     },
 
     debugInitFunction: function(wel, opt) {

@@ -903,10 +903,13 @@ System.out.println(thisRequest);
                 for (Object obj : (Collection)result) {
                     cls = obj.getClass();
                     if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+                    else if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
                 }
             } else {
                 cls = result.getClass();
                 if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+                else if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
+                
             }
             return out;
         }
@@ -1011,6 +1014,8 @@ System.out.println("??? TRY COMPRESS ??");
                     String val = (String) getter.invoke(enc);
                     if (val==null) continue;
                     jobj.put(fieldName, val);
+                } catch (NoSuchMethodException nsm) {  //lets not stacktrace on this
+                    System.out.println("WARNING: LightRestServlet.getEncLightJson() finds no property '" + fieldName + "' on Encounter; ignoring");
                 } catch (Exception e) {
                     System.out.println("Exception on LightRestServlet.getEncLightJson for fieldName "+fieldName);
                     e.printStackTrace();
@@ -1021,6 +1026,8 @@ System.out.println("??? TRY COMPRESS ??");
                     Method getter = Encounter.class.getMethod(getterName(fieldName));
                     int val = ((Integer) getter.invoke(enc)).intValue();
                     jobj.put(fieldName, val);
+                } catch (NoSuchMethodException nsm) {  //lets not stacktrace on this
+                    System.out.println("WARNING: LightRestServlet.getEncLightJson() finds no property '" + fieldName + "' on Encounter; ignoring");
                 } catch (Exception e) {
                     System.out.println("Exception on LightRestServlet.getEncLightJson for fieldName "+fieldName);
                     e.printStackTrace();

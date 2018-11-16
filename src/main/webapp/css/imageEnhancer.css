@@ -13,7 +13,7 @@
 
 
 .image-enhancer-menu {
-    z-index: 9;
+    z-index: 39;
     position: absolute;
     right: 4px;
     bottom: 4px;
@@ -33,7 +33,7 @@
 }
 
 .image-enhancer-menu-open {
-    z-index: 10;
+    z-index: 40;
     position: absolute;
     top: 95%;
     right: 10px;
@@ -77,6 +77,11 @@
     top: 10px;
     right: 10px;
 }
+.image-enhancer-popup .popup-content {
+    overflow-y: auto;
+    max-height: 400px;
+}
+
 
 
 .image-enhancer-keyword-wrapper {
@@ -84,6 +89,7 @@
     left: 0.5em;
     width: 8em;
     top: 0.3em;
+    z-index: 40;
 }
 
 .image-enhancer-keyword, .iek-new-wrapper {

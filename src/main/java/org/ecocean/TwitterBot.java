@@ -102,6 +102,7 @@ public class TwitterBot {
 System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
         myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
         if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
 
         String baseUrl = CommonConfiguration.getServerURL(context);
@@ -502,6 +503,7 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
                 myShepherd.beginDBTransaction();
                 int t = collectTweets(myShepherd);
                 myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
                 if ((t != 0) || (count % 1 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
             }
         },

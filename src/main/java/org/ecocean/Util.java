@@ -398,6 +398,21 @@ public class Util {
         return null;
     }
 
+    // will always be null, String[1] or String[2]
+    public static String[] stringToGenusSpecificEpithet(String s) {
+        if (s == null) return null;
+        String[] gs = null;
+        int i = s.indexOf(" ");
+        if (i < 0) {
+            gs = new String[1];
+            gs[0] = s;
+        } else {
+            gs = new String[2];
+            gs[0] = s.substring(0, i);
+            gs[1] = s.substring(i + 1);
+        }
+        return gs;
+    }
 
     //a generic version of our uuid-dir-structure-creating algorithm -- adjust as needed!?
     // TODO check for incoming slashes and similar weirdness
@@ -604,6 +619,14 @@ public class Util {
       return (str!=null && !str.equals(""));
     }
 
+    //these two utility functions handle the case where the argument (Collection, and subclasses like Lists) is null!
+    public static boolean collectionIsEmptyOrNull(Collection c) {
+        return (collectionSize(c) == 0);
+    }
+    public static int collectionSize(Collection c) {
+        if (c == null) return 0;
+        return c.size();
+    }
 
     public static boolean hasProperty(String key, Properties props) {
       return (props.getProperty(key) != null);
@@ -663,6 +686,15 @@ public class Util {
         if (value == null) return false;
         value = value.toLowerCase();
         return !(value.equals("false") || value.equals("f") || value.equals("0"));
+    }
+    //a slightly(!) more generic(!?) version of above
+    public static boolean booleanNotFalse(String value) {
+        return requestParameterSet(value);
+    }
+    
+    // convenience method for comparing string values
+    public static boolean shouldReplace(String val1, String val2) {
+      return (stringExists(val1) && !stringExists(val2));
     }
 
     

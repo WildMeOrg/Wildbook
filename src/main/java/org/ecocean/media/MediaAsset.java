@@ -30,6 +30,8 @@ import org.ecocean.Util;
 import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Encounter;
+import org.ecocean.ia.Task;
+import org.ecocean.acm.AcmBase;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -41,6 +43,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Set;
 import java.util.List;
+import java.util.Base64;
 import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -132,6 +135,9 @@ public class MediaAsset implements java.io.Serializable {
     //private Double metaLatitude;
     //private Double metaLongitude;
 
+    private String acmId;
+
+
 
     /**
      * To be called by AssetStore factory method.
@@ -171,6 +177,13 @@ public class MediaAsset implements java.io.Serializable {
     }
     public void setAccessControl(HttpServletRequest request) {
         this.setAccessControl(new AccessControl(request));
+    }
+
+    public void setAcmId(String id) {
+        this.acmId = id;
+    }
+    public String getAcmId() {
+        return this.acmId;
     }
 
     private URL getUrl(final AssetStore store, final Path path) {
@@ -898,7 +911,12 @@ public class MediaAsset implements java.io.Serializable {
                     org.datanucleus.api.rest.orgjson.JSONObject jf = new org.datanucleus.api.rest.orgjson.JSONObject();
                     Feature ft = fts.get(i);
                     jf.put("id", ft.getId());
-                    jf.put("type", ft.getType());
+                    try {  //for some reason(?) this will get a jdo error for "row not found".  why???  anyhow, we catch it
+                        jf.put("type", ft.getType());
+                    } catch (Exception ex) {
+                        jf.put("type", "unknown");
+                        System.out.println("ERROR: MediaAsset.sanitizeJson() on " + this.toString() + " threw " + ex.toString());
+                    }
                     JSONObject p = ft.getParameters();
                     if (p != null) jf.put("parameters", Util.toggleJSONObject(p));
 
@@ -1230,7 +1248,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         if (b64 == null) throw new IOException("copyInBase64() null string");
         byte[] imgBytes = new byte[100];
         try {
-            imgBytes = DatatypeConverter.parseBase64Binary(b64);
+            imgBytes = Base64.getDecoder().decode(b64);
         } catch (IllegalArgumentException ex) {
             throw new IOException("copyInBase64() could not parse: " + ex.toString());
         }
@@ -1240,6 +1258,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         FileOutputStream stream = new FileOutputStream(file);
         try {
             stream.write(imgBytes);
+        } catch (Exception e) {
+            System.out.println("Exception from Writing FileOutputStream with imgBytes");
+            e.printStackTrace();
         } finally {
             stream.close();
         }
@@ -1254,6 +1275,10 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public boolean isValidChildType(String type) {
         if (store == null) return false;
         return store.isValidChildType(type);
+    }
+
+    public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
+        return Task.getRootTasksFor(this, myShepherd);
     }
 
 

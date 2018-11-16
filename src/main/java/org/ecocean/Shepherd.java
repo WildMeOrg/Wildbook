@@ -25,6 +25,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
+import org.ecocean.ia.Task;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
 
@@ -295,18 +296,34 @@ public class Shepherd {
   }
 
 
-  public boolean storeNewTask(ScanTask task) {
-    //beginDBTransaction();
+  public boolean storeNewScanTask(ScanTask scanTask) {
+    beginDBTransaction();
     try {
-      pm.makePersistent(task);
+      pm.makePersistent(scanTask);
+      commitDBTransaction();
       return true;
     } catch (Exception e) {
-      System.out.println("I failed to store the new task number: " + task.getUniqueNumber());
+      rollbackDBTransaction();
+      e.printStackTrace();
+      System.out.println("I failed to store the new ScanTask number: " + scanTask.getUniqueNumber());
       return false;
     }
 
   }
 
+  public boolean storeNewTask(Task task) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(task);
+      commitDBTransaction();
+      return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      e.printStackTrace();
+      System.out.println("I failed to store the new IA Task with ID: " + task.getId());
+      return false;
+    }
+  }
 
   public boolean storeNewCollaboration(Collaboration collab) {
     beginDBTransaction();
@@ -747,10 +764,43 @@ public class Shepherd {
     return rolesFound;
   }
 
+  
+  
   public User getUser(String username) {
     User user= null;
+    String filter="SELECT FROM org.ecocean.User WHERE username == \""+username.trim()+"\"";   
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      user=(User)it.next();
+    }
+    query.closeAll();
+    return user;
+  }
+  
+  
+  public List<User> getUsersWithUsername() {
+    return getUsersWithUsername("username ascending");
+  }
+  
+  public List<User> getUsersWithUsername(String ordering) {
+    List<User> users=null;
+    String filter="SELECT FROM org.ecocean.User WHERE username != null";   
+    Query query=getPM().newQuery(filter);
+    query.setOrdering(ordering);
+    Collection c = (Collection) (query.execute());
+    users=new ArrayList<User>(c);
+    query.closeAll();
+    return users;
+  }
+  
+
+  
+  public User getUserByUUID(String uuid) {
+    User user= null;
     try {
-      user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, username.trim()), true)));
+      user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, uuid.trim()), true)));
     }
     catch (Exception nsoe) {
       return null;
@@ -758,6 +808,9 @@ public class Shepherd {
     return user;
   }
 
+  
+  
+  
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
     String filter = "this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
@@ -1438,6 +1491,21 @@ public class Shepherd {
     Iterator<Taxonomy> taxis = getAllTaxonomies();
     return (Util.count(taxis));
   }
+  public List<String> getAllTaxonomyNames() {
+    Iterator<Taxonomy> allTaxonomies = getAllTaxonomies();
+    Set<String> allNames = new HashSet<String>();
+    while (allTaxonomies.hasNext()) {
+      Taxonomy taxy = allTaxonomies.next();
+      allNames.add(taxy.getScientificName());
+    }
+    List<String> configNames = CommonConfiguration.getIndexedPropertyValues("genusSpecies", getContext());
+    allNames.addAll(configNames);
+
+    List<String> allNamesList = new ArrayList<String>(allNames);
+    java.util.Collections.sort(allNamesList);
+    //return (allNamesList);
+    return (configNames);
+  }
 
 
   
@@ -2067,7 +2135,40 @@ public class Shepherd {
 
 
   public User getUserByEmailAddress(String email){
+    ArrayList<User> users=new ArrayList<User>();
     String filter="SELECT FROM org.ecocean.User WHERE emailAddress == \""+email+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){users=new ArrayList<User>(c);}
+    query.closeAll();
+    if(users.size()>0){return users.get(0);}
+    return null;
+  }
+  
+  public User getUserByHashedEmailAddress(String hashedEmail){
+    ArrayList<User> users=new ArrayList<User>();
+    String filter="SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \""+hashedEmail+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){users=new ArrayList<User>(c);}
+    query.closeAll();
+    if(users.size()>0){return users.get(0);}
+    return null;
+  }
+  
+  
+  public List<User> getUsersWithEmailAddresses(){
+    ArrayList<User> users=new ArrayList<User>();
+    String filter="SELECT FROM org.ecocean.User WHERE emailAddress != null";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null)users=new ArrayList<User>(c);
+    query.closeAll();
+    return users;
+  }
+  
+  public User getUserByAffiliation(String affil){
+    String filter="SELECT FROM org.ecocean.User WHERE affiliation == \""+affil+"\"";
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     Iterator it = c.iterator();
@@ -2080,6 +2181,8 @@ public class Shepherd {
     query.closeAll();
     return null;
   }
+  
+  
 
   public User getUserBySocialId(String service, String id) {
         if ((id == null) || (service == null)) return null;
@@ -2245,6 +2348,57 @@ public class Shepherd {
     samples.closeAll();
     return myArray;
   } 
+
+  public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
+
+    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individualID == \""+indy.getIndividualID()+"\" ";
+    String vars=" VARIABLES org.ecocean.Encounter enc3_0";
+    for(int i=0; i<kwReadableNames.length; i++){
+      filter+="  && features.contains(feat"+i+") && feat"+i+".asset.keywords.contains(word"+i+") &&  word"+i+".readableName == \""+kwReadableNames[i]+"\" ";
+      vars+=";org.ecocean.Keyword word"+i+";org.ecocean.media.Feature feat"+i;
+    }
+
+    ArrayList<Annotation> results = new ArrayList<Annotation>();
+    try {
+      Query query=this.getPM().newQuery(filter+vars);
+      query.setRange(0, maxResults);
+      Collection coll = (Collection) (query.execute());
+      results=new ArrayList<Annotation>(coll);
+      if (query!=null) query.closeAll();
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
+
+    ArrayList<MediaAsset> assResults = new ArrayList<MediaAsset>();
+    for (Annotation ann: results) {
+      if (ann!=null && ann.getMediaAsset()!=null) assResults.add(ann.getMediaAsset());
+    }
+    return assResults;
+  }
+
+  public List<MediaAsset> getPhotosForIndividual(MarkedIndividual indy, int maxResults) {
+    // i hope this works?
+    String[] noKeywordNames = new String[0];
+    List<MediaAsset> results = getKeywordPhotosForIndividual(indy, noKeywordNames, maxResults);
+    return results;
+  }
+
+  // this method returns the MediaAsset on an Indy with the given keyword, with preference
+  // for assets with the additional keyword "ProfilePhoto"
+  public MediaAsset getBestKeywordPhoto(MarkedIndividual indy, String kwName) {
+
+    List<MediaAsset> results = getKeywordPhotosForIndividual(indy, new String[]{kwName, "ProfilePhoto"}, 1);
+    MediaAsset result = (results!=null && results.size()>0) ? results.get(0) : null;
+    if (result != null) return (result);
+
+    // we couldn't find a profile photo with the keyword
+    results = getKeywordPhotosForIndividual(indy, new String[]{kwName}, 1);
+    if (results!=null && results.size()>0) return (results.get(0));
+    
+    return null;
+  }
+
 
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(String locationID){
     ArrayList<MarkedIndividual> myArray=new ArrayList<MarkedIndividual>();
@@ -2462,6 +2616,17 @@ public class Shepherd {
       return null;
     }
     return tempShark;
+  }
+
+  public Task getTask(String id) {
+    Task theTask = null;
+    try {
+      theTask = ((org.ecocean.ia.Task) (pm.getObjectById(pm.newObjectIdInstance(Task.class, id.trim()), true)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return theTask;
   }
 
   public MarkedIndividual getMarkedIndividualQuiet(String name) {
@@ -3153,12 +3318,18 @@ public class Shepherd {
   }
 
   public List<User> getAllUsers() {
+    return getAllUsers("username ascending NULLS LAST");
+  }
+  
+  public List<User> getAllUsers(String ordering) {
     Collection c;
     ArrayList<User> list = new ArrayList<User>();
-    System.out.println("Shepherd.getAllUsers() called in context "+getContext());
+    //System.out.println("Shepherd.getAllUsers() called in context "+getContext());
     Extent userClass = pm.getExtent(User.class, true);
     Query users = pm.newQuery(userClass);
-    users.setOrdering("fullName ascending");
+    if(ordering!=null) {
+      users.setOrdering(ordering);
+    }
     try {
       c = (Collection) (users.execute());
       if(c!=null){
@@ -3178,7 +3349,7 @@ public class Shepherd {
 
   public String getAllUserEmailAddressesForLocationID(String locationID, String context){
     String addresses="";
-    List<User> users = getAllUsers();
+    List<User> users = getUsersWithEmailAddresses();
     int numUsers=users.size();
     for(int i=0;i<numUsers;i++){
       User user=users.get(i);
@@ -3782,6 +3953,30 @@ public class Shepherd {
     return al;
   }
 
+  public List<String> getAllEncounterStrVals(String fieldName) {
+    return getAllStrVals(Encounter.class, fieldName);
+  }
+
+  public List<String> getAllStrVals(Class fromClass, String fieldName) {
+    Query q = pm.newQuery(fromClass);
+    q.setResult("distinct "+fieldName);
+    q.setOrdering(fieldName+" ascending");
+    Collection results = (Collection) q.execute();
+    List resList = new ArrayList(results);
+    q.closeAll();
+    return resList;
+  }
+
+  // gets properties vals, then all actual vals, and returns the combined list without repeats
+  public List<String> getAllPossibleVals(Class fromClass, String fieldName, Properties props) {
+    List<String> indexVals = Util.getIndexedPropertyValues(fieldName, props);
+    List<String> usedVals = getAllStrVals(fromClass, fieldName);
+    for (String usedVal: usedVals) {
+      if (!indexVals.contains(usedVal)) indexVals.add(usedVal);
+    }
+    return indexVals;
+  }
+
   public List<String> getAllSpecificEpithets() {
       Query q = pm.newQuery(Encounter.class);
       q.setResult("distinct specificEpithet");
@@ -4172,6 +4367,19 @@ public class Shepherd {
     return al;
   }
 
+  public ArrayList<Annotation> getAnnotationsWithACMId(String acmId){
+    String filter = "this.acmId == \""+acmId+"\"";
+    Extent annClass = pm.getExtent(Annotation.class, true);
+    Query anns = pm.newQuery(annClass, filter);
+    Collection c = (Collection) (anns.execute());
+    ArrayList<Annotation> al = new ArrayList(c);
+    anns.closeAll();
+    if((al!=null)&&(al.size()>0)) {
+      return al;
+    }
+    return null;
+  }
+
   //used to describe where this Shepherd is and what it is supposed to be doing
   public void setAction(String newAction){
 
@@ -4187,6 +4395,48 @@ public class Shepherd {
 
   public String getAction(){return action;}
 
+  public List<String> getAllEncounterNumbers(){
+      List<String> encs=null;
+      String filter="SELECT DISTINCT catalogNumber FROM org.ecocean.Encounter";  
+      Query query=getPM().newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      encs=new ArrayList<String>(c);
+      query.closeAll();
+      return encs;
+  }
+  
+  public List<String> getAllUsernamesWithRoles(){
+    List<String> usernames=null;
+    String filter="SELECT DISTINCT username FROM org.ecocean.Role";  
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    usernames=new ArrayList<String>(c);
+    query.closeAll();
+    return usernames;
+}
+  
+
+  public List<Encounter> getEncountersForSubmitter(User user, Shepherd myShepherd){
+      ArrayList<Encounter> users=new ArrayList<Encounter>();
+      String filter="SELECT FROM org.ecocean.Encounter WHERE submitters.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      Query query=myShepherd.getPM().newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      if(c!=null){users=new ArrayList<Encounter>(c);}
+      query.closeAll();
+      return users;
+  }
+
+
+
+  public List<Encounter> getEncountersForPhotographer(User user, Shepherd myShepherd){
+      ArrayList<Encounter> users=new ArrayList<Encounter>();
+      String filter="SELECT FROM org.ecocean.Encounter WHERE photographers.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      Query query=myShepherd.getPM().newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      if(c!=null){users=new ArrayList<Encounter>(c);}
+      query.closeAll();
+      return users;
+  }
 
 
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--M
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
@@ -42,7 +42,7 @@
 
 
 
-  <display-name>Shepherd Project Framework for Mark-Recapture Studies</display-name>
+  <display-name>Wildbook®</display-name>
   <description>
     Photo-identification Library
   </description>
@@ -163,16 +163,16 @@
 		/individualSearchResults.jsp = authc
 		/individualSearchResultsExport.jsp = authc, roles[researcher]
 		/individualSearchResultsAnalysis.jsp = authc, roles[researcher]
-		/individualMappedSearchResults.jsp = authc
+		/individualMappedSearchResults.jsp = authc, roles[researcher]
 		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
 
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
 		 /encounters/encounterSearch.jsp = roles[researcher]
-		 /encounters/searchResults.jsp = authc
+		 /encounters/searchResults.jsp = authc, roles[researcher]
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
-		 /encounters/mappedSearchResults.jsp = authc
-		 /encounters/mappedSearchResultsSex.jsp = authc
-		 /encounters/mappedSearchResultsHaplotype.jsp = authc
+		 /encounters/mappedSearchResults.jsp = authc, roles[researcher]
+		 /encounters/mappedSearchResultsSex.jsp = authc, roles[researcher]
+		 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[researcher]
 		 /encounters/exportSearchResults.jsp = authc, roles[researcher]
 		 /encounters/imageViewer.jsp = authc, roles[researcher]
 		 /encounters/searchComparison.jsp = authc, roles[researcher]
@@ -233,7 +233,7 @@
 		         /UserRemoveProfileImage = authc, roles[researcher]
 		         /EncounterSearchExportExcelFile = authc, roles[researcher]
 		         /EncounterSearchExportShapefile = authc, roles[researcher]
-		         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
+		         /EncounterSearchExportEmailAddresses = authc, roles[admin]
 		         /EncounterAddComment = authc, roles[researcher]
 		         /OccurrenceAddComment = authc, roles[researcher]
 		          /OccurrenceSetIndividualCount = authc, roles[researcher]
@@ -274,6 +274,8 @@
 				 #lockdown Keyword handling
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
+				
+				/ExportWekaPredictorARFF = authc, roles[admin]
 				
 
             </param-value>
@@ -434,12 +436,12 @@
 
 
 
-
+<!--
   <servlet>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSubmitterPhotographerContactInfo</servlet-class>
   </servlet>
-
+-->
 
     <servlet>
       <servlet-name>UserResetAcceptedUserAgreement</servlet-name>
@@ -1269,6 +1271,16 @@
       <url-pattern>/SideFeed</url-pattern>
   </servlet-mapping>
   -->
+  
+    <servlet>
+    <servlet-name>ExportWekaPredictorARFF</servlet-name>
+    <servlet-class>org.ecocean.ai.servlet.export.ExportWekaPredictorARFF</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+    <servlet-name>ExportWekaPredictorARFF</servlet-name>
+    <url-pattern>/ExportWekaPredictorARFF</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>WorkspaceServer</servlet-name>
@@ -1773,12 +1785,12 @@
         <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
         <url-pattern>/OccurrenceSetGroupBehavior</url-pattern>
   </servlet-mapping>
-
+<!--
   <servlet-mapping>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
     <url-pattern>/EncounterSetSubmitterPhotographerContactInfo</url-pattern>
   </servlet-mapping>
-
+-->
 <!--  
   
    <servlet-mapping>

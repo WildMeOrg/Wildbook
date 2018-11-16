@@ -32,10 +32,14 @@ https://stackoverflow.com/a/29053050/1525311
 public class RestClient {
     ///TODO this is IBEIS-specific -- need to generalize for RestClient to be universal
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
-    private static final int CONNECTION_TIMEOUT = 180000;  //maybe this should be service-specific?
+    private static final int CONNECTION_TIMEOUT = 300000;  //maybe this should be service-specific?
 
     public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         return anyMethod("POST", url, data);
+    }
+
+    public static JSONObject put(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return anyMethod("PUT", url, data);
     }
 
     public static JSONObject get(URL url) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {

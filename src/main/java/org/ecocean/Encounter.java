@@ -38,7 +38,9 @@ import java.util.GregorianCalendar;
 import java.lang.Math;
 import java.io.*;
 import java.lang.reflect.Field;
+
 import javax.jdo.Query;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,13 +51,14 @@ import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
-import org.ecocean.servlet.ServletUtilities;
+//import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
 import org.ecocean.Survey;
 
 import javax.servlet.http.HttpServletRequest;
+
 
 
 
@@ -68,6 +71,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 
 import javax.servlet.http.HttpServletRequest;
+
 
 //note these are different.  so be explicit if you need the org.json.JSONObject flavor
 //import org.json.JSONObject;
@@ -172,6 +176,10 @@ public class Encounter implements java.io.Serializable {
 
   // for searchability
   private String imageNames;
+  
+  
+  private List<User> submitters;
+  private List<User> photographers;
 
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
@@ -335,14 +343,14 @@ public class Encounter implements java.io.Serializable {
    *
    * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
    */
-  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
+  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location) {
     if (images != null) System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
     this.verbatimLocality = location;
-    this.recordedBy = submitterName;
-    this.submitterEmail = submitterEmail;
+    //this.recordedBy = submitterName;
+    //this.submitterEmail = submitterEmail;
 
     //now we need to set the hashed form of the email addresses
-    this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
+    //this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
 
     this.images = images;
     this.day = day;
@@ -365,7 +373,6 @@ public class Encounter implements java.io.Serializable {
         this.catalogNumber = Util.generateUUID();
         this.annotations = anns;
         this.setDateFromAssets();
-        this.setSpeciesFromAnnotations();
         this.setLatLonFromAssets();
         this.setDWCDateAdded();
         this.setDWCDateLastModified();
@@ -640,7 +647,12 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setSubmitterName(String newname) {
-    recordedBy = newname;
+    if(newname==null) {
+      recordedBy=null;
+    }
+    else {
+      recordedBy = newname;
+    }
   }
 
   /**
@@ -653,8 +665,14 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setSubmitterEmail(String newemail) {
-    submitterEmail = newemail;
-    this.hashedSubmitterEmail = Encounter.getHashOfEmailString(newemail);
+    if(newemail==null) {
+      submitterEmail = null;
+      this.hashedSubmitterEmail = null;
+    }
+    else {
+      submitterEmail = newemail;
+      this.hashedSubmitterEmail = Encounter.getHashOfEmailString(newemail);
+    }
   }
 
   /**
@@ -670,7 +688,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the phone number of the person who submitted this encounter data.
    */
   public void setSubmitterPhone(String newphone) {
-    submitterPhone = newphone;
+    if(newphone==null) {
+      submitterPhone=null;
+    }
+    else{
+      submitterPhone = newphone;
+    }
   }
 
   /**
@@ -686,7 +709,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the mailing address of the person who submitted this encounter data.
    */
   public void setSubmitterAddress(String address) {
-    submitterAddress = address;
+    if(address==null) {
+      submitterAddress=null;
+    }
+    else {
+      submitterAddress = address;
+    }
   }
 
   /**
@@ -702,7 +730,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the name of the person who took the primaryImage this encounter.
    */
   public void setPhotographerName(String name) {
-    photographerName = name;
+    if(name==null) {
+      photographerName=null;
+    }
+    else {
+      photographerName = name;
+    }
   }
 
   /**
@@ -718,8 +751,14 @@ public class Encounter implements java.io.Serializable {
    * Sets the e-mail address of the person who took the primaryImage this encounter.
    */
   public void setPhotographerEmail(String email) {
-    photographerEmail = email;
-    this.hashedPhotographerEmail = Encounter.getHashOfEmailString(email);
+    if(email==null) {
+      photographerEmail = null;
+      this.hashedPhotographerEmail = null;
+    }
+    else {
+      photographerEmail = email;
+      this.hashedPhotographerEmail = Encounter.getHashOfEmailString(email);
+    }
   }
 
   /**
@@ -731,11 +770,23 @@ public class Encounter implements java.io.Serializable {
     return photographerPhone;
   }
 
+  public String getWebUrl(HttpServletRequest req) {
+    return getWebUrl(this.getCatalogNumber(), req);
+  }
+  public static String getWebUrl(String encId, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/encounters/encounter.jsp?number="+encId);
+  }
+
   /**
    * Sets the phone number of the person who took the primaryImage this encounter.
    */
   public void setPhotographerPhone(String phone) {
-    photographerPhone = phone;
+    if(phone==null) {
+      photographerPhone=null;
+    }
+    else {
+      photographerPhone = phone;
+    }
   }
 
   /**
@@ -751,7 +802,12 @@ public class Encounter implements java.io.Serializable {
    * Sets the mailing address of the person who took the primaryImage this encounter.
    */
   public void setPhotographerAddress(String address) {
-    photographerAddress = address;
+    if(address==null) {
+      photographerAddress=null;
+    }
+    else {
+      photographerAddress = address;
+    }
   }
 
   /**
@@ -1307,6 +1363,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return submitterID;
   }
 
+  
   public Vector getInterestedResearchers() {
     return interestedResearchers;
   }
@@ -1314,6 +1371,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void addInterestedResearcher(String email) {
     interestedResearchers.add(email);
   }
+  
 
  /*
   public boolean isApproved() {
@@ -1321,6 +1379,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
   */
 
+  /*
   public void removeInterestedResearcher(String email) {
     for (int i = 0; i < interestedResearchers.size(); i++) {
       String rName = (String) interestedResearchers.get(i);
@@ -1329,7 +1388,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
     }
   }
-
+*/
 
   public double getRightmostSpot() {
     double rightest = 0;
@@ -1928,6 +1987,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
     return null;
   }
+  public boolean hasDynamicProperty(String name) {
+    return ( this.getDynamicPropertyValue(name) != null );
+  }
 
   public void removeDynamicProperty(String name) {
     name = name.replaceAll(";", "_").trim().replaceAll("%20", " ");
@@ -1993,8 +2055,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
-	else{genus=null;}
-    updateAnnotationTaxonomy();
+	  else{genus=null;}
   }
 
   public String getSpecificEpithet() {
@@ -2003,19 +2064,40 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
-	else{specificEpithet=null;}
-    updateAnnotationTaxonomy();
+	  else{specificEpithet=null;}
   }
 
-    private void updateAnnotationTaxonomy() {
-        if ((getAnnotations() == null) || (getAnnotations().size() < 1)) return;
-        for (Annotation ann : getAnnotations()) {
-            ann.setSpecies(getTaxonomyString());  //TODO in some perfect world this would use IA-specific mapping calls and/or yet-to-be-made Taxonomy class etc
+  public String getTaxonomyString() {
+      return Util.taxonomyString(getGenus(), getSpecificEpithet());
+  }
+
+    //right now this updates .genus and .specificEpithet ... but in some glorious future we will just store Taxonomy!
+    //  note that "null" cases will leave *current values untouched* (does not reset them)
+    public void setTaxonomy(Taxonomy tax) {
+        if (tax == null) return;
+        String[] gs = tax.getGenusSpecificEpithet();
+        if ((gs == null) || (gs.length < 1)) return;
+        if (gs.length == 1) {
+            this.genus = gs[0];
+            this.specificEpithet = null;
+        } else {
+            this.genus = gs[0];
+            this.specificEpithet = gs[1];
         }
     }
-
-    public String getTaxonomyString() {
-        return Util.taxonomyString(getGenus(), getSpecificEpithet());
+    public void setTaxonomyFromString(String s) {  //basically scientific name (will get split on space)
+        String[] gs = Util.stringToGenusSpecificEpithet(s);
+        if ((gs == null) || (gs.length < 1)) return;
+        if (gs.length == 1) {
+            this.genus = gs[0];
+            this.specificEpithet = null;
+        } else {
+            this.genus = gs[0];
+            this.specificEpithet = gs[1];
+        }
+    }
+    public void setTaxonomyFromIAClass(String iaClass, Shepherd myShepherd) {
+        setTaxonomy(IBEISIA.iaClassToTaxonomy(iaClass, myShepherd));
     }
 
   public String getPatterningCode(){ return patterningCode;}
@@ -2036,14 +2118,18 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (dt != null) setDateInMilliseconds(dt.getMillis());
     }
 
+    //this can(should?) fail in a lot of cases, since we may not know
     public void setSpeciesFromAnnotations() {
         if ((annotations == null) || (annotations.size() < 1)) return;
-        String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
-        this.setGenus(null);  //we reset these no matter what, so only parts get set as available
-        this.setSpecificEpithet(null);
-        if (sp == null) return;
-        if (sp.length > 0) this.setGenus(sp[0]);
-        if (sp.length > 1) this.setSpecificEpithet(sp[1]);
+        String[] sp = null;
+        for (Annotation ann : annotations) {
+            sp = IBEISIA.convertSpecies(annotations.get(0).getIAClass());
+            if (sp != null) break;  //use first one we get
+        }
+        //note: now we require (exactly) two parts ... please fix this, Taxonomy class!
+        if ((sp == null) || (sp.length != 2)) return;
+        this.setGenus(sp[0]);
+        this.setSpecificEpithet(sp[1]);
     }
 
     //find the first one(s) we can
@@ -2866,7 +2952,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 		return blk;
 	}
 
-
 /*
 in short, this rebuilds (or builds for the first time) ALL *derived* images (etc?) for this encounter.
 it is a baby step into the future of MediaAssets that hopefully will provide a smooth(er) transition to that.
@@ -3100,7 +3185,7 @@ throw new Exception();
 
     //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
     public Encounter cloneWithoutAnnotations() {
-        Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
+        Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
         enc.setGenus(this.getGenus());
         enc.setSpecificEpithet(this.getSpecificEpithet());
@@ -3246,4 +3331,90 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }  
     } 
 
+    
+    public List<User> getSubmitters(){
+      return submitters;
+    }
+    
+    public List<String> getSubmitterEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getSubmitters()!=null)subs.addAll(getSubmitters());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+          listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
+    public List<String> getHashedSubmitterEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getSubmitters()!=null)subs.addAll(getSubmitters());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getHashedEmailAddress()!=null)&&(!use.getHashedEmailAddress().trim().equals(""))){
+          listy.add(use.getHashedEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
+    public List<User> getPhotographers(){
+      return photographers;
+    }
+    
+    public List<String> getPhotographerEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getPhotographers()!=null)subs.addAll(getPhotographers());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+          listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
+    public List<String> getHashedPhotographerEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getPhotographers()!=null)subs.addAll(getPhotographers());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getHashedEmailAddress()!=null)&&(!use.getHashedEmailAddress().trim().equals(""))){
+          listy.add(use.getHashedEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
+    public void addSubmitter(User user) {
+        if (user == null) return;
+        if (submitters == null) submitters = new ArrayList<User>();
+        if (!submitters.contains(user)) submitters.add(user);
+    }
+
+    public void setSubmitters(List<User> submitters) {
+      if(submitters==null){this.submitters=null;}
+      else{
+        this.submitters=submitters;
+      }
+      
+    }
+    public void setPhotographers(List<User> photographers) {
+      if(photographers==null){this.photographers=null;}
+      else{
+        this.photographers=photographers;
+      }
+    }
+
+    
 }
