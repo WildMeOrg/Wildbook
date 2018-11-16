@@ -1449,8 +1449,19 @@ if(enc.getLocation()!=null){
                         </div>
                         <div class="col-sm-5 col-xs-10">
                           <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
+                          
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
-                          <span class="form-control-feedback" id="individualError">X</span>
+                          <span class="form-control-feedback" id="individualError">X</span><br>
+                          <%
+                          String nextID=getNextIndividualNumber(enc, myShepherd, context);
+                          %>
+                           <script type="text/javascript">
+                          	function populateID() {
+                          		$('individualAddEncounterInput').val('<%=nextID %>');
+                          	}
+	                      </script>
+                          <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualAddEncounterInput').val('<%=nextID %>');"><%=nextID  %></a></em></p>
+
                         </div>
                       </div>
                       <div class="form-group row" id="matchedByDiv">
