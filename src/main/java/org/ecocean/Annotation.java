@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -592,13 +593,58 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
                 }
                 break;  //found trivial, done  TODO: what if there was (bug, weirdness, etc) more than one trivial. gasp!
             }
+
             if (someEnc == null) someEnc = enc;  //use the first one we find to base new one (below) off of, if necessary
         }
+
+        // do we have an an encounter from the sibling?
+        // The following goes hella deep in loops.. but most of the time loop 2 and 3 will actually only have 1 item
+        if (someEnc!=null) {
+            ArrayList<Feature> myFeats = this.getFeatures();
+            boolean overlapping = false;
+            for (Annotation ann : sibs) {
+                //if iaClass is the same, it means same animal, same part ect.. gotta make a new encounter and totally bail on this
+                if (ann.getIAClass()==this.getIAClass()) {break;}
+                
+                ArrayList<Feature> sibFeats = ann.getFeatures();
+                try {
+                    for (Feature sibFeat : sibFeats) {
+                        JSONObject sibParams = sibFeat.getParameters();
+                        // made it this far.. if the bboxes of the features OVERLAP we can (well, we will) assume it is the same animal.
+                        int sibx = sibParams.getInt("x");
+                        int siby = sibParams.getInt("y");
+                        int sibWidth = sibParams.getInt("width");
+                        int sibHeight = sibParams.getInt("height");
+                        Rectangle sibRect = new Rectangle(sibx,siby,sibWidth,sibHeight);
+
+                        for (Feature myFeat : myFeats) {
+                            JSONObject myFeatParams = myFeat.getParameters();
+                            int myx = myFeatParams.getInt("x");
+                            int myy = myFeatParams.getInt("y");
+                            int myWidth = myFeatParams.getInt("width");
+                            int myHeight = myFeatParams.getInt("height");
+                            Rectangle myRect = new Rectangle(myx,myy,myWidth,myHeight);
+
+                            // MOMENT OF TRUTH
+                            if (myRect.intersects(sibRect)||myRect.contains(sibRect)) {
+                                someEnc.addAnnotation(this);
+                                someEnc.setDWCDateLastModified();
+                                return someEnc;
+                            }
+                        }
+                    }
+                } catch (NumberFormatException nfe) {
+                    nfe.printStackTrace();
+                } 
+            }
+        }
+
+
         //if we fall thru, we have no trivial annot, so just get a new Encounter for this Annotation
         Encounter newEnc = null;
         if (someEnc == null) {
             newEnc = new Encounter(this);
-        } else {  //copy some stuff from sibling
+        } else {  //copy some stuff from sibling  
             newEnc = someEnc.cloneWithoutAnnotations();
             newEnc.addAnnotation(this);
             newEnc.setDWCDateAdded();
