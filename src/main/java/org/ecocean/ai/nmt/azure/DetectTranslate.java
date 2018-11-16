@@ -35,8 +35,8 @@ public class DetectTranslate {
     
     //AZURE - generic post...
     private static String postToAzure(URL url, String content) throws Exception {
-        Properties azureProps = ShepherdProperties.getProperties("azureNMT.properties","");
-        String subscriptionKey = azureProps.getProperty("subscriptionKey");
+        Properties azureProps = ShepherdProperties.getProperties("azure.properties","");
+        String subscriptionKey = azureProps.getProperty("subscriptionKeyNMT");
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");

@@ -39,34 +39,34 @@ public class Task implements java.io.Serializable {
         created = System.currentTimeMillis();
         modified = System.currentTimeMillis();
     }
+    public Task(Task p) {
+        this();
+        this.setParent(p);
+    }
 
     public String getId() {
         return id;
     }
 
-    public List<MediaAsset> getMediaAssetObjects() {
-        return objectMediaAssets;
-    }
-    public List<Annotation> getAnnotationObjects() {
-        return objectAnnotations;
-    }
-
-    public int countMediaAssetObjects() {
+    public int countObjectMediaAssets() {
         return (objectMediaAssets == null) ? 0 : objectMediaAssets.size();
     }
-    public int countAnnotationObjects() {
+    public int countObjectAnnotations() {
         return (objectAnnotations == null) ? 0 : objectAnnotations.size();
     }
     public int countObjects() {
-        return countMediaAssetObjects() + countAnnotationObjects();
+        return countObjectMediaAssets() + countObjectAnnotations();
     }
 
     //not sure if these two are mutually exclusive by definition, but lets assume not (wtf would that even mean? i dunno)
-    public boolean hasMediaAssetObject() {
-        return (countMediaAssetObjects() > 0);
+    public boolean hasObjectMediaAssets() {
+        return (countObjectMediaAssets() > 0);
     }
-    public boolean hasAnnotationObject() {
-        return (countAnnotationObjects() > 0);
+    public boolean hasObjectAnnotations() {
+        return (countObjectAnnotations() > 0);
+    }
+    public boolean hasObjects() {
+        return (countObjects() > 0);
     }
 
     public void setObjectMediaAssets(List<MediaAsset> mas) {
@@ -80,6 +80,25 @@ public class Task implements java.io.Serializable {
     }
     public List<Annotation> getObjectAnnotations() {
         return objectAnnotations;
+    }
+    //kinda for convenience?
+    public boolean addObject(MediaAsset ma) {
+        if (ma == null) return false;
+        if (objectMediaAssets == null) objectMediaAssets = new ArrayList<MediaAsset>();
+        if (!objectMediaAssets.contains(ma)) {
+            objectMediaAssets.add(ma);
+            return true;
+        }
+        return false;
+    }
+    public boolean addObject(Annotation ann) {
+        if (ann == null) return false;
+        if (objectAnnotations == null) objectAnnotations = new ArrayList<Annotation>();
+        if (!objectAnnotations.contains(ann)) {
+            objectAnnotations.add(ann);
+            return true;
+        }
+        return false;
     }
 
     public List<Task> getChildren() {
@@ -97,6 +116,7 @@ public class Task implements java.io.Serializable {
 
     public void setParent(Task t) {
         parent = t;
+        t.addChild(this);
     }
     public Task getParent() {
         return parent;
@@ -189,8 +209,8 @@ public class Task implements java.io.Serializable {
                 .append(id)
                 .append("(" + new DateTime(created) + "|" + new DateTime(modified) + ")")
                 .append(numChildren() + "Kids")
-                .append(countMediaAssetObjects() + "MA")
-                .append(countAnnotationObjects() + "Ann")
+                .append(countObjectMediaAssets() + "MA")
+                .append(countObjectAnnotations() + "Ann")
                 .append("params=" + ((this.getParameters() == null) ? "(none)" : this.getParameters().toString()))
                 .toString();
     }

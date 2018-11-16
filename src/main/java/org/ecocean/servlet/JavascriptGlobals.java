@@ -154,7 +154,13 @@ public class JavascriptGlobals extends HttpServlet {
     myShepherd.closeDBTransaction();
     rtn.put("keywords", kw);
 
-    rtn.put("iaStatus", IBEISIA.iaStatus(request));
+    //this might throw an exception in various ways, so we swallow them here
+    try {
+        rtn.put("iaStatus", IBEISIA.iaStatus(request));
+    } catch (Exception ex) {
+        System.out.println("WARNING: JavascriptGlobals iaStatus threw " + ex.toString());
+        rtn.put("iaStatus", false);
+    }
 
     response.setContentType("text/javascript");
     response.setCharacterEncoding("UTF-8");

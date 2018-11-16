@@ -43,6 +43,7 @@
 .task-title {
 	background-color: #FAA;
 	margin: 10px 0;
+	clear: both;
 	padding: 8px;
 }
 .task-title-id {
@@ -50,8 +51,28 @@
 	font-size: 0.8em;
 }
 
+.task-divider {
+	/* This whole thing is way too hackey for my taste but it gets a margin between the tasks */
+	clear: both;
+	visibility: hidden;
+	margin-bottom: 50px; /* twice the standard iaResults margin so tasks are visual units */
+}
+
+.task-divider:first-of-type {
+	/* task-divider is prepended so we don't want it above the first task */
+	display: none;
+}
+
+/* these hide stuff for detection jobs; but dont hide task-content as it contains children tasks! */
+.task-title.task-type-detection {
+    display: none;
+}
+.task-summary.task-type-detection {
+    display: none;
+}
+
 .task-content {
-	height: 700px;
+	/* height: 700px; */
 }
 .annot-wrapper {
 	width: 48%;
@@ -69,7 +90,7 @@
 }
 
 .annot-summary {
-	padding: 1px 10px;
+	/*padding: 1px 10px;*/
 	margin: 4px 0;
 }
 
@@ -90,11 +111,18 @@
 	transform: scale(1.2);
 }
 
-.annot-action-checkbox-inactive {
-	display: none;
+div div .annot-action-checkbox-inactive {
+	visibility: hidden;
+	margin: 0.45em; /* vertically centers-ish */
 }
-
+span.illustrationLink {
+	visibility: hidden;
+}
+.annot-summary:hover span.illustrationLink {
+	visibility: visible;
+}
 .annot-summary:hover .annot-action-checkbox-inactive {
+	visibility: visible;
 	cursor: pointer;
 	display: inline-block;
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--M
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
@@ -42,7 +42,7 @@
 
 
 
-  <display-name>Shepherd Project Framework for Mark-Recapture Studies</display-name>
+  <display-name>Wildbook®</display-name>
   <description>
     Photo-identification Library
   </description>
@@ -260,6 +260,8 @@
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
 
+				
+				/ExportWekaPredictorARFF = authc, roles[admin]
 				
 
             </param-value>
@@ -1273,10 +1275,22 @@
       <servlet-name>SideFeed</servlet-name>
       <url-pattern>/SideFeed</url-pattern>
   </servlet-mapping>
+
   
       <servlet-mapping>
-      <servlet-name>EncounterAddMantaPattern</servlet-name>
-      <url-pattern>/EncounterAddMantaPattern</url-pattern>
+      	<servlet-name>EncounterAddMantaPattern</servlet-name>
+      	<url-pattern>/EncounterAddMantaPattern</url-pattern>
+	</servlet-mapping>
+  
+    <servlet>
+    <servlet-name>ExportWekaPredictorARFF</servlet-name>
+    <servlet-class>org.ecocean.ai.servlet.export.ExportWekaPredictorARFF</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+    <servlet-name>ExportWekaPredictorARFF</servlet-name>
+    <url-pattern>/ExportWekaPredictorARFF</url-pattern>
+
   </servlet-mapping>
 
   <servlet>

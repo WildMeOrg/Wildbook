@@ -190,6 +190,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              point.put("individualID",ServletUtilities.handleNullString(enc.getIndividualID()));
              point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
              point.put("date",enc.getDate());
+             point.put("thumbUrl",enc.getThumbnailUrl(context));
              
              
              
