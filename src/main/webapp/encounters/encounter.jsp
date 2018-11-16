@@ -1242,45 +1242,64 @@ if(enc.getLocation()!=null){
 <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
         <!-- START IDENTITY ATTRIBUTE -->
         <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-        <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
-        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
-        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
-      </h2>
-
-
-
-        <script type="text/javascript">
-        $(document).ready(function() {
-          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
-            buttons.toggle();
-          });
-          $("#editIdentity").click(function() {
-            $("#matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
-
-            $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn").show();
-
-            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
-
-            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
-          });
-
-          $("#closeEditIdentity").click(function() {
-            $(".editForm, .editText, .resultMessageDiv").hide();
-          });
-        });
-        </script>
-
-
-        <% }
+	        <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
+	        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
+	        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
+	      </h2>
+	
+	
+	
+	        <script type="text/javascript">
+	        $(document).ready(function() {
+	          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
+	            buttons.toggle();
+	          });
+	          $("#editIdentity").click(function() {
+	            $("#matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
+	
+	            $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn").show();
+	
+				<%
+				if(enc.getIndividualID()!=null){
+				%>
+					$(".add2shark").hide();               
+					$(".removeFromShark").show();                   	                                      
+				<%
+				}
+				else{
+				%>
+					$(".add2shark").show();               
+					$(".removeFromShark").hide(); 
+				<%
+				}
+				%>
+	            
+	            
+	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
+	
+	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
+	          });
+	
+	          $("#closeEditIdentity").click(function() {
+	            $(".editForm, .editText, .resultMessageDiv").hide();
+	          });
+	        });
+	        </script>
+	
+	
+	        <% 
+        }
         else {
+	         %>
+	         <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
+	         <%
+	     }
          %>
-         <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
-         <%}%>
 
 
-    							<%
-    							if (!enc.hasMarkedIndividual()) {
-  								%>
+    					
+    						
+    							<div>
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%>
                      <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>">
@@ -1288,21 +1307,13 @@ if(enc.getLocation()!=null){
     							</p>
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
-                      <span><%=encprops.getProperty("matched_by") %>:<span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
+                      <span><%=encprops.getProperty("matched_by") %>: <span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
                   </p>
 
-    							<%
-    							}
-    							else {
-    							%>
-    							<div>
-    								<p><%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><span id="displayIndividualID"><%=enc.getIndividualID()%></span></a></p>
+    							
 
           <%-- START MATCHED BY --%>
-    								<p>
-                      <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
-                        <span><%=encprops.getProperty("matched_by") %>:<span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
-                    </p>
+    			
 
                     <script type="text/javascript">
                     $(document).ready(function() {
@@ -1357,18 +1368,16 @@ if(enc.getLocation()!=null){
                       </div>
                     </form>
     							</div>
-    							<%
-      							} //end else
-      							%>
+    						
       <%-- END MATCHED BY --%>
 
       <%-- START MANAGE IDENTITY --%>
 
-     							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
+     		<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
 
-  									<%
-  									if(!enc.hasMarkedIndividual()) {
-  									%>
+ 
+ 					
+ 
 
                     <script type="text/javascript">
                     $(document).ready(function() {
@@ -1395,10 +1404,13 @@ if(enc.getLocation()!=null){
                           
                           $('#topid').prop('href', '../individuals.jsp?number=' + individual);
                           $("#topid").html(individual);
-                          
+          				$(".add2shark").hide();               
+        				$(".removeFromShark").show();      
                           //add topid update here
                           
                           $("#displayMatchedBy").html(matchType);
+                          $("#addSuccessDiv").html("<strong>Success:</strong> Encounter " + number + " was successfully added to " + individual + ".");
+                          
 
                         })
                         .fail(function(response) {
@@ -1420,14 +1432,13 @@ if(enc.getLocation()!=null){
 
                     <div class="editText">
                       <h3><%=encprops.getProperty("manageIdentity")%></h3>
-                      <p><em><small><%=encprops.getProperty("identityMessage") %></em></small></p>
                     </div>
 
-                    <div class="highlight resultMessageDiv" id="individualErrorDiv"></div>
 
-                    <p><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
 
-                    <form name="add2shark" class="editForm">
+                    <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
+
+                    <form name="add2shark" class="add2shark">
                       <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
                       <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
                       <div class="form-group row" id="individualDiv">
@@ -1459,7 +1470,7 @@ if(enc.getLocation()!=null){
                           <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
                         </div>
                       </div>
-                        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
+                        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark"/>
                     </form>
 					
 					<script type="text/javascript">
@@ -1467,17 +1478,14 @@ if(enc.getLocation()!=null){
 	                    	
 	                    	//set autocomplete on #individualAddEncounterInput above
 	                    	setIndivAutocomplete($('#individualAddEncounterInput'));
+	                    	
+	                    	
+	                    	
 	                    });
                     </script>
 
 
        
-
-
-					<%
-  					}
-  					else{
-					%>
              <script type="text/javascript">
                     $(document).ready(function() {
                     
@@ -1499,7 +1507,13 @@ if(enc.getLocation()!=null){
                           $("#removeLabel").hide();
                           $("#manageIdentityMessage").hide();
                           $("#displayIndividualID").html("");
+                          $("#individualAddEncounterInput").value="";
                           $("#topid").html("<%=encprops.getProperty("unassigned") %>");
+          					$(".add2shark").show();               
+        					$(".removeFromShark").hide();  
+                            $("#individualErrorDiv").hide();
+                            $("#individualDiv").removeClass("has-success");
+                            $("#individualCheck, #matchedByCheck, #individualResultsDiv").hide();
                         })
                         .fail(function(response) {
                           $("#setRemoveResultDiv").show();
@@ -1513,16 +1527,20 @@ if(enc.getLocation()!=null){
                     });
                     </script>
                     
+                    <div class="highlight resultMessageDiv removeFromShark" id="individualResultsDiv">
+                      <span class="highlight" id="addErrorDiv"></span>
+                      <span class="successHighlight" id="addSuccessDiv"></span>
+                    </div>
                     
-					<div id="setRemoveResultDiv" class="resultMessageDiv">
+					<div id="setRemoveResultDiv" class="resultMessageDiv add2shark">
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
                     </div>
-                    <div class="editText" id="manageIdentityMessage">
+                    <div class="editText removeFromShark" id="manageIdentityMessage">
                       <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
                       <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
                     </div>
-                    <form class="editForm" id="removeShark" name="removeShark">
+                    <form class="removeFromShark" id="removeShark" name="removeShark">
                       <div class="form-group row">
                         <div class="col-sm-12 col-xs-10">
                           <label id="removeLabel" class="highlight"><strong><%=encprops.getProperty("removeFromMarkedIndividual")%></strong></label>
@@ -1533,10 +1551,8 @@ if(enc.getLocation()!=null){
                       </div>
                     </form>
                     <br>
-									<%
-									}
-								%>
-							</div>
+		</div>
+
 
 <!-- END INDIVIDUALID ATTRIBUTE -->
 
@@ -1821,6 +1837,8 @@ if(enc.getLocation()!=null){
     <!-- END OCCURRENCE ATTRIBUTE -->
 
 </div>
+
+
 <%-- START CONTACT INFORMATION --%>
         <div>
 
