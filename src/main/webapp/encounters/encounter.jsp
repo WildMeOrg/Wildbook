@@ -1301,10 +1301,10 @@ if(enc.getLocation()!=null){
     						
     							<div>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%>
-                     <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>">
-                     <span id="displayIndividualID"></span></a></p>
-    							</p>
+    								 <%=encprops.getProperty("identified_as") %> 
+                     <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
+                     <span id="displayIndividualID"><%=ServletUtilities.handleNullString(enc.getIndividualID())%></span></a></p>
+    							
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
                       <span><%=encprops.getProperty("matched_by") %>: <span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
@@ -1404,8 +1404,8 @@ if(enc.getLocation()!=null){
                           
                           $('#topid').prop('href', '../individuals.jsp?number=' + individual);
                           $("#topid").html(individual);
-          				$(".add2shark").hide();               
-        				$(".removeFromShark").show();      
+          				  $(".add2shark").hide();               
+        				  $(".removeFromShark").show();      
                           //add topid update here
                           
                           $("#displayMatchedBy").html(matchType);
@@ -1432,6 +1432,8 @@ if(enc.getLocation()!=null){
 
                     <div class="editText">
                       <h3><%=encprops.getProperty("manageIdentity")%></h3>
+                         <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
+                   
                     </div>
 
 
@@ -1505,7 +1507,7 @@ if(enc.getLocation()!=null){
                           $("#removeErrorDiv").empty();
                           $("#removeShark").hide();
                           $("#removeLabel").hide();
-                          $("#manageIdentityMessage").hide();
+                          //$("#manageIdentityMessage").hide();
                           $("#displayIndividualID").html("");
                           $("#individualAddEncounterInput").value="";
                           $("#topid").html("<%=encprops.getProperty("unassigned") %>");
@@ -1514,6 +1516,13 @@ if(enc.getLocation()!=null){
                             $("#individualErrorDiv").hide();
                             $("#individualDiv").removeClass("has-success");
                             $("#individualCheck, #matchedByCheck, #individualResultsDiv").hide();
+                            
+                            $("#displayIndividualID").html("");
+                            //$('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
+                            //$('#topid').prop('href', '../individuals.jsp?number=' + individual);
+                            $("#topid").html("<%=encprops.getProperty("unassigned") %>");
+                            $("#topid").removeAttr("href");
+                            
                         })
                         .fail(function(response) {
                           $("#setRemoveResultDiv").show();
@@ -1521,7 +1530,7 @@ if(enc.getLocation()!=null){
                           $("#removeSuccessDiv").empty();
                           $("#individualRemoveEncounterBtn").show();
                           $("#removeLabel").show();
-                          $("#manageIdentityMessage").show();
+                          //$("#manageIdentityMessage").show();
                         });
                       });
                     });
@@ -1536,10 +1545,7 @@ if(enc.getLocation()!=null){
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
                     </div>
-                    <div class="editText removeFromShark" id="manageIdentityMessage">
-                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
-                      <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
-                    </div>
+         
                     <form class="removeFromShark" id="removeShark" name="removeShark">
                       <div class="form-group row">
                         <div class="col-sm-12 col-xs-10">
