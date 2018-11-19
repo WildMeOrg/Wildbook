@@ -61,7 +61,7 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
-    <h4>This donation will go directly to Whaleshark.org.</h4>
+    <h4>This donation will go directly to support Internet of Turtles.</h4>
   </section>
 
 	<%-- BEGIN STRIPE FORM --%>

@@ -601,11 +601,12 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         // The following goes hella deep in loops.. but most of the time loop 2 and 3 will actually only have 1 item
         if (someEnc!=null) {
             ArrayList<Feature> myFeats = this.getFeatures();
-            boolean overlapping = false;
             for (Annotation ann : sibs) {
                 //if iaClass is the same, it means same animal, same part ect.. gotta make a new encounter and totally bail on this
+
+                // TODO make this check less primitive.. could fail when we detect co occuring species.
                 if (ann.getIAClass()==this.getIAClass()) {break;}
-                
+
                 ArrayList<Feature> sibFeats = ann.getFeatures();
                 try {
                     for (Feature sibFeat : sibFeats) {

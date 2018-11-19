@@ -140,7 +140,7 @@ public class DeleteAdoption extends HttpServlet {
 
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> I failed to delete this adoption. Try again, and if this error continues to occur contact the webmaster.");
-        out.println("The webmaster can be reached at <strong>adoptions at whaleshark dot org</strong>.");
+        out.println("The webmaster can be reached at <strong>services at wildme dot org</strong>.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "Return to Wildbook</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
