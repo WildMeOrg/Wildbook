@@ -116,10 +116,26 @@ if (request.getParameter("number")!=null) {
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
 
-			boolean visible = indie.canUserAccess(request);
-
+      // This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
+      // without this hack
+      int numAnns = 0;
+      for (Object obj: myEncs) {
+        Encounter enc = (Encounter) obj;      
+        if (enc!=null && enc.getAnnotations()!=null) {
+          for (Annotation ann: enc.getAnnotations()) {
+            if (ann!=null) {
+              String makeSureWeHaveIt = ann.getIAClass();
+              numAnns++;
+            }
+          }
+        }
+      }
       System.out.println("");
       System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+      System.out.println("This marked individual has "+numAnns+" anotations");
+
+			boolean visible = indie.canUserAccess(request);
+
       String ipAddress = request.getHeader("X-FORWARDED-FOR");
       if (ipAddress == null) ipAddress = request.getRemoteAddr();
       if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
@@ -1291,7 +1307,6 @@ $(document).ready(function() {
         //
 
         %>
-
 
         <br>
         <%-- Cooccurrence table starts here --%>
