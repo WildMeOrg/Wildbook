@@ -8,6 +8,7 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 
 <%
 
+
 String context = ServletUtilities.getContext(request);
 
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
@@ -258,7 +259,7 @@ console.info("grabTaskResultsAll %s TRYING.....", task.id);
 }
 
 function grabTaskResult(tid) {
-	$("#initial-waiter").remove();
+//	$("#initial-waiter").remove();
         alreadyGrabbed[tid] = true;
 	var mostRecent = false;
 	var gotResult = false;
@@ -280,6 +281,9 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					showTaskResult(d[i], tid);
 					i = d.length;
 					gotResult = true;
+					console.log("removing initial waiter!");
+					$("#initial-waiter").remove();
+
 				} else {
 					if (!mostRecent && d[i].status && d[i].status._action) mostRecent = d[i].status._action;
 				}
@@ -333,6 +337,7 @@ console.info('age = %.2fmin', age / (60*1000));
 		error: function(a,b,c) {
 console.info('!!>> got %o', d);
 			console.error(a, b, c);
+			$("#initial-waiter").remove();
 			$('#task-' + tid).append('<p class="error">there was an error with task ' + tid + '</p>');
 		}
 	});
