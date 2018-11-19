@@ -341,8 +341,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
-                      <!-- submit encounter, survey -->
-
+                      <!-- Bots! Only show datasheet and nest dropdowns to logged in users.  -->
+                      <% 
+                        if(request.getUserPrincipal()!=null) {
+                      %>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("nests")%><span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -355,7 +357,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
 
-
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Record a Data Sheet<span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -364,11 +365,12 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                           <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=trackcounts">Track Counts</a></li>
                           <li><a  href="<%=urlLoc %>/dataSheet.jsp?newThreatSheet=true">Threat Sheet</a></li>
                           <li><a  href="<%=urlLoc %>/dataSheet.jsp">Blank Sheet</a></li>
-
                           <li><a  href="<%=urlLoc %>/dataSheetSearchResults.jsp">All Data Sheets</a></li>
-
                         </ul>
                       </li>
+                      <%
+                        }
+                      %>
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>

@@ -154,6 +154,8 @@
 		/AdoptionAction = authc, roles[adoption]
 		/IndividualSetNickname = authc, roles[researcher]
 
+    /dataSheet.jsp  authc
+
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
