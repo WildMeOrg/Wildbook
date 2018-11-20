@@ -93,7 +93,7 @@ var getData = function(individualID) {
     var occurrenceArray = [];
     var dataObject = {};
 
-     d3.json(wildbookGlobals.baseUrl + "/api/jdoql?SELECT%20FROM%20org.ecocean.Occurrence%20WHERE%20encounters.contains(enc)%20&&%20enc.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc", function(error, json) {
+     d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
       if(error) {
         console.log("error")
       }
@@ -103,10 +103,10 @@ var getData = function(individualID) {
         var encounterSize = thisOcc.encounters.length;
         // make encounterArray, containing the individualIDs of every encounter in thisOcc;
         for(var j=0; j < encounterSize; j++) {
-//console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
+          //console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
           var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
           //var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
-//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
+          //console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
           if (!thisEncIndID) continue;  //unknown indiv -> false
           if(encounterArray.includes(thisEncIndID)) {
           } else {
@@ -147,7 +147,7 @@ var getData = function(individualID) {
   };
 
 var getSexHaploData = function(individualID, items) {
-  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?SELECT%20FROM%20org.ecocean.MarkedIndividual%20WHERE%20encounters.contains(enc)%20&&%20occur.encounters.contains(enc)%20&&%20occur.encounters.contains(enc2)%20&&%20enc2.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc;org.ecocean.Encounter%20enc2;org.ecocean.Occurrence%20occur", function(error, json) {
+  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && occur.encounters.contains(enc) && occur.encounters.contains(enc2) && enc2.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2;org.ecocean.Occurrence occur"), function(error, json) {
     if(error) {
       console.log("error")
     }
@@ -251,7 +251,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
         if(d == "GOS") {
           return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
         }
-      return d;
+      return d; 
     });
 
     if(sortOn !== null) {
@@ -308,12 +308,13 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   var encounterData = [];
   var occurringWith = "";
-    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
+  d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
       if(error) {
         console.log("error")
       }
       jsonData = json;
       for(var i=0; i < jsonData.encounters.length; i++) {
+    	  var occurringWith = "";
         for(var j = 0; j < occurrenceObjectArray.length; j++) {
           if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
             if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
@@ -338,6 +339,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
           var location = "";
         }
         var catalogNumber = jsonData.encounters[i].catalogNumber;
+        console.log("Here's what we are working with : "+jsonData.encounters[i]);
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
           if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
             var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
@@ -361,7 +363,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       }
       makeTable(encounterData, "#encountHead", "#encountBody", "date");
     });
-  }
+}
 
   var goToEncounterURL = function(selectedWhale) {
     window.open("/encounters/encounter.jsp?number=" + selectedWhale);
@@ -441,7 +443,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   }
 
   var getRelationshipTableData = function(individualID) {
-  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?SELECT%20FROM%20org.ecocean.social.Relationship%20WHERE%20(this.markedIndividualName1%20==%20%22" + individualID + "%22%20||%20this.markedIndividualName2%20==%20%22" + individualID + "%22)", function(error, json) {
+  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.social.Relationship WHERE (this.markedIndividualName1 == \"" + individualID + "\" || this.markedIndividualName2 == \"" + individualID + "\")"), function(error, json) {
     if(error) {
       console.log("error")
     }
