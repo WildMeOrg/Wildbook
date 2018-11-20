@@ -449,6 +449,7 @@ function showUploadBox() {
 <fieldset>
 <h3><%=props.getProperty("submit_image")%></h3>
 <p><%=props.getProperty("submit_pleaseadd")%></p>
+<p><%=props.getProperty("submit_photo_instructions")%></p>
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
           <li class="active">
