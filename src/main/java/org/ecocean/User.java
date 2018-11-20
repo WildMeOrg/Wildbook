@@ -147,7 +147,7 @@ public class User implements Serializable {
   }
 
     public static String generateEmailHash(String addr) {
-        if ((addr == null) || (addr.trim() == "")) return null;
+        if ((addr == null) || (addr.trim().equals(""))) return null;
         return ServletUtilities.hashString(addr.trim().toLowerCase());
     }
 
