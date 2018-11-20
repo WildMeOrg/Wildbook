@@ -1038,6 +1038,15 @@ public class Shepherd {
     catch(Exception e){e.printStackTrace();}
     return ((al.size()>0) ? ((Taxonomy) al.get(0)) : null);
   }
+    public Taxonomy getTaxonomy(int tsn) {
+        Query query = pm.newQuery("SELECT org.ecocean.Taxonomy WHERE itisTsn == " + tsn);
+        try {
+            Collection c = (Collection) query.execute();
+            Iterator it = c.iterator();
+            if (it.hasNext()) return (Taxonomy)it.next();
+        } catch (Exception ex) {}
+        return null;
+    }
   public String storeNewTaxonomy(Taxonomy enc) {
     //enc.setOccurrenceID(uniqueID);
     boolean transactionWasActive = isDBTransactionActive();
