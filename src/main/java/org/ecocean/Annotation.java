@@ -464,6 +464,10 @@ public class Annotation implements java.io.Serializable {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         ArrayList<Encounter> encs = new ArrayList<Encounter>();
         Encounter myEnc = this.findEncounter(myShepherd);
+        if (myEnc == null) {
+            System.out.println("WARNING: getMatchingSet() could not find Encounter for " + this);
+            return anns;
+        }
         System.out.println("Getting matching set for annotation. Retrieved encounter = "+myEnc.getCatalogNumber());
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
