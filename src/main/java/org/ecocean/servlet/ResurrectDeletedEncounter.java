@@ -19,6 +19,7 @@
 
 package org.ecocean.servlet;
 
+import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -30,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
+import java.util.List;
 
 //import com.poet.jdo.*;
 
@@ -97,6 +99,19 @@ public class ResurrectDeletedEncounter extends HttpServlet {
 
           Encounter restoreMe = (Encounter) obj_in.readObject();
           restoreMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Restored this encounter after accidental deletion.");
+          
+          //restore annotations only if they're missing
+          List<Annotation> annots=restoreMe.getAnnotations();
+          int numAnnots=annots.size();
+          for(int i=0;i<numAnnots;i++){
+            Annotation a=annots.get(i);
+            String uuid=a.getUUID();
+            
+            
+            
+          }
+          
+          
           String newnum = myShepherd.storeNewEncounter(restoreMe, (request.getParameter("number")));
           //thisEncounterDat.delete();
 
