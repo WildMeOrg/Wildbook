@@ -509,6 +509,8 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
     String taskId = Util.generateUUID();
     res.put("taskId", taskId);
+    String baseUrl = IA.getBaseURL(context);
+/*
     String baseUrl = null;
     try {
         String containerName = IA.getProperty("context0", "containerName");
@@ -520,6 +522,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     } catch (Exception e) {
         e.printStackTrace();
     }
+*/
 
     //v2 "forces" queueing -- onward to the glorious future!
     if (j.optBoolean("enqueue", false) || j.optBoolean("v2", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
