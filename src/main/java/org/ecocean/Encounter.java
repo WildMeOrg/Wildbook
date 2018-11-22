@@ -981,7 +981,7 @@ public class Encounter implements java.io.Serializable {
     if (day > 0) {
       date = String.format("%04d-%02d-%02d %s", year, month, day, time);
     }
-    else if(month>-1) {
+    else if(month>0) {
       date = String.format("%04d-%02d %s", year, month, time);
     }
     else {
