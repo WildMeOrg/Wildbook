@@ -111,6 +111,38 @@ if (request.getParameter("number")!=null) {
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
 
+      // This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
+      // without this hack
+      int numAnns = 0;
+      for (Object obj: myEncs) {
+        Encounter enc = (Encounter) obj;      
+        if (enc!=null && enc.getAnnotations()!=null) {
+          for (Annotation ann: enc.getAnnotations()) {
+            if (ann!=null) {
+              String makeSureWeHaveIt = ann.getIAClass();
+              numAnns++;
+            }
+          }
+        }
+      }
+      System.out.println("");
+      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+      System.out.println("This marked individual has "+numAnns+" anotations");
+
+			boolean visible = indie.canUserAccess(request);
+
+      String ipAddress = request.getHeader("X-FORWARDED-FOR");
+      if (ipAddress == null) ipAddress = request.getRemoteAddr();
+      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
+      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+      System.out.println("    From IP: "+ipAddress);
+      System.out.println("    "+currentTimeString);
+      System.out.println("    Individual: "+indie);
+      System.out.println("    is visible: "+visible);
+      System.out.println("    request.getAuthType(): "+request.getAuthType());
+      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
+      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
+      System.out.println("");
 
 			boolean visible = indie.canUserAccess(request);
 
@@ -1276,7 +1308,6 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         //
 
         %>
-
 
         <br>
         <%-- Cooccurrence table starts here --%>
