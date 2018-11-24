@@ -424,6 +424,8 @@ var encounterNumber = '<%=num%>';
 
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
+<script src="../javascript/qualityChecks.js"></script>
+
 <script src="../javascript/imageTools.js"></script>
 
 
@@ -1171,6 +1173,8 @@ if(enc.getLocation()!=null){
 
       <script type="text/javascript">
         $(document).ready(function() {
+        	
+          //form submission	
           $("#setGPSbutton").click(function(event) {
             event.preventDefault();
 
@@ -1193,7 +1197,31 @@ if(enc.getLocation()!=null){
             $("#gpsErrorDiv").hide()
             $("#latCheck, #longCheck").hide();
           });
+          
+          
+          
+          //validate GPS values
+          $('#lat,#longitude').keyup(function() {
+              if( ( $('#lat').val() == "") && ( $('#longitude').val() == "") ) {
+                  $("#setGPSbutton").removeAttr("disabled");
+                  //alert("here 1!");
+              }
+              else if( $('#lat').val() == "" || $('#longitude').val() == "" ) {
+                  $("#setGPSbutton").attr("disabled","disabled");
+                  //alert("here 2!");
+              }  
+              else{
+              	//alert("Trying to validate!");
+              	validate_coords($('#lat').val(),$('#longitude').val());
+              }
+          });
+          
+          
         });
+        
+
+        
+        
       </script>
 
 
@@ -1227,6 +1255,9 @@ if(enc.getLocation()!=null){
               </div>
             </div>
           </form>
+          
+          
+          
 
           <br/>
           <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
