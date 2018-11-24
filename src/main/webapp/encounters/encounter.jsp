@@ -1143,6 +1143,21 @@ if(enc.getLocation()!=null){
 
 
       google.maps.event.addDomListener(window, 'load', initialize);
+      
+      function emptyMarkers() {
+
+    	    // Loop through markers and set map to null for each
+    	    for (var i=0; i<markers.length; i++) {
+
+    	        markers[i].setMap(null);
+    	    }
+
+    	    // Reset the markers array
+    	    markers = [];
+
+    	}
+      
+      
     </script>
 
  	<%
@@ -1205,6 +1220,7 @@ if(enc.getLocation()!=null){
               if( ( $('#lat').val() == "") && ( $('#longitude').val() == "") ) {
                   $("#setGPSbutton").removeAttr("disabled");
                   //alert("here 1!");
+                  emptyMarkers();
               }
               else if( $('#lat').val() == "" || $('#longitude').val() == "" ) {
                   $("#setGPSbutton").attr("disabled","disabled");
@@ -1212,7 +1228,22 @@ if(enc.getLocation()!=null){
               }  
               else{
               	//alert("Trying to validate!");
-              	validate_coords($('#lat').val(),$('#longitude').val());
+              	var valid=validate_coords($('#lat').val(),$('#longitude').val());
+              	if(!valid){
+              		$("#setGPSbutton").attr("disabled","disabled");
+              		emptyMarkers();
+              	}
+              	else{
+                    $("#setGPSbutton").removeAttr("disabled");
+                    emptyMarkers();
+                    var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());   
+                    var newMarker = new google.maps.Marker({
+                 	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+                 	   position:newLatLng,
+                 	   map:map
+                 	});
+                    markers.push(newMarker);
+              	}
               }
           });
           
