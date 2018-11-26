@@ -508,6 +508,11 @@
     <servlet-class>org.ecocean.servlet.EncounterSetBehavior</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>EncounterEditContributors</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterEditContributors</servlet-class>
+  </servlet>
+
     <servlet>
       <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
       <servlet-class>org.ecocean.servlet.OccurrenceSetGroupBehavior</servlet-class>
@@ -1707,6 +1712,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSetMeasurements</servlet-name>
     <url-pattern>/EncounterSetMeasurements</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterEditContributors</servlet-name>
+    <url-pattern>/EncounterEditContributors</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
