@@ -3,7 +3,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
-org.ecocean.grid.*,org.ecocean.ai.nmt.google.*,
+org.ecocean.grid.*,org.ecocean.ai.nmt.azure.*,
 java.io.*,org.json.JSONObject,java.util.*, java.io.FileInputStream, 
 java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,
 org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, 
@@ -24,6 +24,31 @@ weka.core.DenseInstance, org.ecocean.ai.weka.Classify,
 weka.core.Instances,
 java.util.concurrent.atomic.AtomicInteger,
 org.ecocean.identity.IBEISIA"%>
+
+<%!
+public String getCurlList(MediaAsset ma, Shepherd myShepherd){
+ArrayList<MediaAsset> children=ma.findChildren(myShepherd);
+	StringBuffer sb=new StringBuffer();
+	for(int i=0;i<children.size();i++){
+		MediaAsset child=children.get(i);
+			ArrayList<MediaAsset> grandchildren=child.findChildren(myShepherd);
+			int size=grandchildren.size();
+
+			if(size>0){
+				for(int j=0;j<size;j++){
+
+					sb.append(grandchildren.get(j).getId()+",");
+					
+				}
+			}
+			
+	}
+	String prepend="curl -s -X POST -H \'Content-Type: application/json\' -d \'{ \"detect\": { \"mediaAssetIds\": [ ";
+	String post = "] } }\' https://www.whaleshark.org/ia";
+	return prepend+sb.toString()+post;
+}
+%>
+
 
 <%
 
@@ -73,8 +98,6 @@ try{
 		//Long result=(Long)query.execute();
 		//int numResults=result.intValue();
 		query.closeAll();
-<<<<<<< HEAD
-=======
 		
 		//let's make each one considered has actually been run
 		ArrayList<MediaAsset> notRunYoutubeAssets=new ArrayList<MediaAsset>();
@@ -92,9 +115,7 @@ try{
 		
 		
 		//reset counter
->>>>>>> 5e7a781... FeedbackListener18
 		int numResults=results.size();
-		
 		%>
 %		
 %Num YouTube MediaAssets (videos) cataloged: <%=numResults %><br>
@@ -152,6 +173,33 @@ try{
 <p>Num commented videos with replies: <%=numCommentedVideosReplies.intValue() %></p>
 <p>Percentage responding: <%=(new Double((double)numCommentedVideosReplies.intValue()/numCommentedVideos.intValue()*100)).toString() %>% </p>
 	
+	<hr></hr>
+	<p>Unrun/failed MediaAssets for detection:<br>
+	
+	
+
+	<ul>
+	<%
+	int numNotRun=notRunYoutubeAssets.size();
+	for(int q=0;q<numNotRun;q++){
+		
+		MediaAsset nra=notRunYoutubeAssets.get(q);
+		%>
+		<li><a href="../obrowse.jsp?type=MediaAssetMetadata&id=<%=nra.getId() %>"><%=nra.getId() %></a></li>
+		<%
+	}
+	
+	
+	%>
+	
+	
+	</ul>
+	
+	
+	
+	
+	
+	</p>
 	
 	<%
 	
