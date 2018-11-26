@@ -670,10 +670,17 @@ System.out.println("enc ?= " + enc.toString());
                 String tok=str.nextToken().trim();
                 if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
                   User user=myShepherd.getUserByEmailAddress(tok);
+                  if (photoN!=null&&!"".equals(photoN)&&user.getFullName()==null) {
+                    user.setFullName(photoN);
+                  }
                   photographers.add(user);
                 }
                 else {
                   User user=new User(tok,Util.generateUUID());
+                  if (photoN!=null&&!"".equals(photoN)) {
+                    user.setFullName(photoN);
+                  }
+
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
                   myShepherd.beginDBTransaction();
