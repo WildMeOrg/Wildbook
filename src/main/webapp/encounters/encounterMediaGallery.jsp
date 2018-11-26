@@ -144,8 +144,12 @@ function forceLink(el) {
                                                     jt.put(Util.toggleJSONObject(t.toJSONObject()));
                                                 }
                                                 j.put("tasks", jt);
-						j.put("annotationId", ann.getId());
-                                                j.put("annotationIdentificationStatus", ann.getIdentificationStatus());
+                                                JSONObject ja = new JSONObject();
+						ja.put("id", ann.getId());
+                                                //ja.put("acmId", ann.getAcmId());
+                                                ja.put("iaClass", ann.getIAClass());
+                                                ja.put("identificationStatus", ann.getIdentificationStatus());
+                                                j.put("annotation", ja);
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
@@ -379,7 +383,8 @@ $(window).on('resizeEnd', function(ev) {
 
 //initializes image enhancement (layers)
 jQuery(document).ready(function() {
-	doImageEnhancer('figure img');
+    doImageEnhancer('figure img');
+    $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
 });
 
 function doImageEnhancer(sel) {
@@ -502,7 +507,7 @@ console.warn('foocontext --> %o', aid);
     if (!aid) return;
     var ma = assetByAnnotationId(aid);
 console.warn("====== enhancerDisplayAnnots %o ", ma);
-    if (!ma || !ma.features || !ma.annotationId) return;
+    if (!ma || !ma.features || !ma.annotation || !ma.annotation.id) return;
     var featwrap = $('<div class="image-enhancer-feature-wrapper" />');
     featwrap.data('enhancerScale', el.data('enhancerScale'));
     el.append(featwrap);
@@ -511,7 +516,7 @@ console.warn("====== enhancerDisplayAnnots %o ", ma);
     el.append(featzoom);
     var ord = featureSortOrder(ma.features);
     for (var i = 0 ; i < ord.length ; i++) {
-        enhancerDisplayFeature(featwrap, opt, ma.annotationId, ma.features[ord[i]], i);
+        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i);
     }
 }
 
@@ -802,15 +807,15 @@ function assetById(mid) {
 function assetByAnnotationId(aid) {
 	if (!aid || !assets || (assets.length < 1)) return false;
 	for (var i = 0 ; i < assets.length ; i++) {
-		if (assets[i].annotationId == aid) return assets[i];
+		if (assets[i].annotation && (assets[i].annotation.id == aid)) return assets[i];
 	}
 	return false;
 }
 
 function encounterNumberFromAsset(asset) {
-    if (!asset || !asset.annotationId || !asset.features) return false;
+    if (!asset || !asset.annotation || !asset.annotation.id || !asset.features) return false;
     for (var i = 0 ; i < asset.features.length ; i++) {
-        if (asset.features[i].annotationId == asset.annotationId) return asset.features[i].encounterId;
+        if (asset.features[i].annotationId == asset.annotation.id) return asset.features[i].encounterId;
     }
     return false;
 }
@@ -822,6 +827,30 @@ function encounterNumberFromElement(el) {  //should be img element
 
 function inGalleryMode() {
     return (typeof(encounterNumber) == 'undefined');
+}
+
+
+function featureDblClick(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    console.log('-----------ev----------- %o', ev);
+    var fid = ev.currentTarget.id;
+    var mid = imageEnhancer.mediaAssetIdFromElement($(ev.currentTarget).parent().parent());
+    var ma = assetById(mid);
+    var h = '<div>';
+    h += '<p>Feature id: <b>' + fid + '</b></p>';
+    for (var i = 0 ; i < ma.features.length ; i++) {
+        if (ma.features[i].id == fid) {
+            h += '<xmp style="font-size: 0.8em; color: #777;">' + JSON.stringify(ma.features[i], null, 4) + '</xmp>';
+            break;
+        }
+    }
+    h += '<p>Annotation id: <b>' + ma.annotation.id + '</b></p>';
+    h += '<xmp style="font-size: 0.8em; color: #777;">' + JSON.stringify(ma.annotation, null, 4) + '</xmp>';
+    h += '<p>MediaAsset id: <b>' + mid + '</b></p>';
+    h += '<xmp style="font-size: 0.8em; color: #777;">' + JSON.stringify(ma, null, 4) + '</xmp>';
+    h += '</div>';
+    imageEnhancer.popup(h);
 }
 
 </script>

@@ -159,7 +159,7 @@ public class User implements Serializable {
   public void setEmailAddress (String emailAddress){
     if(emailAddress!=null){
       this.emailAddress = emailAddress;
-      this.hashedEmailAddress=ServletUtilities.hashString(emailAddress);
+      this.hashedEmailAddress = generateEmailHash(emailAddress);
     }
     else{
       this.emailAddress=null;
@@ -167,6 +167,11 @@ public class User implements Serializable {
     }
     RefreshDate();
   }
+
+    public static String generateEmailHash(String addr) {
+        if ((addr == null) || (addr.trim().equals(""))) return null;
+        return ServletUtilities.hashString(addr.trim().toLowerCase());
+    }
 
   public String getPhysicalAddress ()
   {

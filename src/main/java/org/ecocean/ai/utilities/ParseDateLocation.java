@@ -370,13 +370,13 @@ public static String annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAs
         //video title short form just to save $$$ on language detection by sending fewer characters
         if(videoTitle.length()>500){videoTitleShort=videoTitle.substring(0,500);}
         if(md.getData().optJSONObject("basic") != null){
-          videoTitle=md.getData().getJSONObject("basic").optString("title").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("'","").replaceAll("’","").toLowerCase();
+          videoTitle=AIUtilities.youtubePredictorPrepareString(md.getData().getJSONObject("basic").optString("title"));
         }
       
 
       if(md.getData().optJSONObject("detailed")!=null){
-        videoDescription=md.getData().getJSONObject("detailed").optString("description").replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("'","").toLowerCase();
-        videoTags=md.getData().getJSONObject("detailed").getJSONArray("tags").toString().replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("'","").replaceAll("’","").toLowerCase();   
+        videoDescription=AIUtilities.youtubePredictorPrepareString(md.getData().getJSONObject("detailed").optString("description"));
+        videoTags=AIUtilities.youtubePredictorPrepareString(md.getData().getJSONObject("detailed").getJSONArray("tags").toString());   
       }
       
       //video description short form just to save $$$ on language detection by sending fewer characters
