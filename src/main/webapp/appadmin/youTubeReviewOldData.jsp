@@ -25,6 +25,31 @@ weka.core.Instances,
 java.util.concurrent.atomic.AtomicInteger,
 org.ecocean.identity.IBEISIA"%>
 
+<%!
+public String getCurlList(MediaAsset ma, Shepherd myShepherd){
+ArrayList<MediaAsset> children=ma.findChildren(myShepherd);
+	StringBuffer sb=new StringBuffer();
+	for(int i=0;i<children.size();i++){
+		MediaAsset child=children.get(i);
+			ArrayList<MediaAsset> grandchildren=child.findChildren(myShepherd);
+			int size=grandchildren.size();
+
+			if(size>0){
+				for(int j=0;j<size;j++){
+
+					sb.append(grandchildren.get(j).getId()+",");
+					
+				}
+			}
+			
+	}
+	String prepend="curl -s -X POST -H \'Content-Type: application/json\' -d \'{ \"detect\": { \"mediaAssetIds\": [ ";
+	String post = "] } }\' https://www.whaleshark.org/ia";
+	return prepend+sb.toString()+post;
+}
+%>
+
+
 <%
 
 String context="context0";
@@ -152,14 +177,15 @@ try{
 	<p>Unrun/failed MediaAssets for detection:<br>
 	
 	
-	<ol>
+
+	<ul>
 	<%
 	int numNotRun=notRunYoutubeAssets.size();
 	for(int q=0;q<numNotRun;q++){
 		
 		MediaAsset nra=notRunYoutubeAssets.get(q);
 		%>
-		<li><%=nra.getId() %></li>
+		<li><a href="../obrowse.jsp?type=MediaAssetMetadata&id=<%=nra.getId() %>"><%=nra.getId() %></a></li>
 		<%
 	}
 	
@@ -168,6 +194,7 @@ try{
 	
 	
 	</ul>
+	
 	
 	
 	
