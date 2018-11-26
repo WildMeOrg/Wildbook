@@ -410,6 +410,21 @@ public class Shepherd {
       return false;
     }
   }
+
+  public boolean storeNewUser(User u) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(u);
+      commitDBTransaction();
+			return true;
+
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new User in shepherd.storeNewUser().");
+      e.printStackTrace();
+      return false;
+    }
+  }
   
   
 
