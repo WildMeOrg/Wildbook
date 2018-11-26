@@ -152,7 +152,7 @@
 				   /UpdateEmailAddress = authc, roles[admin]
 		      			
 				
-				/BatchUpload/** = authc, roles[RegionalManager]
+				#/BatchUpload/** = authc, roles[RegionalManager]
 				/appadmin/batch* = authc, roles[RegionalManager]
 				/MantaMatcher = authc, roles[identifier]
 				/EncounterSetSubmitterID = authc, roles[manager]

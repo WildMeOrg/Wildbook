@@ -106,7 +106,7 @@ public class TissueSample extends DataCollectionEvent {
   public String getHTMLString(String langCode, String context) {
     Properties props = ShepherdProperties.getProperties("dataCollectionEvent.properties", langCode, context);
     StringBuilder sb = new StringBuilder();
-    sb.append(super.getHTMLString(langCode, context));
+    sb.append(super.getHTMLString());
     if (!StringUtils.isNullOrEmpty(this.getAlternateSampleID())) sb.append(MessageFormat.format(props.getProperty("alternateSampleId"), this.getAlternateSampleID())).append("<br />");
     if (!StringUtils.isNullOrEmpty(this.getTissueType())) sb.append(MessageFormat.format(props.getProperty("tissueType"), this.getTissueType())).append("<br />");
     if (!StringUtils.isNullOrEmpty(this.getPreservationMethod())) sb.append(MessageFormat.format(props.getProperty("preservationMethod"), this.getPreservationMethod())).append("<br />");
