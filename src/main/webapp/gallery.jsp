@@ -13,8 +13,82 @@
 		org.ecocean.media.MediaAsset,
               org.joda.time.DateTime,
               javax.jdo.Query,
-              java.util.Collection,java.util.HashMap
+              java.util.Collection,java.util.HashMap,
+              org.datanucleus.api.rest.orgjson.JSONException,
+              java.net.URL
               "
+%>
+
+<%!
+public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd, MarkedIndividual indy,HttpServletRequest req, int numResults) throws JSONException {
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+    //boolean haveProfilePhoto=false;
+    String jdoql="SELECT FROM org.ecocean.media.MediaAsset WHERE enc.individualID == \""+indy.getIndividualID()+"\" && enc.dynamicProperties.indexOf(\"PublicView=Yes\") > -1  && enc.annotations.contains(annot) && annot.mediaAsset == this VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot";
+    String order ="revision DESC";
+    Query query=myShepherd.getPM().newQuery(jdoql);
+    query.setOrdering(order);
+    query.setRange(1, (numResults+1));
+    Collection c2 = (Collection) (query.execute());
+    Vector<MediaAsset> assets=new Vector<MediaAsset>(c2);
+    query.closeAll();
+    
+	//String photographerName="Bob";
+    
+    
+        for (MediaAsset ma: assets) {
+          //if (!ann.isTrivial()) continue;
+
+          //if (ma != null) {
+            //JSONObject j = new JSONObject();
+            JSONObject j = ma.sanitizeJson(req, new JSONObject());
+
+            String context = ServletUtilities.getContext(req);
+
+            URL u = ma.safeURL(myShepherd, req, "halfpage");
+
+            ////////// hacky temporary until all converted to have halfpage /////////////
+            if ((u == null) || (u.toString().indexOf("halfpage") < 0)) u = ma.webURL();
+
+            j.put("urlDisplay", ((u == null) ? "" : u.toString()));
+
+            //now we need a mid (if we have it)
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+            if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) {
+                j.put("urlMid", kids.get(0).webURL().toString());
+            } else {
+                j.put("urlMid", ((u == null) ? "" : u.toString()));  //we reuse urlDisplay value :/
+            }
+
+			/*
+            if ((j!=null) && (photographerName!=null) && (!photographerName.equals(""))) {
+              j.put("photographer",photographerName);
+            }
+			*/
+
+            if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+
+
+              //ok, we have a viable candidate
+
+              //put ProfilePhotos at the beginning
+              if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
+              //do nothing and don't include it if it has NoProfilePhoto keyword
+              else if(ma.hasKeyword("NoProfilePhoto")){}
+              //otherwise, just add it to the bottom of the stack
+              else{
+                al.add(j);
+              }
+
+            }
+
+
+          //}
+          if(al.size()==numResults){return al;}
+        }
+
+    return al;
+
+  }
 %>
 
 
@@ -309,7 +383,7 @@ for (Object obJ : indie.getEncounters()) {
 }
 */
 
-          ArrayList<JSONObject> al = indie.getExemplarImages(request,5);
+          ArrayList<JSONObject> al = getExemplarImages(myShepherd, indie,request,5);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
@@ -362,7 +436,7 @@ for (Object obJ : indie.getEncounters()) {
               </div>
               <%
               // display=none copies of the above for each additional image
-              ArrayList<JSONObject> al = pair[j].getExemplarImages(request,5);
+              ArrayList<JSONObject> al = getExemplarImages(myShepherd,pair[j],request,5);
               for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);
