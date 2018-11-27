@@ -111,7 +111,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
 
 //String langCode = "en";
-String urlLoc = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 //some sorting and filtering work
 String sortString="";
@@ -705,9 +705,6 @@ if(request.getParameter("debug")!=null){
   var gallery = {};
 
 </script>
-
-<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
-<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
 
 
 <style>
