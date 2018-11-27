@@ -2,7 +2,7 @@
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
-org.datanucleus.ExecutionContext,
+org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
@@ -144,7 +144,6 @@ if (request.getParameter("number")!=null) {
       System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
       System.out.println("");
 
-			boolean visible = indie.canUserAccess(request);
 
 			if (!visible) {
   			ArrayList<String> uids = indie.getAllAssignedUsers();
