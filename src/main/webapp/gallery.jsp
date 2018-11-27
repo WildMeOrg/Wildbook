@@ -11,7 +11,9 @@
               org.datanucleus.api.rest.orgjson.JSONObject,
               org.datanucleus.api.rest.orgjson.JSONArray,
 		org.ecocean.media.MediaAsset,
-              org.joda.time.DateTime
+              org.joda.time.DateTime,
+              javax.jdo.Query,
+              java.util.Collection,java.util.HashMap
               "
 %>
 
@@ -35,7 +37,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
 
 //String langCode = "en";
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request);
 
 //some sorting and filtering work
 String sortString="";
@@ -51,7 +53,7 @@ if(request.getParameter("locationCodeField")!=null){
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
 
-int numIndividualsOnPage=18;
+int numIndividualsOnPage=10;
 
 int startNum = 0;
 int endNum = numIndividualsOnPage;
@@ -100,30 +102,29 @@ String order ="nickName ASC NULLS LAST";
 
 request.setAttribute("rangeStart", startNum);
 request.setAttribute("rangeEnd", endNum);
-MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+long time1=System.currentTimeMillis();
+StringBuffer prettyPrint=new StringBuffer("");
+Map<String,Object> paramMap = new HashMap<String, Object>();
+String ssjdo=IndividualQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+ssjdo=ssjdo.replaceFirst("WHERE", "WHERE enc.dynamicProperties.indexOf(\"PublicView=Yes\") > -1 &&  enc.annotations.size() > 0 && ");
+Query query=myShepherd.getPM().newQuery(ssjdo);
+query.setOrdering(order);
+query.setRange(startNum, endNum);
+Collection c2 = (Collection) (query.execute());
+rIndividuals=new Vector<MarkedIndividual>(c2);
+query.closeAll();
 
-rIndividuals = result.getResult();
+//old way -- slow?
+
+//MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+//rIndividuals = result.getResult();
 
 
 
 //handle any null errors better
-if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
+//if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
-//if not logged in, filter out animals that have PublicView=no on all encounters
-//if(request.getUserPrincipal()==null){
-	for(int q=0;q<rIndividuals.size();q++){
-		MarkedIndividual indy=rIndividuals.get(q);
-		boolean ok2Include=false;
-		for (Encounter enc : indy.getDateSortedEncounters()) {
-		      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
-		    	  	if((enc.getAnnotations()!=null)&&(enc.getAnnotations().size()>0)){
-		    	  		ok2Include=true;
-		      		}
-		      }
-		}
-		if(!ok2Include){rIndividuals.remove(q);q--;}
-	}
-//}
+
 
 if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
@@ -137,7 +138,7 @@ if (rIndividuals.size() < listNum) {
 
 <%
 
-
+long time2=System.currentTimeMillis();
 //let's quickly get the data we need from Shepherd
 
 int numMarkedIndividuals=0;
@@ -299,13 +300,16 @@ System.out.println("========> " + enx.getAnnotations());
 }
 */
 ///// note: this below is a workaround for the metadata bug that needs fixing
-for (Encounter enJ : indie.getDateSortedEncounters()) {
+/*
+for (Object obJ : indie.getEncounters()) {
+	Encounter enJ=(Encounter)obJ;
 	for (MediaAsset maJ : enJ.getMedia()) {
 		if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
 	}
 }
+*/
 
-          ArrayList<JSONObject> al = indie.getExemplarImages(request,25);
+          ArrayList<JSONObject> al = indie.getExemplarImages(request,5);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
@@ -319,6 +323,7 @@ for (Encounter enJ : indie.getDateSortedEncounters()) {
           pairUrl[j] = maJson.optString("urlDisplay", urlLoc+"/cust/mantamatcher/img/noimage.jpg"); //backup if urlMid is not found
           pairUrlMid[j] = (maJson.optString("urlMid").equals("") ? pairUrl[j] : maJson.getString("urlMid"));
           pairName[j] = indie.getIndividualID();
+          Encounter[] sortedEncs=pair[j].getDateSortedEncounters();
           pairNickname[j] = pairName[j];
           if (!indie.getNickName().equals("Unassigned") && indie.getNickName()!=null && !indie.getNickName().equals("")) pairNickname[j] = indie.getNickName();
           %>
@@ -357,7 +362,7 @@ for (Encounter enJ : indie.getDateSortedEncounters()) {
               </div>
               <%
               // display=none copies of the above for each additional image
-              ArrayList<JSONObject> al = pair[j].getExemplarImages(request);
+              ArrayList<JSONObject> al = pair[j].getExemplarImages(request,5);
               for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);
@@ -545,10 +550,17 @@ for (Encounter enJ : indie.getDateSortedEncounters()) {
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
+long time3=System.currentTimeMillis();
+
+//show debug times
+if(request.getParameter("debug")!=null){
 %>
+	<p>Time query: <%=time2-time1 %> and time display: <%=time3-time2 %></p>
+	<p>SS JDO: <%=ssjdo %></p>
 
-
-
+<%
+}
+%>
 
 <script src="<%=urlLoc %>/javascript/galleryFuncs.js"></script>
 <script src="<%=urlLoc %>/javascript/imageCropper.js"></script>
