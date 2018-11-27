@@ -410,7 +410,7 @@
 
                                 <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getTapirLinkURL(context) %>"><%=props.getProperty("tapirLink")%></a></li>
-                                <% } 
+                                <% } %>
 
 								<li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
 								
