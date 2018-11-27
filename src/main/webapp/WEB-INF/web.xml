@@ -1271,12 +1271,6 @@
     <url-pattern>/ImgSyncServlet1</url-pattern>
   </servlet-mapping>
 
-    <servlet-mapping>
-      <servlet-name>SideFeed</servlet-name>
-      <url-pattern>/SideFeed</url-pattern>
-  </servlet-mapping>
-
-  
       <servlet-mapping>
       	<servlet-name>EncounterAddMantaPattern</servlet-name>
       	<url-pattern>/EncounterAddMantaPattern</url-pattern>
