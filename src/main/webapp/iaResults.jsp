@@ -8,8 +8,9 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 
 <%
 
-
 String context = ServletUtilities.getContext(request);
+org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+
 
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
