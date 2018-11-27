@@ -106,7 +106,6 @@ rIndividuals = result.getResult();
 
 
 
-
 //handle any null errors better
 if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
@@ -199,16 +198,16 @@ int numDataContributors=0;
     <li class="dropdown">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Havainnot alueittain <span class="caret"></span></a>
       <ul class="dropdown-menu" role="menu">
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PS"> Pohjois-Saimaa</a></li>
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=HV"> Haukivesi</a></li>
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=JV"> Joutenvesi</a></li>
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PEV"> Pyyvesi – Enonvesi</a></li>
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=KV"> Kolovesi</a></li>
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PV"> Pihlajavesi</a></li>
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PUV"> Puruvesi</a></li>
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=KS"> Lepist&ouml;nselk&auml; – Katosselk&auml; – Haapaselk&auml;</a></li>
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=LL"> Luonteri – Lietvesi</a></li>
-        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=ES"> Etel&auml;-Saimaa</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PS" rel="nofollow"> Pohjois-Saimaa</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=HV" rel="nofollow"> Haukivesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=JV" rel="nofollow"> Joutenvesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PEV" rel="nofollow"> Pyyvesi – Enonvesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=KV" rel="nofollow"> Kolovesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PV" rel="nofollow"> Pihlajavesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PUV" rel="nofollow"> Puruvesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=KS" rel="nofollow"> Lepist&ouml;nselk&auml; – Katosselk&auml; – Haapaselk&auml;</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=LL" rel="nofollow"> Luonteri – Lietvesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=ES" rel="nofollow"> Etel&auml;-Saimaa</a></li>
          </ul>
     </li>
 
@@ -518,14 +517,23 @@ for (Encounter enJ : indie.getDateSortedEncounters()) {
           if (startNum>0) {
             int newStart = Math.max(startNum-numIndividualsOnPage,0);
             %>
-            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>" rel="nofollow"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
             <%
           }
           %>
 
           Lataa lis&auml;&auml; norppia &nbsp;&nbsp;&nbsp;&nbsp;
 
-          <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+          <%
+          if (endNum<rIndividuals.size()) {
+          %>
+
+          <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>" rel="nofollow"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+        
+          <%
+          }
+          %>
+
         </p>
 
       </row>
