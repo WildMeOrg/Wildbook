@@ -1910,7 +1910,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
 
           }
-          if(al.size()>numResults){return al;}
+          if(al.size()==numResults){return al;}
         }
     }
     }
