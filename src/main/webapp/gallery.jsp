@@ -27,7 +27,7 @@ public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(
     String order ="revision DESC";
     Query query=myShepherd.getPM().newQuery(jdoql);
     query.setOrdering(order);
-    query.setRange(1, (numResults+1));
+    query.setRange(0, (numResults));
     Collection c2 = (Collection) (query.execute());
     Vector<MediaAsset> assets=new Vector<MediaAsset>(c2);
     query.closeAll();
@@ -604,13 +604,13 @@ for (Object obJ : indie.getEncounters()) {
           Lataa lis&auml;&auml; norppia &nbsp;&nbsp;&nbsp;&nbsp;
 
           <%
-          if (endNum<rIndividuals.size()) {
+         // if (endNum<rIndividuals.size()) {
           %>
 
           <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>" rel="nofollow"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         
           <%
-          }
+         // }
           %>
 
         </p>
