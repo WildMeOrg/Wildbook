@@ -28,28 +28,31 @@ wildbook.IA.plugins.push({
             return;
         }
         var items = new Array();
+        var needRerun = false;
         items.push([
             function(enh) {  //the menu text
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
+                needRerun = false;
                 var menuText = '';
                 if (iaStatus && iaStatus.status) {
                     menuText += 'matching already initiated, status: <span title="task ' + iaStatus.taskId;
                     menuText += '" class="image-enhancer-menu-item-iastatus-';
                     menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
+                    needRerun = true;
                 } else {
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
                     if (ma.taxonomyString) {
-                        menuText = 'start matching';
+                        menuText += 'start matching';
                     } else {
-                        menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';
+                        menuText += '<i class="error">to start matching, this encounter must have <b>genus/specific epithet</b> set</i>';
                     }
                 }
                 return menuText;
             },
-            function(enh) {  //the menu action
+            function(enh, rerun) {  //the menu action
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                if (iaStatus && iaStatus.taskId) {
+                if (!rerun && iaStatus && iaStatus.taskId) {
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 } else {
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
@@ -80,6 +83,12 @@ wildbook.IA.plugins.push({
                     }
                 }
             }
+        ]);
+
+        //this is soooo hactacular its embarrassing.  :/
+        items.push([
+            function() { return (needRerun ? '<i>re-run</i> matching' : false); },
+            function(a) { items[0][1](a, true); }
         ]);
 
         //TODO could have conditional etc to turn on/off visual matcher i guess
