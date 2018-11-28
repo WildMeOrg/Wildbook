@@ -3,7 +3,7 @@
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.ExecutionContext,
-		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
+		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, java.text.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 
@@ -117,7 +117,7 @@ if (request.getParameter("number")!=null) {
       for (Object obj: myEncs) {
         Encounter enc = (Encounter) obj;      
         if (enc!=null && enc.getAnnotations()!=null) {
-          for (Annotation ann: enc.getAnnotations()) {
+          for (org.ecocean.Annotation ann: enc.getAnnotations()) {
             if (ann!=null) {
               String makeSureWeHaveIt = ann.getIAClass();
               numAnns++;
@@ -143,8 +143,6 @@ if (request.getParameter("number")!=null) {
       System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
       System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
       System.out.println("");
-
-			boolean visible = indie.canUserAccess(request);
 
 			if (!visible) {
   			ArrayList<String> uids = indie.getAllAssignedUsers();
