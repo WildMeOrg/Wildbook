@@ -3328,6 +3328,12 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     %>
   <!-- start set taxonomy ID  -->
     <script type="text/javascript">
+    function updateAssetsTaxonomy(newValue) {
+        if (!assets || (assets.length < 1)) return;
+        for (var i = 0 ; i < assets.length ; i++) {
+            assets[i].taxonomyString = newValue;
+        }
+    }
       $(document).ready(function() {
         $("#taxBtn").click(function(event) {
           event.preventDefault();
@@ -3342,6 +3348,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
             $("#taxErrorDiv").hide();
             $("#taxCheck").show();
             $("#displayTax").html(genusSpecies);
+            updateAssetsTaxonomy(genusSpecies);
           })
           .fail(function(response) {
             $("#taxError, #taxErrorDiv").show();
