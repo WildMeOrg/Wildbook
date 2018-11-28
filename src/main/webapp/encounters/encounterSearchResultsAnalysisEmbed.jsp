@@ -1011,16 +1011,16 @@
 		if(bioMeasurementEventTypes.size()>0){
 			for(int b=0;b<numBioMeasurementEventTypes;b++){
 			%>
-				<p><%=encprops.getProperty("mean") %> <%= bioMeasurementTypes.get(b).getType()%> 
+				<p><%=encprops.getProperty("mean") %> <%= bioMeasurementEventTypes.get(b).getType()%> 
 				<% 
 				
 				//now report averages
 				if(bioMeasurementEventValues[b].getN()>0){
 				%>
-				&nbsp;<%=df.format(bioMeasurementValues[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValues[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues[b].getN() %><br />
+				&nbsp;<%=df.format(bioMeasurementEventValues[b].getMean()) %>&nbsp;<%=bioMeasurementEventTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementEventValues[b].getStandardDeviation()) %>) N=<%=bioMeasurementEventValues[b].getN() %><br />
 				<ul>
-					<li><%=encprops.getProperty("meanMales") %> <%=df.format(bioMeasurementValuesMales[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesMales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales[b].getN() %></li>
-					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(bioMeasurementValuesFemales[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesFemales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales[b].getN() %></li>
+					<li><%=encprops.getProperty("meanMales") %> <%=df.format(bioMeasurementEventValuesMales[b].getMean()) %>&nbsp;<%=bioMeasurementEventTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementEventValuesMales[b].getStandardDeviation()) %>) N=<%=bioMeasurementEventValuesMales[b].getN() %></li>
+					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(bioMeasurementEventValuesFemales[b].getMean()) %>&nbsp;<%=bioMeasurementEventTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementEventValuesFemales[b].getStandardDeviation()) %>) N=<%=bioMeasurementEventValuesFemales[b].getN() %></li>
 					</ul>
 				<%
 				}
