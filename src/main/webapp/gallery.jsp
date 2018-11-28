@@ -21,22 +21,34 @@
 
 <%!
 public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd, MarkedIndividual indy,HttpServletRequest req, int numResults) throws JSONException {
-    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+    System.out.println("here!");
+	ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
-    String jdoql="SELECT FROM org.ecocean.media.MediaAsset WHERE enc.individualID == \""+indy.getIndividualID()+"\" && enc.dynamicProperties.indexOf(\"PublicView=Yes\") > -1  && enc.annotations.contains(annot) && annot.mediaAsset == this VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot";
-    String order ="revision DESC";
+    String jdoql="SELECT FROM org.ecocean.Encounter WHERE individualID == \""+indy.getIndividualID()+"\" && (dynamicProperties == null || dynamicProperties.toLowerCase().indexOf(\"publicview=no\") == -1) && annotations.contains(annot) VARIABLES org.ecocean.Annotation annot";
+    String order ="dwcDateAddedLong DESC";
     Query query=myShepherd.getPM().newQuery(jdoql);
     query.setOrdering(order);
     query.setRange(0, (numResults));
     Collection c2 = (Collection) (query.execute());
-    Vector<MediaAsset> assets=new Vector<MediaAsset>(c2);
+    Vector<Encounter> encs=new Vector<Encounter>(c2);
     query.closeAll();
+    int numEncs=encs.size();
+    ArrayList<MediaAsset> assets=new ArrayList<MediaAsset>();
+    for(int z=0;z<numEncs;z++){
+    	Encounter enc=encs.get(z);
+
+    		assets.addAll(enc.getMedia());
+
+    }
+    
+    System.out.println("here2 with assets="+assets.size()+" after query: "+jdoql);
     
 	//String photographerName="Bob";
     
     
         for (MediaAsset ma: assets) {
           //if (!ann.isTrivial()) continue;
+          System.out.println("Here3!");
 
           //if (ma != null) {
             //JSONObject j = new JSONObject();
@@ -180,7 +192,9 @@ long time1=System.currentTimeMillis();
 StringBuffer prettyPrint=new StringBuffer("");
 Map<String,Object> paramMap = new HashMap<String, Object>();
 String ssjdo=IndividualQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
-ssjdo=ssjdo.replaceFirst("WHERE", "WHERE enc.dynamicProperties.indexOf(\"PublicView=Yes\") > -1 &&  enc.annotations.size() > 0 && ");
+//ssjdo=ssjdo.replaceFirst("WHERE", "WHERE enc.dynamicProperties.indexOf(\"PublicView=Yes\") > -1 &&  enc.annotations.size() > 0 && ");
+ssjdo=ssjdo.replaceFirst("WHERE", "WHERE (enc.dynamicProperties == null || enc.dynamicProperties.toLowerCase().indexOf(\"publicview=no\") == -1) &&  enc.annotations.size() > 0 && ");
+
 Query query=myShepherd.getPM().newQuery(ssjdo);
 query.setOrdering(order);
 query.setRange(startNum, endNum);
