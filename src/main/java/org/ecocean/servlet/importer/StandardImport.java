@@ -1073,7 +1073,7 @@ public class StandardImport extends HttpServlet {
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
     //return AssetStore.getDefault(myShepherd);
-    return AssetStore.get(myShepherd, 5);
+    return AssetStore.get(myShepherd, 1);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook
