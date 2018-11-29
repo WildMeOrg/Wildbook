@@ -243,7 +243,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
 		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID
+		  mapTypeId: google.maps.MapTypeId.TERRAIN
 		});
 
 	  //adding the fullscreen control to exit fullscreen
