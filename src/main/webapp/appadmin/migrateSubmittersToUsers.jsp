@@ -62,10 +62,10 @@ myShepherd.rollbackDBTransaction();
 			
 				//null the things we shouldn't be collecting anymore at all
 				//no use case/GDPR
-				enc.setSubmitterAddress(null);
-				enc.setSubmitterPhone(null);
-				enc.setPhotographerAddress(null);
-				enc.setPhotographerPhone(null);
+				//enc.setSubmitterAddress(null);
+				//enc.setSubmitterPhone(null);
+				//enc.setPhotographerAddress(null);
+				//enc.setPhotographerPhone(null);
 			
 				//now let's do our conversion, creating our new arrays
 				List<User> submitters=new ArrayList<User>();
@@ -105,13 +105,17 @@ myShepherd.rollbackDBTransaction();
 						}
 						else{
 							User user=myShepherd.getUserByEmailAddress(email);
-							submitters.add(user);
-							enc.setSubmitters(submitters);
-							%>
-							&nbsp;Added existing: <%=user.getUUID() %>,<%=user.getEmailAddress() %>,<%=user.getUsername() %>,<%=user.getAffiliation() %>,<%=user.getUserProject() %>
-							<%
-							myShepherd.commitDBTransaction();
-							myShepherd.beginDBTransaction();
+							if((submitters!=null)&&(!submitters.contains(user))){
+								submitters.add(user);
+							
+								enc.setSubmitters(submitters);
+								%>
+								&nbsp;Added existing: <%=user.getUUID() %>,<%=user.getEmailAddress() %>,<%=user.getUsername() %>,<%=user.getAffiliation() %>,<%=user.getUserProject() %>
+								<%
+								myShepherd.commitDBTransaction();
+								myShepherd.beginDBTransaction();
+							
+							}
 						}
 					}
 				}
@@ -132,7 +136,7 @@ myShepherd.rollbackDBTransaction();
 					for(int i=0;i<numTokens;i++){
 						String email=str.nextToken();
 						if(myShepherd.getUserByEmailAddress(email)==null){
-							User user=new User(email);
+							User user=new User(email,Util.generateUUID());
 							myShepherd.getPM().makePersistent(user);
 							myShepherd.commitDBTransaction();
 							myShepherd.beginDBTransaction();
@@ -152,13 +156,16 @@ myShepherd.rollbackDBTransaction();
 						}
 						else{
 							User user=myShepherd.getUserByEmailAddress(email);
-							photographers.add(user);
-							enc.setPhotographers(photographers);
-							%>
-							&nbsp;Added existing: <%=user.getUUID() %>,<%=user.getEmailAddress() %>,<%=user.getUsername() %>,<%=user.getAffiliation() %>,<%=user.getUserProject() %>
-							<%
-							myShepherd.commitDBTransaction();
-							myShepherd.beginDBTransaction();
+							if((photographers!=null)&&(!photographers.contains(user))){
+								photographers.add(user);
+								enc.setPhotographers(photographers);
+								%>
+								&nbsp;Added existing: <%=user.getUUID() %>,<%=user.getEmailAddress() %>,<%=user.getUsername() %>,<%=user.getAffiliation() %>,<%=user.getUserProject() %>
+								<%
+								myShepherd.commitDBTransaction();
+								myShepherd.beginDBTransaction();
+							}
+							
 						}
 					}
 				}
