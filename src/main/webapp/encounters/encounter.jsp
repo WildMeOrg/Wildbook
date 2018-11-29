@@ -97,6 +97,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 //get encounter number
+if (request.getParameter("number") == null) return;
 String num = request.getParameter("number").replaceAll("\\+", "").trim();
 
 //let's set up references to our file system components
