@@ -26,7 +26,7 @@ java.util.concurrent.atomic.AtomicInteger,
 org.ecocean.identity.IBEISIA"%>
 
 <%!
-public String getCurlList(MediaAsset ma, Shepherd myShepherd){
+public String getCurlList(MediaAsset ma, Shepherd myShepherd, String iaURL){
 ArrayList<MediaAsset> children=ma.findChildren(myShepherd);
 	StringBuffer sb=new StringBuffer();
 	for(int i=0;i<children.size();i++){
@@ -43,8 +43,11 @@ ArrayList<MediaAsset> children=ma.findChildren(myShepherd);
 			}
 			
 	}
-	String prepend="curl -s -X POST -H \'Content-Type: application/json\' -d \'{ \"detect\": { \"mediaAssetIds\": [ ";
-	String post = "] } }\' https://www.whaleshark.org/ia";
+	
+	//curl -s -X POST -H 'Content-Type: application/json' -d '{ "v2": true, "mediaAssetIds": [ 715160] }' https://www.whaleshark.org/ia
+	
+	String prepend="curl -s -X POST -H 'Content-Type: application/json' -d '{ \"v2\": true, \"mediaAssetIds\": [ ";
+	String post = "] }' "+iaURL;
 	return prepend+sb.toString()+post;
 }
 %>
