@@ -3918,6 +3918,17 @@ public class Shepherd {
     acceptedEncounters.closeAll();
     return al;
   }
+
+  public List<Encounter> getEncountersByField(String fieldName, String fieldVal) {
+    String filter = "this."+fieldName+" == \""+fieldVal+"\"";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList al = new ArrayList(c);
+    acceptedEncounters.closeAll();
+    return al;
+  }
+
   public      Encounter  getEncounterByIndividualAndOccurrence(String indID, String occID) {
     List<Encounter> encs = getEncountersByIndividualAndOccurrence(indID, occID);
     if (encs.size()>0) return encs.get(0);
