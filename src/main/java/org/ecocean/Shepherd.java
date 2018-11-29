@@ -2145,14 +2145,8 @@ public class Shepherd {
 
 
   public User getUserByEmailAddress(String email){
-    ArrayList<User> users=new ArrayList<User>();
-    String filter="SELECT FROM org.ecocean.User WHERE emailAddress == \""+email+"\"";
-    Query query=getPM().newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){users=new ArrayList<User>(c);}
-    query.closeAll();
-    if(users.size()>0){return users.get(0);}
-    return null;
+    String hashedEmailAddress=User.generateEmailHash(email);
+    return getUserByHashedEmailAddress(hashedEmailAddress);
   }
   
   public User getUserByHashedEmailAddress(String hashedEmail){
