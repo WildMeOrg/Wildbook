@@ -2165,7 +2165,7 @@ if(enc.getLocation()!=null){
 
            <%}%>
 
-	      <p class="para"><em><%=encprops.getProperty("submitter") %></em>
+	      <p class="para"><b><em><%=encprops.getProperty("submitter") %></em></b>
 	      <%
 	    	 List<User> submitters=enc.getSubmitters();  
 	    	 int numSubmitters = 0;
@@ -2177,41 +2177,48 @@ if(enc.getLocation()!=null){
                   %>
                   <p id="<%=id%>">
                   <%
+                    if(user.getFullName()!=null){
+                      %>
+                      <p id="<%=user.getUUID() %>"><span id="displaySubmitName"><%=user.getFullName()%></span>
+                      <%
+                    }
                     if (isOwner) {
-                          if(user.getFullName()!=null){
-                            %>
-                            <span id="displaySubmitName"><%=user.getFullName()%></span>
-                            <%
-                          }
-          
-                          if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
-                            //break up the string
-                            StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-      
-                              %>
-                              <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
-                              <%
-                          }
-                          if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){
-                          %>
-                            <br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
-                          <%
-                          }
-                          if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
-                            <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
-                          <%
-                          }
-                          %>
+                      String email = "";
+                      String name = "";
+                      String aff = "";
+                      String proj = "";
+
+					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+					              //break up the string
+					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
+                        email = user.getEmailAddress();
+	
+					                %>
+					                <br/><a id="displaySubmitEmail" href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+					                <%
+					            }
+				                if((user.getAffiliation()!=null)&&(!user.getAffiliation().equals(""))){
+                          aff = user.getAffiliation();
+				                %>
+				                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation()%></span>
+				                <%
+				                }
+				                if((user.getUserProject()!=null)&&(!user.getUserProject().equals(""))){
+                          proj = user.getUserProject();
+                        %>
+				                  <br/><span id="displaySubmitProject"><%=user.getUserProject()%></span>
+				                <%
+				                 }
+                        %>
                           <!-- begin editFormSubmitters -->
                           <div id="editExistingSubmitter" style="display:none;">
                             <label><small>Edit this Submitter</small></label><br>
-                            <input name="submitterName-<%=f%>" type="text"  placeholder="<%=encprops.getProperty("name")%>" value="<%=user.getFullName()%>" size="30"/>
-                            <input name="submitterEmail-<%=f%>" type="text" placeholder="<%=encprops.getProperty("email")%>" value="<%=user.getEmailAddress()%>" size="30"/>
-                            <input name="submitterOrganization-<%=f%>" type="text" placeholder="<%=encprops.getProperty("submitterOrganization")%>" value="<%=enc.getSubmitterOrganization()%>" size="30"/>
-                            <input name="submitterProject-<%=f%>" type="text" placeholder="<%=encprops.getProperty("submitterProject")%>" value="<%=user.getUserProject()%>" size="30"/>
-                            <input name="numExistingSubmitters" type="hidden" value="<%=f%>" />
-                            <label id="editSubmitterSail-<%=f%>" style="color:red;"></label>
-                            <label id="editSubmitterSuccess-<%=f%>" style="color:green;"></label>
+                            <input id="submitterName-<%=f%>" name="submitterName-<%=f%>" type="text"  placeholder="<%=encprops.getProperty("name")%>" value="<%=name%>" size="30"/>
+                            <input id="submitterEmail-<%=f%>" name="submitterEmail-<%=f%>" type="text" placeholder="<%=encprops.getProperty("email")%>" value="<%=email%>" size="30"/>
+                            <input id="submitterOrganization-<%=f%>" name="submitterOrganization-<%=f%>" type="text" placeholder="<%=encprops.getProperty("submitterAffiliation")%>" value="<%=aff%>" size="30"/>
+                            <input id="submitterProject-<%=f%>" name="submitterProject-<%=f%>" type="text" placeholder="<%=encprops.getProperty("submitterProject")%>" value="<%=proj%>" size="30"/>  
+                            <input id="numExistingSubmitters" name="numExistingSubmitters" type="hidden" value="<%=f%>"/>
+                            <input id="submitterId-<%=f%>" name="submitterId-<%=f%>" type="hidden" value="<%=id%>"/>
                           </div>
                   <%
                   } else { //end if isOwner
@@ -2225,13 +2232,17 @@ if(enc.getLocation()!=null){
               } //submitters for loop               	
 	 		} //end if submitters!=null
 			%>
+      
       <div id="addNewSubmitter" style="display:none;">
         <label><small>Add New Submitter</small></label><br>
-        <input name="submitterName-new" type="text" placeholder="<%=encprops.getProperty("name")%>" size="30"/>
-        <input name="submitterEmail-new" type="text" placeholder="<%=encprops.getProperty("email")%>" size="30"/>
-        <input name="submitterOrganization-new" type="text" placeholder="<%=encprops.getProperty("submitterOrganization")%>" size="30"/>
-        <input name="submitterProject-new" type="text" placeholder="<%=encprops.getProperty("submitterProject")%>" size="30"/>
+        <input id="submitterName-new" name="submitterName-new" type="text" placeholder="<%=encprops.getProperty("name")%>" size="30"/>
+        <input id="submitterEmail-new" name="submitterEmail-new" type="text" placeholder="<%=encprops.getProperty("email")%>" size="30"/>
+        <input id="submitterOrganization-new" name="submitterOrganization-new" type="text" placeholder="<%=encprops.getProperty("submitterAffiliation")%>" size="30"/>
+        <input id="submitterProject-new" name="submitterProject-new" type="text" placeholder="<%=encprops.getProperty("submitterProject")%>" size="30"/>
         <button class="btn btn-md" type="button" name="button" id="editSubmitters">Done</button>
+
+        <label id="editSubmitterFail" style="color:red;"></label>
+        <label id="editSubmitterSuccess" style="color:green;"></label>
 
     <script type="text/javascript">
       $(document).ready(function() {
@@ -2241,31 +2252,188 @@ if(enc.getLocation()!=null){
           // Load all this into an object cause it could be any length really.
           var sendObj = {};
           sendObj["numSubmitters"] = numSubmitters;
-          sendObj["encNum"] = enc.getCatalogNumber();
+          sendObj["encNum"] = '<%=enc.getCatalogNumber()%>';
 
           for (i=0;i<numSubmitters;i++) {
-            sendObj["submitterName-"+i] = $("submitterName-"+i).val();
-            sendObj["submitterEmail-"+i] = $("submitterEmail-"+i).val();
-            sendObj["submitterOrganization-"+i] = $("submitterOrganization-"+i).val();
-            sendObj["submitterProject-"+i] = $("submitterProject-"+i).val();
+            sendObj["submitterName-"+i] = $("#submitterName-"+i).val();
+            sendObj["submitterEmail-"+i] = $("#submitterEmail-"+i).val();
+            sendObj["submitterOrganization-"+i] = $("#submitterOrganization-"+i).val();
+            sendObj["submitterProject-"+i] = $("#submitterProject-"+i).val();
+            sendObj["submitterId-"+i] = $("#submitterId-"+i).val();
+            //Send the value from the input field to the id separated field for the default veiw.
           }
           // Do we have a new user to make? Need at least a name...
-          var newName =  $("submitterName-new").val();
+          var newName =  $("#submitterName-new").val();
           if (newName!=null&&newName.length>0) {
-            sendObj["submitterName-new"] = $("submitterName-new").val();
-            sendObj["submitterEmail-new"] = $("submitterEmail-new").val();
-            sendObj["submitterOrganization-new"] = $("submitterOrganization-new").val();
-            sendObj["submitterProject-new"] = $("submitterProject-new").val();
+            sendObj["submitterName-new"] = $("#submitterName-new").val();
+            sendObj["submitterEmail-new"] = $("#submitterEmail-new").val();
+            sendObj["submitterOrganization-new"] = $("#submitterOrganization-new").val();
+            sendObj["submitterProject-new"] = $("#submitterProject-new").val();
           }
           //Go forth, object.
           $.post("../EncounterEditContributors", sendObj,
           function(response) {
-            //Show success messages?
-            $("#editSubmitterSuccess").text("Submitters set.");
+            for (i=0;i<numSubmitters;i++) {
+              var submitterId = $("#submitterId-"+i).val();
+              console.log(  "$(#"+submitterId+" #displaySubmitName-"+i+")"  );
+              $("#"+submitterId+" #displaySubmitName").html($("#submitterName-"+i).val());
+              $("#"+submitterId+" #displaySubmitEmail").html($("#submitterEmail-"+i).val());
+              $("#"+submitterId+" #displaySubmitOrg").html($("#submitterOrganization-"+i).val());
+              $("#"+submitterId+" #displaySubmitProject").html($("#submitterProject-"+i).val());
+            }
+            // Did you make a new photographer/user? Sigh,,, I guess we will populate a bunch of html for it. 
+            if (newUSer==true) {
+              $("#editSubmitterSuccess").text("Photographers data set. Refresh page to see new users.");
+            } else {
+              $("#editSubmitterSuccess").text("Photographers data set.");
+            }
           })
           .fail(function(response) {
-            //Give em the fail whale (turtle?)? 
+            //Give em the fail whale? 
             $("#editSubmitterFail").text("Unable to modify submitters.");
+          });
+        });
+      });
+      
+
+
+    </script>
+      
+  </div>
+
+
+			</p>
+		
+	      <p class="para"><b><em><%=encprops.getProperty("photographer") %></em></b>
+	      <%
+        int numPhotographers = 0;
+	      if(enc.getPhotographers()!=null){   
+	    	  List<User> photographers=enc.getPhotographers();
+	    	  numPhotographers=photographers.size();    
+			    for(int f=0;f<numPhotographers;f++){
+			    	   User user=photographers.get(f);
+               String id = user.getUUID();
+			    	   %>
+			    	   <p id="<%=id%>">
+			    	   <%
+			          if(user.getFullName()!=null){
+			            %>
+			            <p id="<%=user.getUUID() %>"><span id="displayPhotographerName"><%=user.getFullName()%></span>
+			            <%
+			          }
+			          if (isOwner) {
+                      String email = "";
+                      String name = "";
+                      String aff = "";
+                      String proj = "";
+
+					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+					              //break up the string
+					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
+                        email = user.getEmailAddress();
+	
+					                %>
+					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+					                <%
+					            }
+				                if((user.getAffiliation()!=null)&&(!user.getAffiliation().equals(""))){
+                          aff = user.getAffiliation();
+				                %>
+				                	<br/><span id="displayPhotographerOrg"><%=user.getAffiliation()%></span>
+				                <%
+				                }
+				                if((user.getUserProject()!=null)&&(!user.getUserProject().equals(""))){
+                          proj = user.getUserProject();
+                        %>
+				                  <br/><span id="displayPhotographerProject"><%=user.getUserProject()%></span>
+				                <%
+				                 }
+                        %>
+                          <div id="editExistingPhotographer" style="display:none;">
+                            <label><small>Edit this Photographer</small></label><br>
+                            <input id="photographerName-<%=f%>" name="photographerName-<%=f%>" type="text"  placeholder="<%=encprops.getProperty("name")%>" value="<%=name%>" size="30"/>
+                            <input id="photographerEmail-<%=f%>" name="photographerEmail-<%=f%>" type="text" placeholder="<%=encprops.getProperty("email")%>" value="<%=email%>" size="30"/>
+                            <input id="photographerOrganization-<%=f%>" name="photographerOrganization-<%=f%>" type="text" placeholder="<%=encprops.getProperty("submitterAffiliation")%>" value="<%=aff%>" size="30"/>
+                            <input id="photographerProject-<%=f%>" name="photographerProject-<%=f%>" type="text" placeholder="<%=encprops.getProperty("submitterProject")%>" value="<%=proj%>" size="30"/>  
+                            <input id="numExistingSubmitters" name="numExistingSubmitters" type="hidden" value="<%=f%>"/>
+                            <input id="photographerId-<%=f%>" name="photographerId-<%=f%>" type="hidden" value="<%=id%>"/>
+                          </div>
+              <%
+			         } else { //end if isOwner
+              %>
+                  <br/><span><b><%=encprops.getProperty("restrictedInfo")%></b></span>
+              <%
+               }   
+              %>
+			         </p>
+			         <%
+			   	} //photographers for loop               	
+	 		} //end if photographers!=null
+			%>
+
+
+      <div id="addNewPhotographer" style="display:none;">
+        <label><small>Add New Photographer</small></label><br>
+        <input id="photographerName-new" name="photographerName-new" type="text" placeholder="<%=encprops.getProperty("name")%>" size="30"/>
+        <input id="photographerEmail-new" name="photographerEmail-new" type="text" placeholder="<%=encprops.getProperty("email")%>" size="30"/>
+        <input id="photographerOrganization-new" name="photographerOrganization-new" type="text" placeholder="<%=encprops.getProperty("submitterAffiliation")%>" size="30"/>
+        <input id="photographerProject-new" name="photographerProject-new" type="text" placeholder="<%=encprops.getProperty("submitterProject")%>" size="30"/>
+        <button class="btn btn-md" type="button" name="button" id="editPhotographers">Done</button>
+
+        <label id="editPhotographerFail" style="color:red;"></label>
+        <label id="editPhotographerSuccess" style="color:green;"></label>
+
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#editPhotographers").click(function() {
+          event.preventDefault();
+          var numPhotographers = parseInt('<%=numPhotographers%>');
+          // Load all this into an object cause it could be any length really.
+          var sendObj = {};
+          sendObj["numPhotographers"] = numPhotographers;
+          sendObj["encNum"] = '<%=enc.getCatalogNumber()%>';
+
+          for (i=0;i<numPhotographers;i++) {
+            sendObj["photographerName-"+i] = $("#photographerName-"+i).val();
+            sendObj["photographerEmail-"+i] = $("#photographerEmail-"+i).val();
+            sendObj["photographerOrganization-"+i] = $("#photographerOrganization-"+i).val();
+            sendObj["photographerProject-"+i] = $("#photographerProject-"+i).val();
+            sendObj["photographerId-"+i] = $("#photographerId-"+i).val();
+            //Send the value from the input field to the id separated field for the default veiw.
+          }
+          // Do we have a new user to make? Need at least a name...
+          var newUser = false;
+          var newName =  $("#photographerName-new").val();
+          if (newName!=null&&newName.length>0) {
+            newUser = true;
+            sendObj["photographerName-new"] = $("#photographerName-new").val();
+            sendObj["photographerEmail-new"] = $("#photographerEmail-new").val();
+            sendObj["photographerOrganization-new"] = $("#photographerOrganization-new").val();
+            sendObj["photographerProject-new"] = $("#photographerProject-new").val();
+          }
+          //Go forth, object.
+          console.log("WHATS IN THE BOX?X?X? "+JSON.stringify(sendObj));
+          $.post("../EncounterEditContributors", sendObj,
+          function(response) {
+            for (i=0;i<numPhotographers;i++) {
+              var photographerId = $("#photographerId-"+i).val();
+              $("#"+photographerId+" #displayPhotographerName").html($("#photographerName-"+i).val());
+              $("#"+photographerId+" #displayPhotographerEmail").html($("#photographerEmail-"+i).val());
+              $("#"+photographerId+" #displayPhotographerOrg").html($("#photographerOrganization-"+i).val());
+              $("#"+photographerId+" #displayPhotographerProject").html($("#photographerProject-"+i).val());
+            }
+            if (newUSer==true) {
+              $("#editPhotographerSuccess").text("Photographers data set. Refresh page to see new users.");
+            } else {
+              $("#editPhotographerSuccess").text("Photographers data set.");
+            }
+            // Did you make a new photographer/user? Sigh,,, I guess we will populate a bunch of html for it. 
+
+            //Show success messages?
+          })
+          .fail(function(response) {
+            //Give em the fail whale? 
+            $("#editPhotographerFail").text("Error: Unable to modify photographers.");
           });
         });
       });
@@ -2282,61 +2450,12 @@ if(enc.getLocation()!=null){
 
 
 
-			</p> <!--  End submitters paragraph -->
-		
-	      <p class="para"><em><%=encprops.getProperty("photographer") %></em>
-	      <%
-	       if(enc.getPhotographers()!=null){   
-	    	   List<User> photographers=enc.getPhotographers();
-	    	   int numPhotographers=photographers.size();    
-			   for(int f=0;f<numPhotographers;f++){
-			    	   User user=photographers.get(f);
-			    	   %>
-			    	   <p id="<%=user.getUUID() %>">
-			    	   <%
-			          if(user.getFullName()!=null){
-			            %>
-			            <p id="<%=user.getUUID() %>"><span id="displaySubmitName"><%=user.getFullName()%></span>
-			            <%
-			          }
-			          if (isOwner) {
-			
-					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
-					              //break up the string
-					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-	
-					                %>
-					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
-					                <%
-					            }
-				                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){
-				                %>
-				                	<br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
-				                <%
-				                }
-				                if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
-				                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
-				                <%
-				                 }
-			
-			         } else { //end if isOwner
-              %>
-                  <br/><span><b><%=encprops.getProperty("restrictedInfo")%></b></span>
-              <%
-               }   
-              %>
-			         </p>
-			         <%
-			   	} //photographers for loop               	
-	 		} //end if photographers!=null
-			%>
+
+
+
 			</p> <!--  End photographers paragraph -->
-		                   
-		                   
-		                   
-		                   
-		                   
-							<%
+		                                
+							          <%
 		                    if(isOwner){
 		                    %>
 		

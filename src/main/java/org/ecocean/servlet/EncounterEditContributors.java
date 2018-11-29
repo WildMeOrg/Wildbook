@@ -23,6 +23,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.Util;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -58,34 +59,130 @@ public class EncounterEditContributors extends HttpServlet {
         myShepherd.setAction("EncounterEditContributors.class");
         response.setContentType("text/html");
 
-        int numSubmitters = Integer.valueOf(request.getParameter("numSubmitters"));
-        String encNum = request.getParameter("encNum");
-        Encounter enc = myShepherd.getEncounter(encNum);
-
-        List<User> submitters=enc.getSubmitters();
-
-        for (int i=1;i<=numSubmitters;i++) {
-
+        int numSubmitters = 0; 
+        if (request.getParameter("numSubmitters")!=null) {
+            numSubmitters = Integer.valueOf(request.getParameter("numSubmitters"));
+        }
+        int numPhotographers = 0;
+        if (request.getParameter("numPhotographers")!=null) {
+            numPhotographers = Integer.valueOf(request.getParameter("numPhotographers"));
         }
 
-        // for (i=0;i<numSubmitters;i++) {
-        //     sendObj["submitterName-"+i] = $("submitterName-"+i).val();
-        //     sendObj["submitterEmail-"+i] = $("submitterEmail-"+i).val();
-        //     sendObj["submitterOrganization-"+i] = $("submitterOrganization-"+i).val();
-        //     sendObj["submitterProject-"+i] = $("submitterProject-"+i).val();
-        //   }
-        //   // Do we have a new user to make? Need at least a name...
-        //   var newName =  $("submitterName-new").val();
-        //   if (newName!=null&&newName.length>0) {
-        //     sendObj["submitterName-new"] = $("submitterName-new").val();
-        //     sendObj["submitterEmail-new"] = $("submitterEmail-new").val();
-        //     sendObj["submitterOrganization-new"] = $("submitterOrganization-new").val();
-        //     sendObj["submitterProject-new"] = $("submitterProject-new").val();
-        //   }
+        String encNum = request.getParameter("encNum");
+        Encounter enc = myShepherd.getEncounter(encNum);
+        setDateLastModified(enc);
 
+        //Run through submitter creation/modification
+        try {
+            System.out.println("Lets try to get some submitter data.");
+            for (int i=0; i<numSubmitters;i++) {
 
+                String newName = request.getParameter("submitterName-"+i);
+                String newEmail = request.getParameter("submitterEmail-"+i);
+                String newAff = request.getParameter("submitterOrganization-"+i);
+                String newProj = request.getParameter("submitterProject-"+i);
+                String submitterId = request.getParameter("submitterId-"+i);
+                System.out.println("Name: "+newName+" Email: "+newEmail+" Aff: "+newProj+" ID: "+submitterId);
+                if (!stringIsNullOrEmpty(request.getParameter("submitterName-"+i))||!stringIsNullOrEmpty(request.getParameter("submitterEmail-"+i))) {
+                    
+                    User u = myShepherd.getUserByUUID(submitterId);
+
+                    if (u!=null) {
+
+                        System.out.println("Trying to set the new fields...");
+                        myShepherd.beginDBTransaction();
+                        if (!stringIsNullOrEmpty(newName)) u.setFullName(newName);
+                        if (!stringIsNullOrEmpty(newEmail)) u.setEmailAddress(newEmail);
+                        if (!stringIsNullOrEmpty(newAff)) u.setAffiliation(newAff);
+                        if (!stringIsNullOrEmpty(newProj)) u.setUserProject(newProj);
+                        myShepherd.commitDBTransaction();
+
+                        System.out.println("Current Name: "+u.getFullName());
+                    }
+                }
+            }
+
+            if (stringIsNullOrEmpty(request.getParameter("submitterName-new"))) {
+                String newName  = request.getParameter("submitterName-new");
+                String newEmail  = request.getParameter("submitterEmail-new");
+                String newAff  = request.getParameter("submitterOrganization-new");
+                String newProj  = request.getParameter("submitterProject-new");
+
+                User newU = new User(Util.generateUUID());
+                newU.setFullName(newName);
+                newU.setEmailAddress(newEmail);
+                newU.setAffiliation(newAff);
+                newU.setUserProject(newProj);
+
+                myShepherd.storeNewUser(newU);
+            }
+        } catch (Exception e) {
+            myShepherd.rollbackDBTransaction();
+            System.out.println("Error modifying submitter data for encounter num:"+enc.getCatalogNumber());
+            e.printStackTrace();
+        }
+        
+        //Run through photographer creation/modification
+        try {
+            System.out.println("Lets try to get some photographer data.");
+            for (int i=0; i<numPhotographers;i++) {
+
+                System.out.println("Checking for modifications to existing photographer num: "+i);
+                String newName = request.getParameter("photographerName-"+i);
+                String newEmail = request.getParameter("photographerEmail-"+i);
+                String newAff = request.getParameter("photographerOrganization-"+i);
+                String newProj = request.getParameter("photographerProject-"+i);
+                String photographerId = request.getParameter("photographerId-"+i);
+                System.out.println("Current Name: "+newName+" Email: "+newEmail+" Aff: "+newProj+" ID: "+photographerId);
+                if (!stringIsNullOrEmpty(request.getParameter("photographerName-"+i))||!stringIsNullOrEmpty(request.getParameter("photographerEmail-"+i))) {
+                    
+                    User u = myShepherd.getUserByUUID(photographerId);
+
+                    if (u!=null) {
+
+                        System.out.println("Trying to set the new fields...");
+                        myShepherd.beginDBTransaction();
+                        if (!stringIsNullOrEmpty(newName)) u.setFullName(newName);
+                        if (!stringIsNullOrEmpty(newEmail)) u.setEmailAddress(newEmail);
+                        if (!stringIsNullOrEmpty(newAff)) u.setAffiliation(newAff);
+                        if (!stringIsNullOrEmpty(newProj)) u.setUserProject(newProj);
+                        myShepherd.commitDBTransaction();
+
+                        System.out.println("Current Name: "+u.getFullName());
+
+                    }
+                }
+            }
+
+            if (stringIsNullOrEmpty(request.getParameter("photographerName-new"))) {
+                System.out.println("Creating a new photographer entry...");
+                String newName  = request.getParameter("photographerName-new");
+                String newEmail  = request.getParameter("photographerEmail-new");
+                String newAff  = request.getParameter("photographerOrganization-new");
+                String newProj  = request.getParameter("photographerProject-new");
+
+                User newU = new User(Util.generateUUID());
+                newU.setFullName(newName);
+                newU.setEmailAddress(newEmail);
+                newU.setAffiliation(newAff);
+                newU.setUserProject(newProj);
+
+                myShepherd.storeNewUser(newU);
+            }
+        } catch (Exception e) {
+            myShepherd.rollbackDBTransaction();
+            System.out.println("Error modifying photographer data for encounter num:"+enc.getCatalogNumber());
+            e.printStackTrace();
+        } 
 
         myShepherd.closeDBTransaction();
+    }
+
+    private boolean stringIsNullOrEmpty(String str) {
+        if (str==null||str.isEmpty()) {
+            return true;
+        }
+        return false;
     }
 
 }
