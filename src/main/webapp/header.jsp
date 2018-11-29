@@ -31,6 +31,9 @@
   Properties props = ShepherdProperties.getProperties("header.properties", langCode, context);
   Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 
+Shepherd confShepherd = new Shepherd(context);
+CommonConfiguration.ensureServerInfo(confShepherd, request);
+
 
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
   %>
