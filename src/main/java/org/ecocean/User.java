@@ -127,14 +127,19 @@ public class User implements Serializable {
   public String[] getSplitName() {
     String firstName = null, lastName = null, fullName = getFullName();
     if (fullName != null) {
-      int indexOfComma = fullName.indexOf(',');
-      if (indexOfComma > -1) {
-        firstName = fullName.substring(indexOfComma);
-        lastName  = fullName.substring(0, indexOfComma);
+      if (fullName.contains(",")) {
+        int indexOfComma = fullName.indexOf(',');
+        if (indexOfComma > -1) {
+          firstName = fullName.substring(indexOfComma);
+          lastName  = fullName.substring(0, indexOfComma);
+        } else {
+          int indexOfLastSpace = fullName.lastIndexOf(' ');
+          firstName = fullName.substring(0, indexOfLastSpace);
+          lastName  = fullName.substring(indexOfLastSpace);
+        }
       } else {
-        int indexOfLastSpace = fullName.lastIndexOf(' ');
-        firstName = fullName.substring(0, indexOfLastSpace);
-        lastName  = fullName.substring(indexOfLastSpace);
+        //Handles folks with only a first name saved.
+        return new String[]{fullName, ""};
       }
     }
     return new String[]{firstName, lastName};
