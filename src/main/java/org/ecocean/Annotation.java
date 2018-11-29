@@ -714,4 +714,10 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return Task.getRootTasksFor(this, myShepherd);
     }
 
+    public void refresh(Shepherd myShepherd) {
+        try {
+            myShepherd.getPM().refresh(this);
+        } catch (Exception e) {e.printStackTrace();}
+    }
+
 }
