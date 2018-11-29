@@ -308,6 +308,7 @@ div.gallery-download {
 }
 .gallery-download a:hover {
     background-color: #CCA;
+}
 
 .image-enhancer-feature-zoom {
     width: 100%;
@@ -461,10 +462,11 @@ $(window).on('resizeEnd', function(ev) {
 //initializes image enhancement (layers)
 jQuery(document).ready(function() {
 	doImageEnhancer('figure img');
+    $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
 
     if (wildbookGlobals.username) {
         $('.image-enhancer-wrapper').each(function(i, el) {
-	    var mid = el.id.substring(23);
+            var mid = imageEnhancer.mediaAssetIdFromElement($(el));
 	    var ma = assetById(mid);
             var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.filename) + '">' + ma.filename + '</a></div>';
             $(el).closest('figure').after(h);
