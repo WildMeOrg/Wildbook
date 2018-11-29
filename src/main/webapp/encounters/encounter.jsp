@@ -706,6 +706,39 @@ if(enc.getLocation()!=null){
 
 <br>
 
+<!-- Create hyperlink to study site page -->
+<%
+String stuID = enc.getStudySiteID();
+System.out.println("***   Encounter.jsp: got stuID = "+stuID);
+//StudySite stu = myShepherd.getStudySite(stuID);
+String displayStu = "none";
+if (stu!=null) {
+    // build hyperlink to studysite page
+    String stuUrl = urlLoc + "/studySite.jsp?number="+stuID;
+    displayStu = "<a href="+stuUrl+">"+stu.getName()+"</a>";
+} 
+%>
+
+
+<em><%=encprops.getProperty("studySiteID")%>: <span id="displayStudySiteID"><%=displayStu%></span></em>
+<br>
+
+<%
+String governmentAreaStr = enc.getGovernmentArea();
+if (governmentAreaStr == null) governmentAreaStr = "";
+%>
+<em><%=encprops.getProperty("governmentArea")%>: <span id="displayGovernmentArea"><%=governmentAreaStr%></span></em>
+<br>
+
+<%
+String huntingStateStr = enc.getHuntingState();
+if (huntingStateStr == null) huntingStateStr = "";
+%>
+<em><%=encprops.getProperty("huntingState")%>: <span id="displayHuntingState"><%=huntingStateStr%></span></em>
+
+
+<br>
+
 
   <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
