@@ -155,8 +155,9 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	<%
 
 		List<String> desiredKeywords = new ArrayList<String>();
-		//desiredKeywords.add("Melanistic manta");
-		//desiredKeywords.add("Leucistic manta");
+		desiredKeywords.add("ProfilePhoto");
+		desiredKeywords.add("Melanistic manta");
+		desiredKeywords.add("Leucistic manta");
 		//desiredKeywords.add("Left Dorsal Fin");
 
 	for (MarkedIndividual mark: rIndividuals) {
