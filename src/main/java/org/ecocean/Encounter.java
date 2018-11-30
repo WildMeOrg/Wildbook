@@ -53,6 +53,7 @@ import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
 //import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+import org.ecocean.ia.IA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
 import org.ecocean.Survey;
@@ -2624,7 +2625,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
     public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
         if ((anns == null) || (anns.size() < 1)) return null;
-        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
+
+        //Determine skipped frames before another encounter should be made. 
+        int minGapSize = 4;  
+        String gapFromProperties = IA.getProperty(myShepherd.getContext(), "newEnounterFrameGap");
+        try {
+          if (gapFromProperties!=null) {
+            minGapSize = Integer.parseInt(gapFromProperties);
+          }
+        } catch (NumberFormatException nfe) {}
+
         SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
         MediaAsset parentRoot = null;
         for (Annotation ann : anns) {
