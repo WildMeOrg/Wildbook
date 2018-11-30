@@ -67,6 +67,7 @@ public class Annotation implements java.io.Serializable {
     private MediaAsset mediaAsset = null;
 ////// end of what will go away
 
+    private volatile int[] bbox;
 
     //the "trivial" Annotation - will have a single feature which references the total MediaAsset
     public Annotation(String species, MediaAsset ma) {
@@ -336,6 +337,12 @@ public class Annotation implements java.io.Serializable {
 
     //if this cannot determine a bounding box, then we return null
     public int[] getBbox() {
+
+        if (this.bbox !=null) {
+            System.out.println("Returning existing bounding box.");
+            return bbox; 
+        }
+        
         if (getMediaAsset() == null) return null;
         Feature found = null;
         for (Feature ft : getFeatures()) {
@@ -365,6 +372,8 @@ public class Annotation implements java.io.Serializable {
             System.out.println("WARNING: Annotation.getBbox() found invalid width/height for id=" + this.getId());
             return null;
         }
+        System.out.println("Set new Bounding box.");
+        this.bbox = bbox;
         return bbox;
     }
 
@@ -714,10 +723,13 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return Task.getRootTasksFor(this, myShepherd);
     }
 
-    public void refresh(Shepherd myShepherd) {
-        try {
-            myShepherd.getPM().refresh(this);
-        } catch (Exception e) {e.printStackTrace();}
-    }
+    //public void refresh(Shepherd myShepherd) {
+    //    try {
+    //        Annotation ann = myShepherd.getAnnotation(this.id);
+    //        myShepherd.getPM().refresh(pc);
+    //        ann
+    //        myShepherd.getPM().refresh(this);
+    //    } catch (Exception e) {e.printStackTrace();}
+    //}
 
 }
