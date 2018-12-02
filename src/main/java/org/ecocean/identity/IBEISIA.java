@@ -398,6 +398,12 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
 
         for (MediaAsset ma : mas) {
+            if (ma == null) continue;
+            if (ma.getAcmId() == null) {  //usually this means it was not able to be added to IA (e.g. a video etc)
+                System.out.println("WARNING: sendDetect() skipping " + ma + " due to missing acmId");
+                ma.setDetectionStatus(STATUS_ERROR);  //is this wise?
+                continue;
+            }
             malist.add(toFancyUUID(ma.getAcmId()));
         }
         map.put("image_uuid_list", malist);
