@@ -1466,6 +1466,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     String iuuid = fromFancyUUID(jiuuid);
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
+                        if (ma.getAcmId() == null) continue;  //was likely an asset rejected (e.g. video)
                         if (ma.getAcmId().equals(iuuid)) {
                             asset = ma;
                             break;
