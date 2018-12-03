@@ -9,6 +9,7 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 <%
 
 String context = ServletUtilities.getContext(request);
+org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
@@ -526,12 +527,18 @@ console.info('illustrationUrl '+illustrationUrl);
                 if (j > -1) fn = fn.substring(j + 1);
                 imgInfo += ' ' + fn + ' ';
             }
-            if (mainAsset.features && (mainAsset.features.length > 0)) {
-                var encId = mainAsset.features[0].encounterId;
-                var indivId = mainAsset.features[0].individualId;
+            var ft = findMyFeature(acmId, mainAsset);
+            if (ft) {
+                var encId = ft.encounterId;
+                var indivId = ft.individualId;
                 if (encId) {
                     h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+                    
+		    if (!indivId) {
+				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
+		    }
+
                 }
                 if (indivId) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
@@ -555,7 +562,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
                 } else {
                     if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
                 }
-            }  //end if (mainAsset.features...)
+            }  //end if (ft) ....
             // Illustration
             if (illustrationUrl) {
             	var selector = '#task-' + taskId + ' .annot-summary-' + acmId;
@@ -573,9 +580,10 @@ console.info('qdata[%s] = %o', taskId, qdata);
         imgInfo += '<div><i>Alternate references:</i><ul>';
         for (var i = 0 ; i < otherAnnots.length ; i++) {
             imgInfo += '<li title="Annot ' + otherAnnots[i].id + '"><b>Annot ' + otherAnnots[i].id.substring(0,12) + '</b>';
-            if (otherAnnots[i].asset && otherAnnots[i].asset.features && (otherAnnots[i].asset.features.length > 0)) {
-                var encId = otherAnnots[i].asset.features[0].encounterId;
-                var indivId = otherAnnots[i].asset.features[0].individualId;
+            var ft = findMyFeature(acmId, otherAnnots[i].asset);  //TODO is acmId correct here???
+            if (ft) {
+                var encId = ft.encounterId;
+                var indivId = ft.individualId;
                 if (encId) imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
                 if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
             }
@@ -669,16 +677,14 @@ console.warn('score_sort() cm_dict %o', cm_dict);
 	return sorta;
 }
 
-/*
-function foo() {
-    	$('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
-    	$('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
-	//if (qMediaAsset) addImage(fakeEncounter({}, qMediaAsset),jQuery('#image-main'));
-	if (qMediaAsset) jQuery('#image-main').append('<img src="' + wildbook.cleanUrl(qMediaAsset.url) + '" />');
-	jQuery('#image-compare').append('<img style="height: 11px; width: 50%; margin: 40px 25%;" src="images/image-processing.gif" />');
-	checkForResults();
+function findMyFeature(annotAcmId, asset) {
+console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
+    if (!asset || !Array.isArray(asset.features) || (asset.features.length < 1)) return;
+    for (var i = 0 ; i < asset.features.length ; i++) {
+        if (asset.features[i].annotationAcmId == annotAcmId) return asset.features[i];
+    }
+    return;
 }
-*/
 
 function checkForResults() {
 	jQuery.ajax({
