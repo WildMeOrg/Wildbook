@@ -984,7 +984,7 @@
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet>
 
-
+-->
 
 
 
@@ -1015,6 +1015,7 @@
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
 
+  <!--
     <servlet>
       <servlet-name>NingalooByMonthsSonification</servlet-name>
       <servlet-class>org.ecocean.servlet.NingalooByMonthsSonification</servlet-class>
