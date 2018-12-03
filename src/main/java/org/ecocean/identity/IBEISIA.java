@@ -3512,15 +3512,8 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
         if (ann == null) return false;
         int[] bbox = ann.getBbox();
         if (bbox == null) {
-            // Alright, freshen up ya jerk.
-            Shepherd myShepherd = new Shepherd(context);
-            ann.refresh(myShepherd);
-            myShepherd.closeDBTransaction();
-            bbox = ann.getBbox();
-            if (bbox==null) {
-                System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
-                return false;
-            }
+            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
+            return false;
         }
         ArrayList<String> idClasses = getAllIdentificationClasses(context);
         if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty())) {

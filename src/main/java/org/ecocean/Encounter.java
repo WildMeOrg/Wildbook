@@ -2628,12 +2628,13 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
         //Determine skipped frames before another encounter should be made. 
         int minGapSize = 4;  
-        String gapFromProperties = IA.getProperty(myShepherd.getContext(), "newEnounterFrameGap");
+        String gapFromProperties = IA.getProperty(myShepherd.getContext(), "newEncounterFrameGap");
         try {
           if (gapFromProperties!=null) {
             minGapSize = Integer.parseInt(gapFromProperties);
           }
-        } catch (NumberFormatException nfe) {}
+        } catch (NumberFormatException nfe) {nfe.printStackTrace();}
+	System.out.println("YouTube: Frame gap for seperate Encounter creation = "+minGapSize);
 
         SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
         MediaAsset parentRoot = null;
