@@ -149,12 +149,6 @@
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
 
-<<<<<<< HEAD
-				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
-				/SubmitSpotsAndImage = authc, roles[imageProcessor]
-
-=======
->>>>>>> origin/master
 		/GenePopExport = authc, roles[researcher]
 
 		/AdoptionAction = authc, roles[adoption]
@@ -349,11 +343,13 @@
     <servlet-class>com.sunwesttek.image.servlet.ImgSyncServlet</servlet-class>
   </servlet>
 
+
   <servlet>
     <servlet-name>EncounterCreateSurvey</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterCreateSurvey</servlet-class>
   </servlet>	
 
+  
   <servlet>
     <servlet-name>WriteOutScanTask</servlet-name>
     <servlet-class>org.ecocean.servlet.WriteOutScanTask</servlet-class>
@@ -1019,7 +1015,6 @@
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
 
-  <!--
     <servlet>
       <servlet-name>NingalooByMonthsSonification</servlet-name>
       <servlet-class>org.ecocean.servlet.NingalooByMonthsSonification</servlet-class>
@@ -1392,6 +1387,13 @@
     <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
     <url-pattern>/OccurrenceSearchExportMetadataExcel</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+    <servlet-name>EncounterCreateSurvey</servlet-name>
+    <url-pattern>/EncounterCreateSurvey</url-pattern>
+  </servlet-mapping>
+
+  
 
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
@@ -1991,11 +1993,7 @@
     <servlet-name>EncounterSetMaximumElevation</servlet-name>
     <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
-<<<<<<< HEAD
 
-
-=======
->>>>>>> origin/master
 
   <!--
       <servlet-mapping>
@@ -2050,11 +2048,7 @@
     <servlet-name>MassSwapLocationCode</servlet-name>
     <url-pattern>/MassSwapLocationCode</url-pattern>
   </servlet-mapping>
-<<<<<<< HEAD
 
-
-=======
->>>>>>> origin/master
 
   <!--
     <servlet-mapping>
