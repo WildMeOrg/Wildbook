@@ -4,7 +4,9 @@ javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.ExecutionContext,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
-org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+org.datanucleus.api.rest.RESTUtils, 
+org.datanucleus.api.jdo.JDOPersistenceManager,
+java.text.SimpleDateFormat" %>
 
 
 <%
@@ -144,7 +146,7 @@ if (request.getParameter("number")!=null) {
       System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
       System.out.println("");
 
-			boolean visible = indie.canUserAccess(request);
+			//boolean visible = indie.canUserAccess(request);
 
 			if (!visible) {
   			ArrayList<String> uids = indie.getAllAssignedUsers();

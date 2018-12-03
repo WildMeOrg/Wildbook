@@ -710,11 +710,11 @@ if(enc.getLocation()!=null){
 <%
 String stuID = enc.getStudySiteID();
 System.out.println("***   Encounter.jsp: got stuID = "+stuID);
-//StudySite stu = myShepherd.getStudySite(stuID);
+StudySite stu = myShepherd.getStudySite(stuID);
 String displayStu = "none";
 if (stu!=null) {
     // build hyperlink to studysite page
-    String stuUrl = urlLoc + "/studySite.jsp?number="+stuID;
+    String stuUrl = "//"+CommonConfiguration.getURLLocation(request) + "/studySite.jsp?number="+stuID;
     displayStu = "<a href="+stuUrl+">"+stu.getName()+"</a>";
 } 
 %>
