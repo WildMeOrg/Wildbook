@@ -938,7 +938,7 @@ public class MediaAsset implements java.io.Serializable {
                     //we add this stuff for gallery/image to link to co-occurring indiv/enc
                     Annotation ann = ft.getAnnotation();
                     if (ann != null) {
-                        jf.put("acmId", ann.getAcmId());
+                        jf.put("annotationAcmId", ann.getAcmId());
                         jf.put("annotationId", ann.getId());
                         jf.put("annotationIsOfInterest", ann.getIsOfInterest());
                         Encounter enc = ann.findEncounter(myShepherd);
