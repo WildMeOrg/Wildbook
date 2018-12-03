@@ -904,6 +904,7 @@ public class MediaAsset implements java.io.Serializable {
         public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
               org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
               jobj.put("id", this.getId());
+              jobj.put("acmId", this.getAcmId());
                 jobj.put("detectionStatus", this.getDetectionStatus());
               jobj.remove("parametersAsString");
             //jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
@@ -937,6 +938,7 @@ public class MediaAsset implements java.io.Serializable {
                     //we add this stuff for gallery/image to link to co-occurring indiv/enc
                     Annotation ann = ft.getAnnotation();
                     if (ann != null) {
+                        jf.put("acmId", ann.getAcmId());
                         jf.put("annotationId", ann.getId());
                         jf.put("annotationIsOfInterest", ann.getIsOfInterest());
                         Encounter enc = ann.findEncounter(myShepherd);
