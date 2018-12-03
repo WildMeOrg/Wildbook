@@ -691,6 +691,7 @@ public class Shepherd {
     return tempMA;
   }
 
+  /*
   public Annotation getAnnotation(String num) {
     Annotation tempMA = null;
     try {
@@ -700,7 +701,7 @@ public class Shepherd {
     }
     return tempMA;
   }
-
+*/
   public MediaAssetSet getMediaAssetSet(String num) {
     MediaAssetSet tempMA = null;
     try {
