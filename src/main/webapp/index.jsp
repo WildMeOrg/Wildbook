@@ -53,7 +53,11 @@ margin-top: 0px !important;
 margin-bottom: 8px !important;
 </style>
 
-<script src="//maps.google.com/maps/api/js?sensor=false"></script>
+<%
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+%>
+
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>

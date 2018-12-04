@@ -37,9 +37,6 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("searchResults.jsp");
 
-String queryString = request.getQueryString();
-if (queryString==null) queryString = ""; // so .replace() methods below don't break
-
 
 
   int numResults = 0;
@@ -246,24 +243,25 @@ td.tdw:hover div {
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
 
+
 <ul id="tabmenu">
 
   <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=queryString %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -320,8 +318,6 @@ Map<String,Object> paramMap = new HashMap<String, Object>();
 
 String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
 
-
-
 %>
 
 
@@ -377,22 +373,20 @@ var colDefn = [
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
-		key: 'huntingState',
-		label: '<%=encprops.getProperty("huntingState")%>',
-		value: _huntingState,
+		key: 'verbatimLocality',
+		label: '<%=encprops.getProperty("location")%>',
 	},
-	{
-		key: 'locationID',
-		label: '<%=encprops.getProperty("studySite")%>', /* as a hack we're storing study site name on locationID bc they don't use locationID on this project */
-		value: _locID,
-	},
+//	{
+//		key: 'locationID',
+// 		label: '<%=encprops.getProperty("locationID")%>',
+//	},
 	{
 		key: 'taxonomy',
 		label: '<%=encprops.getProperty("taxonomy")%>',
 		value: _colTaxonomy,
 	},
 	{
-		key: 'submitterName',
+		key: 'submitterID',
 		label: '<%=encprops.getProperty("submitterName")%>',
 		value: _submitterID,
 	},
@@ -778,11 +772,6 @@ function _colTaxonomy(o) {
 	if (o.get('genus')) return o.get('genus');
 	if (o.get('specificEpithet')) return o.get('specificEpithet');
 	return 'n/a';
-}
-
-function _huntingState(o) {
-	//console.log("Hunting state "+o.get("huntingState")+" for object "+JSON.Stringify(o));
-	return o.get("huntingState");
 }
 
 

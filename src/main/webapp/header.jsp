@@ -17,7 +17,7 @@
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 
-<html>
+
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
@@ -45,7 +45,7 @@ CommonConfiguration.ensureServerInfo(myShepherd, request);
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
     <head>
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>
@@ -102,12 +102,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
   	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
   	<!-- End Open Graph Tags -->    
     
-    <!--  <link rel="stylesheet" href="/resources/demos/style.css"> 
-    
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    -->
+
 
 	<!-- Clockpicker on creatSurvey jsp -->
     <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
@@ -360,10 +355,12 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
+                        	
+                        	<!--  
                         	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
 
                                <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
-
+							-->
                              <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
 
 

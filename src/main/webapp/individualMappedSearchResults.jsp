@@ -137,7 +137,6 @@
   
 
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
-<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="javascript/GeoJSON.js"></script>
 
@@ -615,4 +614,3 @@ $( window ).load(function() {
 });
 
 </script>
-
