@@ -285,10 +285,8 @@ f<%@ page contentType="text/html; charset=utf-8"
 <%
 
 
-
   //startNum = startNum + encounterIncrementer;
   //endNum = endNum + encounterIncrementer;
-
 
 %>
 

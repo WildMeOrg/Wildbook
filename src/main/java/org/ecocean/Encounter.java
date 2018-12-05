@@ -2515,7 +2515,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
         if ((anns == null) || (anns.size() < 1)) return null;
         int minGapSize = 4;  //must skip this or more frames to count as new Encounter
-        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+        SortedMap<Integer,List<Annotation>> ordered = new TreeMap<Integer,List<Annotation>>();
         MediaAsset parentRoot = null;
         for (Annotation ann : anns) {
 System.out.println("========================== >>>>>> " + ann);
@@ -2527,7 +2527,8 @@ System.out.println("   -->>> ma = " + ma);
             int offset = ma.getParameters().optInt("extractOffset", -1);
 System.out.println("   -->>> offset = " + offset);
             if (offset < 0) continue;
-            ordered.put(offset, ann);
+            if (ordered.get(offset) == null) ordered.put(offset, new ArrayList<Annotation>());
+            ordered.get(offset).add(ann);
         }
         if (ordered.size() < 1) return null;  //none used!
 
@@ -2548,7 +2549,7 @@ System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
                 }
             }
             prevOffset = i;
-            tmpAnns.add(ordered.get(i));
+            tmpAnns.addAll(ordered.get(i));
         }
         //deal with dangling tmpAnns content
         if (tmpAnns.size() > 0) {
@@ -3187,12 +3188,15 @@ throw new Exception();
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
+        System.out.println("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
         enc.setGenus(this.getGenus());
         enc.setSpecificEpithet(this.getSpecificEpithet());
         enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
         enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
         //just going to go ahead and go nuts here and copy most "logical"(?) things.  reset on clone if needed
         enc.setSubmitterID(this.getSubmitterID());
+        enc.setSubmitters(this.submitters);
+        enc.setPhotographers(this.photographers);
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
