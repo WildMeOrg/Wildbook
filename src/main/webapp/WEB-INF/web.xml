@@ -217,6 +217,8 @@
 						   /individualSearch.jsp = authc, roles[local]
 						   /individualSearchResultsAnalysis.jsp = authc, roles[local]
 						   /individualMappedSearchResults.jsp = authc, roles[local]
+
+				/encounters/thumbnailSearchResults.jsp = authc, roles[local]
 				/individualThumbnailSearchResults.jsp = authc, roles[local]
 				 /encounters/encounterSearch.jsp = authc, roles[local]
 				 /encounters/searchResults.jsp = authc, roles[local]

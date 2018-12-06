@@ -338,8 +338,20 @@ CommonConfiguration.ensureServerInfo(confShepherd, request);
                             }
                           %>
                           <li class="divider"></li>
+
+			  <%
+                          if(request.getUserPrincipal()!=null) {
+                          %>
+
+
                           <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
-                          <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
+                          
+
+			  <%
+			   }
+			  %>
+
+			  <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
                           <% if(request.getUserPrincipal()!=null) { %>
                             <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySubmissions")%></a></li>
                           <% } %>
