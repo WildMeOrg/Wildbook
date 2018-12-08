@@ -2836,6 +2836,13 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 	public boolean canUserAccess(HttpServletRequest request) {
 		return Collaboration.canUserAccessEncounter(this, request);
 	}
+        public boolean canUserEdit(User user) {
+            return isUserOwner(user);
+        }
+        public boolean isUserOwner(User user) {  //the definition of this might change?
+            if ((user == null) || (submitters == null)) return false;
+            return submitters.contains(user);
+        }
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
             jobj.put("location", this.getLocation());
