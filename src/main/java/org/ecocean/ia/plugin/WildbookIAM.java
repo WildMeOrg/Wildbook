@@ -238,7 +238,7 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find acmId for " + ann + " (MediaAsset id=" + ann.getMediaAsset().getId() + " not added to IA?); skipping!");
                 continue;
             }
-            if (IBEISIA.validForIdentification(ann)) {
+            if (!IBEISIA.validForIdentification(ann)) {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
