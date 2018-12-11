@@ -161,6 +161,10 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
         for (int i = 0 ; i < mas.size() ; i++) {
             MediaAsset ma = mas.get(i);
             if (iaImageIds.contains(ma.getAcmId())) continue;
+            if (!validMediaAsset(ma)) {
+                IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid " + ma);
+                continue;
+            }
             acmList.add(ma);
             map.get("image_uri_list").add(mediaAssetToUri(ma));
             map.get("image_gps_lat_list").add(ma.getLatitude());
@@ -382,6 +386,14 @@ System.out.println("fromResponse ---> " + ids);
             if (curl == null) return null;
             return curl.toString();
         }
+    }
+
+    //basically "should we send to IA?"
+    public static boolean validMediaAsset(MediaAsset ma) {
+        if (ma == null) return false;
+        if (!ma.isMimeTypeMajor("image")) return false;
+        if ((ma.getWidth() < 1) || (ma.getHeight() < 1)) return false;
+        return true;
     }
 
     //this is used to give a string to IA for annot_species_list specifially

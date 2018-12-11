@@ -856,6 +856,16 @@
   </servlet>
 
       <servlet>
+    <servlet-name>AnnotationEdit</servlet-name>
+    <servlet-class>org.ecocean.servlet.AnnotationEdit</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>AnnotationEdit</servlet-name>
+    <url-pattern>/AnnotationEdit</url-pattern>
+  </servlet-mapping>
+
+      <servlet>
     <servlet-name>SiteSearch</servlet-name>
     <servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>
   </servlet>

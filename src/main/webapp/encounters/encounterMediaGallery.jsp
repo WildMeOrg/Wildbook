@@ -382,10 +382,118 @@ $(window).on('resizeEnd', function(ev) {
 	checkImageEnhancerResize();
 });
 
+
+function swapAnnotIndivIds(aid1, aid2) {
+    $('.popup-content').html('<div class="throbbing">updating</div>');
+    //$('.popup-content').html(aid1 + ' <=> ' + aid2);
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
+        data: JSON.stringify({ id: aid1, swapIndividualId: aid2 }),
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        complete: function(d) {  //d.responseJSON etc
+            console.info('return => %o', d);
+            window.location.reload();
+        }
+    });
+    return false;
+}
+
+function assignIndiv(annotId) {
+    var indivId = $('#edit-assign-individ').val();
+    $('.popup-content').html('<div class="throbbing">updating</div>');
+    //$('.popup-content').html(annotId + ' <= ' + indivId);
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
+        data: JSON.stringify({ id: annotId, assignIndividualId: indivId }),
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        complete: function(d) {  //d.responseJSON etc
+            console.info('return => %o', d);
+            window.location.reload();
+        }
+    });
+    return false;
+}
+
+var editMode = false;
+function editClick(ev) {
+console.log(ev);
+    ev.stopPropagation();
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    var el = ev.target.parentElement;
+    var annId = el.id;
+    var h = '<h1>' + annId + '</h1>';
+    var maEl = el.parentElement.parentElement;
+    var mid = imageEnhancer.mediaAssetIdFromElement($(maEl));
+    var ma = assetById(mid);
+    if (!ma) return;
+console.log(ma);
+    var h = '';
+    var myFeat;
+    for (var i = 0 ; i < ma.features.length ; i++) {
+        if (ma.features[i].id == annId) {
+            myFeat = ma.features[i];
+        }
+    }
+    h += '<div style="color: #A33; font-size: 1.3em;">Editing <b>Annot ' + myFeat.annotationId.substring(0,8) + '</b> (on <b>Enc ' + myFeat.encounterId.substring(0,8) + '</b>)</div>';
+    for (var i = 0 ; i < ma.features.length ; i++) {
+        if ((ma.features[i].id == annId) || !ma.features[i].encounterId) continue;
+        if (myFeat.individualId && ma.features[i].individualId) {
+            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + ma.features[i].encounterId.substring(0,8) + ')" '; 
+            h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        } else if (myFeat.individualId) {
+            h += '<input type="button" value="set name ' + myFeat.individualId + ' on Enc ' + ma.features[i].encounterId.substring(0,8) + ' (unset this)" '; 
+            h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        } else if (ma.features[i].individualId) {
+            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on this Encounter (unset ' + ma.features[i].encounterId.substring(0,8) + ')" '; 
+            h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        }
+    }
+    h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><i>or,</i> assign <b>Enc ' + myFeat.encounterId.substring(0,8) + '</b> to <input id="edit-assign-individ" /> <input type="button" value="accept" onClick="return assignIndiv(\'' + myFeat.annotationId + '\');" /></div>';
+    imageEnhancer.popup(h);
+    $('.image-enhancer-popup').draggable();
+
+    //make autocomplete for indiv form input
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(document.getElementById('edit-assign-individ'), args);
+
+    return false;
+}
+
 //initializes image enhancement (layers)
 jQuery(document).ready(function() {
     doImageEnhancer('figure img');
     $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
+    $(document).bind('keydown keyup', function(ev) {
+        var editModeWas = editMode;
+        if ((ev.key != 'Shift') && (ev.key != 'Control')) return;
+        editMode = (ev.shiftKey && ev.ctrlKey);
+        //console.info('editMode -> %o', editMode);
+        if (editMode == editModeWas) return;
+        if (!editMode) {
+            $('.edit-mode-ui').remove();
+            return;
+        }
+        $('body').append('<div class="edit-mode-ui" style="position: fixed; left: 30px; top: 30px; font-size: 3em; color: rgba(255,255,20,0.8); z-index: 2000;"><b>EDIT MODE</b></div>');
+
+        $('.image-enhancer-feature').append('<div class="edit-mode-ui" style="cursor: cell; padding: 0px 4px; font-size: 0.8em; font-weight: bold; position: absolute; left: 10px; top: 10px; background-color: rgba(255,255,255,0.7); display: inline-block;" xonClick="return editClick(this);" >EDIT</div>');
+        $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
+    });
+
 });
 
 function doImageEnhancer(sel) {
