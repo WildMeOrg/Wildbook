@@ -111,7 +111,6 @@ public class AnnotationEdit extends HttpServlet {
                             if (indiv != null) {
                                 indiv.removeEncounter(enc1, context);
                                 indiv.addEncounter(enc2, context);
-                                myShepherd.getPM().makePersistent(indiv);
                             }
                         }
                         if (indivId2 != null) {
@@ -119,17 +118,35 @@ public class AnnotationEdit extends HttpServlet {
                             if (indiv != null) {
                                 indiv.removeEncounter(enc2, context);
                                 indiv.addEncounter(enc1, context);
-                                myShepherd.getPM().makePersistent(indiv);
                             }
                         }
                         enc2.setIndividualID(indivId1);
                         enc1.setIndividualID(indivId2);
                         System.out.println("INFO: AnnotationEdit swapped MarkedIndividual ids - enc=" + enc1.getCatalogNumber() + "[annot=" + annot.getId() + "]=>(" + enc1.getIndividualID() + "); enc=" + enc2.getCatalogNumber() + "[annot=" + swapAnnot.getId() + "]=>(" + enc2.getIndividualID() + ")");
                         rtn.put("success", true);
+                        rtn.put("updatedMarkedIndividualId1", indivId2);
+                        rtn.put("updatedMarkedIndividualId2", indivId1);
                     }
                 }
 
             } else if (Util.stringExists(assignIndivId)) {
+                Encounter enc = annot.findEncounter(myShepherd);
+                if (enc.hasMarkedIndividual()) {
+                    MarkedIndividual oldIndiv = myShepherd.getMarkedIndividualQuiet(enc.getIndividualID());
+                    oldIndiv.removeEncounter(enc, context);
+                }
+                boolean newIndiv = false;
+                MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(assignIndivId);
+                if (indiv == null) {
+                    indiv = new MarkedIndividual(assignIndivId, enc);
+                    newIndiv = true;
+                } else {
+                    indiv.addEncounter(enc, context);
+                }
+                enc.setIndividualID(assignIndivId);
+                System.out.println("INFO: AnnotationEdit assigned " + indiv + " on " + enc + " via " + annot);
+                rtn.put("success", true);
+                rtn.put("newMarkedIndividual", newIndiv);
 
             } else {
                 rtn.put("error", "unknown command");
