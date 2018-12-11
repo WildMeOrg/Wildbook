@@ -461,14 +461,38 @@ $(window).on('resizeEnd', function(ev) {
 
 
 function swapAnnotIndivIds(aid1, aid2) {
-    $('.popup-content').html(aid1 + ' <=> ' + aid2);
-    return true;
+    $('.popup-content').html('<div class="throbbing">updating</div>');
+    //$('.popup-content').html(aid1 + ' <=> ' + aid2);
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
+        data: JSON.stringify({ id: aid1, swapIndividualId: aid2 }),
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        complete: function(d) {  //d.responseJSON etc
+            console.info('return => %o', d);
+            window.location.reload();
+        }
+    });
+    return false;
 }
 
 function assignIndiv(annotId) {
     var indivId = $('#edit-assign-individ').val();
-    $('.popup-content').html(annotId + ' <= ' + indivId);
-    return true;
+    $('.popup-content').html('<div class="throbbing">updating</div>');
+    //$('.popup-content').html(annotId + ' <= ' + indivId);
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
+        data: JSON.stringify({ id: annotId, assignIndividualId: indivId }),
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        complete: function(d) {  //d.responseJSON etc
+            console.info('return => %o', d);
+            window.location.reload();
+        }
+    });
+    return false;
 }
 
 var editMode = false;
