@@ -55,7 +55,7 @@
 	/* This whole thing is way too hackey for my taste but it gets a margin between the tasks */
 	clear: both;
 	visibility: hidden;
-	margin-bottom: 50px; /* twice the standard iaResults margin so tasks are visual units */
+	margin-bottom: 35px; /* twice the standard iaResults margin so tasks are visual units */
 }
 
 .task-divider:first-of-type {
