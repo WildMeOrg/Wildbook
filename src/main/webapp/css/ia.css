@@ -40,28 +40,38 @@
 	background: url(../images/throbber.gif) no-repeat left top !important;
 }
 
+
 .task-title {
 	background-color: #FAA;
 	margin: 10px 0;
 	clear: both;
 	padding: 8px;
+	margin-top: 35px;
 }
+
+.task-title:first-of-type {
+	margin-top: 15px;
+}
+
+
 .task-title-id {
 	color: #555;
 	font-size: 0.8em;
 }
 
+
 .task-divider {
 	/* This whole thing is way too hackey for my taste but it gets a margin between the tasks */
 	clear: both;
-	visibility: hidden;
-	margin-bottom: 35px; /* twice the standard iaResults margin so tasks are visual units */
+	margin-bottom: 40px; /* twice the standard iaResults margin so tasks are visual units */
 }
 
+/* task-divider is prepended so we don't want it above the first task 
 .task-divider:first-of-type {
-	/* task-divider is prepended so we don't want it above the first task */
 	display: none;
 }
+*/
+
 
 /* these hide stuff for detection jobs; but dont hide task-content as it contains children tasks! */
 .task-title.task-type-detection {
