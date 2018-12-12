@@ -47,7 +47,7 @@ public class Occurrence implements java.io.Serializable {
   //private String ID;
   private Integer individualCount;
   private String groupBehavior;  // categorical
-    private List<Instant> behaviors; //more structured than above
+  private List<Instant> behaviors; //more structured than above
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
