@@ -234,7 +234,7 @@
       </field>
 
       <field name="assets" persistence-modifier="persistent" default-fetch-group="false" mapped-by="occurrence" >
-          <collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
+          <collection element-type="org.ecocean.media.MediaAsset" dependent-element="false" />
           <join />
       </field>
 
