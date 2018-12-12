@@ -712,6 +712,21 @@ public class Util {
       return sanitized;
     }
 
+    public static String joinStrings(List<String> strings) {
+      return joinStrings(strings, ", ");
+    }
+
+    public static String joinStrings(List<String> strings, String seperator) {
+      if (strings.size()==0) return "";
+      if (strings.size()==1) return strings.get(0);
+      StringBuffer strBuff = new StringBuffer();
+      strBuff.append(strings.get(0));
+      for (int i=1;i<strings.size();i++) {
+        strBuff.append(seperator+strings.get(i));
+      }
+      return strBuff.toString();
+    }
+
   public static <KeyType, ValType> void addToMultimap(Map<KeyType, Set<ValType>> multimap, KeyType key, ValType val) {
     if (!multimap.containsKey(key)) multimap.put(key, new HashSet<ValType>());
     multimap.get(key).add(val);
