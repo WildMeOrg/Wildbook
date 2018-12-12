@@ -17,7 +17,7 @@ f<%@ page contentType="text/html; charset=utf-8"
 	int encounterIncrementer=10;
   
     int startNum = 0;
-    int endNum = 10;
+    int endNum = 30;
 
     try {
 
