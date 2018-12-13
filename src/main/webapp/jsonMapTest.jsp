@@ -57,12 +57,22 @@ org.ecocean.identity.IBEISIA
         return rtn;
     }
 
+    public static JSONObject hashMapToJSONObject2(HashMap<String,Object> map) {   //note: Object-flavoured
+        if (map == null) return null;
+        //return new JSONObject(map);  // this *used to work*, i swear!!!
+        JSONObject rtn = new JSONObject();
+        for (String k : map.keySet()) {
+            rtn.put(k, map.get(k));
+        }
+        return rtn;
+    }
+
 %>
 
 <%
 
 
-HashMap<String,ArrayList> input1 = new HashMap<String,ArrayList>();
+HashMap<String,Object> input1 = new HashMap<String,Object>();
 
 ArrayList<Double> list1 = new ArrayList<Double>();
 list1.add(1.0);
@@ -90,7 +100,7 @@ String conv = java.net.URLDecoder.decode(postString, "UTF-8");
 out.println("<p style=\"color: #02a;\">above, converted: <b>" + conv + "</b></p>");
 
 out.println("<hr /><h2>'hack' conversion - hashMapToJSONObject(input1)</h2>");
-JSONObject jconv = hashMapToJSONObject(input1);
+JSONObject jconv = hashMapToJSONObject2(input1);
 out.println("<p>jconv.toString(): <b>" + jconv.toString() + "</b></p>");
 
 postString = getPostDataString(jconv);
