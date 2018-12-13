@@ -3310,21 +3310,25 @@ return Util.generateUUID();
     //// TOTAL HACK... buy jon a drink and he will tell you about these.....
     public static JSONObject hashMapToJSONObject(HashMap<String,ArrayList> map) {
         if (map == null) return null;
-        //return new JSONObject(map);  // this *used to work*, i swear!!!
+        return new JSONObject(map);  // this *used to work*, i swear!!!
+/*   this will end me.  -jon
         JSONObject rtn = new JSONObject();
         for (String k : map.keySet()) {
             rtn.put(k, map.get(k));
         }
         return rtn;
+*/
     }
     public static JSONObject hashMapToJSONObject2(HashMap<String,Object> map) {   //note: Object-flavoured
         if (map == null) return null;
-        //return new JSONObject(map);  // this *used to work*, i swear!!!
+        return new JSONObject(map);  // this *used to work*, i swear!!!
+/*
         JSONObject rtn = new JSONObject();
         for (String k : map.keySet()) {
             rtn.put(k, map.get(k));
         }
         return rtn;
+*/
     }
 
 
