@@ -5,27 +5,27 @@
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
- 
+
 %>
 
     <jsp:include page="header.jsp" flush="true" />
-      
+
         <div class="container maincontent">
           <%
           Shepherd myShepherd = new Shepherd(context);
-					
+
           try {
-        	  
+
         	  String number = request.getParameter("number").trim();
-			  
+
 			  Encounter enc = myShepherd.getEncounter(number);
-			  
+
         	  int imageNum = 1;
         	  try {
         	    imageNum = (new Integer(request.getParameter("imageNum"))).intValue();
         	  } catch (Exception cce) {
         	  }
-        	  
+
         	  //setup data dir
         	  String rootWebappPath = getServletContext().getRealPath("/");
         	  File webappsDir = new File(rootWebappPath).getParentFile();
@@ -34,15 +34,15 @@ context=ServletUtilities.getContext(request);
         	  File thisEncounterDir = new File(encountersDir, Encounter.subdir(number));
 
 
-        	  
+
             String addText = "";
             if (request.getParameter("imageName") != null) {
               addText = request.getParameter("imageName");
               addText = encountersDir.getAbsolutePath()+"/" + Encounter.subdir(request.getParameter("number")) + "/" + addText;
 
-            } 
+            }
             else {
-              
+
               myShepherd.beginDBTransaction();
               addText = (String) enc.getAdditionalImageNames().get((imageNum - 1));
               if (myShepherd.isAcceptableVideoFile(addText)) {
@@ -105,7 +105,7 @@ context=ServletUtilities.getContext(request);
 
 
               }
-            
+
 
 
             //generate the thumbnail image
@@ -122,11 +122,11 @@ context=ServletUtilities.getContext(request);
           <p>I have successfully reset the thumbnail image for encounter number <strong><%=number%></strong>.</p>
 
           <p><a
-            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>">View encounter <%=number%>.</a></p>
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>" id="viewEncounterLink">View encounter <%=number%>.</a></p>
 
 
-       
-        
+
+
         <%
         } catch (Exception e) {
               //e.printStackTrace();
@@ -134,17 +134,16 @@ context=ServletUtilities.getContext(request);
 
           <p>Hit an error trying to generate the thumbnail. Either the specified encounter or image does not exist.</p>
 
-	
+
           <%
             }
           if(!myShepherd.getPM().isClosed()){
         	  myShepherd.rollbackDBTransaction();
               myShepherd.closeDBTransaction();
           }
-          
+
          myShepherd=null;
           %>
        </div>
-     
+
       <jsp:include page="footer.jsp" flush="true"/>
-  

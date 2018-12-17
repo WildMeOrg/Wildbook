@@ -14,7 +14,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
-	
+
 <link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 
@@ -377,7 +377,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
       target="_self" dir="ltr"
       lang="en"
       onsubmit="return false;"
-      class="form-horizontal" 
+      class="form-horizontal"
       accept-charset="UTF-8"
 >
 
@@ -401,7 +401,7 @@ $('#social_files_iframe').on('load', function(ev) {
 	var j = JSON.parse($(doc).find('body').text());
 	console.info('iframe returned %o', j);
 
-	
+
 	console.log("social_files_id : "+j.id);
 	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
 	//now do actual submit
@@ -774,7 +774,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 
   <h4 class="accordion">
-    <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
+    <a id="advancedInformationAnchor href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
       <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
       <%=props.getProperty("advancedInformation") %>
     </a>
@@ -1131,15 +1131,15 @@ function sendButtonClicked() {
     	    $("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
    		}
-   		else{	console.log('Here!'); 	
+   		else{	console.log('Here!');
    			    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-   					
+
    					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-   					if(!isEmpty(recaptachaResponse)) {		
+   					if(!isEmpty(recaptachaResponse)) {
    						$("#encounterForm").attr("action", "EncounterForm");
-   						
+
    						if (sendSocialPhotosBackground()) return false;
-   						
+
    						submitForm();
    					}
 		}
