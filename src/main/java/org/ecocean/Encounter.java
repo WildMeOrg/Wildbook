@@ -770,6 +770,13 @@ public class Encounter implements java.io.Serializable {
     return photographerPhone;
   }
 
+  public String getWebUrl(HttpServletRequest req) {
+    return getWebUrl(this.getCatalogNumber(), req);
+  }
+  public static String getWebUrl(String encId, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/encounters/encounter.jsp?number="+encId);
+  }
+
   /**
    * Sets the phone number of the person who took the primaryImage this encounter.
    */
@@ -974,11 +981,11 @@ public class Encounter implements java.io.Serializable {
     if (day > 0) {
       date = String.format("%04d-%02d-%02d %s", year, month, day, time);
     }
-    else if(month>-1) {
+    else if(month>0) {
       date = String.format("%04d-%02d %s", year, month, time);
     }
     else {
-      date = String.format("%04d %s", year, month, time);
+      date = String.format("%04d %s", year, time);
     }
 
     return date;
@@ -1980,6 +1987,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
     return null;
   }
+  public boolean hasDynamicProperty(String name) {
+    return ( this.getDynamicPropertyValue(name) != null );
+  }
 
   public void removeDynamicProperty(String name) {
     name = name.replaceAll(";", "_").trim().replaceAll("%20", " ");
@@ -2505,7 +2515,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
         if ((anns == null) || (anns.size() < 1)) return null;
         int minGapSize = 4;  //must skip this or more frames to count as new Encounter
-        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+        SortedMap<Integer,List<Annotation>> ordered = new TreeMap<Integer,List<Annotation>>();
         MediaAsset parentRoot = null;
         for (Annotation ann : anns) {
 System.out.println("========================== >>>>>> " + ann);
@@ -2517,7 +2527,8 @@ System.out.println("   -->>> ma = " + ma);
             int offset = ma.getParameters().optInt("extractOffset", -1);
 System.out.println("   -->>> offset = " + offset);
             if (offset < 0) continue;
-            ordered.put(offset, ann);
+            if (ordered.get(offset) == null) ordered.put(offset, new ArrayList<Annotation>());
+            ordered.get(offset).add(ann);
         }
         if (ordered.size() < 1) return null;  //none used!
 
@@ -2538,7 +2549,7 @@ System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
                 }
             }
             prevOffset = i;
-            tmpAnns.add(ordered.get(i));
+            tmpAnns.addAll(ordered.get(i));
         }
         //deal with dangling tmpAnns content
         if (tmpAnns.size() > 0) {
@@ -2825,6 +2836,13 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 	public boolean canUserAccess(HttpServletRequest request) {
 		return Collaboration.canUserAccessEncounter(this, request);
 	}
+        public boolean canUserEdit(User user) {
+            return isUserOwner(user);
+        }
+        public boolean isUserOwner(User user) {  //the definition of this might change?
+            if ((user == null) || (submitters == null)) return false;
+            return submitters.contains(user);
+        }
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
             jobj.put("location", this.getLocation());
@@ -2941,7 +2959,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 		}
 		return blk;
 	}
-
 
 /*
 in short, this rebuilds (or builds for the first time) ALL *derived* images (etc?) for this encounter.
@@ -3178,12 +3195,15 @@ throw new Exception();
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
+        System.out.println("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
         enc.setGenus(this.getGenus());
         enc.setSpecificEpithet(this.getSpecificEpithet());
         enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
         enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
         //just going to go ahead and go nuts here and copy most "logical"(?) things.  reset on clone if needed
         enc.setSubmitterID(this.getSubmitterID());
+        enc.setSubmitters(this.submitters);
+        enc.setPhotographers(this.photographers);
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
@@ -3387,13 +3407,25 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
-    public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
     public void addSubmitter(User user) {
         if (user == null) return;
         if (submitters == null) submitters = new ArrayList<User>();
         if (!submitters.contains(user)) submitters.add(user);
     }
-    public void setPhotographers(List<User> photographers) {this.photographers=photographers;}
-    
+
+    public void setSubmitters(List<User> submitters) {
+      if(submitters==null){this.submitters=null;}
+      else{
+        this.submitters=submitters;
+      }
+      
+    }
+    public void setPhotographers(List<User> photographers) {
+      if(photographers==null){this.photographers=null;}
+      else{
+        this.photographers=photographers;
+      }
+    }
+
     
 }

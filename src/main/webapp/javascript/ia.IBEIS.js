@@ -3,7 +3,8 @@ wildbook.IA.plugins.push({
     name: 'Wildbook-IA (aka IBEIS)',
     getDomResult: function(task) {
         var gt = this.getGeneralType(task);
-	var h = '<div class="task-content task-type-' + gt + '" id="task-' + task.id + '">';
+    var h = '<hr class="task-divider" />'
+	    h += '<div class="task-content task-type-' + gt + '" id="task-' + task.id + '">';
         h += '<div class="task-title task-type-' + gt + '" onDblClick="$(\'#task-debug-' + task.id + '\').show();"><span class="task-title-id"><b>Task ' + task.id + '</b></span></div>';
         h += '<div class="task-summary task-type-' + gt + '"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div>';
         h += '</div>';
@@ -56,7 +57,7 @@ wildbook.IA.plugins.push({
                     var ma = assetById(mid);
                     if (ma.taxonomyString) {
                         var data = {
-                            annotationIds: [ ma.annotationId ]
+                            annotationIds: [ ma.annotation.id ]
                         };
                         imageEnhancer.popup('<h2>Starting matching....</h2>');
                         wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -115,9 +116,9 @@ wildbook.IA.plugins.push({
             statusText: ma.detectionStatus,
             taskId: ma.tasks[ma.tasks.length - 1].id
         };
-        if (ma.annotationIdentificationStatus) {
-            rtn.status = ma.annotationIdentificationStatus;
-            rtn.statusText += '/' + ma.annotationIdentificationStatus;
+        if (ma.annotation && ma.annotation.identificationStatus) {
+            rtn.status = ma.annotation.identificationStatus;
+            rtn.statusText += '/' + ma.annotation.identificationStatus;
         }
         if (!rtn.status) {  //no old-world props on objs
             rtn.status = 'pending';

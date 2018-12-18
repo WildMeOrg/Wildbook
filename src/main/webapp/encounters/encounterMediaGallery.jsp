@@ -142,8 +142,12 @@ function forceLink(el) {
                                                     jt.put(Util.toggleJSONObject(t.toJSONObject()));
                                                 }
                                                 j.put("tasks", jt);
-						j.put("annotationId", ann.getId());
-                                                j.put("annotationIdentificationStatus", ann.getIdentificationStatus());
+                                                JSONObject ja = new JSONObject();
+						ja.put("id", ann.getId());
+                                                //ja.put("acmId", ann.getAcmId());
+                                                ja.put("iaClass", ann.getIAClass());
+                                                ja.put("identificationStatus", ann.getIdentificationStatus());
+                                                j.put("annotation", ja);
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
@@ -375,9 +379,118 @@ $(window).on('resizeEnd', function(ev) {
 	checkImageEnhancerResize();
 });
 
+
+function swapAnnotIndivIds(aid1, aid2) {
+    $('.popup-content').html('<div class="throbbing">updating</div>');
+    //$('.popup-content').html(aid1 + ' <=> ' + aid2);
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
+        data: JSON.stringify({ id: aid1, swapIndividualId: aid2 }),
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        complete: function(d) {  //d.responseJSON etc
+            console.info('return => %o', d);
+            window.location.reload();
+        }
+    });
+    return false;
+}
+
+function assignIndiv(annotId) {
+    var indivId = $('#edit-assign-individ').val();
+    $('.popup-content').html('<div class="throbbing">updating</div>');
+    //$('.popup-content').html(annotId + ' <= ' + indivId);
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
+        data: JSON.stringify({ id: annotId, assignIndividualId: indivId }),
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        complete: function(d) {  //d.responseJSON etc
+            console.info('return => %o', d);
+            window.location.reload();
+        }
+    });
+    return false;
+}
+
+var editMode = false;
+function editClick(ev) {
+console.log(ev);
+    ev.stopPropagation();
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    var el = ev.target.parentElement;
+    var annId = el.id;
+    var h = '<h1>' + annId + '</h1>';
+    var maEl = el.parentElement.parentElement;
+    var mid = imageEnhancer.mediaAssetIdFromElement($(maEl));
+    var ma = assetById(mid);
+    if (!ma) return;
+console.log(ma);
+    var h = '';
+    var myFeat;
+    for (var i = 0 ; i < ma.features.length ; i++) {
+        if (ma.features[i].id == annId) {
+            myFeat = ma.features[i];
+        }
+    }
+    h += '<div style="color: #A33; font-size: 1.3em;">Editing <b>Annot ' + myFeat.annotationId.substring(0,8) + '</b> (on <b>Enc ' + myFeat.encounterId.substring(0,8) + '</b>)</div>';
+    for (var i = 0 ; i < ma.features.length ; i++) {
+        if ((ma.features[i].id == annId) || !ma.features[i].encounterId) continue;
+        if (myFeat.individualId && ma.features[i].individualId) {
+            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + ma.features[i].encounterId.substring(0,8) + ')" '; 
+            h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        } else if (myFeat.individualId) {
+            h += '<input type="button" value="set name ' + myFeat.individualId + ' on Enc ' + ma.features[i].encounterId.substring(0,8) + ' (unset this)" '; 
+            h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        } else if (ma.features[i].individualId) {
+            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on this Encounter (unset ' + ma.features[i].encounterId.substring(0,8) + ')" '; 
+            h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        }
+    }
+    h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><i>or,</i> assign <b>Enc ' + myFeat.encounterId.substring(0,8) + '</b> to <input id="edit-assign-individ" /> <input type="button" value="accept" onClick="return assignIndiv(\'' + myFeat.annotationId + '\');" /></div>';
+    imageEnhancer.popup(h);
+    $('.image-enhancer-popup').draggable();
+
+    //make autocomplete for indiv form input
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(document.getElementById('edit-assign-individ'), args);
+
+    return false;
+}
+
 //initializes image enhancement (layers)
 jQuery(document).ready(function() {
-	doImageEnhancer('figure img');
+    doImageEnhancer('figure img');
+    $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
+    $(document).bind('keydown keyup', function(ev) {
+        var editModeWas = editMode;
+        if ((ev.key != 'Shift') && (ev.key != 'Control')) return;
+        editMode = (ev.shiftKey && ev.ctrlKey);
+        //console.info('editMode -> %o', editMode);
+        if (editMode == editModeWas) return;
+        if (!editMode) {
+            $('.edit-mode-ui').remove();
+            return;
+        }
+        $('body').append('<div class="edit-mode-ui" style="position: fixed; left: 30px; top: 30px; font-size: 3em; color: rgba(255,255,20,0.8); z-index: 2000;"><b>EDIT MODE</b></div>');
+
+        $('.image-enhancer-feature').append('<div class="edit-mode-ui" style="cursor: cell; padding: 0px 4px; font-size: 0.8em; font-weight: bold; position: absolute; left: 10px; top: 10px; background-color: rgba(255,255,255,0.7); display: inline-block;" xonClick="return editClick(this);" >EDIT</div>');
+        $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
+    });
+
 });
 
 function doImageEnhancer(sel) {
@@ -500,7 +613,7 @@ console.warn('foocontext --> %o', aid);
     if (!aid) return;
     var ma = assetByAnnotationId(aid);
 console.warn("====== enhancerDisplayAnnots %o ", ma);
-    if (!ma || !ma.features || !ma.annotationId) return;
+    if (!ma || !ma.features || !ma.annotation || !ma.annotation.id) return;
     var featwrap = $('<div class="image-enhancer-feature-wrapper" />');
     featwrap.data('enhancerScale', el.data('enhancerScale'));
     el.append(featwrap);
@@ -509,7 +622,7 @@ console.warn("====== enhancerDisplayAnnots %o ", ma);
     el.append(featzoom);
     var ord = featureSortOrder(ma.features);
     for (var i = 0 ; i < ord.length ; i++) {
-        enhancerDisplayFeature(featwrap, opt, ma.annotationId, ma.features[ord[i]], i);
+        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i);
     }
 }
 
@@ -800,15 +913,15 @@ function assetById(mid) {
 function assetByAnnotationId(aid) {
 	if (!aid || !assets || (assets.length < 1)) return false;
 	for (var i = 0 ; i < assets.length ; i++) {
-		if (assets[i].annotationId == aid) return assets[i];
+		if (assets[i].annotation && (assets[i].annotation.id == aid)) return assets[i];
 	}
 	return false;
 }
 
 function encounterNumberFromAsset(asset) {
-    if (!asset || !asset.annotationId || !asset.features) return false;
+    if (!asset || !asset.annotation || !asset.annotation.id || !asset.features) return false;
     for (var i = 0 ; i < asset.features.length ; i++) {
-        if (asset.features[i].annotationId == asset.annotationId) return asset.features[i].encounterId;
+        if (asset.features[i].annotationId == asset.annotation.id) return asset.features[i].encounterId;
     }
     return false;
 }
@@ -820,6 +933,30 @@ function encounterNumberFromElement(el) {  //should be img element
 
 function inGalleryMode() {
     return (typeof(encounterNumber) == 'undefined');
+}
+
+
+function featureDblClick(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    console.log('-----------ev----------- %o', ev);
+    var fid = ev.currentTarget.id;
+    var mid = imageEnhancer.mediaAssetIdFromElement($(ev.currentTarget).parent().parent());
+    var ma = assetById(mid);
+    var h = '<div>';
+    h += '<p>Feature id: <b>' + fid + '</b></p>';
+    for (var i = 0 ; i < ma.features.length ; i++) {
+        if (ma.features[i].id == fid) {
+            h += '<xmp style="font-size: 0.8em; color: #777;">' + JSON.stringify(ma.features[i], null, 4) + '</xmp>';
+            break;
+        }
+    }
+    h += '<p>Annotation id: <b>' + ma.annotation.id + '</b></p>';
+    h += '<xmp style="font-size: 0.8em; color: #777;">' + JSON.stringify(ma.annotation, null, 4) + '</xmp>';
+    h += '<p>MediaAsset id: <b>' + mid + '</b></p>';
+    h += '<xmp style="font-size: 0.8em; color: #777;">' + JSON.stringify(ma, null, 4) + '</xmp>';
+    h += '</div>';
+    imageEnhancer.popup(h);
 }
 
 </script>

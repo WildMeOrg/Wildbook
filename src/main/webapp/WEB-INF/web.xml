@@ -269,6 +269,8 @@
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
 				
+				/ExportWekaPredictorARFF = authc, roles[admin]
+				
 
             </param-value>
         </init-param>
@@ -848,6 +850,16 @@
   </servlet>
 
       <servlet>
+    <servlet-name>AnnotationEdit</servlet-name>
+    <servlet-class>org.ecocean.servlet.AnnotationEdit</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>AnnotationEdit</servlet-name>
+    <url-pattern>/AnnotationEdit</url-pattern>
+  </servlet-mapping>
+
+      <servlet>
     <servlet-name>SiteSearch</servlet-name>
     <servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>
   </servlet>
@@ -1263,6 +1275,16 @@
       <url-pattern>/SideFeed</url-pattern>
   </servlet-mapping>
   -->
+  
+    <servlet>
+    <servlet-name>ExportWekaPredictorARFF</servlet-name>
+    <servlet-class>org.ecocean.ai.servlet.export.ExportWekaPredictorARFF</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+    <servlet-name>ExportWekaPredictorARFF</servlet-name>
+    <url-pattern>/ExportWekaPredictorARFF</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>WorkspaceServer</servlet-name>
