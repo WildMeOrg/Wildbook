@@ -600,7 +600,10 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
             for (int i = 0 ; i < ids.length() ; i++) {
                 int id = ids.optInt(i, 0);
                 if (id < 1) continue;
+                myShepherd.beginDBTransaction();
                 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                myShepherd.getPM().refresh(ma);
+
                 if (ma != null) {
                     ma.setDetectionStatus(IBEISIA.STATUS_PROCESSING);
                     mas.add(ma);
@@ -1191,6 +1194,7 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
 
     public static boolean addToQueue(String context, String content) throws IOException {
 System.out.println("IAGateway.addToQueue() publishing: " + content);
+
         getIAQueue(context).publish(content);
         return true;
     }
