@@ -587,7 +587,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
+        <select name="countryID" id="countryID" class="form-control">
             <option value="" selected="selected"></option>
             <%
             String[] locales = Locale.getISOCountries();
@@ -1153,7 +1153,7 @@ function sendButtonClicked() {
 
 
       <p class="text-center">
-        <button class="large" type="submit" onclick="return sendButtonClicked();">
+        <button class="large" type="submit" onclick="return sendButtonClicked();" id="submitEncounterButton">
           <%=props.getProperty("submit_send") %>
           <span class="button-icon" aria-hidden="true" />
         </button>

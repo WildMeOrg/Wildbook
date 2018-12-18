@@ -38,7 +38,7 @@ import org.ecocean.Shepherd;
 public class EncounterSetObservation extends HttpServlet {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -49,13 +49,13 @@ public class EncounterSetObservation extends HttpServlet {
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     doPost(request, response);
   }
-  
+
   private void setDateLastModified(Object obj) {
-    
+
     Encounter enc = null;
     Occurrence occ = null;
     String dateString = ServletUtilities.getDate();
-    
+
     // What's my class again? What's my class again?
     if (obj.getClass().isInstance(occ)) {
       occ = (Occurrence) obj;
@@ -64,11 +64,11 @@ public class EncounterSetObservation extends HttpServlet {
     if (obj.getClass().isInstance(enc)) {
       enc = (Encounter) obj;
       enc.setDWCDateLastModified(dateString);
-    }  
+    }
   }
-  
+
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    
+
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("EncounterSetObservation.class");
@@ -83,23 +83,23 @@ public class EncounterSetObservation extends HttpServlet {
       String id = request.getParameter("number");
       String value = request.getParameter("value");
       System.out.println("Setting Observation... Name : "+name+" ID : "+id+" Value: "+value);
-      
+
       Encounter changeMe = myShepherd.getEncounter(id);
       Observation obs = null;
-      
+
       String newValue = "null";
       String oldValue = "null";
 
       if (changeMe.getObservationByName(name) != null) {
         oldValue = changeMe.getObservationByName(name).getValue();
-      } 
+      }
 
 
       if ((request.getParameter("value") != null) && (!request.getParameter("value").equals(""))) {
         newValue = request.getParameter("value");
       }
-      
-      
+
+
       try {
         if (newValue.equals("null")) {
           changeMe.removeObservation(name);
@@ -113,7 +113,7 @@ public class EncounterSetObservation extends HttpServlet {
             obs = new Observation(name, newValue, changeMe.getClass().getSimpleName(), changeMe.getCatalogNumber());
             changeMe.addObservation(obs);
             System.out.println("Success setting Observation!");
-            //changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Set dynamic property <em>" + name + "</em> from <em>" + oldValue + "</em> to <em>" + newValue + "</em>.</p>");            
+            //changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Set dynamic property <em>" + name + "</em> from <em>" + oldValue + "</em> to <em>" + newValue + "</em>.</p>");
           }
 
         }
@@ -144,7 +144,7 @@ public class EncounterSetObservation extends HttpServlet {
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
             String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" Encounters</a></font></p>");   
+            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" Encounters</a></font></p>");
           }
         }
         out.println(ServletUtilities.getFooter(context));
@@ -153,13 +153,13 @@ public class EncounterSetObservation extends HttpServlet {
       } else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter Observation " + name + " was NOT updated because another user is currently modifying this reconrd. Please try to reset the value again in a few seconds.");
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) +redirectURL+"?number=" + request.getParameter("number") + "\">Return to Encounter " + request.getParameter("number") + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) +redirectURL+"?number=" + request.getParameter("number") + "\" id=returnToEncounterA>Return to Encounter " + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
             String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
           }
         }
         out.println(ServletUtilities.getFooter(context));
@@ -174,7 +174,7 @@ public class EncounterSetObservation extends HttpServlet {
       if(allStatesSize>0){
         for(int i=0;i<allStatesSize;i++){
           String stateName=allStates.get(i);
-          out.println("<p><a href=\""+redirectURL+"?state="+stateName+"\">View all "+stateName+" encounter</a></font></p>");   
+          out.println("<p><a href=\""+redirectURL+"?state="+stateName+"\">View all "+stateName+" encounter</a></font></p>");
         }
       }
       out.println(ServletUtilities.getFooter(context));
@@ -186,20 +186,5 @@ public class EncounterSetObservation extends HttpServlet {
   }
 
 
-  
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
