@@ -619,6 +619,14 @@ public class Util {
       return (str!=null && !str.equals(""));
     }
 
+    //these two utility functions handle the case where the argument (Collection, and subclasses like Lists) is null!
+    public static boolean collectionIsEmptyOrNull(Collection c) {
+        return (collectionSize(c) == 0);
+    }
+    public static int collectionSize(Collection c) {
+        if (c == null) return 0;
+        return c.size();
+    }
 
     public static boolean hasProperty(String key, Properties props) {
       return (props.getProperty(key) != null);
@@ -682,6 +690,11 @@ public class Util {
     //a slightly(!) more generic(!?) version of above
     public static boolean booleanNotFalse(String value) {
         return requestParameterSet(value);
+    }
+    
+    // convenience method for comparing string values
+    public static boolean shouldReplace(String val1, String val2) {
+      return (stringExists(val1) && !stringExists(val2));
     }
 
     

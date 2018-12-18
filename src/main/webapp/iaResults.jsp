@@ -9,6 +9,7 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 <%
 
 String context = ServletUtilities.getContext(request);
+org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
@@ -124,7 +125,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		return;
 	}
 
-	// TODO enc.setMatchedBy() + comments + etc?????
+// TODO enc.setMatchedBy() + comments + etc?????
 	enc.setIndividualID(indiv.getIndividualID());
 	enc.setState("approved");
 	indiv.addEncounter(enc, context);
@@ -384,14 +385,21 @@ function showTaskResult(res, taskId) {
 	console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRESULT showTaskResult() %o on %s", res, res.taskId);
 	if (res.status && res.status._response && res.status._response.response && res.status._response.response.json_result &&
 			res.status._response.response.json_result.cm_dict) {
-		var isEdgeMatching = (res.status._response.response.json_result.query_config_dict &&
-			(res.status._response.response.json_result.query_config_dict.pipeline_root == 'OC_WDTW'));
+		var algoInfo = (res.status._response.response.json_result.query_config_dict &&
+			res.status._response.response.json_result.query_config_dict.pipeline_root);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
 		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
-		var h = 'Matches based on <b>' + (isEdgeMatching ? 'trailing edge' : 'pattern') + '</b>';
+                var algoDesc = '<span title="' + algoInfo + '">pattern</span>';
+                if (algoInfo == 'CurvRankFluke') {
+                    algoDesc = 'trailing edge (CurvRank)';
+                } else if (algoInfo == 'OC_WDTW') {
+                    algoDesc = 'trailing edge (OC/WDTW)';
+                }
+console.log('algoDesc %o %s %s', res.status._response.response.json_result.query_config_dict, algoInfo, algoDesc);
+		var h = 'Matches based on <b>' + algoDesc + '</b>';
 		if (res.timestamp) {
 			var d = new Date(res.timestamp);
 			h += '<span style="color: #FFF; margin: 0 11px; font-size: 0.7em;">' + d.toLocaleString() + '</span>';
@@ -399,7 +407,7 @@ function showTaskResult(res, taskId) {
 
 		h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" style="margin-left: 30px; font-size: 0.8em; color: #777;">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
 		$('#task-' + res.taskId + ' .task-title-id').html(h);
-		displayAnnot(res.taskId, qannotId, -1, -1);
+		displayAnnot(res.taskId, qannotId, -1, -1, -1);
 
 		var sorted = score_sort(res.status._response.response.json_result['cm_dict'][qannotId]);
 		if (!sorted || (sorted.length < 1)) {
@@ -410,9 +418,27 @@ function showTaskResult(res, taskId) {
 		}
 		var max = sorted.length;
 		if (max > RESMAX) max = RESMAX;
+		// ----- BEGIN Hotspotter IA Illustration: here we construct the illustration link URLs for each dannot -----
+		// these URLs are passed-along and rendered in html by displayAnnotDetails
+		var resJSON = res.status._response.response.json_result['cm_dict'][qannotId];
+		// names conforming to IA args
+		var extern_reference = resJSON.dannot_extern_reference;
+		var query_annot_uuid = qannotId;
+		var version = "heatmask";
+
 		for (var i = 0 ; i < max ; i++) {
 			var d = sorted[i].split(/\s/);
-			displayAnnot(res.taskId, d[1], i, d[0]);
+			var acmId = d[0];
+			var database_annot_uuid = d[1];
+
+			var illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
+			illustUrl += "&query_annot_uuid="+query_annot_uuid;
+			illustUrl += "&database_annot_uuid="+database_annot_uuid;
+			illustUrl += "&version="+version;
+			console.log("ILLUSTRATION "+i+" "+illustUrl);
+
+			displayAnnot(res.taskId, d[1], i, d[0], illustUrl);
+			// ----- END Hotspotter IA Illustration-----
 		}
 		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
@@ -424,7 +450,7 @@ function showTaskResult(res, taskId) {
 
 // Fix the acmId ---> annotID situation here. 
 
-function displayAnnot(taskId, acmId, num, score) {
+function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
 	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
 	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
@@ -440,11 +466,11 @@ console.info('%d ===> %s', num, acmId);
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl); }
 	});
 }
 
-function displayAnnotDetails(taskId, res, num) {
+function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 	var isQueryAnnot = (num < 0);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
 		console.warn('error on (task %s) res = %o', taskId, res);
@@ -486,6 +512,7 @@ function displayAnnotDetails(taskId, res, num) {
 
         if (mainAsset) {
 console.info('mainAsset -> %o', mainAsset);
+console.info('illustrationUrl '+illustrationUrl);
             if (mainAsset.url) {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="' + mainAsset.url + '" />');
             } else {
@@ -500,12 +527,18 @@ console.info('mainAsset -> %o', mainAsset);
                 if (j > -1) fn = fn.substring(j + 1);
                 imgInfo += ' ' + fn + ' ';
             }
-            if (mainAsset.features && (mainAsset.features.length > 0)) {
-                var encId = mainAsset.features[0].encounterId;
-                var indivId = mainAsset.features[0].individualId;
+            var ft = findMyFeature(acmId, mainAsset);
+            if (ft) {
+                var encId = ft.encounterId;
+                var indivId = ft.individualId;
                 if (encId) {
                     h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+                    
+		    if (!indivId) {
+				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
+		    }
+
                 }
                 if (indivId) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
@@ -529,16 +562,28 @@ console.info('qdata[%s] = %o', taskId, qdata);
                 } else {
                     if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
                 }
-            }  //end if (mainAsset.features...)
+            }  //end if (ft) ....
+            // Illustration
+            if (illustrationUrl) {
+            	var selector = '#task-' + taskId + ' .annot-summary-' + acmId;
+            	// TODO: generify
+            	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
+            	illustrationUrl = iaBase+illustrationUrl
+            	var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect match</a></span>';
+            	console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
+            	$(selector).append(illustrationHtml);
+            }
+
         }  //end if (mainAsset)
 
     if (otherAnnots.length > 0) {
         imgInfo += '<div><i>Alternate references:</i><ul>';
         for (var i = 0 ; i < otherAnnots.length ; i++) {
             imgInfo += '<li title="Annot ' + otherAnnots[i].id + '"><b>Annot ' + otherAnnots[i].id.substring(0,12) + '</b>';
-            if (otherAnnots[i].asset && otherAnnots[i].asset.features && (otherAnnots[i].asset.features.length > 0)) {
-                var encId = otherAnnots[i].asset.features[0].encounterId;
-                var indivId = otherAnnots[i].asset.features[0].individualId;
+            var ft = findMyFeature(acmId, otherAnnots[i].asset);  //TODO is acmId correct here???
+            if (ft) {
+                var encId = ft.encounterId;
+                var indivId = ft.individualId;
                 if (encId) imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
                 if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
             }
@@ -575,13 +620,31 @@ console.info('taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAn
 	} else if (queryAnnotation.indivId) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
 	} else {
-		h = '<input onChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
+                //disable onChange for now -- as autocomplete will trigger!
+		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
-		h += ' /> <input type="button" value="Set individual on both encounters" />'
+		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
 	}
 	$('#enc-action').html(h);
+        setIndivAutocomplete($('#enc-action .needs-autocomplete'));
 	return true;
+}
+
+function setIndivAutocomplete(el) {
+    if (!el || !el.length) return;
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(el[0], args);
 }
 
 function annotCheckboxReset() {
@@ -608,22 +671,20 @@ console.warn('score_sort() cm_dict %o', cm_dict);
 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
 	for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
 		if (cm_dict.score_list[i] < 0) continue;
-		sorta.push(cm_dict.score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
+		sorta.push(cm_dict.score_list[i] * 1000 + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
 	}
-	sorta.sort().reverse();
+	sorta.sort(function(a,b) { return parseFloat(a) - parseFloat(b); }).reverse();
 	return sorta;
 }
 
-/*
-function foo() {
-    	$('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
-    	$('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
-	//if (qMediaAsset) addImage(fakeEncounter({}, qMediaAsset),jQuery('#image-main'));
-	if (qMediaAsset) jQuery('#image-main').append('<img src="' + wildbook.cleanUrl(qMediaAsset.url) + '" />');
-	jQuery('#image-compare').append('<img style="height: 11px; width: 50%; margin: 40px 25%;" src="images/image-processing.gif" />');
-	checkForResults();
+function findMyFeature(annotAcmId, asset) {
+console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
+    if (!asset || !Array.isArray(asset.features) || (asset.features.length < 1)) return;
+    for (var i = 0 ; i < asset.features.length ; i++) {
+        if (asset.features[i].annotationAcmId == annotAcmId) return asset.features[i];
+    }
+    return;
 }
-*/
 
 function checkForResults() {
 	jQuery.ajax({

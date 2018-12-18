@@ -134,6 +134,10 @@ public class CommonConfiguration {
   public static URI getServerURI(HttpServletRequest req, String contextPath) throws URISyntaxException {
     return new URI(req.getScheme(), null, req.getServerName(), req.getServerPort(), contextPath, null, null).normalize();
   }
+  // If we want to create full URL links within the webapp, we want to exclude the port used above
+  public static URI getServerURINoPort(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return new URI(req.getScheme(), req.getServerName(), contextPath, null).normalize();
+  }
 
   /**
    * Utility method to return a URL string for the specified
@@ -147,6 +151,18 @@ public class CommonConfiguration {
    */
   public static String getServerURL(HttpServletRequest req, String contextPath) throws URISyntaxException {
     return getServerURI(req, contextPath).toASCIIString();
+  }
+  public static String getServerURLNoPort(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return getServerURINoPort(req, contextPath).toASCIIString();
+  }
+  public static String getServerURL(HttpServletRequest req) {
+    try {
+      return getServerURLNoPort(req, req.getContextPath());
+    }
+    catch (URISyntaxException e) {
+      System.out.println("URISyntaxException on CommonConfiguration.getServerURL("+req+"). Returning Null.");
+      return null;
+    }
   }
 
     /* these are to provide equivalent URI as above, but *without* the need for the request object, via a bit of
@@ -229,10 +245,19 @@ public class CommonConfiguration {
             updated = true;
         }
         if (!updated) return false;
+        if (!isValidServerName(req.getServerName())) return false;  //dont update if we got wonky name like "localhost"
         info.put("timestamp", System.currentTimeMillis());
         info.put("context", myShepherd.getContext());
         setServerInfo(myShepherd, info);
         System.out.println("INFO: CommonConfiguration.checkServerInfo() has update server info data to " + info.toString());
+        return true;
+    }
+
+    //this is really just for checkServerInfo()
+    private static boolean isValidServerName(String sname) {
+        if (sname == null) return false;
+        if (sname.equals("localhost")) return false;
+        if (sname.matches("[\\d\\.]+")) return false;
         return true;
     }
 
