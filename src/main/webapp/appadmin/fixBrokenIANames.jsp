@@ -75,24 +75,24 @@ try {
     // PHASE 3! Iterate through the name array, and if you find one of the names in the crap array, pop it and it's corresponding uuid into 
     // two new arrays for the PUT.
     ArrayList<String> putNames = new ArrayList<>();
-    ArrayList<> putIds = new ArrayList<>();
+    ArrayList putIds = new ArrayList<>();
 
     //reality check
     int numIds = idJSONArr.length();
     if (idJSONArr.length()==nameArr.length()) {
         for (int i=0; i<numIds;i++) {
-            JSONObject nameJSON = nameArr.get(i);
-            String thisName = nameJSON.toString();
+            //JSONObject nameJSON = nameArr.getString(i);
+            String thisName = nameArr.get(i).toString();
             if (crapNames.contains(thisName)) {
-                JSONObject rawId = idJSONArr.get(i);
-                Stirng stringId = rawId.toString();
-
-                putNames.add(thisName);
-                putIds.add(IBEISIA.toFancyUUID(IBEISIA.fromFancyUUID(rawId));
+                JSONObject rawId =  idJSONArr.getJSONObject(i);
+                String stringId = rawId.toString();
+		//Just a nice clean four underscore 
+                putNames.add("____");
+                putIds.add(rawId);
                 System.out.println("BOOM! Caught a crap name. --------> Name: "+thisName+" ---------> toString ACMID: "+stringId);
-                System.out.println("---------------Fancy--------------> "+IBEISIA.toFancyUUID(rawId));
+                //System.out.println("---------------Fancy--------------> "+IBEISIA.toFancyUUID(rawId.get("__UUID__")));
                 System.out.println("----------From Fancy--------------> "+IBEISIA.fromFancyUUID(rawId));
-                System.out.println("------ Back to Fancy--------------> "+IBEISIA.toFancyUUID(IBEISIA.fromFancyUUID(rawId)); 
+                System.out.println("------ Back to Fancy--------------> "+IBEISIA.toFancyUUID(IBEISIA.fromFancyUUID(rawId))); 
            }
         }
     } else {
@@ -126,3 +126,4 @@ try {
 </body>
 </html>
  
+
