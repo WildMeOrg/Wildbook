@@ -12,19 +12,9 @@ org.w3c.dom.*,
 javax.xml.xpath.*,java.util.regex.*
 "%>
 
-<%
-
-//String context="context0";
-//context=ServletUtilities.getContext(request);
-//Shepherd myShepherd=new Shepherd(context);
+<jsp:include page="../header.jsp" flush="true"/>
 
 
-
-%>
-
-<html>
-<head>
-<title>URL Security Check</title>
 <style>
 table {
   border-collapse: collapse;
@@ -38,10 +28,47 @@ th, td {
 
 tr:nth-child(even) {background-color: #f2f2f2;}
 </style>
-</head>
 
 
-<body>
+<script>
+function hideMapped () {
+	//alert("Calling hideMapped!");
+	$("[name='mapped']").hide();
+
+}
+function showMapped () {
+	//alert("Calling showMapped!");
+	$("[name='mapped']").show();
+
+}
+
+$(document).ready(function() {
+    //set initial state.
+    $('#hideMapped').val(this.checked);
+    hideMapped();
+
+    $('#hideMapped').change(function() {
+        if(this.checked) {
+            hideMapped();
+        }
+        else{
+        	showMapped();
+        }
+        $('#hideMapped').val(this.checked);        
+    });
+});
+
+</script>
+
+<div class="container maincontent">
+
+<h1>URL Security Review</h1>
+
+<p><input type="checkbox" name="hideChecked" id="hideMapped" checked="checked"> Hide secured mapped web.xml entries</p>
+
+
+<h2>Servlets</h2>
+
 <table>
 	<thead>
 		<tr>
@@ -80,6 +107,9 @@ try{
 				String servletClass="";
 				String servletMapping="";
 				String servletSecurity="";
+				
+				String mappedElementName="mapped";
+				
 				int numChildren=children.getLength();
 				for(int j=0;j<numChildren;j++){
 					Node child=children.item(j);
@@ -136,9 +166,11 @@ try{
 					}
 					if(child.getNodeName().equals("servlet-class")){servletClass=child.getTextContent();}
 				}
+				
+				if(servletSecurity.equals("")){mappedElementName="unmapped";}
 			
 			%>
-			<tr>
+			<tr name="<%=mappedElementName %>">
 				<td><%=servletName %></td><td><%=servletClass %></td><td><%=servletMapping %></td><td><%=servletSecurity %></td>
 			</tr>
 			
@@ -166,6 +198,6 @@ finally{
 %>
 
 </table>
-
+</div>
 </body>
 </html>
