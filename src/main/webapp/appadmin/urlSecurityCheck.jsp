@@ -9,8 +9,27 @@ org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, j
 java.lang.NumberFormatException,
 javax.xml.parsers.DocumentBuilder,javax.xml.parsers.DocumentBuilderFactory,
 org.w3c.dom.*,
-javax.xml.xpath.*,java.util.regex.*
+javax.xml.xpath.*,java.util.regex.*,
+org.apache.commons.io.FileUtils,
+org.apache.commons.io.filefilter.*
 "%>
+
+<%!
+public String getSecurityMappings(String servletName,String paramValues){
+	
+	String servletSecurity="";
+	
+	Matcher m = Pattern.compile("\\/("+servletName+").*]").matcher(paramValues);
+	
+	while(m.find()){
+		servletSecurity+=m.group()+" ";
+	}
+	
+	return servletSecurity;
+	
+}
+
+%>
 
 <jsp:include page="../header.jsp" flush="true"/>
 
@@ -84,6 +103,8 @@ $(document).ready(function() {
 
 try{
 	
+	//START SERVLETS
+	
 	//first, load web.xml
 	InputStream input = getServletContext().getResourceAsStream("/WEB-INF/web.xml");
 	
@@ -95,6 +116,8 @@ try{
 
 	//XPathExpression expr = xpath.compile("/web-app/servlet/servlet-name[text()='MyServlet']");
 	XPathExpression expr = xpath.compile("/web-app/servlet");
+	
+	String paramValues="";
 	
 	NodeList nl = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
 	if(nl!=null){
@@ -135,31 +158,18 @@ try{
 							//let's get its security rules
 							XPathExpression secExpr = xpath.compile("/web-app/filter[filter-name/text()='ShiroFilter']/init-param[param-name/text()='config']/param-value");
 							NodeList secNodes = (NodeList) secExpr.evaluate(doc, XPathConstants.NODESET);
+							//String paramValues="";
 							if(secNodes.getLength()>0){
 								//get the first node
 								Node paramValue=secNodes.item(0);
-								String paramValues=paramValue.getTextContent();
+								paramValues=paramValue.getTextContent();
 								
 								//now regex for servletName
 								//String[] tokens=paramValues.split("\\/("+servletName+").*]");
-								Matcher m = Pattern.compile("\\/("+servletName+").*]").matcher(paramValues);
-								
-								while(m.find()){
-									servletSecurity+=m.group()+" ";
-								}
+								servletSecurity = getSecurityMappings(servletName,paramValues);
 								
 							}
 							
-							/*
-							  <filter>
-        <filter-name>ShiroFilter</filter-name>
-        <filter-class>org.apache.shiro.web.servlet.IniShiroFilter</filter-class>
-        <init-param>
-            <param-name>config</param-name>
-            <param-value>
-                #See Shiro API http://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/servlet/IniShiroFilter.html
-
-							*/
 							
 							
 							
@@ -181,6 +191,54 @@ try{
 				} //end if
 			}
 	} //end if not null
+	%>
+	</table>
+	
+	<%
+	
+	//END SERVLETS
+	
+	//START JSP FILES
+	//first, load web.xml
+	File rootDir = new File(getServletContext().getRealPath("/"));
+	ArrayList<File> jspFiles = new ArrayList(FileUtils.listFilesAndDirs(
+						rootDir,
+						new SuffixFileFilter("jsp"),
+						FileFilterUtils.directoryFileFilter()
+	));
+	
+	%>
+	
+	
+	<h2>JSP Files</h2>
+	<table>
+	 <thead>
+		<tr>
+			<th>JSP File Name</th>
+			<th>Security Rules</th>
+		</tr>
+	</thead>
+	<%
+	int numJSPFiles=jspFiles.size();
+	for(int n=0;n<numJSPFiles;n++){
+		String mappedElementName="mapped";
+		File jFile=jspFiles.get(n);
+		String servletSecurity=getSecurityMappings(jFile.getName(),paramValues);
+		if(servletSecurity.equals("")){mappedElementName="unmapped";}
+		
+		%>
+		<tr name="<%=mappedElementName %>"><td><%=jFile.getAbsolutePath() %></td><td><%=servletSecurity %></td></tr>
+		<%
+	}
+	
+	
+	%>
+	
+	</table>
+	
+	<%
+	
+	
 }
 catch(Exception e){
 	//myShepherd.rollbackDBTransaction();
@@ -197,7 +255,7 @@ finally{
 
 %>
 
-</table>
+
 </div>
 </body>
 </html>
