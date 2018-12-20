@@ -159,6 +159,11 @@ public class ClassEditTemplate {
 
   public static void printDateTimeSetterRow(Object obj, String objID, javax.servlet.jsp.JspWriter out) throws NoSuchMethodException, IOException, IllegalAccessException, InvocationTargetException {
     Method getDateTime = obj.getClass().getMethod("getDateTime");
+    printDateTimeSetterRow(obj, getDateTime, out);
+
+  }
+
+  public static void printDateTimeSetterRow(Object obj, Method getDateTime, javax.servlet.jsp.JspWriter out) throws NoSuchMethodException, IOException, IllegalAccessException, InvocationTargetException {
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
     if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
@@ -185,9 +190,9 @@ public class ClassEditTemplate {
     out.println("value=\""+printValue+"\"");
     out.println("/>");
     out.println("\t</td>");
-
-
   }
+
+
 
   public static void printOutClassFieldModifierRows(Object obj, String[] fieldNames, javax.servlet.jsp.JspWriter out) {
     for (String fieldName : fieldNames) {

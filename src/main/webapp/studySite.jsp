@@ -10,6 +10,7 @@
     java.util.ArrayList,
     java.util.Properties,
     java.util.Enumeration,
+    java.util.Arrays,
     java.lang.reflect.Method,
     org.ecocean.security.Collaboration" %>
 
@@ -18,6 +19,7 @@
 <!-- IMPORTANT style import for table printed by ClassEditTemplate.java -->
 <link rel="stylesheet" href="css/classEditTemplate.css" />
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
 <script type="text/javascript" src="javascript/classEditTemplate.js"></script>
 
 
@@ -28,6 +30,8 @@
   String context="context0";
   context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -84,7 +88,8 @@
 
   String[] studySiteFieldGetters1 = new String[]{"getName", "getHuntingState", "getTypeOfSite", "getUtmX", "getUtmY"};
 
-  String[] epsgCodes = GeocoordConverter.epsgCodes();
+  String[] epsgCodesArr = GeocoordConverter.epsgCodes();
+  List<String> epsgCodes = Arrays.asList(epsgCodesArr);
 
   String[] studySiteFieldGetters2 = new String[]{"getGovernmentArea", "getPopulation", "getDaysNotWorking", "getLure", "getReward", "getTypeOfCamera", "getTrapsPerNight", "getComments"};
 
@@ -114,7 +119,7 @@
         String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
         String getterName = "get" + methodName.substring(3);
         System.out.println("StudySite.jsp: about to call ClassEditTemplate.updateObjectField("+sitey+", "+methodName+", "+value+");");
-        ClassEditTemplate.updateObjectField(sitey, methodName, value);
+        ClassEditTemplate.invokeObjectMethod(sitey, methodName, value);
       }
 
       else if (pname.indexOf("stu-dp-") == 0) {
@@ -142,7 +147,7 @@
   }
 %>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 <div class="container maincontent">
   <div class="row">
@@ -176,8 +181,7 @@
 
         Method epsgCodeMeth = sitey.getClass().getMethod("getEpsgProjCode");
 
-        ArrayList<String> possLocationsAList = CommonConfiguration.getSequentialPropertyValues("locationID", context);
-        String[] possLocations = possLocationsAList.toArray(new String[possLocationsAList.size()]);
+        ArrayList<String> possLocations = CommonConfiguration.getSequentialPropertyValues("locationID", context);
 
         //ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, locationIDMeth, possLocations, out);
 
@@ -206,7 +210,7 @@
         for (String getterName : studySiteFieldDTGetters) {
           Method studySiteMeth = sitey.getClass().getMethod(getterName);
           if (ClassEditTemplate.isDisplayableGetter(studySiteMeth)) {
-            ClassEditTemplate.printOutDateTimeModifierRow((Object) sitey, studySiteMeth, out);
+            ClassEditTemplate.printDateTimeSetterRow((Object) sitey, studySiteMeth, out);
           }
         }
 
