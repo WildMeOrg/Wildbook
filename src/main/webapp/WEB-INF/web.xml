@@ -171,8 +171,6 @@
 		 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[researcher]
 		 /encounters/exportSearchResults.jsp = authc, roles[researcher]
 		 /encounters/imageViewer.jsp = authc, roles[researcher]
-		 /encounters/searchComparison.jsp = authc, roles[researcher]
-      		/encounters/searchComparisonResults.jsp = authc, roles[researcher]
                 /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 		/IndividualSetAlternateID = authc, roles[researcher]
 		 /EncounterSetAlternateID = authc, roles[researcher]
