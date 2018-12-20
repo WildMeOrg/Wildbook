@@ -2515,16 +2515,17 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
     public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
         if ((anns == null) || (anns.size() < 1)) return null;
-        SortedMap<Integer,List<Annotation>> ordered = new TreeMap<Integer,List<Annotation>>();
-
-        } catch (NumberFormatException nfe) {}
-          }
-            minGapSize = Integer.parseInt(gapFromProperties);
-          if (gapFromProperties!=null) {
-        try {
-        String gapFromProperties = IA.getProperty(myShepherd.getContext(), "newEnounterFrameGap");
-        int minGapSize = 4;  
+          
         //Determine skipped frames before another encounter should be made. 
+      int minGapSize = 4;  
+      try {
+        String gapFromProperties = IA.getProperty(myShepherd.getContext(), "newEncounterFrameGap");
+        if (gapFromProperties!=null) {
+          minGapSize = Integer.parseInt(gapFromProperties);
+        }
+      } catch (NumberFormatException nfe) {}
+
+        SortedMap<Integer,List<Annotation>> ordered = new TreeMap<Integer,List<Annotation>>();
         MediaAsset parentRoot = null;
         for (Annotation ann : anns) {
 System.out.println("========================== >>>>>> " + ann);
