@@ -4,7 +4,7 @@ javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.ExecutionContext,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
-org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, SimpleDateFormat" %>
+org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat" %>
 
 
 <%
@@ -429,7 +429,7 @@ $(document).ready(function() {
             if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit"><%= props.getProperty("edit") %></button>
-              <button class="btn btn-md" type="button" name="button" id="closeEdit"><%= props.getProperty("closeEditCaps") %>t</button>
+              <button class="btn btn-md" type="button" name="button" id="closeEdit"><%= props.getProperty("closeEditCaps") %></button>
             </div>
             <%}%></h1>
           <%
