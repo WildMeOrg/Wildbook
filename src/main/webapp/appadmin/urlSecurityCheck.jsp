@@ -19,7 +19,7 @@ public String getSecurityMappings(String servletName,String paramValues){
 	
 	String servletSecurity="";
 	
-	Matcher m = Pattern.compile("\\/("+servletName+").*]").matcher(paramValues);
+	Matcher m = Pattern.compile("\\/("+servletName+").*(\n|\r)").matcher(paramValues);
 	
 	while(m.find()){
 		servletSecurity+=m.group()+" ";
