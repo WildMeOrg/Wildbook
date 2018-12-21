@@ -231,7 +231,7 @@ try{
 		//if it's still unmapped,it's unmapped totally!
 		if(servletSecurity.equals("")){mappedElementName="unmapped";}
 		//ignore WEB-INF diretory, otherwise print
-		if(jFile.getAbsolutePath().indexOf("WEB-INF")==-1){
+		if((jFile.getAbsolutePath().indexOf("WEB-INF")==-1)&&(jFile.getAbsolutePath().indexOf("META-INF")==-1)){
 			%>
 			<tr name="<%=mappedElementName %>"><td><%=jFile.getAbsolutePath() %></td><td><%=servletSecurity %></td></tr>
 			<%
