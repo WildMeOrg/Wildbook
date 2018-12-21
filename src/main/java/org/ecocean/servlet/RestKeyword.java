@@ -24,6 +24,8 @@ import org.ecocean.Keyword;
 import org.ecocean.Shepherd;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.Annotation;
+import org.ecocean.identity.IBEISIA;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -151,6 +153,24 @@ public class RestKeyword extends HttpServlet {
                           //first add what should be added
                           for (int i = 0 ; i < toAdd.size() ; i++) {
                               if (!mine.contains(toAdd.get(i))) newList.add(toAdd.get(i));
+
+                              // Here we also want to set IA viewpoint
+                              //TODO: generalize this
+                              Keyword kw = toAdd.get(i);
+                              String kwName = kw.getReadableName();
+                              // We could simply use kwName as the viewpoint, but
+                              // not sure if IA would play nicely with "Tail Fluke" for humpbacks
+                              String viewpoint = getViewpoint(kwName);
+                              if (viewpoint!=null) {
+                                ArrayList<Annotation> anns = ma.getAnnotations();
+                                for (Annotation ann: anns) {
+                                  String uuid = ann.getAcmId();
+                                  System.out.println("RestKeyword servlet! About to set viewpoint "+viewpoint+" on ann "+ann);
+                                  if (uuid!=null) IBEISIA.iaSetViewpointForAnnotUUID(uuid, viewpoint, context);
+                                }
+                              }
+                              // Done set IA viewpoint
+
                           }
                           //then add from mine except where should be removed
                           for (int i = 0 ; i < mine.size() ; i++) {
@@ -160,6 +180,8 @@ public class RestKeyword extends HttpServlet {
                           JSONObject mj = new JSONObject();
                           for (Keyword k : newList) {
                               mj.put(k.getIndexname(), k.getReadableName());
+
+
                           }
                           if (newList.size() < 1) {
                               ma.setKeywords(null);
@@ -196,6 +218,17 @@ public class RestKeyword extends HttpServlet {
         out.flush();
         out.close();
         
+    }
+
+    // logic custom to Flukebook, currently only applicable for dolphins
+    public String getViewpoint(String kwName) {
+      if (kwName==null) return null;
+      String lower = kwName.toLowerCase();
+      if (lower.contains("dorsal")) {
+        if (lower.contains("left")) return "left";
+        if (lower.contains("right")) return "right";
+      }
+      return null;
     }
 
 
