@@ -150,7 +150,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   boolean haveRendered = false;
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
-  
+
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
@@ -295,7 +295,7 @@ td.measurement{
           	    ne_long_element.value = location.lng();
 	}
 	</script>
-	
+
 <script>
 function setIndivAutocomplete(el) {
     if (!el || !el.length) return;
@@ -1143,7 +1143,7 @@ if(enc.getLocation()!=null){
 
 
       google.maps.event.addDomListener(window, 'load', initialize);
-      
+
       function emptyMarkers() {
 
     	    // Loop through markers and set map to null for each
@@ -1156,8 +1156,8 @@ if(enc.getLocation()!=null){
     	    markers = [];
 
     	}
-      
-      
+
+
     </script>
 
  	<%
@@ -1188,8 +1188,8 @@ if(enc.getLocation()!=null){
 
       <script type="text/javascript">
         $(document).ready(function() {
-        	
-          //form submission	
+
+          //form submission
           $("#setGPSbutton").click(function(event) {
             event.preventDefault();
 
@@ -1212,9 +1212,9 @@ if(enc.getLocation()!=null){
             $("#gpsErrorDiv").hide()
             $("#latCheck, #longCheck").hide();
           });
-          
-          
-          
+
+
+
           //validate GPS values
           $('#lat,#longitude').keyup(function() {
               if( ( $('#lat').val() == "") && ( $('#longitude').val() == "") ) {
@@ -1225,7 +1225,7 @@ if(enc.getLocation()!=null){
               else if( $('#lat').val() == "" || $('#longitude').val() == "" ) {
                   $("#setGPSbutton").attr("disabled","disabled");
                   //alert("here 2!");
-              }  
+              }
               else{
               	//alert("Trying to validate!");
               	var valid=validate_coords($('#lat').val(),$('#longitude').val());
@@ -1236,7 +1236,7 @@ if(enc.getLocation()!=null){
               	else{
                     $("#setGPSbutton").removeAttr("disabled");
                     emptyMarkers();
-                    var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());   
+                    var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());
                     var newMarker = new google.maps.Marker({
                  	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
                  	   position:newLatLng,
@@ -1246,13 +1246,13 @@ if(enc.getLocation()!=null){
               	}
               }
           });
-          
-          
-        });
-        
 
-        
-        
+
+        });
+
+
+
+
       </script>
 
 
@@ -1286,9 +1286,9 @@ if(enc.getLocation()!=null){
               </div>
             </div>
           </form>
-          
-          
-          
+
+
+
 
           <br/>
           <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
@@ -1308,9 +1308,9 @@ if(enc.getLocation()!=null){
 	        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
 	        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
 	      </h2>
-	
-	
-	
+
+
+
 	        <script type="text/javascript">
 	        $(document).ready(function() {
 	          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
@@ -1318,38 +1318,38 @@ if(enc.getLocation()!=null){
 	          });
 	          $("#editIdentity").click(function() {
 	            $("#matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
-	
+
 	            $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn").show();
-	
+
 				<%
 				if(enc.getIndividualID()!=null){
 				%>
-					$(".add2shark").hide();               
-					$(".removeFromShark").show();                   	                                      
+					$(".add2shark").hide();
+					$(".removeFromShark").show();
 				<%
 				}
 				else{
 				%>
-					$(".add2shark").show();               
-					$(".removeFromShark").hide(); 
+					$(".add2shark").show();
+					$(".removeFromShark").hide();
 				<%
 				}
 				%>
-	            
-	            
+
+
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
-	
+
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
 	          });
-	
+
 	          $("#closeEditIdentity").click(function() {
 	            $(".editForm, .editText, .resultMessageDiv").hide();
 	          });
 	        });
 	        </script>
-	
-	
-	        <% 
+
+
+	        <%
         }
         else {
 	         %>
@@ -1359,23 +1359,23 @@ if(enc.getLocation()!=null){
          %>
 
 
-    					
-    						
+
+
     							<div>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> 
+    								 <%=encprops.getProperty("identified_as") %>
                      <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
                      <span id="displayIndividualID"><%=ServletUtilities.handleNullString(enc.getIndividualID())%></span></a></p>
-    							
+
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
                       <span><%=encprops.getProperty("matched_by") %>: <span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
                   </p>
 
-    							
+
 
           <%-- START MATCHED BY --%>
-    			
+
 
                     <script type="text/javascript">
                     $(document).ready(function() {
@@ -1430,21 +1430,21 @@ if(enc.getLocation()!=null){
                       </div>
                     </form>
     							</div>
-    						
+
       <%-- END MATCHED BY --%>
 
       <%-- START MANAGE IDENTITY --%>
 
      		<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
 
- 
- 					
- 
+
+
+
 
                     <script type="text/javascript">
                     $(document).ready(function() {
-                    	
-                    	
+
+
                       $("#Add").click(function(event) {
                         event.preventDefault();
 
@@ -1463,16 +1463,16 @@ if(enc.getLocation()!=null){
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
                           $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
-                          
+
                           $('#topid').prop('href', '../individuals.jsp?number=' + individual);
                           $("#topid").html(individual);
-          				  $(".add2shark").hide();               
-        				  $(".removeFromShark").show();      
+          				  $(".add2shark").hide();
+        				  $(".removeFromShark").show();
                           //add topid update here
-                          
+
                           $("#displayMatchedBy").html(matchType);
                           $("#addSuccessDiv").html("<strong>Success:</strong> Encounter " + number + " was successfully added to " + individual + ".");
-                          
+
 
                         })
                         .fail(function(response) {
@@ -1495,7 +1495,7 @@ if(enc.getLocation()!=null){
                     <div class="editText">
                       <h3><%=encprops.getProperty("manageIdentity")%></h3>
                          <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
-                   
+
                     </div>
 
 
@@ -1511,7 +1511,7 @@ if(enc.getLocation()!=null){
                         </div>
                         <div class="col-sm-5 col-xs-10">
                           <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
-                          
+
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
@@ -1547,23 +1547,23 @@ if(enc.getLocation()!=null){
                       </div>
                         <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark"/>
                     </form>
-					
+
 					<script type="text/javascript">
 	                    $(document).ready(function() {
-	                    	
+
 	                    	//set autocomplete on #individualAddEncounterInput above
 	                    	setIndivAutocomplete($('#individualAddEncounterInput'));
-	                    	
-	                    	
-	                    	
+
+
+
 	                    });
                     </script>
 
 
-       
+
              <script type="text/javascript">
                     $(document).ready(function() {
-                    
+
 
                       $("#individualRemoveEncounterBtn").click(function(event) {
                         event.preventDefault();
@@ -1584,18 +1584,18 @@ if(enc.getLocation()!=null){
                           $("#displayIndividualID").html("");
                           $("#individualAddEncounterInput").value="";
                           $("#topid").html("<%=encprops.getProperty("unassigned") %>");
-          					$(".add2shark").show();               
-        					$(".removeFromShark").hide();  
+          					$(".add2shark").show();
+        					$(".removeFromShark").hide();
                             $("#individualErrorDiv").hide();
                             $("#individualDiv").removeClass("has-success");
                             $("#individualCheck, #matchedByCheck, #individualResultsDiv").hide();
-                            
+
                             $("#displayIndividualID").html("");
                             //$('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
                             //$('#topid').prop('href', '../individuals.jsp?number=' + individual);
                             $("#topid").html("<%=encprops.getProperty("unassigned") %>");
                             $("#topid").removeAttr("href");
-                            
+
                         })
                         .fail(function(response) {
                           $("#setRemoveResultDiv").show();
@@ -1608,17 +1608,17 @@ if(enc.getLocation()!=null){
                       });
                     });
                     </script>
-                    
+
                     <div class="highlight resultMessageDiv removeFromShark" id="individualResultsDiv">
                       <span class="highlight" id="addErrorDiv"></span>
                       <span class="successHighlight" id="addSuccessDiv"></span>
                     </div>
-                    
+
 					<div id="setRemoveResultDiv" class="resultMessageDiv add2shark">
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
                     </div>
-         
+
                     <form class="removeFromShark" id="removeShark" name="removeShark">
                       <div class="form-group row">
                         <div class="col-sm-12 col-xs-10">
@@ -1965,7 +1965,7 @@ if(enc.getLocation()!=null){
 
 	      <p class="para"><em><%=encprops.getProperty("submitter") %></em>
 	      <%
-	       if(enc.getSubmitters()!=null){   
+	       if(enc.getSubmitters()!=null){
 	    	   List<User> submitters=enc.getSubmitters();
 	    	   int numSubmitters=submitters.size();
 			   for(int f=0;f<numSubmitters;f++){
@@ -1979,11 +1979,11 @@ if(enc.getLocation()!=null){
 			            <%
 			          }
 			          if (isOwner) {
-			
+
 					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 					              //break up the string
 					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-	
+
 					                %>
 					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
 					                <%
@@ -1997,19 +1997,19 @@ if(enc.getLocation()!=null){
 				                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
 				                <%
 				                 }
-			
+
 			         } //end if isOwner
 				         %>
 				         </p>
 				         <%
-			   	} //submitters for loop               	
+			   	} //submitters for loop
 	 		} //end if submitters!=null
 			%>
 			</p> <!--  End submitters paragraph -->
-		
+
 	      <p class="para"><em><%=encprops.getProperty("photographer") %></em>
 	      <%
-	       if(enc.getPhotographers()!=null){   
+	       if(enc.getPhotographers()!=null){
 	    	   List<User> photographers=enc.getPhotographers();
 	    	   int numSubmitters=photographers.size();
 			   for(int f=0;f<numSubmitters;f++){
@@ -2023,11 +2023,11 @@ if(enc.getLocation()!=null){
 			            <%
 			          }
 			          if (isOwner) {
-			
+
 					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 					              //break up the string
 					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-	
+
 					                %>
 					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
 					                <%
@@ -2041,39 +2041,39 @@ if(enc.getLocation()!=null){
 				                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
 				                <%
 				                 }
-			
+
 			         } //end if isOwner
 			         %>
 			         </p>
 			         <%
-			   	} //photographers for loop               	
+			   	} //photographers for loop
 	 		} //end if photographers!=null
 			%>
 			</p> <!--  End photographers paragraph -->
-		                   
-		                   
-		                   
-		                   
-		                   
+
+
+
+
+
 							<%
 		                    if(isOwner){
 		                    %>
-		
+
 		                                <p class="para">
 		                                  <em>
 		                                    <%=encprops.getProperty("inform_others") %>
 		                                  </em>
-		                 
+
 		                                    <br/>
 		                                        </p>
-		
-		            
+
+
 		               		<%
 		                  	} //end if isOwner
-    	   		
+
 
                   	%>
-                  
+
                     <!-- end submitter  -->
         </div>
 <%-- END CONTACT INFORMATION --%>
@@ -2775,7 +2775,7 @@ else {
        pageContext.setAttribute("metalTag", metalTag);
      %>
      <tr><td class="formLabel"><c:out value="${metalTagDesc.locationLabel}"/></td></tr>
-     <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}" id="metalTagLocation" class="form-control"/></td></tr>
+     <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}" id="metalTagLocation${metalTagDesc.location}" class="form-control"/></td></tr>
   </c:forEach>
   <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setMetalTags"/></td></tr>
   </table>
