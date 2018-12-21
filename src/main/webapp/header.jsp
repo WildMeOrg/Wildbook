@@ -422,6 +422,21 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
 
+                      <li class="dropdown">	
+                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("studySites")%> <span class="caret"></span></a>	
+                         <ul class="dropdown-menu" role="menu">	
+                           <li>	
+                             <a href="<%=urlLoc %>/studySite.jsp"><%=props.getProperty("newStudySite")%></a>	
+                           </li>	
+                           <li>	
+                             <a href="<%=urlLoc %>/studySiteSearch.jsp"><%=props.getProperty("searchStudySites")%></a>	
+                           </li>	
+                           <li>	
+                             <a href="<%=urlLoc %>/studySiteSearchResults.jsp"><%=props.getProperty("allStudySites")%></a>	
+                           </li>	
+                         </ul>	
+                       </li>
+
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
