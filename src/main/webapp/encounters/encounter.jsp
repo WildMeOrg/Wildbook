@@ -2745,7 +2745,7 @@ else {
     pageContext.setAttribute("locationLabel", metalTagDesc.getLocationLabel());
  %>
 <tr>
-    <td><c:out value="${locationLabel}:"/></td><td><c:out value="${number}"/></td>
+    <td><c:out value="${locationLabel}: "/></td><td><c:out value="${number}"/></td>
 </tr>
 </c:forEach>
 </table>
@@ -2801,7 +2801,7 @@ else {
 </c:if>
 <table>
 <tr>
-    <td><%=encprops.getProperty("serialNumber") %></td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
+    <td><%=encprops.getProperty("serialNumber") %> </td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
 </tr>
 <tr>
     <td>ID:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.idNumber}"/></td>
