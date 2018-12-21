@@ -124,6 +124,9 @@ public class EncounterDelete extends HttpServlet {
             myShepherd.beginDBTransaction();
      
           }
+
+          //Set all associated annotations matchAgainst to false
+          enc2trash.useAnnotationsForMatching(false);
           
           //break association with User object submitters
           if(enc2trash.getSubmitters()!=null){
