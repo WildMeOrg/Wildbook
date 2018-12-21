@@ -224,11 +224,18 @@ try{
 		String mappedElementName="mapped";
 		File jFile=jspFiles.get(n);
 		String servletSecurity=getSecurityMappings(jFile.getName(),paramValues);
-		if(servletSecurity.equals("")){mappedElementName="unmapped";}
 		
-		%>
-		<tr name="<%=mappedElementName %>"><td><%=jFile.getAbsolutePath() %></td><td><%=servletSecurity %></td></tr>
-		<%
+		//see if it's parent is mapped
+		if(servletSecurity.equals(""))servletSecurity=getSecurityMappings(jFile.getParentFile().getName(),paramValues);
+		
+		//if it's still unmapped,it's unmapped totally!
+		if(servletSecurity.equals("")){mappedElementName="unmapped";}
+		//ignore WEB-INF diretory, otherwise print
+		if(jFile.getAbsolutePath().indexOf("WEB-INF")==-1){
+			%>
+			<tr name="<%=mappedElementName %>"><td><%=jFile.getAbsolutePath() %></td><td><%=servletSecurity %></td></tr>
+			<%
+		}
 	}
 	
 	
