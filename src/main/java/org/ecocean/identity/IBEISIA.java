@@ -2554,6 +2554,22 @@ System.out.println(">>>>>>>> age -> " + rtn);
         return rtn;
     }
 
+    public static JSONObject iaSetViewpointsForAnnotUUIDs(List<String> uuids, List<String> viewpoints, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+
+        List<String> fancyUUIDs = new ArrayList<String>();
+        for (String uuid: uuids) {
+            fancyUUIDs.add(toFancyUUID(uuid).toString());
+        }
+
+        String uuidList = Util.joinStrings(fancyUUIDs, ",");
+        String viewList = Util.joinStrings(viewpoints, ",");
+
+        JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/viewpoint/json/?annot_uuid_list=[" + uuidList + "]&viewpoint_list=[" + viewList + "]"), null);
+        return rtn;
+    }
+
+
+
     public static boolean iaEnabled(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         return (IA.getProperty(context,"IBEISIARestUrlAddAnnotations") != null);
@@ -3270,6 +3286,25 @@ return Util.generateUUID();
         String jstring = "";
         while (jstring != null) {
             jstring = IA.getProperty(context, "IBEISIdentOpt" + i);
+            if (jstring == null) break;
+            JSONObject j = Util.stringToJSONObject(jstring);
+            if (j != null) opt.add(j);
+            i++;
+        }
+        if (opt.size() < 1) opt.add((JSONObject)null);  //we should always have *one* -- the default empty one
+        return opt;
+    }
+
+    public static List<JSONObject> identOpts(String context, String iaClass) {
+        if (!Util.stringExists(species)) return identOpts(context);
+
+        String cleanedIaClass = iaClass.replaceAll(" ", "_");
+        String iaPropertyKey = "IBEISIdentOpt_"+cleanedIaClass;
+        List<JSONObject> opt = new ArrayList<JSONObject>();
+        int i = 0;
+        String jstring = "";
+        while (jstring != null) {
+            jstring = IA.getProperty(context, iaPropertyKey + i);
             if (jstring == null) break;
             JSONObject j = Util.stringToJSONObject(jstring);
             if (j != null) opt.add(j);
