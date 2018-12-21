@@ -223,7 +223,8 @@
 				/RestKeyword = authc, roles[researcher]
 				/IndividualAddFile = authc, roles[researcher]
 				/Collaborate = authc
-				/RemoveEmailAddress = /IndividualAddFile = authc, roles[admin]
+				/RemoveEmailAddress = authc, roles[admin]
+				/IndividualAddFile = authc, roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
 				/AdoptionAction = authc, roles[adoption]
 				/AddOccToTrack = authc, roles[researcher]
