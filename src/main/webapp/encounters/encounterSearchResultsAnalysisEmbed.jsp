@@ -99,6 +99,14 @@
     acceptedEncounters.setOrdering("dwcDateAddedLong ascending");
     Collection c = (Collection) (acceptedEncounters.execute());
     rEncounters=new Vector(c);
+
+    // 
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+    rEncounters = hiddenData.securityScrubbedResults(rEncounters);
+
+
+
+
     acceptedEncounters.closeAll();
     
 		Vector blocked = Encounter.blocked(rEncounters, request);
