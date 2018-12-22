@@ -325,6 +325,9 @@
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
 				/UpdateEmailAddress = authc, roles[researcher]
+				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
+				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
+				/sutime/** = authc
 				
 
             </param-value>
