@@ -1935,8 +1935,11 @@ if(enc.getLocation()!=null){
             var buttons = $("#editContactBtn, #closeEditContact").on("click", function(){
               buttons.toggle();
             });
+            
+            $(".editUsers").hide();
+            
             $("#editContactBtn").click(function() {
-              $(".editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
+              $(".editUsers,.editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
 
               $("#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
 
@@ -1947,7 +1950,7 @@ if(enc.getLocation()!=null){
             });
 
             $("#closeEditContact").click(function() {
-              $(".editFormContact, .editTextContact, .resultMessageDiv").hide();
+              $(".editFormContact, .editTextContact, .resultMessageDiv,.editUsers").hide();
             });
           });
           </script>
@@ -1966,43 +1969,69 @@ if(enc.getLocation()!=null){
 	      <p class="para"><em><%=encprops.getProperty("submitter") %></em>
 	      <%
 	       if(enc.getSubmitters()!=null){   
+	    	   %>
+	    	   <table width="100%">
+	    	   <%
 	    	   List<User> submitters=enc.getSubmitters();
 	    	   int numSubmitters=submitters.size();
 			   for(int f=0;f<numSubmitters;f++){
-			    	   User user=submitters.get(f);
-			    	   %>
-			    	   <p id="<%=user.getUUID() %>">
-			    	   <%
-			          if(user.getFullName()!=null){
-			            %>
-			            <span id="displaySubmitName"><%=user.getFullName()%></span>
-			            <%
-			          }
-			          if (isOwner) {
-			
-					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
-					              //break up the string
-					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-	
+				   User user=submitters.get(f);
+				   %>
+				   <tr id="<%=user.getUUID() %>">
+					   <td>
+					   <%
+				    	   
+					   		String name=encprops.getProperty("noname");
+				    	   %>
+				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
+				    	   <%
+				          if(user.getFullName()!=null){name=user.getFullName();}
+				            %>
+				            <span id="displaySubmitName"><%=name %></span>
+				            <%
+				          
+				          if (isOwner) {
+				
+						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+						              //break up the string
+						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
+		
+						                %>
+						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+						                <%
+						            }
+					                if((user.getAffiliation()!=null)&&(!user.getAffiliation().equals(""))){
 					                %>
-					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
 					                <%
-					            }
-				                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){
-				                %>
-				                	<br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
-				                <%
-				                }
-				                if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
-				                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
-				                <%
-				                 }
-			
-			         } //end if isOwner
-				         %>
-				         </p>
+					                }
+				
+				         } //end if isOwner
+					         %>
+					         </p>
+					         </td>
+					         <td style="display: table;vertical-align:middle;">
+					         <%
+					         if(isOwner){
+					         %>
+					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
+					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
+					         			<input type="hidden" name="type" value="submitter" />
+					         			<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
+					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit">remove</button>
+					         		  </div>
+					         <%
+			   					}
+					         %>
+					         </td>
+				         </tr>
 				         <%
-			   	} //submitters for loop               	
+			   	} //submitters for loop     
+			   	
+			   	%>
+			   	</table>
+			   	<%
+			   	
 	 		} //end if submitters!=null
 			%>
 			</p> <!--  End submitters paragraph -->
@@ -2010,46 +2039,117 @@ if(enc.getLocation()!=null){
 	      <p class="para"><em><%=encprops.getProperty("photographer") %></em>
 	      <%
 	       if(enc.getPhotographers()!=null){   
+	    	   %>
+	    	   
+	    	   <table width="100%">
+	    	   <%
 	    	   List<User> photographers=enc.getPhotographers();
 	    	   int numSubmitters=photographers.size();
 			   for(int f=0;f<numSubmitters;f++){
-			    	   User user=photographers.get(f);
-			    	   %>
-			    	   <p id="<%=user.getUUID() %>">
-			    	   <%
-			          if(user.getFullName()!=null){
-			            %>
-			            <p id="<%=user.getUUID() %>"><span id="displaySubmitName"><%=user.getFullName()%></span>
-			            <%
-			          }
-			          if (isOwner) {
-			
-					            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
-					              //break up the string
-					              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-	
+				   User user=photographers.get(f);
+				   %>
+				   <tr id="<%=user.getUUID() %>">
+					   <td>
+					   <%
+				    	   
+				    	   String name=encprops.getProperty("noname");
+				    	   %>
+				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
+				    	   <%
+				          if(user.getFullName()!=null){name=user.getFullName();}
+				            %>
+				            <span id="displaySubmitName"><%=name%></span>
+				            <%
+				          
+				          if (isOwner) {
+				
+						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+						              //break up the string
+						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
+		
+						                %>
+						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+						                <%
+						            }
+					                if((user.getAffiliation()!=null)&&(!user.getAffiliation().equals(""))){
 					                %>
-					                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
 					                <%
-					            }
-				                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){
-				                %>
-				                	<br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
-				                <%
-				                }
-				                if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
-				                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
-				                <%
-				                 }
-			
-			         } //end if isOwner
-			         %>
-			         </p>
-			         <%
-			   	} //photographers for loop               	
+					                }
+				
+				         } //end if isOwner
+					         %>
+					         </p>
+					         </td>
+					         <td style="display: table;vertical-align:middle;">
+					         <%
+					         if(isOwner){
+					         %>
+					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
+					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
+					         			<input type="hidden" name="type" value="photographer" />
+					         			
+					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit">remove</button>
+					         		  </div>
+					         <%
+			   					}
+					         %>
+					         </td>
+				         </tr>
+				         <%
+			   	} //photographers for loop   
+			   	%>
+			   	</table>
+			   	<%
 	 		} //end if photographers!=null
 			%>
 			</p> <!--  End photographers paragraph -->
+		                   
+		                   
+		          <!--  remake for Users removal -->         
+		         <script type="text/javascript">
+                    $(document).ready(function() {
+                    	
+                    	
+                      $("button.editUsers").click(function(event) {
+                    	//alert("Made it here");  
+                        event.preventDefault();
+						if(confirm('<%=encprops.getProperty("sureDeleteUser") %>')){
+
+	                        var SendButton = $(event.target);
+	                        var elemID=event.target.id;
+	    					var TheRow = SendButton.parents('tr');
+	    					var TheDiv = SendButton.parents('div');
+	    					var type= $(TheDiv).find("> input[name='type']").val();
+	    					//alert("type:"+type);
+	    					var uuid = $(TheDiv).find("> input[name='uuid']").val();
+	    					//alert("uuid:"+uuid);
+	
+	                        
+	
+	                        $.post("../EncounterRemoveUser", 
+	                        	{
+		                        	"encounter": '<%=enc.getCatalogNumber() %>', 
+		                        	"type": type, 
+		                        	"uuid": uuid, 
+	                        	},
+		                        function() {
+		                          //$("#individualErrorDiv").hide();
+		                          TheRow.hide();
+		                         
+		
+		                     }) //end post
+		                     .fail(function(response) {
+		                          alert("I could not remove this user. Please check the logs for errors.");
+		                        }); //end fail
+	                        
+		                      } //end if
+						
+                      	
+	                    	
+                    	}); //end click function
+                    });  //end document ready
+                    </script>                
 		                   
 		                   
 		                   
