@@ -27,7 +27,6 @@ import org.ecocean.Util;
 import org.ecocean.RestClient;
 import org.ecocean.Annotation;
 import org.ecocean.Occurrence;
-import org.ecocean.Cluster;
 import org.ecocean.Resolver;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
@@ -597,7 +596,10 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
             for (int i = 0 ; i < ids.length() ; i++) {
                 int id = ids.optInt(i, 0);
                 if (id < 1) continue;
+                myShepherd.beginDBTransaction();
                 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                myShepherd.getPM().refresh(ma);
+
                 if (ma != null) {
                     ma.setDetectionStatus(IBEISIA.STATUS_PROCESSING);
                     mas.add(ma);
@@ -624,12 +626,13 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
                 validIds.add(Integer.toString(ma.getId()));
                 if (ma.getOccurrence() == null) needOccurrences.add(ma);
             }
+/*   nope!  now disabling occurrence making.... lets delete this for real later if it proves pointless
+     this was causing grief by making arbitrary encounters "co-occur" when they shouldnt
             if (needOccurrences.size() > 0) {  //first we make occurrences where needed
                 List<Occurrence> occs = Cluster.defaultCluster(needOccurrences, myShepherd);
                 res.put("_occurrenceNote", "created " + occs.size() + " Occurrences out of " + mas.size() + " MediaAssets");
             }
-
-            //IBEISIA.waitForIAPriming();  no need to wait for priming for detection!
+*/
             boolean success = true;
             try {
                 res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas,context));
@@ -1188,6 +1191,7 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
 
     public static boolean addToQueue(String context, String content) throws IOException {
 System.out.println("IAGateway.addToQueue() publishing: " + content);
+
         getIAQueue(context).publish(content);
         return true;
     }

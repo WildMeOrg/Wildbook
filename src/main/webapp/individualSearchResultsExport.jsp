@@ -137,7 +137,6 @@ if(request.getQueryString()!=null){
 </table>
 </p>
 
-
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
 	<tr><td bgcolor="#CCCCCC"><strong>CAPTURE with annual seasons (example only)</strong><br/>For use with the web version available <a href="http://www.mbr-pwrc.usgs.gov/software/capture.html">here.</a></td></tr>

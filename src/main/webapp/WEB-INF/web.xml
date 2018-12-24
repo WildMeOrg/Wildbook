@@ -93,7 +93,7 @@
 
 		/GenePopExport = authc, roles[researcher]
 
-		/IndividualSetNickName = authc, roles[researcher]
+		/IndividualSetNickame = authc, roles[researcher]
 
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
@@ -113,9 +113,7 @@
 		 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[researcher]
 		 /encounters/exportSearchResults.jsp = authc, roles[researcher]
 		 /encounters/imageViewer.jsp = authc, roles[researcher]
-		 /encounters/searchComparison.jsp = authc, roles[researcher]
-      		/encounters/searchComparisonResults.jsp = authc, roles[researcher]
-                /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
+         /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 		/IndividualSetAlternateID = authc, roles[researcher]
 		 /EncounterSetAlternateID = authc, roles[researcher]
 		 /EncounterSetState = authc, roles[researcher]
@@ -198,7 +196,7 @@
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
-					/IndividualSetNickname = authc, roles[researcher]
+					/IndividualSetNickName = authc, roles[researcher]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
@@ -268,9 +266,15 @@
 				/OccurrenceSetObservation = authc, roles[researcher]
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
-				
 				/EncounterRemoveUser = authc, roles[researcher]
 				
+
+				/UpdateEmailAddress = authc, roles[researcher]
+				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
+				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
+				/sutime/** = authc
+				
+
             </param-value>
         </init-param>
     </filter>
@@ -384,8 +388,12 @@
       <servlet-class>org.ecocean.servlet.EncounterSetVerbatimEventDate</servlet-class>
   </servlet>
 
-
-
+  <!--
+  <servlet>
+    <servlet-name>EncounterSetInformOthers</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetInformOthers</servlet-class>
+  </servlet>
+-->
     <servlet>
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
@@ -419,8 +427,12 @@
         <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
 
-
-
+  <!--
+   <servlet>
+          <servlet-name>GenerateQRCodeImage</servlet-name>
+          <servlet-class>org.ecocean.servlet.GenerateQRCodeImage</servlet-class>
+    </servlet>
+-->
 
 
 <!--
@@ -832,6 +844,16 @@
     <servlet-name>RelationshipCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.RelationshipCreate</servlet-class>
   </servlet>
+
+      <servlet>
+    <servlet-name>AnnotationEdit</servlet-name>
+    <servlet-class>org.ecocean.servlet.AnnotationEdit</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>AnnotationEdit</servlet-name>
+    <url-pattern>/AnnotationEdit</url-pattern>
+  </servlet-mapping>
 
       <servlet>
     <servlet-name>SiteSearch</servlet-name>
@@ -1866,9 +1888,12 @@
     <url-pattern>/IndividualAddEncounter</url-pattern>
   </servlet-mapping>
 
-
-
-
+<!--
+    <servlet-mapping>
+      <servlet-name>GenerateQRCodeImage</servlet-name>
+      <url-pattern>/GenerateQRCodeImage</url-pattern>
+  </servlet-mapping>
+-->
 
 
     <servlet-mapping>
@@ -2085,7 +2110,12 @@
       <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
   </servlet-mapping>
 
-
+  <!--
+  <servlet-mapping>
+    <servlet-name>EncounterSetInformOthers</servlet-name>
+    <url-pattern>/EncounterSetInformOthers</url-pattern>
+  </servlet-mapping>
+  -->
 
 
   <servlet-mapping>
