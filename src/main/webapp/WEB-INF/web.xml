@@ -324,10 +324,12 @@
 				/OccurrenceSetObservation = authc, roles[researcher]
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
+
 				/UpdateEmailAddress = authc, roles[researcher]
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
 				/sutime/** = authc
+				/EncounterRemoveUser = authc, roles[researcher]
 				
 
             </param-value>
@@ -1192,6 +1194,11 @@
     <servlet-name>EncounterSetLivingStatus</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetLivingStatus</servlet-class>
   </servlet>
+  
+    <servlet>
+    <servlet-name>EncounterRemoveUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
+  </servlet>
 
   <!--
   <servlet>
@@ -1870,6 +1877,11 @@
   <servlet-mapping>
     <servlet-name>EncounterRemoveSpots</servlet-name>
     <url-pattern>/EncounterRemoveSpots</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+    <servlet-name>EncounterRemoveUser</servlet-name>
+    <url-pattern>/EncounterRemoveUser</url-pattern>
   </servlet-mapping>
 
     <servlet-mapping>
