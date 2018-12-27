@@ -330,6 +330,7 @@
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
 				/sutime/** = authc
 				/EncounterRemoveUser = authc, roles[researcher]
+				/EncounterAddUser = authc, roles[researcher]
 				
 
             </param-value>
@@ -1199,6 +1200,11 @@
     <servlet-name>EncounterRemoveUser</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
   </servlet>
+  
+      <servlet>
+    <servlet-name>EncounterAddUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterAddUser</servlet-class>
+  </servlet>
 
   <!--
   <servlet>
@@ -1883,7 +1889,12 @@
     <servlet-name>EncounterRemoveUser</servlet-name>
     <url-pattern>/EncounterRemoveUser</url-pattern>
   </servlet-mapping>
-
+  
+    <servlet-mapping>
+    <servlet-name>EncounterAddUser</servlet-name>
+    <url-pattern>/EncounterAddUser</url-pattern>
+  </servlet-mapping>
+  
     <servlet-mapping>
     <servlet-name>RelationshipCreate</servlet-name>
     <url-pattern>/RelationshipCreate</url-pattern>

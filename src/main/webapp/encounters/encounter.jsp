@@ -1937,6 +1937,7 @@ if(enc.getLocation()!=null){
             });
             
             $(".editUsers").hide();
+            //$(".addUser").hide();
             
             $("#editContactBtn").click(function() {
               $(".editUsers,.editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
@@ -1966,11 +1967,12 @@ if(enc.getLocation()!=null){
 
 
 
-	      <p class="para"><em><%=encprops.getProperty("submitter") %></em>
+	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
 	       if(enc.getSubmitters()!=null){   
 	    	   %>
-	    	   <table width="100%">
+	    	   <table id="submitters" width="100%">
+	    	   <tbody>
 	    	   <%
 	    	   List<User> submitters=enc.getSubmitters();
 	    	   int numSubmitters=submitters.size();
@@ -2018,7 +2020,7 @@ if(enc.getLocation()!=null){
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
 					         			<input type="hidden" name="type" value="submitter" />
 					         			<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
-					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit">remove</button>
+					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("remove") %></button>
 					         		  </div>
 					         <%
 			   					}
@@ -2029,19 +2031,27 @@ if(enc.getLocation()!=null){
 			   	} //submitters for loop     
 			   	
 			   	%>
+			   	</tbody>
 			   	</table>
 			   	<%
 			   	
 	 		} //end if submitters!=null
 			%>
+			
 			</p> <!--  End submitters paragraph -->
+			<div name="addUser" class="editFormUsers editUsers">
+				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
+				<input type="hidden" name="type" value="submitter" />
+				<%=encprops.getProperty("addSubmitter") %> <input class="btn btn-sm addUser" name="email" id="addSubmitter" type="text"></input>&nbsp;<button class="btn btn-sm addUser" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("add") %></button>
+			</div>
 		
-	      <p class="para"><em><%=encprops.getProperty("photographer") %></em>
+	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
 	       if(enc.getPhotographers()!=null){   
 	    	   %>
 	    	   
-	    	   <table width="100%">
+	    	   <table id="photographers" width="100%">
+	    	   <tbody>
 	    	   <%
 	    	   List<User> photographers=enc.getPhotographers();
 	    	   int numSubmitters=photographers.size();
@@ -2089,7 +2099,7 @@ if(enc.getLocation()!=null){
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
 					         			<input type="hidden" name="type" value="photographer" />
 					         			
-					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit">remove</button>
+					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("remove") %></button>
 					         		  </div>
 					         <%
 			   					}
@@ -2099,11 +2109,17 @@ if(enc.getLocation()!=null){
 				         <%
 			   	} //photographers for loop   
 			   	%>
+			   	</tbody>
 			   	</table>
 			   	<%
 	 		} //end if photographers!=null
 			%>
 			</p> <!--  End photographers paragraph -->
+			<div name="addUser" class="editFormUsers editUsers">
+				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
+				<input type="hidden" name="type" value="photographer" />
+				<%=encprops.getProperty("addPhotographer") %> <input class="btn btn-sm addUser" name="email" id="addPhotographer" type="text"></input>&nbsp;<button class="btn btn-sm addUser" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("add") %></button>
+			</div>
 		                   
 		                   
 		          <!--  remake for Users removal -->         
@@ -2111,7 +2127,8 @@ if(enc.getLocation()!=null){
                     $(document).ready(function() {
                     	
                     	
-                      $("button.editUsers").click(function(event) {
+                      //$("button.editUsers").click(function(event) {
+                      $("#submitters,#photographers").on('click', 'button.editUsers',function(event) {
                     	//alert("Made it here");  
                         event.preventDefault();
 						if(confirm('<%=encprops.getProperty("sureDeleteUser") %>')){
@@ -2149,7 +2166,69 @@ if(enc.getLocation()!=null){
 	                    	
                     	}); //end click function
                     });  //end document ready
-                    </script>                
+                    </script>   
+                    
+                 <!--  remake for User addition -->         
+		         <script type="text/javascript">
+                    $(document).ready(function() {
+                    	
+                    	
+                      $("button.addUser").click(function(event) {
+                    	//alert("Made it here");  
+                        event.preventDefault();
+						
+	                        var SendButton = $(event.target);
+	                        var elemID=event.target.id;
+	    					//var TheTable = SendButton.parents('table');
+	    					var TheDiv = SendButton.parents('div');
+	    					var type= $(TheDiv).find("> input[name='type']").val();
+	    					//alert("type:"+type);
+	    					var email = $(TheDiv).find("> input[name='email']").val();
+	    					///alert("email:"+email);
+	
+	                        
+	
+	                        $.post("../EncounterAddUser", 
+	                        	{
+		                        	"encounter": '<%=enc.getCatalogNumber() %>', 
+		                        	"type": type, 
+		                        	"email": email, 
+	                        	},
+		                        function(data) {
+		                          
+	                        		//add User row above
+	                        		var remove="<%=encprops.getProperty("remove") %>";
+	                        		var encounter="<%=enc.getCatalogNumber() %>";
+	                        		
+	                        		$("table#"+type+"s").find('> tbody:last-child')
+	                        			.append('<tr id=\"'+data.uuid+'\">'
+	                        			                            +'<td><p style=\"background-color: #B0C4DE;border-radius:5px;padding: 5px;\">'+email+'</p></td>'
+	                        			                            +'<td style=\"display: table;vertical-align:middle;\">'
+	                        			                            	+'&nbsp;<div name=\"deleteUsers\" class=\"editFormUsers\">'
+	                        						         			+'<input type=\"hidden\" name=\"uuid\" value=\"'+data.uuid+'\" />'
+	                        						         			+'<input type=\"hidden\" name=\"type\" value=\"'+type+'\" />'
+	                        						         			+'<input type=\"hidden\" name=\"encounter\" value=\"'+encounter+'\" />'
+	                        						         			+'&nbsp;<button id=\"remove'+data.uuid+'button\" class=\"btn btn-sm editUsers\" style=\"margin-top:0;display: inline-block;\" type=\"submit\">'+remove+'</button>'
+	                        						         		  +'</div>'
+	                        			                            +'</td>'
+	                        			        +'</tr>'
+	                        		);
+	                        		
+		                         
+		
+		                     }, 'json' 
+	                         ) //end post
+		                     .fail(function(response) {
+		                          alert("I could not remove this user. Please check the logs for errors.");
+		                        }); //end fail
+	                        
+		                      
+						
+                      	
+	                    	
+                    	}); //end click function
+                    });  //end document ready
+                    </script>               
 		                   
 		                   
 		                   
