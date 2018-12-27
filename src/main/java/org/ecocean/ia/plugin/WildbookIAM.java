@@ -148,7 +148,7 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
         //initial initialization(!)
         HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
         map.put("image_uri_list", new ArrayList<JSONObject>());
-        map.put("image_unixtime_list", new ArrayList<Integer>());
+        //map.put("image_unixtime_list", new ArrayList<Integer>());
         map.put("image_gps_lat_list", new ArrayList<Double>());
         map.put("image_gps_lon_list", new ArrayList<Double>());
         List<MediaAsset> acmList = new ArrayList<MediaAsset>(); //for rectifyMediaAssetIds below
@@ -170,11 +170,14 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
             map.get("image_gps_lat_list").add(ma.getLatitude());
             map.get("image_gps_lon_list").add(ma.getLongitude());
             DateTime t = ma.getDateTime();
+           /*
             if (t == null) {
                 map.get("image_unixtime_list").add(null);
-            } else {
+            } 
+            else {
                 map.get("image_unixtime_list").add((int)Math.floor(t.getMillis() / 1000));  //IA wants seconds since epoch
             }
+            */
 
             if ( (i == (mas.size() - 1))  ||  ((i > 0) && (i % batchSize == 0)) ) {   //end of all; or end of a batch
                 if (acmList.size() > 0) {
@@ -191,7 +194,7 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
                     bres.put(rtn);
                     //initialize for next batch (if any)
                     map.put("image_uri_list", new ArrayList<JSONObject>());
-                    map.put("image_unixtime_list", new ArrayList<Integer>());
+                    //map.put("image_unixtime_list", new ArrayList<Integer>());
                     map.put("image_gps_lat_list", new ArrayList<Double>());
                     map.put("image_gps_lon_list", new ArrayList<Double>());
                     acmList = new ArrayList<MediaAsset>();
