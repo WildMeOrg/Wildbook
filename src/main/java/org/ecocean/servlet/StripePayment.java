@@ -120,7 +120,7 @@ public class StripePayment extends HttpServlet {
 
     String newQuery = "";
     try {
-      if ((!queryShark.equals(null))&&(!queryShark.equals(""))) {
+      if ((queryShark!=null)&&(!queryShark.equals(""))) {
         newQuery = "?number=" + queryShark;
       }
     } catch (Exception e) {
