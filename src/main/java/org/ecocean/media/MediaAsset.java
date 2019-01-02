@@ -613,6 +613,9 @@ public class MediaAsset implements java.io.Serializable {
         }
         return anns;
     }
+    public boolean hasAnnotations() {
+        return (getAnnotations().size() > 0);
+    }
 
 /*
         return annotations;

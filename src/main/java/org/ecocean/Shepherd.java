@@ -3216,6 +3216,12 @@ public class Shepherd {
     return e;
   }
 
+  public Encounter getEncounter(MediaAsset ma) {
+    if (ma==null || !ma.hasAnnotations()) return null;
+    Annotation ann = ma.getAnnotations().get(0);
+    return ann.findEncounter(this);
+  }
+
 
   /**
    * Opens the database up for information retrieval, storage, and removal
