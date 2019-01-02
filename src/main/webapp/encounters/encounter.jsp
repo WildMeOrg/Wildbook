@@ -1416,7 +1416,7 @@ if(enc.getLocation()!=null){
                       <input name="number" type="hidden" value="<%=num%>" id="setMBnumber"/>
                       <div class="form-group row" id="selectMatcher">
                         <div class="col-sm-3">
-                          <label><%=encprops.getProperty("matchedBy")%>: </label>
+                          <label><%=encprops.getProperty("matchedBy")%></label>
                         </div>
                         <div class="col-sm-5 col-xs-10">
                           <select name="matchedBy" id="matchedBy" size="1" class="form-control">
@@ -1510,7 +1510,7 @@ if(enc.getLocation()!=null){
                       <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
                       <div class="form-group row" id="individualDiv">
                         <div class="col-sm-3">
-                          <label><%=encprops.getProperty("individual")%>:</label>
+                          <label><%=encprops.getProperty("individual")%></label>
                         </div>
                         <div class="col-sm-5 col-xs-10">
                           <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
@@ -1525,7 +1525,7 @@ if(enc.getLocation()!=null){
                           		$('individualAddEncounterInput').val('<%=nextID %>');
                           	}
 	                      </script>
-                          <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualAddEncounterInput').val('<%=nextID %>');"><%=nextID  %></a></em></p>
+                          <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change();"><%=nextID  %></a></em></p>
 
                         </div>
                       </div>
@@ -1534,7 +1534,7 @@ if(enc.getLocation()!=null){
                           <label><%=encprops.getProperty("matchedBy")%>: </label>
                         </div>
                         <div class="col-sm-5 col-xs-10">
-                          <select name="matchType" id="matchType" class="form-control" size="1">
+                          <select id="matchType" name="matchType" id="matchType" class="form-control" size="1">
                             <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
                             <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
                             <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
