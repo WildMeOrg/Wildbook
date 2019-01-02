@@ -702,7 +702,7 @@ if(enc.getLocation()!=null){
 
 <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
-<em><%=encprops.getProperty("locationID") %></em><span>: <span id="displayLocationID"><%=enc.getLocationCode()%></span></span>
+<em><%=encprops.getProperty("locationID") %></em><span> <span id="displayLocationID"><%=enc.getLocationCode()%></span></span>
 
 <br>
 
@@ -931,9 +931,12 @@ if(enc.getLocation()!=null){
                 while(hasMoreLocs){
                   String currentLoc = "locationID"+codeTaxNum;
                   if(CommonConfiguration.getProperty(currentLoc,context)!=null){
+                	  String selected="";
+                	  if((enc.getLocationID()!=null)&&(CommonConfiguration.getProperty(currentLoc,context).equals(enc.getLocationID()))){
+                		  selected="selected=\"selected\"";
+                	  }
                     %>
-
-                    <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
+                    <option <%=selected %> value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
                     <%
                     codeTaxNum++;
                   }
