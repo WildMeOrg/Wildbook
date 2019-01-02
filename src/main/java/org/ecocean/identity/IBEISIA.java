@@ -367,7 +367,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         }
         map.put("image_uuid_list", malist);
 
-        String modelTag = IA.getProperty(context, "modelTag");
+        String modelTag = getModelTag(context, taxonomyFromMediaAssets(context, mas));
         if (modelTag != null) {
             System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
             map.put("model_tag", modelTag);
@@ -380,6 +380,59 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         return RestClient.post(url, new JSONObject(map));
     }
 
+
+    public static String getModelTag(String context) {
+        return getModelTag(context, null);
+    }
+    public static String getModelTag(String context, Taxonomy tax) {
+        String iaClass = taxonomyToIAClass(context, tax);
+        if (iaClass == null) return IA.getProperty(context, "modelTag");  //best we can hope for
+        String propKey = "modelTag_".concat(iaClass).replaceAll(" ", "_");
+        String mt = IA.getProperty(context, propKey);
+        if (mt == null) mt = IA.getProperty(context, "modelTag");  //too bad, fallback!
+        return mt;
+    }
+/*
+    note: this is "for internal use only" -- i.e. this is used for getModelTag above, so re-use with caution?
+     (that is, it is meant to generate a string to derive a property key in IA.properties and not much else)
+
+    this uses taxonomyMap, which (via IA.properties) maps detectionClassN -> taxonomyScientificName0
+*/
+    private static String taxonomyToIAClass(String context, Taxonomy tax) {
+        if (tax == null) return null;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IBEISIA.taxonomyToIAClass");
+        myShepherd.beginDBTransaction();
+        HashMap<String,Taxonomy> tmap = iaTaxonomyMap(myShepherd);
+        myShepherd.rollbackDBTransaction();
+        for (String iaClass : tmap.keySet()) {
+            if (tax.equals(tmap.get(iaClass))) return iaClass;
+        }
+        return null;
+    }
+
+    //making this private cuz it is mostly "internal use" as the logic is pretty specific to above usage
+    // namely: this is used for *detection* so we assume only to find an Encounter via trivial annotation
+    //  otherwise we just give up cuz that is wack.
+    private static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas) {
+        if (Util.collectionIsEmptyOrNull(mas)) return null;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IBEISIA.taxonomyFromMediaAssets");
+        myShepherd.beginDBTransaction();
+        for (MediaAsset ma : mas) {
+            ArrayList<Annotation> anns = ma.getAnnotations();
+            if ((anns.size() != 1) || !anns.get(0).isTrivial()) continue;
+            Encounter enc = anns.get(0).findEncounter(myShepherd);
+            if (enc == null) continue;
+            Taxonomy tax = enc.getTaxonomy();
+            if (tax != null) {
+                myShepherd.rollbackDBTransaction();
+                return tax;
+            }
+        }
+        myShepherd.rollbackDBTransaction();
+        return null;
+    }
 
     public static JSONObject getJobStatus(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = IA.getProperty(context, "IBEISIARestUrlGetJobStatus");
@@ -3296,7 +3349,7 @@ return Util.generateUUID();
     }
 
     public static List<JSONObject> identOpts(String context, String iaClass) {
-        if (!Util.stringExists(species)) return identOpts(context);
+        if (!Util.stringExists(iaClass)) return identOpts(context);
 
         String cleanedIaClass = iaClass.replaceAll(" ", "_");
         String iaPropertyKey = "IBEISIdentOpt_"+cleanedIaClass;
