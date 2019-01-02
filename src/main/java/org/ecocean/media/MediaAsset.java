@@ -1142,6 +1142,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     }
     public List<String> getKeywordNames() {
         List<String> names = new ArrayList<String>();
+        if (getKeywords()==null) return names;
         for (Keyword kw: getKeywords()) {
             names.add(kw.getReadableName());
         }
