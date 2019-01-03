@@ -42,9 +42,11 @@
 
 .task-title {
 	background-color: #FAA;
-	margin: 10px 0;
+	margin: 15px 0;
 	clear: both;
 	padding: 8px;
+        display: inline-block;
+        width: 100%;
 }
 .task-title-id {
 	color: #555;
