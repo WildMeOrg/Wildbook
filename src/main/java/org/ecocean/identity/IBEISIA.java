@@ -388,6 +388,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         String iaClass = taxonomyToIAClass(context, tax);
         if (iaClass == null) return IA.getProperty(context, "modelTag");  //best we can hope for
         String propKey = "modelTag_".concat(iaClass).replaceAll(" ", "_");
+        System.out.println("[INFO] getModelTag() using propKey=" + propKey + " based on " + tax);
         String mt = IA.getProperty(context, propKey);
         if (mt == null) mt = IA.getProperty(context, "modelTag");  //too bad, fallback!
         return mt;
