@@ -548,6 +548,12 @@ public class Annotation implements java.io.Serializable {
         return Encounter.findByAnnotation(this, myShepherd);
     }
 
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+        Encounter enc = findEncounter(myShepherd);
+        if (enc == null) return null;
+        return enc.getTaxonomy(myShepherd);
+    }
+
 /* untested!
     public Encounter findEncounterDeep(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
