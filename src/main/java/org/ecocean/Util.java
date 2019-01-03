@@ -604,6 +604,15 @@ public class Util {
       return (str!=null && !str.equals("") && !str.equals("None") && !str.equals("unknown") && !str.equals(""));
     }
     
+    //these two utility functions handle the case where the argument (Collection, and subclasses like Lists) is null!
+    public static boolean collectionIsEmptyOrNull(Collection c) {
+        return (collectionSize(c) == 0);
+    }
+    public static int collectionSize(Collection c) {
+        if (c == null) return 0;
+        return c.size();
+    }
+
     public static boolean hasProperty(String key, Properties props) {
       return (props.getProperty(key) != null);
     }
@@ -710,6 +719,21 @@ public class Util {
         sanitized = sanitized.replace("%", "");        
       }
       return sanitized;
+    }
+
+    public static String joinStrings(List<String> strings) {
+      return joinStrings(strings, ", ");
+    }
+
+    public static String joinStrings(List<String> strings, String seperator) {
+      if (strings.size()==0) return "";
+      if (strings.size()==1) return strings.get(0);
+      StringBuffer strBuff = new StringBuffer();
+      strBuff.append(strings.get(0));
+      for (int i=1;i<strings.size();i++) {
+        strBuff.append(seperator+strings.get(i));
+      }
+      return strBuff.toString();
     }
 
   public static <KeyType, ValType> void addToMultimap(Map<KeyType, Set<ValType>> multimap, KeyType key, ValType val) {

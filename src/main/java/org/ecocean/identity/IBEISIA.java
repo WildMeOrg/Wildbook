@@ -367,7 +367,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         }
         map.put("image_uuid_list", malist);
 
-        String modelTag = IA.getProperty(context, "modelTag");
+        String modelTag = getModelTag(context, taxonomyFromMediaAssets(context, mas));
         if (modelTag != null) {
             System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
             map.put("model_tag", modelTag);
@@ -380,6 +380,77 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         return RestClient.post(url, new JSONObject(map));
     }
 
+
+/*
+    note: i originally was going to base modelTag_FOO on iaClass, but this seems problematic for
+    allowing one model for multiple species (e.g. "all dolphins"), in that taxonomyToIAClass is not going
+    to work, as iaTaxonomyMap means more than one species cannot use the same iaClass.
+    sooooo for now i am going to just let modelTag_FOO be of the form modelTag_Scientific_name    -jon
+*/
+    public static String getModelTag(String context) {
+        return getModelTag(context, null);
+    }
+    public static String getModelTag(String context, Taxonomy tax) {
+        if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "modelTag");  //best we can hope for
+        String propKey = "modelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
+        System.out.println("[INFO] getModelTag() using propKey=" + propKey + " based on " + tax);
+        String mt = IA.getProperty(context, propKey);
+        if (mt == null) mt = IA.getProperty(context, "modelTag");  //too bad, fallback!
+        return mt;
+    }
+/*
+    THIS IS NOW UNUSED BY ABOVE (see note above)
+    note: this is "for internal use only" -- i.e. this is used for getModelTag above, so re-use with caution?
+     (that is, it is meant to generate a string to derive a property key in IA.properties and not much else)
+
+    this uses taxonomyMap, which (via IA.properties) maps detectionClassN -> taxonomyScientificName0
+*/
+
+    public static String inferIaClass(Annotation ann, Shepherd myShepherd) {
+        Taxonomy tax = ann.getTaxonomy(myShepherd);
+        return taxonomyToIAClass(myShepherd.getContext(), tax);
+    }
+
+    public static String taxonomyStringToIAClass(String taxonomyString, Shepherd myShepherd) {
+        Taxonomy tax = myShepherd.getOrCreateTaxonomy(taxonomyString, false);
+        return taxonomyToIAClass(myShepherd.getContext(), tax);
+    }
+
+    public static String taxonomyToIAClass(String context, Taxonomy tax) {
+        if (tax == null) return null;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IBEISIA.taxonomyToIAClass");
+        myShepherd.beginDBTransaction();
+        HashMap<String,Taxonomy> tmap = iaTaxonomyMap(myShepherd);
+        myShepherd.rollbackDBTransaction();
+        for (String iaClass : tmap.keySet()) {
+            if (tax.equals(tmap.get(iaClass))) return iaClass;
+        }
+        return null;
+    }
+
+    //making this private cuz it is mostly "internal use" as the logic is pretty specific to above usage
+    private static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas) {
+        if (Util.collectionIsEmptyOrNull(mas)) return null;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IBEISIA.taxonomyFromMediaAssets");
+        myShepherd.beginDBTransaction();
+        for (MediaAsset ma : mas) {
+            ArrayList<Annotation> anns = ma.getAnnotations();
+            if (anns.size() < 1) continue;
+            //here we step thru all annots on this asset but likely there will be only one (trivial)
+            //  if there are more then may the gods help us on what we really will get!
+            for (Annotation ann : anns) {
+                Taxonomy tax = ann.getTaxonomy(myShepherd);
+                if (tax != null) {
+                    myShepherd.rollbackDBTransaction();
+                    return tax;
+                }
+            }
+        }
+        myShepherd.rollbackDBTransaction();
+        return null;
+    }
 
     public static JSONObject getJobStatus(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = IA.getProperty(context, "IBEISIARestUrlGetJobStatus");
@@ -2554,6 +2625,22 @@ System.out.println(">>>>>>>> age -> " + rtn);
         return rtn;
     }
 
+    public static JSONObject iaSetViewpointsForAnnotUUIDs(List<String> uuids, List<String> viewpoints, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+
+        List<String> fancyUUIDs = new ArrayList<String>();
+        for (String uuid: uuids) {
+            fancyUUIDs.add(toFancyUUID(uuid).toString());
+        }
+
+        String uuidList = Util.joinStrings(fancyUUIDs, ",");
+        String viewList = Util.joinStrings(viewpoints, ",");
+
+        JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/viewpoint/json/?annot_uuid_list=[" + uuidList + "]&viewpoint_list=[" + viewList + "]"), null);
+        return rtn;
+    }
+
+
+
     public static boolean iaEnabled(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         return (IA.getProperty(context,"IBEISIARestUrlAddAnnotations") != null);
@@ -3270,6 +3357,25 @@ return Util.generateUUID();
         String jstring = "";
         while (jstring != null) {
             jstring = IA.getProperty(context, "IBEISIdentOpt" + i);
+            if (jstring == null) break;
+            JSONObject j = Util.stringToJSONObject(jstring);
+            if (j != null) opt.add(j);
+            i++;
+        }
+        if (opt.size() < 1) opt.add((JSONObject)null);  //we should always have *one* -- the default empty one
+        return opt;
+    }
+
+    public static List<JSONObject> identOpts(String context, String iaClass) {
+        if (!Util.stringExists(iaClass)) return identOpts(context);
+
+        String cleanedIaClass = iaClass.replaceAll(" ", "_");
+        String iaPropertyKey = "IBEISIdentOpt_"+cleanedIaClass;
+        List<JSONObject> opt = new ArrayList<JSONObject>();
+        int i = 0;
+        String jstring = "";
+        while (jstring != null) {
+            jstring = IA.getProperty(context, iaPropertyKey + i);
             if (jstring == null) break;
             JSONObject j = Util.stringToJSONObject(jstring);
             if (j != null) opt.add(j);

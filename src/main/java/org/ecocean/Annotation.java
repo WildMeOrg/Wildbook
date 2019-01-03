@@ -153,6 +153,9 @@ public class Annotation implements java.io.Serializable {
     public String getAcmId() {
         return this.acmId;
     }
+    public boolean hasAcmId() {
+        return (this.acmId != null);
+    }
 
     public ArrayList<Feature> getFeatures() {
         return features;
@@ -178,7 +181,6 @@ public class Annotation implements java.io.Serializable {
     public void setQuality(Double quality) {
         this.quality = quality;
     }
-
 
     public String getUUID() {
         return id;
@@ -544,6 +546,12 @@ public class Annotation implements java.io.Serializable {
     //convenience!
     public Encounter findEncounter(Shepherd myShepherd) {
         return Encounter.findByAnnotation(this, myShepherd);
+    }
+
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+        Encounter enc = findEncounter(myShepherd);
+        if (enc == null) return null;
+        return enc.getTaxonomy(myShepherd);
     }
 
 /* untested!

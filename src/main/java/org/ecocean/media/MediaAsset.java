@@ -185,6 +185,9 @@ public class MediaAsset implements java.io.Serializable {
     public String getAcmId() {
         return this.acmId;
     }
+    public boolean hasAcmId() {
+        return (null!=this.acmId);
+    }
 
     private URL getUrl(final AssetStore store, final Path path) {
         if (store == null) {
@@ -610,6 +613,9 @@ public class MediaAsset implements java.io.Serializable {
         }
         return anns;
     }
+    public boolean hasAnnotations() {
+        return (getAnnotations().size() > 0);
+    }
 
 /*
         return annotations;
@@ -1004,11 +1010,14 @@ public class MediaAsset implements java.io.Serializable {
 
 
     public String toString() {
+        List<String> kwNames = getKeywordNames();
+        String kwString = (kwNames==null) ? "None" : Util.joinStrings(kwNames);
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("parent", parentId)
                 .append("labels", ((labels == null) ? "" : labels.toString()))
                 .append("store", store.toString())
+                .append("keywords", kwString)
                 .toString();
     }
 
@@ -1133,6 +1142,14 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     }
     public ArrayList<Keyword> getKeywords() {
         return keywords;
+    }
+    public List<String> getKeywordNames() {
+        List<String> names = new ArrayList<String>();
+        if (getKeywords()==null) return names;
+        for (Keyword kw: getKeywords()) {
+            names.add(kw.getReadableName());
+        }
+        return names;
     }
     public boolean hasKeywords(){
         return (keywords!=null && (keywords.size()>0));
