@@ -190,7 +190,9 @@ public class IndividualCreate extends HttpServlet {
               Set<String> cSubmitters = new HashSet<>();
               if (enc2make.getSubmitterEmails() != null)cSubmitters.addAll(enc2make.getSubmitterEmails());
               if (enc2make.getPhotographerEmails() != null)cSubmitters.addAll(enc2make.getPhotographerEmails());
+              if (enc2make.getInformOthersEmails()!= null)cSubmitters.addAll(enc2make.getInformOthersEmails());
 
+              
               if (newShark != null)
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "individual=" + newShark.getIndividualID());
               for (String emailTo : cSubmitters) {

@@ -221,7 +221,7 @@
 				/RestKeyword = authc, roles[researcher]
 				/IndividualAddFile = authc, roles[researcher]
 				/Collaborate = authc
-				/RemoveEmailAddress = authc, roles[admin]
+				#/RemoveEmailAddress = authc, roles[admin]
 				/IndividualAddFile = authc, roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
 				/AdoptionAction = authc, roles[adoption]
@@ -527,11 +527,12 @@
 
 
 
-
+<!--
   <servlet>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <servlet-class>org.ecocean.servlet.RemoveEmailAddress</servlet-class>
   </servlet>
+  -->
 
   <!--
   <servlet>
@@ -2033,10 +2034,12 @@
     <url-pattern>/MassExposeGBIF</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <url-pattern>/RemoveEmailAddress</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>

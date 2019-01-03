@@ -2125,13 +2125,106 @@ if(enc.getLocation()!=null){
 			</div>
 		                   
 		                   
-		          <!--  remake for Users removal -->         
+		                  
+		                   
+		                   
+		                   
+		                   
+		                   
+							<%
+		                    if(isOwner){
+		           
+		                    %>
+		
+		                     	<p class="para"><h4><%=encprops.getProperty("inform_others") %></h4> <%
+	       						if(enc.getPhotographers()!=null){   
+	    	   %>
+	    	   
+	    	   <table id="informOthers" width="100%">
+	    	   <tbody>
+	    	   <%
+	    	   List<User> informOthers=enc.getInformOthers();
+	    	   int numOthers=informOthers.size();
+			   for(int f=0;f<numOthers;f++){
+				   User user=informOthers.get(f);
+				   %>
+				   <tr id="<%=user.getUUID() %>">
+					   <td>
+					   <%
+				    	   
+				    	   String name=encprops.getProperty("noname");
+				    	   %>
+				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
+				    	   <%
+				          if(user.getFullName()!=null){name=user.getFullName();}
+				            %>
+				            <span id="displaySubmitName"><%=name%></span>
+				            <%
+				          
+				          if (isOwner) {
+				
+						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+						              //break up the string
+						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
+		
+						                %>
+						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+						                <%
+						            }
+					                if((user.getAffiliation()!=null)&&(!user.getAffiliation().equals(""))){
+					                %>
+					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
+					                <%
+					                }
+				
+				         } //end if isOwner
+					         %>
+					         </p>
+					         </td>
+					         <td style="display: table;vertical-align:middle;">
+					         <%
+					         if(isOwner){
+					         %>
+					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
+					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
+					         			<input type="hidden" name="type" value="informOther" />
+					         			
+					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("remove") %></button>
+					         		  </div>
+					         <%
+			   					}
+					         %>
+					         </td>
+				         </tr>
+				         <%
+			   	} //informOthers for loop   
+			   	%>
+			   	</tbody>
+			   	</table>
+			   	<%
+	 		} //end if informOther !=null
+			%>
+			</p> <!--  End informOthers paragraph -->
+			<div name="addUser" class="editFormUsers editUsers">
+				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
+				<input type="hidden" name="type" value="informOther" />
+				<%=encprops.getProperty("addOthers") %> <input class="btn btn-sm addUser" name="email" id="addOther" type="text"></input>&nbsp;<button class="btn btn-sm addUser" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("add") %></button>
+			</div>
+		
+		            
+		               		<%
+		                  	} //end if isOwner
+    	   		
+
+                  	%>
+                  	<br>
+                  	 <!--  remake for Users removal -->         
 		         <script type="text/javascript">
                     $(document).ready(function() {
                     	
                     	
                       //$("button.editUsers").click(function(event) {
-                      $("#submitters,#photographers").on('click', 'button.editUsers',function(event) {
+                      $("#submitters,#photographers,#informOthers").on('click', 'button.editUsers',function(event) {
                     	//alert("Made it here");  
                         event.preventDefault();
 						if(confirm('<%=encprops.getProperty("sureDeleteUser") %>')){
@@ -2231,32 +2324,9 @@ if(enc.getLocation()!=null){
 	                    	
                     	}); //end click function
                     });  //end document ready
-                    </script>               
-		                   
-		                   
-		                   
-		                   
-		                   
-							<%
-		                    if(isOwner){
-		                    %>
-		
-		                                <p class="para">
-		                                  <em>
-		                                    <%=encprops.getProperty("inform_others") %>
-		                                  </em>
-		                 
-		                                    <br/>
-		                                        </p>
-		
-		            
-		               		<%
-		                  	} //end if isOwner
-    	   		
-
-                  	%>
+                    </script>      
                   
-                    <!-- end submitter  -->
+                   
         </div>
 <%-- END CONTACT INFORMATION --%>
 

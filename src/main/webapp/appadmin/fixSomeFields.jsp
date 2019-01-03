@@ -32,16 +32,22 @@ Shepherd myShepherd=new Shepherd(context);
 myShepherd.beginDBTransaction();
 try{
 	
-    List<String> encs=null;
-    String filter="SELECT DISTINCT catalogNumber FROM org.ecocean.Encounter";  
+    List<Encounter> encs=null;
+    String filter="SELECT FROM org.ecocean.Encounter";  
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
-    encs=new ArrayList<String>(c);
+    encs=new ArrayList<Encounter>(c);
     query.closeAll();
+    int numEncounters=encs.size();
+    for(int i=0;i<numEncounters;i++){
+    	Encounter enc=encs.get(i);
+    	if((enc.getOLDInformOthersFORLEGACYCONVERSION()!=null)&&(!enc.getOLDInformOthersFORLEGACYCONVERSION().trim().equals(""))){
+    	
     %>
-    <li><%=encs.toString() %></li>
+    <li><%=enc.getCatalogNumber()  %>: <%=enc.getOLDInformOthersFORLEGACYCONVERSION() %></li>
 	<%
-
+    	}
+    }
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
