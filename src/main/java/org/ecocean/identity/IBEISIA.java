@@ -413,8 +413,6 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     }
 
     //making this private cuz it is mostly "internal use" as the logic is pretty specific to above usage
-    // namely: this is used for *detection* so we assume only to find an Encounter via trivial annotation
-    //  otherwise we just give up cuz that is wack.
     private static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas) {
         if (Util.collectionIsEmptyOrNull(mas)) return null;
         Shepherd myShepherd = new Shepherd(context);
@@ -422,13 +420,17 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         myShepherd.beginDBTransaction();
         for (MediaAsset ma : mas) {
             ArrayList<Annotation> anns = ma.getAnnotations();
-            if ((anns.size() != 1) || !anns.get(0).isTrivial()) continue;
-            Encounter enc = anns.get(0).findEncounter(myShepherd);
-            if (enc == null) continue;
-            Taxonomy tax = enc.getTaxonomy();
-            if (tax != null) {
-                myShepherd.rollbackDBTransaction();
-                return tax;
+            if (anns.size() < 1) continue;
+            //here we step thru all annots on this asset but likely there will be only one (trivial)
+            //  if there are more then may the gods help us on what we really will get!
+            for (Annotation ann : anns) {
+                Encounter enc = ann.findEncounter(myShepherd);
+                if (enc == null) continue;
+                Taxonomy tax = enc.getTaxonomy();
+                if (tax != null) {
+                    myShepherd.rollbackDBTransaction();
+                    return tax;
+                }
             }
         }
         myShepherd.rollbackDBTransaction();
