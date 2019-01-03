@@ -381,19 +381,25 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     }
 
 
+/*
+    note: i originally was going to base modelTag_FOO on iaClass, but this seems problematic for
+    allowing one model for multiple species (e.g. "all dolphins"), in that taxonomyToIAClass is not going
+    to work, as iaTaxonomyMap means more than one species cannot use the same iaClass.
+    sooooo for now i am going to just let modelTag_FOO be of the form modelTag_Scientific_name    -jon
+*/
     public static String getModelTag(String context) {
         return getModelTag(context, null);
     }
     public static String getModelTag(String context, Taxonomy tax) {
-        String iaClass = taxonomyToIAClass(context, tax);
-        if (iaClass == null) return IA.getProperty(context, "modelTag");  //best we can hope for
-        String propKey = "modelTag_".concat(iaClass).replaceAll(" ", "_");
+        if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "modelTag");  //best we can hope for
+        String propKey = "modelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
         System.out.println("[INFO] getModelTag() using propKey=" + propKey + " based on " + tax);
         String mt = IA.getProperty(context, propKey);
         if (mt == null) mt = IA.getProperty(context, "modelTag");  //too bad, fallback!
         return mt;
     }
 /*
+    THIS IS NOW UNUSED BY ABOVE (see note above)
     note: this is "for internal use only" -- i.e. this is used for getModelTag above, so re-use with caution?
      (that is, it is meant to generate a string to derive a property key in IA.properties and not much else)
 
