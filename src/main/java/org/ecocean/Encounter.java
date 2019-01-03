@@ -2302,10 +2302,10 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
     //hacky (as generates new Taxonomy -- with random uuid) but still should work for tax1.equals(tax2);
     // TODO FIXME this should be superceded by the getter for Taxonomy property in the future....
-    public Taxonomy getTaxonomy() {
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
         String sciname = this.getTaxonomyString();
         if (sciname == null) return null;
-        return new Taxonomy(sciname);
+        return myShepherd.getOrCreateTaxonomy(sciname, false); // false means don't commit the taxonomy
     }
 
     //right now this updates .genus and .specificEpithet ... but in some glorious future we will just store Taxonomy!
