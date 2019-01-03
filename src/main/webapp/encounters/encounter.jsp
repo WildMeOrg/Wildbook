@@ -2156,10 +2156,12 @@ if(enc.getLocation()!=null){
 				    	   %>
 				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
 				    	   <%
-				          if(user.getFullName()!=null){name=user.getFullName();}
-				            %>
-				            <span id="displaySubmitName"><%=name%></span>
-				            <%
+				          if(user.getFullName()!=null){
+				        	  name=user.getFullName();
+				            	%>
+				            	<span id="displaySubmitName"><%=name%></span>
+				            	<%
+			   				}
 				          
 				          if (isOwner) {
 				
