@@ -398,7 +398,18 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
 
     this uses taxonomyMap, which (via IA.properties) maps detectionClassN -> taxonomyScientificName0
 */
-    private static String taxonomyToIAClass(String context, Taxonomy tax) {
+
+    public static String inferIaClass(Annotation ann, Shepherd myShepherd) {
+        Taxonomy tax = ann.getTaxonomy(myShepherd);
+        return taxonomyToIAClass(myShepherd.getContext(), tax);
+    }
+
+    public static String taxonomyStringToIAClass(String taxonomyString, Shepherd myShepherd) {
+        Taxonomy tax = myShepherd.getOrCreateTaxonomy(taxonomyString, false);
+        return taxonomyToIAClass(myShepherd.getContext(), tax);
+    }
+
+    public static String taxonomyToIAClass(String context, Taxonomy tax) {
         if (tax == null) return null;
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.taxonomyToIAClass");
@@ -422,9 +433,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         for (MediaAsset ma : mas) {
             ArrayList<Annotation> anns = ma.getAnnotations();
             if ((anns.size() != 1) || !anns.get(0).isTrivial()) continue;
-            Encounter enc = anns.get(0).findEncounter(myShepherd);
-            if (enc == null) continue;
-            Taxonomy tax = enc.getTaxonomy(myShepherd);
+            Taxonomy tax = anns.get(0).getTaxonomy(myShepherd);
             if (tax != null) {
                 myShepherd.rollbackDBTransaction();
                 return tax;
