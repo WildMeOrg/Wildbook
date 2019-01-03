@@ -117,7 +117,9 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         String iaClass = anns.get(0).getIAClass(); //IAClass is a standard with image analysis that identifies the featuretype used for identification
         List<JSONObject> opts = null;
         // below gets it working for dolphins but can be generalized easily from IA.properties
-        if ("dolphin_bottlenose_fin".equals(iaClass)) {
+        String inferredIaClass = IBEISIA.inferIaClass(anns.get(0), myShepherd);
+        String bottlenose = "dolphin_bottlenose_fin"; 
+        if (bottlenose.equals(iaClass) || bottlenose.equals(inferredIaClass)) {
             System.out.println("IA.java is sending a Tursiops truncatus job");
             opts = IBEISIA.identOpts(context, iaClass);
         } else { // defaults to the default ia.properties IBEISIdentOpt, in our case humpback flukes

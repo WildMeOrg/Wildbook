@@ -405,7 +405,18 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
 
     this uses taxonomyMap, which (via IA.properties) maps detectionClassN -> taxonomyScientificName0
 */
-    private static String taxonomyToIAClass(String context, Taxonomy tax) {
+
+    public static String inferIaClass(Annotation ann, Shepherd myShepherd) {
+        Taxonomy tax = ann.getTaxonomy(myShepherd);
+        return taxonomyToIAClass(myShepherd.getContext(), tax);
+    }
+
+    public static String taxonomyStringToIAClass(String taxonomyString, Shepherd myShepherd) {
+        Taxonomy tax = myShepherd.getOrCreateTaxonomy(taxonomyString, false);
+        return taxonomyToIAClass(myShepherd.getContext(), tax);
+    }
+
+    public static String taxonomyToIAClass(String context, Taxonomy tax) {
         if (tax == null) return null;
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.taxonomyToIAClass");
@@ -430,9 +441,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
             //here we step thru all annots on this asset but likely there will be only one (trivial)
             //  if there are more then may the gods help us on what we really will get!
             for (Annotation ann : anns) {
-                Encounter enc = ann.findEncounter(myShepherd);
-                if (enc == null) continue;
-                Taxonomy tax = enc.getTaxonomy();
+                Taxonomy tax = ann.getTaxonomy(myShepherd);
                 if (tax != null) {
                     myShepherd.rollbackDBTransaction();
                     return tax;
