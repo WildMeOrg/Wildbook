@@ -424,7 +424,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
             if ((anns.size() != 1) || !anns.get(0).isTrivial()) continue;
             Encounter enc = anns.get(0).findEncounter(myShepherd);
             if (enc == null) continue;
-            Taxonomy tax = enc.getTaxonomy();
+            Taxonomy tax = enc.getTaxonomy(myShepherd);
             if (tax != null) {
                 myShepherd.rollbackDBTransaction();
                 return tax;
