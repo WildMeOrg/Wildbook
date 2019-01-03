@@ -57,6 +57,10 @@ public class StandardImport extends HttpServlet {
 	// verbose variable can be switched on/off throughout the import for debugging
 	boolean verbose = false;
 	String photoDirectory;
+  String dataSource;
+
+  // this prefix is added to any individualID, occurrenceID, or sightingID imported
+  String individualPrefix="";
 
 	private AssetStore astore;
 
@@ -79,8 +83,9 @@ public class StandardImport extends HttpServlet {
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
 
-    photoDirectory = "/data/oman_import/photos/";
-    String filename = "/data/oman_import/ASWN_secondExport.xlsx";
+    photoDirectory = "/data/SDRP/images/";
+    String filename = "/data/SDRP/sdrp-2015-2018.xlsx";
+    String dataSource = "SDRP bulk import";
     //photoDirectory = "/data/indocet/";
     //String filename = "/data/indocet/indocet_blended.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
@@ -134,17 +139,19 @@ public class StandardImport extends HttpServlet {
     out.println("<ul>");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
-    int maxRows = 50000;
     int offset = 0;
-    for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
+    int numRows = 50000; 
+    for (int i=1+offset; i<rows&&i<(numRows+offset); i++) {
 
     	MarkedIndividual mark = null;
-    	verbose = ((i%printPeriod)==0);
+    	verbose = ((i%printPeriod) == 0);
       try {
 
         if (committing) myShepherd.beginDBTransaction();
         Row row = sheet.getRow(i);
         if (isRowEmpty(row)) continue;
+
+        System.out.println("STANDARD IMPORT: processing row "+i);
 
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
@@ -160,6 +167,7 @@ public class StandardImport extends HttpServlet {
               if (ma!=null) {
                 myShepherd.storeNewAnnotation(ann);
                 ma.setMetadata();
+                // may want to skip below for runtime and fix later w script
                 ma.updateStandardChildren(myShepherd);
               }
             }
@@ -283,13 +291,13 @@ public class StandardImport extends HttpServlet {
     if (groupBehavior==null) groupBehavior = getString(row, "Encounter.behavior");
     if (groupBehavior!=null) occ.setGroupBehavior(groupBehavior);
 
-  	String fieldSurveyCode = getString(row, "Survey.id");
+  	String fieldSurveyCode = getStringOrInt(row, "Survey.id");
     if (fieldSurveyCode==null) fieldSurveyCode = getString(row, "Occurrence.fieldSurveyCode");
   	if (fieldSurveyCode!=null) occ.setFieldSurveyCode(fieldSurveyCode);
 
   	String sightingPlatform = getString(row, "Survey.vessel");
     if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation");
-  	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatform);
+  	if (sightingPlatform!=null) occ.setSightingPlatform(individualPrefix+sightingPlatform);
     String surveyComments = getString(row, "Survey.comments");
     if (surveyComments!=null) occ.addComments(surveyComments);
 
@@ -384,6 +392,9 @@ public class StandardImport extends HttpServlet {
   	  enc.setEncounterNumber(encID);
     }
 
+    // Data source
+    if (dataSource!=null) enc.setDataSource(dataSource);
+
   	// Time
   	Integer year = getInteger(row, "Encounter.year");
     if (year==null) year = getInteger(row, "Occurrence.year");
@@ -463,6 +474,8 @@ public class StandardImport extends HttpServlet {
 
 
   	String submitterID = getString(row, "Encounter.submitterID");
+    // don't commit this line
+    if (submitterID==null) submitterID = "SDRP";
   	if (submitterID!=null) enc.setSubmitterID(submitterID);
 
   	String behavior = getString(row, "Encounter.behavior");
@@ -699,11 +712,10 @@ public class StandardImport extends HttpServlet {
   }
 
   public String getIndividualID(Row row) {
-  	String indID = getString(row, "Encounter.individualID");
-    if (indID==null) indID = getString(row, "MarkedIndividual.individualID");
-  	// Cetamada uses single letter names like A
-  	if (indID!=null && indID.length()==1) return "Cetamada-"+indID;
-  	return indID;
+  	String indID =           getStringOrInt(row, "Encounter.individualID");
+    if (indID==null) indID = getStringOrInt(row, "MarkedIndividual.individualID");
+    if (!Util.stringExists(indID)) return indID;
+    return individualPrefix+indID;
   }
 
   public MediaAsset getMediaAsset(Row row, int i) {
@@ -752,8 +764,12 @@ public class StandardImport extends HttpServlet {
     int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; // 
     // we have up to two keywords per row.
     for (int i=n; i<stopAtKeyword; i++) {
-      String kwColName = "Encounter.keyword0"+i;
+      String kwColName = "Encounter.keyword"+i;
       String kwName = getString(row, kwColName);
+      if (kwName==null) {
+        kwColName = "Encounter.keyword0"+i;
+        kwName = getString(row, kwColName);
+      }
       if (kwName==null) continue;
       Keyword kw = myShepherd.getOrCreateKeyword(kwName);
       if (kw!=null) ans.add(kw);
@@ -915,10 +931,10 @@ public class StandardImport extends HttpServlet {
 
   public String getOccurrenceID(Row row) {
     // some custom data-fixing just for our aswn data blend
-    String occID = getString(row,"Occurrence.occurrenceID");
-    if (!Util.stringExists(occID)) occID = getString(row, "Encounter.occurrenceID");
+    String occID = getStringOrInt(row,"Occurrence.occurrenceID");
+    if (!Util.stringExists(occID)) occID = getStringOrInt(row, "Encounter.occurrenceID");
     if (!Util.stringExists(occID)) return occID;
-  	return (occID.replace("LiveVesselSighting","")); //removes LiveVesselSighting;
+    return (individualPrefix+occID);
   }
 
   public boolean isOccurrenceOnRow(Occurrence occ, Row row) {
@@ -1004,7 +1020,7 @@ public class StandardImport extends HttpServlet {
   public static String getString(Row row, int i) {
     try {
       String str = row.getCell(i).getStringCellValue();
-      if (str.equals("")) return null;
+      if (str.equals("")) str = null;
       return str;
     }
     catch (Exception e) {}
@@ -1154,7 +1170,7 @@ public class StandardImport extends HttpServlet {
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
     //return AssetStore.getDefault(myShepherd);
-    return AssetStore.get(myShepherd, 5);
+    return AssetStore.get(myShepherd, 1);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook

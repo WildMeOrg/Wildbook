@@ -94,20 +94,26 @@ function forceLink(el) {
 
   </script>
   <%
+  System.out.println("EMG: about to start "+numEncs+" encs");
   for(int f=0;f<numEncs;f++){
 
 		  Encounter enc = encs.get(f);
-		  System.out.println("EMG: starting for enc "+enc.getCatalogNumber());
+		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
 
-      if (!enc.canUserAccess(request)) continue;
+      if (!enc.canUserAccess(request)) {
+        System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
+        continue;
+      }
 
 		  ArrayList<Annotation> anns = enc.getAnnotations();
 		JSONObject iaTasks = new JSONObject();
 
 		  if ((anns == null) || (anns.size() < 1)) {
-		    %> <script>console.log('no annnotations found for encounter <%=encNum %>'); </script> <%
+		    %> <script>console.log('no annnotations found for encounter <%=enc.getCatalogNumber() %>'); </script> <%
+        System.out.println(" no annotations found for enc "+f+": "+enc.getCatalogNumber());
 		  }
 		  else {
+        System.out.println("EMG: got "+anns.size()+" anns");
 
 		  	for (Annotation ann: anns) {
 		  		System.out.println("    EMG: starting for ann "+ann);
