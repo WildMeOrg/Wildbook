@@ -112,6 +112,17 @@ public class EncounterAddUser extends HttpServlet {
           response.setStatus(HttpServletResponse.SC_OK);
           out.println(responseJSON);
         }
+        else if(type.equals("informOther")){
+          List<User> users=changeMe.getInformOthers();
+          if(!users.contains(user))users.add(user);
+          changeMe.setInformOthers(users);
+          changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added user "+user.getUUID()+" of type " + type + ".</p>");
+          String responseJSON=RESTUtils.getJSONObjectFromPOJO(user, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();
+          
+          myShepherd.commitDBTransaction();
+          response.setStatus(HttpServletResponse.SC_OK);
+          out.println(responseJSON);
+        }
         else{
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }

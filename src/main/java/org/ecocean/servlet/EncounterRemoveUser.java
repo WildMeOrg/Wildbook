@@ -95,6 +95,14 @@ public class EncounterRemoveUser extends HttpServlet {
           myShepherd.commitDBTransaction();
           response.setStatus(HttpServletResponse.SC_OK);
         }
+        else if(type.equals("informOther")){
+          List<User> users=changeMe.getInformOthers();
+          users.remove(user);
+          changeMe.setInformOthers(users);
+          changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed user "+user.getUUID()+" of type " + type + ".</p>");
+          myShepherd.commitDBTransaction();
+          response.setStatus(HttpServletResponse.SC_OK);
+        }
         else{
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
