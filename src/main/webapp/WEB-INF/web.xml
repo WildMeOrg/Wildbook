@@ -352,7 +352,7 @@
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
 				
-				
+				/AnnotationEdit = authc, roles[admin]
 				
 
             </param-value>
