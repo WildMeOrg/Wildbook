@@ -1097,7 +1097,7 @@ public class EncounterQueryProcessor {
          "("
              + "(submitters.contains(submitter) && ((submitter.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) || "
              + "(photographers.contains(photographer) && ((photographer.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographer.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) "
-             +"||(informothers.toLowerCase().indexOf('"+nameString+"') != -1)"
+             +"||(informOthers.contains(other) && ((other.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(other.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1)))"
           
           +")";
       
@@ -1107,6 +1107,7 @@ public class EncounterQueryProcessor {
       else{
         if(!jdoqlVariableDeclaration.contains("org.ecocean.User submitter")){jdoqlVariableDeclaration+=";org.ecocean.User submitter";}
         if(!jdoqlVariableDeclaration.contains("org.ecocean.User photographer")){jdoqlVariableDeclaration+=";org.ecocean.User photographer";}
+        if(!jdoqlVariableDeclaration.contains("org.ecocean.User other")){jdoqlVariableDeclaration+=";org.ecocean.User other";}
 
       }
       

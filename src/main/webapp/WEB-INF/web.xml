@@ -1,38 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--M
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  -->
 
 
-<!--
-<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
-         version="2.4">
--->
 
-
-         <web-app xmlns="http://java.sun.com/xml/ns/javaee"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-	                       http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
-	   version="3.0"
-  metadata-complete="true">
+<web-app 	xmlns="http://java.sun.com/xml/ns/javaee"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+			version="3.0"
+			metadata-complete="true">
 
 
 <listener>
@@ -47,26 +21,6 @@
     Photo-identification Library
   </description>
 
-  <!-- Struts Tag Library Descriptors -->
-  <!--jsp-config>
-    <taglib>
-      <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
-      <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
-    </taglib>
-
-    <taglib>
-      <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
-      <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
-    </taglib>
-    <taglib>
-      <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
-      <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
-    </taglib>
-    <taglib>
-      <taglib-uri>di</taglib-uri>
-      <taglib-location>/WEB-INF/lib/dilib.jar</taglib-location>
-    </taglib>
-  </jsp-config-->
 
 
 
@@ -80,18 +34,6 @@
     <filter-name>UTF8Filter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-<!--
-  <filter>
-    <filter-name>UrlRewriteFilter</filter-name>
-    <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
-</filter>
-<filter-mapping>
-    <filter-name>UrlRewriteFilter</filter-name>
-    <url-pattern>/*</url-pattern>
-    <dispatcher>REQUEST</dispatcher>
-    <dispatcher>FORWARD</dispatcher>
-</filter-mapping>
--->
 
   <filter>
         <filter-name>ShiroFilter</filter-name>
@@ -279,7 +221,7 @@
 				/RestKeyword = authc, roles[researcher]
 				/IndividualAddFile = authc, roles[researcher]
 				/Collaborate = authc
-				/RemoveEmailAddress = authc, roles[admin]
+				#/RemoveEmailAddress = authc, roles[admin]
 				/IndividualAddFile = authc, roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
 				/AdoptionAction = authc, roles[adoption]
@@ -325,7 +267,6 @@
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
 
-				/UpdateEmailAddress = authc, roles[researcher]
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
 				/sutime/** = authc
@@ -583,15 +524,14 @@
 
 
 
-  <servlet>
-    <servlet-name>UpdateEmailAddress</servlet-name>
-    <servlet-class>org.ecocean.servlet.UpdateEmailAddress</servlet-class>
-  </servlet>
 
+
+<!--
   <servlet>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <servlet-class>org.ecocean.servlet.RemoveEmailAddress</servlet-class>
   </servlet>
+  -->
 
   <!--
   <servlet>
@@ -2093,10 +2033,12 @@
     <url-pattern>/MassExposeGBIF</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <url-pattern>/RemoveEmailAddress</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
@@ -2142,10 +2084,6 @@
 -->
 
 
-  <servlet-mapping>
-    <servlet-name>UpdateEmailAddress</servlet-name>
-    <url-pattern>/UpdateEmailAddress</url-pattern>
-  </servlet-mapping>
 
 
   <servlet-mapping>
