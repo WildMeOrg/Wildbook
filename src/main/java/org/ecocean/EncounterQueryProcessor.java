@@ -1090,7 +1090,28 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //submitter or photographer name filter------------------------------------------
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
-      String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterID.toLowerCase().indexOf('"+nameString+"') != -1))";
+      
+      
+      //String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
+      String filterString=""+
+         "("
+             + "(submitters.contains(submitter) && ((submitter.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) || "
+             + "(photographers.contains(photographer) && ((photographer.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographer.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) "
+             +"||(informOthers.contains(other) && ((other.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(other.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1)))"
+          
+          +")";
+      
+      
+      
+      if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter;org.ecocean.User photographer";}
+      else{
+        if(!jdoqlVariableDeclaration.contains("org.ecocean.User submitter")){jdoqlVariableDeclaration+=";org.ecocean.User submitter";}
+        if(!jdoqlVariableDeclaration.contains("org.ecocean.User photographer")){jdoqlVariableDeclaration+=";org.ecocean.User photographer";}
+        if(!jdoqlVariableDeclaration.contains("org.ecocean.User other")){jdoqlVariableDeclaration+=";org.ecocean.User other";}
+
+      }
+      
+      
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
       
