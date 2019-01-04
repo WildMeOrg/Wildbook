@@ -67,9 +67,9 @@
                 #and admin 
                 [urls]
 
-                /rest/** = authcBasicWildbook,roles[rest]
-				/api/** = authcBasicWildbook,roles[rest-readonly]
-                /LightRest/** = authcBasicWildbook,roles[rest]
+                #/rest/** = authcBasicWildbook,roles[rest]
+				#/api/** = authcBasicWildbook,roles[rest-readonly]
+                #/LightRest/** = authcBasicWildbook,roles[rest]
 
 
 
