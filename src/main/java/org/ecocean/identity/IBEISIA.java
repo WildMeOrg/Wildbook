@@ -353,11 +353,20 @@ myShepherd.closeDBTransaction();
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
-        String u = IA.getProperty(context, "IBEISIARestUrlStartDetectImages");
+
+        HashMap<String,Object> map = new HashMap<String,Object>();
+        String modelTag = getModelTag(context, taxonomyFromMediaAssets(context, mas));
+        if (modelTag != null) {
+            System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
+            map.put("model_tag", modelTag);
+        } else {
+            System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
+        }
+
+        String u = getDetectUrlByModelTag(context, modelTag);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
         URL url = new URL(u);
 
-        HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", callbackUrl(baseUrl));
 System.out.println("sendDetect() baseUrl = " + baseUrl);
         ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
@@ -367,17 +376,16 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         }
         map.put("image_uuid_list", malist);
 
-        String modelTag = getModelTag(context, taxonomyFromMediaAssets(context, mas));
-        if (modelTag != null) {
-            System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
-            map.put("model_tag", modelTag);
-        } else {
-            System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
-        }
-
 //TODO sensitivity & nms_thresh  (floats)
 
         return RestClient.post(url, new JSONObject(map));
+    }
+
+    private static String getDetectUrlByModelTag(String context, String modelTag) {
+        if (modelTag == null) return IA.getProperty(context, "IBEISIARestUrlStartDetectImages");
+        String u = IA.getProperty(context, "IBEISIARestUrlStartDetectImages." + modelTag);
+        if (u != null) return u;
+        return IA.getProperty(context, "IBEISIARestUrlStartDetectImages");
     }
 
 
@@ -405,14 +413,13 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
 
     this uses taxonomyMap, which (via IA.properties) maps detectionClassN -> taxonomyScientificName0
 */
-
-    public static String inferIaClass(Annotation ann, Shepherd myShepherd) {
-        Taxonomy tax = ann.getTaxonomy(myShepherd);
+    public static String taxonomyStringToIAClass(String taxonomyString, Shepherd myShepherd) {
+        Taxonomy tax = myShepherd.getOrCreateTaxonomy(taxonomyString, false);
         return taxonomyToIAClass(myShepherd.getContext(), tax);
     }
 
-    public static String taxonomyStringToIAClass(String taxonomyString, Shepherd myShepherd) {
-        Taxonomy tax = myShepherd.getOrCreateTaxonomy(taxonomyString, false);
+    public static String inferIaClass(Annotation ann, Shepherd myShepherd) {
+        Taxonomy tax = ann.getTaxonomy(myShepherd);
         return taxonomyToIAClass(myShepherd.getContext(), tax);
     }
 
