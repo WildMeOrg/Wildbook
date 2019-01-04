@@ -714,11 +714,12 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("IBEISIA.iaCheckMissing");
                 myShepherd.beginDBTransaction();
+
                 try{
                   for (int i = 0 ; i < list.length() ; i++) {
-                      String uuid = fromFancyUUID(list.getJSONObject(i));
-                      Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, uuid), true)));
-                      anns.add(ann);
+                    String acmId = fromFancyUUID(list.getJSONObject(i));
+                    ArrayList<Annotation> annsTemp = myShepherd.getAnnotationsWithACMId(acmId);
+                    anns.add(annsTemp.get(0));
                   }
                 }
                 catch(Exception e){e.printStackTrace();}
