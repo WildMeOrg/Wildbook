@@ -677,6 +677,31 @@ System.out.println("enc ?= " + enc.toString());
             //end photographer-user processing
             
             
+            //User management - informOthers processing
+            String othersString=getVal(fv, "informothers");
+            List<User> informOthers=new ArrayList<User>();
+            if((othersString!=null)&&(!othersString.trim().equals(""))) {
+              
+              StringTokenizer str=new StringTokenizer(othersString,",");
+              int numTokens=str.countTokens();
+              for(int y=0;y<numTokens;y++) {
+                String tok=str.nextToken().trim();
+                if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
+                  User user=myShepherd.getUserByEmailAddress(tok);
+                  informOthers.add(user);
+                }
+                else {
+                  User user=new User(tok,Util.generateUUID());
+                  myShepherd.getPM().makePersistent(user);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  informOthers.add(user);
+                }
+              }
+            }
+            enc.setInformOthers(informOthers);
+            //end informOthers-user processing
+            
             
             
 /*
@@ -925,9 +950,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       if (!getVal(fv, "country").equals("")) {
         enc.setCountry(getVal(fv, "country"));
       }
-      if (!getVal(fv, "informothers").equals("")) {
-        enc.setInformOthers(getVal(fv, "informothers"));
-      }
+
 
       // xxxxxxx
       //add research team for GAq
@@ -1105,8 +1128,18 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
             }
           
             // Email interested others
-            
-              
+            if ((enc.getInformOthersEmails()!=null)&&(enc.getInformOthersEmails().size()>0)) {
+              List<String> cOther = enc.getInformOthersEmails();
+              for (String emailTo : cOther) {
+
+                String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+              }
+            }
+            /*  
             if ((enc.getInformOthers() != null) && (!enc.getInformOthers().trim().equals(""))) {
               List<String> cOther = NotificationMailer.splitEmails(enc.getInformOthers());
               for (String emailTo : cOther) {
@@ -1117,6 +1150,9 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
                 es.execute(mailer);
               }
             }
+            */
+            
+            
             es.shutdown();
           }
           catch(Exception e){

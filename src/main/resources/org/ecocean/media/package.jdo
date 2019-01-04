@@ -57,7 +57,7 @@
 
 
 	<class name="MediaAssetMetadata">
-		<property name="dataAsString" persistence-modifier="persistent">
+		<property name="dataAsString" persistence-modifier="persistent" default-fetch-group="true">
                 	<column jdbc-type="LONGVARCHAR" name="data" />
 		</property>
 	</class>

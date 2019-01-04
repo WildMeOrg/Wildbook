@@ -230,7 +230,7 @@
       </field>
 
       <field name="assets" persistence-modifier="persistent" default-fetch-group="false" mapped-by="occurrence" >
-          <collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
+          <collection element-type="org.ecocean.media.MediaAsset" dependent-element="false" />
           <join />
       </field>
 
@@ -246,6 +246,11 @@
       </field>
 	  
 	        <field name="photographers" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.User" dependent-element="false"/>
+        <join/>
+      </field>
+	  
+	          <field name="informOthers" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.User" dependent-element="false"/>
         <join/>
       </field>
