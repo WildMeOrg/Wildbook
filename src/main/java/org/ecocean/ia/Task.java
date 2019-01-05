@@ -48,6 +48,14 @@ public class Task implements java.io.Serializable {
         return id;
     }
 
+    public long getCreatedLong() {
+        return created;
+    }
+
+    public long getModifiedLong() {
+        return modified;
+    }
+
     public int countObjectMediaAssets() {
         return (objectMediaAssets == null) ? 0 : objectMediaAssets.size();
     }
