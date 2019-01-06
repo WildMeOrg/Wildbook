@@ -1103,7 +1103,7 @@ public class EncounterQueryProcessor {
       
       
       
-      if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter;org.ecocean.User photographer";}
+      if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter;org.ecocean.User photographer;org.ecocean.User other";}
       else{
         if(!jdoqlVariableDeclaration.contains("org.ecocean.User submitter")){jdoqlVariableDeclaration+=";org.ecocean.User submitter";}
         if(!jdoqlVariableDeclaration.contains("org.ecocean.User photographer")){jdoqlVariableDeclaration+=";org.ecocean.User photographer";}

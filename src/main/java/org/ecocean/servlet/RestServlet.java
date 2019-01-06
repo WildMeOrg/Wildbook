@@ -206,8 +206,9 @@ public class RestServlet extends HttpServlet
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-      resp.setHeader("Access-Control-Allow-Origin", "*");
-      getPMF(req);
+        resp.setHeader("Access-Control-Allow-Origin", "*");
+        String servletID=Util.generateUUID();
+        getPMF(req,servletID);
         // Retrieve any fetch group that needs applying to the fetch
         String fetchParam = req.getParameter("fetch");
 
@@ -222,7 +223,6 @@ public class RestServlet extends HttpServlet
                 // GET "/query?the_query_details" or GET "/jdoql?the_query_details" where "the_query_details" is "SELECT FROM ... WHERE ... ORDER BY ..."
                 String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
                 PersistenceManager pm = pmf.getPersistenceManager();
-                String servletID=Util.generateUUID();
                 ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "new");
                 
                 
@@ -268,13 +268,13 @@ public class RestServlet extends HttpServlet
                         
                     }
                     pm.close();
-                    //ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "close");
                     ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
                     
                     
                 }
                 return;
             }
+            /*
             else if (token.equalsIgnoreCase("jpql"))
             {
                 // GET "/jpql?the_query_details" where "the_query_details" is "SELECT ... FROM ... WHERE ... ORDER BY ..."
@@ -318,6 +318,7 @@ public class RestServlet extends HttpServlet
                 }
                 return;
             }
+            */
             else
             {
                 // GET "/{candidateclass}..."
@@ -338,12 +339,15 @@ public class RestServlet extends HttpServlet
                     resp.getWriter().write(error.toString());
                     resp.setStatus(404);
                     resp.setHeader("Content-Type", "application/json");
+                    ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                    
                     return;
                 }
 
                 Object id = getId(req);
                 if (id == null)
                 {
+                  if(req.getRemoteUser()!=null){
                     // Find objects by type or by query
                     try
                     {
@@ -362,6 +366,8 @@ public class RestServlet extends HttpServlet
                         try
                         {
                             pm.currentTransaction().begin();
+                            ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "begin");      
+                            
                             Query query = pm.newQuery("JDOQL", queryString);
                             List result = (List)filterResult(query.execute());
                             JSONArray jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
@@ -380,6 +386,8 @@ public class RestServlet extends HttpServlet
                                 pm.currentTransaction().rollback();
                             }
                             pm.close();
+                            ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                            
                         }
                         return;
                     }
@@ -390,6 +398,8 @@ public class RestServlet extends HttpServlet
                         resp.getWriter().write(error.toString());
                         resp.setStatus(400);
                         resp.setHeader("Content-Type", "application/json");
+                        ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                        
                         return;
                     }
                     catch (NucleusException ex)
@@ -399,6 +409,7 @@ public class RestServlet extends HttpServlet
                         resp.getWriter().write(error.toString());
                         resp.setStatus(404);
                         resp.setHeader("Content-Type", "application/json");
+                        ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
                         return;
                     }
                     catch (RuntimeException ex)
@@ -409,8 +420,19 @@ public class RestServlet extends HttpServlet
                         resp.getWriter().write(error.toString());
                         resp.setStatus(404);
                         resp.setHeader("Content-Type", "application/json");
+                        ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
                         return;
                     }
+                }
+                else{
+                    JSONObject error = new JSONObject();
+                    error.put("exception", "You have to log in to GET a full class list of objects.");
+                    resp.getWriter().write(error.toString());
+                    resp.setStatus(400);
+                    resp.setHeader("Content-Type", "application/json");
+                    ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                    return;
+                  }
                 }
 
                 // GET "/{candidateclass}/id" - Find object by id
@@ -422,6 +444,7 @@ public class RestServlet extends HttpServlet
                 try
                 {
                     pm.currentTransaction().begin();
+                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "begin");      
                     Object result = filterResult(pm.getObjectById(id));
                     JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
                     //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result,
@@ -429,7 +452,7 @@ public class RestServlet extends HttpServlet
                     tryCompress(req, resp, jsonobj, useCompression);
                     //resp.getWriter().write(jsonobj.toString());
                     resp.setHeader("Content-Type","application/json");
-                    //pm.currentTransaction().commit();
+                    
                     return;
                 }
                 catch (NucleusObjectNotFoundException ex)
@@ -454,6 +477,7 @@ public class RestServlet extends HttpServlet
                         pm.currentTransaction().rollback();
                     }
                     pm.close();
+                    ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
                 }
             }
         }
@@ -488,7 +512,8 @@ public class RestServlet extends HttpServlet
     throws ServletException, IOException
     {
         resp.setHeader("Access-Control-Allow-Origin", "*");
-        getPMF(req);
+        String servletID=Util.generateUUID();
+        getPMF(req, servletID);
         if (req.getContentLength() < 1)
         {
             resp.setContentLength(0);
@@ -649,8 +674,8 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-
-        getPMF(req);
+      String servletID=Util.generateUUID();
+        getPMF(req,servletID);
         PersistenceManager pm = pmf.getPersistenceManager();
         try
         {
@@ -766,7 +791,9 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 
     protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-        getPMF(req);
+      
+      String servletID=Util.generateUUID();
+        getPMF(req,servletID);
         String className = getNextTokenAfterSlash(req);
         ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(RestServlet.class.getClassLoader());
         AbstractClassMetaData cmd = nucCtx.getMetaDataManager().getMetaDataForEntityName(className);
@@ -979,9 +1006,10 @@ System.out.println("??? TRY COMPRESS ??");
             }
         }
 
-        private void getPMF(HttpServletRequest req){
+        private void getPMF(HttpServletRequest req, String servletID){
             String context="context0";
             context=ServletUtilities.getContext(req);
+            ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "new");      
             pmf=ShepherdPMF.getPMF(context);
             this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
             thisRequest = req;
