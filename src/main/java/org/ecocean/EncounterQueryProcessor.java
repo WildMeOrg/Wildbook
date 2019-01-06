@@ -1151,12 +1151,19 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
           DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
           DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
     
+          long date1Millis=date1.getMillis();
+          long date2Millis=date2.getMillis();
+          if(request.getParameter("datepicker1").trim().equals(request.getParameter("datepicker2").trim())){
+            //if same dateTime is set by both pickers, then add a full day of milliseconds to picker2 to cover the entire day
+            date2Millis+=(24*60*60*1000-1);
+          }
+          
           prettyPrint.append("Dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
 
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-          filter+="((dateInMilliseconds >= "+date1.getMillis()+") && (dateInMilliseconds <= "+date2.getMillis()+"))";
+          filter+="((dateInMilliseconds >= "+date1Millis+") && (dateInMilliseconds <= "+date2Millis+"))";
         }
-        else{filter+=" && ((dateInMilliseconds >= "+date1.getMillis()+") && (dateInMilliseconds <= "+date2.getMillis()+"))";
+        else{filter+=" && ((dateInMilliseconds >= "+date1Millis+") && (dateInMilliseconds <= "+date2Millis+"))";
         }
       }
       catch(Exception e){e.printStackTrace();}
