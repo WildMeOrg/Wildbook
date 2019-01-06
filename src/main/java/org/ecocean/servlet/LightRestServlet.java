@@ -35,6 +35,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
 
+
+
+
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
@@ -215,9 +218,10 @@ public class LightRestServlet extends HttpServlet
     throws ServletException, IOException
     {
 
+      String servletID=Util.generateUUID();
         System.out.println("        LIGHTREST: doGet called");
       resp.setHeader("Access-Control-Allow-Origin", "*");
-      getPMF(req);
+      getPMF(req,servletID);
         // Retrieve any fetch group that needs applying to the fetch
         String fetchParam = req.getParameter("fetch");
 
@@ -232,7 +236,7 @@ public class LightRestServlet extends HttpServlet
                 // GET "/query?the_query_details" or GET "/jdoql?the_query_details" where "the_query_details" is "SELECT FROM ... WHERE ... ORDER BY ..."
                 String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
                 PersistenceManager pm = pmf.getPersistenceManager();
-                String servletID=Util.generateUUID();
+                
                 ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "new");
                 
                 
@@ -519,8 +523,9 @@ public class LightRestServlet extends HttpServlet
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
+      String servletID=Util.generateUUID();
         resp.setHeader("Access-Control-Allow-Origin", "*");
-        getPMF(req);
+        getPMF(req,servletID);
         if (req.getContentLength() < 1)
         {
             resp.setContentLength(0);
@@ -681,8 +686,8 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-
-        getPMF(req);
+      String servletID=Util.generateUUID();
+        getPMF(req,servletID);
         PersistenceManager pm = pmf.getPersistenceManager();
         try
         {
@@ -798,7 +803,8 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 
     protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-        getPMF(req);
+      String servletID=Util.generateUUID();
+        getPMF(req,servletID);
         String className = getNextTokenAfterSlash(req);
         ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(RestServlet.class.getClassLoader());
         AbstractClassMetaData cmd = nucCtx.getMetaDataManager().getMetaDataForEntityName(className);
@@ -1021,10 +1027,10 @@ System.out.println("??? TRY COMPRESS ??");
             }
         }
 
-        private void getPMF(HttpServletRequest req){
+        private void getPMF(HttpServletRequest req,String servletID){
             String context="context0";
             context=ServletUtilities.getContext(req);
-            ShepherdPMF.setShepherdState("LightRestServlet.class", "new");
+            ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "new");
             pmf=ShepherdPMF.getPMF(context);
             
             this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();

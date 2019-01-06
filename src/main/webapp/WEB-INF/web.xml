@@ -1386,7 +1386,7 @@
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
 <url-pattern>/api/*</url-pattern>
-<url-pattern>/rest/*</url-pattern>
+
 </servlet-mapping>
 
 <servlet-mapping>
