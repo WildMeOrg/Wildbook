@@ -32,8 +32,9 @@
   Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 
 Shepherd confShepherd = new Shepherd(context);
+confShepherd.setAction("header.jsp_confShepherd");
 CommonConfiguration.ensureServerInfo(confShepherd, request);
-
+confShepherd.closeDBTransaction();
 
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
   %>
