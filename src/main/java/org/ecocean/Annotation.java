@@ -588,26 +588,23 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         Encounter someEnc = null;  //this is in case we fall thru (no trivial annot), we can clone some of this for new one
         for (Annotation ann : sibs) {
             Encounter enc = ann.findEncounter(myShepherd);
-            //Okay, we don't necesarily want to replace any one ann anymore, if we are re-running detection we want to hose all of them and create new ones.
-            //if (ann.isTrivial()) {
-            ann.setMatchAgainst(false);
-            if (enc == null) {  //weird case, but yneverknow (trivial annot with no encounter?)
-                ann.detachFromMediaAsset();  //but this.annot is now on asset, so we are good: kill ann!
-            } else {
-                // Make sure we don't already store this annotation on the encounter since we are iterating through all of them now.
-                // Annotation should take care of that.
-                enc.replaceAnnotation(ann, this);  //this also does the detachFromMediaAsset() for us
-            }   
-            //}
-            // This is an added hail mary to try and duplicate the base copy of the encounter.
-            if (someEnc==null||someEnc.getDWCDateAddedLong()>enc.getDWCDateAddedLong()) {
-                someEnc = enc;
-            } 
+            if (ann.isTrivial()) {
+                ann.setMatchAgainst(false);
+                if (enc == null) {  //weird case, but yneverknow (trivial annot with no encounter?)
+                    ann.detachFromMediaAsset();  //but this.annot is now on asset, so we are good: kill ann!
+                } else {
+                    //this also does the detachFromMediaAsset() for us
+                    enc.replaceAnnotation(ann, this);
+                    return enc;  //our work is done here
+                }
+                break;  //found trivial, done  TODO: what if there was (bug, weirdness, etc) more than one trivial. gasp!
+            }
+            if (someEnc == null) someEnc = enc;  //use the first one we find to base new one (below) off of, if necessary
         }
+        //if we fall thru, we have no trivial annot, so just get a new Encounter for this Annotation
         Encounter newEnc = null;
         if (someEnc == null) {
             newEnc = new Encounter(this);
-            
         } else {  //copy some stuff from sibling
             newEnc = someEnc.cloneWithoutAnnotations();
             newEnc.addAnnotation(this);
@@ -616,7 +613,6 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.resetDateInMilliseconds();
             newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
             newEnc.setGenus(someEnc.getGenus());
-            newEnc.addComments("Encounter cloned automatically by detection from Encounter ID: "+someEnc.getID());
         }
         return newEnc;
 
