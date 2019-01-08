@@ -620,7 +620,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
         if (mas.size() > 0) {
             if (task != null) {
                 task.setObjectMediaAssets(mas);
-                task.setParameters("{\"ibeis.detection\": true}");
+                task.addParameter("ibeis.detection", true);
             }
             for (MediaAsset ma : mas) {
                 validIds.add(Integer.toString(ma.getId()));
