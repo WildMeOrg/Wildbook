@@ -132,22 +132,34 @@ function forceLink(el) {
 		  		if (ma != null) {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
-                                                j.put("taxonomyString", enc.getTaxonomyString());
-                                                List<Task> tasks = ann.getRootIATasks(imageShepherd);
-                                                for (Task t : ma.getRootIATasks(imageShepherd)) {
-                                                    if (!tasks.contains(t)) tasks.add(t);
-                                                }
-                                                JSONArray jt = new JSONArray();
-                                                for (Task t : tasks) {
-                                                    jt.put(Util.toggleJSONObject(t.toJSONObject()));
-                                                }
-                                                j.put("tasks", jt);
-                                                JSONObject ja = new JSONObject();
+						j.put("taxonomyString", enc.getTaxonomyString());
+						List<Task> tasks = ann.getRootIATasks(imageShepherd);
+						for (Task t : ma.getRootIATasks(imageShepherd)) {
+							if (!tasks.contains(t)) tasks.add(t);
+						}
+						ArrayList<Long> taskDates = new ArrayList<>();
+						HashMap<Long,Task> tasksByCreated = new HashMap<Long,Task>();
+						for (Task t : tasks) {
+							taskDates.add(t.getCreatedLong());
+							tasksByCreated.put(t.getCreatedLong(),t);
+						}
+						Collections.sort(taskDates);
+						ArrayList<Task> sortedTasks = new ArrayList<>();
+						for (int i=0;i<taskDates.size();i++) {	
+							sortedTasks.add(tasksByCreated.get(taskDates.get(i)));
+						}
+						JSONArray jt = new JSONArray();
+						for (Task t : sortedTasks) {
+							System.out.println("Sorted output: "+t.getCreatedLong());
+							jt.put(Util.toggleJSONObject(t.toJSONObject()));
+						}
+						j.put("tasks", jt);
+						JSONObject ja = new JSONObject();
 						ja.put("id", ann.getId());
-                                                //ja.put("acmId", ann.getAcmId());
-                                                ja.put("iaClass", ann.getIAClass());
-                                                ja.put("identificationStatus", ann.getIdentificationStatus());
-                                                j.put("annotation", ja);
+                        //ja.put("acmId", ann.getAcmId());
+                        ja.put("iaClass", ann.getIAClass());
+                        ja.put("identificationStatus", ann.getIdentificationStatus());
+                        j.put("annotation", ja);
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
