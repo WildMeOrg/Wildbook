@@ -16,6 +16,8 @@ import org.ecocean.ShepherdProperties;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.Taxonomy;
+import org.ecocean.Keyword;
+import org.ecocean.servlet.RestKeyword;
 import org.ecocean.ia.*;
 import org.ecocean.ia.plugin.*;
 import org.ecocean.MarkedIndividual;
@@ -355,12 +357,21 @@ myShepherd.closeDBTransaction();
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
 
         HashMap<String,Object> map = new HashMap<String,Object>();
-        String modelTag = getModelTag(context, taxonomyFromMediaAssets(context, mas));
+        Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
+        String modelTag = getModelTag(context, taxy);
         if (modelTag != null) {
             System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
             map.put("model_tag", modelTag);
         } else {
             System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
+        }
+
+        String viewpointModelTag = getViewpointTag(context, taxy);
+        if (viewpointModelTag != null) {
+            System.out.println("[INFO] sendDetect() labeler_model_tag set to " + modelTag);
+            map.put("labeler_model_tag",viewpointModelTag);
+        } else {
+            System.out.println("[INFO] sendDetect() labeler_model_tag is null; DEFAULT will be used");
         }
 
         String u = getDetectUrlByModelTag(context, modelTag);
@@ -406,6 +417,18 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         if (mt == null) mt = IA.getProperty(context, "modelTag");  //too bad, fallback!
         return mt;
     }
+    public static String getViewpointTag(String context) {
+        return getViewpointTag(context, null);
+    }
+
+    public static String getViewpointTag(String context, Taxonomy tax) {
+        if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "viewpointModelTag");  //best we can hope for
+        String propKey = "viewpointModelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
+        System.out.println("[INFO] getViewpointTag() using propKey=" + propKey + " based on " + tax);
+        String vp = IA.getProperty(context, propKey);
+        if (vp == null) vp = IA.getProperty(context, "viewpointModelTag");  //too bad, fallback!
+        return vp;
+    }
 /*
     THIS IS NOW UNUSED BY ABOVE (see note above)
     note: this is "for internal use only" -- i.e. this is used for getModelTag above, so re-use with caution?
@@ -420,7 +443,10 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
 
     public static String inferIaClass(Annotation ann, Shepherd myShepherd) {
         Taxonomy tax = ann.getTaxonomy(myShepherd);
-        return taxonomyToIAClass(myShepherd.getContext(), tax);
+        System.out.println("inferIaClass got taxonomy "+tax);
+        String ans = taxonomyToIAClass(myShepherd.getContext(), tax);
+        System.out.println("taxonomyToIAClass mapped that to "+ans);
+        return ans;
     }
 
     public static String taxonomyToIAClass(String context, Taxonomy tax) {
@@ -437,22 +463,30 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     }
 
     //making this private cuz it is mostly "internal use" as the logic is pretty specific to above usage
-    private static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas) {
+    public static Taxonomy taxonomyFromMediaAsset(Shepherd myShepherd, MediaAsset ma) {
+        ArrayList<Annotation> anns = ma.getAnnotations();
+        if (anns.size() < 1) return null;
+        //here we step thru all annots on this asset but likely there will be only one (trivial)
+        //  if there are more then may the gods help us on what we really will get!
+        for (Annotation ann : anns) {
+            Taxonomy tax = ann.getTaxonomy(myShepherd);
+            if (tax != null) {
+                return tax;
+            }
+        }
+        return null;
+    }
+
+    public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas) {
         if (Util.collectionIsEmptyOrNull(mas)) return null;
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.taxonomyFromMediaAssets");
         myShepherd.beginDBTransaction();
         for (MediaAsset ma : mas) {
-            ArrayList<Annotation> anns = ma.getAnnotations();
-            if (anns.size() < 1) continue;
-            //here we step thru all annots on this asset but likely there will be only one (trivial)
-            //  if there are more then may the gods help us on what we really will get!
-            for (Annotation ann : anns) {
-                Taxonomy tax = ann.getTaxonomy(myShepherd);
-                if (tax != null) {
-                    myShepherd.rollbackDBTransaction();
-                    return tax;
-                }
+            Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
+            if (tax != null) {
+                myShepherd.rollbackDBTransaction();
+                return tax;
             }
         }
         myShepherd.rollbackDBTransaction();
@@ -1283,6 +1317,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
         return ann;
     }
 
+    // here's where we'll attach viewpoint from IA's detection results
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult, Shepherd myShepherd, String context, String rootDir) {
         if (iaResult == null) return null;
 
@@ -1293,9 +1328,23 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
             return null;
         }
 
+        String viewpoint = iaResult.optString("viewpoint",null);
+        if (Util.stringExists(viewpoint)) {
+            String kwName = RestKeyword.getKwNameFromIaViewpoint(viewpoint, tax, context);
+            if (kwName!=null) {
+                Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+                ma.addKeyword(kw);
+                System.out.println("[INFO] convertAnnotation viewpoint got ia viewpoint "+viewpoint+" mapped to kwName "+kwName+" and is adding kw "+kw);
+            }
+            System.out.println("[WARNING] convertAnnotation viewpoint got ia viewpoint "+viewpoint+" but was unable to map to a WB viewpoint using IA.properties");
+        } else {
+            System.out.println("[INFO] convertAnnotation viewpoint got no viewpoint from IA");
+        }
+
         JSONObject fparams = new JSONObject();
         fparams.put("detectionConfidence", iaResult.optDouble("confidence", -2.0));
         fparams.put("theta", iaResult.optDouble("theta", 0.0));
+        if (viewpoint!=null) fparams.put("viewpoint", viewpoint);
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
                                                 iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0), fparams);
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
