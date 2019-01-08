@@ -392,6 +392,7 @@ public class Encounter implements java.io.Serializable {
     }
 
     public Encounter(Occurrence occ, String individualID) {
+      this.setDWCDateAdded();
       this.catalogNumber = Util.generateUUID();
       this.occurrenceID = occ.getOccurrenceID();
       this.individualID = individualID;
@@ -2633,7 +2634,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
     public void addAnnotation(Annotation ann) {
         if (annotations == null) annotations = new ArrayList<Annotation>();
-        annotations.add(ann);
+        if (!annotations.contains(ann)) {
+          annotations.add(ann);
+        }
     }
 
     public void useAnnotationsForMatching(boolean use) {
