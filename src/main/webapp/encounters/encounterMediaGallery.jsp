@@ -140,8 +140,10 @@ function forceLink(el) {
 						ArrayList<Long> taskDates = new ArrayList<>();
 						HashMap<Long,Task> tasksByCreated = new HashMap<Long,Task>();
 						for (Task t : tasks) {
-							taskDates.add(t.getCreatedLong());
-							tasksByCreated.put(t.getCreatedLong(),t);
+							if (!taskDates.contains(t.getCreatedLong())) {
+								taskDates.add(t.getCreatedLong());
+								tasksByCreated.put(t.getCreatedLong(),t);
+							}
 						}
 						Collections.sort(taskDates);
 						ArrayList<Task> sortedTasks = new ArrayList<>();
