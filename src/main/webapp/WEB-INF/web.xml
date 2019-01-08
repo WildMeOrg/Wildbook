@@ -303,7 +303,7 @@
 				#/RemoveEmailAddress = authc, roles[admin]
 				/IndividualAddFile = authc, roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
-				/AdoptionAction = authc, roles[adoption]
+
 				/AddOccToTrack = authc, roles[researcher]
 				/MediaAssetCreate = authc, roles[researcher]
 				/EncounterCreate = authc, roles[researcher]
