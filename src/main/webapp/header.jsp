@@ -68,7 +68,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
+     	<%
+	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+	%>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+    <%
+	}
+    %>  
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
 	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
@@ -86,9 +92,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
 	   <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
 
-
+	<%
+	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+	%>
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
-      
+	<%
+	}
+	%>      
       
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
