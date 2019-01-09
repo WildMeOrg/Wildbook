@@ -52,7 +52,7 @@ context=ServletUtilities.getContext(request);
   <div class="adopter">
     <div class="adopter-header" >
       <p>
-        Whale Shark Adopter
+        Lynx Adopter
       </p>
     </div>
     <%

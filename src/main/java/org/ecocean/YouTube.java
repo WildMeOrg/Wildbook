@@ -595,7 +595,7 @@ System.out.println("]=== done with .extractFrames()");
       
       
       /*
-      //weka predictor preparation answering the question: does this video description suggest a real world whale shark sighting?
+      //weka predictor preparation answering the question: does this video description suggest a real world lynx sighting?
       ArrayList<Attribute> attributeList = new ArrayList<Attribute>(2);
       ArrayList<Attribute> attributeList2 = new ArrayList<Attribute>(2);
       Attribute desc = new Attribute("description", true);
@@ -848,7 +848,7 @@ System.out.println("]=== done with .extractFrames()");
                   Instances data = new Instances("TestInstances",attributeList,2);
                   data.setClassIndex(data.numAttributes()-1);
                   Instance pos = new DenseInstance(data.numAttributes());
-                  pos.setValue(merged, lowercaseRemarks.replaceAll("whale shark", "whaleshark"));
+                  pos.setValue(merged, lowercaseRemarks.replaceAll("lynx", "whaleshark"));
                   data.add(pos);
                   pos.setDataset(data);
                   

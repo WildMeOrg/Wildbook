@@ -9,7 +9,7 @@ use File::Slurp;
 
 
 my $BASE_URL = 'http://localhost';
-my $search_keyword = $ARGV[0] || '"whale shark"';
+my $search_keyword = $ARGV[0] || '"lynx"';
 my $max_videos = $ARGV[1] || 1;
 my $tmp_prefix = '/tmp/yt-ws.' . time;
 

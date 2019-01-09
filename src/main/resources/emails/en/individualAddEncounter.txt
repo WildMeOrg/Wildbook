@@ -1,8 +1,8 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
-Just a quick email to let you know that the whale shark encounter that you
-submitted has been matched to an identified whale shark in the Wildbook for Whale Sharks
+Just a quick email to let you know that the lynx encounter that you
+submitted has been matched to an identified lynx in the Wildbook for Lynx
 photo-identification library.
 Follow these links to find out more:
 

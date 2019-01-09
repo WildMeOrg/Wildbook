@@ -121,7 +121,7 @@ if (keyword == null) {
 			}
 			
 			String consolidatedRemarks=title+" "+desc;
-			//consolidatedRemarks=consolidatedRemarks.replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase().replaceAll("whale shark", "whaleshark");
+			//consolidatedRemarks=consolidatedRemarks.replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("’","").replaceAll("′","").toLowerCase().replaceAll("lynx", "whaleshark");
 			consolidatedRemarks=AIUtilities.youtubePredictorPrepareString(consolidatedRemarks);
 
                         if (wekaAvailable) {

@@ -1,8 +1,8 @@
 SUBJECT: New encounter submission: @ENCOUNTER_ID@
-Thank you for helping whale shark research!
+Thank you for helping lynx research!
 
 Thank you for reporting your encounter. We will use your information to assist
-scientific research and global conservation initiatives for whale sharks.
+scientific research and global conservation initiatives for lynx.
 
 Your sighting link:
 @ENCOUNTER_LINK@
@@ -14,6 +14,6 @@ that encounter at any time using the link above or by going to:
         http://www.whaleshark.org
 
 We will keep you informed of any changes to your submitted encounter,
-and email you if the whale shark is matched to another one within this Wildbook
-database. We will also let you know if/when and where your whale shark is
+and email you if the lynx is matched to another one within this Wildbook
+database. We will also let you know if/when and where your lynx is
 resighted by other community members.

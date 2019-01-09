@@ -1,15 +1,15 @@
-SUBJECT: Email from Wildbook for Whale Sharks
+SUBJECT: Email from Wildbook for Lynx
 
 @EMAIL_CONTENT@
 
 Sincerely,
 
-The Whale Shark Team
+The Lynx Team
 
 
 LEGAL STATEMENT
 
-Wildbook for Whale Sharks is copyrighted 2009-2016 by Wild Me.
+Wildbook for Lynx is copyrighted 2009-2016 by Wild Me.
 Individual contributors to this Wildbook retain copyrights for submitted images.
 No reproduction or usage of material in this library is permitted without the
 express permission of the copyright holders.

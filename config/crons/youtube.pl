@@ -5,7 +5,7 @@ use LWP::UserAgent;
 
 my $hostPrefix = 'http://pod.scribble.com:6767/uptest';
 my $dir = '/home/jon/wildbook/yt';
-my $keyword = 'whale shark';
+my $keyword = 'lynx';
 my $max = 1;
 
 my $ua = LWP::UserAgent->new;

@@ -53,7 +53,7 @@ import org.datanucleus.api.rest.orgjson.JSONException;
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
  * The <code>shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it.
- * Any application seeking access to	whale shark	data must invoke an	instance of	shepherd first and use it to retrieve any data stored in the
+ * Any application seeking access to	lynx	data must invoke an	instance of	shepherd first and use it to retrieve any data stored in the
  * database.
  * <p/>
  * While	a <code>shepherd</code>	object is easily invoked with a	single,	simple constructor,	no data
@@ -1874,7 +1874,7 @@ public class Shepherd {
   /**
    * Retrieves any all approved encounters that are stored in the database
    *
-   * @return an Iterator of all whale shark encounters stored in the database that are approved
+   * @return an Iterator of all lynx encounters stored in the database that are approved
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllEncounters() {
@@ -2198,7 +2198,7 @@ public class Shepherd {
   /**
    * Retrieves all encounters that are stored in the database in the order specified by the input String
    *
-   * @return an Iterator of all valid whale shark encounters stored in the visual database, arranged by the input String
+   * @return an Iterator of all valid lynx encounters stored in the visual database, arranged by the input String
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllEncounters(String order) {
@@ -2318,7 +2318,7 @@ public class Shepherd {
   /**
    * Retrieves a filtered list of encounters that are stored in the database in the order specified by the input String
    *
-   * @return a filtered Iterator of whale shark encounters stored in the visual database, arranged by the input String
+   * @return a filtered Iterator of lynx encounters stored in the visual database, arranged by the input String
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllEncounters(String order, String filter2use) {
@@ -2779,7 +2779,7 @@ public class Shepherd {
   /**
    * Retrieves all encounters that are stored in the database but which have been rejected for the visual database
    *
-   * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
+   * @return an Iterator of all lynx encounters stored in the database that are unacceptable for the visual ID library
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllUnidentifiableEncounters(Query rejectedEncounters) {
@@ -2795,7 +2795,7 @@ public class Shepherd {
   /**
    * Retrieves all new encounters that are stored in the database but which have been approved for public viewing in the visual database
    *
-   * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
+   * @return an Iterator of all lynx encounters stored in the database that are unacceptable for the visual ID library
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getUnapprovedEncounters(Query acceptedEncounters) {
@@ -2833,7 +2833,7 @@ public class Shepherd {
   /**
    * Retrieves all encounters that are stored in the database but which have been rejected for the visual database in the order identified by the input String
    *
-   * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library in the String order
+   * @return an Iterator of all lynx encounters stored in the database that are unacceptable for the visual ID library in the String order
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllUnidentifiableEncounters(Query unacceptedEncounters, String order) {

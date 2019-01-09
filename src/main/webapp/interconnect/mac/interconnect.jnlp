@@ -8,7 +8,7 @@
     <title>Interconnect</title>
     <vendor>ECOCEAN</vendor>
     <homepage href="http://www.ecocean.org/"/>
-    <description>Part of the ECOCEAN Whale Shark Photo-identification Library.</description>
+    <description>Part of the ECOCEAN Lynx Photo-identification Library.</description>
     <icon href="ws_icon.gif"/>
     <offline-allowed/>
   </information>
