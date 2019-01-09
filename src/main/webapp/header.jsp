@@ -58,7 +58,13 @@ confShepherd.closeDBTransaction();
       <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <%
+	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+	%>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+	<%
+	}
+	%>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
     <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
@@ -75,8 +81,13 @@ confShepherd.closeDBTransaction();
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
 	<script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
 
-
+    <%
+	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+	%>
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
+   <%
+	}
+   %>   
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
