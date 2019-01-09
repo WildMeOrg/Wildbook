@@ -16,13 +16,14 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("sendMediaAssets.jsp");
+String num = request.getParameter("id");
 %>
 <html>
 <head>
-<title>Send MediaAssets</title>
+<title>Send Media Assets</title>
 </head>
 <body>
-  <h1>Send media assets with unity features only.</h1>
+  <h1>Send media assets to IA intake.</h1>
 <ul>
 <%
 String tskid = "";
@@ -32,58 +33,53 @@ try {
     ArrayList<MediaAsset> mas = myShepherd.getAllMediaAssetsAsArray();
     List<MediaAsset> toSendMas = new ArrayList<>();
     for (MediaAsset ma : mas) {
-        //ArrayList<Annotation> anns = new ArrayList<>();
-        if (!"complete".equals(ma.getDetectionStatus())) {
-            ArrayList<Annotation> anns = ma.getAnnotations();
-            if (anns.size()>0) {
-                boolean validToSend = true;
-                for (Annotation ann : anns) {
-                    if (ma.getParent(myShepherd)!=null) {
-                        validToSend = false;
-                    }
+        ArrayList<Annotation> anns = ma.getAnnotations();
+        if (anns.size()==1&&anns.get(0).isTrivial()) {
+            boolean validToSend = true;
+            for (Annotation ann : anns) {
+                if (ma.getParent(myShepherd)!=null) {
+                    validToSend = false;
                 }
-                if (validToSend) {
-                    toSendMas.add(ma);
-                    count++;
-                }
+            }
+            if (validToSend) {
+                toSendMas.add(ma);
+                count++;
             }
         }
     }
-
-      MediaAsset ma = myShepherd.getMediaAsset("2");
-
-      List<MediaAsset> lma = new ArrayList<>();
-//    for (int i=0;i<5;i++) {
-//    	lma.clear();
-//	MediaAsset ma = toSendMas.get(i);
-//	System.out.println("METADATA: "+ma.getMetadata());
-//    	lma.add(ma);
-//    	Task tsk = IA.intakeMediaAssets(myShepherd, lma);
-//    	System.out.println(tsk.getId());
-//    }
-    System.out.println("==========================================================");
-    Task topTask = new Task(Util.generateUUID());
-    myShepherd.storeNewTask(topTask);
-    System.out.println("New TopTask ID = "+topTask.getId());
-    lma.add(ma);
-    Task tsk = IA.intakeMediaAssets(myShepherd,lma);
-    topTask.addChild(tsk);
-    System.out.println("New intake MA taskId = "+tsk.getId());
-    //myShepherd.getPM().refresh(ma);
-    List<Task> allTasksForMA = ma.getRootIATasks(myShepherd);
-    for (Task rootTask : allTasksForMA) {
-	System.out.println("Saved Root Task: "+rootTask.getId());
+    for (int i =0;i<5;i++) {
+        MediaAsset ma = toSendMas.get(i);
+        List<MediaAsset> lma = new ArrayList<>();
+        System.out.println("==========================================================");
+        Task topTask = new Task(Util.generateUUID());
+        myShepherd.storeNewTask(topTask);
+        System.out.println("New TopTask ID = "+topTask.getId());
+        lma.add(ma);
+        Task tsk = IA.intakeMediaAssets(myShepherd,lma);
+        topTask.addChild(tsk);
+        System.out.println("New intake MA taskId = "+tsk.getId());
+        //myShepherd.getPM().refresh(ma);
+        List<Task> allTasksForMA = ma.getRootIATasks(myShepherd);
+        for (Task rootTask : allTasksForMA) {
+        System.out.println("Saved Root Task: "+rootTask.getId());
+        }
+        List<Annotation> newAnns = ma.getAnnotations();
+        Task tsk2 = IA.intakeAnnotations(myShepherd,newAnns);
+        //myShepherd.storeNewTask(tsk2);
+        while (tsk2==null) {
+        if (tsk2!=null) {
+            break;
+        }
+        continue;
+        }
+        System.out.println("New intake Annd taskId = "+tsk2.getId());
+        tsk.addChild(tsk2);
+        tsk2.setParent(tsk);
+        myShepherd.beginDBTransaction();
+        myShepherd.getPM().refresh(ma);
+        //tskid = tsk2.getId(); 
+        System.out.println("===========================================================");
     }
-    List<Annotation> newAnns = ma.getAnnotations();
-    Task tsk2 = IA.intakeAnnotations(myShepherd,newAnns);
-    myShepherd.storeNewTask(tsk2);
-    System.out.println("New intake Annd taskId = "+tsk2.getId());
-    tsk.addChild(tsk2);
-    tsk2.setParent(tsk);
-    myShepherd.beginDBTransaction();
-    myShepherd.getPM().refresh(ma);
-    //tskid = tsk2.getId(); 
-    System.out.println("===========================================================");
 
 
 } catch (Exception e) {
@@ -98,7 +94,7 @@ try {
 %>
 
 <p>Task id for this test MA sent <%=tskid%></p>
-<p>Sending <%=count%> media assets to get detection run!</p>
+<p>Sending <%=count%> media assets fit criteria for running again.</p>
 
 </ul>
 </body>
