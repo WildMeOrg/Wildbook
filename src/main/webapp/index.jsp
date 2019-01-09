@@ -207,7 +207,7 @@ finally{
                     <div class="focusbox-inner opec">
                         <h2><%=props.getProperty("ourContributors") %></h2>
                         <div>
-                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
                             <p><%=featuredUser.getFullName() %>
                                 <%
                                 if(featuredUser.getAffiliation()!=null){
@@ -311,7 +311,7 @@ finally{
 
 	                          %>
 	                                <li>
-	                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+	                                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
 	                                    <%
 	                                    if(thisUser.getAffiliation()!=null){
 	                                    %>
@@ -404,7 +404,7 @@ if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonCo
 		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
 
 		                	%>
-		                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
+		                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round">
 		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
 		                    <%
 		                    if(adopt.getAdopterQuote()!=null){
