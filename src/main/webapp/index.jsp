@@ -208,7 +208,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
 	                    <div class="focusbox-inner opec">
 	                        <h2>Our contributors</h2>
 	                        <div>
-	                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+	                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
 	                            <p><%=featuredUser.getFullName() %>
 	                                <%
 	                                if(featuredUser.getAffiliation()!=null){
@@ -316,7 +316,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
 
 	                          %>
 	                                <li>
-	                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+	                                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
 	                                    <%
 	                                    if(thisUser.getAffiliation()!=null){
 	                                    %>
@@ -416,7 +416,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
 		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
 
 		                	%>
-		                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
+		                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
 		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
 		                    <%
 		                    if(adopt.getAdopterQuote()!=null){
