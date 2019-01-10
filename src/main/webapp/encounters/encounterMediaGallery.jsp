@@ -460,11 +460,11 @@ $(window).on('resizeEnd', function(ev) {
 });
 
 
-function removeFeatAnnEnc(fid, aid, eid) {
+function annotEditAjax(data) {
     $('.popup-content').html('<div class="throbbing">updating</div>');
     $.ajax({
         url: wildbookGlobals.baseUrl + '/AnnotationEdit',
-        data: JSON.stringify({ id: aid, featureId: fid, encounterId: eid, remove: true }),
+        data: JSON.stringify(data),
         type: 'POST',
         dataType: 'json',
         contentType: 'application/javascript',
@@ -484,55 +484,23 @@ function removeFeatAnnEnc(fid, aid, eid) {
     return false;
 }
 
+function removeFeatAnnEnc(fid, aid, eid) {
+    return annotEditAjax({ id: aid, featureId: fid, encounterId: eid, remove: true });
+}
+
+function swapEncounters(aid1, aid2) {
+    return annotEditAjax({ id: aid1, swapEncounterId: aid2 });
+}
+
 function swapAnnotIndivIds(aid1, aid2) {
-    $('.popup-content').html('<div class="throbbing">updating</div>');
-    $.ajax({
-        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
-        data: JSON.stringify({ id: aid1, swapIndividualId: aid2 }),
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/javascript',
-        complete: function(d) {
-            console.info('return => %o', d);
-            if (!d || !d.responseJSON) {
-                $('.popup-content').html('<div class="error">unknown error</div>');
-                return;
-            }
-            if (d.responseJSON.success) {
-                window.location.reload();
-                return;
-            }
-            $('.popup-content').html('<div class="error">' + (d.responseJSON.error || d.responseJSON.message) + '</div>');
-        }
-    });
-    return false;
+    return annotEditAjax({ id: aid1, swapIndividualId: aid2 });
 }
 
 function assignIndiv(annotId) {
     var indivId = $('#edit-assign-individ').val();
-    $('.popup-content').html('<div class="throbbing">updating</div>');
-    //$('.popup-content').html(annotId + ' <= ' + indivId);
-    $.ajax({
-        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
-        data: JSON.stringify({ id: annotId, assignIndividualId: indivId }),
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/javascript',
-        complete: function(d) {
-            console.info('return => %o', d);
-            if (!d || !d.responseJSON) {
-                $('.popup-content').html('<div class="error">unknown error</div>');
-                return;
-            }
-            if (d.responseJSON.success) {
-                window.location.reload();
-                return;
-            }
-            $('.popup-content').html('<div class="error">' + (d.responseJSON.error || d.responseJSON.message) + '</div>');
-        }
-    });
-    return false;
+    return annotEditAjax({ id: annotId, assignIndividualId: indivId });
 }
+
 
 var editMode = false;
 function editClick(ev) {
@@ -555,22 +523,24 @@ console.log(ma);
             myFeat = ma.features[i];
         }
     }
-    h += '<div style="color: #A33; font-size: 1.3em;">Editing <b>Annot ' + myFeat.annotationId.substring(0,8) + '</b> (on <b>Enc ' + myFeat.encounterId.substring(0,8) + '</b>)</div>';
+    h += '<div style="color: #A33; font-size: 1.3em;">Editing <b>Annot ' + niceId(myFeat.annotationId) + '</b> (on <b>Enc ' + niceId(myFeat.encounterId) + '</b>)</div>';
     for (var i = 0 ; i < ma.features.length ; i++) {
         if ((ma.features[i].id == annId) || !ma.features[i].encounterId) continue;
+        h += '<input type="button" value="swap Annots: ' + niceId(myFeat.annotationId) + ' ==&gt; [Enc ' + niceId(ma.features[i].encounterId)+ '] // ' + niceId(ma.features[i].annotationId) + ' ==&gt; [Enc ' + niceId(myFeat.encounterId) + ']" ';
+        h += ' onClick="swapEncounters(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         if (myFeat.individualId && ma.features[i].individualId) {
-            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + ma.features[i].encounterId.substring(0,8) + ')" '; 
+            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + niceId(ma.features[i].encounterId) + ')" '; 
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         } else if (myFeat.individualId) {
-            h += '<input type="button" value="set name ' + myFeat.individualId + ' on Enc ' + ma.features[i].encounterId.substring(0,8) + ' (unset this)" '; 
+            h += '<input type="button" value="set name ' + myFeat.individualId + ' on [Enc ' + niceId(ma.features[i].encounterId) + '] (unset this)" '; 
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         } else if (ma.features[i].individualId) {
-            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on this Encounter (unset ' + ma.features[i].encounterId.substring(0,8) + ')" '; 
+            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on the above Encounter (unset ' + niceId(ma.features[i].encounterId) + ')" '; 
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         }
     }
-    h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><input style="background-color: #F30;" type="button" value="remove Feat ' + myFeat.id.substring(0,8) + ' / Ann ' + myFeat.annotationId.substring(0,8) + ' / Enc ' + myFeat.encounterId.substring(0,8) + '" onClick="return removeFeatAnnEnc(\'' + myFeat.id + '\', \'' + myFeat.annotationId + '\', \'' + myFeat.encounterId + '\');" /></div>';
-    h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><i>or,</i> assign <b>Enc ' + myFeat.encounterId.substring(0,8) + '</b> to <input id="edit-assign-individ" /> <input type="button" value="accept" onClick="return assignIndiv(\'' + myFeat.annotationId + '\');" /></div>';
+    h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><input style="background-color: #F30;" type="button" value="remove Feat ' + niceId(myFeat.id) + ' / Ann ' + niceId(myFeat.annotationId) + ' / Enc ' + niceId(myFeat.encounterId) + '" onClick="return removeFeatAnnEnc(\'' + myFeat.id + '\', \'' + myFeat.annotationId + '\', \'' + myFeat.encounterId + '\');" /></div>';
+    h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><i>or,</i> assign <b>Enc ' + niceId(myFeat.encounterId) + '</b> to <input id="edit-assign-individ" /> <input type="button" value="accept" onClick="return assignIndiv(\'' + myFeat.annotationId + '\');" /></div>';
     imageEnhancer.popup(h);
     $('.image-enhancer-popup').draggable();
 
@@ -589,6 +559,10 @@ console.log(ma);
     wildbook.makeAutocomplete(document.getElementById('edit-assign-individ'), args);
 
     return false;
+}
+
+function niceId(id) {
+    return id.substring(0,8);
 }
 
 //initializes image enhancement (layers)

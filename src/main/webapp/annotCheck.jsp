@@ -48,6 +48,7 @@ java.util.Collection,
 java.io.IOException,
 java.util.ArrayList,
 javax.jdo.Query,
+java.util.List,
 java.util.Map,
 org.json.JSONObject,
 
@@ -63,12 +64,25 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd = new Shepherd("context0");
 
-int start = 0;
+int pageSize = 30;
+int startId = 0;
+try { startId = Integer.parseInt(request.getParameter("startId")); } catch (Exception ex) {}
+int pageNum = 0;
+try { pageNum = Integer.parseInt(request.getParameter("pageNum")); } catch (Exception ex) {}
+
+Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT COUNT(*) FROM \"MEDIAASSET_FEATURES\" where \"IDX\" > 0");
+List results = (List)q.execute();
+Long count = (Long) results.iterator().next();
+
+//out.println("<p><h1>startId = <b>" + startId + "</b></h1>");
+out.println("<p><h1>pageNum = <b>" + pageNum + "</b> <i>(pageSize = " + pageSize + ")</i></h1>");
+out.println(" (total: <b>" + count + "</b>)");
+out.println("</p><hr />");
 
 
-Query query = myShepherd.getPM().newQuery("select from org.ecocean.media.MediaAsset where id > " + start + " && features.size() > 1");
+Query query = myShepherd.getPM().newQuery("select from org.ecocean.media.MediaAsset where id > " + startId + " && features.size() > 1");
 query.setOrdering("id");
-query.setRange(0,30);
+query.setRange(pageNum,pageSize);
 Collection c = (Collection) (query.execute());
 ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>(c);
 query.closeAll();
