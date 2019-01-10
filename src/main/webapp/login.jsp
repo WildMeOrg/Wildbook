@@ -57,7 +57,7 @@ if (session.getAttribute("error") != null) {
 %>
 </div>
               
-              <form action="LoginUser" method="post">
+              <form action="LoginUser" method="post" id="logMeInForm">
     <table align="left" border="0" cellspacing="0" cellpadding="3">
         <tr>
             <td><%=props.getProperty("username") %></td>
@@ -76,7 +76,7 @@ if (session.getAttribute("error") != null) {
         </tr>
         <tr>
 					<td colspan="3">
-            <input type="submit" name="submit" value="<%=props.getProperty("login") %>" />
+            <input type="submit" name="logMeIn" value="<%=props.getProperty("login") %>" id="logMeIn" />
 					</td>
         </tr>
         <tr><td>&nbsp;</td></tr>

@@ -213,7 +213,7 @@ public class CommonConfiguration {
     }
 
     public static void ensureServerInfo(Shepherd myShepherd, HttpServletRequest req) {
-      myShepherd.setAction("header_checkServerInfo.jsp");
+      
       myShepherd.beginDBTransaction();
       boolean updated = checkServerInfo(myShepherd, req);
       if (updated) {
@@ -245,10 +245,19 @@ public class CommonConfiguration {
             updated = true;
         }
         if (!updated) return false;
+        if (!isValidServerName(req.getServerName())) return false;  //dont update if we got wonky name like "localhost"
         info.put("timestamp", System.currentTimeMillis());
         info.put("context", myShepherd.getContext());
         setServerInfo(myShepherd, info);
         System.out.println("INFO: CommonConfiguration.checkServerInfo() has update server info data to " + info.toString());
+        return true;
+    }
+
+    //this is really just for checkServerInfo()
+    private static boolean isValidServerName(String sname) {
+        if (sname == null) return false;
+        if (sname.equals("localhost")) return false;
+        if (sname.matches("[\\d\\.]+")) return false;
         return true;
     }
 

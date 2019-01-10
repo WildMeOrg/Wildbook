@@ -18,6 +18,9 @@
           <p><%=props.getProperty("section1_text2")%></p>
           <p><%=props.getProperty("section1_text3")%></p>
           <p><%=props.getProperty("section1_text4")%></p>
+          
+          <h3><%=props.getProperty("citation")%></h3>
+          <p>Marshall AD, Holmberg J (2018) MantaMatcher Photo-identification Library https://www. mantamatcher.org Downloaded on YYYY-MM-DD.</p>
 
         <h2><%=props.getProperty("section2_title")%></h2>
           <p><%=props.getProperty("section2_text1")%></p>

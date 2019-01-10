@@ -437,7 +437,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			illustUrl += "&version="+version;
 			console.log("ILLUSTRATION "+i+" "+illustUrl);
 
-			displayAnnot(res.taskId, d[1], i, d[0], illustUrl);
+			displayAnnot(res.taskId, d[1], i, d[0] / 1000, illustUrl);
 			// ----- END Hotspotter IA Illustration-----
 		}
 		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });

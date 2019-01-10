@@ -46,6 +46,10 @@ public class RestClient {
         return anyMethod("GET", url, null);
     }
 
+    public static JSONObject get(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return anyMethod("GET", url, data);
+    }
+
     //IBEIS-specifically, data gets posted as name-value pairs where name comes from the keys
     private static JSONObject anyMethod(String method, URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 System.out.println("TRYING anyMethod(" + method + ") url -> " + url);

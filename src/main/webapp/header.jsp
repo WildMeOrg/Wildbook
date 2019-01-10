@@ -32,8 +32,9 @@
   Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 
 Shepherd confShepherd = new Shepherd(context);
+confShepherd.setAction("header.jsp_confShepherd");
 CommonConfiguration.ensureServerInfo(confShepherd, request);
-
+confShepherd.closeDBTransaction();
 
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
   %>
@@ -57,7 +58,13 @@ CommonConfiguration.ensureServerInfo(confShepherd, request);
       <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <%
+	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+	%>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+	<%
+	}
+	%>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
     <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
@@ -74,8 +81,13 @@ CommonConfiguration.ensureServerInfo(confShepherd, request);
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
 	<script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
 
-
+    <%
+	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+	%>
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
+   <%
+	}
+   %>   
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
