@@ -74,9 +74,14 @@ Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT COUNT(*) FR
 List results = (List)q.execute();
 Long count = (Long) results.iterator().next();
 
+long maxPages = Math.round(Math.floor(count - 0.5 / pageSize));
+
 //out.println("<p><h1>startId = <b>" + startId + "</b></h1>");
-out.println("<p><h1>pageNum = <b>" + pageNum + "</b> <i>(pageSize = " + pageSize + ")</i></h1>");
-out.println(" (total: <b>" + count + "</b>)");
+out.println("<p><h1>");
+if (pageNum > 0) out.println("<a href=\"?pageNum=" + (pageNum - 1) + "\">&lt;</a> ");
+out.println("pageNum = <b>" + pageNum + "</b> <i>(pageSize = " + pageSize + ")</i>");
+if (pageNum < maxPages) out.println("<a href=\"?pageNum=" + (pageNum + 1) + "\">&gt;</a> ");
+out.println("</h1> (total: <b>" + count + "</b>)");
 out.println("</p><hr />");
 
 

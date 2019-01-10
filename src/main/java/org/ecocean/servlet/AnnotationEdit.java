@@ -38,6 +38,7 @@ import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Encounter;
 import org.ecocean.media.Feature;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.AccessControl;
 import org.json.JSONObject;
@@ -172,8 +173,24 @@ public class AnnotationEdit extends HttpServlet {
                     } else if (!annot.getId().equals(feat.getAnnotation().getId())) {
                         rtn.put("error", "Feature does not contain this Annotation");
                     } else {  //good to go?
-                        rtn.put("message", "FAKE FAIL! " + feat + " / " + annot + " / " + enc);
-                        System.out.println("INFO: AnnotationEdit.remove [enc,annot,feat]=[" + enc.getCatalogNumber() + "," + annot.getId() + "," + feat.getId() + "]");
+                        MediaAsset ma = feat.getMediaAsset();
+                        if (ma != null) {
+                            ma.removeFeature(feat);
+                            myShepherd.getPM().makePersistent(ma);
+                        }
+                        enc.removeAnnotation(annot);
+                        String note = "";
+                        if (enc.getAnnotations().size() > 0) {
+                            rtn.put("encounterDeleted", false);
+                            note = " note: Encounter has other annots; not removed";
+                        } else {
+                            myShepherd.getPM().deletePersistent(enc);
+                            rtn.put("encounterDeleted", true);
+                        }
+                        myShepherd.getPM().deletePersistent(annot);
+                        myShepherd.getPM().deletePersistent(feat);
+                        System.out.println("INFO: AnnotationEdit.remove deleted [enc,annot,feat]=[" + enc.getCatalogNumber() + "," + annot.getId() + "," + feat.getId() + "]" + note);
+                        rtn.put("success", true);
                     }
                 } catch (Exception ex) {
                     rtn.put("error", "ERROR: " + ex.toString() + " with featureId=" + fid + " and encounterId=" + eid);
