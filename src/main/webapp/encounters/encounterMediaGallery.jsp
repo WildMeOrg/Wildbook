@@ -28,6 +28,30 @@ java.util.*" %>
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 
+  <%!
+
+  // if there is a MediaAsset with detection status not null and no annotation that is done
+  boolean shouldEvict(Annotation ann) {
+    // idstatus complete/pending means we're done with IA (or at least done evicting cache)
+    if (IBEISIA.STATUS_COMPLETE.equals(ann.getIdentificationStatus())) return false;
+    if (IBEISIA.STATUS_PENDING.equals(ann.getIdentificationStatus())) return false;
+    if (IBEISIA.STATUS_PROCESSING.equals(ann.getIdentificationStatus())) return false;
+    MediaAsset ma = ann.getMediaAsset();
+    // detectionstatus null means we haven't done any IA
+    if (ma!=null && ma.getDetectionStatus() == null) return false;
+    System.out.println("   EMG: EVICTING cache! Ann.idStatus="+ann.getIdentificationStatus()+" and ma.detectionStatus="+ma.getDetectionStatus());
+    return true;
+  }
+
+  boolean shouldEvict(Encounter enc) {
+    for (Annotation ann: enc.getAnnotations()) {
+      if (shouldEvict(ann)) return true;
+    }
+    return false;
+  }
+
+  %>
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -99,6 +123,10 @@ function forceLink(el) {
 
 		  Encounter enc = encs.get(f);
 		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
+      if (shouldEvict(enc)) {
+        // I believe we need to evict the cache here so that we'll see detection results on the encounter page
+        org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+      }
 
       if (!enc.canUserAccess(request)) {
         System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
@@ -124,7 +152,7 @@ function forceLink(el) {
 
 		      MediaAsset ma = ann.getMediaAsset();
 		      String filename = ma.getFilename();
-		      System.out.println("    EMG: got ma at"+filename);
+		      System.out.println("    EMG: got ma at "+filename);
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
@@ -196,6 +224,12 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 						}
 						// Should fix oman images not appearing on import
 						j.put("url", ma.webURL().toString());
+
+            if (Util.stringExists(ma.getDetectionStatus())) {
+              j.put("detectionStatus",ma.getDetectionStatus());
+            } else {
+              System.out.println("DETECTION STATUS"+ma.getDetectionStatus()+" missing for ma "+ma);
+            }
 
 						all.put(j);
 					}
