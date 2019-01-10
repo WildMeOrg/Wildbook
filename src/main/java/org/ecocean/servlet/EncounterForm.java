@@ -65,6 +65,7 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.identity.IBEISIA;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -1068,6 +1069,12 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
+
+                // might want to set detection status here (on the main thread)
+
+                for (MediaAsset ma: enc.getMedia()) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                }
                 Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
                 myShepherd.storeNewTask(task);
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);

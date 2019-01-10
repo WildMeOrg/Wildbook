@@ -97,6 +97,7 @@ public class IBEISIA {
     public static String STATUS_PENDING = "pending";  //pending review (needs action by user)
     public static String STATUS_COMPLETE = "complete";  //process is done
     public static String STATUS_PROCESSING = "processing";  //off at IA, awaiting results
+    public static String STATUS_INITIATED = "initiated"; //initiated on our side but may or may not be processing on IA side
     public static String STATUS_ERROR = "error";
 
     private static long TIMEOUT_DETECTION = 20 * 60 * 1000;   //in milliseconds
@@ -294,6 +295,8 @@ System.out.println("sendAnnotations(): sending " + ct);
             qnlist.add(IA_UNKNOWN_NAME);
         }
 
+
+
         boolean setExemplarCaches = false;
         if (tanns == null) {
 System.out.println("--- exemplar!");
@@ -440,6 +443,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         Taxonomy tax = myShepherd.getOrCreateTaxonomy(taxonomyString, false);
         return taxonomyToIAClass(myShepherd.getContext(), tax);
     }
+
 
     public static String inferIaClass(Annotation ann, Shepherd myShepherd) {
         Taxonomy tax = ann.getTaxonomy(myShepherd);
@@ -3519,7 +3523,7 @@ System.out.println("processCallback returned --> " + proc);
 */
 
         all.put("_timestamp", System.currentTimeMillis());
-System.out.println("-------- >>> " + all.toString() + "\n##################################################################");
+System.out.println("-------- >>> all.size() (omitting all.toString() because it's too big!) " + all.length() + "\n##################################################################");
         return;
     }
 

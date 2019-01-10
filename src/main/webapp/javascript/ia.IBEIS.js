@@ -36,16 +36,20 @@ wildbook.IA.plugins.push({
             function(enh) {  //the menu text for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 var menuText = '';
-                if (iaStatus && iaStatus.status) {
-                    menuText += 'matching already initiated, status: <span title="task ' + iaStatus.taskId;
+                if (iaStatus && iaStatus.status && iaStatus.status != 'initiated') {
+                    menuText += 'matching in progress, status: <span title="task ' + iaStatus.taskId;
                     menuText += '" class="image-enhancer-menu-item-iastatus-';
                     menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
                     // here we want to add another item to start another matching job?
                 } else {
-	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+    	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
-                    if (ma.taxonomyString) {
+                    // TODO logic for actual detectionstatus values
+                    if (ma.detectionStatus) {
+                        menuText = 'Still waiting for detection results. Refresh page to see updates.'
+                    } else if (ma.taxonomyString) {
                         menuText = 'start matching';
+                        console.log('no detection status for ma '+JSON.stringify(ma));
                         alreadyLinked = true;
                     } else {
                         menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';
@@ -55,12 +59,16 @@ wildbook.IA.plugins.push({
             },
             function(enh) {  //the menu action for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                if (iaStatus && iaStatus.taskId) {
+                if (iaStatus && iaStatus.taskId && iaStatus.status != 'initiated') {
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 } else {
-	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
-                    if (ma.taxonomyString) {
+                    if (ma.detectionStatus) {
+                        return; // no action if we're waiting for detection
+                    }
+                    else if (ma.taxonomyString) {
+                        console.log('no detection status for ma '+JSON.stringify(ma));
                         var data = {
                             annotationIds: [ ma.annotationId ]
                         };
