@@ -37,6 +37,7 @@ import org.ecocean.Annotation;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Encounter;
+import org.ecocean.media.Feature;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.AccessControl;
 import org.json.JSONObject;
@@ -90,6 +91,7 @@ public class AnnotationEdit extends HttpServlet {
         } else {
             String swapId = jsonIn.optString("swapIndividualId", null);
             String assignIndivId = jsonIn.optString("assignIndividualId", null);
+            boolean remove = jsonIn.optBoolean("remove", false);
             if (swapId != null) {
                 Annotation swapAnnot = myShepherd.getAnnotation(swapId);
                 if (swapId.equals(annId) || (swapAnnot == null)) {
@@ -129,6 +131,30 @@ public class AnnotationEdit extends HttpServlet {
                     }
                 }
 
+            } else if (remove) {
+                String fid = jsonIn.optString("featureId", "__FAIL__");
+                String eid = jsonIn.optString("encounterId", "__FAIL__");
+                try {
+                    Feature feat = (Feature) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Feature.class, fid), true));
+                    Encounter enc = myShepherd.getEncounter(eid);
+                    if ((feat == null) || (enc == null)) {
+                        rtn.put("error", "invalid ID; featureId=" + fid + ", encounterId=" + eid);
+                    } else if (enc.hasMarkedIndividual()) {
+                        rtn.put("error", "Cannot remove Encounter which has a MarkedIndividual");
+                    } else if (enc.getAnnotations().size() != 1) {
+                        rtn.put("error", "Cannot remove Encounter which has more than one Annotation");
+                    } else if (!enc.getAnnotations().contains(annot)) {
+                        rtn.put("error", "Encounter does not contain this Annotation");
+                    } else if (!annot.getId().equals(feat.getAnnotation().getId())) {
+                        rtn.put("error", "Feature does not contain this Annotation");
+                    } else {  //good to go?
+                        rtn.put("message", "FAKE FAIL! " + feat + " / " + annot + " / " + enc);
+                        System.out.println("INFO: AnnotationEdit.remove [enc,annot,feat]=[" + enc.getCatalogNumber() + "," + annot.getId() + "," + feat.getId() + "]");
+                    }
+                } catch (Exception ex) {
+                    rtn.put("error", "ERROR: " + ex.toString() + " with featureId=" + fid + " and encounterId=" + eid);
+                }
+                
             } else if (Util.stringExists(assignIndivId)) {
                 Encounter enc = annot.findEncounter(myShepherd);
                 if (enc.hasMarkedIndividual()) {

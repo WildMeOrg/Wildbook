@@ -460,18 +460,49 @@ $(window).on('resizeEnd', function(ev) {
 });
 
 
+function removeFeatAnnEnc(fid, aid, eid) {
+    $('.popup-content').html('<div class="throbbing">updating</div>');
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
+        data: JSON.stringify({ id: aid, featureId: fid, encounterId: eid, remove: true }),
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        complete: function(d) {
+            console.info('return => %o', d);
+            if (!d || !d.responseJSON) {
+                $('.popup-content').html('<div class="error">unknown error</div>');
+                return;
+            }
+            if (d.responseJSON.success) {
+                window.location.reload();
+                return;
+            }
+            $('.popup-content').html('<div class="error">' + (d.responseJSON.error || d.responseJSON.message) + '</div>');
+        }
+    });
+    return false;
+}
+
 function swapAnnotIndivIds(aid1, aid2) {
     $('.popup-content').html('<div class="throbbing">updating</div>');
-    //$('.popup-content').html(aid1 + ' <=> ' + aid2);
     $.ajax({
         url: wildbookGlobals.baseUrl + '/AnnotationEdit',
         data: JSON.stringify({ id: aid1, swapIndividualId: aid2 }),
         type: 'POST',
         dataType: 'json',
         contentType: 'application/javascript',
-        complete: function(d) {  //d.responseJSON etc
+        complete: function(d) {
             console.info('return => %o', d);
-            window.location.reload();
+            if (!d || !d.responseJSON) {
+                $('.popup-content').html('<div class="error">unknown error</div>');
+                return;
+            }
+            if (d.responseJSON.success) {
+                window.location.reload();
+                return;
+            }
+            $('.popup-content').html('<div class="error">' + (d.responseJSON.error || d.responseJSON.message) + '</div>');
         }
     });
     return false;
@@ -487,9 +518,17 @@ function assignIndiv(annotId) {
         type: 'POST',
         dataType: 'json',
         contentType: 'application/javascript',
-        complete: function(d) {  //d.responseJSON etc
+        complete: function(d) {
             console.info('return => %o', d);
-            window.location.reload();
+            if (!d || !d.responseJSON) {
+                $('.popup-content').html('<div class="error">unknown error</div>');
+                return;
+            }
+            if (d.responseJSON.success) {
+                window.location.reload();
+                return;
+            }
+            $('.popup-content').html('<div class="error">' + (d.responseJSON.error || d.responseJSON.message) + '</div>');
         }
     });
     return false;
@@ -530,6 +569,7 @@ console.log(ma);
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         }
     }
+    h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><input style="background-color: #F30;" type="button" value="remove Feat ' + myFeat.id.substring(0,8) + ' / Ann ' + myFeat.annotationId.substring(0,8) + ' / Enc ' + myFeat.encounterId.substring(0,8) + '" onClick="return removeFeatAnnEnc(\'' + myFeat.id + '\', \'' + myFeat.annotationId + '\', \'' + myFeat.encounterId + '\');" /></div>';
     h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><i>or,</i> assign <b>Enc ' + myFeat.encounterId.substring(0,8) + '</b> to <input id="edit-assign-individ" /> <input type="button" value="accept" onClick="return assignIndiv(\'' + myFeat.annotationId + '\');" /></div>';
     imageEnhancer.popup(h);
     $('.image-enhancer-popup').draggable();
@@ -563,8 +603,10 @@ jQuery(document).ready(function() {
         if (editMode == editModeWas) return;
         if (!editMode) {
             $('.edit-mode-ui').remove();
+            $('.image-enhancer-keyword-wrapper').show();
             return;
         }
+        $('.image-enhancer-keyword-wrapper').hide();
         $('body').append('<div class="edit-mode-ui" style="position: fixed; left: 30px; top: 30px; font-size: 3em; color: rgba(255,255,20,0.8); z-index: 2000;"><b>EDIT MODE</b></div>');
 
         $('.image-enhancer-feature').append('<div class="edit-mode-ui" style="cursor: cell; padding: 0px 4px; font-size: 0.8em; font-weight: bold; position: absolute; left: 10px; top: 10px; background-color: rgba(255,255,255,0.7); display: inline-block;" xonClick="return editClick(this);" >EDIT</div>');
