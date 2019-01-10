@@ -640,9 +640,22 @@ System.out.println("enc ?= " + enc.toString());
             ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
 
             //for directly uploaded files
+            MediaAsset newAsset = null;
+            DateTime parsedDate = null;
+
             for (FileItem item : formFiles) {
               //convert each FileItem into a MediaAsset
-              makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
+              System.out.println("Making an asset...");
+              newAsset = makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
+              System.out.println("Asset null? : "+newAsset);
+              if (newAsset!=null&&stuName==null) {
+                String filename = newAsset.getFilename();	
+                System.out.println("EncounterForm got filename "+filename);
+                 // Here we see if we can get the StudySite name.	
+                stuName = getTrappingStationFromWwfSpainFilename(filename);	
+                parsedDate = getDateFromWwfSpainFilename(filename);	
+                System.out.println("	EncounterForm got date "+parsedDate);
+              }
             }
 
             ///////////////////TODO social files also!!!
@@ -656,13 +669,18 @@ System.out.println("enc ?= " + enc.toString());
               
               for(int q=0;q<numSocialFiles;q++){
                 File item=socialFiles.get(q);
-                makeMediaAssetsFromJavaFileObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
-                
+                newAsset = makeMediaAssetsFromJavaFileObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
+                if (newAsset!=null&&stuName==null) {
+                  String filename = newAsset.getFilename();	
+                  System.out.println("EncounterForm got filename "+filename);
+                   // Here we see if we can get the StudySite name.	
+                  stuName = getTrappingStationFromWwfSpainFilename(filename);	
+                  parsedDate = getDateFromWwfSpainFilename(filename);	
+                  System.out.println("	EncounterForm got date "+parsedDate);
+                }  
               }
-              
             }
             
-
             if (fv.get("mediaAssetSetId") != null) {
                 MediaAssetSet maSet = ((MediaAssetSet) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAssetSet.class, fv.get("mediaAssetSetId")), true)));
                 if ((maSet != null) && (maSet.getMediaAssets() != null) && (maSet.getMediaAssets().size() > 0)) {
@@ -1107,9 +1125,26 @@ System.out.println("depth --> " + fv.get("depth").toString());
 	    enc.setDWCDateLastModified(strOutputDateTime);
 
 
+      //this will try to set from MediaAssetMetadata -- ymmv	
+	    if (!llSet) enc.setLatLonFromAssets();	
+	    if (enc.getYear() < 1) enc.setDateFromAssets();	
+       // modifications for WWF spain	
+	    System.out.println("   EncounterForm: about to setDateFromAssets. Old date = "+enc.getDate());	
+	    enc.setDateFromAssets();	
+	    System.out.println("   EncounterForm: setDateFromAssets result "+enc.getDate());	
 
+
+ 	    System.out.println("   EncounterForm: parsed study site name "+stuName);
 
       //xxxxxxxx
+      // StudySite done last so common fields (e.g. Population, Gov Area, lat/long) can be shared	
+	    StudySite stu = myShepherd.getStudySiteByName(stuName);	
+	    if (stu==null) {	
+	    	stu = new StudySite(stuName, enc);	
+	    	myShepherd.storeNewStudySite(stu);	
+	    }	
+	    enc.setStudySite(stu);	
+	    System.out.println("	EncounterForm: set encounter study site ID to "+ enc.getStudySiteID());
 
 
       //String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
@@ -1276,7 +1311,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
     //return null;
   }
   
-  private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+  private MediaAsset makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
     JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
     sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
     MediaAsset ma = new MediaAsset(astore, sp);
@@ -1290,7 +1325,6 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
         System.out.println("Could not write " + tmpFile + ": " + ex.toString());
     }
     if (tmpFile.exists()) {
-      
       try{
         ma.addLabel("_original");
         ma.copyIn(tmpFile);
@@ -1300,16 +1334,15 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
       catch(IOException ioe){
         System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
         ioe.printStackTrace();
-      }
-        
-        
+      }   
     } 
     else {
         System.out.println("failed to write file " + tmpFile);
     }
+    return ma;
   }
   
-  private void makeMediaAssetsFromJavaFileObject(File item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+  private MediaAsset makeMediaAssetsFromJavaFileObject(File item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
     
     System.out.println("Entering makeMediaAssetsFromJavaFileObject");
     
@@ -1345,6 +1378,8 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
     else {
         System.out.println("failed to write file " + tmpFile);
     }
+    return ma;
+
   }
 
 
