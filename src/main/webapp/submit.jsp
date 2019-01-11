@@ -97,8 +97,13 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
-<script src="javascript/pages/submit.js"></script>
-
+    <%
+	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+	%>
+	<script src="javascript/pages/submit.js"></script>
+	<%
+	}
+	%>
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
   <script type="text/javascript">
     animatedcollapse.addDiv('advancedInformation', 'fade=1');
