@@ -1928,6 +1928,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     if (Util.shouldReplace(stu.getHuntingState(), getHuntingState())) {
       setHuntingState(stu.getHuntingState());
     }
+    if (Util.shouldReplace(stu.getCountry(), getCountry())) {
+      setCountry(stu.getCountry());
+    }
     if (getDecimalLatitude() ==null && !(stu.getLatitude() ==null)) {
       setDecimalLatitude( stu.getLatitude());
     }

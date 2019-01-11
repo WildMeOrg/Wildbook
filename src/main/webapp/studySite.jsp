@@ -91,19 +91,17 @@
   String[] epsgCodesArr = GeocoordConverter.epsgCodes();
   List<String> epsgCodes = Arrays.asList(epsgCodesArr);
 
+  //Default country list
+  List<String> countries = CommonConfiguration.getSequentialPropertyValues("country", context);
+  //String[] countries = countriesAL.toArray(new String[0]);
+
   String[] studySiteFieldGetters2 = new String[]{"getGovernmentArea", "getPopulation", "getDaysNotWorking", "getLure", "getReward", "getTypeOfCamera", "getTrapsPerNight", "getComments"};
-
-
 
   String[] studySiteFieldDTGetters = new String[]{"getDate", "getDateEnd"};
 
-
   String saving = request.getParameter("save");
 
-
-
   boolean needToSave = (saving != null);
-
 
   if (needToSave) {
     System.out.println("");
@@ -181,7 +179,9 @@
 
         Method epsgCodeMeth = sitey.getClass().getMethod("getEpsgProjCode");
 
-        ArrayList<String> possLocations = CommonConfiguration.getSequentialPropertyValues("locationID", context);
+        Method countryMeth = sitey.getClass().getMethod("getCountry");
+
+        //ArrayList<String> possLocations = CommonConfiguration.getSequentialPropertyValues("locationID", context);
 
         //ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, locationIDMeth, possLocations, out);
 
@@ -198,6 +198,10 @@
         }
 
         ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, epsgCodeMeth, epsgCodes, out);
+
+
+        ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, countryMeth, countries, out);
+
 
         for (String getterName : studySiteFieldGetters2) {
           Method studySiteMeth = sitey.getClass().getMethod(getterName);
@@ -277,9 +281,6 @@
     });
 
   }
-
-
-
 
   // START MAP and GPS SETTER
 

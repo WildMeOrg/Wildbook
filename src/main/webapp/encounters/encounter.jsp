@@ -736,20 +736,15 @@ if (huntingStateStr == null) huntingStateStr = "";
 %>
 <em><%=encprops.getProperty("huntingState")%>: <span id="displayHuntingState"><%=huntingStateStr%></span></em>
 
-
 <br>
 
-
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
   <em><%=encprops.getProperty("country") %></em>
   <%
-  if(enc.getCountry()!=null){
+  String country = enc.getCountry();
+  if(country == null) country = "";
   %>
-  <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
-  <%
-  }
-    %>
+  <span>: <span id="displayCountry"><%=country%></span></span>
+
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
     <%

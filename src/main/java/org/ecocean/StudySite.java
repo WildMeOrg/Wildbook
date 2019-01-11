@@ -22,6 +22,7 @@ public class StudySite implements java.io.Serializable {
   // end new fields
 
   private String locationID;
+  private String country;
 
   private Double utmX;
   private Double utmY;
@@ -61,6 +62,7 @@ public class StudySite implements java.io.Serializable {
   }
 
   public void importEncounterFields(Encounter enc) {
+    System.out.println("Import encounter fields...");
     if (Util.shouldReplace(enc.getGovernmentArea(), getGovernmentArea())) {
       setGovernmentArea(enc.getGovernmentArea());
     }
@@ -79,6 +81,10 @@ public class StudySite implements java.io.Serializable {
     if (Util.shouldReplace(enc.getLocationID(), getLocationID())) {
       setLocationID(enc.getLocationID());
     }
+    if (Util.shouldReplace(enc.getCountry(), getCountry())) {
+      setCountry(enc.getCountry());
+    }
+
   }
 
 
@@ -113,6 +119,14 @@ public class StudySite implements java.io.Serializable {
 
   public String getLocationID() {
     return this.locationID;
+  }
+
+  public void setCountry(String country) {
+    this.country = country;
+  }
+
+  public String getCountry() {
+    return this.country;
   }
 
   public void setLatitude(Double latitude) {
@@ -166,7 +180,6 @@ public class StudySite implements java.io.Serializable {
     return daysNotWorking;
   }
 
-
   public void setLure(String lure){
     this.lure = lure;
   }
@@ -191,8 +204,6 @@ public class StudySite implements java.io.Serializable {
   public Double getTrapsPerNight(){
     return trapsPerNight;
   }
-
-
 
   // a little hackey, but these allow for both UTM and GPS coords
   // calling setGpsFromUtm() in the Utm setter enforces that these
