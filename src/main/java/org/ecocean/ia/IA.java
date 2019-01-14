@@ -126,7 +126,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         String bottlenose = "dolphin_bottlenose_fin"; 
         if (bottlenose.equals(iaClass) || bottlenose.equals(inferredIaClass)) {
             System.out.println("IA.java is sending a Tursiops truncatus job");
-            opts = IBEISIA.identOpts(context, iaClass);
+            opts = IBEISIA.identOpts(context, bottlenose);
         } else { // defaults to the default ia.properties IBEISIdentOpt, in our case humpback flukes
             opts = IBEISIA.identOpts(context);
         }
