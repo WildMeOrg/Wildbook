@@ -459,6 +459,9 @@ public class Shepherd {
     pm.deletePersistent(word);
   }
 
+  public void throwAwayStudySite(StudySite site) {
+    pm.deletePersistent(site);
+  }
 
   public void throwAwaySuperSpotArray(SuperSpot[] spots) {
     if (spots != null) {
@@ -2586,7 +2589,17 @@ public class Shepherd {
     ArrayList<MediaAsset> myArray=new ArrayList<MediaAsset>(c);
     samples.closeAll();
     return myArray;
-  } 
+  }
+  
+  public ArrayList<Encounter> getAllEncountersForStudySite(StudySite site) {
+    String id = site.getID();
+    String encQString = "SELECT FROM org.ecocean.Encounter WHERE this.studySiteID == \""+id+"\" ";
+    Query encQ = pm.newQuery(encQString);
+    Collection col = (Collection) (encQ.execute());
+    ArrayList<Encounter> arr = new ArrayList<>(col);
+    encQ.closeAll();
+    return arr;
+  }
 
   public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
 

@@ -816,6 +816,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>StudySiteDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.StudySiteDelete</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>IndividualAddComment</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualAddComment</servlet-class>
   </servlet>
@@ -1873,6 +1878,11 @@
       <servlet-mapping>
     <servlet-name>RelationshipDelete</servlet-name>
     <url-pattern>/RelationshipDelete</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>StudySiteDelete</servlet-name>
+    <url-pattern>/StudySiteDelete</url-pattern>
   </servlet-mapping>
 
     <servlet-mapping>

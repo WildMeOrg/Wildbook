@@ -221,12 +221,27 @@
         %>
       </table>
     </hr>
-    <div class="submit" style="position:relative">
-      <input type="submit" name="save" value="Save" />
-      <span class="note" style="position:absolute;bottom:9"></span>
+
+    <div class="submit" style="row">
+
+      <div class="col-sm-2">
+        <input type="submit" name="save" value="<%=stuprops.getProperty("saveStu") %>" />
+        <span class="note" style="position:absolute;bottom:9"></span>
+        <!-- I hate ending the main form here, but it's necessary for expedience -->
+        </form>
+      </div>
+
+      <div class="col-sm-2">
+        <form onsubmit="return confirm('<%=stuprops.getProperty("confirmDelete") %>');" name="deleteStudySite" class="editFormMeta" method="post" action="../StudySiteDelete">
+          <input name="studySiteId" type="hidden" value="<%=studySiteID%>" />
+          <input name="deleteStudySite" type="submit" class="" id="deleteButton" value="<%=stuprops.getProperty("deleteStudySite") %>" />
+        </form>
+      </div>
+
     </div>
-</form>
+
 </div>
+<!-- seperate form for delete button -->
 
 <div class="col-sm-6">
 
