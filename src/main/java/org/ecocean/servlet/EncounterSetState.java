@@ -146,12 +146,12 @@ public class EncounterSetState extends HttpServlet {
 
         //"others"
         tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc.getCatalogNumber());
-        String submitter = enc.getSubmitterEmail();
-        String informers = enc.getInformOthers();
-System.out.println("INFO: EncounterSetState.notifyEmail() -> " + submitter + ", " + informers);
+        List<String> submitters = enc.getSubmitterEmails();
+        List<String> informers = enc.getInformOthersEmails();
+System.out.println("INFO: EncounterSetState.notifyEmail() -> " + submitters + ", " + informers);
         Set<String> cSubmitters = new HashSet<>();
-        if (submitter != null) cSubmitters.addAll(NotificationMailer.splitEmails(submitter));
-        if (informers != null) cSubmitters.addAll(NotificationMailer.splitEmails(informers));
+        cSubmitters.addAll(submitters);
+        cSubmitters.addAll(informers);
         for (String emailTo : cSubmitters) {
             tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
             es.execute(new NotificationMailer(context, langCode, emailTo, "encounterDataUpdate", tagMap));
