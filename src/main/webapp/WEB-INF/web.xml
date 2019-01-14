@@ -1,38 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--M
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  -->
 
 
-<!--
-<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
-         version="2.4">
--->
 
-
-         <web-app xmlns="http://java.sun.com/xml/ns/javaee"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-	                       http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
-	   version="3.0"
-  metadata-complete="true">
+<web-app 	xmlns="http://java.sun.com/xml/ns/javaee"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+			version="3.0"
+			metadata-complete="true">
 
 
 <listener>
@@ -47,26 +21,6 @@
     Photo-identification Library
   </description>
 
-  <!-- Struts Tag Library Descriptors -->
-  <!--jsp-config>
-    <taglib>
-      <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
-      <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
-    </taglib>
-
-    <taglib>
-      <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
-      <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
-    </taglib>
-    <taglib>
-      <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
-      <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
-    </taglib>
-    <taglib>
-      <taglib-uri>di</taglib-uri>
-      <taglib-location>/WEB-INF/lib/dilib.jar</taglib-location>
-    </taglib>
-  </jsp-config-->
 
 
 
@@ -80,18 +34,6 @@
     <filter-name>UTF8Filter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-<!--
-  <filter>
-    <filter-name>UrlRewriteFilter</filter-name>
-    <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
-</filter>
-<filter-mapping>
-    <filter-name>UrlRewriteFilter</filter-name>
-    <url-pattern>/*</url-pattern>
-    <dispatcher>REQUEST</dispatcher>
-    <dispatcher>FORWARD</dispatcher>
-</filter-mapping>
--->
 
   <filter>
         <filter-name>ShiroFilter</filter-name>
@@ -126,7 +68,7 @@
                 [urls]
 
                 #/rest/** = authcBasicWildbook,roles[rest]
-				      #/api/** = authcBasicWildbook,roles[rest-readonly]
+				#/api/** = authcBasicWildbook,roles[rest-readonly]
                 #/LightRest/** = authcBasicWildbook,roles[rest]
 
 
@@ -151,7 +93,7 @@
 
 		/GenePopExport = authc, roles[researcher]
 
-		/IndividualSetNickname = authc, roles[researcher]
+		/IndividualSetNickame = authc, roles[researcher]
 
 		 /encounters/encounter.jsp = roles[researcher]
 		 /occurrence.jsp = roles[researcher]
@@ -175,9 +117,7 @@
 		 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[researcher]
 		 /encounters/exportSearchResults.jsp = authc, roles[researcher]
 		 /encounters/imageViewer.jsp = authc, roles[researcher]
-		 /encounters/searchComparison.jsp = authc, roles[researcher]
-      		/encounters/searchComparisonResults.jsp = authc, roles[researcher]
-                /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
+         /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 		/IndividualSetAlternateID = authc, roles[researcher]
 		 /EncounterSetAlternateID = authc, roles[researcher]
 		 /EncounterSetState = authc, roles[researcher]
@@ -260,7 +200,7 @@
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
-					/IndividualSetNickname = authc, roles[researcher]
+					/IndividualSetNickName = authc, roles[researcher]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
@@ -277,6 +217,67 @@
 				
 				/ExportWekaPredictorARFF = authc, roles[admin]
 				
+				/pictureBook.jsp = authc, roles[researcher]
+				
+				/EncounterSetSurveyAndTrack = authc, roles[researcher]
+				/OccurrenceSetSurveyAndTrack = authc, roles[researcher]
+				/EncounterSetGenusSpecies = authc, roles[researcher]
+				/RestKeyword = authc, roles[researcher]
+				/IndividualAddFile = authc, roles[researcher]
+				/Collaborate = authc
+				#/RemoveEmailAddress = authc, roles[admin]
+				/IndividualAddFile = authc, roles[researcher]
+				/EncounterAddSpotFile = authc, roles[identifier]
+
+				/AddOccToTrack = authc, roles[researcher]
+				/MediaAssetCreate = authc, roles[researcher]
+				/EncounterCreate = authc, roles[researcher]
+				/MediaAssetsForUser = authc
+				/MediaAssetAttach= authc, roles[researcher]
+				/EncounterResetDate = authc, roles[researcher]
+				/IndividualSearchExportCapture = authc, roles[researcher]
+				/EncounterSetTapirLinkExposure = authc, roles[researcher]
+				/EncounterSetLocation = authc, roles[researcher]
+				/EncounterSetLocationID = authc, roles[researcher]
+				/CRCExportReport = authc, roles[researcher]
+				/DeleteAdoption = authc, roles[adoption]
+			    /IndividualSetSex = authc, roles[researcher]
+				
+				/EncounterSetSex = authc, roles[researcher]
+					
+				/EncounterSetMaximumDepth = authc, roles[researcher]
+				/EncounterSetMaximumElevation = authc, roles[researcher]
+				/EncounterSetOccurrenceRemarks = authc, roles[researcher]
+				/EncounterRemoveSpots = authc, roles[researcher]
+				/EncounterDelete = authc, roles[researcher]
+				/EncounterSetPatterningCode = authc, roles[researcher]
+				/EncounterSetReleaseDate = authc, roles[researcher]
+				/EncounterSetMeasurements = authc, roles[researcher]
+				/GetIndividualSearchGoogleMapsPoints = authc, roles[researcher]
+
+				/EncounterSetTags = authc, roles[researcher]
+				/EncounterSetDynamicProperty = authc, roles[researcher]
+				/IndividualRemoveDataFile = authc, roles[researcher]
+				/EncounterSetMatchedBy = authc, roles[researcher]
+				/EncounterSetLivingStatus = authc, roles[researcher]
+				/CalendarXMLServer = authc, roles[researcher]
+				/TranslateQuery = authc, roles[researcher]
+				/WorkspaceServer = authc, roles[researcher]
+				/WorkspacesForUser = authc, roles[researcher]
+				/WorkspaceDelete = authc, roles[researcher]
+				/MediaAssetModify = authc, roles[researcher]
+				/OccurrenceClusterMASet = authc, roles[researcher]
+				/OccurrenceSetObservation = authc, roles[researcher]
+				/EncounterSetObservation = authc, roles[researcher]
+				/EncounterVMData = authc, roles[researcher]
+
+				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
+				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
+				/sutime/** = authc
+				/EncounterRemoveUser = authc, roles[researcher]
+				/EncounterAddUser = authc, roles[researcher]
+				
+				/AnnotationEdit = authc, roles[admin]
 
             </param-value>
         </init-param>
@@ -391,11 +392,12 @@
       <servlet-class>org.ecocean.servlet.EncounterSetVerbatimEventDate</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>EncounterSetInformOthers</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetInformOthers</servlet-class>
   </servlet>
-
+-->
     <servlet>
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
@@ -429,11 +431,12 @@
         <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
 
+  <!--
    <servlet>
           <servlet-name>GenerateQRCodeImage</servlet-name>
           <servlet-class>org.ecocean.servlet.GenerateQRCodeImage</servlet-class>
     </servlet>
-
+-->
 
 
 <!--
@@ -481,10 +484,7 @@
     <servlet-class>org.ecocean.servlet.IndividualAddFile</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>EncounterApprove</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterApprove</servlet-class>
-  </servlet>
+
 
     <servlet>
     <servlet-name>EncounterForm</servlet-name>
@@ -526,22 +526,17 @@
   </servlet>
 -->
   
-  <servlet>
-    <servlet-name>DontTrack</servlet-name>
-    <servlet-class>org.ecocean.servlet.DontTrack</servlet-class>
-  </servlet>
 
 
 
-  <servlet>
-    <servlet-name>UpdateEmailAddress</servlet-name>
-    <servlet-class>org.ecocean.servlet.UpdateEmailAddress</servlet-class>
-  </servlet>
 
+
+<!--
   <servlet>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <servlet-class>org.ecocean.servlet.RemoveEmailAddress</servlet-class>
   </servlet>
+  -->
 
   <!--
   <servlet>
@@ -1145,6 +1140,16 @@
     <servlet-name>EncounterSetLivingStatus</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetLivingStatus</servlet-class>
   </servlet>
+  
+    <servlet>
+    <servlet-name>EncounterRemoveUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
+  </servlet>
+  
+      <servlet>
+    <servlet-name>EncounterAddUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterAddUser</servlet-class>
+  </servlet>
 
   <!--
   <servlet>
@@ -1385,7 +1390,7 @@
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
 <url-pattern>/api/*</url-pattern>
-<url-pattern>/rest/*</url-pattern>
+
 </servlet-mapping>
 
 <servlet-mapping>
@@ -1824,7 +1829,17 @@
     <servlet-name>EncounterRemoveSpots</servlet-name>
     <url-pattern>/EncounterRemoveSpots</url-pattern>
   </servlet-mapping>
-
+  
+    <servlet-mapping>
+    <servlet-name>EncounterRemoveUser</servlet-name>
+    <url-pattern>/EncounterRemoveUser</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+    <servlet-name>EncounterAddUser</servlet-name>
+    <url-pattern>/EncounterAddUser</url-pattern>
+  </servlet-mapping>
+  
     <servlet-mapping>
     <servlet-name>RelationshipCreate</servlet-name>
     <url-pattern>/RelationshipCreate</url-pattern>
@@ -1888,12 +1903,12 @@
     <url-pattern>/IndividualAddEncounter</url-pattern>
   </servlet-mapping>
 
-
+<!--
     <servlet-mapping>
       <servlet-name>GenerateQRCodeImage</servlet-name>
       <url-pattern>/GenerateQRCodeImage</url-pattern>
   </servlet-mapping>
-
+-->
 
 
     <servlet-mapping>
@@ -2023,10 +2038,12 @@
     <url-pattern>/MassExposeGBIF</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <url-pattern>/RemoveEmailAddress</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
@@ -2052,10 +2069,7 @@
     <url-pattern>/CalendarXMLServer</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>DontTrack</servlet-name>
-    <url-pattern>/DontTrack</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>DeleteAdoption</servlet-name>
@@ -2075,10 +2089,6 @@
 -->
 
 
-  <servlet-mapping>
-    <servlet-name>UpdateEmailAddress</servlet-name>
-    <url-pattern>/UpdateEmailAddress</url-pattern>
-  </servlet-mapping>
 
 
   <servlet-mapping>
@@ -2116,10 +2126,12 @@
       <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>EncounterSetInformOthers</servlet-name>
     <url-pattern>/EncounterSetInformOthers</url-pattern>
   </servlet-mapping>
+  -->
 
 
   <servlet-mapping>

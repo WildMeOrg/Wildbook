@@ -53,6 +53,7 @@ import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
 //import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+import org.ecocean.ia.IA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
 import org.ecocean.Survey;
@@ -180,6 +181,7 @@ public class Encounter implements java.io.Serializable {
   
   private List<User> submitters;
   private List<User> photographers;
+  private List<User> informOthers;
 
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
@@ -1762,17 +1764,19 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return otherCatalogNumbers;
   }
 
-  public String getInformOthers() {
+  public String getOLDInformOthersFORLEGACYCONVERSION() {
     if (informothers == null) {
       return "";
     }
     return informothers;
   }
 
+  /*
   public void setInformOthers(String others) {
     this.informothers = others;
     this.hashedInformOthers = Encounter.getHashOfEmailString(others);
   }
+  */
 
   public String getLocationID() {
     return locationID;
@@ -2489,6 +2493,14 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         annotations.add(ann);
     }
 
+    public void useAnnotationsForMatching(boolean use) {
+      if (getAnnotations()!=null&&getAnnotations().size()>1) {
+        for (Annotation ann : getAnnotations()) {
+          ann.setMatchAgainst(use);
+        }
+      }
+    }
+
 /*  officially deprecating this (until needed?) ... work now being done with replaceAnnotation() basically   -jon
     public void addAnnotationReplacingUnityFeature(Annotation ann) {
         int unityAnnotIndex = -1;
@@ -2514,7 +2526,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
     public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
         if ((anns == null) || (anns.size() < 1)) return null;
-        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
+          
+        //Determine skipped frames before another encounter should be made. 
+      int minGapSize = 4;  
+      try {
+        String gapFromProperties = IA.getProperty(myShepherd.getContext(), "newEncounterFrameGap");
+        if (gapFromProperties!=null) {
+          minGapSize = Integer.parseInt(gapFromProperties);
+        }
+      } catch (NumberFormatException nfe) {}
+
         SortedMap<Integer,List<Annotation>> ordered = new TreeMap<Integer,List<Annotation>>();
         MediaAsset parentRoot = null;
         for (Annotation ann : anns) {
@@ -3347,6 +3368,10 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return submitters;
     }
     
+    public List<User> getInformOthers(){
+      return informOthers;
+    }
+    
     public List<String> getSubmitterEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3393,6 +3418,20 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
+    public List<String> getInformOthersEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getInformOthers()!=null)subs.addAll(getInformOthers());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+          listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
     public List<String> getHashedPhotographerEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3426,6 +3465,21 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         this.photographers=photographers;
       }
     }
+    
+    
+   public void addInformOther(User user) {
+      if (user == null) return;
+      if (informOthers == null) informOthers = new ArrayList<User>();
+      if (!informOthers.contains(user)) informOthers.add(user);
+  }
+
+  public void setInformOthers(List<User> users) {
+    if(informOthers==null){this.informOthers=null;}
+    else{
+      this.informOthers=users;
+    }
+    
+  }
 
     
 }

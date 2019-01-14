@@ -1653,6 +1653,7 @@ public List<String> getAllEmailsToUpdate(){
 		List<User> allUsers=new ArrayList<User>();
 		if(enc.getSubmitters()!=null)allUsers.addAll(enc.getSubmitters());
 		if(enc.getPhotographers()!=null)allUsers.addAll(enc.getPhotographers());
+		if(enc.getInformOthers()!=null)allUsers.addAll(enc.getInformOthers());
 		int numUsers=allUsers.size();
 		for(int k=0;k<numUsers;k++){
 		  User use=allUsers.get(k);
@@ -1661,7 +1662,7 @@ public List<String> getAllEmailsToUpdate(){
 		  }
 		}
 		
-		
+		/*
 		if((enc.getInformOthers()!=null)&&(!enc.getInformOthers().trim().equals(""))){
 							String photog = enc.getInformOthers();
 							if (photog.indexOf(",") != -1) {
@@ -1673,6 +1674,7 @@ public List<String> getAllEmailsToUpdate(){
 							}
 							else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
 		}
+		*/
 
 	}
 
