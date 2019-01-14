@@ -570,6 +570,7 @@ jQuery(document).ready(function() {
 	doImageEnhancer('figure img');
     $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
     $(document).bind('keydown keyup', function(ev) {
+        if (wildbook.user.isAnonymous()) return true;
         var editModeWas = editMode;
         if ((ev.key != 'Shift') && (ev.key != 'Control')) return;
         editMode = (ev.shiftKey && ev.ctrlKey);
