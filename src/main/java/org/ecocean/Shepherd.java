@@ -45,6 +45,8 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import org.datanucleus.api.rest.orgjson.JSONException;
 
+import org.ecocean.cache.StoredQuery;
+
 
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
@@ -4441,6 +4443,25 @@ public class Shepherd {
       query.closeAll();
       return users;
   }
+  
+  public StoredQuery getStoredQuery(String uuid) {
+    StoredQuery sq = null;
+    try {
+      sq = ((StoredQuery) (pm.getObjectById(pm.newObjectIdInstance(StoredQuery.class, uuid), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return sq;
+  }
+  
 
+  public List<StoredQuery> getAllStoredQueries() {
+    Extent encClass = pm.getExtent(StoredQuery.class, true);
+    Query queries = pm.newQuery(encClass);
+    Collection c = (Collection) (queries.execute());
+    ArrayList<StoredQuery> listy=new ArrayList<StoredQuery>(c);
+    queries.closeAll();
+    return listy;
+  }
 
 } //end Shepherd class
