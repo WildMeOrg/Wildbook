@@ -2680,7 +2680,8 @@ public class Shepherd {
 
   public MarkedIndividual getMarkedIndividual(Encounter enc) {
     if (enc==null) return null;
-    return (getMarkedIndividual(enc.getIndividualID()));
+    if (!Util.stringExists(enc.getIndividualID())) return null;
+    return (getMarkedIndividualQuiet(enc.getIndividualID()));
   }
 
 

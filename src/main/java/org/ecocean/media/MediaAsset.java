@@ -1140,6 +1140,15 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         if (!keywords.contains(k)) keywords.add(k);
         return keywords;
     }
+    public int numKeywords() {
+        if (keywords==null) return 0;
+        return keywords.size();
+    }
+
+    public Keyword getKeyword(int i) {
+        return keywords.get(i);
+    }
+
     public ArrayList<Keyword> getKeywords() {
         return keywords;
     }

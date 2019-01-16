@@ -543,10 +543,17 @@ public class Util {
       }
     }
 
+    public static String capitolizeFirstLetter(String str) {
+      if (str==null) return str;
+      if (str.length()<=1) return (str.toUpperCase());
+      return (str.substring(0,1).toUpperCase() + str.substring(1));
+
+    }
+
     public static String capitolizeFirstLetterOnly(String str) {
+      if (str==null) return str;
       String lower = str.toLowerCase();
-      if (lower.length()<=1) return (lower.toUpperCase());
-      return (lower.substring(0,1).toUpperCase() + lower.substring(1));
+      return capitolizeFirstLetter(lower);
     }
 
     public static boolean requestHasVal(HttpServletRequest request, String paramName) {
