@@ -1,8 +1,10 @@
 package org.ecocean.cache;
 
+import java.io.File;
 import java.lang.String;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.jdo.Query;
 
@@ -40,7 +42,7 @@ public class CachedQuery {
     //the next time this cache expires
     public long nextExpirationTimeout  = -1;
     
-    //public Collection collectionQueryResults;
+    public File jsonSerializedQueryResult;
     public Integer collectionQueryCount;
     
 
@@ -75,17 +77,25 @@ public class CachedQuery {
       myShepherd.closeDBTransaction();
     }
     
-    public Collection executeCollectionQuery(Shepherd myShepherd){
+    public List<Object> executeCollectionQuery(Shepherd myShepherd,boolean useSerializedJSONCache){
+
+      //TBD - handle JSONFileSerialization
+      
       Query query=myShepherd.getPM().newQuery(queryString);
       Collection c = (Collection) (query.execute());
+      ArrayList<Object> al=new ArrayList<Object>(c);
+      if(useSerializedJSONCache){
+        
+      }
       query.closeAll();
-      return c;
+      return al;
     }
     
     public Integer executeCountQuery(Shepherd myShepherd){
       if((collectionQueryCount==null)||((expirationTimeoutDuration>-1)&&(System.currentTimeMillis()>nextExpirationTimeout))){
         try{
-          Collection c=executeCollectionQuery(myShepherd);
+          System.out.println("Executing executeCountQuery");
+          List<Object> c=executeCollectionQuery(myShepherd,false);
           collectionQueryCount=new Integer(c.size());
           nextExpirationTimeout=System.currentTimeMillis()+expirationTimeoutDuration;
         }
@@ -94,6 +104,14 @@ public class CachedQuery {
       return collectionQueryCount;
     } 
     
+    public void invalidate(){
+      collectionQueryCount=null;
+      jsonSerializedQueryResult=null;
+    }
+    
+    public File getJSONSerializedQueryResult(){
+      return jsonSerializedQueryResult;
+    }
   
   
 
