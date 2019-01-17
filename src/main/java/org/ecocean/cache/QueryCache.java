@@ -1,8 +1,10 @@
 package org.ecocean.cache;
 
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.ecocean.cache.StoredQuery;
 import org.ecocean.Shepherd;
 
@@ -23,6 +25,7 @@ public class QueryCache {
   public Map<String,CachedQuery> cachedQueries(){return cachedQueries;}
   
   public void loadQueries(String context){
+    cachedQueries=new HashMap<String,CachedQuery>();
     Shepherd myShepherd=new Shepherd(context);
     myShepherd.beginDBTransaction();
     
@@ -38,7 +41,11 @@ public class QueryCache {
   }
   
   
-  
+  public void invalidateByName(String name){
+    if(cachedQueries.containsKey(name)){
+      CachedQuery cq=cachedQueries.get(name).invalidate();
+    }
+  }
 
 
   
