@@ -2467,19 +2467,18 @@ public class Shepherd {
          int numEncounters=encounters.size();
          for(int i=0;i<numEncounters;i++){
            Encounter enc=encounters.get(i);
-           if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals(indie))){
+           String indyId = enc.getIndividualID();
+           if((indyId!=null)&&isMarkedIndividual(indyId)&&(!indyId.equals(indie))){
              MarkedIndividual indieEnc=this.getMarkedIndividual(enc.getIndividualID());
              //check if we already have this Indie
              if(!hmap.containsKey(indieEnc.getIndividualID())){
                hmap.put(indieEnc.getIndividualID(), (new Integer(1)));
                alreadyCounted.add(indieEnc);
-             }
-             else if(!alreadyCounted.contains(indieEnc)){
+             } else if (!alreadyCounted.contains(indieEnc)){
                Integer oldValue=hmap.get(indieEnc.getIndividualID());
                hmap.put(indieEnc.getIndividualID(), (oldValue+1));
                //System.out.println("Iterating: "+indieEnc.getIndividualID());
              }
-
            }
          }
       }
