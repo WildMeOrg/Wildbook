@@ -30,7 +30,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.*;
 
-import com.vividsolutions.jts.geom.*;
+//import com.vividsolutions.jts.geom.*;
 //import java.sql.Date;
 //import java.net.URI;
 
@@ -82,7 +82,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
     * GeometryFactory will be used to create the geometry attribute of each feature (a Point
     * object for the location)
     */
-    GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
+    //GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
     //shapefile
     String shapeFilename = "ShapefileExport_" + request.getRemoteUser() + ".shp";
 
@@ -120,9 +120,9 @@ public class EncounterSearchExportShapefile extends HttpServlet{
           
           if ((enc.getDecimalLongitude()!=null) && (enc.getDecimalLatitude() != null)) {
             //let's also populate the Shapefile
-            Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
+            //Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
             SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType(context));
-            featureBuilder.add(point);
+            //featureBuilder.add(point);
             if(enc.getDateInMilliseconds()!=null){
               featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
             }
@@ -166,7 +166,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
             SimpleFeature feature = featureBuilder.buildFeature(null);
             
             
-            collection.add(feature);
+            //collection.add(feature);
           }
         }
         
@@ -324,7 +324,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
       builder.setCRS(DefaultGeographicCRS.WGS84); // <- Coordinate reference system
 
       // add attributes in order
-      builder.add("Location", Point.class);
+      //builder.add("Location", Point.class);
       builder.add("Date", java.sql.Date.class);
       builder.add("Encounter", String.class); 
       builder.add("Individual", String.class); 
