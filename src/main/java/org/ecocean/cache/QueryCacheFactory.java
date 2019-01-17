@@ -12,9 +12,10 @@ public class QueryCacheFactory {
       if (qc == null) {
 
         qc = new QueryCache();
+        qc.loadQueries(context);
 
       }
-      qc.loadQueries(context);
+      
       return qc;
     } catch (Exception jdo) {
       jdo.printStackTrace();
