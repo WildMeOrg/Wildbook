@@ -72,7 +72,7 @@
       for (StudySite siteyPeer : sites) {
         siteIDs.add(siteyPeer.getID());
       }
-      System.out.println("StudySite IDs = "+siteIDs);
+      //System.out.println("StudySite IDs = "+siteIDs);
 
 
     }
