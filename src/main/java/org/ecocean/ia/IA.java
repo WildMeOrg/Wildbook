@@ -119,6 +119,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
             one we need to make a set of subtasks
         */
 
+/*
         String iaClass = anns.get(0).getIAClass(); //IAClass is a standard with image analysis that identifies the featuretype used for identification
         List<JSONObject> opts = null;
         // below gets it working for dolphins but can be generalized easily from IA.properties
@@ -130,7 +131,8 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         } else { // defaults to the default ia.properties IBEISIdentOpt, in our case humpback flukes
             opts = IBEISIA.identOpts(context);
         }
-
+*/
+        List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
         if (opts.size() == 1) {
