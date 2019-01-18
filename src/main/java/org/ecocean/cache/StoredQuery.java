@@ -38,6 +38,11 @@ public class StoredQuery {
       this.queryString=queryString;
     }
     
+    public StoredQuery(String name){
+      this.name=name;
+      this.uuid=Util.generateUUID();
+    }
+    
 
     public String getName(){return name;}
     public void setName(String newName){

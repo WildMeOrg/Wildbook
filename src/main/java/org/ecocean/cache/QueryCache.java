@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.ecocean.cache.StoredQuery;
 import org.ecocean.Shepherd;
+import org.json.JSONObject;
 
 //A singleton responsible for storing, retrieving, and eventually executing queries that are desired for caching. It will have all necessary getters and setters for dealing with the cache.
 public class QueryCache {
@@ -43,8 +44,19 @@ public class QueryCache {
   
   public void invalidateByName(String name){
     if(cachedQueries.containsKey(name)){
-      CachedQuery cq=cachedQueries.get(name).invalidate();
+      cachedQueries.get(name).invalidate();
     }
+  }
+  
+  public void addCachedQuery(JSONObject jsonobj,String name, boolean persistAsStoredQuery, Shepherd myShepherd){
+    
+    //create CachedQuery object
+    CachedQuery cq=new CachedQuery(name,jsonobj, persistAsStoredQuery, myShepherd);
+    //put on HashMap
+    cachedQueries.put(name, cq);
+
+    
+    
   }
 
 

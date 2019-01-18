@@ -267,13 +267,13 @@
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
 
-				/UpdateEmailAddress = authc, roles[researcher]
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
 				/sutime/** = authc
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
 				
+				/AnnotationEdit = authc, roles[admin]
 
             </param-value>
         </init-param>
@@ -2083,7 +2083,6 @@
     <url-pattern>/trackIt</url-pattern>
   </servlet-mapping>
 -->
-
 
 
 
