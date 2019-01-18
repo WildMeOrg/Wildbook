@@ -136,7 +136,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
-
+  Properties stuprops = ShepherdProperties.getProperties("studySite.properties", langCode, context);
 
   pageContext.setAttribute("num", num);
 
@@ -738,30 +738,132 @@ if (huntingStateStr == null) huntingStateStr = "";
 
 <br>
 
-  <em><%=encprops.getProperty("country") %></em>
-  <%
-  String country = enc.getCountry();
-  if(country == null) country = "";
-  %>
-  <span>: <span id="displayCountry"><%=country%></span></span>
+<em><%=encprops.getProperty("country") %></em>
+<%
+String country = enc.getCountry();
+if(country == null) country = "";
+%>
+<span>: <span id="displayCountry"><%=country%></span></span>
 
+<br>
 
-  <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
+<%
+if (stu!=null) {
+%>
+<!-- show/hide buttons and trapping station data div -->
+<a id="showStuMetaBtn"><strong><b><%=stuprops.getProperty("showStuMetadata")%></b></strong></a>
+<a id="hideStuMetaBtn"><strong><b><%=stuprops.getProperty("hideStuMetadata")%></b></strong></a>
+
+<div id="trappingStationMetadata">
+
+    <em><%=stuprops.getProperty("governmentArea") %></em>
     <%
-		if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
-		%>
+    String gArea = stu.getGovernmentArea();
+    if(gArea == null) gArea = "";
+    %>
+    <span>: <span id="displayGovernmentArea"><%=gArea%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("population") %></em>
+    <%
+    String pop = stu.getPopulation();
+    if(pop == null) pop = "";
+    %>
+    <span>: <span id="displayPopulation"><%=pop%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("daysNotWorking") %></em>
+    <%
+    Integer dnwInt = stu.getDaysNotWorking();
+    String dnw = "";
+    if(dnwInt != null) {
+      dnw = String.valueOf(dnwInt);
+    } 
+    %>
+    <span>: <span id="displayDNW"><%=dnw%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("lure") %></em>
+    <%
+    String lure = stu.getLure();
+    if(lure == null) lure = "";
+    %>
+    <span>: <span id="displayLure"><%=lure%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("reward") %></em>
+    <%
+    String reward = stu.getReward();
+    if(reward == null) reward = "";
+    %>
+    <span>: <span id="displayReward"><%=reward%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("typeOfCamera") %></em>
+    <%
+    String toc = stu.getTypeOfCamera();
+    if(toc == null) toc = "";
+    %>
+    <span>: <span id="displayTOC"><%=toc%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("trapsPerNight") %></em>
+    <%
+    Double tpnDoub = stu.getTrapsPerNight();
+    String tpn = "";
+    if (tpn != null) {
+      tpn = String.valueOf(tpnDoub);
+    }
+    %>
+    <span>: <span id="displayTPN"><%=tpn%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("comments") %></em>
+    <%
+    String comments = stu.getComments();
+    if (comments == null) comments = "";
+    %>
+    <span>: <span id="displayComments"><%=comments%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("stationStart") %></em>
+    <%
+    String stationStart = stu.getDateString("dd-MM-yyyy");
+    if (stationStart == null) stationStart = "";
+    %>
+    <span>: <span id="displayStationStart"><%=stationStart%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("stationEnd") %></em>
+    <%
+    String stationEnd = stu.getDateEndString("dd-MM-yyyy");
+    if (stationEnd == null) stationEnd = "";
+    %>
+    <span>: <span id="displayStationEnd"><%=stationEnd%></span></span>
+    <br>
+</div>
+<%
+} 
+%>
+<!-- end trapping station div -->
+
+
+<!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
+  <%
+  if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
+  %>
 <br />
 <em><%=encprops.getProperty("depth") %>
 
-  <%
-    if (enc.getDepthAsDouble() !=null) {
-  %>
-  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
-  } else {
-  %> <%=encprops.getProperty("unknown") %>
-  <%
-    }
-
+<%
+  if (enc.getDepthAsDouble() !=null) {
+%>
+<span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
+} else {
+%> 
+<%=encprops.getProperty("unknown") %>
+<%
+}
 %>
 </em>
 <%
@@ -771,6 +873,24 @@ if (huntingStateStr == null) huntingStateStr = "";
 
 <!-- start location  -->
 <script type="text/javascript">
+  // Show hide study site (trapping station) metadata
+  $(document).ready(function() {
+    $("#trappingStationMetadata").hide();
+    $("#hideStuMetaBtn").hide();
+    $("#showStuMetaBtn").show();
+    $("#showStuMetaBtn").click(function(event) {
+      $("#trappingStationMetadata").slideDown();
+      $("#showStuMetaBtn").hide();
+      $("#hideStuMetaBtn").show();
+    });
+    $("#hideStuMetaBtn").click(function(event) {
+      $("#trappingStationMetadata").slideUp();
+      $("#showStuMetaBtn").show();
+      $("#hideStuMetaBtn").hide();
+    });
+  });
+
+  // show/hide location editing
   $(document).ready(function() {
     $("#addLocation").click(function(event) {
       event.preventDefault();
