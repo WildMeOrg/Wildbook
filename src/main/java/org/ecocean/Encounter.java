@@ -696,6 +696,16 @@ public class Encounter implements java.io.Serializable {
     }
   }
 
+  public void addFormattedCommentsAndTimeStamp(String newComments) {
+    setDWCDateLastModified();
+    String now = "<small>" + getDWCDateLastModified() + "</small>";
+    if ((researcherComments != null) && (!(researcherComments.equals("None")))) {
+      researcherComments += (now + " - <i>" + newComments + "</i><br>");
+    } else {
+      researcherComments = (now + " - <i>" + newComments + "</i><br>");
+    }
+  }
+
   /**
    * Returns the name of the person who submitted this encounter data.
    *
@@ -1946,11 +1956,29 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     stu.importEncounterFields(this);
     importStudySiteFields(stu);
     setStudySiteID(stu.getID());
+    addFormattedCommentsAndTimeStamp("Added the encounter to Study Site "+stu.getName());
+  }
+
+  public void clearStudySiteData(Shepherd myShepherd) {
+    if (getStudySiteID()!=null) {
+      StudySite stu = myShepherd.getStudySite(getStudySiteID());
+      try {
+        setStudySiteID(null);
+        setGovernmentArea(null);
+        setPopulation(null);
+        setHuntingState(null);
+        setCountry(null);
+        setDecimalLatitude(null);
+        setDecimalLongitude(null);
+        this.locationID = "";
+      } catch (NullPointerException | IllegalArgumentException e) {
+        addFormattedCommentsAndTimeStamp("Failed to remove the encounter from Study Site "+stu.getName());
+        e.printStackTrace();
+      }
+      addFormattedCommentsAndTimeStamp("Removed the encounter from Study Site "+stu.getName());
+    }
   }
     
-  
-
-
 /* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
 some strings and decimal (double, er Double?) values -- so i am doing my best to standardize on
 the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
