@@ -9,6 +9,8 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 
 <%
 
+long startTime=System.currentTimeMillis();
+
 String context="context0";
 context=ServletUtilities.getContext(request);
 
@@ -33,15 +35,28 @@ int numFixes=0;
 
 myShepherd.beginDBTransaction();
 
+
+List<StoredQuery> st=myShepherd.getAllStoredQueries();
+for(int i=0;i<st.size();i++){
+	
+	StoredQuery s=st.get(i);
+	myShepherd.getPM().deletePersistent(s);
+	myShepherd.commitDBTransaction();
+	myShepherd.beginDBTransaction();
+	
+}
+
+
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
 if(qc.getQueryByName("numIndividualsTotal", context)==null){
-	StoredQuery sq=new StoredQuery("numIndividualsTotal", "SELECT FROM org.ecocean.MarkedIndividual WHERE individualID != null");
+	StoredQuery sq=new StoredQuery("numIndividualsTotal", "SELECT FROM org.ecocean.MarkedIndividual WHERE numberEncounters > 20");
 	myShepherd.getPM().makePersistent(sq);
 	myShepherd.commitDBTransaction();
 	myShepherd.beginDBTransaction();
 	qc.loadQueries(context);
 }
 
+/*
 if(qc.getQueryByName("numEncountersTotal", context)==null){
 	StoredQuery sq=new StoredQuery("numEncountersTotal", "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null");
 	sq.setExpirationTimeoutDuration(180000);
@@ -49,7 +64,7 @@ if(qc.getQueryByName("numEncountersTotal", context)==null){
 	myShepherd.commitDBTransaction();
 	myShepherd.beginDBTransaction();
 	qc.loadQueries(context);
-}
+}*/
 
 try{
 
@@ -64,7 +79,7 @@ try{
 		CachedQuery cquery=queries.get(keyName);
 		%>
 		
-		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %>:<%=cquery.executeCountQuery(myShepherd).intValue() %></li>
+		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %>:<%=cquery.executeCollectionQuery(myShepherd, true) %></li>
 		
 		<%
 
@@ -82,9 +97,18 @@ finally{
 
 }
 
+
 %>
 
 </ul>
+
+<%
+
+long endTime=System.currentTimeMillis();
+
+%>
+
+<p>Time diff: <%=(endTime-startTime) %></p>
 
 
 </body>
