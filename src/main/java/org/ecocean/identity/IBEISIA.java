@@ -3426,22 +3426,30 @@ return Util.generateUUID();
         return opt;
     }
 
-    public static List<JSONObject> identOpts(String context, String iaClass) {
-        if (!Util.stringExists(iaClass)) return identOpts(context);
+    //lets try to figure out what identOpts to use, based on Annotation
+    public static List<JSONObject> identOpts(Shepherd myShepherd, Annotation ann) {
+        String context = myShepherd.getContext();
+        if (ann == null) return identOpts(context);  //old-fashioned way, just in case?
+        Encounter enc = ann.findEncounter(myShepherd);
+        if (enc == null) return identOpts(context);  //also nope
+        String taxString = enc.getTaxonomyString();
+        //this basically mimics logic/behavior of getModelTag() and getViewpointTag()
+        if (taxString == null) return identOpts(context);
+        String prefix = "IBEISIdentOpt_" + taxString.replaceAll(" ", "_");
+        System.out.println("[INFO] identOpts() using prefix=" + prefix + " based on " + taxString);
 
-        String cleanedIaClass = iaClass.replaceAll(" ", "_");
-        String iaPropertyKey = "IBEISIdentOpt_"+cleanedIaClass;
+        //now we see if we have *any* of these props (may have none for this taxonomy-prefix)
         List<JSONObject> opt = new ArrayList<JSONObject>();
         int i = 0;
         String jstring = "";
         while (jstring != null) {
-            jstring = IA.getProperty(context, iaPropertyKey + i);
+            jstring = IA.getProperty(context, prefix + i);
             if (jstring == null) break;
             JSONObject j = Util.stringToJSONObject(jstring);
             if (j != null) opt.add(j);
             i++;
         }
-        if (opt.size() < 1) opt.add((JSONObject)null);  //we should always have *one* -- the default empty one
+        if (opt.size() < 1) return identOpts(context);  //didnt have any, so lets return the default case
         return opt;
     }
 
