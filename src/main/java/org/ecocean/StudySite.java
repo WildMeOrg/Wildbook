@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import org.joda.time.DateTime;
+import java.text.*;
 import org.ecocean.Util;
 
 public class StudySite implements java.io.Serializable {
@@ -300,6 +301,10 @@ public class StudySite implements java.io.Serializable {
     return this.date;
   }
 
+  public String getDateString(String format) {
+    return formattedDateString(this.dateEnd, format);
+  }
+
   public void setDateEnd(DateTime dateEnd) {
     this.dateEnd = dateEnd;
   }
@@ -312,6 +317,13 @@ public class StudySite implements java.io.Serializable {
     return this.dateEnd;
   }
 
+  public String getDateEndString(String format) {
+    return formattedDateString(this.dateEnd, format);
+  }
+
+  private String formattedDateString(DateTime dt, String format) {
+    return new SimpleDateFormat(format).format(dt.toDate());
+  }
 
 
 
