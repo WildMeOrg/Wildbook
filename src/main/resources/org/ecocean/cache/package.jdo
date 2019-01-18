@@ -29,7 +29,7 @@
 				<column jdbc-type="LONGVARCHAR" allows-null="false"/>
 			</field>
 			
-			<field name="name" persistence-modifier="persistent">
+			<field name="name" persistence-modifier="persistent" unique="true">
 				<column length="100" allows-null="false"/>
         	</field> 
 			
