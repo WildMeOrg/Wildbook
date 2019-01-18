@@ -322,6 +322,11 @@ public class StudySite implements java.io.Serializable {
   }
 
   private String formattedDateString(DateTime dt, String format) {
+    if (dt==null) {
+      return null;
+    } else if (format==null) {
+      format = "MM-dd-yyyy";
+    }
     return new SimpleDateFormat(format).format(dt.toDate());
   }
 
