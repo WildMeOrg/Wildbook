@@ -77,7 +77,7 @@ public class StudySiteDelete extends HttpServlet {
             studySiteName = site.getName();
             ArrayList<Encounter> encs = myShepherd.getAllEncountersForStudySite(site);
             for (Encounter enc : encs) {
-                enc.setStudySiteID(null);
+                enc.clearStudySiteData(myShepherd);
             }
             myShepherd.throwAwayStudySite(site);
         } catch (Exception e) {
