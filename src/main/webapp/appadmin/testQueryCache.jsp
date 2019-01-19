@@ -35,14 +35,12 @@ myShepherd.beginDBTransaction();
 
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
-
-
-%>
-
-<p>OK, delete everything old...</p>
-
-<%
 if(request.getParameter("delete")!=null){
+	%>
+
+	<p>OK, delete everything old...</p>
+
+	<%
 	List<StoredQuery> st=myShepherd.getAllStoredQueries();
 	for(int i=0;i<st.size();i++){
 		
@@ -65,37 +63,44 @@ if(request.getParameter("delete")!=null){
 }	
      
 	
-	
-	
-	qc.loadQueries(context);
-
-
-//add a query
-//if(qc.getQueryByName("numIndividualsTotal", context)==null){
-	StoredQuery sq=new StoredQuery("numIndividualsTotal", "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && ((enc.dwcDateAddedLong >= 1041379200000) && (enc.dwcDateAddedLong <= 1577836740000)) && ((enc.dateInMilliseconds >= -189388800000) && (enc.dateInMilliseconds <= 1577836740000)) && ( maxYearsBetweenResightings >= 20 ) VARIABLES org.ecocean.Encounter enc");
-	myShepherd.getPM().makePersistent(sq);
-	myShepherd.commitDBTransaction();
-	myShepherd.beginDBTransaction();
-	qc.loadQueries(context);
-//}
-
-JSONObject jsonobj=new JSONObject();
-jsonobj.put("name", "Bob Dobaleena");
-qc.addCachedQuery(jsonobj, "exampleQuery", true, myShepherd);
 
 
 
-/*
-if(qc.getQueryByName("numEncountersTotal", context)==null){
-	StoredQuery sq=new StoredQuery("numEncountersTotal", "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null");
-	sq.setExpirationTimeoutDuration(180000);
-	myShepherd.getPM().makePersistent(sq);
-	myShepherd.commitDBTransaction();
-	myShepherd.beginDBTransaction();
-	qc.loadQueries(context);
-}*/
 
 try{
+	
+	if(qc.getQueryByName("numMarkedIndividuals", context)==null){
+		StoredQuery sq=new StoredQuery("numMarkedIndividuals", "SELECT FROM org.ecocean.MarkedIndividual WHERE individualID != null");
+		sq.setExpirationTimeoutDuration(600000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+
+	}
+	if(qc.getQueryByName("numEncounters", context)==null){
+		StoredQuery sq=new StoredQuery("numEncounters", "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null");
+		sq.setExpirationTimeoutDuration(600000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+
+	}
+	if(qc.getQueryByName("numUsersWithRoles", context)==null){
+		StoredQuery sq=new StoredQuery("numUsersWithRoles", "SELECT DISTINCT username FROM org.ecocean.Role");
+		sq.setExpirationTimeoutDuration(600000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+
+	}
+	if(qc.getQueryByName("numUsers", context)==null){
+		StoredQuery sq=new StoredQuery("numUsers", "SELECT FROM org.ecocean.User WHERE uuid != null");
+		sq.setExpirationTimeoutDuration(600000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+
+	}
 
 	Map<String,CachedQuery> queries=qc.cachedQueries();
 	Set<String> keys=queries.keySet();
@@ -104,6 +109,7 @@ try{
 	<h2>Round 1: Uncached</h2>
 	<ul>
 	<%
+	//qc.loadQueries(context);
 	Iterator<String> iter=keys.iterator();
 	int numQueries=queries.size();
 
@@ -111,10 +117,10 @@ try{
 	while(iter.hasNext()){
 		String keyName=iter.next();
 		CachedQuery cquery=queries.get(keyName);
-		cquery.executeCollectionQuery(myShepherd, true);
+		
 		%>
 		
-		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %></li>
+		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %>:<%=cquery.executeCountQuery(myShepherd) %></li>
 		
 		<%
 
@@ -134,9 +140,9 @@ try{
 	while(iter.hasNext()){
 		String keyName=iter.next();
 		CachedQuery cquery=queries.get(keyName);
-		cquery.executeCollectionQuery(myShepherd, true);
+		//cquery.executeCountQuery(myShepherd);
 		%>	
-		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %></li>
+		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %>::<%=cquery.executeCountQuery(myShepherd) %></li>
 		<%
 
 	}
@@ -161,9 +167,6 @@ finally{
 
 
 %>
-
-
-
 
 </body>
 </html>
