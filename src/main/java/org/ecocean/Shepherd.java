@@ -4308,7 +4308,7 @@ public class Shepherd {
       if((!thisUser.trim().equals(""))&&(getUser(thisUser)!=null)){
 
         if(qc.getQueryByName(("numRecentEncounters_"+thisUser), getContext())!=null){
-          CachedQuery cq=qc.getQueryByName("numEncounters"+thisUser, getContext());
+          CachedQuery cq=qc.getQueryByName("numRecentEncounters_"+thisUser, getContext());
           matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
         }
         
