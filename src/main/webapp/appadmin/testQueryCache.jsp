@@ -75,7 +75,7 @@ try{
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-
+		qc.loadQueries(context);
 	}
 	if(qc.getQueryByName("numEncounters", context)==null){
 		StoredQuery sq=new StoredQuery("numEncounters", "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null");
@@ -83,6 +83,7 @@ try{
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
+		qc.loadQueries(context);
 
 	}
 	if(qc.getQueryByName("numUsersWithRoles", context)==null){
@@ -91,7 +92,7 @@ try{
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-
+		qc.loadQueries(context);
 	}
 	if(qc.getQueryByName("numUsers", context)==null){
 		StoredQuery sq=new StoredQuery("numUsers", "SELECT FROM org.ecocean.User WHERE uuid != null");
@@ -99,8 +100,18 @@ try{
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-
+		qc.loadQueries(context);
 	}
+	if(qc.getQueryByName("top3Encounters", context)==null){
+		StoredQuery sq=new StoredQuery("top3Encounters", "SELECT FROM org.ecocean.Encounter WHERE individualID != null ORDER BY dwcDateAddedLong descending RANGE 1,4");
+		sq.setExpirationTimeoutDuration(600000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		qc.loadQueries(context);
+	}
+	
+	
 
 	Map<String,CachedQuery> queries=qc.cachedQueries();
 	Set<String> keys=queries.keySet();
@@ -152,7 +163,28 @@ try{
 	<p>Round 2 took: <%=(end2-start2) %>
 	
 	
+	<h2>Testing specific calls</h2>
+	<ul>
+	
 	<%
+	long start3=System.currentTimeMillis();
+    int numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals", context).executeCountQuery(myShepherd).intValue();
+    int numEncounters=qc.getQueryByName("numEncounters", context).executeCountQuery(myShepherd).intValue();
+    int numDataContributors=qc.getQueryByName("numUsersWithRoles", context).executeCountQuery(myShepherd).intValue();
+    int numUsersWithRoles = qc.getQueryByName("numUsers", context).executeCountQuery(myShepherd).intValue()-numDataContributors;
+    long end3=System.currentTimeMillis();
+	%>
+		<li>numMarkedIndividuals: <%=numMarkedIndividuals %></li>
+		<li>numEncounters: <%=numEncounters %></li>
+		<li>numDataContributors: <%=numDataContributors %></li>
+		<li>numUsersWithRoles: <%=numUsersWithRoles %></li>
+	
+	</ul>
+	<p>Result 3 time: <%=(end3-start3) %></p>
+	<%
+	
+	
+	
 	myShepherd.rollbackDBTransaction();
 	
 
