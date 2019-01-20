@@ -6,7 +6,8 @@
               java.util.Map,
               java.util.Iterator,
               java.util.Properties,
-              java.util.StringTokenizer
+              java.util.StringTokenizer,
+              org.ecocean.cache.*
               "
 %>
 
@@ -61,15 +62,22 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
-//Shepherd myShepherd=new Shepherd(context);
+int numUsers=0;
+
+QueryCache qc=QueryCacheFactory.getQueryCache(context);
+
 myShepherd.beginDBTransaction();
 try{
 
 
-    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals", context).executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
-    numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
-    numUsersWithRoles = myShepherd.getNumUsers()-numDataContributors;
+    //numEncounters=qc.getQueryByName("numEncounters", context).executeCountQuery(myShepherd).intValue();
+    //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
+    numDataContributors=qc.getQueryByName("numUsersWithRoles", context).executeCountQuery(myShepherd).intValue();
+    numUsers=qc.getQueryByName("numUsers", context).executeCountQuery(myShepherd).intValue();
+    numUsersWithRoles = numUsers-numDataContributors;
 
 
 }
