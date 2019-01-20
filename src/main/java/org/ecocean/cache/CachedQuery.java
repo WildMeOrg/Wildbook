@@ -32,6 +32,12 @@ public class CachedQuery {
       this.nextExpirationTimeout=sq.getNextExpirationTimeoutDuration();
     }
     
+    public CachedQuery(String name,String queryString,long expirationTimeoutDuration){
+      this.queryString=queryString;
+      this.name=name;
+      this.expirationTimeoutDuration=expirationTimeoutDuration;
+    }
+    
     public CachedQuery(String name,JSONObject jsonSerializedQueryResult, boolean persistAsStoredQuery, Shepherd myShepherd){
       this.name=name;
       this.jsonSerializedQueryResult=jsonSerializedQueryResult;
@@ -96,7 +102,7 @@ public class CachedQuery {
 
     public long getExpirationTimeoutDuration(){return expirationTimeoutDuration;}
 
-    public long getNextExpirationTimeoutDuration(){return nextExpirationTimeout;}
+    public long getNextExpirationTimeout(){return nextExpirationTimeout;}
 
     public void refreshValues(String context){
       Shepherd myShepherd=new Shepherd(context);

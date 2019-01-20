@@ -54,8 +54,12 @@ public class QueryCache {
     CachedQuery cq=new CachedQuery(name,jsonobj, persistAsStoredQuery, myShepherd);
     //put on HashMap
     cachedQueries.put(name, cq);
-
     
+  }
+  
+  public void addCachedQuery(CachedQuery cq){
+    
+    cachedQueries.put(cq.getName(), cq);
     
   }
 
