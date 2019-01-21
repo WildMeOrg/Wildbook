@@ -165,6 +165,17 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <style type="text/css">
 
+.annot-link {
+    display: none;
+    position: absolute;
+    text-decoration: none !important;
+    right: 5px;
+    top: 5px;
+    font-size: 1.3em;
+}
+.image-enhancer-feature:hover .annot-link {
+    display: block;
+}
 
 	#spot-image-wrapper-left,
 	#spot-image-wrapper-right

@@ -826,6 +826,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         height: feat.parameters.height * scale
     });
     fel.tooltip({ content: function() { return $(this).prop('data-tooltip'); } });
+/*  note: now handled by <a> below
     fel.on('click', function(ev) {
         ev.stopPropagation();
         var encId = $(this).data('encounterId');
@@ -833,7 +834,11 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         document.body.innerHTML = '';
         window.location.href = 'encounter.jsp?number=' + encId;
     });
+*/
     if (feat.parameters.theta) fel.css('transform', 'rotate(' + feat.parameters.theta + 'rad)');
+    if (inGalleryMode() || (feat.encounterId != encounterNumber)) {
+        fel.append('<a onClick="event.stopPropagation(); return true;" href="encounter.jsp?number=' + feat.encounterId + '" class="annot-link el el-circle-arrow-right">&#x2b8a;</a>');
+    }
     el.append(fel);
 }
 
