@@ -302,7 +302,7 @@ public class StudySite implements java.io.Serializable {
   }
 
   public String getDateString(String format) {
-    return formattedDateString(this.dateEnd, format);
+    return formattedDateString(this.date, format);
   }
 
   public void setDateEnd(DateTime dateEnd) {
