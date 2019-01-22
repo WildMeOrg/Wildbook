@@ -511,6 +511,7 @@ jQuery(document).ready(function() {
         $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
     });
 
+/*
     if (wildbookGlobals.username) {
         $('.image-enhancer-wrapper').each(function(i, el) {
             var mid = imageEnhancer.mediaAssetIdFromElement($(el));
@@ -520,6 +521,7 @@ jQuery(document).ready(function() {
             //$(el).closest('.my-gallery').after(h);
         });
     }
+*/
 });
 
 function doImageEnhancer(sel) {
