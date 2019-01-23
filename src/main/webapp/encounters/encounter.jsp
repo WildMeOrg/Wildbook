@@ -2053,11 +2053,17 @@ if(enc.getLocation()!=null){
 			%>
 			
 			</p> <!--  End submitters paragraph -->
+			<%
+			if(isOwner){
+			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
 				<input type="hidden" name="type" value="submitter" />
 				<%=encprops.getProperty("addSubmitter") %> <input class="btn btn-sm addUser" name="email" id="addSubmitter" type="text"></input>&nbsp;<button class="btn btn-sm addUser" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("add") %></button>
 			</div>
+			<%
+			}
+			%>
 		
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
@@ -2129,12 +2135,17 @@ if(enc.getLocation()!=null){
 	 		} //end if photographers!=null
 			%>
 			</p> <!--  End photographers paragraph -->
+			<%
+			if(isOwner){
+			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
 				<input type="hidden" name="type" value="photographer" />
 				<%=encprops.getProperty("addPhotographer") %> <input class="btn btn-sm addUser" name="email" id="addPhotographer" type="text"></input>&nbsp;<button class="btn btn-sm addUser" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("add") %></button>
 			</div>
-		                   
+		    <%
+			}
+		    %>          
 		                   
 		                  
 		                   
@@ -2218,12 +2229,17 @@ if(enc.getLocation()!=null){
 	 		} //end if informOther !=null
 			%>
 			</p> <!--  End informOthers paragraph -->
+			<%
+			if(isOwner){
+			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
 				<input type="hidden" name="type" value="informOther" />
 				<%=encprops.getProperty("addOthers") %> <input class="btn btn-sm addUser" name="email" id="addOther" type="text"></input>&nbsp;<button class="btn btn-sm addUser" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("add") %></button>
 			</div>
-		
+			<%
+			}
+			%>
 		            
 		               		<%
 		                  	} //end if isOwner
