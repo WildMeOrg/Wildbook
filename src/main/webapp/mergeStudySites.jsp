@@ -55,6 +55,8 @@
         <form onsubmit="return confirm('<%=stuprops.getProperty("confirmMerge") %>');" name="mergeStudySites" class="editFormMeta" method="post" action="../StudySiteMerge">
             <h1><%=stuprops.getProperty("mergeHeader") %></h1>
             <hr>
+            <p><%= stuprops.getProperty("mergeInstructions") %></p>
+            <br>
             <div class="col-sm-6 col-xs-12">
                 <h3><%= stuprops.getProperty("StudySite") %> 1</h3>
                 <br>
