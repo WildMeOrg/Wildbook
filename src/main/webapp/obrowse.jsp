@@ -103,12 +103,17 @@ java.util.Properties" %>
 		return h + "</ul></div>";
 	}
 
+    private String getAnnotationLink(Annotation ann) {
+        return "obrowse.jsp?type=Annotation&id="+ann.getId();
+    }
+
 	private String showAnnotation(Annotation ann, HttpServletRequest req) {
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
 		shown.add(ann);
-		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
+		String h = "<div class=\"annotation\">Annotation <b><a href=\""+getAnnotationLink(ann)+"\" >" + ann.getId() + "</a></b><ul>";
 		h += "<li>iaClass: <b>" + ((ann.getIAClass() == null) ? "[null]" : ann.getIAClass()) + "</b></li>";
+        h += "<li>amcId: <b>"+ann.getAcmId()+"</b></li>";
         h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
 		h += "<li>features: " + showFeatureList(ann.getFeatures(), req) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd), req) + "</li>";
