@@ -828,7 +828,7 @@ if (stu!=null) {
 
     <em><%=stuprops.getProperty("stationStart") %></em>
     <%
-    String stationStart = stu.getDateString("dd-MM-yyyy");
+    String stationStart = stu.getDateString("yyyy-MM-dd");
     if (stationStart == null) stationStart = "";
     %>
     <span>: <span id="displayStationStart"><%=stationStart%></span></span>
@@ -836,7 +836,7 @@ if (stu!=null) {
 
     <em><%=stuprops.getProperty("stationEnd") %></em>
     <%
-    String stationEnd = stu.getDateEndString("dd-MM-yyyy");
+    String stationEnd = stu.getDateEndString("yyyy-MM-dd");
     if (stationEnd == null) stationEnd = "";
     %>
     <span>: <span id="displayStationEnd"><%=stationEnd%></span></span>

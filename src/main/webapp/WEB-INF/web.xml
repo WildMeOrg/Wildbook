@@ -189,6 +189,9 @@
       /occurrence.jsp = authc, roles[researcher]
       /occurrenceSearchResults.jsp = authc, roles[researcher]
 
+      /studySite.jsp = authc, roles[researcher]
+      /mergeStudySites.jsp = authc, roles[admin]
+
 		   /TissueSampleSetHaplotype = authc, roles[researcher]
 		   /TissueSampleSetMeasurement = authc, roles[researcher]
 		  /TissueSampleRemoveHaplotype = authc, roles[researcher]
@@ -204,6 +207,8 @@
        /surveys/surveySearch.jsp = authc, roles[researcher]
        /surveys/surveySearchResults.jsp = authc, roles[researcher]
        
+       /StudySiteDelete = authc, roles[researcher]
+       /StudySiteMerge = authc, roles[researcher]
        /SurveyCreate = authc, roles[researcher]
        /SubmitSurvey = authc, roles[researcher]
        /SurveySetObservation = authc, roles[researcher]
@@ -818,6 +823,11 @@
   <servlet>
     <servlet-name>StudySiteDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.StudySiteDelete</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>StudySiteMerge</servlet-name>
+    <servlet-class>org.ecocean.servlet.StudySiteMerge</servlet-class>
   </servlet>
 
   <servlet>
@@ -1883,6 +1893,11 @@
   <servlet-mapping>
     <servlet-name>StudySiteDelete</servlet-name>
     <url-pattern>/StudySiteDelete</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>StudySiteMerge</servlet-name>
+    <url-pattern>/StudySiteMerge</url-pattern>
   </servlet-mapping>
 
     <servlet-mapping>

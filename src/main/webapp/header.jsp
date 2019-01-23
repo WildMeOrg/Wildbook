@@ -39,6 +39,8 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
+
+Properties stuprops = ShepherdProperties.getProperties("studySite.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
 CommonConfiguration.ensureServerInfo(myShepherd, request);
 
@@ -433,7 +435,12 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                            </li>	
                            <li>	
                              <a href="<%=urlLoc %>/studySiteSearchResults.jsp"><%=props.getProperty("allStudySites")%></a>	
-                           </li>	
+                           </li>
+                           <% if (request.isUserInRole("admin")) { %>
+                           <li>	
+                             <a href="<%=urlLoc %>/mergeStudySites.jsp"><%=stuprops.getProperty("mergeHeader")%></a>	
+                           </li>
+                           <% } %>
                          </ul>	
                        </li>
 
