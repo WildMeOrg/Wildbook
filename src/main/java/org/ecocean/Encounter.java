@@ -2915,6 +2915,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
         ArrayList<MediaAsset> m = new ArrayList<MediaAsset>();
         if ((annotations == null) || (annotations.size() < 1)) return m;
         for (Annotation ann : annotations) {
+            if (ann==null) continue; // really weird that this happens sometimes
             MediaAsset ma = ann.getMediaAsset();
             if (ma != null) m.add(ma);
         }
