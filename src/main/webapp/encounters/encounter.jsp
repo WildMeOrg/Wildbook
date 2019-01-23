@@ -169,6 +169,10 @@ String langCode=ServletUtilities.getLanguageCode(request);
     text-decoration: none !important;
     right: 5px;
     top: 5px;
+    background-color: rgba(255,255,255,0.5);
+    width: 1.3em;
+    border-radius: 0.65em;
+    padding: 4px;
     font-size: 1.3em;
 }
 .image-enhancer-feature:hover .annot-link {

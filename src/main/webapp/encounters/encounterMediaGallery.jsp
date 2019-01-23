@@ -273,7 +273,7 @@ for (int i=0; i<captionLinks.size(); i++) {
     box-shadow: 0 0 0 1px rgba(0,0,0,0.6);
 }
 .image-enhancer-wrapper:hover .image-enhancer-feature-focused {
-    background-color: rgba(255,255,10,0.3);
+    /* background-color: rgba(255,255,10,0.3); */
     box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
 }
 
@@ -281,7 +281,7 @@ for (int i=0; i<captionLinks.size(); i++) {
 .image-enhancer-feature:hover {
     z-index: 30;
     outline: solid black 2px;
-    background-color: rgba(120,255,0,0.3) !important;
+    background-color: rgba(120,255,0,0.1) !important;
 }
 
 	.match-tools {
@@ -724,7 +724,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
 */
     if (feat.parameters.theta) fel.css('transform', 'rotate(' + feat.parameters.theta + 'rad)');
     if (inGalleryMode() || (feat.encounterId != encounterNumber)) {
-        fel.append('<a onClick="event.stopPropagation(); return true;" href="encounter.jsp?number=' + feat.encounterId + '" class="annot-link el el-circle-arrow-right">&#x2b8a;</a>');
+        fel.append('<a title="go to this encounter" onClick="event.stopPropagation(); return true;" href="encounter.jsp?number=' + feat.encounterId + '" class="annot-link el el-circle-arrow-right">&nbsp;</a>');
     }
     el.append(fel);
 }
