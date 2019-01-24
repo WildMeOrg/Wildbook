@@ -86,6 +86,7 @@ try{
 		qc.loadQueries(context);
 
 	}
+	/*
 	if(qc.getQueryByName("numUsersWithRoles", context)==null){
 		StoredQuery sq=new StoredQuery("numUsersWithRoles", "SELECT DISTINCT username FROM org.ecocean.Role");
 		sq.setExpirationTimeoutDuration(600000);
@@ -94,6 +95,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries(context);
 	}
+	*/
 	if(qc.getQueryByName("numUsers", context)==null){
 		StoredQuery sq=new StoredQuery("numUsers", "SELECT FROM org.ecocean.User WHERE uuid != null");
 		sq.setExpirationTimeoutDuration(600000);
@@ -117,7 +119,7 @@ try{
 	Set<String> keys=queries.keySet();
 	
 	%>
-	<h2>Round 1: Uncached</h2>
+	<h2>Round 1: Cached?</h2>
 	<ul>
 	<%
 	//qc.loadQueries(context);
@@ -128,10 +130,10 @@ try{
 	while(iter.hasNext()){
 		String keyName=iter.next();
 		CachedQuery cquery=queries.get(keyName);
-		
+		cquery.executeCollectionQuery(myShepherd,true);
 		%>
 		
-		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %>:<%=cquery.executeCountQuery(myShepherd) %></li>
+		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %></li>
 		
 		<%
 
@@ -141,46 +143,10 @@ try{
 	</ul>
 	<p>Round 1 took: <%=(end1-start1) %>
 	
-	<h2>Round 2: Cached</h2>
-	<ul>
-	<%
-	iter=keys.iterator();
-	//int numQueries=queries.size();
 
-	long start2=System.currentTimeMillis();
-	while(iter.hasNext()){
-		String keyName=iter.next();
-		CachedQuery cquery=queries.get(keyName);
-		//cquery.executeCountQuery(myShepherd);
-		%>	
-		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %>::<%=cquery.executeCountQuery(myShepherd) %></li>
-		<%
+	
+	
 
-	}
-	long end2=System.currentTimeMillis();
-	%>
-	</ul>
-	<p>Round 2 took: <%=(end2-start2) %>
-	
-	
-	<h2>Testing specific calls</h2>
-	<ul>
-	
-	<%
-	long start3=System.currentTimeMillis();
-    int numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals", context).executeCountQuery(myShepherd).intValue();
-    int numEncounters=qc.getQueryByName("numEncounters", context).executeCountQuery(myShepherd).intValue();
-    int numDataContributors=qc.getQueryByName("numUsersWithRoles", context).executeCountQuery(myShepherd).intValue();
-    int numUsersWithRoles = qc.getQueryByName("numUsers", context).executeCountQuery(myShepherd).intValue()-numDataContributors;
-    long end3=System.currentTimeMillis();
-	%>
-		<li>numMarkedIndividuals: <%=numMarkedIndividuals %></li>
-		<li>numEncounters: <%=numEncounters %></li>
-		<li>numDataContributors: <%=numDataContributors %></li>
-		<li>numUsersWithRoles: <%=numUsersWithRoles %></li>
-	
-	</ul>
-	<p>Result 3 time: <%=(end3-start3) %></p>
 	<%
 	
 	
