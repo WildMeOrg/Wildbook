@@ -122,41 +122,52 @@ public class CachedQuery {
 
       //first, can we use serialized cache and if so, does it exist
       if(useSerializedJSONCache){
-        
-        if((jsonSerializedQueryResult==null)||((expirationTimeoutDuration>-1)&&(System.currentTimeMillis()>nextExpirationTimeout))){
-          //System.out.println("jsonSerializedQueryResult is null");
+        long time=System.currentTimeMillis();
+        if((jsonSerializedQueryResult==null)||((expirationTimeoutDuration>-1)&&(time>nextExpirationTimeout))){
+          //System.out.println("*****Status 1");
           //check if we have a serialized cache
-          if(getCacheFile().exists() && !(System.currentTimeMillis()>nextExpirationTimeout)){
-            System.out.println("cached file exists!");
-            return loadCachedJSON(myShepherd);
-          }
-          else{
           
-            System.out.println("cached file does NOT exist or has expired!");
+          //first if the cache is null but not expired, then just load it.
+          //((expirationTimeoutDuration==-1)||(((expirationTimeoutDuration>-1)&&(time<nextExpirationTimeout))))
+          if((jsonSerializedQueryResult==null) && getCacheFile().exists()){
+            //load the cache file and return the JSONObject
+            //System.out.println("*****Status 1a");
+            nextExpirationTimeout=time+expirationTimeoutDuration;
+            return loadCachedJSON(myShepherd); 
+          }
+          //gotta regen the cache
+          else{
+ 
+            //System.out.println("cached file does NOT exist or has expired!");
             //run the query and set the cache
-            List<Object> results=executeQuery(myShepherd);
+            List results=executeQuery(myShepherd);
             
             //serialize the results
             JSONObject jsonobj=serializeCollectionToJSON(results, myShepherd);
-            System.out.println("finished serializing the result!");
+            //System.out.println("finished serializing the result: "+jsonobj);
                 
+            nextExpirationTimeout=time+expirationTimeoutDuration;
             //then return the List<Object>
+            System.out.println("*****Status 1b");
             return jsonobj;
           }
           
         }
         else{
           
+          //data still valid, just send it back quickly! 
+          System.out.println("*****Status 2");
            return jsonSerializedQueryResult;
           
         }
         
         
       }
-      //just run the query
+      //just run the query since the user has chosen to override the cache
       else{
         List<Object> c=executeQuery(myShepherd);
         JSONObject jsonobj=convertToJson(c, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext());
+        System.out.println("*****Status 3");
         return jsonobj;
         
       }
@@ -166,6 +177,31 @@ public class CachedQuery {
 
       
     }
+    
+    /*
+    public List executeCollectionQueryAsObjects(Shepherd myShepherd,boolean useSerializedJSONCache,String className){
+      List results=new ArrayList<Object>();
+      try{
+        JSONObject jsonobj=executeCollectionQuery(myShepherd,useSerializedJSONCache);
+        JSONArray arr=jsonobj.getJSONArray("result");
+        System.out.println("arr:"+arr+"\n\n");
+        int numResults=arr.length();
+        for(int i=0;i<numResults;i++){
+          JSONObject js=arr.getJSONObject(i);
+          Object obj=RESTUtils.getObjectFromJSONObject(Util.toggleJSONObject(jsonobj), className, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext());
+          System.out.println("obj: "+obj);
+          results.add(obj);
+        }
+        return results;
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }
+      return null;
+    }
+    */
+
+    
     
     public Integer executeCountQuery(Shepherd myShepherd){
       if((collectionQueryCount==null)||((expirationTimeoutDuration>-1)&&(System.currentTimeMillis()>nextExpirationTimeout))){
@@ -193,13 +229,36 @@ public class CachedQuery {
       return jsonSerializedQueryResult;
     }
     
+    public synchronized void setJSONSerializedQueryResult(JSONObject jsonSerializedQueryResult, boolean serialize){
+      if(jsonSerializedQueryResult==null){
+        this.jsonSerializedQueryResult=null;
+      }
+      else{
+        this.jsonSerializedQueryResult=jsonSerializedQueryResult;
+      }
+      try{
+        //delete old cache
+        getCacheFile().delete();
+        
+        //if set in the mwthod declaration, serialize the new object cache
+        if(serialize)Util.writeToFile(jsonSerializedQueryResult.toString(), getCacheFile().getAbsolutePath());
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }
+      this.nextExpirationTimeout=System.currentTimeMillis()+expirationTimeoutDuration;
+    }
+    
     public JSONObject convertToJson(Collection coll, ExecutionContext ec) {
       JSONArray jarr = new JSONArray();
       for (Object o : coll) {
           if (o instanceof Collection) {
               jarr.put(convertToJson((Collection)o, ec));
           } else {  //TODO can it *only* be an JSONObject-worthy object at this point?
-              jarr.put(Util.toggleJSONObject(RESTUtils.getJSONObjectFromPOJO(o, ec)));
+              try{
+                jarr.put(Util.toggleJSONObject(RESTUtils.getJSONObjectFromPOJO(o, ec)));
+              }
+              catch(Exception e){System.out.println("RESTUtils.getJSONObjectFromPOJO threw an exception on "+o.toString());}
           }
       }
       JSONObject jsonobj=new JSONObject();
@@ -207,23 +266,30 @@ public class CachedQuery {
       return jsonobj;
   }
     
-   public List<Object> executeQuery(Shepherd myShepherd){
-     System.out.println("in CachedQuery. executeQuery");
+   public List executeQuery(Shepherd myShepherd){
+     //System.out.println("in CachedQuery. executeQuery");
      Query query=myShepherd.getPM().newQuery(queryString);
      Collection c = (Collection) (query.execute());
-     ArrayList<Object> al=new ArrayList<Object>(c);
-     System.out.println("Finished executeQuery with: "+al.size()+" results.");
-     query.closeAll();
-     return al;
+     try{
+       ArrayList al=new ArrayList(c);
+       //System.out.println("Finished executeQuery with: "+al.size()+" results.");
+       query.closeAll();
+       return al;
+     }
+     catch(Exception e){
+       e.printStackTrace();
+       query.closeAll();
+     }
+     return null;
    }  
    
    private JSONObject serializeCollectionToJSON(Collection c, Shepherd myShepherd){
      try{
-       System.out.println("in serializeCollectionToJSON");
+       //System.out.println("in serializeCollectionToJSON for query: "+getName());
        JSONObject jsonobj = convertToJson((Collection)c, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext());
        jsonSerializedQueryResult=jsonobj;
        Util.writeToFile(jsonobj.toString(), getCacheFile().getAbsolutePath());
-       System.out.println("Checking does JSON file exist? "+getCacheFile().exists());
+       //System.out.println("Checking does JSON file exist? "+getCacheFile().exists());
        return jsonobj;
      }
      catch(Exception e){
@@ -232,23 +298,24 @@ public class CachedQuery {
      }
    }
    
-   public JSONObject loadCachedJSON(Shepherd myShepherd){
+   public synchronized JSONObject loadCachedJSON(Shepherd myShepherd){
      //just load and return the List<Object> from the cache
      
-     System.out.println("loading cached JSON: ");
+     //System.out.println("loading cached JSON: ");
      try{
        String writePath=ShepherdProperties.getProperties("cache.properties","").getProperty("cacheRootDirectory");
        if(!writePath.endsWith("/"))writePath+="/";
        writePath+=getName()+"/"+getName()+".json";
        File sFile=getCacheFile();
-       System.out.println("loading cached JSON: "+sFile.getAbsolutePath());
+       //System.out.println("loading cached JSON: "+sFile.getAbsolutePath());
        
        if(sFile.exists()){
          InputStream is = new FileInputStream(sFile);
          String jsonTxt = IOUtils.toString(is, "UTF-8");
-         System.out.println(jsonTxt);
+         //System.out.println(jsonTxt);
          JSONObject jsonobj = new JSONObject(jsonTxt);
          //RESTUtils.getObjectFromJSONObject(jsonobj, String className, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext());
+         this.jsonSerializedQueryResult=jsonobj;
          return jsonobj;
        }
        else{return null;}
@@ -265,7 +332,7 @@ public class CachedQuery {
      String writePath=ShepherdProperties.getProperties("cache.properties","").getProperty("cacheRootDirectory");
      if(!writePath.endsWith("/"))writePath+="/";
      writePath+=getName()+".json";
-     System.out.println("Cache file path to: "+writePath);
+     //System.out.println("Cache file path to: "+writePath);
      return new File(writePath);
    }
    
