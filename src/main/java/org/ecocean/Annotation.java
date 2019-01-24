@@ -144,6 +144,9 @@ public class Annotation implements java.io.Serializable {
     public String getAcmId() {
         return this.acmId;
     }
+    public boolean hasAcmId() {
+        return (this.acmId != null);
+    }
 
     public ArrayList<Feature> getFeatures() {
         return features;

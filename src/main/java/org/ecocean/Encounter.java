@@ -53,6 +53,7 @@ import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
 //import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+import org.ecocean.ia.IA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
 import org.ecocean.Survey;
@@ -180,6 +181,7 @@ public class Encounter implements java.io.Serializable {
   
   private List<User> submitters;
   private List<User> photographers;
+  private List<User> informOthers;
 
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
@@ -1834,17 +1836,19 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return otherCatalogNumbers;
   }
 
-  public String getInformOthers() {
+  public String getOLDInformOthersFORLEGACYCONVERSION() {
     if (informothers == null) {
       return "";
     }
     return informothers;
   }
 
+  /*
   public void setInformOthers(String others) {
     this.informothers = others;
     this.hashedInformOthers = Encounter.getHashOfEmailString(others);
   }
+  */
 
   public String getLocationID() {
     return locationID;
@@ -2703,8 +2707,17 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
     public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
         if ((anns == null) || (anns.size() < 1)) return null;
-        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
-        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+          
+        //Determine skipped frames before another encounter should be made. 
+      int minGapSize = 4;  
+      try {
+        String gapFromProperties = IA.getProperty(myShepherd.getContext(), "newEncounterFrameGap");
+        if (gapFromProperties!=null) {
+          minGapSize = Integer.parseInt(gapFromProperties);
+        }
+      } catch (NumberFormatException nfe) {}
+
+        SortedMap<Integer,List<Annotation>> ordered = new TreeMap<Integer,List<Annotation>>();
         MediaAsset parentRoot = null;
         for (Annotation ann : anns) {
 System.out.println("========================== >>>>>> " + ann);
@@ -2716,7 +2729,8 @@ System.out.println("   -->>> ma = " + ma);
             int offset = ma.getParameters().optInt("extractOffset", -1);
 System.out.println("   -->>> offset = " + offset);
             if (offset < 0) continue;
-            ordered.put(offset, ann);
+            if (ordered.get(offset) == null) ordered.put(offset, new ArrayList<Annotation>());
+            ordered.get(offset).add(ann);
         }
         if (ordered.size() < 1) return null;  //none used!
 
@@ -2737,7 +2751,7 @@ System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
                 }
             }
             prevOffset = i;
-            tmpAnns.add(ordered.get(i));
+            tmpAnns.addAll(ordered.get(i));
         }
         //deal with dangling tmpAnns content
         if (tmpAnns.size() > 0) {
@@ -3025,6 +3039,13 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 	public boolean canUserAccess(HttpServletRequest request) {
 		return Collaboration.canUserAccessEncounter(this, request);
 	}
+        public boolean canUserEdit(User user) {
+            return isUserOwner(user);
+        }
+        public boolean isUserOwner(User user) {  //the definition of this might change?
+            if ((user == null) || (submitters == null)) return false;
+            return submitters.contains(user);
+        }
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
             jobj.put("location", this.getLocation());
@@ -3377,12 +3398,15 @@ throw new Exception();
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
+        System.out.println("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
         enc.setGenus(this.getGenus());
         enc.setSpecificEpithet(this.getSpecificEpithet());
         enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
         enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
         //just going to go ahead and go nuts here and copy most "logical"(?) things.  reset on clone if needed
         enc.setSubmitterID(this.getSubmitterID());
+        enc.setSubmitters(this.submitters);
+        enc.setPhotographers(this.photographers);
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
@@ -3526,6 +3550,10 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return submitters;
     }
     
+    public List<User> getInformOthers(){
+      return informOthers;
+    }
+    
     public List<String> getSubmitterEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3572,6 +3600,20 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
+    public List<String> getInformOthersEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getInformOthers()!=null)subs.addAll(getInformOthers());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+          listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
     public List<String> getHashedPhotographerEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3605,6 +3647,21 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         this.photographers=photographers;
       }
     }
+    
+    
+   public void addInformOther(User user) {
+      if (user == null) return;
+      if (informOthers == null) informOthers = new ArrayList<User>();
+      if (!informOthers.contains(user)) informOthers.add(user);
+  }
+
+  public void setInformOthers(List<User> users) {
+    if(informOthers==null){this.informOthers=null;}
+    else{
+      this.informOthers=users;
+    }
+    
+  }
 
     
 }
