@@ -50,6 +50,10 @@ public class RestClient {
         return anyMethod("GET", url, data);
     }
 
+    public static JSONObject delete(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return anyMethod("DELETE", url, data);
+    }
+
     //IBEIS-specifically, data gets posted as name-value pairs where name comes from the keys
     private static JSONObject anyMethod(String method, URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 System.out.println("TRYING anyMethod(" + method + ") url -> " + url);
