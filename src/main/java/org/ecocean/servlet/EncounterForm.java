@@ -331,6 +331,7 @@ System.out.println("*** trying redirect?");
         long maxSizeBytes = maxSizeMB * 1048576;
 
         if (ServletFileUpload.isMultipartContent(request)) {
+          
             try {
                 ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
                 upload.setHeaderEncoding("UTF-8");
@@ -365,8 +366,11 @@ System.out.println("*** trying redirect?");
 
         } else {
             doneMessage = "Sorry this Servlet only handles file upload request";
+            System.out.println("Not a multi-part form submission!");
         }
 
+
+        
         if (fv.get("social_files_id") != null) {
           System.out.println("BBB: Social_files_id: "+fv.get("social_files_id"));
           
@@ -411,6 +415,8 @@ System.out.println("*** trying redirect?");
       if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
         spamBot = true;
       }
+      
+      System.out.println("spambot: "+spamBot);
       //else if(spamFields.toString().toLowerCase().indexOf("[url]")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().indexOf("url=")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().trim().equals("")){spamBot=true;}
@@ -560,7 +566,7 @@ System.out.println("*** trying redirect?");
                 }
 
             } catch (Exception le) {
-
+                le.printStackTrace();
             }
 
 
@@ -570,8 +576,16 @@ System.out.println("about to do enc()");
             boolean llSet = false;
             //Encounter enc = new Encounter();
             //System.out.println("Submission detected date: "+enc.getDate());
+            
             String encID = enc.generateEncounterNumber();
+            if ((fv.get("catalogNumber") != null)&&(!fv.get("catalogNumber").toString().trim().equals(""))) {
+              if((!myShepherd.isEncounter(fv.get("catalogNumber").toString()))){
+                encID=fv.get("catalogNumber").toString().trim();
+              }
+            }
             enc.setEncounterNumber(encID);
+            
+            
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
 
@@ -1101,8 +1115,8 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
       if (!spamBot) {
         
         //send submitter on to confirmSubmit.jsp
-        response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
-        
+        //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
+        WebUtils.redirectToSavedRequest(request, response, ("/confirmSubmit.jsp?number=" + encID));
         
         //start email appropriate parties
         if(CommonConfiguration.sendEmailNotifications(context)){
