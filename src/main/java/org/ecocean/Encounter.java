@@ -1137,9 +1137,6 @@ public class Encounter implements java.io.Serializable {
     catalogNumber = num;
   }
 
-
-
-    //this is probably what you wanted above to do.  :/
     public boolean hasMarkedIndividual() {
         return (individual != null);
     }
