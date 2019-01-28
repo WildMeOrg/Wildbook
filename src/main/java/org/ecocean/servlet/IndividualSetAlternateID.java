@@ -66,7 +66,8 @@ public class IndividualSetAlternateID extends HttpServlet {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
       alternateID = request.getParameter("alternateid");
       try {
-        myShark.setAlternateID(alternateID);
+        //FIXME make this actually set an alternate id!!!!
+        if (alternateID != null) throw new RuntimeException("fix me now!");
         myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set alternate ID: " + alternateID + ".");
 
       } catch (Exception le) {

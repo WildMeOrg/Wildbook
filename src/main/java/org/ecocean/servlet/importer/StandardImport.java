@@ -389,7 +389,7 @@ public class StandardImport extends HttpServlet {
   	if (behavior!=null) enc.setBehavior(behavior);
 
   	String individualID = getIndividualID(row);
-  	if (individualID!=null) enc.setIndividualID(individualID);
+  	//if (individualID!=null) enc.setIndividualID(individualID);
 
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);
@@ -403,7 +403,7 @@ public class StandardImport extends HttpServlet {
 
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
-  	if (nickname!=null) enc.setAlternateID(nickname);
+  	//if (nickname!=null) enc.setAlternateID(nickname);
 
     String alternateID = getString(row, "Encounter.alternateID");
     if (alternateID!=null) enc.setAlternateID(alternateID);
@@ -787,7 +787,7 @@ public class StandardImport extends HttpServlet {
 	  if (!newIndividual) mark.addEncounterNoCommit(enc);
 
     String alternateID = getString(row, "Encounter.alternateID");
-    if (alternateID!=null) mark.setAlternateID(alternateID);
+    //if (alternateID!=null) mark.setAlternateID(alternateID);
 
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
