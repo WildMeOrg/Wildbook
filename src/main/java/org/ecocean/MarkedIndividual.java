@@ -30,6 +30,8 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
+import javax.jdo.Query;
 
 import java.text.DecimalFormat;
 
@@ -49,11 +51,11 @@ import org.datanucleus.api.rest.orgjson.JSONException;
  */
 public class MarkedIndividual implements java.io.Serializable {
 
-  //unique name of the MarkedIndividual, such as 'A-109'
-  private String individualID = "";
-
-  //alternate id for the MarkedIndividual, such as a physical tag number of reference in another database
-  private String alternateid;
+    private String individualID = "";
+    private MultiValue names;
+    //this will GO AWAY SOON
+    private String alternateid;
+    private String legacyIndividualID;
 
   //additional comments added by researchers
   private String comments = "None";
@@ -115,9 +117,10 @@ public class MarkedIndividual implements java.io.Serializable {
 
   private long timeOfDeath=0;
 
-  public MarkedIndividual(String individualID, Encounter enc) {
+  public MarkedIndividual(String name, Encounter enc) {
 
-    this.individualID = individualID;
+    //this.individualID = individualID;
+    this.addName(name);
     encounters.add(enc);
     //dataFiles = new Vector();
     numberEncounters = 1;
@@ -134,8 +137,16 @@ public class MarkedIndividual implements java.io.Serializable {
    * empty constructor used by JDO Enhancer - DO NOT USE
    */
   public MarkedIndividual() {
+        this.individualID = Util.generateUUID();
   }
 
+    public MarkedIndividual(Encounter enc) {
+        this();
+        addEncounter(enc);
+        setTaxonomyFromEncounters();
+        setSexFromEncounters();
+        refreshDependentProperties();
+    }
 
   /**Adds a new encounter to this MarkedIndividual.
    *@param  newEncounter  the new <code>encounter</code> to add
@@ -143,10 +154,98 @@ public class MarkedIndividual implements java.io.Serializable {
    *@see  Shepherd#commitDBTransaction()
    */
 
-  public boolean addEncounter(Encounter newEncounter, String context) {
+    public String getId() {
+        return individualID;
+    }
 
-      newEncounter.assignToMarkedIndividual(individualID);
 
+    //this is "something to show" (by default)... it falls back to the id,
+    //  which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
+    //  note that if keyHint is null, default is used
+    public String getDisplayName() {
+        return getDisplayName(null);
+    }
+    public String getDisplayName(Object keyHint) {
+        List<String> names = getNamesList(keyHint);
+        if ((names == null) || (names.size() < 1)) return individualID.substring(0,8);
+        return names.get(0);
+    }
+
+    //MultiValue has some subtleties to it!
+    public void setNames(MultiValue mv) {
+        names = mv;
+    }
+    public MultiValue getNames() {
+        return names;
+    }
+    public List<String> getNamesList(Object keyHint) {
+        if (names == null) return null;
+        return names.getValues(keyHint);
+    }
+    public List<String> getNamesList() {
+        if (names == null) return null;
+        return names.getValuesDefault();
+    }
+    //this adds to the default
+    public void addName(String name) {
+        if (names == null) names = new MultiValue();
+        names.setValuesDefault(name);
+    }
+    public void addName(Object keyHint, String name) {
+        if (names == null) names = new MultiValue();
+        names.setValues(keyHint, name);
+    }
+///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
+
+    //this should be run once, as it will set (default key) values based on old field values
+    //   see, e.g.  appadmin/migrateMarkedIndividualNames.jsp
+    public MultiValue setNamesFromLegacy() {
+        if (names == null) names = new MultiValue();
+        if (Util.stringExists(legacyIndividualID)) {
+            names.setValuesDefault(legacyIndividualID);
+            names.setValuesByKey("_legacyIndividualID_", legacyIndividualID);
+        }
+        if (Util.stringExists(nickName)) {
+            names.setValuesDefault(nickName);
+            names.setValuesByKey("_nickName_", nickName);
+        }
+        //note: alternateids seems to sometimes (looking at you flukebook) contain "keys" of their own, e.g. "IFAW:fluffy"
+        //   in some perfect world this would be used as own keys.  :(
+        if (Util.stringExists(alternateid)) {
+            String[] part = alternateid.split("\\s*[;,]\\s*");
+            for (int i = 0 ; i < part.length ; i++) {
+                names.setValuesDefault(part[i]);
+                names.setValuesByKey("_alternateid_", part[i]);
+            }
+        }
+        return names;
+    }
+
+
+    //NOTE:  this is a little wonky in that it incorporates SQL.  deal with it.
+    //you can pass null for keyHint to get default only
+    public static List<String> allNamesValues(Shepherd myShepherd, Object keyHint) {
+        Set<String> keys = MultiValue.generateKeys(keyHint);
+        List<String> rtn = new ArrayList<String>();
+        if (keys.size() < 1) return rtn;
+        List<String> keysList = new ArrayList<String>(keys);  //we want a list to use .replaceAll
+        keysList.replaceAll(s -> s.replaceAll("'", "''"));
+        keysList.replaceAll(s -> s.replaceAll("_", "\\_"));
+        keysList.replaceAll(s -> s.replaceAll(":", "_"));  //$*#(@*(! JDO PARAMETERS!!!
+        String sql = "SELECT DISTINCT(\"ID_OID\") AS \"ID\" FROM \"MULTIVALUE_VALUES\" JOIN \"MARKEDINDIVIDUAL\" ON (\"NAMES_ID_OID\" = \"ID_OID\") WHERE \"KEY\" LIKE '" + StringUtils.join(keysList, "' OR \"KEY\" LIKE '") + "'";
+System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        q.setClass(MultiValue.class);
+        List<MultiValue> mvs = (List<MultiValue>)q.execute();
+        for (MultiValue mv : mvs) {
+            List<String> vals = mv.getValuesByKeys(keys);
+            vals.removeAll(rtn);  //weed out duplicates
+            rtn.addAll(vals);
+        }
+        return rtn;
+    }
+
+  public boolean addEncounter(Encounter newEncounter) {
       //get and therefore set the haplotype if necessary
       getHaplotype();
 
@@ -162,7 +261,7 @@ public class MarkedIndividual implements java.io.Serializable {
       if(isNew){
         encounters.add(newEncounter);
         numberEncounters++;
-        refreshDependentProperties(context);
+        refreshDependentProperties();
       }
       setTaxonomyFromEncounters();  //will only set if has no value
       setSexFromEncounters();       //likewise
@@ -171,9 +270,6 @@ public class MarkedIndividual implements java.io.Serializable {
  }
 
    public boolean addEncounterNoCommit(Encounter newEncounter) {
-
-      newEncounter.assignToMarkedIndividual(individualID);
-
       //get and therefore set the haplotype if necessary
       getHaplotype();
 
@@ -189,7 +285,7 @@ public class MarkedIndividual implements java.io.Serializable {
       if(isNew){
         encounters.add(newEncounter);
         numberEncounters++;
-        //refreshDependentProperties(context);
+        refreshDependentProperties();
       }
       setTaxonomyFromEncounters();  //will only set if has no value
       setSexFromEncounters();       //likewise
@@ -202,7 +298,7 @@ public class MarkedIndividual implements java.io.Serializable {
    *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
    *@see  Shepherd#commitDBTransaction()
    */
-  public boolean removeEncounter(Encounter getRidOfMe, String context){
+  public boolean removeEncounter(Encounter getRidOfMe) {
 
       numberEncounters--;
 
@@ -215,7 +311,7 @@ public class MarkedIndividual implements java.io.Serializable {
           changed=true;
           }
       }
-      refreshDependentProperties(context);
+      refreshDependentProperties();
 
       //reset haplotype
       localHaplotypeReflection=null;
@@ -268,12 +364,14 @@ public class MarkedIndividual implements java.io.Serializable {
 
 
 
+/*
 	public String refreshThumbnailUrl(String context) {
 		Encounter[] sorted = this.getDateSortedEncounters();
 		if (sorted.length < 1) return null;
 		this.thumbnailUrl = sorted[0].getThumbnailUrl(context);
 		return this.thumbnailUrl;
 	}
+*/
 
 /*
   public int totalLogEncounters() {
@@ -545,9 +643,10 @@ public class MarkedIndividual implements java.io.Serializable {
    *
    * @return the name of the MarkedIndividual as a String
    */
-  public String getName() {
-    return individualID;
-  }
+    public String getName() {
+        System.out.println("INFO: MarkedIndividual.getName() now is alias for .getDisplayName()");
+        return getDisplayName();
+    }
 
   public String getIndividualID() {
       return individualID;
@@ -1211,35 +1310,6 @@ public class MarkedIndividual implements java.io.Serializable {
     dateTimeLatestSighting = time;
   }
 
-  public void setAlternateID(String newID) {
-    this.alternateid = newID;
-  }
-
-  public String getAlternateID() {
-    if (alternateid == null) {
-      return "None";
-    }
-    return alternateid;
-  }
-
-  /*
-   * Returns a bracketed, comma-delimited string of all of the alternateIDs registered for this marked individual, including those only assigned at the Encounter level
-   */
-   public String getAllAlternateIDs(){
-     ArrayList<String> allIDs = new ArrayList<String>();
-
-      //add any alt IDs for the individual itself
-      if(alternateid!=null){allIDs.add(alternateid);}
-
-      //add an alt IDs for the individual's encounters
-      int numEncs=encounters.size();
-      for(int c=0;c<numEncs;c++) {
-        Encounter temp=(Encounter)encounters.get(c);
-        if((temp.getAlternateID()!=null)&&(!temp.getAlternateID().equals("None"))&&(!allIDs.contains(temp.getAlternateID()))) {allIDs.add(temp.getAlternateID());}
-      }
-
-      return allIDs.toString();
-    }
 
   public String getDynamicProperties() {
     return dynamicProperties;
@@ -1874,6 +1944,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   public JSONObject uiJson(HttpServletRequest request) throws JSONException {
     JSONObject jobj = new JSONObject();
     jobj.put("individualID", this.getIndividualID());
+    jobj.put("id", this.getId());
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
     jobj.put("nickname", this.nickName);
@@ -2116,12 +2187,11 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
 
 
-	public void refreshDependentProperties(String context) {
+	public void refreshDependentProperties() {
 		this.refreshNumberEncounters();
 		this.refreshNumberLocations();
 		this.resetMaxNumYearsBetweenSightings();
 		this.refreshDateFirstIdentified();
-		this.refreshThumbnailUrl(context);
 		this.refreshDateLastestSighting();
 	}
 
