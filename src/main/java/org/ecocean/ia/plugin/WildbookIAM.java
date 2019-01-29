@@ -245,6 +245,10 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find acmId for " + ann + " (MediaAsset id=" + ann.getMediaAsset().getId() + " not added to IA?); skipping!");
                 continue;
             }
+            if  (map.get("image_uuid_list")!=null&&map.get("image_uuid_list").contains(ann.getMediaAsset().getAcmId())) {
+                IA.log("WARNING: Stopped attempt to send this duplicate MediaAsset ACMID. Please fix your list. skipping! " + ann.getMediaAsset().getId());
+                continue;
+            }    
             if (!IBEISIA.validForIdentification(ann)) {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() skipping invalid " + ann);
                 continue;
