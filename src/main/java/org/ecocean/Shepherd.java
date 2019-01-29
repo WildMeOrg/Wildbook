@@ -450,6 +450,11 @@ public class Shepherd {
     pm.deletePersistent(ad);
   }
 
+  public void throwAwayFeature(Feature ft) {
+    String number = ft.getId();
+    pm.deletePersistent(ft);
+  }
+
   public void throwAwayKeyword(Keyword word) {
     String indexname = word.getIndexname();
     pm.deletePersistent(word);
