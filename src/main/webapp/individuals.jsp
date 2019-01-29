@@ -125,6 +125,7 @@ if (request.getParameter("number")!=null) {
           }
         }
       }
+			boolean visible = indie.canUserAccess(request);
 
 			if (!visible) {
   			ArrayList<String> uids = indie.getAllAssignedUsers();
