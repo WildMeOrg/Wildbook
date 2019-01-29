@@ -34,6 +34,7 @@ import org.ecocean.movement.SurveyTrack;
 
 
 import javax.jdo.*;
+import java.lang.AutoCloseable;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.*;
@@ -75,7 +76,7 @@ import org.datanucleus.api.rest.orgjson.JSONException;
  * @version alpha-2
  * @see shark, encounter, superSpot,	spot
  */
-public class Shepherd {
+public class Shepherd implements AutoCloseable {
 
   private PersistenceManager pm;
   public static Vector matches = new Vector();
@@ -3578,6 +3579,11 @@ public class Shepherd {
     }
   }
 
+  // to allow implementing AutoCloseable which enables try-with-resources for shepherd
+  public void close() throws Exception {
+    rollbackDBTransaction();
+    closeDBTransaction();
+  }
 
   /**
    * Undoes any changes made to an open database.
