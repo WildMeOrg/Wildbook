@@ -168,7 +168,7 @@ java.util.Properties" %>
 		} else if (ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
-			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + scrubUrl(ma.webURL()) + "\" /></div></div></a>";
+			h += "<a target=\"_new\" href=\"" + scrubUrl(ma.webURL()) + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + scrubUrl(ma.webURL()) + "\" /></div></div></a>";
 
 		}
                 h += "<ul style=\"width: 65%\">";
