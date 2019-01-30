@@ -4,6 +4,7 @@
 org.ecocean.media.*,
 org.ecocean.ia.Task,
 org.ecocean.movement.*,
+java.net.URL,
 java.util.Vector,
 java.util.ArrayList,
 org.json.JSONObject,
@@ -205,7 +206,7 @@ java.util.Properties" %>
 		} else if (ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
-			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></div></div></a>";
+			h += "<a target=\"_new\" href=\"" + scrubUrl(ma.webURL()) + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + scrubUrl(ma.webURL()) + "\" /></div></div></a>";
 
 		}
                 h += "<ul style=\"width: 65%\">";
@@ -279,6 +280,11 @@ java.util.Properties" %>
         	if (type == null) return false;
         	return type.equals("MediaAssetMetadata");
     	}
+
+    private String scrubUrl(URL u) {
+        if (u == null) return (String)null;
+        return u.toString().replaceAll("#", "%23");
+    }
 
 %><%
 
