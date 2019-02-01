@@ -1692,6 +1692,10 @@
       <servlet-name>WebImport</servlet-name>
       <url-pattern>/WebImport</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+      <servlet-name>WebImport</servlet-name>
+      <url-pattern>/import/upload</url-pattern>
+  </servlet-mapping>
 
     <servlet-mapping>
       <servlet-name>EncounterSetPatterningCode</servlet-name>

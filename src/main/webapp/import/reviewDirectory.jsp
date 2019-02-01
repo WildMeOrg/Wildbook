@@ -80,7 +80,7 @@ nImages = imageFiles.size();
   </table>
 
   <div>
-	<form method="GET" action="uploadPhotos.jsp">
+	<form method="GET" action="photos.jsp">
 		<input type="submit" value="Go back and try again">
 	</form>
 	<form method="GET" action="spreadsheet.jsp">
