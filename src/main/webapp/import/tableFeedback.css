@@ -9,10 +9,21 @@ table.tableFeedback, table.tableFeedback tr, table.tableFeedback tr th {
 }
 table.tableFeedback {
   background-color: #fff; /* so transparent colors on the table look good */
+    font-size: 0.8em;
 }
 
 tr.header-row th:last-child {
   width: 300px;
+}
+
+.tableFeedback tr:not(.headerRow):hover {
+    background-color: rgba(200, 200, 30, 0.3);
+}
+
+
+/* this is cuz :hover above was getting blocked by rotated headerRow !!!??  :( */
+tr.headerRow {
+    pointer-events: none;
 }
 
 div.tableFeedbackWrapper td {
@@ -22,7 +33,7 @@ div.tableFeedbackWrapper td {
 }
 
 div.tableFeedbackWrapper th {
-  color: #fff;
+  color: #888;
 }
 
 
@@ -51,7 +62,7 @@ th.rotate > div {
 }
 
 td.cellFeedback:hover {
-  border: 1px solid black;
+  outline: 2px solid rgba(0, 0, 0, 0.4);
   cursor: cell;
 }
   
