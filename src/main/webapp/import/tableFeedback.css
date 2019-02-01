@@ -1,0 +1,69 @@
+
+div.tableFeedbackWrapper {
+	border: solid 1px;
+  overflow: scroll; /* Scrollbar are always visible */
+}
+
+table.tableFeedback, table.tableFeedback tr, table.tableFeedback tr th {
+  overflow: visible;
+}
+table.tableFeedback {
+  background-color: #fff; /* so transparent colors on the table look good */
+}
+
+tr.header-row th:last-child {
+  width: 300px;
+}
+
+div.tableFeedbackWrapper td {
+  border: 1px solid #ccc;  
+  padding: 0.25em;
+  text-align: right;
+}
+
+div.tableFeedbackWrapper th {
+  color: #fff;
+}
+
+
+/* Rotate table headers */
+th.rotate {
+  /* Something you can count on */
+  height: 220px;
+  white-space: nowrap;
+}
+
+th.rotate > div {
+  transform: 
+  /* Magic Numbers */
+  translate(20px, 90px)
+  rotate(-45deg);
+  width: 30px;
+}
+
+th.rotate > div > span {
+  border-top: 1px solid #fff;
+  padding: 3px 300px 0px 25px;
+  margin: 3px 0px 0px -26px;
+}
+th.rotate > div {
+  line-height: 200px;
+}
+
+td.cellFeedback:hover {
+  border: 1px solid black;
+  cursor: cell;
+}
+  
+td.cellFeedback.success, td.cellFeedback.blank {
+  background-color: rgba(0, 255, 0, 0.4);
+}
+
+td.cellFeedback.error {
+  background-color: rgba(255, 0, 0, 0.4);
+}
+
+td.cellFeedback.null {
+  background-color: rgba(128, 128, 128, 0.2); /* less intense than error b/c sometimes this is OK */
+}
+
