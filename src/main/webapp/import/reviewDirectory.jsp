@@ -59,6 +59,23 @@ nImages = imageFiles.size();
 .import-header {
 	margin-top: 0px;
 }
+
+ol.filelist {
+    font-size: 0.9em;
+    width: 40%;
+    max-height: 60%;
+    overflow-y: auto;
+    display: inline-block;
+    color: #666;
+    padding: 0 0 0 30px;
+}
+
+ol.filelist li {
+    background-color: #EEA;
+    margin: 3px 0;
+    padding: 0 12px;
+}
+
 </style>
 
 
@@ -67,25 +84,20 @@ nImages = imageFiles.size();
   <h1 class="import-header">Bulk Import: Photo Review</h1>
   <p class="import-explanation">Please confirm that you have uploaded all the images in this import</p>
 
-  <p class="info"><%=nImages %> images found:</p>
-  <table>
+  <p class="info"><b><%=nImages %> images found:</b></p>
+    <ol class="filelist">
   	<% 
   	for (File photo: imageFiles) {
   		%>
-  		<tr><td><%=photo.getName()%></td></tr>
+  		<li><%=photo.getName()%></li>
   		<%
 	}
   	%>
 
-  </table>
-
+    </ol>
   <div>
-	<form method="GET" action="photos.jsp">
-		<input type="submit" value="Go back and try again">
-	</form>
-	<form method="GET" action="spreadsheet.jsp">
-		<input type="submit" value="Accept and move on">
-	</form>
+		<input style="background-color: #CCC;" onClick="document.location='photos.jsp';" type="submit" value="Go back and try again">
+		<input onClick="document.location.href='spreadsheet.jsp';" type="submit" value="Accept and move on">
   </div>
 
           
