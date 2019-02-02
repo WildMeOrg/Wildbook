@@ -323,6 +323,11 @@
     <servlet-class>org.ecocean.servlet.StripeUpdate</servlet-class>
   </servlet>
 
+  <servlet>
+    <description>StandardImport</description>
+    <servlet-name>StandardImport</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
+  </servlet>
 
   <servlet>
     <description>Dynamic Image Servlet Unsynched</description>
@@ -602,6 +607,11 @@
     <url-pattern>/ia</url-pattern>
   </servlet-mapping>
 
+  <servlet-mapping>
+    <servlet-name>StandardImport</servlet-name>
+    <url-pattern>/StandardImport</url-pattern>
+  </servlet-mapping>
+
     <servlet>
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
@@ -860,6 +870,16 @@
     <servlet-name>RelationshipCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.RelationshipCreate</servlet-class>
   </servlet>
+
+      <servlet>
+    <servlet-name>AnnotationEdit</servlet-name>
+    <servlet-class>org.ecocean.servlet.AnnotationEdit</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>AnnotationEdit</servlet-name>
+    <url-pattern>/AnnotationEdit</url-pattern>
+  </servlet-mapping>
 
       <servlet>
     <servlet-name>SiteSearch</servlet-name>
@@ -2261,3 +2281,4 @@
   </servlet-mapping>
 
 </web-app>
+
