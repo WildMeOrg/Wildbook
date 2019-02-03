@@ -156,7 +156,7 @@
 
 		/GenePopExport = authc, roles[researcher]
 
-		/IndividualSetNickname = authc, roles[researcher]
+		/IndividualSetNickName = authc, roles[researcher]
 
     /match.jsp = authc
 
@@ -320,10 +320,35 @@
 				 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[researcher]
 				 /googleSearch.jsp = authc, roles[researcher]
 				 /googleSearchResults.jsp = authc, roles[researcher]
-				 				         /EncounterAddComment = authc, roles[researcher]
-				         /OccurrenceAddComment = authc, roles[researcher]
-						 /CalendarXMLServer = authc, roles[researcher]
+				 /EncounterAddComment = authc, roles[researcher]
+				 /OccurrenceAddComment = authc, roles[researcher]
+				 /CalendarXMLServer = authc, roles[researcher]
 				 /CalendarXMLServer2 = authc, roles[researcher]
+				 
+				 /EncounterSetGenusSpecies = authc, roles[researcher]
+				 /EncounterSetInformOthers = authc, roles[researcher]
+				 /RestKeyword = authc, roles[researcher]
+				 /IndividualAddFile = authc, roles[researcher]
+				 /EncounterResetDate = authc, roles[researcher]
+				 /IndividualSearchExportCapture = authc, roles[researcher]
+				 /EncounterSetLocation = authc, roles[researcher]
+				 /EncounterSetLocationID = authc, roles[researcher]
+				 /CRCExportReport = authc, roles[researcher]
+				 /IndividualSetSex = authc, roles[researcher]
+				 /EncounterSetSex = authc, roles[researcher]
+				 /EncounterSetMaximumDepth = authc, roles[researcher]
+				 /EncounterSetMaximumElevation = authc, roles[researcher]
+				 /EncounterSetOccurrenceRemarks = authc, roles[researcher]
+				 /EncounterRemoveSpots = authc, roles[researcher]
+				 /EncounterSetPatterningCode = authc, roles[researcher]
+				 /EncounterSetReleaseDate = authc, roles[researcher]
+				 /EncounterSetMeasurements = authc, roles[researcher]
+				 /GetIndividualSearchGoogleMapsPoints = authc, roles[researcher]
+				 /EncounterSetTags = authc, roles[researcher]
+				 /EncounterSetDynamicProperty = authc, roles[researcher]
+				 /IndividualRemoveDataFile = authc, roles[researcher]
+				 /EncounterSetMatchedBy = authc, roles[researcher]
+				 /EncounterSetLivingStatus = authc, roles[researcher]
 
 
 						   /welcome.jsp = authc
@@ -339,7 +364,6 @@
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
-					/IndividualSetNickname = authc, roles[researcher]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
@@ -574,10 +598,12 @@
     <servlet-class>org.ecocean.servlet.IndividualAddFile</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>EncounterApprove</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterApprove</servlet-class>
   </servlet>
+-->
 
     <servlet>
     <servlet-name>EncounterForm</servlet-name>
@@ -631,11 +657,12 @@
     <servlet-class>org.ecocean.servlet.UpdateEmailAddress</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <servlet-class>org.ecocean.servlet.RemoveEmailAddress</servlet-class>
   </servlet>
-
+  -->
   <!--
   <servlet>
     <servlet-name>TrackIt</servlet-name>
@@ -979,10 +1006,12 @@
     <servlet-class>org.ecocean.servlet.OccurrenceAddEncounter</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>TrackerFeed</servlet-name>
     <servlet-class>org.ecocean.servlet.TrackerFeed</servlet-class>
   </servlet>
+  -->
 
   <!--
     <servlet>
@@ -2125,11 +2154,12 @@
     <url-pattern>/MassExposeGBIF</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <url-pattern>/RemoveEmailAddress</url-pattern>
   </servlet-mapping>
-
+  -->
   <servlet-mapping>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
     <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
