@@ -81,8 +81,8 @@ public class StandardImport extends HttpServlet {
 
     // photoDirectory = "/data/oman_import/photos/";
     // String filename = "/data/oman_import/ASWN_secondExport.xlsx";
-    photoDirectory = "/data/indocet/";
-    String filename = "/data/indocet/indocet_blended.xlsx";
+    photoDirectory = "/data/import_data/dunbar/";
+    String filename = "/data/import_data/dunbar/DunbarImport.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
     File dataFile = new File(filename);
     boolean dataFound = dataFile.exists();
@@ -565,8 +565,9 @@ public class StandardImport extends HttpServlet {
 	  		System.out.println("		about to create mediaAsset");
 			  ma = astore.copyIn(f, assetParams);
 	  	} catch (Exception e) {
-	  		System.out.println("IOException creating MediaAsset for file "+f.getPath());
-	  		missingPhotos.add(f.getPath());
+	  		System.out.println("IOException while setting asset params and creating MediaAsset for file "+f.getPath());
+        missingPhotos.add(f.getPath());
+        e.printStackTrace();
 	  		continue; // skips the rest of loop for this file
 	  	}
 	  	if (ma==null) continue;
@@ -625,33 +626,40 @@ public class StandardImport extends HttpServlet {
   	return indID;
   }
 
-  public MediaAsset getMediaAsset(Row row, int i) {
-  	String localPath = getString(row, "Encounter.mediaAsset"+i);
-  	if (localPath==null) return null;
-  	localPath = Util.windowsFileStringToLinux(localPath);
-  	String fullPath = photoDirectory+localPath;
-    String resolvedPath = resolveHumanEnteredFilename(fullPath);
-    if (resolvedPath==null) {
-      missingPhotos.add(fullPath);
-      return null;
-    }
-	  File f = new File(resolvedPath);
 
-	  // create MediaAsset and return it
-	  JSONObject assetParams = astore.createParameters(f);
-	  assetParams.put("_localDirect", f.toString());
-	  MediaAsset ma = null;
-	  try {
+  public MediaAsset getMediaAsset(Row row, int i) {
+
+    MediaAsset ma = null;
+    String fullPath = null;
+    try {
+      String localPath = getString(row, "Encounter.mediaAsset"+i);
+      if (localPath==null) return null;
+      localPath = Util.windowsFileStringToLinux(localPath);
+      System.out.println("LOCAL PATH? : "+localPath);
+      fullPath = photoDirectory+localPath;
+      String resolvedPath = resolveHumanEnteredFilename(fullPath);
+      if (resolvedPath==null) {
+        missingPhotos.add(fullPath);
+        return null;
+      }
+      File f = new File(resolvedPath);
+
+      // create MediaAsset and return it
+      JSONObject assetParams = astore.createParameters(f);
+      assetParams.put("_localDirect", f.toString());
 	  	ma = astore.copyIn(f, assetParams);
 	  } catch (java.io.IOException ioEx) {
-	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
+      ioEx.printStackTrace();
+	  	System.out.println("IOException copying in file while creating MediaAsset for file "+fullPath);
 	  	missingPhotos.add(fullPath);
 	  }
 
 	  // keywording
 
     ArrayList<Keyword> kws = getKeywordsForAsset(row, i);
-    ma.setKeywords(kws);
+    if (kws!=null&&ma!=null) {
+      ma.setKeywords(kws);
+    }
 
 	  // Keyword keyword = null;
 	  // String keywordI = getString(row, "Encounter.keyword"+i);
@@ -1097,3 +1105,4 @@ public class StandardImport extends HttpServlet {
 
 
 }
+
