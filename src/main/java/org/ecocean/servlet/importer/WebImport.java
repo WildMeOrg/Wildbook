@@ -157,6 +157,10 @@ public class WebImport extends HttpServlet {
 
 
     int printPeriod = 1;
+    String importId = Util.generateUUID();
+    LocalDateTime ldt = new LocalDateTime();
+    String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
+    System.out.println("===== importId " + importId + " (committing=" + committing + ")");
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Parsed Import Table</h2>"); 
     System.out.println("debug0");
@@ -182,7 +186,9 @@ public class WebImport extends HttpServlet {
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
         Encounter enc = loadEncounter(row, annotations);
+        enc.addComments(importComment);
         occ = loadOccurrence(row, occ, enc);
+        occ.addComments(importComment);
         mark = loadIndividual(row, enc);
 
         if (committing) {
@@ -266,7 +272,8 @@ public class WebImport extends HttpServlet {
 
     out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
 
-    out.println("<h2>Import completed successfully</h2>");    
+    out.println("<h2>Import completed successfully</h2>");
+    if (committing) out.println("<p>Import reference ID <b>" + importId + "</b></p>");
     //fs.close();
 
 
