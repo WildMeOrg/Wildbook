@@ -1134,6 +1134,7 @@ public class WebImport extends HttpServlet {
   // Apache POI, shame on you for making me write this. Shame! Shame! Shame! SHAME!
   // (as if I actually wrote this. thanks stackoverflow!)
   public static boolean isRowEmpty(Row row) {
+    if (row == null) return true;
     for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
         Cell cell = row.getCell(c);
         if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)
