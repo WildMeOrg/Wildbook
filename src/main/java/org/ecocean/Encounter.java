@@ -3716,7 +3716,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
-    public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
+
     public void addSubmitter(User user) {
         if (user == null) return;
         if (submitters == null) submitters = new ArrayList<User>();
