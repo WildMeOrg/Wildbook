@@ -15,6 +15,8 @@ import org.json.JSONObject;
 import org.json.JSONException;
 
 
+
+
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
@@ -26,33 +28,41 @@ import org.joda.time.LocalDateTime;
 
 
 
+
+
 //EXIF-related imports
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.io.FileInputStream;
+
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 
 import java.util.Iterator;
+
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
+
+
 
 // java sucks for making us add four import lines just to use a multimap. INELEGANT. NEXT!
 import java.util.Set;
 import java.util.HashSet;
-
 import java.util.Map;
 import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
+
+
 
 
 
@@ -63,6 +73,8 @@ import javax.jdo.Query;
 //import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+
+
 
 
 
@@ -720,7 +732,8 @@ public class Util {
     }
     public static boolean integerExists(Integer val) {
       return (val!=null && intExists(val));
-
+    }
+    
     public static void writeToFile(String data, String absolutePath) throws FileNotFoundException {
       File file=new File(absolutePath);
       try{
