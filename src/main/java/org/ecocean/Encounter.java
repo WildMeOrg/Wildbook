@@ -2957,6 +2957,13 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 	public boolean canUserAccess(HttpServletRequest request) {
 		return Collaboration.canUserAccessEncounter(this, request);
 	}
+        public boolean canUserEdit(User user) {
+            return isUserOwner(user);
+        }
+        public boolean isUserOwner(User user) {  //the definition of this might change?
+            if ((user == null) || (submitters == null)) return false;
+            return submitters.contains(user);
+        }
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
             jobj.put("location", this.getLocation());
@@ -3309,12 +3316,15 @@ throw new Exception();
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
+        System.out.println("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
         enc.setGenus(this.getGenus());
         enc.setSpecificEpithet(this.getSpecificEpithet());
         enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
         enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
         //just going to go ahead and go nuts here and copy most "logical"(?) things.  reset on clone if needed
         enc.setSubmitterID(this.getSubmitterID());
+        enc.setSubmitters(this.submitters);
+        enc.setPhotographers(this.photographers);
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());

@@ -588,7 +588,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
+        <select name="country" id="country" class="form-control">
             <option value="" selected="selected"></option>
             <%
             String[] locales = Locale.getISOCountries();

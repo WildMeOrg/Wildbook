@@ -610,6 +610,10 @@ finally{
 
 </div>
 
+<% 
+if (CommonConfiguration.allowAdoptions(context)) {
+%>
+
 <div class="container-fluid">
     <section class="container main-section">
 
@@ -663,6 +667,10 @@ finally{
         <%= props.getProperty("donationText") %>
     </section>
 </div>
+
+<%
+}
+%>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
