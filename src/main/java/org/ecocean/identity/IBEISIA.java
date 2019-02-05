@@ -354,41 +354,54 @@ System.out.println("     free ride :)");
         }
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
+
+        //Set these BEFORE removing the siblings.
         if (setExemplarCaches) {
            targetIdsListCache.put(iaClass, tlist);
            targetNameListCache.put(iaClass, tnlist);
         }
 
-        if (!Util.collectionIsEmptyOrNull(tlist)&&!Util.collectionIsEmptyOrNull(tnlist)) {
-            ArrayList<String> temptnlist = new ArrayList<String>();
-            ArrayList<JSONObject> temptlist = new ArrayList<JSONObject>();
-            for (Annotation qann : qanns) {
+       //below does some expensive juggling to make sure we don't match against anns from the 
+        // same submission.
 
-                Encounter enc = qann.findEncounter(myShepherd);
-                ArrayList<Annotation> siblingAnns = enc.getAnnotations();
-                ArrayList<String> siblingAcmIds = new ArrayList<String>(siblingAnns.size());
-                for (Annotation ann : siblingAnns) {
+        System.out.println("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
+        System.out.println("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
+        ArrayList<String> temptnlist = new ArrayList<String>();
+        ArrayList<JSONObject> temptlist = new ArrayList<JSONObject>();
+        for (Annotation qann : qanns) {
+            Encounter enc = qann.findEncounter(myShepherd);
+
+            ArrayList<Annotation> siblingAnns = enc.getAnnotations();
+            System.out.println("Sibling number = "+siblingAnns.size());
+
+            ArrayList<String> siblingAcmIds = new ArrayList<String>();
+            for (Annotation ann : siblingAnns) {
+                if (!siblingAcmIds.contains(ann.getAcmId())) {
                     siblingAcmIds.add(ann.getAcmId());
                 }
-                //System.out.println("Sibling Ids : "+siblingAcmIds.toString());
-                for  (int i=0;i<tlist.size();i++) {
-                    JSONObject target = tlist.get(i);
-                    // If it goes wrong, heres where!
-                    String id = (String) target.get("__UUID__");
-                    //System.out.println("Target ACMID : "+id);
-                    if (!siblingAcmIds.contains(id)) {
-                        if (!temptlist.contains(target)) {
-                            temptlist.add(target);
-                        }
+            }
+            System.out.println("Sibling ACMID num = "+siblingAcmIds.size());
+            for  (int i=0;i<tlist.size();i++) {
+
+                JSONObject target = tlist.get(i);
+                // If it goes wrong, heres where!
+                String id = (String) target.get("__UUID__");
+                System.out.println("Got another ID!");
+                //System.out.println("Target ACMID : "+id);
+                if (!siblingAcmIds.contains(id)) {
+                    if (!temptlist.contains(target)) {
+                        System.out.println("Added an ID!");
+                        temptlist.add(target);
                         String targetName = tnlist.get(i);
                         temptnlist.add(targetName);
                     }
                 }
-                System.out.println("temptlist.size() : "+temptlist.size()+" temptnlist.size() : "+temptnlist.size());
             }
-            tlist = temptlist;
-            tnlist = temptnlist;
+            System.out.println("OG tlist size = "+tlist.size());
+            System.out.println("temptlist.size() : "+temptlist.size()+" temptnlist.size() : "+temptnlist.size());
         }
+        tlist = temptlist;
+        tnlist = temptnlist;
 
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
@@ -417,10 +430,13 @@ if (Util.collectionIsEmptyOrNull(tlist) || Util.collectionIsEmptyOrNull(tnlist))
 }
 System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size());
 System.out.println(map);
+System.out.println("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
+System.out.println("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
+
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
@@ -3583,3 +3599,4 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
     }
 
 }
+
