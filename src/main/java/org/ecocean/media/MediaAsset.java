@@ -137,7 +137,7 @@ public class MediaAsset implements java.io.Serializable {
 
     private String acmId;
 
-
+    private Boolean validImageForIA;
 
     /**
      * To be called by AssetStore factory method.
@@ -1298,6 +1298,19 @@ System.out.println(">> updateStandardChildren(): type = " + type);
 
     public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
         return Task.getRootTasksFor(this, myShepherd);
+    }
+
+    public Boolean isValidImageForIA() {
+        if (validImageForIA!=null) return validImageForIA;
+        return null;
+    }
+
+    public Boolean getValidImageForIA() {
+        return this.isValidImageForIA();
+    }
+
+    public void setValidImageForIA(Boolean isValid) {
+        this.validImageForIA = isValid;
     }
 
 
