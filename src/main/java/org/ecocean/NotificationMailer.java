@@ -180,10 +180,32 @@ public final class NotificationMailer implements Runnable {
   public NotificationMailer(String context, String langCode, Collection<String> to, List<String> types, Map<String, String> map) {
     Objects.requireNonNull(context);
     Objects.requireNonNull(to);
-    for (String s : to) {
-      if (s == null || "".equals(s.trim()))
-        throw new IllegalArgumentException("Invalid email TO address specified");
+    
+    //Start checking if we should throw out some of these emails
+    ArrayList<String> recips=new ArrayList<String>(to);
+    for (int i=0;i<recips.size();i++) {
+      String s=recips.get(i);
+      if (s == null || "".equals(s.trim())){recips.remove(i);i--;}
+      else{
+        //check if this user actually wants to get the email
+        Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("NotificationMailer.class");
+        myShepherd.beginDBTransaction();
+        try{
+          if((myShepherd.getUserByEmailAddress(s)!=null)&&(!myShepherd.getUserByEmailAddress(s).getReceiveEmails())){
+            recips.remove(s);
+            i--;
+          }
+        }
+        catch(Exception e){e.printStackTrace();}
+        finally{
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+        }
+      }
     }
+    //end email throw out check
+    to=recips;
     System.out.println("NoteMailerHere2");
     this.context = context;
     this.sender = CommonConfiguration.getAutoEmailAddress(context);
