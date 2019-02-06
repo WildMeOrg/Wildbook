@@ -381,6 +381,9 @@
 				 /EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
 				
+				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
+				/pictureBook.jsp = authc, roles[researcher]
+				
 
             </param-value>
         </init-param>
