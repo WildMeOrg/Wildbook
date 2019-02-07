@@ -90,7 +90,7 @@ public class User implements Serializable {
     public User(String email,String uuid){
       this.uuid=uuid;
       setEmailAddress(email);
-      setReceiveEmails(false);
+      setReceiveEmails(true);
       String salt=ServletUtilities.getSalt().toHex();
       String pass=Util.generateUUID();
       String hashedPassword=ServletUtilities.hashAndSaltPassword(pass, salt);

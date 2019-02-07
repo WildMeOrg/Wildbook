@@ -379,21 +379,13 @@ System.out.println("fromResponse ---> " + ids);
         URL curl = ma.webURL();
         if (ma.getStore() instanceof LocalAssetStore) {
             if (curl == null) return null;
-            return scrubUriForIA(curl.toString());
+            return curl.toString();
         } else if (ma.getStore() instanceof S3AssetStore) {
             return ma.getParameters();
         } else {
             if (curl == null) return null;
-            return scrubUriForIA(curl.toString());
+            return curl.toString();
         }
-    }
-
-    // tread lightly here!  for now we only look for '#' in the url.
-    //  NOTE this makes the *big assumption* that we will never be sending a url
-    //  with "#fragment" at the end that we care about.
-    public static String scrubUriForIA(String uriIn) {
-        if (uriIn == null) return null;
-        return uriIn.replaceAll("#", "%23");
     }
 
     //basically "should we send to IA?"
