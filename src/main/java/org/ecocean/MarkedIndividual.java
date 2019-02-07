@@ -53,9 +53,8 @@ public class MarkedIndividual implements java.io.Serializable {
 
     private String individualID = "";
     private MultiValue names;
-    //this will GO AWAY SOON
-    private String alternateid;
-    private String legacyIndividualID;
+    private String alternateid;  //TODO this will go away soon
+    private String legacyIndividualID;  //TODO this "could" go away "eventually"
 
   //additional comments added by researchers
   private String comments = "None";
@@ -71,7 +70,8 @@ public class MarkedIndividual implements java.io.Serializable {
 
   //nickname for the MarkedIndividual...not used for any scientific purpose
   //also the nicknamer for credit
-  private String nickName = "", nickNamer = "";
+  private String nickName = "";  //TODO this will "go away", now consumed by .names MultiValue
+    private String nickNamer = "";
 
   //Vector of approved encounter objects added to this MarkedIndividual
   private Vector<Encounter> encounters = new Vector<Encounter>();
@@ -116,6 +116,11 @@ public class MarkedIndividual implements java.io.Serializable {
   private long timeOfBirth=0;
 
   private long timeOfDeath=0;
+
+
+    public static final String NAMES_KEY_NICKNAME = "_nickName_";
+    public static final String NAMES_KEY_ALTERNATEID = "_alternateid_";
+    public static final String NAMES_KEY_LEGACYINDIVIDUALID = "_legacyIndividualID_";
 
   public MarkedIndividual(String name, Encounter enc) {
 
@@ -195,6 +200,11 @@ public class MarkedIndividual implements java.io.Serializable {
         if (names == null) names = new MultiValue();
         names.setValues(keyHint, name);
     }
+    public void addNameByKey(String key, String value) {
+        if (names == null) names = new MultiValue();
+        names.setValuesByKey(key, value);
+    }
+
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
 
     //this should be run once, as it will set (default key) values based on old field values
@@ -203,11 +213,11 @@ public class MarkedIndividual implements java.io.Serializable {
         if (names == null) names = new MultiValue();
         if (Util.stringExists(legacyIndividualID)) {
             names.setValuesDefault(legacyIndividualID);
-            names.setValuesByKey("_legacyIndividualID_", legacyIndividualID);
+            names.setValuesByKey(NAMES_KEY_LEGACYINDIVIDUALID, legacyIndividualID);
         }
         if (Util.stringExists(nickName)) {
             names.setValuesDefault(nickName);
-            names.setValuesByKey("_nickName_", nickName);
+            names.setValuesByKey(NAMES_KEY_NICKNAME, nickName);
         }
         //note: alternateids seems to sometimes (looking at you flukebook) contain "keys" of their own, e.g. "IFAW:fluffy"
         //   in some perfect world this would be used as own keys.  :(
@@ -215,7 +225,7 @@ public class MarkedIndividual implements java.io.Serializable {
             String[] part = alternateid.split("\\s*[;,]\\s*");
             for (int i = 0 ; i < part.length ; i++) {
                 names.setValuesDefault(part[i]);
-                names.setValuesByKey("_alternateid_", part[i]);
+                names.setValuesByKey(NAMES_KEY_ALTERNATEID, part[i]);
             }
         }
         return names;
@@ -652,13 +662,23 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
       return individualID;
   }
 
-  public String getNickName() {
-    if (nickName != null) {
-      return nickName;
-    } else {
-      return "Unassigned";
+/*
+    now part of migration of all names to .names MultiValue property
+    we still want "a (singular) nickname" and notably a nickNamer
+    so we set nickname to a special keyed value, but leave nicknameR as its own property
+
+    TODO someday(?) we might want to move the nicknamer to a key, so we could have multiple nicknamers/nicknames
+*/
+    public String getNickName() {
+        if (names == null) return null;
+        List<String> many = names.getValuesByKey(NAMES_KEY_NICKNAME);
+        if ((many == null) || (many.size() < 1)) return null;  //"should" only have 0 or 1 nickname
+        return many.get(0);
     }
-  }
+
+    public void setNickName(String newName) {
+        this.addNameByKey(NAMES_KEY_NICKNAME, newName);
+    }
 
   public String getNickNamer() {
     if (nickNamer != null) {
@@ -668,25 +688,22 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     }
   }
 
-  /**
-   * Sets the nickname of the MarkedIndividual.
-   */
-  public void setNickName(String newName) {
-    nickName = newName;
-  }
-
   public void setNickNamer(String newNamer) {
     nickNamer = newNamer;
   }
 
-  public void setName(String newName) {
-    individualID = newName;
-  }
-
-    public void setIndividualID(String newName) {
-      individualID = newName;
+    public void setName(String newName) {
+        this.addName(newName);
     }
 
+    public void setIndividualID(String id) {
+        individualID = id;
+    }
+
+    public void setAlternateID(String alt) {
+        System.out.println("WARNING: indiv.setAlternateID() is depricated, please consider modifying .names according to a hint/context");
+        this.addNameByKey(NAMES_KEY_ALTERNATEID, alt);
+    }
 
   /**
    * Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored
