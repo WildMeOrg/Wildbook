@@ -15,12 +15,14 @@ import java.lang.StringBuffer;
 import java.util.Vector;
 import java.util.Iterator;
 import java.lang.NumberFormatException;
+import java.text.SimpleDateFormat;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
 import org.ecocean.media.*;
 import org.ecocean.genetics.*;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.resumableupload.UploadServlet;
 
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -29,7 +31,10 @@ import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.commons.lang.StringUtils;
+
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -42,21 +47,26 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class StandardImport extends HttpServlet {
+public class WebImport extends HttpServlet {
 
 	// variables shared by any single import instance
 	Shepherd myShepherd;
 	Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
-	Set<String> unusedColumns;
-	Set<String> missingColumns; // columns we look for but don't find
-	List<String> missingPhotos = new ArrayList<String>();
-	List<String> foundPhotos = new ArrayList<String>();
 	int numFolderRows = 0;
 	boolean committing = false;
 	PrintWriter out;
 	// verbose variable can be switched on/off throughout the import for debugging
 	boolean verbose = false;
-	String photoDirectory;
+	String uploadDirectory = "/data/upload/";
+
+  Set<String> unusedColumns;
+  Set<String> missingColumns; // columns we look for but don't find
+  List<String> foundPhotos = new ArrayList<String>();
+
+  TabularFeedback feedback;
+
+  // need to initialize (initColIndexVariables()), this is useful to have everywhere
+  int numCols;
 
 	private AssetStore astore;
 
@@ -71,40 +81,56 @@ public class StandardImport extends HttpServlet {
     doPost(request,  response);
   }
 
+  public String fileInDir(String filename, String directoryPath) {
+    if (directoryPath.endsWith("/")) return (directoryPath+filename);
+    return (directoryPath+"/"+filename); 
+  }
+
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
-    String importId = Util.generateUUID();
-    if (request.getCharacterEncoding() == null) {
-      request.setCharacterEncoding("utf-8");
-    }
-    response.setContentType("text/html; charset=UTF-8");
-    String context = ServletUtilities.getContext(request);
+    System.out.println("WEB-IMPORT: beginning doPost");
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+
+    uploadDirectory = UploadServlet.getUploadDir(request);
+
     myShepherd = new Shepherd(context);
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
 
-    //this might better be set via a different configuration variable of its own
-    String uploadDir = CommonConfiguration.getUploadTmpDir(context);
+    if (request.getCharacterEncoding() == null) {
+      request.setCharacterEncoding("utf-8");
+    }
+    response.setContentType("text/html; charset=UTF-8");
+    this.getServletContext().getRequestDispatcher("/header.jsp").include(request, response);
+    this.getServletContext().getRequestDispatcher("/import/uploadHeader.jsp").include(request, response);
 
-    String subdir = Util.safePath(request.getParameter("subdir"));
-    if (subdir != null) uploadDir += subdir;
-    photoDirectory = uploadDir;
-    String filename = Util.safePath(request.getParameter("filename"));
-    if (filename == null) filename = "upload.xlsx";  //meh?
-    File dataFile = new File(uploadDir + "/" + filename);
-    boolean dataFound = dataFile.exists();
+    // uploadDirectory = "/data/oman_import/photos/";
+    // String filename = "/data/oman_import/ASWN_secondExport.xlsx";
+    String subdir = ServletUtilities.getParameterOrAttribute("subdir", request);
+    System.out.println("WebImport got subdir "+subdir);
+    if (Util.stringExists(subdir)) uploadDirectory = fileInDir(subdir, uploadDirectory); // need slash
+    String filename = request.getParameter("filename");
+    System.out.println("WebImport got uploadDirectory "+uploadDirectory);
+    String fullPath = fileInDir(filename, uploadDirectory);
+    File dataFile = new File(fullPath);
+    boolean dataFound = (dataFile!=null && dataFile.exists());
+    System.out.println("WEB-IMPORT: dataFound="+dataFound+" and full path = "+fullPath);
+    if (dataFound) doImport(filename, dataFile, request, response);
+    else out.println("No data file was found at file "+filename);
 
+    this.getServletContext().getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
+    this.getServletContext().getRequestDispatcher("/footer.jsp").include(request, response);
+
+
+  }
+
+  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response) {
     missingColumns = new HashSet<String>();
-    missingPhotos = new ArrayList<String>();
-		foundPhotos = new ArrayList<String>();
-		numFolderRows = 0;
+    numFolderRows = 0;
+    boolean dataFound = (dataFile!=null && dataFile.exists());
+    committing =  (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
 
-    committing = Util.requestParameterSet(request.getParameter("commit"));
-
-    out.println("<h2>File Overview: </h2>");
-    out.println("<ul>");
-    out.println("<li>Directory: "+uploadDir+"</li>");
-    out.println("<li>Filename: "+filename+"</li>");
-    out.println("<li>File found = "+dataFound+"</li>");
+    if (!dataFound) return;
 
     Workbook wb = null;
     try {
@@ -112,49 +138,50 @@ public class StandardImport extends HttpServlet {
     } catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException invalidFormat) {
       out.println("<err>InvalidFormatException on input file "+filename+". Only excel files supported.</err>");
       return;
+    } catch (java.io.IOException ioEx) {
+      out.println("<err>ioException on input file "+filename+". Printing error to java server logs.");
+      ioEx.printStackTrace();
     }
     Sheet sheet = wb.getSheetAt(0);
 
+
     int numSheets = wb.getNumberOfSheets();
-    out.println("<li>Num Sheets = "+numSheets+"</li>");
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
-    out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");
     int rows = sheet.getPhysicalNumberOfRows();; // No of rows
     Row firstRow = sheet.getRow(0);
-    // below line is important for on-screen logging
-    initColIndexVariables(firstRow);
+
+    initColIndexVariables(firstRow); // IMPORTANT: this initializes the TabularFeedback
+
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     int lastColNum = firstRow.getLastCellNum();
-		
-		out.println("<li>Num Cols = "+cols+"</li>");
-    out.println("<li>Last col num = "+lastColNum+"</li>");
-    out.println("<li><em>committing = "+committing+"</em></li>");
-    out.println("</ul>");
-    out.println("<h2>Column headings:</h2><ul>");
-    out.println("<li>number columns = "+colIndexMap.size()+"</li>");
-    for (String heading: colIndexMap.keySet()) out.println("<li>"+colIndexMap.get(heading)+": "+heading+"</li>");
-    out.println("</ul>");
 
-    int printPeriod = 100;
+
+    int printPeriod = 1;
+    String importId = Util.generateUUID();
     LocalDateTime ldt = new LocalDateTime();
     String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
     System.out.println("===== importId " + importId + " (committing=" + committing + ")");
     if (committing) myShepherd.beginDBTransaction();
-    out.println("<h2>Beginning row loop:</h2>"); 
-    out.println("<ul>");
+    out.println("<h2>Parsed Import Table</h2>"); 
+    System.out.println("debug0");
+    System.out.println("feedback headers = "+feedback.colNames);
+    feedback.printStartTable();
+    System.out.println("debug1");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
     int maxRows = 50000;
     int offset = 0;
     for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
 
-    	MarkedIndividual mark = null;
-    	verbose = ((i%printPeriod)==0);
+      MarkedIndividual mark = null;
+      verbose = ((i%printPeriod)==0);
       try {
 
         if (committing) myShepherd.beginDBTransaction();
         Row row = sheet.getRow(i);
         if (isRowEmpty(row)) continue;
+
+        feedback.startRow(row, i);
 
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
@@ -182,21 +209,20 @@ public class StandardImport extends HttpServlet {
           }
 
           myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
-        	if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
-        	if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
-        	myShepherd.commitDBTransaction();
+          if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
+          if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
+          myShepherd.commitDBTransaction();
         }
 
-        if (verbose) {
-          out.println("<li>Parsed row ("+i+")<ul>"
-          +"<li> Enc "+getEncounterDisplayString(enc)+"</li>"
-          +"<li> individual "+mark+"</li>"
-          +"<li> occurrence "+occ+"</li>"
-          +"<li> dateInMillis "+enc.getDateInMilliseconds()+"</li>"
-          +"<li> sex "+enc.getSex()+"</li>"
-          +"<li> lifeStage "+enc.getLifeStage()+"</li>"
-          +"</ul></li>");
-
+         if (verbose) {
+           feedback.printRow();
+        //   out.println("<td> Enc "+getEncounterDisplayString(enc)+"</td>"
+        //   +"<td> individual "+mark+"</td>"
+        //   +"<td> occurrence "+occ+"</td>"
+        //   +"<td> dateInMillis "+enc.getDateInMilliseconds()+"</td>"
+        //   +"<td> sex "+enc.getSex()+"</td>"
+        //   +"<td> lifeStage "+enc.getLifeStage()+"</td>"
+        //  out.println("</tr>");
         }
         
       }
@@ -206,43 +232,51 @@ public class StandardImport extends HttpServlet {
         myShepherd.rollbackDBTransaction();
       }
     }
+    feedback.printEndTable();
+
+    out.println("<h2>File Overview: </h2>");
+    out.println("<ul>");
+    out.println("<li>Filename: "+filename+"</li>");
+    out.println("<li>File found = "+dataFound+"</li>");
+    out.println("<li>Num Sheets = "+numSheets+"</li>");
+    out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");    
+    out.println("<li>Num Cols = "+cols+"</li>");
+    out.println("<li>Last col num = "+lastColNum+"</li>");
+    out.println("<li><em>committing = "+committing+"</em></li>");
     out.println("</ul>");
+
+
 
 
     out.println("<h2><em>UNUSED</em> Column headings ("+unusedColumns.size()+"):</h2><ul>");
     for (String heading: unusedColumns) {
-    	out.println("<li>"+heading+"</li>");
-    }
-    out.println("</ul>");
-
-
-    List<String> usedColumns = new ArrayList<String>();
-    for (String colName: colIndexMap.keySet()) {
-      if (!unusedColumns.contains(colName)) usedColumns.add(colName);
-    }
-    out.println("<h2><em>USED</em> Column headings ("+usedColumns.size()+"):</h2><ul>");
-    for (String heading: usedColumns) {
       out.println("<li>"+heading+"</li>");
     }
     out.println("</ul>");
 
-    out.println("<h2><em>Missing photos</em>("+missingPhotos.size()+"):</h2><ul>");
-    for (String photo: missingPhotos) {
-    	out.println("<li>"+photo+"</li>");
-    }
-    out.println("</ul>");
 
-    out.println("<h2><em>Found photos</em>("+foundPhotos.size()+"):</h2><ul>");
-    for (String photo: foundPhotos) {
-    	out.println("<li>"+photo+"</li>");
-    }
-    out.println("</ul>");
+    // List<String> usedColumns = new ArrayList<String>();
+    // for (String colName: colIndexMap.keySet()) {
+    //   if (!unusedColumns.contains(colName)) usedColumns.add(colName);
+    // }
+    // out.println("<h2><em>USED</em> Column headings ("+usedColumns.size()+"):</h2><ul>");
+    // for (String heading: usedColumns) {
+    //   out.println("<li>"+heading+"</li>");
+    // }
+    // out.println("</ul>");
+
+    feedback.printMissingPhotos();
+
+    feedback.printFoundPhotos();
+
 
     out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
 
-    out.println("<h2>Import completed successfully</h2>");    
+    out.println("<h2>Import completed successfully</h2>");
     if (committing) out.println("<p>Import reference ID <b>" + importId + "</b></p>");
     //fs.close();
+
+
   }
 
   public Taxonomy loadTaxonomy0(Row row) {
@@ -283,14 +317,18 @@ public class StandardImport extends HttpServlet {
       occ.setDecimalLongitude(decimalLongitude);
     }
 
-    Double distance = getDouble(row, "Occurrence.distance");
-    if (distance!=null) occ.setDistance(distance);
+    String surveyComments = getString(row, "Survey.comments");
+    if (surveyComments!=null) occ.addComments(surveyComments);
+
+    String initialCue = getString(row, "Occurrence.initialCue");
 
     Taxonomy taxy = loadTaxonomy0(row);
     if (taxy!=null) occ.addTaxonomy(taxy);
 
     Taxonomy taxy1 = loadTaxonomy1(row);
     if (taxy1!=null) occ.addTaxonomy(taxy1);
+
+  	String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
 
   	Long millis = getLong(row, "Encounter.dateInMilliseconds");
     if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
@@ -301,6 +339,7 @@ public class StandardImport extends HttpServlet {
       occ.addEncounter(enc);
       // overwrite=false on following fromEncs methods
       occ.setLatLonFromEncs(false);
+      //occ.setSubmitterIDFromEncs(false);
     }
 
   	return occ;
@@ -388,6 +427,8 @@ public class StandardImport extends HttpServlet {
   	String submitterName = getString(row, "Encounter.submitterName");
   	if (submitterName!=null) enc.setSubmitterName(submitterName);
 
+  	Integer patterningCode = getInteger(row, "Encounter.patterningCode");
+
   	String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
   	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
 
@@ -402,10 +443,12 @@ public class StandardImport extends HttpServlet {
   	if (behavior!=null) enc.setBehavior(behavior);
 
   	String individualID = getIndividualID(row);
-  	//if (individualID!=null) enc.setIndividualID(individualID);
+  	if (individualID!=null) enc.setIndividualID(individualID);
 
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);
+
+    String groupRole = getString(row, "Encounter.groupRole");
 
     String researcherComments = getString(row, "Encounter.researcherComments");
     if (researcherComments!=null) enc.addComments(researcherComments);
@@ -416,7 +459,7 @@ public class StandardImport extends HttpServlet {
 
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
-  	//if (nickname!=null) enc.setAlternateID(nickname);
+  	if (nickname!=null) enc.setAlternateID(nickname);
 
     String alternateID = getString(row, "Encounter.alternateID");
     if (alternateID!=null) enc.setAlternateID(alternateID);
@@ -447,7 +490,6 @@ public class StandardImport extends HttpServlet {
     if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
     // same for sex analysis
     if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "SexAnalysis.processingLabTaskID");
-System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	if (tissueSampleID!=null) {
       sample = myShepherd.getTissueSample(tissueSampleID, encID);
   		if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
@@ -532,7 +574,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
       for (int i=0; i<annots.size(); i++) {
         String maName = "Encounter.mediaAsset"+i;
         String localPath = getString(row, maName);
-        if (localPath!=null) foundPhotos.add(photoDirectory+localPath);
+        if (localPath!=null) feedback.addFoundPhoto(fileInDir(localPath, uploadDirectory));
       }
   	}
   	return annots;
@@ -546,19 +588,19 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	localPath = localPath.substring(0,localPath.length()-1); // removes trailing asterisk
   	localPath = fixGlobiceFullPath(localPath)+"/";
 //  	localPath = localPath.replace(" ","\\ ");
-  	String fullPath = photoDirectory+localPath;
+  	String fullPath = fileInDir(localPath, uploadDirectory);
   	// Globice fix!
   	// now fix spaces
-  	File photoDir = new File(fullPath);
-    if (!photoDir.exists()||!photoDir.isDirectory()||photoDir.listFiles()==null) {
-    	boolean itExists = photoDir.exists();
-    	boolean isDirectory = (itExists) && photoDir.isDirectory();
-    	boolean hasFiles = isDirectory && photoDir.listFiles()!=null;
+  	File uploadDir = new File(fullPath);
+    if (!uploadDir.exists()||!uploadDir.isDirectory()||uploadDir.listFiles()==null) {
+    	boolean itExists = uploadDir.exists();
+    	boolean isDirectory = (itExists) && uploadDir.isDirectory();
+    	boolean hasFiles = isDirectory && uploadDir.listFiles()!=null;
     	System.out.println("StandardImport ERROR: loadAnnotationsFolderRow called on non-directory (or empty?) path "+fullPath);
     	System.out.println("		itExists: "+itExists);
     	System.out.println("		isDirectory: "+isDirectory);
     	System.out.println("		hasFiles: "+hasFiles);
-      missingPhotos.add(localPath);
+      feedback.addMissingPhoto(localPath);
       return annots;
     }
 
@@ -570,7 +612,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  Keyword key1 = (keyword1==null) ? null : myShepherd.getOrCreateKeyword(keyword1);
 
 	  String species = getSpeciesString(row);
-	  for (File f: photoDir.listFiles()) {
+	  for (File f: uploadDir.listFiles()) {
 	  	MediaAsset ma = null;
 	  	try {
 	  		JSONObject assetParams = astore.createParameters(f);
@@ -580,7 +622,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 			  ma = astore.copyIn(f, assetParams);
 	  	} catch (Exception e) {
 	  		System.out.println("IOException creating MediaAsset for file "+f.getPath());
-	  		missingPhotos.add(f.getPath());
+	  		feedback.addMissingPhoto(f.getPath());
 	  		continue; // skips the rest of loop for this file
 	  	}
 	  	if (ma==null) continue;
@@ -590,7 +632,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   		ann.setIsExemplar(true);
   		annots.add(ann);
 	  }
-	  if (annots.size()>0) foundPhotos.add(fullPath);
+	  if (annots.size()>0) feedback.addFoundPhoto(fullPath);
 	  return annots;
   }
 
@@ -643,10 +685,10 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	String localPath = getString(row, "Encounter.mediaAsset"+i);
   	if (localPath==null) return null;
   	localPath = Util.windowsFileStringToLinux(localPath);
-  	String fullPath = photoDirectory+localPath;
+  	String fullPath = fileInDir(localPath, uploadDirectory);
     String resolvedPath = resolveHumanEnteredFilename(fullPath);
     if (resolvedPath==null) {
-      missingPhotos.add(fullPath);
+      feedback.addMissingPhoto(fullPath);
       return null;
     }
 	  File f = new File(resolvedPath);
@@ -659,7 +701,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  	ma = astore.copyIn(f, assetParams);
 	  } catch (java.io.IOException ioEx) {
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
-	  	missingPhotos.add(fullPath);
+	  	feedback.addMissingPhoto(fullPath);
 	  }
 
 	  // keywording
@@ -801,11 +843,18 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  if (!newIndividual) mark.addEncounterNoCommit(enc);
 
     String alternateID = getString(row, "Encounter.alternateID");
-    //if (alternateID!=null) mark.setAlternateID(alternateID);
+    if (alternateID!=null) mark.setAlternateID(alternateID);
 
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
   	if (nickname!=null) mark.setNickName(nickname);
+
+    String genus = getString(row, "Encounter.genus");
+    if (genus!=null) mark.setGenus(genus);
+
+    String specificEpithet = getString(row, "Encounter.specificEpithet");
+    if (specificEpithet!=null) mark.setSpecificEpithet(specificEpithet);
+
 
   	return mark;
 
@@ -830,19 +879,29 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   private void initColIndexVariables(Row firstRow) {
   	colIndexMap = makeColIndexMap(firstRow);
   	unusedColumns = new HashSet<String>();
+    Set<String> col = colIndexMap.keySet();
   	// have to manually copy-in like this because keySet returns a POINTER (!!!)
   	for (String colName: colIndexMap.keySet()) {
-  		unusedColumns.add(colName);
+      // length restriction removes colnames like "F21"
+  		if (colName!=null && colName.length()>3)unusedColumns.add(colName);
   	}
   }
 
   // Returns a map from each column header to the integer col number
-  public static Map<String,Integer> makeColIndexMap(Row firstRow) {
+  private Map<String,Integer> makeColIndexMap(Row firstRow) {
   	Map<String,Integer> colMap = new HashMap<String, Integer>();
-  	for (int i=0; i<firstRow.getLastCellNum(); i++) {
-  		String colName = getString(firstRow, i);
+    numCols = firstRow.getLastCellNum();
+    String[] headers = new String[numCols];
+    System.out.println("We're making colIndexMap!");
+  	for (int i=0; i<numCols; i++) {
+  		String colName = getStringNoLog(firstRow, i);
+      if (colName==null || colName.length()<4) continue;
+      headers[i] = colName;
   		colMap.put(colName, i);
   	}
+    feedback = new TabularFeedback(headers);
+    System.out.println("headers = "+headers);
+    System.out.println("feedback headers = "+feedback.colNames);
   	return colMap;
   }
 
@@ -858,118 +917,142 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
 
 //   // following 'get' functions swallow errors
-  public static Integer getInteger(Row row, int i) {
+  public Integer getInteger(Row row, int i) {
+    Integer ans = null;
+    if (isCellBlank(row, i)) {
+      feedback.logParseNoValue(i);
+      return null;
+    }
     try {
       double val = row.getCell(i).getNumericCellValue();
-      return new Integer( (int) val );
+      ans = new Integer( (int) val );
     }
-    catch (Exception e){
+    catch (Exception e) {
       // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
       try {
-        String str = getString(row, i);
-        if (str==null) return null;
-        try {
-          Integer ans = Integer.parseInt(str);
-          return ans;
+        String str = getStringNoLog(row, i);
+        if (str==null) ans = null;
+        else {try {
+          ans = Integer.parseInt(str);
         } catch (Exception badParse) {
           str = str.substring(1);
-          Integer ans2 = Integer.parseInt(str);
-          System.out.println("      getInteger SUBSTRINGED and got ans "+ans2);
-          return ans2;
-        }
+          ans = Integer.parseInt(str);
+          System.out.println("      getInteger SUBSTRINGED and got ans "+ans);
+        }}
       }
       catch (Exception ex) {}
-
     }
-    return null;
+    feedback.logParseValue(i, ans, row);
+    System.out.println("      getInteger returning "+ans);
+    return ans;
   }
 
-  public static Long getLong(Row row, int i) {
+  public Long getLong(Row row, int i) {
+    Long ans = null;
     try {
       double val = row.getCell(i).getNumericCellValue();
-      return new Long( (long) val );
+      ans = new Long( (long) val );
     }
     catch (Exception e){      
       try {
-        String str = getString(row, i);
-        if (str==null) return null;
-        try {
-          Long ans = Long.parseLong(str);
-          return ans;
-        } catch (Exception badParse) {
-          str = str.substring(1);
-          Long ans2 = Long.parseLong(str);
-          System.out.println("      getLong SUBSTRINGED and got ans "+ans2);
-          return ans2;
+        String str = getStringNoLog(row, i);
+        if (str==null) ans = null;
+        else {
+          try {
+            ans = Long.parseLong(str);
+          } catch (Exception badParse) {
+            str = str.substring(1);
+            ans = Long.parseLong(str);
+            System.out.println("      getLong SUBSTRINGED and got ans "+ans);
+          }
         }
       }
       catch (Exception ex) {}
-}
-    return null;
+    }
+    feedback.logParseValue(i, ans, row);
+    return ans;
   }
-  public static Double getDouble(Row row, int i) {
+  public Double getDouble(Row row, int i) {
+    if (isCellBlank(row, i)) {
+      feedback.logParseNoValue(i);
+      return null;
+    }
+    Double ans = null;
     try {
       double val = row.getCell(i).getNumericCellValue();
-      return new Double( val );
+      ans = new Double(val);
     }
     catch (Exception e){
       // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
+      String str = getString(row, i);
       try {
-        String str = getString(row, i);
-        if (str==null) return null;
-        System.out.println("EXCEL getDouble string conversion case reached with string "+str);
-        try {
-          Double ans = Double.parseDouble(str);
-          System.out.println("      getDouble string conversion got ans "+ans);
-          return ans;
-        } catch (Exception badParse) {
-          str = str.substring(1);
-          Double ans2 = Double.parseDouble(str);
-          System.out.println("      getDouble SUBSTRINGED and got ans "+ans2);
-          return ans2;
-        }
+        ans = Double.parseDouble(str);
+        System.out.println("      getDouble string conversion got ans "+ans);
+      } catch (Exception badParse) {
+        str = str.substring(1);
+        ans = Double.parseDouble(str);
+        System.out.println("      getDouble SUBSTRINGED and got ans "+ans);
       }
-      catch (Exception ex) {}
     }
-    return null;
+    feedback.logParseValue(i, ans, row);
+    return ans;
   }
 
-  public static String getString(Row row, int i) {
+  public String getString(Row row, int i) {
+    if (isCellBlank(row, i)) {
+      feedback.logParseNoValue(i);
+      return null;
+    }
+    String str = getStringNoLog(row, i);
+    System.out.println("about to logParseValue on a string, row "+i+", feedback "+feedback);
+    feedback.logParseValue(i, str, row); //todo: figure out why this line breaks the import
+    System.out.println("done with logParseValue on a string");
+    return str;
+  }
+
+  public String getStringNoLog(Row row, int i) {
+    String str = null;
     try {
-      String str = row.getCell(i).getStringCellValue();
+      str = row.getCell(i).getStringCellValue();
       if (str.equals("")) return null;
-      return str;
     }
     catch (Exception e) {}
-    return null;
+    return str;
   }
 
 
 
-  public static Boolean getBooleanFromString(Row row, int i) {
+  public Boolean getBooleanFromString(Row row, int i) {
+    Boolean ans = null;
     try {
-      String boolStr = getString(row, i).trim().toLowerCase();
-      if (boolStr==null || boolStr.equals("")) return null;
-      else if (boolStr.equals("yes")) return new Boolean(true);
-      else if (boolStr.equals("no")) return new Boolean(false);
+      String boolStr = getStringNoLog(row, i).trim().toLowerCase();
+      if (boolStr==null || boolStr.equals("")) {
+        ans = null;
+      } else {
+        if (boolStr.equals("yes") || boolStr.equals("true")) ans = new Boolean(true);
+        else if (boolStr.equals("no") || boolStr.equals("false")) ans = new Boolean(false);
+      }
     }
     catch (Exception e) {}
-    return null;
+    feedback.logParseValue(i, ans, row);
+    return ans;
   }
 
-  public static Date getDate(Row row, int i) {
+  public Date getDate(Row row, int i) {
+    Date ans = null;
     try {
-      Date date = row.getCell(i).getDateCellValue();
-      return date;
+      ans = row.getCell(i).getDateCellValue();
     }
     catch (Exception e) {}
-    return null;
+    feedback.logParseValue(i, ans, row);
+    return ans;
   }
 
-  public static DateTime getDateTime(Row row, int i) {
+  public DateTime getDateTime(Row row, int i) {
     Date date = getDate(row, i);
     if (date == null) return null;
     return new DateTime(date);
+    // no need to log as getDate takes care of that
   }
 
   // Below methods are *not* static and work from column names rather than column numbers
@@ -997,7 +1080,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
-  public static String getStringOrInt(Row row, int i) {
+  public String getStringOrInt(Row row, int i) {
     String ans = getString(row, i);
     if (ans==null) {
       Integer inty = getInteger(row,i);
@@ -1107,6 +1190,238 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
     // return as;
     
+  }
+
+
+  private class TabularFeedback {
+
+    Set<String> unusedColumns;
+    Set<String> missingColumns; // columns we look for but don't find
+    List<String> missingPhotos = new ArrayList<String>();
+    List<String> foundPhotos = new ArrayList<String>();
+
+    String[] colNames;
+
+    RowFeedback currentRow;
+
+    public TabularFeedback(String[] colNames) {
+      this.colNames = colNames;
+      missingPhotos = new ArrayList<String>();
+      foundPhotos = new ArrayList<String>();
+      currentRow=null; // must be manually initialized during row loop with startRow
+    }
+
+    public void startRow(Row row, int i) {
+      currentRow = new RowFeedback(row, i);
+      System.out.println("StartRow called for i="+i);
+    }
+
+    public void addMissingPhoto(String localPath) {
+      missingPhotos.add(localPath);
+    }
+    public void addFoundPhoto(String localPath) {
+      foundPhotos.add(localPath);
+    }
+
+    public void printMissingPhotos() {
+      out.println("<h2><em>Missing photos</em>("+missingPhotos.size()+"):</h2><ul>");
+      for (String photo: missingPhotos) {
+        out.println("<li>"+photo+"</li>");
+      }
+      out.println("</ul>");
+    }
+
+
+    // all UI methods must begin with print (convention)
+    public void printRow() {
+      System.out.println("Starting to printRow");
+      out.println(currentRow);
+      System.out.println("Done with printRow");
+    }
+
+    public void printFoundPhotos() {
+      out.println("<h2><em>Found photos</em>("+foundPhotos.size()+"):</h2><ul>");
+      for (String photo: foundPhotos) {
+        out.println("<li>"+photo+"</li>");
+      }
+      out.println("</ul>");
+    }
+
+    public void printStartTable() {
+      out.println("<div class=\"tableFeedbackWrapper\"><table class=\"tableFeedback\">");
+      out.println("<tr class=\"headerRow\"><th class=\"rotate\"><div><span><span></div></th>"); // empty header cell for row # column
+      System.out.println("HEY YOU! You damn well better see a line below this");
+      boolean isNull = (colNames==null);
+      System.out.println("colNames isNull "+isNull);
+      System.out.println("starting to print table. num colNames="+colNames.length+" and the array itself = "+colNames);
+      for (int i=0;i<colNames.length;i++) {
+        out.println("<th class=\"rotate\"><div><span>"+colNames[i]+"</span></div></th>");
+      }
+      System.out.println("done printing start table");
+      out.println("</tr>");
+    }
+    public void printEndTable() {
+      out.println("</table></div>");
+    }
+
+    public void logParseValue(int colNum, Object value, Row row) {
+      System.out.println("TabularFeedback.logParseValue called on object: "+value+" and colNum "+colNum);
+      this.currentRow.logParseValue(colNum, value, row);
+    }
+    public void logParseError(int colNum, Object value, Row row) {
+      this.currentRow.logParseError(colNum, value, row);
+    }
+    public void logParseNoValue(int colNum) {
+      this.currentRow.logParseNoValue(colNum);
+    }
+
+    public String toString() {
+      return "Tabular feedback with "+colNames.length+" columns, on row "+currentRow.num;
+    }
+
+
+
+  }
+
+  private class RowFeedback {
+    CellFeedback[] cells;
+    public int num;
+
+    String checkingInheritance = uploadDirectory;
+
+    public RowFeedback(Row row, int num) {
+      this.num=num;
+      this.cells = new CellFeedback[numCols];
+    }
+
+    public String toString() {
+      StringBuffer str = new StringBuffer();
+      str.append("<tr>");
+      str.append("<td>"+num+"</td>");
+      for (CellFeedback cell: cells) {
+        if (cell==null) str.append(nullCellHtml());
+        else str.append(cell.html());
+      }
+      str.append("</tr>"); 
+      return str.toString();
+    }
+
+    public void logParseValue(int colNum, Object value, Row row) {
+      System.out.println("RowFeedback.logParseValue on an object: "+value);
+      if (value==null) { // a tad experimental here. this means we don't have to check the parseSuccess in each getWhatever method
+        System.out.println("RowFeedback.logParseValue on a NULL object. Calling logParseError.");
+        String valueString = getCellValueAsString(row, colNum);
+        logParseError(colNum, valueString, row);
+        return;
+      }
+      this.cells[colNum] = new CellFeedback(value, true, false);
+    }
+    public void logParseError(int colNum, Object value, Row row) {
+      this.cells[colNum] = new CellFeedback(value, false, false);
+    }
+    public void logParseNoValue(int colNum) {
+      this.cells[colNum] = new CellFeedback(null, true, true);
+    }
+  }
+
+
+  // cannot put this inside CellFeedback bc java inner classes are not allowed static methods or vars (this is stupid).
+  static String nullCellHtml() {
+    return "<td class=\"cellFeedback null\" title=\"The importer did not attempt to parse this cell. This is possible if it is a duplicate column or relies on another column that is not present. You may proceed if this cell OK to ignore.\"><span></span></td>";
+  }
+
+   class CellFeedback {
+
+    // These two booleans cover the 3 possible states of a cell:
+    // 1: successful parse (T,F), 2:no value provided (T,T), 3: unsuccessful parse with a value provided (F,F).
+    public boolean success;
+    public boolean isBlank;
+    String valueStr;
+
+
+    public CellFeedback(Object value, boolean success, boolean isBlank) {
+      System.out.println("about to create cellFeedback for value "+value);
+      if (value == null) valueStr = null;
+      else valueStr = value.toString();
+      this.success = success;
+      this.isBlank = isBlank;
+      System.out.println("done creating cellFeedback. got valueStr "+valueStr);
+    }
+    public String html() { // here's where we add the excel value string on errors
+      StringBuffer str = new StringBuffer();
+      str.append("<td class=\"cellFeedback "+classStr()+"\" title=\""+titleStr()+"\"><span>");
+      if (Util.stringExists(valueStr)) {
+        str.append(valueStr);
+      }
+      str.append("</span></td>");
+      return str.toString();
+    }
+
+    public String classStr() {
+      if (isBlank) return "blank";
+      if (!success) return "error";
+      return "success";
+    }
+
+    public String titleStr() {
+      if (isBlank) return "Cell was blank in excel file.";
+      if (!success) return "ERROR: The import was unable to parse this cell. Please verify that your value conforms to the Wildbook Standard Format and re-import.";
+      return "Successfully parsed value from excel file.";    
+    }
+
+
+  }
+
+  public static boolean isBlank(Cell cell) {
+    return (
+       cell == null ||
+       cell.getCellType() == Cell.CELL_TYPE_BLANK ||
+      (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getStringCellValue().isEmpty())
+    );
+  }
+  public static boolean isCellBlank(Row row, int i) {
+    return (row==null || isBlank(row.getCell(i)));
+  }
+
+  /**
+     * h/t http://www.java-connect.com/apache-poi-tutorials/read-all-type-of-excel-cell-value-as-string-using-poi/
+     * gripe: apache POI is a shit excel library if GETTING A STRING FROM A CELL TAKES 30 $@(%# LINES OF CODE
+     */
+  public static String getCellValueAsString(Cell cell) {
+      String strCellValue = null;
+      if (cell != null) {
+        try {
+          switch (cell.getCellType()) {
+          case Cell.CELL_TYPE_STRING:
+            strCellValue = cell.toString();
+            break;
+          case Cell.CELL_TYPE_NUMERIC:
+            if (DateUtil.isCellDateFormatted(cell)) {
+              SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+              strCellValue = dateFormat.format(cell.getDateCellValue());
+            } else {
+              Double value = cell.getNumericCellValue();
+              Long longValue = value.longValue();
+              strCellValue = new String(longValue.toString());
+            }
+            break;
+          case Cell.CELL_TYPE_BOOLEAN:
+            strCellValue = new String(new Boolean(
+                    cell.getBooleanCellValue()).toString());
+            break;
+          case Cell.CELL_TYPE_BLANK:
+            strCellValue = "";
+            break;
+          }
+      } catch (Exception parseError) {
+        strCellValue = "<em>parse error</em>";
+      }
+    }
+    return strCellValue;
+  }
+  public static String getCellValueAsString(Row row, int num) {
+    if (row==null || row.getCell(num)==null) return "";
+    return getCellValueAsString(row.getCell(num));
   }
 
 
