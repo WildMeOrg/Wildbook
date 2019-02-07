@@ -1203,6 +1203,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
       try{
         ma.addLabel("_original");
         ma.copyIn(tmpFile);
+        ma.validateSourceImage();
         ma.updateMetadata();
         newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
       }
@@ -1240,6 +1241,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
       try{
         ma.addLabel("_original");
         ma.copyIn(tmpFile);
+        ma.validateSourceImage();
         ma.updateMetadata();
         newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
         System.out.println("Added new annotation for: "+item.getName());
