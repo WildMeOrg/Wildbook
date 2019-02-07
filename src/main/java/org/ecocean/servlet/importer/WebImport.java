@@ -442,8 +442,10 @@ public class WebImport extends HttpServlet {
   	String behavior = getString(row, "Encounter.behavior");
   	if (behavior!=null) enc.setBehavior(behavior);
 
+/*  should not need this now, as (MarkedIndividual)mark has encounter added
   	String individualID = getIndividualID(row);
   	if (individualID!=null) enc.setIndividualID(individualID);
+*/
 
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);

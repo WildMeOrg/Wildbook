@@ -67,6 +67,11 @@ public class MultiValue implements java.io.Serializable {
         }
         return rtn;
     }
+    public List<String> getValuesByKey(String key) {  //convenience singular key
+        Set<String> keys = new HashSet<String>();
+        keys.add(key);
+        return getValuesByKeys(keys);
+    }
     public List<String> getValuesDefault() {
         return values.get(DEFAULT_KEY_VALUE);
     }
