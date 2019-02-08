@@ -40,9 +40,6 @@ public class ImportIA extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-    boolean firstTime = false;
-    if (request.getParameter("doInit") != null) firstTime = true;  //TODO FIXME this is very much hardcoded to one installation!
-
     String context="context0";
     // a "context=context1" in the URL should be enough
     context=ServletUtilities.getContext(request);
@@ -56,17 +53,14 @@ public class ImportIA extends HttpServlet {
 
 
 
-    if (firstTime) {
-      initFeatureTypeAndAssetStore(myShepherd, out);
-      out.println("it is the firstTime");
-    } else {
-      out.println("it is not the firstTime");
-    }
-
     int offset = 0;
     if (request.getParameter("offset")!=null) {
       offset = Integer.parseInt(request.getParameter("offset"));
     }
+
+    //by default, we now will NOT create Occurrence(s) out of IA ImageSet(s) as they are fairly different things
+    //  mostly cuz this makes "co-occurring" Encounters where we probably dont want them
+    boolean createOccurrences = Util.requestParameterSet(request.getParameter("createOccurrences"));
 
     out.println("\n\nStarting ImportIA servlet...");
     myShepherd.beginDBTransaction();
@@ -100,7 +94,7 @@ public class ImportIA extends HttpServlet {
 
        if (request.getParameter("doOnly") != null) {
                String onlyOcc = request.getParameter("doOnly");
-               System.out.println("IA-IMPORT: doing only Occurrence " + onlyOcc);
+               System.out.println("IA-IMPORT: doing only ImageSet " + onlyOcc);
                fancyImageSetUUIDS = new JSONArray();
                fancyImageSetUUIDS.put(IBEISIA.toFancyUUID(onlyOcc));
        }
@@ -131,7 +125,7 @@ System.out.println("truncated to\n" + x);
 */
       List<String> annotUUIDs = fromFancyUUIDList(annotFancyUUIDs);
       //out.println("occID: " + occID + " has annotUUIDs " + annotUUIDs);
-      System.out.println("occID: " + occID + " has " + annotUUIDs.size() + " annotUUIDs");
+      System.out.println("imageset id " + occID + " has " + annotUUIDs.size() + " annotUUIDs");
 
 
         //now we have to break this up a little since there are some pretty gigantic sets of annotations, it turns out.  :(
@@ -143,21 +137,9 @@ System.out.println("truncated to\n" + x);
         int acount = 0;
         while (acount < annotUUIDs.size()) {
 
-            //we also only *import* NEW Annotations, cuz sorry this is importing
             List<String> thisBatch = new ArrayList<String>();
             JSONArray thisFancy = new JSONArray();
             while ((thisBatch.size() < annotBatchSize) && (acount < annotUUIDs.size())) {
-/*
-                Annotation exist = null;
-                try {
-                    exist = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annotUUIDs.get(acount)), true)));
-                } catch (Exception ex) {}
-                if (exist != null) {
-System.out.println(" - - - skipping existing " + exist);
-                    acount++;
-                    continue;
-                }
-*/
                 thisBatch.add(annotUUIDs.get(acount));
                 thisFancy.put(IBEISIA.toFancyUUID(annotUUIDs.get(acount)));
                 acount++;
@@ -165,6 +147,7 @@ System.out.println(" - - - skipping existing " + exist);
 //System.out.println(acount + " of " + annotUUIDs.size() + " ================================================ now have a batch to fetch: " + thisBatch);
             if (thisBatch.size() > 0) {
                 myShepherd.beginDBTransaction();
+                //grabAnnotations() will only create new ones when necessary
                 List<Annotation> these = IBEISIA.grabAnnotations(thisBatch, myShepherd);
                 myShepherd.commitDBTransaction();
                 annots.addAll(these);
@@ -214,19 +197,23 @@ System.out.println(" - - - skipping existing " + exist);
                 myShepherd.storeNewEncounter(enc, Util.generateUUID());
                 myShepherd.storeNewAnnotation(ann);
                 myShepherd.commitDBTransaction();
-                myShepherd.beginDBTransaction();
-                //System.out.println("IA-IMPORT: " + enc);
-                if (occ == null) {
-                    occ = myShepherd.getOccurrence(occID);
-                    if (occ == null) occ = new Occurrence(occID, enc);
+
+                if (createOccurrences) {
+                    myShepherd.beginDBTransaction();
+                    //System.out.println("IA-IMPORT: " + enc);
+                    if (occ == null) {
+                        occ = myShepherd.getOccurrence(occID);
+                        if (occ == null) occ = new Occurrence(occID, enc);
 //System.out.println("NEW OCC created (via unnamed) " + occ);
-                } else {
-                    occ.addEncounter(enc);
+                    } else {
+                        occ.addEncounter(enc);
 //System.out.println("using old OCC (via unnamed) " + occ);
+                    }
+                    myShepherd.getPM().makePersistent(occ);
+                    //System.out.println("IA-IMPORT: " + occ);
+                    myShepherd.commitDBTransaction();
                 }
-                myShepherd.getPM().makePersistent(occ);
-                //System.out.println("IA-IMPORT: " + occ);
-                myShepherd.commitDBTransaction();
+
             }
 
         } else {
@@ -235,8 +222,6 @@ System.out.println(" - - - skipping existing " + exist);
             enc.setState("approved");
 
             // here we have to check if this encounter has been added already
-
-
 
         /*
             note: this constructor will set the date/time on the Encounter "based upon the Annotations"
@@ -255,13 +240,13 @@ System.out.println(" - - - skipping existing " + exist);
         */
             String sex = null;
             try {
-            sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getId(), context);
+            sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getAcmId(), context);
 //System.out.println("--- sex=" + sex);
             } catch (Exception ex) {}
             Double age = null;
             try {
                 //guess this assumes we have at least one annot and it has age; could walk thru if not?
-                age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getId(), context);
+                age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getAcmId(), context);
             } catch (Exception ex) {}
             if (age != null) enc.setAge(age);
             myShepherd.beginDBTransaction();
@@ -286,24 +271,27 @@ System.out.println(" - - - skipping existing " + exist);
                 myShepherd.storeNewAnnotation(ann);
             }
             myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-            if (occ == null) {
-                occ = myShepherd.getOccurrence(occID);
-                if (occ == null) occ = new Occurrence(occID, enc);
+
+            if (createOccurrences) {
+                myShepherd.beginDBTransaction();
+                if (occ == null) {
+                    occ = myShepherd.getOccurrence(occID);
+                    if (occ == null) occ = new Occurrence(occID, enc);
 //System.out.println("NEW OCC created " + occ);
-            } else {
-                occ.addEncounter(enc);
+                } else {
+                    occ.addEncounter(enc);
 //System.out.println("using old OCC " + occ);
+                }
+                myShepherd.getPM().makePersistent(occ);
+                //System.out.println("IA-IMPORT: " + occ);
+                myShepherd.commitDBTransaction();
             }
-            myShepherd.getPM().makePersistent(occ);
-            //System.out.println("IA-IMPORT: " + occ);
-            myShepherd.commitDBTransaction();
+
         }
 
       }
 
-//System.out.println("zzzzzzzzzzzzzzzzzz " + occ);
-        myShepherd.getPM().makePersistent(occ);
+        if (occ != null) myShepherd.getPM().makePersistent(occ);
         myShepherd.commitDBTransaction();
     }
 
