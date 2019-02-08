@@ -182,6 +182,7 @@ public class Encounter implements java.io.Serializable {
   
   private List<User> submitters;
   private List<User> photographers;
+  private List<User> informOthers;
 
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
@@ -1979,17 +1980,19 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return otherCatalogNumbers;
   }
 
-  public String getInformOthers() {
+  public String getOLDInformOthersFORLEGACYCONVERSION() {
     if (informothers == null) {
       return "";
     }
     return informothers;
   }
 
+  /*
   public void setInformOthers(String others) {
     this.informothers = others;
     this.hashedInformOthers = Encounter.getHashOfEmailString(others);
   }
+  */
 
   public String getLocationID() {
     return locationID;
@@ -3657,6 +3660,10 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return submitters;
     }
     
+    public List<User> getInformOthers(){
+      return informOthers;
+    }
+    
     public List<String> getSubmitterEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3703,6 +3710,20 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
+    public List<String> getInformOthersEmails(){
+      ArrayList<String> listy=new ArrayList<String>();
+      ArrayList<User> subs=new ArrayList<User>();
+      if(getInformOthers()!=null)subs.addAll(getInformOthers());
+      int numUsers=subs.size();
+      for(int k=0;k<numUsers;k++){
+        User use=subs.get(k);
+        if((use.getEmailAddress()!=null)&&(!use.getEmailAddress().trim().equals(""))){
+          listy.add(use.getEmailAddress());
+        }
+      }
+      return listy;
+    }
+    
     public List<String> getHashedPhotographerEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3717,13 +3738,41 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
-    public void setSubmitters(List<User> submitters) {this.submitters=submitters;}
+
     public void addSubmitter(User user) {
         if (user == null) return;
         if (submitters == null) submitters = new ArrayList<User>();
         if (!submitters.contains(user)) submitters.add(user);
     }
-    public void setPhotographers(List<User> photographers) {this.photographers=photographers;}
+
+    public void setSubmitters(List<User> submitters) {
+      if(submitters==null){this.submitters=null;}
+      else{
+        this.submitters=submitters;
+      }
+      
+    }
+    public void setPhotographers(List<User> photographers) {
+      if(photographers==null){this.photographers=null;}
+      else{
+        this.photographers=photographers;
+      }
+    }
     
+    
+   public void addInformOther(User user) {
+      if (user == null) return;
+      if (informOthers == null) informOthers = new ArrayList<User>();
+      if (!informOthers.contains(user)) informOthers.add(user);
+  }
+
+  public void setInformOthers(List<User> users) {
+    if(informOthers==null){this.informOthers=null;}
+    else{
+      this.informOthers=users;
+    }
+    
+  }
+
     
 }

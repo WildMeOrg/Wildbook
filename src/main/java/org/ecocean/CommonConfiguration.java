@@ -213,7 +213,7 @@ public class CommonConfiguration {
     }
 
     public static void ensureServerInfo(Shepherd myShepherd, HttpServletRequest req) {
-      myShepherd.setAction("header_checkServerInfo.jsp");
+      
       myShepherd.beginDBTransaction();
       boolean updated = checkServerInfo(myShepherd, req);
       if (updated) {
