@@ -365,6 +365,10 @@ public class Shepherd {
     pm.deletePersistent(wSpace);
   }
 
+  public void throwAwayCollaboration(Collaboration collab) {
+    pm.deletePersistent(collab);
+  }
+
   public void throwAwayTissueSample(TissueSample genSample) {
     //String removedParameters = genSample.getHTMLString();
     //List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
@@ -499,6 +503,7 @@ public class Shepherd {
     }
     return null;
   }
+
 
   // Returns all of a user's workspaces.
   public ArrayList<Workspace> getWorkspacesForUser(String owner) {
@@ -3928,6 +3933,16 @@ public class Shepherd {
 
   public List<Encounter> getEncountersByField(String fieldName, String fieldVal) {
     String filter = "this."+fieldName+" == \""+fieldVal+"\"";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList al = new ArrayList(c);
+    acceptedEncounters.closeAll();
+    return al;
+  }
+
+  public List<Encounter> getEncountersByFieldSubstring(String fieldName, String fieldVal) {
+    String filter = "this."+fieldName+".indexOf('"+fieldVal+"') != -1";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (acceptedEncounters.execute());
