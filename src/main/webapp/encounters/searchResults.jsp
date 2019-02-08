@@ -358,14 +358,15 @@ var colDefn = [
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
+	// {
+	// 	key: 'verbatimLocality',
+	// 	label: '<%=encprops.getProperty("location")%>',
+	// },
 	{
-		key: 'verbatimLocality',
-		label: '<%=encprops.getProperty("location")%>',
+		key: 'locationID',
+		label: '<%=encprops.getProperty("locationID")%>',
+		value: _notUndefined('locationID'),
 	},
-//	{
-//		key: 'locationID',
-// 		label: '<%=encprops.getProperty("locationID")%>',
-//	},
 	{
 		key: 'taxonomy',
 		label: '<%=encprops.getProperty("taxonomy")%>',
@@ -374,7 +375,7 @@ var colDefn = [
 	{
 		key: 'submitterID',
 		label: '<%=encprops.getProperty("submitterName")%>',
-		value: _submitterID,
+		value: _notUndefined('submitterID'),
 	},
 	{
 		key: 'creationDate',
@@ -724,16 +725,16 @@ console.info(percent);
 // a functor!
 function _notUndefined(fieldName) {
   function _helperFunc(o) {	
-    if (o[fieldName] == undefined) return '';
-    return o[fieldName];
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
   }
   return _helperFunc;
 }
 // non-functor version!
 function _notUndefinedValue(obj, fieldName) {
   function _helperFunc(o) {	
-    if (o[fieldName] == undefined) return '';
-    return o[fieldName];
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
   }
   return _helperFunc(obj);
 }
@@ -772,7 +773,8 @@ function _colNumberLocations(o) {
 
 function _colTaxonomy(o) {
 	var genus = _notUndefinedValue(o, 'genus');
-	var species = _notUndefinedValue(o, 'species');
+	var species = _notUndefinedValue(o, 'specificEpithet');
+	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
 	return genus+' '+species;
 }
 
