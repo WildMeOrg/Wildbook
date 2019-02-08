@@ -604,8 +604,6 @@ public class Util {
     }
 
     public static String prettyPrintDateTime(DateTime dt) {
-      System.out.println("prettyPrintDateTime:");
-      System.out.println("  dt.hourOfDay = "+dt.hourOfDay().get());
       boolean isOnlyDate = dateTimeIsOnlyDate(dt);
       String currentToString = dt.toString();
       if (isOnlyDate) {
