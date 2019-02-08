@@ -51,15 +51,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
 <style type="text/css">
-    .full_screen_map {
-    position: absolute !important;
-    top: 0px !important;
-    left: 0px !important;
-    z-index: 1 !imporant;
-    width: 100% !important;
-    height: 100% !important;
-    margin-top: 0px !important;
-    margin-bottom: 8px !important;
 
 
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
@@ -232,7 +223,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(10.8, 160.8);
+var center = new google.maps.LatLng(-11.5295979330609,-69.6430020237173);
 
 var map;
 
