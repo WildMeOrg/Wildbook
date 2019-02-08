@@ -132,13 +132,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 <div class="container">
                 <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a>
                   <div class="search-and-secondary-wrapper">
-                  <%
-                  if(CommonConfiguration.allowAdoptions(context)){
+                  <%--
+                  if(CommonConfiguration.allowAdoptions(context).equals("true")){
                   %>
                     <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
                   <%
                   }
-                  %> 
+                  --%> 
                     <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
                     <ul class="secondary-nav hor-ul no-bullets">
 
