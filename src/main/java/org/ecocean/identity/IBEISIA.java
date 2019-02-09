@@ -1868,7 +1868,6 @@ System.out.println("identification most recent action found is " + action);
                 anns.add(existing.get(0));
                 continue;
             }
-System.out.println("need " + annId + " from IA, i guess?");
             ann = getAnnotationFromIA(annId, myShepherd);
             if (ann == null) throw new RuntimeException("Could not getAnnotationFromIA(" + annId + ")");
             anns.add(ann);
@@ -1952,7 +1951,6 @@ System.out.println("need " + annId + " from IA, i guess?");
         AssetStore astore = AssetStore.getDefault(myShepherd);
         JSONObject params = astore.createParameters(file);
         if (filepath != null) params.put("iaOriginalFilepath", filepath);
-System.out.println("params=" + params);
         MediaAsset ma = new MediaAsset(astore, params);
         ma.setAcmId(maUUID);
         //similarly, do we want to set uuid on ma based on acmId???
@@ -1970,7 +1968,7 @@ System.out.println("params=" + params);
             MediaAssetFactory.save(ma, myShepherd);
             ma.updateStandardChildren(myShepherd);
         } catch (IOException ioe) {
-            throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
+            throw new RuntimeException("ERROR: getMediaAssetFromIA " + ioe.toString());
         }
         ma.addLabel("_original");
         ma.setDetectionStatus(STATUS_COMPLETE);  //kosher?
