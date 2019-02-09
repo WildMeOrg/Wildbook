@@ -37,6 +37,8 @@ import org.ecocean.Annotation;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Encounter;
+import org.ecocean.media.Feature;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.AccessControl;
 import org.json.JSONObject;
@@ -90,6 +92,8 @@ public class AnnotationEdit extends HttpServlet {
         } else {
             String swapId = jsonIn.optString("swapIndividualId", null);
             String assignIndivId = jsonIn.optString("assignIndividualId", null);
+            String swapEncAnnotId = jsonIn.optString("swapEncounterId", null);  //this is an *annot* id but to swap between encounters
+            boolean remove = jsonIn.optBoolean("remove", false);
             if (swapId != null) {
                 Annotation swapAnnot = myShepherd.getAnnotation(swapId);
                 if (swapId.equals(annId) || (swapAnnot == null)) {
@@ -109,19 +113,19 @@ public class AnnotationEdit extends HttpServlet {
                         if (indivId1 != null) {
                             MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(indivId1);
                             if (indiv != null) {
-                                indiv.removeEncounter(enc1, context);
-                                indiv.addEncounter(enc2, context);
+                                indiv.removeEncounter(enc1);
+                                indiv.addEncounter(enc2);
                             }
                         }
                         if (indivId2 != null) {
                             MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(indivId2);
                             if (indiv != null) {
-                                indiv.removeEncounter(enc2, context);
-                                indiv.addEncounter(enc1, context);
+                                indiv.removeEncounter(enc2);
+                                indiv.addEncounter(enc1);
                             }
                         }
-                        enc2.setIndividualID(indivId1);
-                        enc1.setIndividualID(indivId2);
+                        //enc2.setIndividualID(indivId1);
+                        //enc1.setIndividualID(indivId2);
                         System.out.println("INFO: AnnotationEdit swapped MarkedIndividual ids - enc=" + enc1.getCatalogNumber() + "[annot=" + annot.getId() + "]=>(" + enc1.getIndividualID() + "); enc=" + enc2.getCatalogNumber() + "[annot=" + swapAnnot.getId() + "]=>(" + enc2.getIndividualID() + ")");
                         rtn.put("success", true);
                         rtn.put("updatedMarkedIndividualId1", indivId2);
@@ -129,11 +133,74 @@ public class AnnotationEdit extends HttpServlet {
                     }
                 }
 
+            } else if (swapEncAnnotId != null) {
+                Annotation swapAnnot = myShepherd.getAnnotation(swapEncAnnotId);
+                if (swapEncAnnotId.equals(annId) || (swapAnnot == null)) {
+                    rtn.put("error", "invalid swap (Enc) Annotation id=" + swapEncAnnotId);
+                } else {
+                    Encounter enc1 = annot.findEncounter(myShepherd);
+                    Encounter enc2 = swapAnnot.findEncounter(myShepherd);
+                    if ((enc1 == null) || (enc2 == null)) {
+                        rtn.put("error", "could not find both Encounters");
+                    } else if (enc1.getCatalogNumber().equals(enc2.getCatalogNumber())) {
+                        rtn.put("error", "both Annotations are on the same Encounter");
+                    } else {
+                        enc1.removeAnnotation(annot);
+                        enc2.removeAnnotation(swapAnnot);
+                        enc1.addAnnotation(swapAnnot);
+                        enc2.addAnnotation(annot);
+                        System.out.println("INFO: AnnotationEdit swapped Annotations between Encounters; ORIGINAL: (enc=" + enc1.getCatalogNumber() + " + annot=" + annot.getId() + ") and (enc=" + enc2.getCatalogNumber() + " + annot=" + swapAnnot.getId() + ")");
+                        rtn.put("success", true);
+                        rtn.put("encounter1", enc1.getCatalogNumber());
+                        rtn.put("encounter2", enc2.getCatalogNumber());
+                    }
+                }
+
+            } else if (remove) {
+                String fid = jsonIn.optString("featureId", "__FAIL__");
+                String eid = jsonIn.optString("encounterId", "__FAIL__");
+                try {
+                    Feature feat = (Feature) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Feature.class, fid), true));
+                    Encounter enc = myShepherd.getEncounter(eid);
+                    if ((feat == null) || (enc == null)) {
+                        rtn.put("error", "invalid ID; featureId=" + fid + ", encounterId=" + eid);
+                    } else if (enc.hasMarkedIndividual()) {
+                        rtn.put("error", "Cannot remove Encounter which has a MarkedIndividual");
+                    } else if (enc.getAnnotations().size() != 1) {
+                        rtn.put("error", "Cannot remove Encounter which has more than one Annotation");
+                    } else if (!enc.getAnnotations().contains(annot)) {
+                        rtn.put("error", "Encounter does not contain this Annotation");
+                    } else if (!annot.getId().equals(feat.getAnnotation().getId())) {
+                        rtn.put("error", "Feature does not contain this Annotation");
+                    } else {  //good to go?
+                        MediaAsset ma = feat.getMediaAsset();
+                        if (ma != null) {
+                            ma.removeFeature(feat);
+                            myShepherd.getPM().makePersistent(ma);
+                        }
+                        enc.removeAnnotation(annot);
+                        String note = "";
+                        if (enc.getAnnotations().size() > 0) {
+                            rtn.put("encounterDeleted", false);
+                            note = " note: Encounter has other annots; not removed";
+                        } else {
+                            myShepherd.getPM().deletePersistent(enc);
+                            rtn.put("encounterDeleted", true);
+                        }
+                        myShepherd.getPM().deletePersistent(annot);
+                        myShepherd.getPM().deletePersistent(feat);
+                        System.out.println("INFO: AnnotationEdit.remove deleted [enc,annot,feat]=[" + enc.getCatalogNumber() + "," + annot.getId() + "," + feat.getId() + "]" + note);
+                        rtn.put("success", true);
+                    }
+                } catch (Exception ex) {
+                    rtn.put("error", "ERROR: " + ex.toString() + " with featureId=" + fid + " and encounterId=" + eid);
+                }
+                
             } else if (Util.stringExists(assignIndivId)) {
                 Encounter enc = annot.findEncounter(myShepherd);
                 if (enc.hasMarkedIndividual()) {
                     MarkedIndividual oldIndiv = myShepherd.getMarkedIndividualQuiet(enc.getIndividualID());
-                    oldIndiv.removeEncounter(enc, context);
+                    oldIndiv.removeEncounter(enc);
                 }
                 boolean newIndiv = false;
                 MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(assignIndivId);
@@ -141,9 +208,9 @@ public class AnnotationEdit extends HttpServlet {
                     indiv = new MarkedIndividual(assignIndivId, enc);
                     newIndiv = true;
                 } else {
-                    indiv.addEncounter(enc, context);
+                    indiv.addEncounter(enc);
                 }
-                enc.setIndividualID(assignIndivId);
+                //enc.setIndividualID(assignIndivId);
                 System.out.println("INFO: AnnotationEdit assigned " + indiv + " on " + enc + " via " + annot);
                 rtn.put("success", true);
                 rtn.put("newMarkedIndividual", newIndiv);

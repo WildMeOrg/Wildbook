@@ -91,7 +91,7 @@ context=ServletUtilities.getContext(request);
   //System.out.println("We got occurrenceNumber = "+occurrenceNumber);
   //System.out.println("We got sex = "+sex);
 
-  String name = "";
+    String id = null;
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individuals.jsp");
 
@@ -102,12 +102,25 @@ context=ServletUtilities.getContext(request);
 
 <%
 if (request.getParameter("number")!=null) {
-	name=request.getParameter("number").trim();
+	String oldWorld = request.getParameter("number").trim();
+        //we also check individualID (uuid) too, just in case some href in jsp is still using number=
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
+        List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
+        String tryId = null;
+        if (results.iterator().hasNext()) tryId = (String) results.iterator().next();
+        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        response.setHeader("Location", "individuals.jsp?id=" + tryId);
+        response.flushBuffer();
+        return;
+}
+
+if (request.getParameter("id")!=null) {
+    id = request.getParameter("id");
 	myShepherd.beginDBTransaction();
 	try{
 
-		if(myShepherd.isMarkedIndividual(name)){
-			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
+		MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+		if (indie != null) {
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
 
@@ -381,13 +394,13 @@ $(document).ready(function() {
   <%
   myShepherd.beginDBTransaction();
   try {
-    if (myShepherd.isMarkedIndividual(name)) { %>
+    if (myShepherd.isMarkedIndividual(id)) { %>
   <%-- Header Row --%>
   <div class="row mainHeader" style="position:relative;">
     <div class="col-sm-6">
 
           <%
-          MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);
+          MarkedIndividual sharky=myShepherd.getMarkedIndividual(id);
 
           boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
 
@@ -418,7 +431,7 @@ $(document).ready(function() {
 
           } else {
             %>
-            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName()%>
             <%
             if(CommonConfiguration.allowAdoptions(context)){
                   %>
@@ -442,7 +455,14 @@ $(document).ready(function() {
       <%-- Descriptions --%>
       <div class="row">
         <div class="col-sm-6">
-            <p><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></p>
+            <p><!--<%=markedIndividualTypeCaps%>--><%
+String allNames = null;
+if (sharky.getNames() != null) {
+    List<String> names = sharky.getNamesList();
+    if ((names != null) && (names.size() > 0)) allNames = String.join(", ", names);
+    if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
+}
+            %></p>
             <%
 
             if (CommonConfiguration.allowNicknames(context)) {
@@ -760,9 +780,11 @@ $(document).ready(function() {
           <a name="alternateid"></a>
           <%
             String altID="";
+/*
             if(sharky.getAlternateID()!=null){
             altID=sharky.getAlternateID();
             }
+*/
 
             %>
             <p class="noEditText"><%=alternateID %>: <span id="displayAltID"><%=altID%></span></p>
@@ -1322,7 +1344,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         </script>
 
         <%
-          List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+          List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky);
 
         if(otherIndies.size()>0){
 
@@ -1388,7 +1410,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
             <td><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
             </a></td>
             <td>&nbsp;&nbsp;&nbsp;[<a
-              href="IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %>
+              href="IndividualRemoveDataFile?individual=<%=id%>&filename=<%=file_name%>"><%=delete %>
             </a>]
             </td>
           </tr>
@@ -1569,7 +1591,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       <br>
       <div>
         <jsp:include page="individualMapEmbed.jsp" flush="true">
-          <jsp:param name="name" value="<%=name%>"/>
+          <jsp:param name="name" value="<%=id%>"/>
         </jsp:include>
       </div>
       <%-- End of Map --%>
@@ -1585,7 +1607,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       <div style="width: 100%;">
 
           <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-            <jsp:param name="name" value="<%=name%>"/>
+            <jsp:param name="name" value="<%=id%>"/>
           </jsp:include>
                 </div>
 
@@ -1769,58 +1791,28 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
   else {
 
   //let's check if the entered name is actually an alternate ID
+/*  currently not supported (yet) due to indiv id stuff!  FIXME
   List<MarkedIndividual> al = myShepherd.getMarkedIndividualsByAlternateID(name);
   List<MarkedIndividual> al2 = myShepherd.getMarkedIndividualsByNickname(name);
   List<Encounter> al3 = myShepherd.getEncountersByAlternateID(name);
+*/
 
-  if (myShepherd.isEncounter(name)) {
+  if (myShepherd.isEncounter(id)) {
     %>
     <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=id%>">
     </HEAD>
     <%
   }
-  else if(myShepherd.isOccurrence(name)) {
+  else if(myShepherd.isOccurrence(id)) {
     %>
-    <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
-    </HEAD>
-    <%
-  }
-
-  else if (al.size() > 0) {
-    //just grab the first one
-    MarkedIndividual shr = al.get(0);
-    String realName = shr.getName();
-    %>
-
-    <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
-    </HEAD>
-    <%
-  } else if (al2.size() > 0) {
-    //just grab the first one
-    MarkedIndividual shr = al2.get(0);
-    String realName = shr.getName();
-    %>
-
-    <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
-    </HEAD>
-    <%
-  } else if (al3.size() > 0) {
-      //just grab the first one
-      Encounter shr = al3.get(0);
-      String realName = shr.getEncounterNumber();
-      %>
-
       <meta http-equiv="REFRESH"
-        content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=id%>">
       </HEAD>
       <%
   } else {
     %>
-    <p><%=matchingRecord %>: <strong><%=name%></strong></p>
+    <p><%=matchingRecord %>: <strong><%=id%></strong></p>
     <p>
       <%=tryAgain %>
     </p>
@@ -1828,7 +1820,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
     <p>
 
       <form action="individuals.jsp" method="get" name="sharks"><strong><%=record %>:</strong>
-      <input name="number" type="text" id="number" value=<%=name%>> <input
+      <input name="number" type="text" id="number" value=<%=id%>> <input
       name="sharky_button" type="submit" id="sharky_button"
       value="<%=getRecord %>"></form>
     </p>

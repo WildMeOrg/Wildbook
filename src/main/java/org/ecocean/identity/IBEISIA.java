@@ -714,11 +714,12 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("IBEISIA.iaCheckMissing");
                 myShepherd.beginDBTransaction();
+
                 try{
                   for (int i = 0 ; i < list.length() ; i++) {
-                      String uuid = fromFancyUUID(list.getJSONObject(i));
-                      Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, uuid), true)));
-                      anns.add(ann);
+                    String acmId = fromFancyUUID(list.getJSONObject(i));
+                    ArrayList<Annotation> annsTemp = myShepherd.getAnnotationsWithACMId(acmId);
+                    anns.add(annsTemp.get(0));
                   }
                 }
                 catch(Exception e){e.printStackTrace();}
@@ -1246,6 +1247,7 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
 
 //{"xtl":910,"height":413,"theta":0,"width":444,"class":"giraffe_reticulated","confidence":0.2208,"ytl":182}
     public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir, boolean skipEncounter) {
+
         Annotation ann = convertAnnotation(asset, jann, myShepherd, context, rootDir);
         if (ann == null) return null;
         if (skipEncounter) {
@@ -1273,8 +1275,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
     }
 
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult, Shepherd myShepherd, String context, String rootDir) {
-        if (iaResult == null) return null;
-
+        if (iaResult == null||duplicateDetection(ma, iaResult)) return null;
         String iaClass = iaResult.optString("class", "_FAIL_");
         Taxonomy tax = iaTaxonomyMap(myShepherd).get(iaClass);
         if (tax == null) {  //null could mean "invalid IA taxonomy"
@@ -1295,6 +1296,37 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
             ann.setMatchAgainst(true); 
         }
         return ann;
+    }
+
+    private static boolean duplicateDetection(MediaAsset ma, JSONObject iaResult ) {
+        // jann is iaResult
+        System.out.println("-- Verifying that we do not have a feature for this detection already...");
+        if (ma.getFeatures()!=null&&ma.getFeatures().size()>0) {
+            double width = iaResult.optDouble("width", 0);
+            double height = iaResult.optDouble("height", 0);
+            double xtl = iaResult.optDouble("xtl", 0);
+            double ytl = iaResult.optDouble("ytl", 0);
+            ArrayList<Feature> ftrs = ma.getFeatures();
+            for (Feature ft  : ftrs) {
+                try {
+                    JSONObject params = ft.getParameters();
+                    if (params!=null) {
+                        Double ftWidth = params.optDouble("width", 0);
+                        Double ftHeight = params.optDouble("height", 0);
+                        Double ftXtl = params.optDouble("x", 0);
+                        Double ftYtl = params.optDouble("y", 0);
+                        // yikes!
+                        if (ftHeight==0||ftHeight==0||height==0||width==0) {continue;}
+                        if ((width==ftWidth)&&(height==ftHeight)&&(ytl==ftYtl)&&(xtl==ftXtl)) {
+                            System.out.println("We have an Identicle detection feature! Skip this ann.");
+                            return true;
+                        }
+                    }
+                } catch (NullPointerException npe) {continue;}
+            }
+        }
+        System.out.println("---- Did not find an identicle feature.");
+        return false;
     }
 
     //this is the "preferred" way to go from iaClass to Taxonomy (and thus then .getScientificName() or whatever)
@@ -2253,7 +2285,7 @@ System.out.println(" ============ dt millis = " + dt);
         int startE = 0;
         if (indiv == null) {
             indiv = new MarkedIndividual(individualId, encs.get(0));
-            encs.get(0).setIndividualID(individualId);
+            //encs.get(0).setIndividualID(individualId);
             startE = 1;
             System.out.println("INFO: assignFromIA() created " + indiv);
             rtn.put("newMarkedIndividual", indiv);
@@ -2263,8 +2295,8 @@ System.out.println(" ============ dt millis = " + dt);
                 System.out.println("INFO: " + encs.get(i) + " already was assigned to indiv; skipping");
                 continue;
             }
-            indiv.addEncounter(encs.get(i), myShepherd.getContext());
-            encs.get(i).setIndividualID(individualId);
+            indiv.addEncounter(encs.get(i));
+            //encs.get(i).setIndividualID(individualId);
         }
         indiv.refreshNumberEncounters();
 
@@ -2341,7 +2373,7 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         int startE = 0;
         if (indiv == null) {
             indiv = new MarkedIndividual(individualId, encs.get(0));
-            encs.get(0).setIndividualID(individualId);
+            //encs.get(0).setIndividualID(individualId);
             startE = 1;
             System.out.println("INFO: assignFromIANoCreate() created " + indiv);
             rtn.put("newMarkedIndividual", indiv);
@@ -2351,8 +2383,8 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
                 System.out.println("INFO: " + encs.get(i) + " already was assigned to indiv; skipping");
                 continue;
             }
-            indiv.addEncounter(encs.get(i), myShepherd.getContext());
-            encs.get(i).setIndividualID(individualId);
+            indiv.addEncounter(encs.get(i));
+            //encs.get(i).setIndividualID(individualId);
         }
 
         rtn.put("encounters", encs);

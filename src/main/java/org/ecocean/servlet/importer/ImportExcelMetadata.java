@@ -207,7 +207,7 @@ public class ImportExcelMetadata extends HttpServlet {
                   enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set marked individual to " + individualID + ".</p>");
 
 
-                enc.setIndividualID(individualID);
+                //enc.setIndividualID(individualID);
                 System.out.println("          Setting Individual ID for row "+i+". Value: "+individualID);
 
 
@@ -495,11 +495,11 @@ public class ImportExcelMetadata extends HttpServlet {
                     newShark=false;
                   }
                   else{
-                    indie.setIndividualID(individualID);
+                    //indie.setIndividualID(individualID);  FIXME  !!!
                   }
 
                   //OK to generically add it as the addEncounter() method will ignore it if already added to marked individual
-                  indie.addEncounter(enc2, context);
+                  indie.addEncounter(enc2);
 
                   if((indie.getSex()==null)||((enc2.getSex()!=null)&&(indie.getSex()!=enc2.getSex()))){
                     indie.setSex(enc2.getSex());
@@ -511,7 +511,7 @@ public class ImportExcelMetadata extends HttpServlet {
                     indie.doNotSetLocalHaplotypeReflection(enc2.getHaplotype());
                   }
 
-                  indie.refreshDependentProperties(context);
+                  indie.refreshDependentProperties();
                   indie.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc2.getCatalogNumber() + ".</p>");
 
                   myShepherd.commitDBTransaction();
@@ -684,7 +684,7 @@ public class ImportExcelMetadata extends HttpServlet {
             out.println("=== CREATED INDIVIDUAL "+ind.getName()+" ===");
           }
           myShepherd.beginDBTransaction();
-          if (ind != null) ind.addEncounter(enc, myShepherd.getContext());
+          if (ind != null) ind.addEncounter(enc);
           myShepherd.commitDBTransaction();
 
           // New Close it.
@@ -720,7 +720,7 @@ public class ImportExcelMetadata extends HttpServlet {
     String indID = null;
     if (getStringOrIntString(row, 7) != null) {
       indID = getStringOrIntString(row, 7);
-      enc.setIndividualID(indID);
+      //enc.setIndividualID(indID);
       out.println("Set Individual ID :"+enc.getIndividualID());
     }
 

@@ -795,6 +795,27 @@ public class Util {
       return strBuff.toString();
     }
 
+    //this can be used to scrub user-provided paths to disallow "questionable" entries that might be
+    //  trying to access parts of the filesystem they should not have access to.
+    //  currently scrubs: parent directories in path (../) and hidden "dot" files (.config etc)
+    //present behavior will return null if unsafe substrings are found
+    //  NOTE: a leading '/' is stripped off to be safe.  this puts the onus on the user of this method
+    //     to prepend a '/' when using at a subpath, e.g. "/my/absolute/" + safePath(userProvidedString)
+    //     but hopefully will prevent absolute paths accidentally getting used.
+    public static String safePath(String path) {
+        if (path == null) return null;
+        if (new File(path).getName().startsWith(".")) {
+            System.out.println("WARNING: safePath(" + path + ") detected hidden dot file; failing");
+            return null;
+        }
+        if (path.indexOf("..") > -1) {
+            System.out.println("WARNING: safePath(" + path + ") detected '..' in path; failing");
+            return null;
+        }
+        if (path.indexOf("/") == 0) return path.substring(1);
+        return path;
+    }
+
   public static <KeyType, ValType> void addToMultimap(Map<KeyType, Set<ValType>> multimap, KeyType key, ValType val) {
     if (!multimap.containsKey(key)) multimap.put(key, new HashSet<ValType>());
     multimap.get(key).add(val);

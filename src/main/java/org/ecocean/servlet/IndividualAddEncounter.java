@@ -94,7 +94,7 @@ public class IndividualAddEncounter extends HttpServlet {
             try {
                 addToMe = new MarkedIndividual(indivID, enc2add);
                 myShepherd.storeNewMarkedIndividual(addToMe);
-                enc2add.setIndividualID(indivID);
+                //enc2add.setIndividualID(indivID);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 myShepherd.rollbackDBTransaction();
@@ -114,7 +114,7 @@ public class IndividualAddEncounter extends HttpServlet {
           }
           try {
             if (!addToMe.getEncounters().contains(enc2add)) {
-              addToMe.addEncounter(enc2add, context);
+              addToMe.addEncounter(enc2add);
             }
             enc2add.setMatchedBy(request.getParameter("matchType"));
             enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + request.getParameter("individual") + ".</p>");

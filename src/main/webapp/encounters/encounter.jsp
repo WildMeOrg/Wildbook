@@ -163,6 +163,17 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <style type="text/css">
 
+.annot-link {
+    display: none;
+    position: absolute;
+    text-decoration: none !important;
+    right: 5px;
+    top: 5px;
+    font-size: 1.3em;
+}
+.image-enhancer-feature:hover .annot-link {
+    display: block;
+}
 
 	#spot-image-wrapper-left,
 	#spot-image-wrapper-right
@@ -605,8 +616,9 @@ $(function() {
 								} //end while
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
-				if(enc.getIndividualID()!=null){
-					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
+				if(enc.hasMarkedIndividual()) {
+                                    String dispName = enc.getIndividual().getDisplayName(request);
+					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
                	<h1 class="<%=classColor%>" id="headerText">

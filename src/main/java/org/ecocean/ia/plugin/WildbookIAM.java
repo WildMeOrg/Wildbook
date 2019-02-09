@@ -161,6 +161,10 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
         for (int i = 0 ; i < mas.size() ; i++) {
             MediaAsset ma = mas.get(i);
             if (iaImageIds.contains(ma.getAcmId())) continue;
+            if (ma.isValidImageForIA()!=null&&!ma.isValidImageForIA()) {
+                IA.log("WARNING: WildbookIAM.sendMediaAssets() found a corrupt or otherwise invalid MediaAsset with Id: " + ma.getId());
+                continue;
+            }
             if (!validMediaAsset(ma)) {
                 IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid " + ma);
                 continue;

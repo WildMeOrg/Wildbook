@@ -93,7 +93,7 @@ var getData = function(individualID) {
     var occurrenceArray = [];
     var dataObject = {};
 
-     d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
+     d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
       if(error) {
         console.log("error")
       }
@@ -387,11 +387,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 }
 
   var goToEncounterURL = function(selectedWhale) {
-    window.open("/encounters/encounter.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl + "/encounters/encounter.jsp?number=" + selectedWhale);
   }
 
   var goToWhaleURL = function(selectedWhale) {
-    window.open("/individuals.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl + "/individuals.jsp?number=" + selectedWhale);
   }
 
   var getRelationshipData = function(relationshipID) {

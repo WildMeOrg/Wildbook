@@ -109,7 +109,8 @@ public class Encounter implements java.io.Serializable {
   private Double maximumDepthInMeters;
   private Double maximumElevationInMeters;
   private String catalogNumber = "";
-  private String individualID;
+  //private String individualID;
+    private MarkedIndividual individual;
   private int day = 0;
   private int month = -1;
   private int year = 0;
@@ -1136,16 +1137,25 @@ public class Encounter implements java.io.Serializable {
     catalogNumber = num;
   }
 
-
-
-    //this is probably what you wanted above to do.  :/
     public boolean hasMarkedIndividual() {
-        if ((individualID == null) || individualID.toLowerCase().equals("unassigned")) return false;
-        return true;
+        return (individual != null);
     }
 
-  public void assignToMarkedIndividual(String sharky) {
-    individualID = sharky;
+    public void assignToMarkedIndividual(MarkedIndividual indiv) {
+        setIndividual(indiv);
+    }
+
+    public void setIndividual(MarkedIndividual indiv) {
+        individual = indiv;
+    }
+
+    public MarkedIndividual getIndividual() {
+        return individual;
+    }
+
+    public String getIndividualID() {
+        if (individual == null) return null;
+        return individual.getId();
   }
 
   /*
@@ -1825,18 +1835,6 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
   public void setVerbatimLocality(String vlcl) {
     this.verbatimLocality = vlcl;
-  }
-
-  public String getIndividualID() {
-    return individualID;
-  }
-
-  public void setIndividualID(String indy) {
-    if(indy==null){
-      individualID=null;
-      return;
-    }
-    this.individualID = indy;
   }
 
 /* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
@@ -3265,7 +3263,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     public String toString() {
         return new ToStringBuilder(this)
                 .append("catalogNumber", catalogNumber)
-                .append("individualID", (hasMarkedIndividual() ? individualID : null))
+                .append("individualID", (hasMarkedIndividual() ? individual.getId() : null))
                 .append("species", getTaxonomyString())
                 .append("sex", getSex())
                 .append("shortDate", getShortDate())
