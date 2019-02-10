@@ -553,13 +553,13 @@ public static Connection getConnection() throws SQLException {
 
   /* Retrieve the Database Connection URL from an environment Variable */
   System.out.println("Checking for the DB_CONNECTION_URL environment variable.");
-  String connectionURL = System.getenv("DB_CONNECTION_URL");
+  String dbConnectionURL = System.getenv("DB_CONNECTION_URL");
   /* If it's null or empty then go ahead and retrieve it from the jdoconfig.properties file */
-  if (connectionURL == null || connectionURL.isEmpty()) {
+  if (dbConnectionURL == null || dbConnectionURL.isEmpty()) {
       System.out.println("The DB_CONNECTION_URL environment variable was not specified, will use the datanucleus.ConnectionURL value from the jdoconfig.properties file.");
       dbConnectionURL = CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0");
   } else {
-      System.out.println("The The DB_CONNECTION_URL environment variable was specified, will use it to connect to the Database.");
+      System.out.println("The DB_CONNECTION_URL environment variable was specified, will use it to connect to the Database.");
   }
 
   /* Go ahead and connect to the Database */
