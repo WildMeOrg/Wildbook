@@ -33,7 +33,8 @@ import java.util.TreeMap;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class ShepherdPMF {
 
@@ -148,9 +149,14 @@ public class ShepherdPMF {
         /********************************************************************************************************************************************/
             String dbUserSecretFile = System.getenv("DB_USER_FILE");
             if (dbUserSecretFile != null && !dbUserSecretFile.isEmpty()) {
-                System.out.println("The DB_USER_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
-                dbUser = IO.from(new File(dbUserSecretFile)).toString();
-                dnProperties.setProperty("datanucleus.ConnectionUserName", dbUser.trim());
+                try {
+                    dbUser = new String(Files.readAllBytes(Paths.get(dbUserSecretFile)));
+                    dnProperties.setProperty("datanucleus.ConnectionUserName", dbUser.trim());
+                } catch (IOException exc) {
+                    exc.printStackTrace();
+                    System.out.println("I couldn't read the " + dbUserSecretFile + " file!");
+                    return null;
+                }
             }
         }
 
@@ -169,8 +175,14 @@ public class ShepherdPMF {
             String dbPasswordSecretFile = System.getenv("DB_PASSWORD_FILE");
             if (dbPasswordSecretFile != null && !dbPasswordSecretFile.isEmpty()) {
                 System.out.println("The DB_PASSWORD_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
-                dbPassword = IO.from(new File(dbPasswordSecretFile)).toString();
-                dnProperties.setProperty("datanucleus.ConnectionPassword", dbPassword.trim());
+                try {
+                    dbPassword = new String(Files.readAllBytes(Paths.get(dbPasswordSecretFile)));
+                    dnProperties.setProperty("datanucleus.ConnectionPassword", dbPassword.trim());
+                } catch (IOException exc) {
+                    exc.printStackTrace();
+                    System.out.println("I couldn't read the " + dbPasswordSecretFile + " file!");
+                    return null;
+                }
             }
         }
 
@@ -189,8 +201,14 @@ public class ShepherdPMF {
             String dbConnectionURLFile = System.getenv("DB_PASSWORD_FILE");
             if (dbConnectionURLFile != null && !dbConnectionURLFile.isEmpty()) {
                 System.out.println("The DB_CONNECTION_URL_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
-                dbConnectionURL = IO.from(new File(dbConnectionURLFile)).toString();
-                dnProperties.setProperty("datanucleus.ConnectionURL", dbConnectionURL.trim());
+                try {
+                    dbConnectionURL = new String(Files.readAllBytes(Paths.get(dbConnectionURLFile)));
+                    dnProperties.setProperty("datanucleus.ConnectionURL", dbConnectionURL.trim());
+                } catch (IOException exc) {
+                    exc.printStackTrace();
+                    System.out.println("I couldn't read the " + dbConnectionURLFile + " file!");
+                    return null;
+                }
             }
         }    
         
