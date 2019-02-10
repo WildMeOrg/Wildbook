@@ -206,6 +206,7 @@ public class ShepherdPMF {
         String dbUser = System.getenv("DB_USER");
         if (dbUser != null && !dbUser.isEmpty()) {
             System.out.println("The DB_USER environment variable was specified, will use it to connect to the Database.");
+            // System.out.println("The database user retrieved from environment variable was " + dbUser);
             dnProperties.setProperty("datanucleus.ConnectionUserName", dbUser.trim());
         } else {
         /*****************************************************************************************************************************************************/             
@@ -213,8 +214,10 @@ public class ShepherdPMF {
         /*****************************************************************************************************************************************************/ 
             String dbUserSecretFile = System.getenv("DB_USER_FILE");
             if (dbUserSecretFile != null && !dbUserSecretFile.isEmpty()) {
+                System.out.println("The DB_USER_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
                 try {
                     dbUser = new String(Files.readAllBytes(Paths.get(dbUserSecretFile)));
+                    // System.out.println("The database user retrieved from the secret was " + dbUser);
                     dnProperties.setProperty("datanucleus.ConnectionUserName", dbUser.trim());
                 } catch (IOException exc) {
                     exc.printStackTrace();
@@ -231,6 +234,7 @@ public class ShepherdPMF {
         String dbPassword = System.getenv("DB_PASSWORD");    
         if (dbPassword != null && !dbPassword.isEmpty()) {
             System.out.println("The DB_PASSWORD environment variable was specified, will use it to connect to the Database.");
+            // System.out.println("The database password retrieved from the environment variable was " + dbPassword);
             dnProperties.setProperty("datanucleus.ConnectionPassword", dbPassword.trim());
         } else {
         /*****************************************************************************************************************************************************/ 
@@ -241,6 +245,7 @@ public class ShepherdPMF {
                 System.out.println("The DB_PASSWORD_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
                 try {
                     dbPassword = new String(Files.readAllBytes(Paths.get(dbPasswordSecretFile)));
+                    // System.out.println("The database password retrieved from the secret was " + dbPassword);
                     dnProperties.setProperty("datanucleus.ConnectionPassword", dbPassword.trim());
                 } catch (IOException exc) {
                     exc.printStackTrace();
@@ -257,6 +262,7 @@ public class ShepherdPMF {
         String dbConnectionURL = System.getenv("DB_CONNECTION_URL");
         if (dbConnectionURL != null && !dbConnectionURL.isEmpty()) {
             System.out.println("The DB_CONNECTION_URL environment variable was specified, will use it to connect to the Database.");
+            // System.out.println("The database connection URL retrieved from the environment variable was " + dbConnectionURL);
             dnProperties.setProperty("datanucleus.ConnectionURL", dbConnectionURL.trim());
         } else {
         /*****************************************************************************************************************************************************/            
@@ -267,6 +273,7 @@ public class ShepherdPMF {
                 System.out.println("The DB_CONNECTION_URL_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
                 try {
                     dbConnectionURL = new String(Files.readAllBytes(Paths.get(dbConnectionURLFile)));
+                    // System.out.println("The database connection URL retrieved from the secret was " + dbConnectionURL);
                     dnProperties.setProperty("datanucleus.ConnectionURL", dbConnectionURL.trim());
                 } catch (IOException exc) {
                     exc.printStackTrace();
