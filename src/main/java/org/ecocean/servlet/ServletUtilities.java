@@ -524,42 +524,42 @@ public static Connection getConnection() throws SQLException {
   Properties connectionProps = new Properties();
 
   /* Retrieve the Database user from an environment Variable */
-  System.out.Println("Checking for the DB_USER environment variable.");
+  System.out.println("Checking for the DB_USER environment variable.");
   String dbUser = System.getenv("DB_USER");
   /* If it's null or empty then go ahead and retrieve it from the jdoconfig.properties file */
   if (dbUser  == null || dbUser.isEmpty()) {
-      System.out.Println("The DB_USER environment variable was not specified, will use the datanucleus.ConnectionUserName value from the jdoconfig.properties file.");
+      System.out.println("The DB_USER environment variable was not specified, will use the datanucleus.ConnectionUserName value from the jdoconfig.properties file.");
       dbUser = CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0");
   } else {
-      System.out.Println("The DB_USER environment variable was specified, will use it to connect to the Database.");
+      System.out.println("The DB_USER environment variable was specified, will use it to connect to the Database.");
   }
 
   /* Store the Database user in the Connection Properties */
   connectionProps.put("user", dbUser);
   
   /* Retrieve the Database password from an environment Variable */
-  System.out.Println("Checking for the DB_PASSWORD environment variable.");
+  System.out.println("Checking for the DB_PASSWORD environment variable.");
   String dbPassword = System.getenv("DB_PASSWORD");
   /* If it's null or empty then go ahead and retrieve it from the jdoconfig.properties file */
   if (dbPassword  == null || dbPassword.isEmpty()) {
-      System.out.Println("The DB_PASSWORD environment variable was not specified, will use the datanucleus.ConnectionPassword value from the jdoconfig.properties file.");
+      System.out.println("The DB_PASSWORD environment variable was not specified, will use the datanucleus.ConnectionPassword value from the jdoconfig.properties file.");
       dbPassword = CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0");
   } else {
-      System.out.Println("The DB_PASSWORD environment variable was specified, will use it to connect to the Database.");
+      System.out.println("The DB_PASSWORD environment variable was specified, will use it to connect to the Database.");
   }
 
   /* Store the Database password in the Connection Properties */
   connectionProps.put("password", dbPassword);
 
   /* Retrieve the Database Connection URL from an environment Variable */
-  System.out.Println("Checking for the DB_CONNECTION_URL environment variable.");
+  System.out.println("Checking for the DB_CONNECTION_URL environment variable.");
   String connectionURL = System.getenv("DB_CONNECTION_URL");
   /* If it's null or empty then go ahead and retrieve it from the jdoconfig.properties file */
   if (connectionURL == null || connectionURL.isEmpty()) {
-      System.out.Println("The DB_CONNECTION_URL environment variable was not specified, will use the datanucleus.ConnectionURL value from the jdoconfig.properties file.");
+      System.out.println("The DB_CONNECTION_URL environment variable was not specified, will use the datanucleus.ConnectionURL value from the jdoconfig.properties file.");
       connectionURL = CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0");
   } else {
-      System.out.Println("The The DB_CONNECTION_URL environment variable was specified, will use it to connect to the Database.");
+      System.out.println("The The DB_CONNECTION_URL environment variable was specified, will use it to connect to the Database.");
   }
 
   /* Go ahead and connect to the Database */
