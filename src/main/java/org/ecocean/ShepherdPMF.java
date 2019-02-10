@@ -33,7 +33,7 @@ import java.util.TreeMap;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import java.io;
+import java.io.*;
 
 public class ShepherdPMF {
 
@@ -93,11 +93,13 @@ public class ShepherdPMF {
         }
 
         /********************************************************************************************************************************************/
-        /* This code below allows you to define the Database Connection parameters in environment variables and also Docker or Kubernetes secrets.  */ 
-        /* You can create a setenv.sh script containing exports for environment variables and place the script in the $CATALINA_HOME/bin directory. */
+        /* This code below allows you to define the Database Connection parameters (user, password and connection URL in environment variables      */
+        /* and also Docker or Kubernetes secrets.                                                                                                   */ 
+        /*                                                                                                                                          */   
+        /* You create a setenv.sh script containing exports for the environment variables and place the script in the $CATALINA_HOME/bin directory. */
         /* The catalina.sh script will call the setenv.sh script (if it exists) before it launches Tomcat.                                          */ 
-        /* This allows you specify the Database Connection parameters: user, password and connection URL at run time instead of hardcoded in the    */ 
-        /* jdoconfig.properties file which is inside the wildbook.war file. This also makes it easy to use with Docker and Kubernetes.              */
+        /* This allows you specify the Database Connection parameters: user, password and connection URL at run time instead of hardcoding them in  */ 
+        /* the jdoconfig.properties file which is inside the wildbook.war file. This also makes it easy to use with Docker and Kubernetes.          */
         /* And you define the Database Connection parameters as Docker secrets or Kubernetes secrets which makes the credentials secure.            */  
         /********************************************************************************************************************************************/  
         /*                                                                                                                                          */       
