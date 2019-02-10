@@ -87,10 +87,33 @@ public class ShepherdPMF {
         while (propsNames.hasMoreElements()) {
           String name = (String) propsNames.nextElement();
           if (name.startsWith("datanucleus") || name.startsWith("javax.jdo")) {
-              System.out.println("Properties: " + name + "=" + props.getProperty(name).trim());
-            dnProperties.setProperty(name, props.getProperty(name).trim());
+              dnProperties.setProperty(name, props.getProperty(name).trim());
           }
         }
+
+        /* Retrieve the Database user from an environment Variable */
+        System.out.println("Checking for the DB_USER environment variable.");
+        String dbUser = System.getenv("DB_USER");
+        if (dbUser != null && !dbUser.isEmpty()) {
+            System.out.println("The DB_USER environment variable was specified, will use it to connect to the Database.");
+            dnProperties.setProperty("datanucleus.ConnectionUserName", dbUser.trim());
+        }
+
+        /* Retrieve the Database password from an environment Variable */
+        System.out.println("Checking for the DB_PASSWORD environment variable.");
+        String dbPassword = System.getenv("DB_PASSWORD");    
+        if (dbPassword != null && !dbPassword.isEmpty()) {
+            System.out.println("The DB_PASSWORD environment variable was specified, will use it to connect to the Database.");
+            dnProperties.setProperty("datanucleus.ConnectionPassword", dbPassword.trim());
+        }
+
+        /* Retrieve the Database Connection URL from an environment Variable */
+        System.out.println("Checking for the DB_CONNECTION_URL environment variable.");
+        String dbConnectionURL = System.getenv("DB_CONNECTION_URL");
+        if (dbConnectionURL != null && !dbConnectionURL.isEmpty()) {
+            System.out.println("The The DB_CONNECTION_URL environment variable was specified, will use it to connect to the Database.");
+            dnProperties.setProperty("datanucleus.ConnectionURL", dbConnectionURL.trim());
+        }    
         
         //make sure to close an old PMF if switching
         //if(pmf!=null){pmf.close();}

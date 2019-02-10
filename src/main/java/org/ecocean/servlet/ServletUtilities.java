@@ -557,13 +557,13 @@ public static Connection getConnection() throws SQLException {
   /* If it's null or empty then go ahead and retrieve it from the jdoconfig.properties file */
   if (connectionURL == null || connectionURL.isEmpty()) {
       System.out.println("The DB_CONNECTION_URL environment variable was not specified, will use the datanucleus.ConnectionURL value from the jdoconfig.properties file.");
-      connectionURL = CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0");
+      dbConnectionURL = CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0");
   } else {
       System.out.println("The The DB_CONNECTION_URL environment variable was specified, will use it to connect to the Database.");
   }
 
   /* Go ahead and connect to the Database */
-  conn = DriverManager.getConnection(connectionURL, connectionProps);  
+  conn = DriverManager.getConnection(dbConnectionURL, connectionProps);  
 
   System.out.println("Connected to database for authentication.");
   return conn;
