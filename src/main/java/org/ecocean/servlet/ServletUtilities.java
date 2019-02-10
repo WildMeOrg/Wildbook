@@ -522,13 +522,36 @@ public static Connection getConnection() throws SQLException {
 
   Connection conn = null;
   Properties connectionProps = new Properties();
-  connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
-  connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
 
+  /* Retrieve the Database user from an environment Variable */
+  String dbUser = System.getenv("DB_USER");
+  /* If it's null or empty then go ahead and retrieve it from the jdoconfig.properties file */
+  if (dbUser  == null || dbUser.isEmpty()) {
+      dbUser = CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0");
+  }
 
-  conn = DriverManager.getConnection(
-  CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"),
-  connectionProps);
+  /* Store the Database user in the Connection Properties */
+  connectionProps.put("user", dbUser);
+  
+  /* Retrieve the Database password from an environment Variable */
+  String dbPassword = System.getenv("DB_PASSWORD");
+  /* If it's null or empty then go ahead and retrieve it from the jdoconfig.properties file */
+  if (dbPassword  == null || dbPassword.isEmpty()) {
+      dbPassword = CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0");
+  }
+
+  /* Store the Database password in the Connection Properties */
+  connectionProps.put("password", dbPassword);
+
+  /* Retrieve the Database Connection URL from an environment Variable */
+  String connectionURL = System.getenv("DB_CONNECTION_URL");
+  /* If it's null or empty then go ahead and retrieve it from the jdoconfig.properties file */
+  if (connectionURL == null || connectionURL.isEmpty()) {
+      connectionURL = CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0");
+  }
+
+  /* Go ahead and connect to the Database */
+  conn = DriverManager.getConnection(connectionURL, connectionProps);  
 
   System.out.println("Connected to database for authentication.");
   return conn;
@@ -585,7 +608,6 @@ public static String getContext(HttpServletRequest request){
       if(currentURL.indexOf(domainNames.get(p))!=-1){return thisContext;}
 
     }
-
 
   }
 
