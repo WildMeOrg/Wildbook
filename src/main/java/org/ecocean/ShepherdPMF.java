@@ -87,6 +87,7 @@ public class ShepherdPMF {
         while (propsNames.hasMoreElements()) {
           String name = (String) propsNames.nextElement();
           if (name.startsWith("datanucleus") || name.startsWith("javax.jdo")) {
+              System.out.println("Properties: " + name + "=" + props.getProperty(name).trim());
             dnProperties.setProperty(name, props.getProperty(name).trim());
           }
         }
