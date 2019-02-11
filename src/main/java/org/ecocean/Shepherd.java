@@ -4276,6 +4276,7 @@ public class Shepherd {
     String filter = "individual != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
+    q.setRange(1, numToReturn+1);
     q.setOrdering("dwcDateAddedLong descending");
     Collection c = (Collection) (q.execute());
     matchingEncounters = new ArrayList<Encounter>(c);
