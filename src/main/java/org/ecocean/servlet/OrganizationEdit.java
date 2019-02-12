@@ -80,7 +80,6 @@ public class OrganizationEdit extends HttpServlet {
         } else if ((org == null) && (orgId == null) && isAdmin && (jsonIn.optString("create", null) != null)) {
             Organization newOrg = new Organization(jsonIn.getString("create"));
             newOrg.addMember(user);
-            user.addOrganization(newOrg);
             myShepherd.getPM().makePersistent(newOrg);
             rtn.put("success", true);
             rtn.put("newOrg", newOrg.toJSONObject());
@@ -116,7 +115,6 @@ public class OrganizationEdit extends HttpServlet {
                     User mem = myShepherd.getUserByUUID(uids.optString(i, "__FAIL__"));
                     if ((mem != null) && !newMembers.contains(mem)) {
                         newMembers.add(mem);
-                        mem.addOrganization(org);
                     }
                 }
                 int added = org.addMembers(newMembers);
@@ -132,7 +130,6 @@ public class OrganizationEdit extends HttpServlet {
                     User mem = myShepherd.getUserByUUID(uid);
                     if (mem == null) continue;
                     org.removeMember(mem);
-                    //mem.removeOrganization(org);
                     rm++;
                 }
                 rtn.put("success", true);
@@ -141,7 +138,6 @@ public class OrganizationEdit extends HttpServlet {
             } else if (jsonIn.optString("create", null) != null) {
                 Organization newOrg = new Organization(jsonIn.getString("create"));
                 newOrg.addMember(user);
-                user.addOrganization(newOrg);
                 org.addChild(newOrg);
                 myShepherd.getPM().makePersistent(newOrg);
                 rtn.put("success", true);
