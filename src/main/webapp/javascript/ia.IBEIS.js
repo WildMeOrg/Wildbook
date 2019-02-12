@@ -60,6 +60,7 @@ wildbook.IA.plugins.push({
             function(enh) {  //the menu action for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 if (iaStatus && iaStatus.taskId && iaStatus.status != 'initiated') {
+                    registerTaskId(iaStatus.taskId);
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 } else {
                     var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
@@ -82,6 +83,7 @@ wildbook.IA.plugins.push({
                                 }
                                 //i think we at least got a task sent off!
                                 imageEnhancer.popupClose();
+                                registerTaskId(xhr.responseJSON.taskId);
                                 wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
                             } else {
                                 imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
@@ -135,6 +137,7 @@ wildbook.IA.plugins.push({
                             }
                             //i think we at least got a task sent off!
                             imageEnhancer.popupClose();
+                            registerTaskId(xhr.responseJSON.taskId);
                             wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
                         } else {
                             imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
@@ -220,3 +223,14 @@ wildbook.IA.plugins.push({
         return false;
     }
 });
+
+
+
+/*
+    this is for our cypress auto-testing only!   it sets a dom element for the sake of retrieving taskId when new tab opens.
+*/
+function registerTaskId(taskId) {
+    $('#activeTaskId').remove();
+    $('body').append('<p id="activeTaskId" style="display: none;">' + taskId + '</p>');
+}
+
