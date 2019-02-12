@@ -86,7 +86,7 @@ try{
 		qc.loadQueries(context);
 
 	}
-	/*
+	
 	if(qc.getQueryByName("numUsersWithRoles", context)==null){
 		StoredQuery sq=new StoredQuery("numUsersWithRoles", "SELECT DISTINCT username FROM org.ecocean.Role");
 		sq.setExpirationTimeoutDuration(600000);
@@ -95,7 +95,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries(context);
 	}
-	*/
+	
 	if(qc.getQueryByName("numUsers", context)==null){
 		StoredQuery sq=new StoredQuery("numUsers", "SELECT FROM org.ecocean.User WHERE uuid != null");
 		sq.setExpirationTimeoutDuration(600000);

@@ -3178,10 +3178,32 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
             jobj.remove("verbatimLocality");
             jobj.remove("locationID");
             jobj.remove("gpsLongitude");
+            jobj.remove("genus");
+            jobj.remove("specificEpithet");
             jobj.put("_sanitized", true);
 
             return jobj;
         }
+
+        // this doesn't add any fields, and only removes fields that shouldn't be there
+        public JSONObject sanitizeJsonNoAnnots(HttpServletRequest request, JSONObject jobj) throws JSONException {
+
+            boolean fullAccess = this.canUserAccess(request);
+            if (fullAccess) return jobj;
+
+            jobj.remove("gpsLatitude");
+            jobj.remove("location");
+            jobj.remove("gpsLongitude");
+            jobj.remove("verbatimLocality");
+            jobj.remove("locationID");
+            jobj.remove("gpsLongitude");
+            jobj.remove("genus");
+            jobj.remove("specificEpithet");
+            jobj.put("_sanitized", true);
+
+            return jobj;
+        }
+
 
         public JSONObject uiJson(HttpServletRequest request) throws JSONException {
           JSONObject jobj = new JSONObject();
