@@ -888,7 +888,7 @@
 
 		<!-- this uses parent to find child orgs -->
             	<field name="children" persistence-modifier="persistent" default-fetch-group="false" mapped-by="parent" >
-                	<collection element-type="org.ecocean.Organization" dependent-element="true" />
+                	<collection element-type="org.ecocean.Organization" dependent-element="false" />
                 	<join />
             	</field>
 

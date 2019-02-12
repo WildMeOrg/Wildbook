@@ -143,6 +143,44 @@ public class OrganizationEdit extends HttpServlet {
                 rtn.put("success", true);
                 rtn.put("newOrg", newOrg.toJSONObject());
 
+            } else if (jsonIn.optString("addChild", null) != null) {
+                String kidId = jsonIn.getString("addChild");
+                Organization kid = Organization.load(kidId, myShepherd);
+                if (kid == null) {
+                    rtn.put("error", "invalid Organization id=" + kidId);
+                } else if (!kid.canManage(user, myShepherd)) {
+                    rtn.put("error", "access denied to " + kidId);
+                } else {
+                    List<Organization> kids = org.addChild(kid);
+                    if (kids == null) {
+                        System.out.println("WARNING: failed OrganizationEdit addChild " + kid + " onto " + org);
+                        rtn.put("error", "failed to add child -- probably related already");
+                    } else {
+                        System.out.println("INFO: success OrganizationEdit addChild " + kid + " onto " + org);
+                        rtn.put("message", "added " + kid + " to " + org);
+                        rtn.put("success", true);
+                    }
+                }
+
+            } else if (jsonIn.optString("removeChild", null) != null) {
+                String kidId = jsonIn.getString("removeChild");
+                Organization kid = Organization.load(kidId, myShepherd);
+                if (kid == null) {
+                    rtn.put("error", "invalid Organization id=" + kidId);
+                } else if (!kid.canManage(user, myShepherd)) {
+                    rtn.put("error", "access denied to " + kidId);
+                } else {
+                    boolean ok = org.removeChild(kid);
+                    if (ok) {
+                        System.out.println("INFO: success OrganizationEdit removeChild " + kid + " from " + org);
+                        rtn.put("message", "removed " + kid + " from " + org);
+                        rtn.put("success", true);
+                    } else {
+                        System.out.println("WARNING: failed OrganizationEdit removeChild " + kid + " from " + org);
+                        rtn.put("error", "failed to remove child");
+                    }
+                }
+            } else if (jsonIn.optJSONObject("edit") != null) {
 
             } else if (jsonIn.optBoolean("delete", false)) {
                 System.out.println("INFO: OrganizationEdit is deleting " + org.toJSONObject());
