@@ -137,16 +137,45 @@ public class Organization implements java.io.Serializable {
     public List<Organization> getChildren() {
         return children;
     }
-    public void setChildren(List<Organization> kids) {
+    //note: setChildren() and addChild() will not complete if (any) child is related, to prevent looping
+    //  return success (false would mean related/loop issue)
+    public boolean setChildren(List<Organization> kids) {
+        if (kids != null) {
+            for (Organization org : kids) {
+                if (this.isRelatedTo(org)) {
+                    System.out.println("WARNING: " + this + " .setChildren() failed due to related to " + org);
+                    return false;
+                }
+            }
+        }
         children = kids;
         this.updateModified();
+        return true;
     }
+    //if this returns null, failed due to relatedness
     public List<Organization> addChild(Organization kid) {
+        if (this.isRelatedTo(kid)) {
+            System.out.println("WARNING: " + this + " .addChild(" + kid + ") failed due to relatedness");
+            return null;
+        }
         if (children == null) children = new ArrayList<Organization>();
         if (kid == null) return children;
-        if (!children.contains(kid)) children.add(kid);
+        if (!children.contains(kid)) {
+            children.add(kid);
+            kid.parent = this;
+        }
         this.updateModified();
         return children;
+    }
+
+    //returns true if successfully removed
+    public boolean removeChild(Organization kid) {
+        if ((kid == null) || (children == null)) return false;
+        if (!children.contains(kid)) return false;
+        children.remove(kid);
+        kid.parent = null;
+        this.updateModified();
+        return true;
     }
 
 /*  not sure if this is evil ??
@@ -190,6 +219,21 @@ public class Organization implements java.io.Serializable {
             if (!roots.contains(r)) roots.add(r);
         }
         return roots;
+    }
+
+    //checks to see if passed org exists above us in tree
+    // note: this will return true if passed self
+    // XXX this assumes no looping!!! XXX
+    public boolean hasAncestor(Organization org) {
+        if (org == null) return false;
+        if (org.equals(this)) return true;
+        if (parent == null) return false;
+        return parent.hasAncestor(org);
+    }
+    //they are in each others tree if:
+    public boolean isRelatedTo(Organization org) {
+        if (org == null) return false;
+        return (this.hasAncestor(org) || org.hasAncestor(this));
     }
 
     //see also hasMemberDeep()
