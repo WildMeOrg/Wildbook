@@ -741,7 +741,7 @@
         </field>
 
             	<field name="organizations" persistence-modifier="persistent" default-fetch-group="true" >
-                	<collection element-type="org.ecocean.Organization" dependent-element="true" />
+                	<collection element-type="org.ecocean.Organization" dependent-element="false" />
                 	<join>
 				<column name="USER_ID" />
 			</join>
