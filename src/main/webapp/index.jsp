@@ -7,7 +7,8 @@
               java.util.Iterator,
               java.util.Properties,
               java.util.StringTokenizer,
-              org.ecocean.cache.*
+              org.ecocean.cache.*,
+              org.ecocean.CommonConfiguration
               "
 %>
 
@@ -585,7 +586,7 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified whale sharks</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified sharks</i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
@@ -624,7 +625,9 @@ finally{
       <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
 
 </div>
-
+<%
+if((CommonConfiguration.getProperty("allowAdoptions",context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions",context).equals("true"))){
+%>
 <div class="container-fluid">
     <section class="container main-section">
 
@@ -678,6 +681,9 @@ finally{
         <%= props.getProperty("donationText") %>
     </section>
 </div>
+<%
+}
+%>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
