@@ -34,6 +34,8 @@ import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 public class WorkAppletHeadlessEpic {
@@ -45,11 +47,9 @@ public class WorkAppletHeadlessEpic {
   private int numMatches = 0;
   private static String version = "1.3";
 
-  //thread pool handling comparison threads
-  ThreadPoolExecutor threadHandler;
 
-  //public static String thisURLRoot = "https://www.whaleshark.org";
-  public static ArrayList<String> urlArray = new ArrayList<String>(); 
+
+ public static ArrayList<String> urlArray = new ArrayList<String>(); 
   
   
   
@@ -87,16 +87,40 @@ public class WorkAppletHeadlessEpic {
 
   public static void main(String args[]) {
 
-    urlArray.add("https://zebrashark.wildbook.org");
+    urlArray.add("https://www.whaleshark.org");
+    
+    //addresses for spotashark-related wildbooks
+    //urlArray.add("http://www.spotashark.com");
+    //urlArray.add("http://ncaquariums.wildbook.org");
+    
+    // IP for Bass Server
+    //urlArray.add("http://34.209.17.78");
+    System.out.println("Starting WorkAppletHeadlessEpic");
 
-
+    //which URLS
     WorkAppletHeadlessEpic a = new WorkAppletHeadlessEpic();
-    //if(args[0]!=null)urlArray.add(args[0]);
-    a.getGoing();
+    if(args[0]!=null){
+      urlArray.add(args[0]);
+      System.out.println("Performing matching for server: "+args[0]);
+    }
+    
+    //check the number of processors
+    Runtime rt = Runtime.getRuntime();
+    int numProcessors = rt.availableProcessors();
+    if(args[1]!=null){
+      try{
+        numProcessors=new Integer(args[1]).intValue();
+      }
+      catch(Exception e){
+        System.out.println("I couldn't read an Integer for num processors to apply from value: "+args[1]);
+      }
+    }
+    
+    a.getGoing(numProcessors);
   }
 
 
-  public void getGoing() {
+  public void getGoing(int numProcessors) {
 
 
     String holdEncNumber = "";
@@ -116,7 +140,7 @@ public class WorkAppletHeadlessEpic {
     //set up the random identifier for this "node"
     Random ran = new Random();
     int nodeIdentifier = ran.nextInt();
-    String nodeID = "Amazon_Consolidated_" + (new Integer(nodeIdentifier)).toString();
+    String nodeID = "Azure_" + (new Integer(nodeIdentifier)).toString();
 
 
     //if targeted on a specific task, show a percentage bar for progress
@@ -132,9 +156,7 @@ public class WorkAppletHeadlessEpic {
         //let's allocate an object to handle an OutOfMemoryError
         //URL recoverURL = new URL("http://" + thisURLRoot + "/encounters/sharkGrid.jsp?groupSize=1&autorestart=true" + targeted + "&numComparisons=" + numComparisons);
         
-        //check the number of processors
-        Runtime rt = Runtime.getRuntime();
-        int numProcessors = rt.availableProcessors();
+
   
   
         System.out.println();
@@ -164,7 +186,7 @@ public class WorkAppletHeadlessEpic {
   
             long currentTime=(new GregorianCalendar()).getTimeInMillis();
             long timeDiff=currentTime-startTime;
-            long sleepTime=30000;
+            long sleepTime=10000;
             
             //allow 55 minutes
             //update 2017-11-08 AWS now allows per-second billing, so limit this way down to maximum 180 seconds (two polling intervals)
@@ -173,10 +195,8 @@ public class WorkAppletHeadlessEpic {
            
             
             
-            //set up our thread processor for each comparison thread
-            ArrayBlockingQueue abq = new ArrayBlockingQueue(500);
-            threadHandler = new ThreadPoolExecutor(numProcessors, numProcessors, 0, TimeUnit.SECONDS, abq);
-  
+
+            
             boolean successfulConnect = true;
   
             ScanWorkItem swi = new ScanWorkItem();
@@ -201,6 +221,9 @@ public class WorkAppletHeadlessEpic {
                 con = (HttpURLConnection)u.openConnection();
                }
               
+              con.setConnectTimeout(30000);
+              con.setReadTimeout(30000);
+              
               con.setDoInput(true);
               con.setDoOutput(true);
               con.setUseCaches(false);
@@ -210,42 +233,54 @@ public class WorkAppletHeadlessEpic {
               
               System.out.println("     Opened a URL connection to: "+con.getURL().toString());
               
-              inputFromServlet = new ObjectInputStream(con.getInputStream());
-              workItems = (Vector) inputFromServlet.readObject();
+              //inputFromServlet = new ObjectInputStream(con.getInputStream());
               
-              if((workItems!=null)&&(workItems.size()>0)){
-                swi = (ScanWorkItem) workItems.get(0);
-                successfulConnect = true;
-              }
-              else{
-                System.out.println("...No work to do... Gonna take a nap then check the next server...");
+              try{
+                inputFromServlet =  new ObjectInputStream(new BufferedInputStream(new GZIPInputStream(con.getInputStream())));
                 
-                int c = urlArray.size();
-                if (i == (c - 1)) {
-                  System.out.println("...Back to the beginning of the Array!...");
-                  i = 0;
-                } else {
-                  System.out.println("...Done I'm done and I'm onto the next one...");
-                  i += 1;                  
+                workItems = (Vector) inputFromServlet.readObject();
+                
+                if((workItems!=null)&&(workItems.size()>0)){
+                  swi = (ScanWorkItem) workItems.get(0);
+                  successfulConnect = true;
                 }
-                
-                successfulConnect=false;
-                if (timeDiff<allowedDiff) {
-  
-                  Thread.sleep(sleepTime);
-                  //System.exit(0);
+                else{
+                  System.out.println("...No work to do... Gonna take a nap then check the next server...");
+                  
+                  int c = urlArray.size();
+                  if (i == (c - 1)) {
+                    System.out.println("...Back to the beginning of the Array!...");
+                    i = 0;
+                  } else {
+                    System.out.println("...Done I'm done and I'm onto the next one...");
+                    i += 1;                  
+                  }
+                  
+                  successfulConnect=false;
+                  //if (timeDiff<allowedDiff) {
+    
+                    Thread.sleep(sleepTime);
+                    //System.exit(0);
+                    
+                  //}
+                  /*
+                  else {
+                    System.out.println("\n\nI hit the timeout and am shutting down after "+(timeDiff/1000/60)+" minutes.");
+                    inputFromServlet.close();
+                    System.exit(0);
+                    
+                  }
+                  */
                   
                 }
-                else {
-                  System.out.println("\n\nI hit the timeout and am shutting down after "+(timeDiff/1000/60)+" minutes.");
-                  inputFromServlet.close();
-                  System.exit(0);
-                  
-                }
-                
-              }
-              inputFromServlet.close();
-              inputFromServlet = null;
+                inputFromServlet.close();
+            }
+            catch(EOFException e){
+              //no input received
+              //do nothing
+            }
+            
+            inputFromServlet = null;
             } 
             catch (Exception ioe) {
               if(inputFromServlet!=null)inputFromServlet.close();
@@ -262,7 +297,7 @@ public class WorkAppletHeadlessEpic {
                 
               }
               else {
-                System.exit(0);
+                //System.exit(0);
               }
               
             }
@@ -279,16 +314,16 @@ public class WorkAppletHeadlessEpic {
                   //waiting for last workItem to finish elsewhere, wait quietly and check later
                   //long currentTime=(new GregorianCalendar()).getTimeInMillis();
                   //long timeDiff=currentTime-startTime;
-                  if ((swi.getTotalWorkItemsInTask() == -1)&&(timeDiff<allowedDiff)) {
+                  //if ((swi.getTotalWorkItemsInTask() == -1)&&(timeDiff<allowedDiff)) {
   
                     Thread.sleep(sleepTime);
                     //System.exit(0);
                     
-                  }
-                  else {
-                    System.exit(0);
+                  //}
+                  //else {
+                    //System.exit(0);
   
-                  }
+                  //}
   
                 } 
                 catch (NullPointerException npe) {
@@ -299,7 +334,7 @@ public class WorkAppletHeadlessEpic {
                   System.out.println("...nothing to do...sleeping...");
                   groupSize = 10;
                   //Thread.sleep(90000);
-                  System.exit(0);
+                  //System.exit(0);
                 }
   
               }
@@ -312,12 +347,22 @@ public class WorkAppletHeadlessEpic {
                 int vectorSize = workItems.size();
                 System.out.println("...received " + vectorSize + " comparisons to make...");
   
+                //set up our thread processor for each comparison thread
+                ArrayBlockingQueue abq = new ArrayBlockingQueue(1000);
+                //thread pool handling comparison threads
                 //spawn the thread for each comparison
+                ThreadPoolExecutor threadHandler = new ThreadPoolExecutor(numProcessors, numProcessors, 0, TimeUnit.SECONDS, abq);
+                
                 for (int q = 0; q < vectorSize; q++) {
                   ScanWorkItem tempSWI = (ScanWorkItem) workItems.get(q);
   
                   //we also pass in workItemResults, which is a threadsafe vector of the results returned from each thread
-                  threadHandler.submit(new AppletWorkItemThread(tempSWI, workItemResults));
+                  try{
+                    threadHandler.submit(new AppletWorkItemThread(tempSWI, workItemResults));
+                  }
+                  catch(Exception e){
+                    System.out.println("...a thread threw an error, so I'm gonna skip it...");
+                  }
                 }
                 System.out.println("...done spawning threads...");
   
@@ -328,6 +373,10 @@ public class WorkAppletHeadlessEpic {
                 
                 
                 System.out.println("...all threads done!...");
+                threadHandler.shutdown();
+                //cleanup thread handlers
+                abq = null;
+                threadHandler = null;
   
                 //check the results and make variable changes as needed
                 int resultsSize = workItemResults.size();
@@ -368,6 +417,9 @@ public class WorkAppletHeadlessEpic {
                   // Don't use a cached version of URL connection.
                   finishConnection.setUseCaches(false);
                   finishConnection.setDefaultUseCaches(false);
+                  
+                  finishConnection.setConnectTimeout(30000);
+                  finishConnection.setReadTimeout(30000);
   
                   // Specify the content type that we will send binary data
                   finishConnection.setRequestProperty("Content-Type", "application/octet-stream");
@@ -378,22 +430,26 @@ public class WorkAppletHeadlessEpic {
                   
                   try{
                     // send the results Vector to the servlet using serialization
-                    outputToFinalServlet = new ObjectOutputStream(finishConnection.getOutputStream());
-  
+                    
+                    //outputToFinalServlet = new ObjectOutputStream(finishConnection.getOutputStream());
+                    outputToFinalServlet = new ObjectOutputStream(new BufferedOutputStream(new GZIPOutputStream(finishConnection.getOutputStream())));
+                    
+                    
                     //sendObject(outputToFinalServlet, workItemResults);
                     System.out.println("     : Sending returned results...");
                     //new modification
-                    ObjectOutputStream out=null;
+                    //ObjectOutputStream out=null;
                     try{
                       //out = con;
                       outputToFinalServlet.reset();
                       if (workItemResults != null) {
                         outputToFinalServlet.writeObject(workItemResults);
                       }
+                      outputToFinalServlet.flush();
                       outputToFinalServlet.close();
                      }
                     catch(Exception e){
-                      if(out!=null)out.close();
+                      //if(out!=null)out.close();
                       System.out.println("     : Transmission exception in sendObject.");
                       e.printStackTrace();
                     }
@@ -434,9 +490,7 @@ public class WorkAppletHeadlessEpic {
   
             }
   
-            //cleanup thread handlers
-            abq = null;
-            threadHandler = null;
+
             workItems = null;
             workItemResults = null;
             swi = null;
@@ -445,7 +499,7 @@ public class WorkAppletHeadlessEpic {
           catch (OutOfMemoryError oome) {
             //oome.printStackTrace();
             //hb.setFinished(true);
-            System.exit(0);
+            //System.exit(0);
   
           } catch (Exception e) {
             e.printStackTrace();
@@ -462,7 +516,7 @@ public class WorkAppletHeadlessEpic {
       System.exit(0);
 
     }
-    System.exit(0);
+    //System.exit(0);
   }        //end getGoing method
 
 

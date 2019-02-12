@@ -180,10 +180,32 @@ public final class NotificationMailer implements Runnable {
   public NotificationMailer(String context, String langCode, Collection<String> to, List<String> types, Map<String, String> map) {
     Objects.requireNonNull(context);
     Objects.requireNonNull(to);
-    for (String s : to) {
-      if (s == null || "".equals(s.trim()))
-        throw new IllegalArgumentException("Invalid email TO address specified");
+    
+    //Start checking if we should throw out some of these emails
+    ArrayList<String> recips=new ArrayList<String>(to);
+    for (int i=0;i<recips.size();i++) {
+      String s=recips.get(i);
+      if (s == null || "".equals(s.trim())){recips.remove(i);i--;}
+      else{
+        //check if this user actually wants to get the email
+        Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("NotificationMailer.class");
+        myShepherd.beginDBTransaction();
+        try{
+          if((myShepherd.getUserByEmailAddress(s)!=null)&&(!myShepherd.getUserByEmailAddress(s).getReceiveEmails())){
+            recips.remove(s);
+            i--;
+          }
+        }
+        catch(Exception e){e.printStackTrace();}
+        finally{
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+        }
+      }
     }
+    //end email throw out check
+    to=recips;
     System.out.println("NoteMailerHere2");
     this.context = context;
     this.sender = CommonConfiguration.getAutoEmailAddress(context);
@@ -741,13 +763,9 @@ public final class NotificationMailer implements Runnable {
       map.put("@ENCOUNTER_SEX@", enc.getSex());
       map.put("@ENCOUNTER_LIFE_STAGE@", enc.getLifeStage());
       map.put("@ENCOUNTER_COUNTRY@", enc.getCountry());
-      map.put("@ENCOUNTER_SUBMITTER_NAME@", enc.getSubmitterName());
       map.put("@ENCOUNTER_SUBMITTER_ID@", enc.getSubmitterID());
-      map.put("@ENCOUNTER_SUBMITTER_EMAIL@", enc.getSubmitterEmail());
-      map.put("@ENCOUNTER_SUBMITTER_ORGANIZATION@", enc.getSubmitterOrganization());
-      map.put("@ENCOUNTER_SUBMITTER_PROJECT@", enc.getSubmitterProject());
-      map.put("@ENCOUNTER_PHOTOGRAPHER_NAME@", enc.getPhotographerName());
-      map.put("@ENCOUNTER_PHOTOGRAPHER_EMAIL@", enc.getPhotographerEmail());
+      map.put("@ENCOUNTER_SUBMITTER_EMAIL@", enc.getSubmitterEmails().toString());
+      map.put("@ENCOUNTER_PHOTOGRAPHER_EMAIL@", enc.getPhotographerEmails().toString());
       map.put("@ENCOUNTER_COMMENTS@", enc.getComments());
       map.put("@ENCOUNTER_USER@", enc.getAssignedUsername());
     }

@@ -58,11 +58,6 @@ console.log('is %o', ajax);
 */
 
 
-    iaEnabled: function() {
-        //FIXME when IBEISIA is caught up to current
-        return (wildbookGlobals && wildbookGlobals.iaStatus && wildbookGlobals.iaStatus.map && wildbookGlobals.iaStatus.map.iaEnabled);
-    },
-
     // h/t http://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
     isValidDate: function(d) {
         if (Object.prototype.toString.call(d) !== "[object Date]") return false;
@@ -218,6 +213,11 @@ console.log('is %o', ajax);
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     },
 
+    // h/t https://davidwalsh.name/merge-arrays-javascript
+    arrayMerge: function(arr, append) {
+        Array.prototype.push.apply(arr, append);
+    },
+
     isValidEmailAddress: function(addr) {
         var regex = new RegExp(wildbookGlobals.validEmailRegexPattern);
         return regex.test(addr);
@@ -225,9 +225,62 @@ console.log('is %o', ajax);
 
     openInTab: function(url) {
         var win = window.open(url, '_blank');
-        win.focus();
-    }
+        if (win) win.focus();
+    },
 
+    //this is its own mess of stuff related to the logged in user
+    user: {
+        getUsername: function() {
+            return wildbookGlobals.username || null;
+        },
+        isAnonymous: function() {
+            return !wildbookGlobals.username;
+        }
+    },
+
+
+    /*
+        'args' can be pretty extensive here, so check out autocomplete() docs.
+        some useful(?) examples:
+            * select: function(ev, ui) {}   // item is selected
+            * appendTo: $('#some-element')
+            * resMap: (optional) custom function to map /SiteSearch?term= results to {label:, value:, type:}
+        if nothing passed, required ones are generated
+    */
+    makeAutocomplete: function(el, args) {
+        if (typeof args != 'object') args = {};
+
+        //this is "default behavior"
+        //  item has:  item.species, item.label, item.type, item.value
+        if (!args.resMap) args.resMap = function(data) {
+            var res = $.map(data, function(item) {
+                var label = item.label;
+                if (item.type == 'user') {
+                    label = 'User: ' + label;
+                } 
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+
+        if (!args.source) args.source = function(request, response) {
+//console.info('autocomplete.request %o', request);
+            $.ajax({
+                url: wildbookGlobals.baseUrl + '/SiteSearch',
+                dataType: "json",
+                data: {
+                    term: request.term
+                },
+                success: function( data ) {
+                    var res = args.resMap(data);
+//console.info('autocomplete.res->%o', res);
+                    response(res);
+                }
+            });
+        };
+
+        $(el).autocomplete(args);
+    }
 };
 
 

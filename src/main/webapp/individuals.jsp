@@ -4,7 +4,7 @@ javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.ExecutionContext,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
-org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat" %>
 
 
 <%
@@ -78,7 +78,7 @@ context=ServletUtilities.getContext(request);
   String occurringWith = props.getProperty("occurringWith");
   String behavior = props.getProperty("behavior");
   String haplotype = props.getProperty("location");
-  String dataTypes = props.getProperty("dataTypes"); 
+  String dataTypes = props.getProperty("dataTypes");
   String catalogNumber = props.getProperty("catalogNumber");
   String rolesOf = props.getProperty("roles");
   String relationshipWith = props.getProperty("relationshipWith");
@@ -88,9 +88,9 @@ context=ServletUtilities.getContext(request);
   String edit = props.getProperty("edit");
   String remove = props.getProperty("remove");
   String occurrenceNumber = props.getProperty("occurrenceNumber");
-  System.out.println("We got occurrenceNumber = "+occurrenceNumber);
-  System.out.println("We got sex = "+sex);
-  
+  //System.out.println("We got occurrenceNumber = "+occurrenceNumber);
+  //System.out.println("We got sex = "+sex);
+
   String name = "";
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individuals.jsp");
@@ -111,8 +111,38 @@ if (request.getParameter("number")!=null) {
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
 
+      // This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
+      // without this hack
+      int numAnns = 0;
+      for (Object obj: myEncs) {
+        Encounter enc = (Encounter) obj;
+        if (enc!=null && enc.getAnnotations()!=null) {
+          for (Annotation ann: enc.getAnnotations()) {
+            if (ann!=null) {
+              String makeSureWeHaveIt = ann.getIAClass();
+              numAnns++;
+            }
+          }
+        }
+      }
+      System.out.println("");
+      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+      System.out.println("This marked individual has "+numAnns+" anotations");
 
 			boolean visible = indie.canUserAccess(request);
+
+      String ipAddress = request.getHeader("X-FORWARDED-FOR");
+      if (ipAddress == null) ipAddress = request.getRemoteAddr();
+      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
+      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+      System.out.println("    From IP: "+ipAddress);
+      System.out.println("    "+currentTimeString);
+      System.out.println("    Individual: "+indie);
+      System.out.println("    is visible: "+visible);
+      System.out.println("    request.getAuthType(): "+request.getAuthType());
+      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
+      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
+      System.out.println("");
 
 			if (!visible) {
   			ArrayList<String> uids = indie.getAllAssignedUsers();
@@ -315,7 +345,7 @@ if (request.getParameter("number")!=null) {
 </script>
 <script>
  // Needed to get language specific values into javascript for table rendering.
- 
+
 var tableDictionary = {}
 
 tableDictionary['sex'] = "<%= sex %>";
@@ -399,7 +429,7 @@ $(document).ready(function() {
             if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit"><%= props.getProperty("edit") %></button>
-              <button class="btn btn-md" type="button" name="button" id="closeEdit"><%= props.getProperty("closeEditCaps") %>t</button>
+              <button class="btn btn-md" type="button" name="button" id="closeEdit"><%= props.getProperty("closeEditCaps") %></button>
             </div>
             <%}%></h1>
           <%
@@ -899,15 +929,15 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
 
             $("#EditRELATIONSHIP").click(function(event) {
               event.preventDefault();
-		
+
 	      var persistenceID = "";
 	      var relationshipID = $("#inputPersistenceID").val();
 	      if ((relationshipID != null) && (relationshipID != "")) {
               	persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
 
               }
-                 
-	      
+
+
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
 	      console.log("editRELATIONSHIP indy.jsp : " + markedIndividualName1);
@@ -922,13 +952,13 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
               var markedIndividual2DirectionalDescriptor = $("#descriptor2").val();
               var bidirectional = $("#bidirectional").val();
 
-	      if (startTime == "-1") { 
+	      if (startTime == "-1") {
                  startTime = "";
-              }        
-              if (endTime == "-1") { 
+              }
+              if (endTime == "-1") {
                  endTime = "";
               }
-		
+
    	      console.log("persistenceID sent to encounter-calls: " + persistenceID + " relationshipID: "+ relationshipID );
               $.post("RelationshipCreate", {
 	        "persistenceID": persistenceID,
@@ -950,7 +980,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
                 $("#addRelationshipForm").hide();
                 <% String relationshipIndividualID = sharky.getIndividualID();%>
                 getRelationshipTableData("<%=relationshipIndividualID%>");
-		
+
                 $("#communityTable").empty();
                 $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
               })
@@ -1020,7 +1050,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
               <div class="col-xs-3 col-sm-2">
                 <label class="requiredLabel"><%=props.getProperty("individualID1")%></label>
                 <p><small class="highlight"><%=props.getProperty("required")%></small></p>
-              </div>	
+              </div>
               <div class="col-xs-9 col-sm-3">
                 <p id="individual1set"><%=sharky.getIndividualID()%></p>
                 <input required class="form-control relationshipInput" type="text" value="<%=indID%>" id="individual1" placeholder="<%=indID%>"/>
@@ -1103,7 +1133,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
               </div>
               <div class="col-xs-9 col-sm-3">
                 <input id="startTime" class="form-control relationshipInput" name="startTime" type="text" value="<%=startTime%>" placeholder="YYYY-MM-DD"/>
-           	<p style="font-size:0.6em;">YYYY-MM-DD</p>  
+           	<p style="font-size:0.6em;">YYYY-MM-DD</p>
 	    </div>
             </div>
             <div class="form-group row">
@@ -1111,7 +1141,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
                 <label><%=props.getProperty("endTime")%></label>
               </div>
               <div class="col-xs-9 col-sm-3">
-		
+
                <input id="endTime" class="form-control relationshipInput" name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" placeholder="YYYY-MM-DD"/>
 	       <p style="font-size:0.6em;">YYYY-MM-DD</p>
 	      </div>
@@ -1276,7 +1306,6 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         //
 
         %>
-
 
         <br>
         <%-- Cooccurrence table starts here --%>

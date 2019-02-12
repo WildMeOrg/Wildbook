@@ -10,8 +10,10 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
+
 import org.json.JSONObject;
 import org.json.JSONException;
+
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
@@ -21,10 +23,16 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 
 
+
+
+
 //EXIF-related imports
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,9 +42,16 @@ import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
+
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+
 import org.apache.commons.io.IOUtils;
+
+
+
 
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
@@ -46,9 +61,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
 
+
+
+
 import org.ecocean.tag.MetalTag;
 import org.ecocean.*;
-
 
 //use Point2D to represent cached GPS coordinates
 import com.reijns.I3S.Point2D;
@@ -62,6 +79,8 @@ public class Util {
   private static final String BIOLOGICALMEASUREMENTUNITS = BIOLOGICALMEASUREMENT.replaceAll("Type", "Units");
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
+  private static final String VESSEL = "vessel";
+  private static final String GENUS_SPECIES = "genusSpecies";
 
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
@@ -81,6 +100,29 @@ public class Util {
     }
     return list;
   }
+  
+  public static ArrayList<String> findVesselNames(String langCode,String context) {
+    ArrayList<String> list = new ArrayList<String>();
+    List<String> types = CommonConfiguration.getIndexedPropertyValues(VESSEL,context);
+    if (types.size() > 0) {
+      for (int i = 0; i < types.size(); i++) {
+        String type = types.get(i);
+        list.add(type);
+      }
+    }
+    return list;
+  }
+  
+  public static ArrayList<String> findSpeciesNames(String langCode, String context) {
+    ArrayList<String> nameArr = new ArrayList<>();
+    List<String> nameList = CommonConfiguration.getIndexedPropertyValues(GENUS_SPECIES,context);
+    if (nameList.size() > 0) {
+      for  (String name : nameList) {
+        nameArr.add(name);
+      }  
+    }
+    return nameArr;
+  } 
 
   public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
@@ -373,6 +415,21 @@ public class Util {
         return null;
     }
 
+    // will always be null, String[1] or String[2]
+    public static String[] stringToGenusSpecificEpithet(String s) {
+        if (s == null) return null;
+        String[] gs = null;
+        int i = s.indexOf(" ");
+        if (i < 0) {
+            gs = new String[1];
+            gs[0] = s;
+        } else {
+            gs = new String[2];
+            gs[0] = s.substring(0, i);
+            gs[1] = s.substring(i + 1);
+        }
+        return gs;
+    }
 
     //a generic version of our uuid-dir-structure-creating algorithm -- adjust as needed!?
     // TODO check for incoming slashes and similar weirdness
@@ -399,6 +456,18 @@ public class Util {
         if (jin == null) return null;
         return stringToJSONObject(jin.toString());
     }
+    
+    
+    public static org.datanucleus.api.rest.orgjson.JSONArray toggleJSONArray(org.json.JSONArray jin) {
+      if (jin == null) return null;
+      return stringToDatanucleusJSONArray(jin.toString());
+    }
+    public static org.json.JSONArray toggleJSONArray(org.datanucleus.api.rest.orgjson.JSONArray jin) {
+      if (jin == null) return null;
+      return stringToJSONArray(jin.toString());
+    }
+    
+    
 
     //this basically just swallows exceptions in parsing and returns a null if failure
     public static JSONObject stringToJSONObject(String s) {
@@ -422,6 +491,34 @@ public class Util {
       }
       return j;
     }
+    
+    //NEW
+    
+    //this basically just swallows exceptions in parsing and returns a null if failure
+    public static org.json.JSONArray stringToJSONArray(String s) {
+        org.json.JSONArray j = null;
+        if (s == null) return j;
+        try {
+            j = new org.json.JSONArray(s);
+        } catch (JSONException je) {
+            System.out.println("error parsing json string (" + s + "): " + je.toString());
+        }
+        return j;
+    }
+
+    public static org.datanucleus.api.rest.orgjson.JSONArray stringToDatanucleusJSONArray(String s) {
+      org.datanucleus.api.rest.orgjson.JSONArray j = null;
+      if (s == null) return j;
+      try {
+          j = new org.datanucleus.api.rest.orgjson.JSONArray(s);
+      } catch (org.datanucleus.api.rest.orgjson.JSONException je) {
+          System.out.println("error parsing json string (" + s + "): " + je.toString());
+      }
+      return j;
+    }
+    
+    
+    //NEW
 
     public static org.datanucleus.api.rest.orgjson.JSONArray concatJsonArrayInPlace(org.datanucleus.api.rest.orgjson.JSONArray toBeReturned, org.datanucleus.api.rest.orgjson.JSONArray toBeAdded) throws org.datanucleus.api.rest.orgjson.JSONException {
       for (int i=0; i<toBeAdded.length(); i++) {
@@ -507,8 +604,6 @@ public class Util {
     }
 
     public static String prettyPrintDateTime(DateTime dt) {
-      System.out.println("prettyPrintDateTime:");
-      System.out.println("  dt.hourOfDay = "+dt.hourOfDay().get());
       boolean isOnlyDate = dateTimeIsOnlyDate(dt);
       String currentToString = dt.toString();
       if (isOnlyDate) {
@@ -579,6 +674,14 @@ public class Util {
       return (str!=null && !str.equals(""));
     }
 
+    //these two utility functions handle the case where the argument (Collection, and subclasses like Lists) is null!
+    public static boolean collectionIsEmptyOrNull(Collection c) {
+        return (collectionSize(c) == 0);
+    }
+    public static int collectionSize(Collection c) {
+        if (c == null) return 0;
+        return c.size();
+    }
 
     public static boolean hasProperty(String key, Properties props) {
       return (props.getProperty(key) != null);
@@ -593,11 +696,20 @@ public class Util {
       return values;
     }
 
-    public static void writeToFile(String data, String path) throws FileNotFoundException {
-      PrintWriter out = new PrintWriter(path);
-      out.println(data);
-      out.close();
-    }
+    public static void writeToFile(String data, String absolutePath) throws FileNotFoundException {
+      File file=new File(absolutePath);
+      try{
+        FileOutputStream fos=new FileOutputStream(file);
+        OutputStreamWriter writer =new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+        writer.write(data);
+        writer.flush();
+        writer.close();
+        fos.close();
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }
+   }
 
     public static String readFromFile(String path) throws FileNotFoundException, IOException {
       FileInputStream inputStream = new FileInputStream(path);
@@ -613,4 +725,100 @@ public class Util {
           formatted = format.format(date);
           return formatted.toString();
     }
+
+
+    public static int count(Iterator it) {
+      int num = 0;
+      while (it.hasNext()) {
+        Object elem = it.next();
+        num++;
+      }
+      return num;
+    }
+
+    // replaces wrong-slashes with right-slashes
+    public static String windowsFileStringToLinux(String windowsFileString) {
+      return windowsFileString.replaceAll("\\\\","/");
+    }
+    public static boolean fileExists(String filepath) {
+      File f = new File(filepath);
+      return (f.exists() && !f.isDirectory());
+    } 
+
+    //handles fuzzy case where url?key=value wants to test that 'key' is "set" (namely exists *and* is not explicitely "false")
+    public static boolean requestParameterSet(String value) {
+        if (value == null) return false;
+        value = value.toLowerCase();
+        return !(value.equals("false") || value.equals("f") || value.equals("0"));
+    }
+    //a slightly(!) more generic(!?) version of above
+    public static boolean booleanNotFalse(String value) {
+        return requestParameterSet(value);
+    }
+    
+    // convenience method for comparing string values
+    public static boolean shouldReplace(String val1, String val2) {
+      return (stringExists(val1) && !stringExists(val2));
+    }
+
+    
+    public static String basicSanitize(String input) {
+      String sanitized = null;
+      if (input!=null) {
+        sanitized = input;
+        sanitized = input.replace(":", "");
+        sanitized = input.replace(";", "");
+        sanitized = sanitized.replace("\"", "");
+        sanitized = sanitized.replace("'", "");
+        sanitized = sanitized.replace("(", "");
+        sanitized = sanitized.replace(")", "");
+        sanitized = sanitized.replace("*", "");
+        sanitized = sanitized.replace("%", "");        
+      }
+      return sanitized;
+    }
+
+    public static String joinStrings(List<String> strings) {
+      return joinStrings(strings, ", ");
+    }
+
+    public static String joinStrings(List<String> strings, String seperator) {
+      if (strings.size()==0) return "";
+      if (strings.size()==1) return strings.get(0);
+      StringBuffer strBuff = new StringBuffer();
+      strBuff.append(strings.get(0));
+      for (int i=1;i<strings.size();i++) {
+        strBuff.append(seperator+strings.get(i));
+      }
+      return strBuff.toString();
+    }
+
+    //this can be used to scrub user-provided paths to disallow "questionable" entries that might be
+    //  trying to access parts of the filesystem they should not have access to.
+    //  currently scrubs: parent directories in path (../) and hidden "dot" files (.config etc)
+    //present behavior will return null if unsafe substrings are found
+    //  NOTE: a leading '/' is stripped off to be safe.  this puts the onus on the user of this method
+    //     to prepend a '/' when using at a subpath, e.g. "/my/absolute/" + safePath(userProvidedString)
+    //     but hopefully will prevent absolute paths accidentally getting used.
+    public static String safePath(String path) {
+        if (path == null) return null;
+        if (new File(path).getName().startsWith(".")) {
+            System.out.println("WARNING: safePath(" + path + ") detected hidden dot file; failing");
+            return null;
+        }
+        if (path.indexOf("..") > -1) {
+            System.out.println("WARNING: safePath(" + path + ") detected '..' in path; failing");
+            return null;
+        }
+        if (path.indexOf("/") == 0) return path.substring(1);
+        return path;
+    }
+
+  public static <KeyType, ValType> void addToMultimap(Map<KeyType, Set<ValType>> multimap, KeyType key, ValType val) {
+    if (!multimap.containsKey(key)) multimap.put(key, new HashSet<ValType>());
+    multimap.get(key).add(val);
+  }
+
 }
+
+

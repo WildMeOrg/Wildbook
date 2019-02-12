@@ -17,8 +17,7 @@
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
@@ -40,6 +39,9 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("header.jsp");
+CommonConfiguration.ensureServerInfo(myShepherd, request);
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
@@ -55,14 +57,22 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <meta name="Keywords"
             content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-      <meta name="google-site-verification" content="80XsH3TKLdQp5PFQmzDPzSWMtebHN1JTjkge9PADhFE" />
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
+
+      <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
+
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
-	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
+      <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
+	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
+
+      <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
 
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
@@ -70,19 +80,46 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/javascript/jquery-ui.min.js"></script>
 
+        <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.js"></script>
+        <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
+
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
-	<script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
+	   <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
 
 
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
+      
+      
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
-
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
-      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
+      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
 
-<script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
+      <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
+
+ 	<!-- Start Open Graph Tags -->
+ 	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+  	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
+  	<!-- End Open Graph Tags -->    
+    
+    <!--  <link rel="stylesheet" href="/resources/demos/style.css"> 
+    
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    -->
+
+	<!-- Clockpicker on creatSurvey jsp -->
+    <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
+    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" /> 
+   
+    <style>
+      ul.nav.navbar-nav {
+        width: 100%;
+      }
+
+    </style>
 
     </head>
 
@@ -95,13 +132,21 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 <div class="container">
                 <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a>
                   <div class="search-and-secondary-wrapper">
+                  <%
+                  if(CommonConfiguration.allowAdoptions(context)){
+                  %>
+                    <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
+                  <%
+                  }
+                  %> 
+                    <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
                     <ul class="secondary-nav hor-ul no-bullets">
-
 
                       <%
 
 	                      if(request.getUserPrincipal()!=null){
-	                    	  Shepherd myShepherd = new Shepherd(context);
+	                    	  myShepherd = new Shepherd(context);
+	                    	  myShepherd.setAction("header.jsp");
 
 	                          try{
 	                        	  myShepherd.beginDBTransaction();
@@ -114,10 +159,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 		                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
 		                          }
 
-		                      		%>
+		                  %>
 
 		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
-		             				<li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
+		             				      <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 
 		                      		<%
 	                          }
@@ -250,12 +295,27 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                     </ul>
 
+
+                    <style type="text/css">
+                      #header-search-button, #header-search-button:hover {
+                        color: inherit;
+                        background-color: inherit;
+                        padding: 0px;
+                        margin: 0px;
+                      }
+                    </style>
+                    <script>
+                      $('#header-search-button').click(function() {
+                        document.forms['header-search'].submit();
+                      })
+                    </script>
+
+
                     <div class="search-wrapper">
                       <label class="search-field-header">
-                            <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
-	                            <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
-	                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
-	                            <input type="submit" value="search" />
+                            <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
+                              <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+                              <button type="submit" id="header-search-button"><span class="el el-lg el-search"></span></button>
                           </form>
                       </label>
                     </div>
@@ -278,16 +338,38 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                   <div id="navbar" class="navbar-collapse collapse">
                   <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
                     <ul class="nav navbar-nav">
-                                  <!--                -->
-                      <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
-                      <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+
+
+                      <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->                        
+                        <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
+                      </li>
+
+
+                      <!-- submit encounter, survey -->
+
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+							              <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
+                        </ul>
+                      </li>
+
+                      <!-- end submit -->
+
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	
-                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                            <li><a target="_blank" href="http://www.wildbook.org"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                        	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+
+                               <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
+
+                             <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
+
+
+                          	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                        	<li class="divider"></li>
                         </ul>
                       </li>
 
@@ -297,11 +379,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <%
                         if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                         %>
-                          <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+                          <li><a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a></li>
                         <%
                         }
                         %>
-                          <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+                          <li><a href="http://wiki.whaleshark.org/doku.php?id=user_agreement" target="_blank"><%=props.getProperty("userAgreement")%></a></li>
 
                           <!--  examples of navigation dividers
                           <li class="divider"></li>
@@ -311,9 +393,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Individuals <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
+
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
                       </li>
@@ -336,42 +419,20 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             } //end while %>
                           <li class="divider"></li>
                           <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
-                          <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
+                          <li><a href="<%=urlLoc %>/xcalendar/calendar2.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
                           <% if(request.getUserPrincipal()!=null) { %>
                             <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySubmissions")%></a></li>
                           <% } %>
                         </ul>
                       </li>
 
-                      <!-- start locationID sites -->
-                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("sites") %> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-
-
-                        <!-- list sites by locationID -->
-                          <% boolean moreLocationIDs=true;
-                             int siteNum=0;
-                             while(moreLocationIDs) {
-                                 String currentLocationID = "locationID"+siteNum;
-                                 if (CommonConfiguration.getProperty(currentLocationID,context)!=null) { %>
-                                   <li><a href="<%=urlLoc %>/encounters/searchResultsAnalysis.jsp?locationCodeField=<%=CommonConfiguration.getProperty(currentLocationID,context) %>"><%=WordUtils.capitalize(CommonConfiguration.getProperty(currentLocationID,context)) %></a></li>
-                                 <% siteNum++;
-                                 } else {
-                                	 moreLocationIDs=false;
-                                 }
-                            } //end while %>
-
-                        </ul>
-                      </li>
-                      <!-- end locationID sites -->
-
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp"><%=props.getProperty("surveySearch")%></a></li>
                            </ul>
                       </li>
 
@@ -387,21 +448,33 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             if(request.getUserPrincipal()!=null) {
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
+
+                            <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
+                                <li class="divider"></li>
+                                  <li class="dropdown-header">SharkGrid</li>
+
+                                <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp">Check SharkGrid</a></li>
+
+                                 <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                                <li class="divider"></li>
+                                <% } %>
+
+
                             <% }
                             if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) { %>
                               <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
                             <% }
                             if(request.isUserInRole("admin")) { %>
+
+
+                            <li class="dropdown-header">Admins Only</li>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-                                <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
-                                 <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                                 <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp">Shark Grid</a></li>
-                                <% } %>
+                         
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
-                                <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>
-                                  <li><a href="<%=CommonConfiguration.getTapirLinkURL(context) %>"><%=props.getProperty("tapirLink")%></a></li>
-                                <% }
+								<li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
+								
+                                <% 
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
                                 <% } %>
@@ -412,12 +485,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
-                                <% } %>
-                                <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <% if(CommonConfiguration.isCatalogEditable(context)) { %>
-                                  <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
-                                <% }
+                                <% } 
                             } //end if admin %>
                         </ul>
                       </li>
@@ -471,7 +539,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     },
                     success: function( data ) {
                         var res = $.map(data, function(item) {
-                            var label;
+                            var label="";
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
                             }

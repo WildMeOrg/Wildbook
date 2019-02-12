@@ -244,7 +244,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
 		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID
+		  mapTypeId: google.maps.MapTypeId.TERRAIN
 		});
 
 	  //adding the fullscreen control to exit fullscreen
@@ -1167,12 +1167,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 
-        <tr>
-	  <td><br /><strong><%=props.getProperty("submitterName")%>:</strong>
-	    <input name="nameField" type="text" size="60"> <br> <em><%=props.getProperty("namesBlank")%>
-	    </em>
-	  </td>
-</tr>
+
       </table>
 
     </div>
@@ -1722,7 +1717,7 @@ else {
       <%
       	Shepherd inShepherd=new Shepherd("context0");
       inShepherd.setAction("individualSearch.jsp2");
-        List<User> users = inShepherd.getAllUsers();
+        List<User> users = inShepherd.getUsersWithUsername("username ascending");
         int numUsers = users.size();
 
       %>
@@ -1738,7 +1733,7 @@ else {
             }
 
         	%>
-        	<option value="<%=username%>"><%=userFullName%></option>
+        	<option value="<%=username%>"><%=username%></option>
         	<%
           }
         %>

@@ -337,7 +337,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
 		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID,
+		  mapTypeId: google.maps.MapTypeId.TERRAIN,
 		  fullscreenControl: true
 		});
 
@@ -714,8 +714,42 @@ if(CommonConfiguration.showProperty("showCountry",context)){
           </td>
         </tr>
         
-
-
+        <!-- Begin search code for Observations -->
+        
+		<tr>
+			<td>
+				<br/>
+				<!-- Allow a key and value for each observation, allow user to add additional fields. -->
+				<p>
+					<label><%=encprops.getProperty("obSearchHeader")%></label>
+				</p>
+        </br>
+        
+				<p>
+					<input name="observationKey1" type="text" id="observationKey1" value="" placeholder="Observation Name">
+					<input name="observationValue1" type="text" id="observationValue1" value="" placeholder="Observation Value">
+				</p>
+      
+				<div id="additionalObsFields"></div>
+        </br>
+				<input name="numSearchedObs" type="hidden" id="numSearchedObs" value="1" >
+				<input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=encprops.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
+			</td>
+			<br/>
+		</tr>	
+		<script>
+			$(document).ready(function(){
+				var num = 2;
+				$('#addAnotherObBtn').click(function(){
+					var obField = '<p><input name="observationKey'+num+'" type="text" id="observationKey'+num+'" value="" placeholder="Observation Name"><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value="" placeholder="Observation Value"></p>';	
+					$('#additionalObsFields').append(obField);	
+					$('#numSearchedObs').val(num); 
+					num++;		
+				});
+			});
+		</script>
+		<!-- End Search Code For Observations -->
+		
         <tr>
           <td valign="top"><strong><%=encprops.getProperty("behavior")%>:</strong>
             <em> <span class="para">
@@ -1299,7 +1333,7 @@ else {
       	Shepherd inShepherd=new Shepherd("context0");
       inShepherd.setAction("encounterSearch.jsp2");
       myShepherd.beginDBTransaction();
-        List<User> users = inShepherd.getAllUsers();
+        List<User> users = inShepherd.getUsersWithUsername("username ascending");
         int numUsers = users.size();
 
       %>
@@ -1315,7 +1349,7 @@ else {
             }
             
         	%>
-        	<option value="<%=username%>"><%=userFullName%></option>
+        	<option value="<%=username%>"><%=username%></option>
         	<%
           }
         %>

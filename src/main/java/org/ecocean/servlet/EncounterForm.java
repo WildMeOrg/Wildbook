@@ -29,8 +29,10 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -47,11 +49,14 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.MailThreadExecutorService;
 import org.ecocean.Util;
 import org.ecocean.Encounter;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
 import org.ecocean.media.*;
+import org.ecocean.ia.Task;
+import org.ecocean.NotificationMailer;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
@@ -78,7 +83,6 @@ import org.apache.shiro.web.util.WebUtils;
 //import org.ecocean.*;
 import org.ecocean.security.SocialAuth;
 import org.ecocean.Annotation;
-
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
@@ -88,7 +92,6 @@ import org.pac4j.oauth.client.FacebookClient;
 //import org.pac4j.oauth.client.YahooClient;
 import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
-
 import org.ecocean.mmutil.FileUtilities;
 
 /**
@@ -362,6 +365,7 @@ System.out.println("*** trying redirect?");
         long maxSizeBytes = maxSizeMB * 1048576;
 
         if (ServletFileUpload.isMultipartContent(request)) {
+          
             try {
                 ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
                 upload.setHeaderEncoding("UTF-8");
@@ -396,8 +400,11 @@ System.out.println("*** trying redirect?");
 
         } else {
             doneMessage = "Sorry this Servlet only handles file upload request";
+            System.out.println("Not a multi-part form submission!");
         }
 
+
+        
         if (fv.get("social_files_id") != null) {
           System.out.println("BBB: Social_files_id: "+fv.get("social_files_id"));
           
@@ -442,6 +449,8 @@ System.out.println("*** trying redirect?");
       if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
         spamBot = true;
       }
+      
+      System.out.println("spambot: "+spamBot);
       //else if(spamFields.toString().toLowerCase().indexOf("[url]")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().indexOf("url=")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().trim().equals("")){spamBot=true;}
@@ -597,18 +606,26 @@ System.out.println("*** trying redirect?");
                 }
 
             } catch (Exception le) {
-
+                le.printStackTrace();
             }
 
 
 System.out.println("about to do enc()");
 
-            Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
+            Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"));
             boolean llSet = false;
             //Encounter enc = new Encounter();
             //System.out.println("Submission detected date: "+enc.getDate());
+            
             String encID = enc.generateEncounterNumber();
+            if ((fv.get("catalogNumber") != null)&&(!fv.get("catalogNumber").toString().trim().equals(""))) {
+              if((!myShepherd.isEncounter(fv.get("catalogNumber").toString()))){
+                encID=fv.get("catalogNumber").toString().trim();
+              }
+            }
             enc.setEncounterNumber(encID);
+            
+            
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
 
@@ -656,7 +673,95 @@ System.out.println("enc ?= " + enc.toString());
             enc.setGenus(genus);
             enc.setSpecificEpithet(specificEpithet);
 
-
+            
+            //User management
+            String subN=getVal(fv, "submitterName");
+            String subE=getVal(fv, "submitterEmail");
+            String subO=getVal(fv, "submitterOrganization");
+            String subP=getVal(fv, "submitterProject");
+            //User user=null;
+            List<User> submitters=new ArrayList<User>();
+            if((subE!=null)&&(!subE.trim().equals(""))) {
+              
+              StringTokenizer str=new StringTokenizer(subE,",");
+              int numTokens=str.countTokens();
+              for(int y=0;y<numTokens;y++) {
+                String tok=str.nextToken().trim();
+                String hashedTok=ServletUtilities.hashString(tok);
+                if(myShepherd.getUserByHashedEmailAddress(hashedTok)!=null) {
+                  User user=myShepherd.getUserByHashedEmailAddress(hashedTok);
+                  submitters.add(user);
+                }
+                else {
+                  User user=new User(tok,Util.generateUUID());
+                  user.setAffiliation(subO);
+                  user.setUserProject(subP);
+                  if((numTokens==1)&&(subN!=null)){user.setFullName(subN);}
+                  myShepherd.getPM().makePersistent(user);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  
+                  submitters.add(user);
+                }
+              }
+            }
+            enc.setSubmitters(submitters);
+            //end submitter-user processing
+            
+            //User management - photographer processing
+            String photoN=getVal(fv, "photographerName");
+            String photoE=getVal(fv, "photographerEmail");
+            List<User> photographers=new ArrayList<User>();
+            if((photoE!=null)&&(!photoE.trim().equals(""))) {
+              
+              StringTokenizer str=new StringTokenizer(photoE,",");
+              int numTokens=str.countTokens();
+              for(int y=0;y<numTokens;y++) {
+                String tok=str.nextToken().trim();
+                if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
+                  User user=myShepherd.getUserByEmailAddress(tok);
+                  photographers.add(user);
+                }
+                else {
+                  User user=new User(tok,Util.generateUUID());
+                  myShepherd.getPM().makePersistent(user);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  photographers.add(user);
+                }
+              }
+            }
+            enc.setPhotographers(photographers);
+            //end photographer-user processing
+            
+            
+            //User management - informOthers processing
+            String othersString=getVal(fv, "informothers");
+            List<User> informOthers=new ArrayList<User>();
+            if((othersString!=null)&&(!othersString.trim().equals(""))) {
+              
+              StringTokenizer str=new StringTokenizer(othersString,",");
+              int numTokens=str.countTokens();
+              for(int y=0;y<numTokens;y++) {
+                String tok=str.nextToken().trim();
+                if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
+                  User user=myShepherd.getUserByEmailAddress(tok);
+                  informOthers.add(user);
+                }
+                else {
+                  User user=new User(tok,Util.generateUUID());
+                  myShepherd.getPM().makePersistent(user);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  informOthers.add(user);
+                }
+              }
+            }
+            enc.setInformOthers(informOthers);
+            //end informOthers-user processing
+            
+            
+            
 /*
             String baseDir = ServletUtilities.dataDir(context, rootDir);
             ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
@@ -876,15 +981,14 @@ System.out.println("depth --> " + fv.get("depth").toString());
       }
 
       //enc.setMeasureUnits("Meters");
-      enc.setSubmitterPhone(getVal(fv, "submitterPhone"));
-      enc.setSubmitterAddress(getVal(fv, "submitterAddress"));
-      enc.setSubmitterOrganization(getVal(fv, "submitterOrganization"));
-      enc.setSubmitterProject(getVal(fv, "submitterProject"));
+     // enc.setSubmitterPhone(getVal(fv, "submitterPhone"));
+      //enc.setSubmitterAddress(getVal(fv, "submitterAddress"));
 
-      enc.setPhotographerPhone(getVal(fv, "photographerPhone"));
-      enc.setPhotographerAddress(getVal(fv, "photographerAddress"));
-      enc.setPhotographerName(getVal(fv, "photographerName"));
-      enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
+
+     // enc.setPhotographerPhone(getVal(fv, "photographerPhone"));
+     // enc.setPhotographerAddress(getVal(fv, "photographerAddress"));
+     // enc.setPhotographerName(getVal(fv, "photographerName"));
+     // enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
       enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + ServletUtilities.getRemoteHost(request) + "</p>");
       //enc.approved = false;
 
@@ -905,9 +1009,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       if (!getVal(fv, "country").equals("")) {
         enc.setCountry(getVal(fv, "country"));
       }
-      if (!getVal(fv, "informothers").equals("")) {
-        enc.setInformOthers(getVal(fv, "informothers"));
-      }
+
 
       // xxxxxxx
       //add research team for GAq
@@ -996,12 +1098,16 @@ System.out.println("depth --> " + fv.get("depth").toString());
             String newnum = "";
             if (!spamBot) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
-                //enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
                 enc.refreshAssetFormats(myShepherd);
 
+                //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
+                //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
+                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
+                myShepherd.storeNewTask(task);
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+                org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
             }
 
       if (newnum.equals("fail")) {
@@ -1009,6 +1115,10 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
         return;
       }
 
+      
+      
+      
+      
 
 
 
@@ -1016,7 +1126,106 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
       //return a forward to display.jsp
       System.out.println("Ending data submission.");
       if (!spamBot) {
-        response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
+        
+        //send submitter on to confirmSubmit.jsp
+        //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
+        WebUtils.redirectToSavedRequest(request, response, ("/confirmSubmit.jsp?number=" + encID));
+        
+        //start email appropriate parties
+        if(CommonConfiguration.sendEmailNotifications(context)){
+          myShepherd.beginDBTransaction();
+          try{
+            // Retrieve background service for processing emails
+            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+            Properties submitProps= ShepherdProperties.getProperties("submit.properties", ServletUtilities.getLanguageCode(request),context);
+            // Email new submission address(es) defined in commonConfiguration.properties
+            Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+            List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
+            String mailSubj = submitProps.getProperty("newEncounter") + enc.getCatalogNumber();
+            for (String emailTo : mailTo) {
+              NotificationMailer mailer = new NotificationMailer(context, ServletUtilities.getLanguageCode(request), emailTo, "newSubmission-summary", tagMap);
+              mailer.setUrlScheme(request.getScheme());
+              es.execute(mailer);
+            }
+          
+            // Email those assigned this location code
+            String informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+            if (informMe != null) {
+              List<String> cOther = NotificationMailer.splitEmails(informMe);
+              for (String emailTo : cOther) {
+                NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                  es.execute(mailer);
+              }
+            }
+          
+            // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
+            tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc.getCatalogNumber());
+          
+
+            // Email submitter and photographer
+            if ((enc.getPhotographerEmails()!=null)&&(enc.getPhotographerEmails().size()>0)) {
+              List<String> cOther = enc.getPhotographerEmails();
+              for (String emailTo : cOther) {
+                String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+              }
+            }
+            if ((enc.getSubmitterEmails()!=null)&&(enc.getSubmitterEmails().size()>0)) {
+              List<String> cOther = enc.getSubmitterEmails();
+              for (String emailTo : cOther) {
+
+                String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+              }
+            }
+          
+            // Email interested others
+            if ((enc.getInformOthersEmails()!=null)&&(enc.getInformOthersEmails().size()>0)) {
+              List<String> cOther = enc.getInformOthersEmails();
+              for (String emailTo : cOther) {
+
+                String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+              }
+            }
+            /*  
+            if ((enc.getInformOthers() != null) && (!enc.getInformOthers().trim().equals(""))) {
+              List<String> cOther = NotificationMailer.splitEmails(enc.getInformOthers());
+              for (String emailTo : cOther) {
+                String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+              }
+            }
+            */
+            
+            
+            es.shutdown();
+          }
+          catch(Exception e){
+            e.printStackTrace();
+          }
+          finally{
+            myShepherd.rollbackDBTransaction();
+            
+          }
+        } //end email appropriate parties
+        
+        
+        
+        
       } else {
         response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/spambot.jsp");
       }
@@ -1046,6 +1255,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
       try{
         ma.addLabel("_original");
         ma.copyIn(tmpFile);
+        ma.validateSourceImage();
         ma.updateMetadata();
         newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
       }
@@ -1083,6 +1293,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
       try{
         ma.addLabel("_original");
         ma.copyIn(tmpFile);
+        ma.validateSourceImage();
         ma.updateMetadata();
         newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
         System.out.println("Added new annotation for: "+item.getName());
