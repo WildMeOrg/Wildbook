@@ -33,6 +33,8 @@ import java.util.TreeMap;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class ShepherdPMF {
 
@@ -87,9 +89,199 @@ public class ShepherdPMF {
         while (propsNames.hasMoreElements()) {
           String name = (String) propsNames.nextElement();
           if (name.startsWith("datanucleus") || name.startsWith("javax.jdo")) {
-            dnProperties.setProperty(name, props.getProperty(name).trim());
+              dnProperties.setProperty(name, props.getProperty(name).trim());
           }
         }
+
+        /*****************************************************************************************************************************************************/
+        /* This code below allows you to define the Database Connection parameters (user, password and connection URL in environment variables               */
+        /* and also Docker or Kubernetes secrets.                                                                                                            */
+        /*                                                                                                                                                   */ 
+        /* You create a setenv.sh script containing exports for the environment variables and place the script in the $CATALINA_HOME/bin directory.          */
+        /* The catalina.sh script will call the setenv.sh script (if it exists) before it launches Tomcat.                                                   */
+        /* This allows you specify the Database Connection parameters: user, password and connection URL at run time instead of hardcoding them in           */
+        /* the jdoconfig.properties file which is inside the wildbook.war file. This also makes it easy to use with Docker and Kubernetes.                   */
+        /* And you can also define the Database Connection parameters as Docker secrets or Kubernetes secrets which makes the credentials secure.            */
+        /*****************************************************************************************************************************************************/
+        /*                                                                                                                                                   */
+        /* Example setenv.sh file                                                                                                                            */
+        /*                                                                                                                                                   */
+        /* #!/usr/bin/env bash                                                                                                                               */
+        /* printf 'Setting Database Connection environment variables\n'                                                                                      */
+        /*                                                                                                                                                   */
+        /* export DB_USER="wildbook"                                                                                                                         */
+        /* # export DB_USER_FILE=/run/secrets/wildbook-db-user                                                                                               */
+        /* export DB_PASSWORD="Passw0rd#"                                                                                                                    */
+        /* # export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                                                       */
+        /* export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"                                    */
+        /* # export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                                                           */
+        /*****************************************************************************************************************************************************/
+        /*                                                                                                                                                   */
+        /* Example docker-compose.yml file below.                                                                                                            */
+        /*                                                                                                                                                   */
+        /* Put the setenv.sh script in the directory where the docker-compose.yml file exists. Docker will mount the local setenv.sh file to                 */
+        /* /usr/local/tomcat/bin/setenv.sh when the docker container is started.                                                                             */
+        /*                                                                                                                                                   */
+        /* version: '3.3'                                                                                                                                    */
+        /* configs:                                                                                                                                          */
+        /*   setenv.sh:                                                                                                                                      */
+        /*     file: ./setenv.sh                                                                                                                             */
+        /* services:                                                                                                                                         */
+        /*   tomcat-wildbook:                                                                                                                                */
+        /*     image: gforghetti/tomcat-wildbook:latest                                                                                                      */
+        /*     configs:                                                                                                                                      */
+        /*       - source: setenv.sh                                                                                                                         */
+        /*         target: /usr/local/tomcat/bin/setenv.sh                                                                                                   */
+        /*         uid: '0'                                                                                                                                  */
+        /*         gid: '0'                                                                                                                                  */
+        /*         mode: 0700                                                                                                                                */
+        /*                                                                                                                                                   */
+        /*****************************************************************************************************************************************************/ 
+        /* To use Docker secrets.                                                                                                                            */
+        /*****************************************************************************************************************************************************/
+        /* Example setenv.sh file                                                                                                                            */
+        /*                                                                                                                                                   */
+        /* #!/usr/bin/env bash                                                                                                                               */
+        /* printf 'Setting Database Connection environment variables\n'                                                                                      */
+        /*                                                                                                                                                   */
+        /* # export DB_USER="wildbook"                                                                                                                       */
+        /* export DB_USER_FILE=/run/secrets/wildbook-db-user                                                                                                 */
+        /* # export DB_PASSWORD="Passw0rd#"                                                                                                                  */
+        /* export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                                                         */
+        /* # export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"                                  */
+        /* export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                                                             */
+        /*                                                                                                                                                   */          
+        /* Create the Docker secrets                                                                                                                         */
+        /*                                                                                                                                                   */
+        /* $ echo "wildbook" | docker secret create wildbook-db-user -                                                                                       */
+        /* yhma28514l3spyj6033ym155y                                                                                                                         */
+        /*                                                                                                                                                   */     
+        /* $ echo "Passw0rd#" | docker secret create wildbook-db-password -                                                                                  */
+        /* 6q3gew26hvv3x314ahzxgfceb                                                                                                                         */
+        /*                                                                                                                                                   */
+        /* $ echo "jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true" | docker secret create wildbook-db-connection-url -  */
+        /* 9ur97son802lopbpaj8q1ant8                                                                                                                         */
+        /*                                                                                                                                                   */
+        /* $ docker secret ls                                                                                                                                */
+        /* ID                           NAME                         DRIVER              CREATED              UPDATED                                        */
+        /* 9ur97son802lopbpaj8q1ant8    wildbook-db-connection-url                       5 seconds ago        5 seconds ago                                  */
+        /* m6q3gew26hvv3x314ahzxgfceb   wildbook-db-password                             41 seconds ago       41 seconds ago                                 */
+        /* yhma28514l3spyj6033ym155y    wildbook-db-user                                 About a minute ago   About a minute ago                             */
+        /*                                                                                                                                                   */
+        /*****************************************************************************************************************************************************/
+        /* docker-compose.yml file with the secrets.                                                                                                         */
+        /*                                                                                                                                                   */
+        /* version: '3.3'                                                                                                                                    */
+        /* configs:                                                                                                                                          */
+        /*   setenv.sh:                                                                                                                                      */
+        /*     file: ./setenv.sh                                                                                                                             */
+        /* secrets:                                                                                                                                          */
+        /*   wildbook-db-user:                                                                                                                               */
+        /*     external: true                                                                                                                                */
+        /*   wildbook-db-password:                                                                                                                           */
+        /*     external: true                                                                                                                                */
+        /*   wildbook-db-connection-url:                                                                                                                     */
+        /*     external: true                                                                                                                                */
+        /* services:                                                                                                                                         */
+        /*   tomcat-wildbook:                                                                                                                                */
+        /*     image: gforghetti/tomcat-wildbook:latest                                                                                                      */
+        /*     configs:                                                                                                                                      */
+        /*       - source: setenv.sh                                                                                                                         */
+        /*         target: /usr/local/tomcat/bin/setenv.sh                                                                                                   */
+        /*         uid: '0'                                                                                                                                  */
+        /*         gid: '0'                                                                                                                                  */
+        /*         mode: 0700                                                                                                                                */
+        /*     secrets:                                                                                                                                      */
+        /*       - wildbook-db-user                                                                                                                          */
+        /*       - wildbook-db-password                                                                                                                      */
+        /*       - wildbook-db-connection-url                                                                                                                */
+        /*                                                                                                                                                   */
+        /* # Note the same wildbook-db-user and wildbook-db-passord secrets can be specified to a MySQL docker database container.                           */
+        /*****************************************************************************************************************************************************/
+
+        /*****************************************************************************************************************************************************/ 
+        /* Retrieve the Database user from an environment Variable                                                                                           */
+        /*****************************************************************************************************************************************************/ 
+        System.out.println("Checking for the DB_USER environment variable.");
+        String dbUser = System.getenv("DB_USER");
+        if (dbUser != null && !dbUser.isEmpty()) {
+            System.out.println("The DB_USER environment variable was specified, will use it to connect to the Database.");
+            // System.out.println("The database user retrieved from environment variable was " + dbUser);
+            dnProperties.setProperty("datanucleus.ConnectionUserName", dbUser.trim());
+        } else {
+        /*****************************************************************************************************************************************************/             
+        /* Retrieve the Database User from a file. This allows the use of Docker Secrets and Kubernetes Secrets!                                             */
+        /*****************************************************************************************************************************************************/ 
+            String dbUserSecretFile = System.getenv("DB_USER_FILE");
+            if (dbUserSecretFile != null && !dbUserSecretFile.isEmpty()) {
+                System.out.println("The DB_USER_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
+                try {
+                    dbUser = new String(Files.readAllBytes(Paths.get(dbUserSecretFile)));
+                    // System.out.println("The database user retrieved from the secret was " + dbUser);
+                    dnProperties.setProperty("datanucleus.ConnectionUserName", dbUser.trim());
+                } catch (IOException exc) {
+                    exc.printStackTrace();
+                    System.out.println("I couldn't read the " + dbUserSecretFile + " file!");
+                    return null;
+                }
+            }
+        }
+
+        /*****************************************************************************************************************************************************/ 
+        /* Retrieve the Database password from an environment Variable                                                                                       */
+        /*****************************************************************************************************************************************************/  
+        System.out.println("Checking for the DB_PASSWORD environment variable.");
+        String dbPassword = System.getenv("DB_PASSWORD");    
+        if (dbPassword != null && !dbPassword.isEmpty()) {
+            System.out.println("The DB_PASSWORD environment variable was specified, will use it to connect to the Database.");
+            // System.out.println("The database password retrieved from the environment variable was " + dbPassword);
+            dnProperties.setProperty("datanucleus.ConnectionPassword", dbPassword.trim());
+        } else {
+        /*****************************************************************************************************************************************************/ 
+        /* Retrieve the Database Password from a file. This allows the use of Docker Secrets and Kubernetes Secrets!                                         */
+        /*****************************************************************************************************************************************************/  
+            String dbPasswordSecretFile = System.getenv("DB_PASSWORD_FILE");
+            if (dbPasswordSecretFile != null && !dbPasswordSecretFile.isEmpty()) {
+                System.out.println("The DB_PASSWORD_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
+                try {
+                    dbPassword = new String(Files.readAllBytes(Paths.get(dbPasswordSecretFile)));
+                    // System.out.println("The database password retrieved from the secret was " + dbPassword);
+                    dnProperties.setProperty("datanucleus.ConnectionPassword", dbPassword.trim());
+                } catch (IOException exc) {
+                    exc.printStackTrace();
+                    System.out.println("I couldn't read the " + dbPasswordSecretFile + " file!");
+                    return null;
+                }
+            }
+        }
+
+        /*****************************************************************************************************************************************************/ 
+        /* Retrieve the Database Connection URL from an environment Variable                                                                                 */
+        /*****************************************************************************************************************************************************/  
+        System.out.println("Checking for the DB_CONNECTION_URL environment variable.");
+        String dbConnectionURL = System.getenv("DB_CONNECTION_URL");
+        if (dbConnectionURL != null && !dbConnectionURL.isEmpty()) {
+            System.out.println("The DB_CONNECTION_URL environment variable was specified, will use it to connect to the Database.");
+            // System.out.println("The database connection URL retrieved from the environment variable was " + dbConnectionURL);
+            dnProperties.setProperty("datanucleus.ConnectionURL", dbConnectionURL.trim());
+        } else {
+        /*****************************************************************************************************************************************************/            
+        /* Retrieve the Database Connection URL from a file. This allows the use of Docker Secrets and Kubernetes Secrets!                                   */
+        /*****************************************************************************************************************************************************/         
+            String dbConnectionURLFile = System.getenv("DB_CONNECTION_URL_FILE");
+            if (dbConnectionURLFile != null && !dbConnectionURLFile.isEmpty()) {
+                System.out.println("The DB_CONNECTION_URL_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
+                try {
+                    dbConnectionURL = new String(Files.readAllBytes(Paths.get(dbConnectionURLFile)));
+                    // System.out.println("The database connection URL retrieved from the secret was " + dbConnectionURL);
+                    dnProperties.setProperty("datanucleus.ConnectionURL", dbConnectionURL.trim());
+                } catch (IOException exc) {
+                    exc.printStackTrace();
+                    System.out.println("I couldn't read the " + dbConnectionURLFile + " file!");
+                    return null;
+                }
+            }
+        }    
         
         //make sure to close an old PMF if switching
         //if(pmf!=null){pmf.close();}
