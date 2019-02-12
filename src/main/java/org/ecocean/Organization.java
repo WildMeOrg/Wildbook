@@ -234,6 +234,9 @@ public class Organization implements java.io.Serializable {
     //  note: this doesnt kill the other org - that must be done manually (if desired)
     public int mergeFrom(Organization other) {
         int ct = this.addMembers(other.members);  //really very simple for now
+        for (User mem : other.members) {
+            mem.addOrganization(this);
+        }
         this.updateModified();
         return ct;
     }

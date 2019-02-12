@@ -71,11 +71,16 @@ public class OrganizationEdit extends HttpServlet {
         boolean isAdmin = false;
         if (user != null) isAdmin = myShepherd.doesUserHaveRole(user.getUsername(), "admin", context);
 
+        if (user == null) {
+            rtn.put("error", "access denied");
+            response.sendError(401, "access denied");
+
         //only "admin" can create a new **top-level** org, otherwise user must create under an existing one
         //we need to have some sort of OrgSuperUser Role i suppose?   TODO
-        if ((org == null) && isAdmin && (jsonIn.optString("create", null) != null)) {
+        } else if ((org == null) && (orgId == null) && isAdmin && (jsonIn.optString("create", null) != null)) {
             Organization newOrg = new Organization(jsonIn.getString("create"));
             newOrg.addMember(user);
+            user.addOrganization(newOrg);
             myShepherd.getPM().makePersistent(newOrg);
             rtn.put("success", true);
             rtn.put("newOrg", newOrg.toJSONObject());
@@ -109,7 +114,10 @@ public class OrganizationEdit extends HttpServlet {
                 List<User> newMembers = new ArrayList<User>();
                 for (int i = 0 ; i < uids.length() ; i++) {
                     User mem = myShepherd.getUserByUUID(uids.optString(i, "__FAIL__"));
-                    if ((mem != null) && !newMembers.contains(mem)) newMembers.add(mem);
+                    if ((mem != null) && !newMembers.contains(mem)) {
+                        newMembers.add(mem);
+                        mem.addOrganization(org);
+                    }
                 }
                 int added = org.addMembers(newMembers);
                 rtn.put("success", true);
@@ -117,17 +125,23 @@ public class OrganizationEdit extends HttpServlet {
 
             } else if (jsonIn.optJSONArray("removeUsers") != null) {
                 JSONArray uids = jsonIn.getJSONArray("removeUsers");
-                List<String> idList = new ArrayList<String>();
+                int rm = 0;
                 for (int i = 0 ; i < uids.length() ; i++) {
-                    idList.add(uids.optString(i, "__FAIL__"));
+                    String uid = uids.optString(i, null);
+                    if (uid == null) continue;
+                    User mem = myShepherd.getUserByUUID(uid);
+                    if (mem == null) continue;
+                    org.removeMember(mem);
+                    //mem.removeOrganization(org);
+                    rm++;
                 }
-                int rm = org.removeMembersById(idList);
                 rtn.put("success", true);
                 rtn.put("message", "removed " + rm + " member(s) from " + org.toString());
 
             } else if (jsonIn.optString("create", null) != null) {
                 Organization newOrg = new Organization(jsonIn.getString("create"));
                 newOrg.addMember(user);
+                user.addOrganization(newOrg);
                 org.addChild(newOrg);
                 myShepherd.getPM().makePersistent(newOrg);
                 rtn.put("success", true);
