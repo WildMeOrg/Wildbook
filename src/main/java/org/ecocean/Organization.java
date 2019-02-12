@@ -108,25 +108,15 @@ public class Organization implements java.io.Serializable {
         return ct;
     }
     public void removeMember(User u) {
-        if (members != null) members.remove(u);
+        if ((u == null) || (members == null)) return;
+        if (u.getOrganizations() == null) return;
+        u.getOrganizations().remove(this);
+        members.remove(u);
         this.updateModified();
     }
     public void removeMembers(List<User> ulist) {
         if (members != null) members.removeAll(ulist);
         this.updateModified();
-    }
-    public int removeMembersById(List<String> uids) {
-        if ((uids == null) || (members == null)) return 0;
-        int ct = 0;
-        Iterator<User> it = members.iterator();
-        while (it.hasNext()) {
-            if (uids.contains(it.next().getId())) {
-                it.remove();
-                ct++;
-            }
-        }
-        this.updateModified();
-        return ct;
     }
     public int numMembers() {
         if (members == null) return 0;

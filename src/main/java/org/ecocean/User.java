@@ -349,6 +349,9 @@ public class User implements Serializable {
     }
     public void removeOrganization(Organization org) {
         if ((org == null) || (organizations == null)) return;
+        if (org.getMembers() == null) return;
+        org.getMembers().remove(this);
+        org.updateModified();
         organizations.remove(org);
     }
     //see also isMemberOfDeep()
