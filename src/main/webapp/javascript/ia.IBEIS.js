@@ -115,7 +115,7 @@ wildbook.IA.plugins.push({
                 var ma = assetById(mid);
                 if (ma.taxonomyString) {
                     var data = {
-                        annotationIds: [ ma.annotationId ]
+                        annotationIds: [ ma.annotation.id ]
                     };
                     imageEnhancer.popup('<h2>Starting matching....</h2>');
                     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
