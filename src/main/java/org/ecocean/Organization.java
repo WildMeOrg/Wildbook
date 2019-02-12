@@ -86,12 +86,14 @@ public class Organization implements java.io.Serializable {
     }
     public void setMembers(List<User> u) {
         members = u;
+        this.membersReciprocate(u);
         this.updateModified();
     }
     public void addMember(User u) {
         if (u == null) return;
         if (members == null) members = new ArrayList<User>();
         if (!members.contains(u)) members.add(u);
+        this.membersReciprocate(u);
         this.updateModified();
     }
     public int addMembers(List<User> ulist) {
@@ -104,6 +106,7 @@ public class Organization implements java.io.Serializable {
                 ct++;
             }
         }
+        this.membersReciprocate(ulist);
         this.updateModified();
         return ct;
     }
@@ -235,6 +238,23 @@ public class Organization implements java.io.Serializable {
         this.updateModified();
         return ct;
     }
+
+
+    //this is to handle the bidirectional dn madness when *adding* members
+    //  (removing are handled internally above)
+    private void membersReciprocate(List<User> mems) {
+        if (mems == null) return;
+        for (User mem : mems) {
+            if ((mem.getOrganizations() != null) && !mem.getOrganizations().contains(this)) mem.getOrganizations().add(this);
+        }
+    }
+    private void membersReciprocate(User mem) {
+        if (mem == null) return;
+        List<User> mems = new ArrayList<User>();
+        mems.add(mem);
+        membersReciprocate(mems);
+    }
+
 
 
     public void updateModified() {
