@@ -277,9 +277,10 @@ System.out.println("sendAnnotations(): sending " + ct);
         ArrayList<String> qnlist = new ArrayList<String>();
         ArrayList<String> tnlist = new ArrayList<String>();
 
-///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
+        ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         //String species = null;
         String iaClass = null;
+        
         for (Annotation ann : qanns) {
             if (!validForIdentification(ann)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
@@ -325,6 +326,9 @@ System.out.println("     free ride :)");
             }
         }
 
+        //tlist and tnlist need to exclude sibling and cousin annotations. 
+
+
         if (tanns != null) for (Annotation ann : tanns) {
             if (!validForIdentification(ann)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
@@ -354,6 +358,38 @@ System.out.println("     free ride :)");
            targetIdsListCache.put(iaClass, tlist);
            targetNameListCache.put(iaClass, tnlist);
         }
+
+        if (!Util.collectionIsEmptyOrNull(tlist)&&!Util.collectionIsEmptyOrNull(tnlist)) {
+            ArrayList<String> temptnlist = new ArrayList<String>();
+            ArrayList<JSONObject> temptlist = new ArrayList<JSONObject>();
+            for (Annotation qann : qanns) {
+
+                Encounter enc = qann.findEncounter(myShepherd);
+                ArrayList<Annotation> siblingAnns = enc.getAnnotations();
+                ArrayList<String> siblingAcmIds = new ArrayList<String>(siblingAnns.size());
+                for (Annotation ann : siblingAnns) {
+                    siblingAcmIds.add(ann.getAcmId());
+                }
+                //System.out.println("Sibling Ids : "+siblingAcmIds.toString());
+                for  (int i=0;i<tlist.size();i++) {
+                    JSONObject target = tlist.get(i);
+                    // If it goes wrong, heres where!
+                    String id = (String) target.get("__UUID__");
+                    //System.out.println("Target ACMID : "+id);
+                    if (!siblingAcmIds.contains(id)) {
+                        if (!temptlist.contains(target)) {
+                            temptlist.add(target);
+                        }
+                        String targetName = tnlist.get(i);
+                        temptnlist.add(targetName);
+                    }
+                }
+                System.out.println("temptlist.size() : "+temptlist.size()+" temptnlist.size() : "+temptnlist.size());
+            }
+            tlist = temptlist;
+            tnlist = temptnlist;
+        }
+
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
         //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing.. 
@@ -1261,6 +1297,9 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
             enc.setOccurrenceID(occ.getOccurrenceID());
             occ.addEncounter(enc);
         }
+
+        // So I only want a new encounter if there is not another 
+
         enc.detectedAnnotation(myShepherd, ann);  //this is a stub presently, so meh?
         myShepherd.getPM().makePersistent(ann);
         if (ann.getFeatures() != null) {
