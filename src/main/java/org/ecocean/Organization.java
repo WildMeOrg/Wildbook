@@ -115,7 +115,12 @@ public class Organization implements java.io.Serializable {
         this.updateModified();
     }
     public void removeMembers(List<User> ulist) {
-        if (members != null) members.removeAll(ulist);
+        if ((members == null) || (ulist == null)) return;
+        members.removeAll(ulist);
+        //now the other end (thx dn)
+        for (User u : ulist) {
+            u.getOrganizations().remove(this);
+        }
         this.updateModified();
     }
     public int numMembers() {
