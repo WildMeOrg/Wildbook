@@ -66,6 +66,8 @@ public class ImportAccess extends HttpServlet {
 
   private String photoLocation;
 
+  Taxonomy humpbackTax;
+
   private final String profileKwName = "ProfilePhoto"; // sadly a soft-standard used on wildbook
   private Keyword profilePicKeyword;
 
@@ -151,7 +153,7 @@ public class ImportAccess extends HttpServlet {
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
     //return AssetStore.getDefault(myShepherd);
-    return AssetStore.get(myShepherd, 5);
+    return AssetStore.get(myShepherd, 1);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook
@@ -200,7 +202,6 @@ public class ImportAccess extends HttpServlet {
 
     committing =  (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
 
-
     boolean skipSightingsHistory = false;
     boolean skipIDPhotos = false;
 
@@ -216,6 +217,8 @@ public class ImportAccess extends HttpServlet {
     myShepherd.beginDBTransaction();
 
     profilePicKeyword = myShepherd.getOrCreateKeyword("ProfilePhoto");
+    humpbackTax = myShepherd.getOrCreateTaxonomy("Megaptera novaeangliae");
+
 
     //String dbName = "omanData2017.07.04.mdb";
     String dbName = "OmanHumpbackPhotoID-2018-06-04-OLD-VersionNewData.mdb";    
@@ -266,7 +269,7 @@ public class ImportAccess extends HttpServlet {
 
     if (!skipIDPhotos) {
       out.println("<div>");
-      out.println("<h2> Committing = <%=committing%></h2>");
+      out.println("<h2> Committing = "+committing+"</h2>");
       out.println("<h3> Processing IDPhotos table</h3>");
       out.println("<p>");
       if (!tables.contains("IDPhotos")) throw new IOException("Formatting Exception: No IDphotos table!");
@@ -587,6 +590,7 @@ public class ImportAccess extends HttpServlet {
 
     enc.setCountry("Oman");
     enc.setSubmitterName("Oman Photo ID Catalog Bulk Import");
+    enc.setSubmitterID("ESO");
 
 
     String project = thisRow.get("Project_code").toString();
@@ -637,10 +641,8 @@ public class ImportAccess extends HttpServlet {
     try {
       //String indivDayCode = getDailyIndivNameForIDPhotoRow(thisRow);
       String indID = thisRow.get("Individual_id").toString();
-      Date rowDate = getDateForIDPhotoRow(thisRow);
-      if (!Util.stringExists(indID) && rowDate == null) return null;
-      String rowDateStr = rowDate.toString().substring(0,10)+rowDate.toString().substring(23);
-      String ans = indID + rowDateStr;
+      String occID = occurrenceCodeForIDPhotoRow(thisRow);
+      String ans = occID+"-"+indID;
       if (indID.equals(testIndId)) addToCount(testIndEncounterCodes, ans);
       return ans;
     } catch (Exception e) {
@@ -699,7 +701,9 @@ public class ImportAccess extends HttpServlet {
       generatedOccurrences.put(occCode, occ);
       newObj = true;
     }
-    occ.addSpecies("Megaptera novaeangliae", myShepherd);
+
+    //occ.addSpecies("Megaptera novaeangliae", myShepherd);
+    occ.addTaxonomy(humpbackTax);
     return occ;
 
   }
@@ -933,7 +937,6 @@ public class ImportAccess extends HttpServlet {
       System.out.println("    SHROW-Proc generatedEncounters contains our enc");
       enc = generatedEncounters.get(encCode);
       System.out.println("    SHROW-Proc got our enc "+enc);
-
     } else {
       System.out.println("    SHROW-Proc making a new encounter");
 
@@ -942,6 +945,11 @@ public class ImportAccess extends HttpServlet {
 
 
       enc = new Encounter((Annotation) null);
+      
+      enc.setCountry("Oman");
+      enc.setSubmitterName("Oman Photo ID Catalog Bulk Import");
+      enc.setSubmitterID("ESO");
+
       generatedEncounters.put(encCode, enc);
     }
 

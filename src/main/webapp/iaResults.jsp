@@ -640,7 +640,7 @@ function annotClick(ev) {
 function score_sort(cm_dict, topn) {
 console.warn('score_sort() cm_dict %o', cm_dict);
 //.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
-	if (!cm_dict.score_list || !cm_dict.dname_uuid_list) return;
+	if (!cm_dict.score_list || !cm_dict.dannot_uuid_list) return;
 	var sorta = [];
 	if (cm_dict.score_list.length < 1) return;
 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
@@ -651,6 +651,23 @@ console.warn('score_sort() cm_dict %o', cm_dict);
 	sorta.sort().reverse();
 	return sorta;
 }
+
+// function score_sort(cm_dict, topn) {
+// console.warn('score_sort() cm_dict %o', cm_dict);
+// //.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
+// 	if (!cm_dict.annot_score_list || !cm_dict.dannot_uuid_list) return;
+// 	var sorta = [];
+// 	if (cm_dict.annot_score_list.length < 1) return;
+// 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
+// 	for (var i = 0 ; i < cm_dict.annot_score_list.length ; i++) {
+// 		if (cm_dict.annot_score_list[i] < 0) continue;
+// 		sorta.push(cm_dict.annot_score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
+// 	}
+// 	sorta.sort().reverse();
+// 	return sorta;
+// }
+
+
 
 /*
 function foo() {
