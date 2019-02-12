@@ -347,6 +347,10 @@ public class User implements Serializable {
         if (organizations == null) organizations = new ArrayList<Organization>();
         if (!organizations.contains(org)) organizations.add(org);
     }
+    public void removeOrganization(Organization org) {
+        if ((org == null) || (organizations == null)) return;
+        organizations.remove(org);
+    }
     //see also isMemberOfDeep()
     public boolean isMemberOf(Organization org) {
         if (org == null) return false;
