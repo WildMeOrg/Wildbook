@@ -341,11 +341,13 @@ public class User implements Serializable {
     }
     public void setOrganizations(List<Organization> orgs) {
         organizations = orgs;
+        this.organizationsReciprocate(orgs);
     }
     public void addOrganization(Organization org) {
         if (org == null) return;
         if (organizations == null) organizations = new ArrayList<Organization>();
         if (!organizations.contains(org)) organizations.add(org);
+        this.organizationsReciprocate(org);
     }
     public void removeOrganization(Organization org) {
         if ((org == null) || (organizations == null)) return;
@@ -362,6 +364,20 @@ public class User implements Serializable {
     public boolean isMemberOfDeep(Organization org) {
         if (org == null) return false;
         return org.hasMemberDeep(this);
+    }
+    //this is to handle the bidirectional dn madness when *adding* orgs
+    //  (removing are handled internally above)
+    private void organizationsReciprocate(List<Organization> orgs) {
+        if (orgs == null) return;
+        for (Organization org : orgs) {
+            if ((org.getMembers() != null) && !org.getMembers().contains(this)) org.getMembers().add(this);
+        }
+    }
+    private void organizationsReciprocate(Organization org) {  //single version for convenience
+        if (org == null) return;
+        List<Organization> orgs = new ArrayList<Organization>();
+        orgs.add(org);
+        organizationsReciprocate(orgs);
     }
 
     public String toString() {
