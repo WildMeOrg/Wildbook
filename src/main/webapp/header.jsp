@@ -93,7 +93,16 @@ if(request.getUserPrincipal()!=null){
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-      <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+     
+     <%
+     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+     %> 	
+    	 <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+     <%
+     }
+     %>
+     
+     
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
 	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
@@ -109,9 +118,13 @@ if(request.getUserPrincipal()!=null){
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
 	   <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
 
-
+	 <%
+     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+     %> 
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
-      
+      <%
+      }
+      %>
       
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
@@ -125,13 +138,7 @@ if(request.getUserPrincipal()!=null){
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
   	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
   	<!-- End Open Graph Tags -->    
-    
-    <!--  <link rel="stylesheet" href="/resources/demos/style.css"> 
-    
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    -->
+
 
 	<!-- Clockpicker on creatSurvey jsp -->
     <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
@@ -187,9 +194,7 @@ if(request.getUserPrincipal()!=null){
 
                       %>
 
-                       <!--
-                      <li><a href="#" title="">English</a></li>
-                     -->
+
 
 
 
@@ -415,29 +420,6 @@ if(request.getUserPrincipal()!=null){
                         </ul>
                       </li>
 
-                      <!-- start locationID sites -->
-                      <!--
-                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("sites") %> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-
-
-                          <% boolean moreLocationIDs=true;
-                             int siteNum=0;
-                             while(moreLocationIDs) {
-                                 String currentLocationID = "locationID"+siteNum;
-                                 if (CommonConfiguration.getProperty(currentLocationID,context)!=null) { %>
-                                   <li><a href="<%=urlLoc %>/encounters/searchResultsAnalysis.jsp?locationCodeField=<%=CommonConfiguration.getProperty(currentLocationID,context) %>"><%=WordUtils.capitalize(CommonConfiguration.getProperty(currentLocationID,context)) %></a></li>
-                                 <% siteNum++;
-                                 } else {
-                                	 moreLocationIDs=false;
-                                 }
-                            } //end while %>
-
-                        </ul>
-                      </li>
-                      -->
-                      <!-- end locationID sites -->
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
@@ -450,11 +432,7 @@ if(request.getUserPrincipal()!=null){
                            </ul>
                       </li>
 
-                      <!-- commented out until there is more content here?
-                      <li>
-                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
-                      </li>
-                      -->
+
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -511,10 +489,7 @@ if(request.getUserPrincipal()!=null){
                               %>
                                 <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
 
-                                <!--  examples of navigation dividers
-                                <li class="divider"></li>
-                                <li class="dropdown-header">Nav header</li>
-                                 -->
+
 
                               </ul>
                             </li>

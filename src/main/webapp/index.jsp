@@ -84,10 +84,7 @@ try{
 catch(Exception e){
     e.printStackTrace();
 }
-finally{
-   myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
-}
+
 %>
 
 <style>
@@ -170,75 +167,57 @@ h2.vidcap {
 
 	<h2 class="section-header"><%=props.getProperty("howItWorksH") %></h2>
 
-  <!-- All carousel text can be modified in the index properties files -->
+  	<p class="lead"><%=props.getProperty("howItWorksHDescription") %></p>
+  	
+  	<h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3>
+  	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/detectionSpermWhale.jpg" />
+		  	
+  	
+  	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
+  	<p class="lead"><%=props.getProperty("howItWorks2Description") %></p>
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/CurvRank_matches.jpg" />
+		
+		
+	<h3 class="section-header"><%=props.getProperty("howItWorks4") %></h3>
+  	<p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/action.jpg" />
+		
+  	
+  	<h2 class="section-header"><%=props.getProperty("howItWorks3") %></h2>
+  	<p class="lead"><%=props.getProperty("howItWorks3Description") %></p>
+  	
+  	<div class="row">
+  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
+		  	<div class="focusbox-inner opec">
+		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/hotspotter.jpg" />
+		  	<em>Megaptera novaengliae (humpback whales) can be identified by the contrasting color and the trailing edge of their flukes using three algorithms: HotSpotter, CurvRank, and OC/WDTW</em>
+	  	</section>
+	  	
+  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
+		  	<div class="focusbox-inner opec">
+		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/spermWhaleTrailingEdge.jpg" />
+		  	<em>Physeter macrocephalus (sperm whales) can be identified by the trailing edge of their flukes using two algorithms: CurvRank and OC/WDTW</em>
+	  	</section>
+	  	
+  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+		  	<div class="focusbox-inner opec">
+		  	<img height="*" style="max-width: 100%;" width="400px" class="lazyload pull-left" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/tracedFin.jpg" />
+		  	<div><em>Tursiops truncatus(bottlenose dolphins) can be identified by the trailing edge of their fins with the CurvRank algorithm.</em></div>
+	  	</section>
+	  	
+  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+		  	<div class="focusbox-inner opec">
+		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/rightWHaleID.jpg" />
+		  	<em>Eubalaena spp.(right whales) can be identified by the contrasting color on their heads by the HotSpotter and DeepSense.ai algorithms.</em>
+	  	</section>
+	  	
+  	</div>
+  	
+  	
 
-	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
-		<ol class="list-inline carousel-indicators slide-nav">
-	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. <%=props.getProperty("carouselPhoto") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=props.getProperty("carouselSubmit") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=props.getProperty("carouselVerify") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. <%=props.getProperty("carouselMatching") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. <%=props.getProperty("carouselResult") %><span class="caret"></span></li>
-	    </ol>
-		<div class="carousel-inner text-left">
-			<div class="item active">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3><%=props.getProperty("innerPhotoH3") %></h3>
-					<p class="lead">
-						<%=props.getProperty("innerPhotoP") %>
-					</p>
+  	<p class="lead"><%=props.getProperty("moreSoon") %></p>
 
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerSubmitH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerSubmitP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerVerifyH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerVerifyP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerMatchingH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerMatchingP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="cust/mantamatcher/img/how_it_works_matching_process.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerResultH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerResultP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="cust/mantamatcher/img/how_it_works_match_result.jpg" alt=""  />
-				</div>
-			</div>
-		</div>
-	</div>
 </section>
 
 <div class="container-fluid relative data-section">
@@ -248,7 +227,7 @@ h2.vidcap {
 
             <!-- Random user profile to select -->
             <%
-            myShepherd.beginDBTransaction();
+            //myShepherd.beginDBTransaction();
             try{
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
@@ -284,7 +263,7 @@ h2.vidcap {
             catch(Exception e){e.printStackTrace();}
             finally{
 
-            	myShepherd.rollbackDBTransaction();
+            	//myShepherd.rollbackDBTransaction();
             }
             %>
 
@@ -339,7 +318,7 @@ h2.vidcap {
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    myShepherd.beginDBTransaction();
+                    //myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
 	                    long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
@@ -383,7 +362,7 @@ h2.vidcap {
 	                   } //end while
                     }
                     catch(Exception e){e.printStackTrace();}
-                    finally{myShepherd.rollbackDBTransaction();}
+                    //finally{myShepherd.rollbackDBTransaction();}
 
                    %>
 
@@ -498,6 +477,7 @@ if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonCo
 
 
 <%
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
 %>
