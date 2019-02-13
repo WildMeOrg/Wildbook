@@ -8,11 +8,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.ecocean.media.*;
+import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import java.io.*;
 
@@ -94,7 +93,14 @@ public class MediaAssetAttach extends HttpServlet {
     // DETACH MEDIAASSET FROM ENCOUNTER
     else if (args.optString("detach")!=null && args.optString("detach").equals("true")) {
       if (alreadyAttached) {
+        
+        // Set match against to false on the annotation(s) from this asset that were associated with the encounter. 
+        ArrayList<Annotation> maAnns = ma.getAnnotations();
+        ArrayList<Annotation> encAnns = enc.getAnnotations();
+        encAnns.retainAll(maAnns);
+        for (Annotation ann : encAnns) {ann.setMatchAgainst(false);} 
         enc.removeMediaAsset(ma);
+ 
         String undoLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+maID;
         String comments = "Detached MediaAsset " + maID + ". To undo this action, visit " + undoLink;
         enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + comments + " </p>");
