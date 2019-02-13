@@ -38,6 +38,8 @@ import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Organization;
 import org.ecocean.AccessControl;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -122,18 +124,26 @@ public class OrganizationEdit extends HttpServlet {
                 rtn.put("message", "added " + added + " member(s) to " + org.toString());
 
             } else if (jsonIn.optJSONArray("removeUsers") != null) {
+                boolean deep = jsonIn.optBoolean("deep", false);
                 JSONArray uids = jsonIn.getJSONArray("removeUsers");
-                int rm = 0;
+                int rmCt = 0;
+                int orgCt = 0;
                 for (int i = 0 ; i < uids.length() ; i++) {
                     String uid = uids.optString(i, null);
                     if (uid == null) continue;
                     User mem = myShepherd.getUserByUUID(uid);
                     if (mem == null) continue;
-                    org.removeMember(mem);
-                    rm++;
+                    if (deep) {
+                        orgCt += org.removeMemberDeep(mem);
+                    } else {
+                        orgCt++;
+                        org.removeMember(mem);
+                    }
+                    rmCt++;
                 }
                 rtn.put("success", true);
-                rtn.put("message", "removed " + rm + " member(s) from " + org.toString());
+                rtn.put("deep", deep);
+                rtn.put("message", "removed " + rmCt + " member(s) from " + orgCt + " org(s) via " + org.toString());
 
             } else if (jsonIn.optString("create", null) != null) {
                 Organization newOrg = new Organization(jsonIn.getString("create"));
@@ -181,6 +191,44 @@ public class OrganizationEdit extends HttpServlet {
                     }
                 }
             } else if (jsonIn.optJSONObject("edit") != null) {
+                JSONObject ej = jsonIn.getJSONObject("edit");
+                boolean changesMade = false;
+                String name = ej.optString("name", null);
+                String desc = ej.optString("description", null);
+                String url = ej.optString("url", null);
+                int logoId = ej.optInt("logoMediaAssetId", -1);
+                if (name != null) {
+                    if (name.equals("")) name = null;  //to set empty
+                    org.setName(name);
+                    changesMade = true;
+                }
+                if (desc != null) {
+                    if (desc.equals("")) desc = null;
+                    org.setDescription(desc);
+                    changesMade = true;
+                }
+                if (url != null) {
+                    if (url.equals("")) url = null;
+                    org.setUrl(url);
+                    changesMade = true;
+                }
+                if (logoId == 0) {  //reset empty
+                    org.setLogo(null);
+                    changesMade = true;
+                } else if (logoId > 0) {
+                    MediaAsset logoMA = MediaAssetFactory.load(logoId, myShepherd);
+                    if (logoMA == null) {
+                        rtn.put("warning", "logoMediaAssetId invalid id=" + logoId);
+                    } else {
+                        changesMade = true;
+                    }
+                }
+                if (changesMade) {
+                    rtn.put("success", true);
+                    rtn.put("org", org.toJSONObject());
+                } else {
+                    rtn.put("error", "no changes were made");
+                }
 
             } else if (jsonIn.optBoolean("delete", false)) {
                 System.out.println("INFO: OrganizationEdit is deleting " + org.toJSONObject());
