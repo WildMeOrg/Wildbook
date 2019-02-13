@@ -2494,7 +2494,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
 
     public void useAnnotationsForMatching(boolean use) {
-      if (getAnnotations()!=null&&getAnnotations().size()>1) {
+      if (getAnnotations()!=null&&getAnnotations().size()>=1) {
         for (Annotation ann : getAnnotations()) {
           ann.setMatchAgainst(use);
         }
