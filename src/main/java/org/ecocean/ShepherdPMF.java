@@ -94,13 +94,13 @@ public class ShepherdPMF {
         }
 
         /*****************************************************************************************************************************************************/
-        /* This code below allows you to define the Database Connection parameters (user, password and connection URL in environment variables               */
+        /* This code below allows you to define the Database Connection parameters (user, password, driver name and connection URL in environment variables  */
         /* and also Docker or Kubernetes secrets.                                                                                                            */
         /*                                                                                                                                                   */ 
         /* You create a setenv.sh script containing exports for the environment variables and place the script in the $CATALINA_HOME/bin directory.          */
         /* The catalina.sh script will call the setenv.sh script (if it exists) before it launches Tomcat.                                                   */
-        /* This allows you specify the Database Connection parameters: user, password and connection URL at run time instead of hardcoding them in           */
-        /* the jdoconfig.properties file which is inside the wildbook.war file. This also makes it easy to use with Docker and Kubernetes.                   */
+        /* This allows you specify the Database Connection parameters: user, password, driver name and connection URL at run time instead of hardcoding      */
+        /* them in the jdoconfig.properties file which is inside the wildbook.war file. This also makes it easy to use with Docker and Kubernetes.           */
         /* And you can also define the Database Connection parameters as Docker secrets or Kubernetes secrets which makes the credentials secure.            */
         /*****************************************************************************************************************************************************/
         /*                                                                                                                                                   */
@@ -109,12 +109,14 @@ public class ShepherdPMF {
         /* #!/usr/bin/env bash                                                                                                                               */
         /* printf 'Setting Database Connection environment variables\n'                                                                                      */
         /*                                                                                                                                                   */
-        /* export DB_USER="wildbook"                                                                                                                         */
-        /* # export DB_USER_FILE=/run/secrets/wildbook-db-user                                                                                               */
-        /* export DB_PASSWORD="Passw0rd#"                                                                                                                    */
-        /* # export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                                                       */
-        /* export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"                                    */
-        /* # export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                                                           */
+        /* export DB_USER="wildbook"                                                                                           # Example from env variable   */
+        /* # export DB_USER_FILE=/run/secrets/wildbook-db-user                                                                 # Example from secret         */
+        /* export DB_PASSWORD="Passw0rd#"                                                                                      # Example from env variable   */
+        /* # export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                         # Example from secret         */
+        /* export DB_DRIVER_NAME="com.mysql.jdbc.Driver"                                                                       # Example from env variable   */
+        /* # export DB_DRIVER_NAME_FILE=/run/secrets/wildbook-db-driver-name                                                   # Example from secret         */                      
+        /* export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"      # Example for MySQL           */
+        /* # export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                             # Example from secret         */        
         /*****************************************************************************************************************************************************/
         /*                                                                                                                                                   */
         /* Example docker-compose.yml file below.                                                                                                            */
@@ -144,12 +146,19 @@ public class ShepherdPMF {
         /* #!/usr/bin/env bash                                                                                                                               */
         /* printf 'Setting Database Connection environment variables\n'                                                                                      */
         /*                                                                                                                                                   */
-        /* # export DB_USER="wildbook"                                                                                                                       */
-        /* export DB_USER_FILE=/run/secrets/wildbook-db-user                                                                                                 */
-        /* # export DB_PASSWORD="Passw0rd#"                                                                                                                  */
-        /* export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                                                         */
-        /* # export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"                                  */
-        /* export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                                                             */
+        /* # export DB_USER="wildbook"                                                                                         # Example from env variable   */
+        /* export DB_USER_FILE=/run/secrets/wildbook-db-user                                                                   # Example from secret         */
+        /*                                                                                                                                                   */
+        /* # export DB_PASSWORD="Passw0rd#"                                                                                    # Example from env variable   */
+        /* export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                           # Example from secret         */
+        /*                                                                                                                                                   */
+        /* export DB_CONNECTION_URL="jdbc:postgresql://localhost:5432/wildbook"                                                # Example for PostgreSQL      */
+        /* # export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"    # Example for MySQL           */
+        /* export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                               # Example from secret         */
+        /*                                                                                                                                                   */
+        /* # export DB_DRIVER_NAME="org.postgresql.Driver"                                                                     # For PostgreSQL              */
+        /* # export DB_DRIVER_NAME="com.mysql.jdbc.Driver"                                                                     # For MySQL                   */
+        /* export DB_DRIVER_NAME_FILE=/run/secrets/wildbook-db-driver-name                                                     # Example from secret         */
         /*                                                                                                                                                   */          
         /* Create the Docker secrets                                                                                                                         */
         /*                                                                                                                                                   */
@@ -162,9 +171,12 @@ public class ShepherdPMF {
         /* $ echo "jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true" | docker secret create wildbook-db-connection-url -  */
         /* 9ur97son802lopbpaj8q1ant8                                                                                                                         */
         /*                                                                                                                                                   */
+        /* $ echo "com.mysql.jdbc.Driver" | docker secret create wildbook-db-driver-name -                                                                   */
+        /* 9ur97son802lopbpaj8q1ant8                                                                                                                         */
         /* $ docker secret ls                                                                                                                                */
         /* ID                           NAME                         DRIVER              CREATED              UPDATED                                        */
         /* 9ur97son802lopbpaj8q1ant8    wildbook-db-connection-url                       5 seconds ago        5 seconds ago                                  */
+        /* uu8bf5pwdeulo303m4pu2ibye    wildbook-db-driver-name                          4 seconds ago       4 seconds ago                                   */
         /* m6q3gew26hvv3x314ahzxgfceb   wildbook-db-password                             41 seconds ago       41 seconds ago                                 */
         /* yhma28514l3spyj6033ym155y    wildbook-db-user                                 About a minute ago   About a minute ago                             */
         /*                                                                                                                                                   */
@@ -254,6 +266,34 @@ public class ShepherdPMF {
                 }
             }
         }
+
+        /*****************************************************************************************************************************************************/ 
+        /* Retrieve the Database Connection Driver Name from an environment Variable                                                                         */
+        /*****************************************************************************************************************************************************/  
+        System.out.println("Checking for the DB_DRIVER_NAME environment variable.");
+        String dbDriverName = System.getenv("DB_DRIVER_NAME");
+        if (dbDriverName != null && !dbDriverName.isEmpty()) {
+            System.out.println("The DB_DRIVER_NAME environment variable was specified, will use it to connect to the Database.");
+            // System.out.println("The database connection driver name retrieved from the environment variable was " + dbDriverName);
+            dnProperties.setProperty("datanucleus.ConnectionDriverName", dbDriverName.trim());
+        } else {
+            /*****************************************************************************************************************************************************/ 
+            /* Retrieve the Database Connection Driver Name from a file. This allows the use of Docker Secrets and Kubernetes Secrets!                                         */
+            /*****************************************************************************************************************************************************/  
+                String dbDriverNameFile = System.getenv("DB_DRIVER_NAME_FILE");
+                if (dbDriverNameFile != null && !dbDriverNameFile.isEmpty()) {
+                    System.out.println("The DB_DRIVER_NAME_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
+                    try {
+                        dbDriverName = new String(Files.readAllBytes(Paths.get(dbDriverNameFile)));
+                        // System.out.println("The database connection driver name retrieved from the secret was " + dbDriverName);
+                        dnProperties.setProperty("datanucleus.ConnectionDriverName", dbDriverName.trim());
+                    } catch (IOException exc) {
+                        exc.printStackTrace();
+                        System.out.println("I couldn't read the " + dbDriverNameFile + " file!");
+                        return null;
+                    }
+                }
+            }
 
         /*****************************************************************************************************************************************************/ 
         /* Retrieve the Database Connection URL from an environment Variable                                                                                 */
