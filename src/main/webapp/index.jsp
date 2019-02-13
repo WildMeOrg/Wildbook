@@ -90,23 +90,78 @@ finally{
 }
 %>
 
-<section class="hero container-fluid main-section relative">
-    <div class="container relative">
-        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h1 class="hidden">Wildbook</h1>
-            <h2>Flukebook helps you study identify, and protect cetacean populations!</h2>
-            <!--
-            <button id="watch-movie" class="large light">
-				Watch the movie
-				<span class="button-icon" aria-hidden="true">
-			</button>
-			-->
-            <a href="submit.jsp">
-                <button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
-            </a>
-        </div>
+<style>
 
-	</div>
+
+
+
+#fullScreenDiv{
+    width:100%;
+   /* Set the height to match that of the viewport. */
+    
+    width: auto;
+    padding:0!important;
+    margin: 0!important;
+    position: relative;
+}
+#video{    
+    width: 100vw; 
+    height: auto;
+    object-fit: cover;
+    left: 0px;
+    top: 0px;
+    z-index: -1;
+}
+
+h2.vidcap {
+	font-size: 2.4em;
+	
+	color: #fff;
+	font-weight:300;
+	text-shadow: 1px 2px 2px #333;
+	margin-top: 55%;
+}
+
+
+
+/* The container for our text and stuff */
+#messageBox{
+    position: absolute;  top: 0;  left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height:100%;
+}
+
+@media screen and (min-width: 900px) {
+	h2.vidcap {
+	    font-size: 3.3em;
+	    margin-top: -45%;
+	}
+}
+ 
+
+</style>
+<section style="padding-bottom: 0px;" class="container-fluid main-section relative videoDiv">
+
+        
+   <div id="fullScreenDiv">
+        <div id="videoDiv">           
+            <video playsinline preload id="video" autoplay muted>
+            <source src="images/MS_humpback_compressed.webm#t=,3:05" type="video/webm"></source>
+            <source src="images/MS_humpback_compressed.mp4#t=,3:05" type="video/mp4"></source>
+            </video> 
+        </div>
+        <div id="messageBox"> 
+            <div>
+                <h2 class="vidcap">A.I. for Cetacean Research</h2>
+
+            </div>
+        </div>   
+    </div>
+
+  
 
 
 </section>
@@ -168,7 +223,7 @@ finally{
           </p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
+					<img class="pull-right" src="cust/mantamatcher/img/how_it_works_matching_process.jpg" alt=""  />
 				</div>
 			</div>
 			<div class="item">
@@ -179,7 +234,7 @@ finally{
           </p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
+					<img class="pull-right" src="cust/mantamatcher/img/how_it_works_match_result.jpg" alt=""  />
 				</div>
 			</div>
 		</div>
