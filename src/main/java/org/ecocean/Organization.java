@@ -126,6 +126,21 @@ public class Organization implements java.io.Serializable {
         }
         this.updateModified();
     }
+    //this removes user for this org and any suborgs (returns how many removed from)
+    public int removeMemberDeep(User u) {
+        if (u == null) return 0;
+        int ct = 0;
+        if (this.members.contains(u)) {
+            ct++;
+            this.removeMember(u);
+        }
+        if (!this.hasChildren()) return ct;
+        for (Organization org : this.children) {
+            if (org == null) continue;
+            ct += org.removeMemberDeep(u);
+        }
+        return ct;
+    }
     public int numMembers() {
         if (members == null) return 0;
         return members.size();
@@ -312,6 +327,9 @@ public class Organization implements java.io.Serializable {
         JSONObject j = new JSONObject();
         j.put("id", id);
         j.put("name", name);
+        j.put("url", url);
+        if (logo != null) j.put("logo", logo.toSimpleJSONObject());
+        j.put("description", description);
         j.put("created", created);
         j.put("modified", modified);
         j.put("createdDate", new DateTime(created));
