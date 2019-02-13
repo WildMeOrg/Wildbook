@@ -220,6 +220,7 @@ public class OrganizationEdit extends HttpServlet {
                     if (logoMA == null) {
                         rtn.put("warning", "logoMediaAssetId invalid id=" + logoId);
                     } else {
+                        org.setLogo(logoMA);
                         changesMade = true;
                     }
                 }
