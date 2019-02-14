@@ -502,11 +502,11 @@ public class Annotation implements java.io.Serializable {
         } else {
             System.out.println("MATCHING ALL SPECIES : The parent encounter for query Annotation id="+this.id+" has not specified specificEpithet and genus.");
             anns = getMatchingSetAllSpecies(myShepherd);
-            for (Annotation ann : sibAnns) {
-                if (anns.contains(ann)) {
-                    System.out.println("EXCLUDING SIBLING ANNOTATION = "+ann.getId());
-                    anns.remove(ann);
-                }
+        }
+        for (Annotation ann : sibAnns) {
+            if (anns.contains(ann)) {
+                System.out.println("EXCLUDING SIBLING ANNOTATION = "+ann.getId());
+                anns.remove(ann);
             }
         }
         System.out.println("Did the query return any encounters? It got: "+anns.size()); 
