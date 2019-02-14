@@ -195,7 +195,7 @@ String id = request.getParameter("id");
 String type = request.getParameter("type");
 
 // IA debuggin use.. Can retrieve Annotations 
-String acmId = request.getParameter("acmId");
+String acmid = request.getParameter("acmid");
 
 if (!rawOutput(type)) {
 %>
@@ -339,7 +339,7 @@ context=ServletUtilities.getContext(request);
 */
 
 if (type == null) type = "Encounter";
-if (id == null) {
+if (id == null && (acmid == null || !"Annotation".equals(type))) {
 	out.println(showForm());
 	return;
 }
@@ -367,7 +367,7 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("Annotation")) {
-	if (id!=null&&acmId==null) {
+	if (id!=null&&acmid==null) {
 		try {
 			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
 			out.println(showAnnotation(ann));
@@ -375,11 +375,12 @@ if (type.equals("Encounter")) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
 			needForm = true;
 		}
-	} else if (acmId!=null) {
+	}
+	if (id==null&&acmid!=null) {
 		try {
-			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
+			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmid);
                         if ((anns == null) || (anns.size() < 1)) {
-                            out.println("none with acmId " + acmId);
+                            out.println("none with acmid " + acmid);
                         } else {
 			    out.println(showAnnotation(anns.get(0)));
                         }
