@@ -39,13 +39,23 @@ public class Task implements java.io.Serializable {
         created = System.currentTimeMillis();
         modified = System.currentTimeMillis();
     }
+    //makes a child of the passed Task (and inherits the parameters!!)
     public Task(Task p) {
         this();
+        this.setParameters(p.getParameters());
         this.setParent(p);
     }
 
     public String getId() {
         return id;
+    }
+
+    public long getCreatedLong() {
+        return created;
+    }
+
+    public long getModifiedLong() {
+        return modified;
     }
 
     public int countObjectMediaAssets() {
@@ -166,6 +176,14 @@ public class Task implements java.io.Serializable {
         if (key == null) return;  //nope
         JSONObject j = new JSONObject();
         j.put(key, value);  //value object type better be kosher for JSONObject.  :/
+        parameters = j.toString();
+    }
+    //like above, but doesnt (re)set .parameters, will only append/alter the key'ed one
+    public void addParameter(String key, Object value) {
+        if (key == null) return;
+        JSONObject j = this.getParameters();
+        if (j == null) j = new JSONObject();
+        j.put(key, value);
         parameters = j.toString();
     }
 

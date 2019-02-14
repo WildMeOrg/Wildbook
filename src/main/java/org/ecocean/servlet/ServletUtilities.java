@@ -56,6 +56,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.sql.*;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Enumeration;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
@@ -757,13 +758,41 @@ public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) 
   return new JSONObject(sb.toString());
 }
 
+public static void printParams(HttpServletRequest request) {
+  Enumeration<String> names = request.getParameterNames();
+  while (names.hasMoreElements()) {
+    String name = names.nextElement();
+    System.out.println("  "+name+": "+request.getParameter(name));
+  }
+}
+
 
 public static String getParameterOrAttribute(String name, HttpServletRequest request) {
+    if (name == null) return null;
+    String result = request.getParameter(name);
+    if (result == null) {
+        Object attr = request.getAttribute(name);
+        if (attr != null) result = attr.toString();
+    }
+    return result;
+}
+
+public static String getParameterOrAttributeOrSessionAttribute(String name, HttpServletRequest request) {
   String result = request.getParameter(name);
-  if (name != null) {
-    result = (String) request.getAttribute(name);
+  if (result == null) {
+    Object attr = request.getAttribute(name);
+    if (attr!=null) result = attr.toString();
   }
+  if (result==null) result = getSessionAttribute(name, request);
   return result;
+}
+
+
+public static String getSessionAttribute(String name, HttpServletRequest request) {
+  String stringAns = null;
+  Object attr = request.getSession().getAttribute(name);
+  if (attr!=null) stringAns = attr.toString();
+  return stringAns;
 }
 
 //handy "let anyone do anything (?) cors stuff
@@ -846,7 +875,12 @@ public static String getRemoteHost(HttpServletRequest request) {
 
 
 
+    public static void importJsp(String filename, HttpServletRequest request, HttpServletResponse response) throws javax.servlet.ServletException, java.io.IOException {
 
+      PrintWriter out = response.getWriter();
+      request.getRequestDispatcher(filename).include(request, response);
+
+    }
 
 
 }

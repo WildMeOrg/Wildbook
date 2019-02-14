@@ -71,9 +71,14 @@ public class IA {
     //i think objects ingested here must(?) be persisted (and committed), as we have to assume (or we know)
     //  that these processes will use queues which operate in different (Shepherd) threads and will thus try
     //  to find the objects via the db.  :/
+    //     parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
+        return intakeMediaAssets(myShepherd, mas, null);
+    }
+    public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, Task parentTask) {
         if ((mas == null) || (mas.size() < 1)) return null;
         Task task = new Task();
+        if (parentTask != null) task.setParameters(parentTask.getParameters());
         task.setObjectMediaAssets(mas);
         myShepherd.storeNewTask(task);
 
@@ -190,7 +195,7 @@ System.out.println(i + " -> " + ma);
                 if (ma == null) continue;
                 mas.add(ma);
             }
-            Task mtask = intakeMediaAssets(myShepherd, mas);
+            Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
             System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask + " for " + topTask);
             topTask.addChild(mtask);
         }
