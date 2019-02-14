@@ -104,8 +104,8 @@ public class Encounter implements java.io.Serializable {
    * <p/>
    * Wherever possible, this class will be extended with Darwin Core attributes for greater adoption of the standard.
    */
-  private String sex = "unknown";
-  private String locationID = "None";
+  private String sex = null;
+  private String locationID = null;
   private Double maximumDepthInMeters;
   private Double maximumElevationInMeters;
   private String catalogNumber = "";
