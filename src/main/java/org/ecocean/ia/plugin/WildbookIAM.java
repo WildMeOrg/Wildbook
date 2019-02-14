@@ -393,6 +393,10 @@ System.out.println("fromResponse ---> " + ids);
         if (ma == null) return false;
         if (!ma.isMimeTypeMajor("image")) return false;
         if ((ma.getWidth() < 1) || (ma.getHeight() < 1)) return false;
+        if (mediaAssetToUri(ma) == null) {
+            System.out.println("WARNING: WildbookIAM.validMediaAsset() failing from null mediaAssetToUri() for " + ma);
+            return false;
+        }
         return true;
     }
 
