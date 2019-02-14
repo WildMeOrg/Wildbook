@@ -490,14 +490,11 @@ public class Annotation implements java.io.Serializable {
                 Encounter enc = (Encounter) it.next();
                 if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
                     for (Annotation ann : enc.getAnnotations()) {
-                        if (ann.getMatchAgainst()&&!sibAnns.contains(ann)) {anns.add(ann);}
-                    if (ann.matchAgainst) {
-                        if (ann.getPartIfPresent().equals(this.getPartIfPresent())) {
-                            anns.add(ann);
+                        if (ann.getMatchAgainst()&&!sibAnns.contains(ann)) {
+                            if (ann.getPartIfPresent().equals(this.getPartIfPresent())) {
+                                anns.add(ann);
+                            }
                         }
-                    //if (ann.matchAgainst&&ann.getIAClass()!=null&&this.iaClass!=null&&(ann.getIAClass().equals(this.iaClass))) {
-                    
- 		    //We want to seperate on iaClass part, but not species. 
                     }
                 }
             }
