@@ -46,17 +46,7 @@ props = ShepherdProperties.getProperties("index.properties", langCode,context);
 %>
 
 
-<style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-</style>
+
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
 <script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
@@ -198,9 +188,7 @@ margin-bottom: 8px !important;
  		catch(Exception e){
  			e.printStackTrace();
  		}
- 		finally{
- 			myShepherd.rollbackDBTransaction();
- 		}
+
  	 	%>
     	 google.maps.event.addListener(map, 'dragend', function() {
     		var idleListener = google.maps.event.addListener(map, 'idle', function() {
@@ -225,22 +213,7 @@ margin-bottom: 8px !important;
  	  	 
  	 
  	 
-      function fullScreen(){
-  		$("#map_canvas").addClass('full_screen_map');
-  		$('html, body').animate({scrollTop:0}, 'slow');
-  		initialize();
-  		//hide header
-  		$("#header_menu").hide();
-  		if(overlaysSet){overlaysSet=false;setOverlays();}
-  		//alert("Trying to execute fullscreen!");
-  	}
-  	function exitFullScreen() {
-  		$("#header_menu").show();
-  		$("#map_canvas").removeClass('full_screen_map');
-  		initialize();
-  		if(overlaysSet){overlaysSet=false;setOverlays();}
-  		//alert("Trying to execute exitFullScreen!");
-  	}
+
   	//making the exit fullscreen button
   	function FSControl(controlDiv, map) {
   	  // Set CSS styles for the DIV containing the control
@@ -270,11 +243,6 @@ margin-bottom: 8px !important;
   	  controlUI.appendChild(controlText);
   	  controlText.style.visibility='hidden';
   	  //toggle the text of the button
-  	  if($("#map_canvas").hasClass("full_screen_map")){
-  	      controlText.innerHTML = 'Exit Fullscreen';
-  	  } else {
-  	      controlText.innerHTML = 'Fullscreen';
-  	  }
  	  google.maps.event.addDomListener(controlUI, 'click', function() {
  	 	if($("#map_canvas").hasClass("full_screen_map")){
  	  	  exitFullScreen();
@@ -301,7 +269,7 @@ int numUsers=0;
 
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
-myShepherd.beginDBTransaction();
+
 
 //String url = "login.jsp";
 //response.sendRedirect(url);
@@ -326,16 +294,13 @@ try{
 catch(Exception e){
     e.printStackTrace();
 }
-finally{
-   myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
-}
+
 %>
 
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h2>Welcome to Wildbook!</h2>
+            <h2>Welcome to the Wildbook for Jaguars!</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -414,9 +379,9 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerResultsH3") %></h3>
+          <h3><%=props.getProperty("innerResultH3") %></h3>
           <p class="lead">
-            <%=props.getProperty("innerResultsP") %>
+            <%=props.getProperty("innerResultP") %>
           </p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -434,7 +399,7 @@ finally{
 
             <!-- Random user profile to select -->
             <%
-            myShepherd.beginDBTransaction();
+            //myShepherd.beginDBTransaction();
             try{
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
@@ -468,10 +433,7 @@ finally{
 
             }
             catch(Exception e){e.printStackTrace();}
-            finally{
 
-            	myShepherd.rollbackDBTransaction();
-            }
             %>
 
 
@@ -483,7 +445,7 @@ finally{
                        <%
                        List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
+                       //myShepherd.beginDBTransaction();
                        try{
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
@@ -509,10 +471,7 @@ finally{
 	                        }
 						}
                        catch(Exception e){e.printStackTrace();}
-                       finally{
-                    	   myShepherd.rollbackDBTransaction();
 
-                       }
 
                         %>
 
@@ -525,7 +484,7 @@ finally{
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    myShepherd.beginDBTransaction();
+                    //myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                             long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
@@ -569,7 +528,7 @@ finally{
 	                   } //end while
                     }
                     catch(Exception e){e.printStackTrace();}
-                    finally{myShepherd.rollbackDBTransaction();}
+                    
 
                    %>
 
@@ -602,29 +561,16 @@ finally{
 
         <hr/>
 
-        <main class="container">
-            <article class="text-center">
-                <div class="row">
-                    <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
-                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
-                        <p class="lead"><%=props.getProperty("contributors") %></p>
-                        <a href="#" title=""><%=props.getProperty("contributors") %></a>
-                    </div>
-                </div>
-            </article>
-        <main>
+
 
     </section>
 </div>
 
-<div class="container main-section">
-    <h2 class="section-header"><%= props.getProperty("gMapHeader") %></h2>
 
-      <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
 
-</div>
-
+<%
+if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions", context).equals("true"))){
+%>
 <div class="container-fluid">
     <section class="container main-section">
 
@@ -637,7 +583,7 @@ finally{
               <%=props.getProperty("adoptionBody") %>
             </div>
             <%
-            myShepherd.beginDBTransaction();
+           // myShepherd.beginDBTransaction();
             try{
 	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
 	            if(adopt!=null){
@@ -666,7 +612,7 @@ finally{
 				}
             }
             catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
+            //finally{myShepherd.rollbackDBTransaction();}
 
             %>
 
@@ -678,18 +624,15 @@ finally{
         <%= props.getProperty("donationText") %>
     </section>
 </div>
+<%
+}
+%>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
-<script>
-window.addEventListener("resize", function(e) { $("#map_canvas").height($("#map_canvas").width()*0.662); });
-google.maps.event.addDomListener(window, "resize", function() {
-	 google.maps.event.trigger(map, "resize");
-	 map.fitBounds(bounds);
-	});
-</script>
 
 <%
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
 %>
