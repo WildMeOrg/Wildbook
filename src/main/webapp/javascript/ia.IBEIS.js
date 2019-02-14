@@ -87,8 +87,55 @@ wildbook.IA.plugins.push({
 
         //this is soooo hactacular its embarrassing.  :/
         items.push([
-            function() { return (needRerun ? '<i>re-run</i> matching' : false); },
-            function(a) { items[0][1](a, true); }
+            function(enh) {
+                var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
+                var menuText = '';
+                if (iaStatus && iaStatus.status) { // corresponds to "matching already initiated" above
+
+                    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                    var ma = assetById(mid);
+                    if (ma.taxonomyString) {
+                        menuText = 'start another matching job';
+                    } else {
+                        menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';
+                    }
+                }
+                return menuText;
+            },
+            function(enh) {  //the menu action for an already-started job
+                var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
+                // don't need this logic bc this button will always start a new job
+                // if (iaStatus && iaStatus.taskId) {
+                //     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
+                // } else {
+                var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var ma = assetById(mid);
+                if (ma.taxonomyString) {
+                    var data = {
+                        annotationIds: [ ma.annotation.id ]
+                    };
+                    imageEnhancer.popup('<h2>Starting matching....</h2>');
+                    wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
+                        if (textStatus == 'success') {
+                            if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success || !xhr.responseJSON.taskId) {
+                                imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Invalid response</p>');
+                                console.log(xhr);
+                                return;
+                            }
+                            //i think we at least got a task sent off!
+                            imageEnhancer.popupClose();
+                            wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
+                        } else {
+                            imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
+                            console.log(xhr);
+                        }
+                    });
+                } else {
+                    imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
+                    return;
+                }
+                //} // end else
+            }
         ]);
 
         //TODO could have conditional etc to turn on/off visual matcher i guess
