@@ -2600,6 +2600,14 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         annotations.add(ann);
     }
 
+    public void useAnnotationsForMatching(boolean use) {
+      if (getAnnotations()!=null&&getAnnotations().size()>=1) {
+        for (Annotation ann : getAnnotations()) {
+          ann.setMatchAgainst(use);
+        }
+      }
+    }
+
 /*  officially deprecating this (until needed?) ... work now being done with replaceAnnotation() basically   -jon
     public void addAnnotationReplacingUnityFeature(Annotation ann) {
         int unityAnnotIndex = -1;
