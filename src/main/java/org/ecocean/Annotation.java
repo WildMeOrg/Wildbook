@@ -470,47 +470,49 @@ public class Annotation implements java.io.Serializable {
         }
      
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
+        // Make sure we don't include any 'siblings' no matter how we return..
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        ArrayList<Encounter> encs = new ArrayList<Encounter>();
         Encounter myEnc = this.findEncounter(myShepherd);
         if (myEnc == null) {
             System.out.println("WARNING: getMatchingSet() could not find Encounter for " + this);
             return anns;
         }
+        List<Annotation> sibAnns = myEnc.getAnnotations();
         System.out.println("Getting matching set for annotation. Retrieved encounter = "+myEnc.getCatalogNumber());
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
-        String filter;
-        if (mySpecificEpithet!=null&&!"".equals(mySpecificEpithet)&&myGenus!=null&&!"".equals(myGenus)) {
-            filter = "SELECT FROM org.ecocean.Encounter WHERE specificEpithet == \""+mySpecificEpithet+"\" && genus == \""+myGenus+"\" ";
-        } else {
-            System.out.println("NO MATCHING SET: The parent encounter for Annotation id="+this.id+" has not specified specificEpithet and genus.");
-            return anns; 
-        }
-        Query query = myShepherd.getPM().newQuery(filter);
-        Collection c = (Collection) (query.execute());
-        Iterator it = c.iterator();
-        int count = 0;
-        while (it.hasNext()) {
-            count++;
-            Encounter enc = (Encounter) it.next();
-            if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
-                for (Annotation ann : enc.getAnnotations()) {
-                    //Gross hack! - This is necessary because detecting greens is unreliable if you don't have a good profile shot.
- 		    //We want to seperate on iaClass part, but not species. 
-                    
-                    //if (ann.matchAgainst&&ann.getIAClass()!=null&&this.iaClass!=null&&(ann.getIAClass().equals(this.iaClass))) {
+        if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
+            String filter = "SELECT FROM org.ecocean.Encounter WHERE specificEpithet == \""+mySpecificEpithet+"\" && genus == \""+myGenus+"\" ";
+            Query query = myShepherd.getPM().newQuery(filter);
+            Collection c = (Collection) (query.execute());
+            Iterator it = c.iterator();
+            while (it.hasNext()) {
+                Encounter enc = (Encounter) it.next();
+                if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
+                    for (Annotation ann : enc.getAnnotations()) {
+                        if (ann.getMatchAgainst()&&!sibAnns.contains(ann)) {anns.add(ann);}
                     if (ann.matchAgainst) {
                         if (ann.getPartIfPresent().equals(this.getPartIfPresent())) {
                             anns.add(ann);
                         }
+                    //if (ann.matchAgainst&&ann.getIAClass()!=null&&this.iaClass!=null&&(ann.getIAClass().equals(this.iaClass))) {
+                    
+ 		    //We want to seperate on iaClass part, but not species. 
                     }
                 }
             }
+            query.closeAll();
+        } else {
+            System.out.println("MATCHING ALL SPECIES : The parent encounter for query Annotation id="+this.id+" has not specified specificEpithet and genus.");
+            anns = getMatchingSetAllSpecies(myShepherd);
+            for (Annotation ann : sibAnns) {
+                if (anns.contains(ann)) {
+                    System.out.println("EXCLUDING SIBLING ANNOTATION = "+ann.getId());
+                    anns.remove(ann);
+                }
+            }
         }
-        System.out.println("Did the query return any encounters? It got: "+count); 
-        
-        query.closeAll();
+        System.out.println("Did the query return any encounters? It got: "+anns.size()); 
         return anns;
     }
 
