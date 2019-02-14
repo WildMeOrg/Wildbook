@@ -7,7 +7,8 @@
               java.util.Iterator,
               java.util.Properties,
               java.util.StringTokenizer,
-              org.ecocean.cache.*
+              org.ecocean.cache.*,
+              org.ecocean.CommonConfiguration
               "
 %>
 
@@ -221,70 +222,7 @@ margin-bottom: 8px !important;
  	  	    map.setCenter(center);
  	     });    
  	 } // end initialize function
- 	  	  
- 	  	 
- 	 
- 	 
-      function fullScreen(){
-  		$("#map_canvas").addClass('full_screen_map');
-  		$('html, body').animate({scrollTop:0}, 'slow');
-  		initialize();
-  		//hide header
-  		$("#header_menu").hide();
-  		if(overlaysSet){overlaysSet=false;setOverlays();}
-  		//alert("Trying to execute fullscreen!");
-  	}
-  	function exitFullScreen() {
-  		$("#header_menu").show();
-  		$("#map_canvas").removeClass('full_screen_map');
-  		initialize();
-  		if(overlaysSet){overlaysSet=false;setOverlays();}
-  		//alert("Trying to execute exitFullScreen!");
-  	}
-  	//making the exit fullscreen button
-  	function FSControl(controlDiv, map) {
-  	  // Set CSS styles for the DIV containing the control
-  	  // Setting padding to 5 px will offset the control
-  	  // from the edge of the map
-  	  controlDiv.style.padding = '5px';
-  	  // Set CSS for the control border
-  	  var controlUI = document.createElement('DIV');
-  	  controlUI.style.backgroundColor = '#f8f8f8';
-  	  controlUI.style.borderStyle = 'solid';
-  	  controlUI.style.borderWidth = '1px';
-  	  controlUI.style.borderColor = '#a9bbdf';;
-  	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-  	  controlUI.style.cursor = 'pointer';
-  	  controlUI.style.textAlign = 'center';
-  	  controlUI.title = 'Toggle the fullscreen mode';
-  	  //controlDiv.appendChild(controlUI);
-  	  // Set CSS for the control interior
-  	  var controlText = document.createElement('DIV');
-  	  controlText.style.fontSize = '12px';
-  	  controlText.style.fontWeight = 'bold';
-  	  controlText.style.color = '#000000';
-  	  controlText.style.paddingLeft = '4px';
-  	  controlText.style.paddingRight = '4px';
-  	  controlText.style.paddingTop = '3px';
-  	  controlText.style.paddingBottom = '2px';
-  	  controlUI.appendChild(controlText);
-  	  controlText.style.visibility='hidden';
-  	  //toggle the text of the button
-  	  if($("#map_canvas").hasClass("full_screen_map")){
-  	      controlText.innerHTML = 'Exit Fullscreen';
-  	  } else {
-  	      controlText.innerHTML = 'Fullscreen';
-  	  }
- 	  google.maps.event.addDomListener(controlUI, 'click', function() {
- 	 	if($("#map_canvas").hasClass("full_screen_map")){
- 	  	  exitFullScreen();
- 	  	} else {
- 	  	  fullScreen();
- 	  	}
- 	  });
-  	  
-  	  // Setup the click event listeners: toggle the full screen
-  	}
+
     google.maps.event.addDomListener(window, 'load', initialize);
   	
   </script>
@@ -335,7 +273,7 @@ finally{
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h2>Welcome to Wildbook!</h2>
+            <h2>Welcome to the Wildbook for Jaguars!</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -585,7 +523,7 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified whale sharks</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified sharks</i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
@@ -602,6 +540,7 @@ finally{
 
         <hr/>
 
+		<!-- 
         <main class="container">
             <article class="text-center">
                 <div class="row">
@@ -614,17 +553,23 @@ finally{
                 </div>
             </article>
         <main>
+         -->
 
     </section>
 </div>
 
+<!-- 
 <div class="container main-section">
     <h2 class="section-header"><%= props.getProperty("gMapHeader") %></h2>
 
       <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
 
 </div>
-
+ -->
+ 
+<%
+if((CommonConfiguration.getProperty("allowAdoptions",context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions",context).equals("true"))){
+%>
 <div class="container-fluid">
     <section class="container main-section">
 
@@ -678,6 +623,9 @@ finally{
         <%= props.getProperty("donationText") %>
     </section>
 </div>
+<%
+}
+%>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
