@@ -3,6 +3,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="org.ecocean.*" %>
 <%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="org.ecocean.cache.*" %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
@@ -35,28 +36,35 @@ try {
 int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
+int numUsersWithRoles=0;
+int numUsers=0;
 
+QueryCache qc=QueryCacheFactory.getQueryCache(context);
+
+myShepherd.beginDBTransaction();
 
 try{
-    myShepherd.beginDBTransaction();
     
-    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-    numEncounters=myShepherd.getNumEncounters();
-    numDataContributors=myShepherd.getNumUsers();
+
+
+
+        //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+        numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals", context).executeCountQuery(myShepherd).intValue();
+        numEncounters=myShepherd.getNumEncounters();
+        //numEncounters=qc.getQueryByName("numEncounters", context).executeCountQuery(myShepherd).intValue();
+        //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
+        numDataContributors=qc.getQueryByName("numUsersWithRoles", context).executeCountQuery(myShepherd).intValue();
+        numUsers=qc.getQueryByName("numUsers", context).executeCountQuery(myShepherd).intValue();
+        numUsersWithRoles = numUsers-numDataContributors;
+
+
+    }
+    catch(Exception e){
+        e.printStackTrace();
+    }
 
     
-}
-catch(Exception e){
-    e.printStackTrace();
-}
-finally{
-    if(myShepherd!=null){
-        if(myShepherd.getPM()!=null){
-            myShepherd.rollbackDBTransaction();
-            if(!myShepherd.getPM().isClosed()){myShepherd.closeDBTransaction();}
-        }
-    }
-}
+
 %>
 
 <section class="hero container-fluid main-section relative">
@@ -167,7 +175,7 @@ finally{
         
             <!-- Random user profile to select -->
             <%
-            myShepherd.beginDBTransaction();
+            //myShepherd.beginDBTransaction();
             User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
                 String profilePhotoURL="images/empty_profile.jpg";
@@ -197,7 +205,7 @@ finally{
                 </section>
             <%
             }
-            myShepherd.rollbackDBTransaction();
+            //myShepherd.rollbackDBTransaction();
             %>
             
             
@@ -209,7 +217,7 @@ finally{
                        <%
                        ArrayList<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
+                       //myShepherd.beginDBTransaction();
                        for(int i=0;i<numResults;i++){
                            Encounter thisEnc=latestIndividuals.get(i);
                            %>
@@ -232,7 +240,7 @@ finally{
                             </li>
                         <%
                         }
-                        myShepherd.rollbackDBTransaction();
+                        //myShepherd.rollbackDBTransaction();
                         %>
                        
                     </ul>
@@ -244,7 +252,7 @@ finally{
                     <h2><%=props.getProperty("topSpotters_30")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    myShepherd.beginDBTransaction();
+                    //myShepherd.beginDBTransaction();
                     
                     //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                     long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
@@ -286,7 +294,7 @@ finally{
                            numUsersToDisplay--;
                     }    
                    } //end while
-                   myShepherd.rollbackDBTransaction();
+                   //myShepherd.rollbackDBTransaction();
                    %>
                         
                     </ul>   
@@ -349,7 +357,7 @@ finally{
                 <a href="adoptamanta.jsp" title="<%=props.getProperty("help-adopt-linkText")%>"><%=props.getProperty("help-adopt-linkText")%></a>
             </div>
             <%
-            myShepherd.beginDBTransaction();
+            //myShepherd.beginDBTransaction();
             Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
             if(adopt!=null){
             %>
@@ -375,7 +383,7 @@ finally{
             
             <%
 			}
-            myShepherd.rollbackDBTransaction();
+            //myShepherd.rollbackDBTransaction();
             %>
             
             
@@ -403,6 +411,7 @@ finally{
 <jsp:include page="footer.jsp" flush="true"/>
 
 <%
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
 %>
