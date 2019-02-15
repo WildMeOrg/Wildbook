@@ -46,11 +46,11 @@ java.util.Properties" %>
 		if (enc == null) return format(null, "none");
 		String h = "<div class=\"encounter shown\"><a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">Encounter <b>" + enc.getCatalogNumber() + "</b></a>";
 		if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
-			h += "<div>Annotations:<ul>";
+			h += "<div>Annotations: <i>(" + enc.getAnnotations().size() + ")</i><ol>";
 			for (int i = 0 ; i < enc.getAnnotations().size() ; i++) {
 				h += "<li><a href=\"obrowse.jsp?type=Annotation&id=" + enc.getAnnotations().get(i).getId() + "\">Annotation " + enc.getAnnotations().get(i).getId() + "</a></li>";
 			}
-			h += "</ul></div>";
+			h += "</ol></div>";
 		}
 		return h + "</div>";
 	}
@@ -151,11 +151,11 @@ java.util.Properties" %>
 
 	private String showFeatureList(ArrayList<Feature> l) {
 		if ((l == null) || (l.size() < 1)) return format(null, "none");
-		String h = "<ul>";
+		String h = "<i>(" + l.size() + ")</i><ol>";
 		for (int i = 0 ; i < l.size() ; i++) {
 			h += "<li>" + showFeature(l.get(i)) + "</li>";
 		}
-		return h + "</ul>";
+		return h + "</ol>";
 	}
 
 	private String showMediaAsset(MediaAsset ma) {
