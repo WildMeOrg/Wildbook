@@ -177,7 +177,7 @@ if(request.getUserPrincipal()!=null){
 
 		                  %>
 
-		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
+		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="<%=props.getProperty("yourAccount") %>" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
 		             				      <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 
 		                      		<%
@@ -324,7 +324,7 @@ if(request.getUserPrincipal()!=null){
                     <div class="search-wrapper">
                       <label class="search-field-header">
                             <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
-                              <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+                              <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
                               <input type="hidden" name="langCode" value="<%=langCode%>"/>
                               <button type="submit" id="header-search-button"><span class="el el-lg el-search"></span></button>
                           </form>
@@ -362,7 +362,7 @@ if(request.getUserPrincipal()!=null){
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
                             <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
-                            <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp">Bulk Import</a></li>
+                            <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
                         </ul>
                       </li>                      
                       <li class="dropdown">
@@ -428,7 +428,9 @@ if(request.getUserPrincipal()!=null){
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp"><%=props.getProperty("surveySearch")%></a></li>
+                              <!--
                               <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
+                           	  -->
                            </ul>
                       </li>
 
