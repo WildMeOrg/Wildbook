@@ -152,7 +152,7 @@ h2.vidcap {
         </div>
         <div id="messageBox"> 
             <div>
-                <h2 class="vidcap">A.I. for Cetacean Research</h2>
+                <h2 class="vidcap"><%=props.getProperty("4cetaceanResearch") %></h2>
 
             </div>
         </div>   
@@ -191,25 +191,25 @@ h2.vidcap {
   		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
 		  	<div class="focusbox-inner opec">
 		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/hotspotter.jpg" />
-		  	<em>Megaptera novaengliae (humpback whales) can be identified by the contrasting color and the trailing edge of their flukes using three algorithms: HotSpotter, CurvRank, and OC/WDTW</em>
+		  	<em><%=props.getProperty("megapteraMatching") %></em>
 	  	</section>
 	  	
   		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
 		  	<div class="focusbox-inner opec">
 		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/spermWhaleTrailingEdge.jpg" />
-		  	<em>Physeter macrocephalus (sperm whales) can be identified by the trailing edge of their flukes using two algorithms: CurvRank and OC/WDTW</em>
+		  	<em><%=props.getProperty("physeterMatching") %></em>
 	  	</section>
 	  	
   		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
 		  	<div class="focusbox-inner opec">
 		  	<img height="*" style="max-width: 100%;" width="400px" class="lazyload pull-left" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/tracedFin.jpg" />
-		  	<div><em>Tursiops truncatus(bottlenose dolphins) can be identified by the trailing edge of their fins with the CurvRank algorithm.</em></div>
+		  	<div><em><%=props.getProperty("tursiopsMatching") %></em></div>
 	  	</section>
 	  	
   		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
 		  	<div class="focusbox-inner opec">
 		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/rightWHaleID.jpg" />
-		  	<em>Eubalaena spp.(right whales) can be identified by the contrasting color on their heads by the HotSpotter and DeepSense.ai algorithms.</em>
+		  	<em><%=props.getProperty("eubalaenaMatching") %></em>
 	  	</section>
 	  	
   	</div>
@@ -253,7 +253,7 @@ h2.vidcap {
                             </p>
                             <p><%=featuredUser.getUserStatement() %></p>
                         </div>
-                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
+                        <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("showContributors") %></a>
                     </div>
                 </section>
             <%
@@ -270,7 +270,7 @@ h2.vidcap {
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest animal encounters</h2>
+                    <h2><%=props.getProperty("latestAnimalEncounters") %></h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
@@ -378,18 +378,18 @@ h2.vidcap {
     <section class="container text-center  main-section">
        <div class="row">
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified whales and dolphins</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedAnimals") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
-            </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-
-                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> citizen scientists</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> researchers and volunteers</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> <%=props.getProperty("citizenScientists") %></i></p>
+            </section>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("researchVolunteers") %></i></p>
             </section>
         </div>
 
@@ -401,7 +401,7 @@ h2.vidcap {
                     <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="cust/mantamatcher/img/DSWP2015-20150408_081746a_Kopi.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
                    
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1>Why we do this</h1>
+                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">
                             <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
                         
