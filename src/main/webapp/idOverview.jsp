@@ -30,7 +30,7 @@ if (Util.requestParameterSet(request.getParameter("data"))) {
         "JOIN \"ANNOTATION_FEATURES\" USING (\"ID_EID\") " + 
         "JOIN \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") " +
         "JOIN \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") " +
-        "ORDER BY \"MEDIAASSET\".\"ID\" limit 10;";
+        "ORDER BY \"MEDIAASSET\".\"ID\" limit 5000;";
 
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sqlMagic);
     List results = (List)q.execute();
@@ -42,20 +42,18 @@ if (Util.requestParameterSet(request.getParameter("data"))) {
     JSONArray dataArr = new JSONArray();
     while (it.hasNext()) {
         Object[] fields = (Object[])it.next();
-/*  this is for label-less array....
         JSONArray jrow = new JSONArray();
-        jrow.put((String)fields[0]);
-        jrow.put((Long)fields[1]);
-        jrow.put((String)fields[2]);
-        jrow.put((Integer)fields[3]);
-        jrow.put((String)fields[4]);
-        jrow.put((String)fields[5]);
-*/
+        for (int i = 0 ; i < colName.size() ; i++) {
+            Class<?> cls = Class.forName(colClass.get(i));
+            jrow.put(cls.cast(fields[i]));
+        }
+/*   rows with elements as jsonobj
         JSONObject jrow = new JSONObject();
         for (int i = 0 ; i < colName.size() ; i++) {
             Class<?> cls = Class.forName(colClass.get(i));
             jrow.put(colName.get(i), cls.cast(fields[i]));
         }
+*/
         dataArr.put(jrow);
     }
     ////rtn.put("data", dataArr);
@@ -70,7 +68,6 @@ for (int i = 0 ; i < colName.size() ; i++) {
     JSONObject jc = new JSONObject();
     jc.put("field", colName.get(i));
     jc.put("title", colLabel.get(i));
-    jc.put("sortable", true);
     colDefn.put(jc);
 }
 
@@ -78,6 +75,11 @@ for (int i = 0 ; i < colName.size() ; i++) {
 %>
 <!doctype html>
 <html><head><title>ID Overview</title>
+<style>
+    #result-table tbody {
+        font-size: 0.8em;
+    }
+</style>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
@@ -93,14 +95,68 @@ for (int i = 0 ; i < colName.size() ; i++) {
 
 
 <script type="application/javascript">
-function init() {
 
+var colDefn = <%= colDefn.toString() %>;
+var tableEl;
+var rawData = null;
+
+function init() {
+    tableEl = $('#result-table');
+    $.ajax({
+        url: 'idOverview.jsp?data',
+        dataType: 'json',
+        success: function(d) {
+//console.log('success!!! %o', d);
+            rawData = d;
+            rawTable();
+        },
+        error: function(x) {
+            console.log('error fetching data %o', x);
+            alert('ERROR loading data');
+        },
+        contentType: 'application/json',
+        type: 'GET'
+    });
+
+/*
     $('#test-table').bootstrapTable({
         url: 'idOverview.jsp?data',
         pagination: true,
         search: true,
         columns: <%=colDefn.toString()%>
     });
+*/
+}
+
+function rawTable() {
+    tableEl.html('');
+    var cols = new Array();
+    for (var i = 0 ; i < colDefn.length ; i++) {
+        cols.push(Object.assign({ sortable: true }, colDefn[i]));
+    }
+    tableEl.bootstrapTable({
+        data: convertData(function(row) {
+            var newRow = {};
+            for (var i = 0 ; i < row.length ; i++) {
+                newRow[colDefn[i].field] = row[i];
+            }
+            return newRow;
+        }),
+        search: true,
+        pagination: true,
+        columns: cols
+    });
+}
+ 
+
+//this takes each row (from rawData) of flat data and returns each row as a proper json obj
+function convertData(rowFunc) {
+    var rtn = new Array();
+    for (var i = 0 ; i < rawData.length ; i++) {
+        var newRow = rowFunc(rawData[i]);
+        if (newRow) rtn.push(newRow);
+    }
+    return rtn;
 }
 </script>
 
@@ -108,13 +164,7 @@ function init() {
 <body onLoad="init()">
 
 
-<table
-    id="test-table"
-    xdata-toggle="table"
-    xdata-sortable="true"
-    xdata-height="460"
-></table>
-
+<table id="result-table"></table>
 
 
 </body>
