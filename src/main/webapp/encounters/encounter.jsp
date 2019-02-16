@@ -6863,17 +6863,7 @@ finally{
   		myShepherd.rollbackDBTransaction();
   		myShepherd.closeDBTransaction();
 		%>
-		<p class="para">There is no corresponding encounter number in the database. Please double-check the encounter number and try again.</p>
 
-<form action="encounter.jsp" method="post" name="encounter"><strong>Go
-  to encounter: </strong> <input name="number" type="text" value="" size="20"> <input name="Go" type="submit" value="Submit" /></form>
-
-
-	}  //end if this is an encounter
-    else {
-  		myShepherd.rollbackDBTransaction();
-  		myShepherd.closeDBTransaction();
-		%>
 		<p class="para">There is no corresponding encounter number in the database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
