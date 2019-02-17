@@ -33,27 +33,7 @@ if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
   <%
   StartupWildbook.initializeWildbook(request, myShepherd);
 }
-%>
-<!--  
-<style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-</style>
 
-
-<script src="//maps.google.com/maps/api/js?sensor=false"></script>
-<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
-<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
--->
-
-<%
 
 
 //let's quickly get the data we need from Shepherd
@@ -90,17 +70,105 @@ finally{
 }
 %>
 
-<section class="hero container-fluid main-section relative">
-    <div class="container relative">
-        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h2>Welcome to Wildbook!</h2>
-            <!--
-            <button id="watch-movie" class="large light">
-				Watch the movie
-				<span class="button-icon" aria-hidden="true">
-			</button>
-			-->
-            <a href="submit.jsp">
+<style>
+
+
+
+
+#fullScreenDiv{
+    width:100%;
+   /* Set the height to match that of the viewport. */
+    
+    width: auto;
+    padding:0!important;
+    margin: 0!important;
+    position: relative;
+}
+#video{    
+    width: 100vw; 
+    height: auto;
+    object-fit: cover;
+    left: 0px;
+    top: 0px;
+    z-index: -1;
+}
+
+h2.vidcap {
+	font-size: 2.4em;
+	
+	color: #fff;
+	font-weight:300;
+	text-shadow: 1px 2px 2px #333;
+	margin-top: 55%;
+}
+
+
+
+/* The container for our text and stuff */
+#messageBox{
+    position: absolute;  top: -150px;  left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height:100%;
+}
+
+
+
+
+
+@media screen and (min-width: 1350px) {
+	h2.vidcap {
+	    font-size: 3.3em;
+	    margin-top: -45%;
+	}
+	
+
+}
+
+@media screen and (min-width: 1350px) {
+	#messageBox div{
+	    margin-left: -15%;
+	    margin-top: 15%;
+	    padding-left: 15px;
+	    padding-top: 15px;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	#messageBox div{
+
+
+	    padding-left: 15px;
+	    padding-top: 210px;
+	}
+	h2.vidcap {
+		font-size: 1.2em;
+	}
+	
+	#messageBox div button.large{
+		font-size: 1.0em;
+	}
+	
+}
+ 
+
+</style>
+<section style="padding-bottom: 0px;" class="container-fluid main-section relative videoDiv">
+
+        
+   <div id="fullScreenDiv">
+        <div id="videoDiv">           
+            <video playsinline preload id="video" autoplay muted poster="images/whaleshark_lander.jpg">
+            <source src="images/whaleshark_lander.webm#t=,3" type="video/webm"></source>
+            <source src="images/whaleshark_lander.mp4#t=,3" type="video/mp4"></source>
+            </video> 
+        </div>
+        <div id="messageBox"> 
+            <div>
+                <h2 class="vidcap">You can help study whale sharks!</h2>
+                                    <a href="submit.jsp">
                 <button class="large heroBtn">Report your sightings<span class="button-icon" aria-hidden="true"></button>
             </a>
             <br>
@@ -108,9 +176,14 @@ finally{
                 <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
             </a>
             <br>
-        </div>
 
-	</div>
+            </div>
+        </div>   
+        
+
+    </div>
+
+  
 
 
 </section>
