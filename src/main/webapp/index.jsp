@@ -116,7 +116,7 @@ h2.vidcap {
 	color: #fff;
 	font-weight:300;
 	text-shadow: 1px 2px 2px #333;
-	margin-top: 55%;
+	margin-top: 35%;
 }
 
 
@@ -131,16 +131,55 @@ h2.vidcap {
     height:100%;
 }
 
-@media screen and (min-width: 900px) {
+@media screen and (min-width: 851px) {
 	h2.vidcap {
 	    font-size: 3.3em;
 	    margin-top: -45%;
 	}
 }
+
+@media screen and (max-width: 850px) and (min-width: 551px) {
+
+	
+	#fullScreenDiv{
+	    width:100%;
+	   /* Set the height to match that of the viewport. */
+	    
+	    width: auto;
+	    padding-top:50px!important;
+	    margin: 0!important;
+	    position: relative;
+	}
+	
+	h2.vidcap {
+	    font-size: 2.4em;
+	    margin-top: 55%;
+	}
+	
+}
+@media screen and (max-width: 550px) {
+
+	
+	#fullScreenDiv{
+	    width:100%;
+	   /* Set the height to match that of the viewport. */
+	    
+	    width: auto;
+	    padding-top:150px!important;
+	    margin: 0!important;
+	    position: relative;
+	}
+	
+	h2.vidcap {
+	    font-size: 1.8em;
+	    margin-top: 100%;
+	}
+	
+}
  
 
 </style>
-<section style="padding-bottom: 0px;" class="container-fluid main-section relative videoDiv">
+<section style="padding-bottom: 0px;padding-top:0px;" class="container-fluid main-section relative videoDiv">
 
         
    <div id="fullScreenDiv">
