@@ -137,7 +137,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
     <body role="document">
 
         <!-- ****header**** -->
-        <header class="page-header clearfix">
+        <header class="page-header clearfix" style="padding-top: 0px;padding-bottom: 0px;">
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">

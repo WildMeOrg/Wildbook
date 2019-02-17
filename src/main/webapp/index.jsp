@@ -106,7 +106,7 @@ h2.vidcap {
 
 /* The container for our text and stuff */
 #messageBox{
-    position: absolute;  top: -150px;  left: 0;
+    position: absolute;  top: -150px;  left: -30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -121,7 +121,7 @@ h2.vidcap {
 @media screen and (min-width: 1350px) {
 	h2.vidcap {
 	    font-size: 3.3em;
-	    margin-top: -45%;
+	    margin-top: -35%; 
 	}
 	
 
@@ -136,26 +136,67 @@ h2.vidcap {
 	}
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 1000px) and (min-width: 501px) {
 	#messageBox div{
 
 
 	    padding-left: 15px;
 	    padding-top: 210px;
 	}
+	
 	h2.vidcap {
 		font-size: 1.2em;
+		margin-top: 70%;
 	}
 	
 	#messageBox div button.large{
 		font-size: 1.0em;
 	}
 	
+	#fullScreenDiv{
+	    width:100%;
+	   /* Set the height to match that of the viewport. */
+	    
+	    width: auto;
+	    padding-top:50px!important;
+	    margin: 0!important;
+	    position: relative;
+	}
+	
+}
+
+@media screen and (max-width: 500px) {
+	#messageBox div{
+
+
+	    padding-left: 15px;
+	    padding-top: 250px;
+	}
+	
+	h2.vidcap {
+		font-size: 1.0em;
+		margin-top: 85%;
+	}
+	
+	#messageBox div button.large{
+		font-size: 0.5em;
+	}
+	
+	#fullScreenDiv{
+	    width:100%;
+	   /* Set the height to match that of the viewport. */
+	    
+	    width: auto;
+	    padding-top:150px!important;
+	    margin: 0!important;
+	    position: relative;
+	}
+	
 }
  
 
 </style>
-<section style="padding-bottom: 0px;" class="container-fluid main-section relative videoDiv">
+<section style="padding-bottom: 0px;padding-top:0px;" class="container-fluid main-section relative videoDiv">
 
         
    <div id="fullScreenDiv">
