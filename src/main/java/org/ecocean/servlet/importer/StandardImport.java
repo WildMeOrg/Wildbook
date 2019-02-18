@@ -1087,8 +1087,8 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
-    //return AssetStore.getDefault(myShepherd);
-    return AssetStore.get(myShepherd, 5);
+    return AssetStore.getDefault(myShepherd);
+    //return AssetStore.get(myShepherd, 5);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook
