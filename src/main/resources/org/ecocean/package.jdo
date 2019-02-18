@@ -258,6 +258,11 @@
         <join/>
       </field>
 	  
+	          <field name="informOthers" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.User" dependent-element="false"/>
+        <join/>
+      </field>
+	  
 	  
       <field name="catalogNumber" primary-key="true">
         <column length="100"/>

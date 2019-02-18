@@ -146,6 +146,9 @@ public class Annotation implements java.io.Serializable {
     public String getAcmId() {
         return this.acmId;
     }
+    public boolean hasAcmId() {
+        return (this.acmId != null);
+    }
 
     public ArrayList<Feature> getFeatures() {
         return features;
@@ -339,7 +342,7 @@ public class Annotation implements java.io.Serializable {
     public int[] getBbox() {
 
         if (this.bbox !=null) {
-            System.out.println("Returning existing bounding box.");
+            //System.out.println("Returning existing bounding box.");
             return bbox; 
         }
         
@@ -490,11 +493,10 @@ public class Annotation implements java.io.Serializable {
                 Encounter enc = (Encounter) it.next();
                 if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
                     for (Annotation ann : enc.getAnnotations()) {
-                        if (ann.getMatchAgainst()&&!sibAnns.contains(ann)) {
-                            if (ann.getPartIfPresent().equals(this.getPartIfPresent())) {
-                                anns.add(ann);
-                            }
+                        if (ann.getMatchAgainst()&&!sibAnns.contains(ann)&&ann.getPartIfPresent().equals(this.getPartIfPresent())) {
+                            anns.add(ann);
                         }
+
                     }
                 }
             }
@@ -502,11 +504,11 @@ public class Annotation implements java.io.Serializable {
         } else {
             System.out.println("MATCHING ALL SPECIES : The parent encounter for query Annotation id="+this.id+" has not specified specificEpithet and genus.");
             anns = getMatchingSetAllSpecies(myShepherd);
-            for (Annotation ann : sibAnns) {
-                if (anns.contains(ann)) {
-                    System.out.println("EXCLUDING SIBLING ANNOTATION = "+ann.getId());
-                    anns.remove(ann);
-                }
+        }
+        for (Annotation ann : sibAnns) {
+            if (anns.contains(ann)) {
+                System.out.println("EXCLUDING SIBLING ANNOTATION = "+ann.getId());
+                anns.remove(ann);
             }
         }
         System.out.println("Did the query return any encounters? It got: "+anns.size()); 

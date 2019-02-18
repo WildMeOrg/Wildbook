@@ -3,6 +3,7 @@
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
 org.ecocean.ia.Task,
+java.net.URL,
 java.util.ArrayList,
 org.json.JSONObject,
 java.util.Properties" %>
@@ -172,13 +173,13 @@ java.util.Properties" %>
 		if (ma == null) return "asset: <b>[none]</b>";
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
 		shown.add(ma);
-		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b>";
+		String h = "<div class=\"mediaasset\"><a href=\"obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">Media Asset <b>" + ma.getId() + "</b></a>";
                 if (ma.webURL() == null) {
 			h += "<div style=\"position: absolute; right: 0;\"><i><b>webURL()</b> returned null</i></div>";
 		} else if (ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
-			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></div></div></a>";
+			h += "<a target=\"_new\" href=\"" + scrubUrl(ma.webURL()) + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + scrubUrl(ma.webURL()) + "\" /></div></div></a>";
 
 		}
                 h += "<ul style=\"width: 65%\">";
@@ -203,13 +204,18 @@ java.util.Properties" %>
         return type.equals("MediaAssetMetadata");
     }
 
+    private String scrubUrl(URL u) {
+        if (u == null) return (String)null;
+        return u.toString().replaceAll("#", "%23");
+    }
+
 %><%
 
 String id = request.getParameter("id");
 String type = request.getParameter("type");
 
 // IA debuggin use.. Can retrieve Annotations 
-String acmId = request.getParameter("acmId");
+String acmid = request.getParameter("acmid");
 
 if (!rawOutput(type)) {
 %>
@@ -353,7 +359,7 @@ context=ServletUtilities.getContext(request);
 */
 
 if (type == null) type = "Encounter";
-if (id == null) {
+if (id == null && (acmid == null || !"Annotation".equals(type))) {
 	out.println(showForm());
 	return;
 }
@@ -381,7 +387,7 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("Annotation")) {
-	if (id!=null&&acmId==null) {
+	if (id!=null&&acmid==null) {
 		try {
 			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
 			out.println(showAnnotation(ann));
@@ -389,11 +395,12 @@ if (type.equals("Encounter")) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
 			needForm = true;
 		}
-	} else if (acmId!=null) {
+	}
+	if (id==null&&acmid!=null) {
 		try {
-			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
+			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmid);
                         if ((anns == null) || (anns.size() < 1)) {
-                            out.println("none with acmId " + acmId);
+                            out.println("none with acmid " + acmid);
                         } else {
 			    out.println(showAnnotation(anns.get(0)));
                         }

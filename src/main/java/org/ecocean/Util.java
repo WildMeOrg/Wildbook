@@ -10,8 +10,10 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
+
 import org.json.JSONObject;
 import org.json.JSONException;
+
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
@@ -22,8 +24,11 @@ import org.joda.time.LocalDateTime;
 
 //EXIF-related imports
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,9 +38,16 @@ import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
+
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+
 import org.apache.commons.io.IOUtils;
+
+
+
 
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
@@ -45,9 +57,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
 
+
+
+
 import org.ecocean.tag.MetalTag;
 import org.ecocean.*;
-
 
 //use Point2D to represent cached GPS coordinates
 import com.reijns.I3S.Point2D;
@@ -438,6 +452,18 @@ public class Util {
         if (jin == null) return null;
         return stringToJSONObject(jin.toString());
     }
+    
+    
+    public static org.datanucleus.api.rest.orgjson.JSONArray toggleJSONArray(org.json.JSONArray jin) {
+      if (jin == null) return null;
+      return stringToDatanucleusJSONArray(jin.toString());
+    }
+    public static org.json.JSONArray toggleJSONArray(org.datanucleus.api.rest.orgjson.JSONArray jin) {
+      if (jin == null) return null;
+      return stringToJSONArray(jin.toString());
+    }
+    
+    
 
     //this basically just swallows exceptions in parsing and returns a null if failure
     public static JSONObject stringToJSONObject(String s) {
@@ -461,6 +487,34 @@ public class Util {
       }
       return j;
     }
+    
+    //NEW
+    
+    //this basically just swallows exceptions in parsing and returns a null if failure
+    public static org.json.JSONArray stringToJSONArray(String s) {
+        org.json.JSONArray j = null;
+        if (s == null) return j;
+        try {
+            j = new org.json.JSONArray(s);
+        } catch (JSONException je) {
+            System.out.println("error parsing json string (" + s + "): " + je.toString());
+        }
+        return j;
+    }
+
+    public static org.datanucleus.api.rest.orgjson.JSONArray stringToDatanucleusJSONArray(String s) {
+      org.datanucleus.api.rest.orgjson.JSONArray j = null;
+      if (s == null) return j;
+      try {
+          j = new org.datanucleus.api.rest.orgjson.JSONArray(s);
+      } catch (org.datanucleus.api.rest.orgjson.JSONException je) {
+          System.out.println("error parsing json string (" + s + "): " + je.toString());
+      }
+      return j;
+    }
+    
+    
+    //NEW
 
     public static org.datanucleus.api.rest.orgjson.JSONArray concatJsonArrayInPlace(org.datanucleus.api.rest.orgjson.JSONArray toBeReturned, org.datanucleus.api.rest.orgjson.JSONArray toBeAdded) throws org.datanucleus.api.rest.orgjson.JSONException {
       for (int i=0; i<toBeAdded.length(); i++) {
@@ -545,8 +599,6 @@ public class Util {
     }
 
     public static String prettyPrintDateTime(DateTime dt) {
-      System.out.println("prettyPrintDateTime:");
-      System.out.println("  dt.hourOfDay = "+dt.hourOfDay().get());
       boolean isOnlyDate = dateTimeIsOnlyDate(dt);
       String currentToString = dt.toString();
       if (isOnlyDate) {
@@ -639,11 +691,20 @@ public class Util {
       return values;
     }
 
-    public static void writeToFile(String data, String path) throws FileNotFoundException {
-      PrintWriter out = new PrintWriter(path);
-      out.println(data);
-      out.close();
-    }
+    public static void writeToFile(String data, String absolutePath) throws FileNotFoundException {
+      File file=new File(absolutePath);
+      try{
+        FileOutputStream fos=new FileOutputStream(file);
+        OutputStreamWriter writer =new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+        writer.write(data);
+        writer.flush();
+        writer.close();
+        fos.close();
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }
+   }
 
     public static String readFromFile(String path) throws FileNotFoundException, IOException {
       FileInputStream inputStream = new FileInputStream(path);
@@ -711,6 +772,47 @@ public class Util {
       }
       return sanitized;
     }
+
+    public static String joinStrings(List<String> strings) {
+      return joinStrings(strings, ", ");
+    }
+
+    public static String joinStrings(List<String> strings, String seperator) {
+      if (strings.size()==0) return "";
+      if (strings.size()==1) return strings.get(0);
+      StringBuffer strBuff = new StringBuffer();
+      strBuff.append(strings.get(0));
+      for (int i=1;i<strings.size();i++) {
+        strBuff.append(seperator+strings.get(i));
+      }
+      return strBuff.toString();
+    }
+
+    //this can be used to scrub user-provided paths to disallow "questionable" entries that might be
+    //  trying to access parts of the filesystem they should not have access to.
+    //  currently scrubs: parent directories in path (../) and hidden "dot" files (.config etc)
+    //present behavior will return null if unsafe substrings are found
+    //  NOTE: a leading '/' is stripped off to be safe.  this puts the onus on the user of this method
+    //     to prepend a '/' when using at a subpath, e.g. "/my/absolute/" + safePath(userProvidedString)
+    //     but hopefully will prevent absolute paths accidentally getting used.
+    public static String safePath(String path) {
+        if (path == null) return null;
+        if (new File(path).getName().startsWith(".")) {
+            System.out.println("WARNING: safePath(" + path + ") detected hidden dot file; failing");
+            return null;
+        }
+        if (path.indexOf("..") > -1) {
+            System.out.println("WARNING: safePath(" + path + ") detected '..' in path; failing");
+            return null;
+        }
+        if (path.indexOf("/") == 0) return path.substring(1);
+        return path;
+    }
+
+  public static <KeyType, ValType> void addToMultimap(Map<KeyType, Set<ValType>> multimap, KeyType key, ValType val) {
+    if (!multimap.containsKey(key)) multimap.put(key, new HashSet<ValType>());
+    multimap.get(key).add(val);
+  }
 
 }
 

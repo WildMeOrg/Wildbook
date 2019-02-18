@@ -623,7 +623,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
         if (mas.size() > 0) {
             if (task != null) {
                 task.setObjectMediaAssets(mas);
-                task.setParameters("{\"ibeis.detection\": true}");
+                task.addParameter("ibeis.detection", true);
             }
             for (MediaAsset ma : mas) {
                 validIds.add(Integer.toString(ma.getId()));
@@ -1194,7 +1194,6 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
 
     public static boolean addToQueue(String context, String content) throws IOException {
 System.out.println("IAGateway.addToQueue() publishing: " + content);
-
         getIAQueue(context).publish(content);
         return true;
     }

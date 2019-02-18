@@ -34,6 +34,7 @@ import org.ecocean.ia.Task;
 import org.ecocean.acm.AcmBase;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.spi.FileTypeDetector;
 import java.nio.file.Files;
 //import java.time.LocalDateTime;
 import org.joda.time.DateTime;
@@ -48,6 +49,7 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
+import java.awt.datatransfer.MimeTypeParseException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,6 +57,7 @@ import java.util.ArrayList;
 import java.io.FileOutputStream;
 import javax.jdo.Query;
 import javax.xml.bind.DatatypeConverter;
+import javax.activation.MimeType;
 
 /*
 import java.awt.image.BufferedImage;
@@ -137,7 +140,7 @@ public class MediaAsset implements java.io.Serializable {
 
     private String acmId;
 
-
+    private Boolean validImageForIA;
 
     /**
      * To be called by AssetStore factory method.
@@ -184,6 +187,9 @@ public class MediaAsset implements java.io.Serializable {
     }
     public String getAcmId() {
         return this.acmId;
+    }
+    public boolean hasAcmId() {
+        return (null!=this.acmId);
     }
 
     private URL getUrl(final AssetStore store, final Path path) {
@@ -1004,11 +1010,14 @@ public class MediaAsset implements java.io.Serializable {
 
 
     public String toString() {
+        List<String> kwNames = getKeywordNames();
+        String kwString = (kwNames==null) ? "None" : Util.joinStrings(kwNames);
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("parent", parentId)
                 .append("labels", ((labels == null) ? "" : labels.toString()))
                 .append("store", store.toString())
+                .append("keywords", kwString)
                 .toString();
     }
 
@@ -1128,7 +1137,18 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public ArrayList<Keyword> getKeywords() {
         return keywords;
     }
-    
+    public List<String> getKeywordNames() {
+        List<String> names = new ArrayList<String>();
+        if (getKeywords()==null) return names;
+        for (Keyword kw: getKeywords()) {
+            names.add(kw.getReadableName());
+        }
+        return names;
+    }
+    public boolean hasKeywords(){
+        return (keywords!=null && (keywords.size()>0));
+    }
+
     public boolean hasKeyword(String keywordName){
       if(keywords!=null){
         int numKeywords=keywords.size();
@@ -1295,6 +1315,32 @@ System.out.println(">> updateStandardChildren(): type = " + type);
 
     public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
         return Task.getRootTasksFor(this, myShepherd);
+    }
+
+    public Boolean isValidImageForIA() {
+        return validImageForIA;
+    }
+
+    public Boolean validateSourceImage() {
+        if ("LOCAL".equals(this.getStore().getType().toString())) {
+            Path lPath = this.localPath();
+            String typeString = null;
+            try {
+                typeString = Files.probeContentType(lPath);
+            } catch (IOException ioe) {ioe.printStackTrace();}
+            try {
+                MimeType type = new MimeType(typeString);
+                typeString = type.getPrimaryType();
+            } catch (Exception e) {e.printStackTrace();}
+            if ("image".equals(typeString)) {
+                File imageFile = this.localPath().toFile();
+                this.validImageForIA = AssetStore.isValidImage(imageFile);
+            } else {
+                System.out.println("WARNING: validateSourceImage was called on a non-image or corrupt MediaAsset with Id: "+this.getId());
+                this.validImageForIA = false;
+            }
+        }
+        return isValidImageForIA();
     }
 
 

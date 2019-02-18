@@ -123,9 +123,9 @@ public void setCorrespondingOccurrenceNumber(String occurrenceNumber){
 
 public void addObservationArrayList(ArrayList<Observation> arr) {
   if (observations.isEmpty()) {
-    observations=arr;      
+    observations=arr;
   } else {
-   observations.addAll(arr); 
+   observations.addAll(arr);
   }
 }
 public void addObservation(Observation obs) {
@@ -280,7 +280,7 @@ public String getHTMLString(){
   if((this.getFieldNumber()!=null)&&(!this.getFieldNumber().equals(""))){paramValues+="     Field number: "+this.getFieldNumber()+"<br />";}
   if((this.getInstitutionCode()!=null)&&(!this.getInstitutionCode().equals(""))){paramValues+="     Institution code: "+this.getInstitutionCode()+"<br />";}
   if((this.getInstitutionID()!=null)&&(!this.getInstitutionID().equals(""))){paramValues+="     Institution ID: "+this.getInstitutionID()+"<br />";}
-  if((this.getSamplingEffort()!=null)&&(!this.getSamplingEffort().equals(""))){paramValues+="     Sampli]/ng effort: "+this.getSamplingEffort()+"<br />";}
+  if((this.getSamplingEffort()!=null)&&(!this.getSamplingEffort().equals(""))){paramValues+="     Sampling effort: "+this.getSamplingEffort()+"<br />";}
   if((this.getSamplingProtocol()!=null)&&(!this.getSamplingProtocol().equals(""))){paramValues+="     Sampling protocol: "+this.getSamplingProtocol()+"<br />";}
   return paramValues;
 }

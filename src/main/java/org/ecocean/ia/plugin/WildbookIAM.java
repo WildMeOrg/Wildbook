@@ -161,6 +161,10 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
         for (int i = 0 ; i < mas.size() ; i++) {
             MediaAsset ma = mas.get(i);
             if (iaImageIds.contains(ma.getAcmId())) continue;
+            if (ma.isValidImageForIA()!=null&&!ma.isValidImageForIA()) {
+                IA.log("WARNING: WildbookIAM.sendMediaAssets() found a corrupt or otherwise invalid MediaAsset with Id: " + ma.getId());
+                continue;
+            }
             if (!validMediaAsset(ma)) {
                 IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid " + ma);
                 continue;
@@ -393,6 +397,10 @@ System.out.println("fromResponse ---> " + ids);
         if (ma == null) return false;
         if (!ma.isMimeTypeMajor("image")) return false;
         if ((ma.getWidth() < 1) || (ma.getHeight() < 1)) return false;
+        if (mediaAssetToUri(ma) == null) {
+            System.out.println("WARNING: WildbookIAM.validMediaAsset() failing from null mediaAssetToUri() for " + ma);
+            return false;
+        }
         return true;
     }
 

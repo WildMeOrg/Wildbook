@@ -216,9 +216,9 @@ public class IndividualAddEncounter extends HttpServlet {
               Set<String> cSubmitters = new HashSet<>();
               if (enc2add.getSubmitterEmails() != null)cSubmitters.addAll(enc2add.getSubmitterEmails());
               if (enc2add.getPhotographerEmails() != null)cSubmitters.addAll(enc2add.getPhotographerEmails());
-
-              if (enc2add.getInformOthers() != null)
-                cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getInformOthers()));
+              if (enc2add.getInformOthersEmails() != null)cSubmitters.addAll(enc2add.getInformOthersEmails());
+              //if (enc2add.getInformOthers() != null)
+                //cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getInformOthersEmails()));
               
               for (String emailTo : cSubmitters) {
                 if (!"".equals(emailTo)) {

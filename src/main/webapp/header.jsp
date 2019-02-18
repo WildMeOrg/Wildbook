@@ -40,8 +40,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
-CommonConfiguration.ensureServerInfo(myShepherd, request);
-
+myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
 

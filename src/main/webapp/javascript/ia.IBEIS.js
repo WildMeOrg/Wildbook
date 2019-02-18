@@ -27,10 +27,11 @@ wildbook.IA.plugins.push({
             console.info('%s.imageMenuItems() claims IA functionality disabled', this.code);
             return;
         }
-        var items = new Array();
-        var needRerun = false;
+        // items is an array of two-element arrays. In each tuple is 1. what to display, 2. the click action
+        // first elem: executes function if function, or just displays if string
+        var items = new Array(); 
         items.push([
-            function(enh) {  //the menu text
+            function(enh) {  //the menu text for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 needRerun = false;
                 var menuText = '';
@@ -38,19 +39,20 @@ wildbook.IA.plugins.push({
                     menuText += 'matching already initiated, status: <span title="task ' + iaStatus.taskId;
                     menuText += '" class="image-enhancer-menu-item-iastatus-';
                     menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
-                    needRerun = true;
+                    // here we want to add another item to start another matching job?
                 } else {
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
                     if (ma.taxonomyString) {
-                        menuText += 'start matching';
+                        menuText = 'start matching';
+                        alreadyLinked = true;
                     } else {
                         menuText += '<i class="error">to start matching, this encounter must have <b>genus/specific epithet</b> set</i>';
                     }
                 }
                 return menuText;
             },
-            function(enh, rerun) {  //the menu action
+            function(enh) {  //the menu action for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 if (!rerun && iaStatus && iaStatus.taskId) {
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
@@ -85,7 +87,7 @@ wildbook.IA.plugins.push({
             }
         ]);
 
-        //this is soooo hactacular its embarrassing.  :/
+        // this tuple is for the "start another match job" function (after one job has been started)
         items.push([
             function(enh) {
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);

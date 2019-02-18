@@ -24,6 +24,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementEventDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration" %>
 
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
 
   <%
   System.out.println("jdoQLstring is: "+request.getParameter("jdoqlString"));
@@ -99,6 +101,14 @@
     acceptedEncounters.setOrdering("dwcDateAddedLong ascending");
     Collection c = (Collection) (acceptedEncounters.execute());
     rEncounters=new Vector(c);
+
+    // 
+    //HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+    //rEncounters = hiddenData.securityScrubbedResults(rEncounters);
+
+
+
+
     acceptedEncounters.closeAll();
     
 		Vector blocked = Encounter.blocked(rEncounters, request);
