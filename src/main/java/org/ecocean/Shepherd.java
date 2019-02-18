@@ -154,7 +154,7 @@ public class Shepherd {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
+      //System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new Annotation in Shepherd.storeNewAnnotation().");
@@ -169,7 +169,7 @@ public class Shepherd {
     try {
       pm.makePersistent(wSpace);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
+      //System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new workspace in shepherd.storeNewWorkspace().");
@@ -1030,7 +1030,7 @@ public class Shepherd {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
+      //System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
