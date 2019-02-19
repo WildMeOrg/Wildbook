@@ -667,7 +667,7 @@ function FSControl(controlDiv, map) {
         if (totalVBDs > 1) {
       %>
 
-      <select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField"
+      <select multiple size="5" name="verbatimEventDateField"
               id="verbatimEventDateField">
         <option value="None"></option>
         <%
