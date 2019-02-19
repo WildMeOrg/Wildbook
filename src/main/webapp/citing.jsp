@@ -24,7 +24,7 @@
 				</li>
 				<li>General citation for Flukebook:
 					<ul>
-						<li>J. Levenson, S. Gero, J. Van Oast, and J. Holmberg. 2015. Flukebook: a cloud-based photo-identification analysis tools for marine mammal research. Accessible at: http://www.flukebook.org </li>
+						<li>J. Levenson, S. Gero, J. Van Oast, and J. Holmberg. 2015. Flukebook: a cloud-based photo-identification analysis tools for marine mammal research. Accessible at: https://www.flukebook.org </li>
 					
 					</ul>
 				
