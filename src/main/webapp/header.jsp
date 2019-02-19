@@ -374,7 +374,7 @@ if(request.getUserPrincipal()!=null){
                           	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
 
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                          	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                          	<li><a target="_blank" href="https://www.wildbook.org"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         	<li class="divider"></li>
                         </ul>
                       </li>
