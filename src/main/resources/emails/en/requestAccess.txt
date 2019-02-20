@@ -1,0 +1,29 @@
+SUBJECT: GiraffeSpotter: Request for ACCESS (@REQUEST_NAME@)
+
+        name: @REQUEST_NAME@
+       email: @REQUEST_EMAIL@
+organization: @REQUEST_ORGANIZATION@
+
+Objectives:
+@REQUEST_OBJECTIVES@
+----
+
+Tools & Data:
+@REQUEST_TOOLSDATA@
+----
+
+Data collected:
+@REQUEST_DATACOLLECTED@
+----
+
+Qualifications:
+@REQUEST_QUALIFICATIONS@
+----
+
+Plan for data:
+@REQUEST_DATAPLAN@
+----
+
+
+
+ -end-

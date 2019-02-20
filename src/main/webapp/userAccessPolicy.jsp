@@ -1,24 +1,102 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList" %>
+         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList, java.util.Map, java.util.HashMap, java.util.concurrent.ThreadPoolExecutor" %>
 
+
+<%!
+private String formDisplay(String val) {
+    if (val == null) return "";
+    return val;
+}
+%>
 
 <%
 
-String context="context0";
-context=ServletUtilities.getContext(request);
-
-  
+String context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
-  
-
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("overview.properties", langCode,context);
-
-
-
 %>
 
 <jsp:include page="header.jsp" flush="true"/>
+
+<%
+
+String requestEmail = request.getParameter("request_email");
+String requestName = request.getParameter("request_name");
+String requestOrganization = request.getParameter("request_organization");
+String requestObjectives = request.getParameter("request_objectives");
+String requestToolsdata = request.getParameter("request_toolsdata");
+String requestDatacollected = request.getParameter("request_datacollected");
+String requestQualifications = request.getParameter("request_qualifications");
+String requestDataplan = request.getParameter("request_dataplan");
+String errorMessage = null;
+
+if (Util.stringExists(requestEmail)) {
+    boolean success = false;
+    if (!Util.isValidEmailAddress(requestEmail)) {
+        errorMessage = "Invalid email address";
+    } else if (!Util.stringExists(requestName)) {
+        errorMessage = "You must provide a name and email address";
+    } else {
+        success = true;
+    }
+
+
+    if (success) {
+        try {
+            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+            Map<String, String> tagMap = new HashMap<String, String>();
+            tagMap.put("REQUEST_EMAIL", requestEmail);
+            tagMap.put("REQUEST_NAME", requestName);
+            tagMap.put("REQUEST_ORGANIZATION", requestOrganization);
+            tagMap.put("REQUEST_OBJECTIVES", requestObjectives);
+            tagMap.put("REQUEST_TOOLSDATA", requestToolsdata);
+            tagMap.put("REQUEST_DATACOLLECTED", requestDatacollected);
+            tagMap.put("REQUEST_QUALIFICATIONS", requestQualifications);
+            tagMap.put("REQUEST_DATAPLAN", requestDataplan);
+            String[] mailTo = new String[]{"sito.org@gmail.com", "jon@wildme.org"};
+            for (int i = 0 ; i < mailTo.length ; i++) {
+                NotificationMailer mailer = new NotificationMailer(context, ServletUtilities.getLanguageCode(request), mailTo[i], "requestAccess", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+            }
+        } catch (Exception ex) {
+            out.println("<div class=\"error form-error\">Could not send email!  " + ex.toString() + "</div>");
+            return;
+        }
+          
+%>
+
+<div style="margin: 120px 0 0 50px">
+Your <b>request for access</b> has been sent!
+</div>
+
+<%
+        return;
+    }
+}
+
+%>
+
+<script>
+var formShown = false;
+function toggleForm() {
+    $('#request-access-div').slideToggle('slow');
+    formShown = !formShown;
+    if (formShown) {
+        $('#request-access-button').val('Hide form');
+    } else {
+        $('#request-access-button').val('Show request form');
+    }
+}
+<% if (errorMessage != null) { %>
+$(document).ready(function() {
+    toggleForm();
+    document.getElementById('request-access-button').scrollIntoView();
+});
+<% } %>
+
+</script>
 
   <style type="text/css">
     <!--
@@ -28,6 +106,20 @@ props = ShepherdProperties.getProperties("overview.properties", langCode,context
       font-size: x-small;
       color: #000000;
     }
+
+.request-form-error {
+    padding: 10px 30px;
+    background-color: #FDD;
+    border-radius: 4px;
+    margin-bottom: 13px;
+}
+
+#request-access-div {
+    padding: 15px 30px;
+    background-color: #CCC;
+    display: none;
+    border-radius: 10px;
+}
 
 .watermark-overlay {
     position: fixed;
@@ -40,6 +132,17 @@ props = ShepherdProperties.getProperties("overview.properties", langCode,context
     opacity: 0.3;
     color: rgba(255,100,0,1);
 }
+
+#request-access textarea,
+#request-access input 
+{
+    width: 40%;
+}
+#request-access textarea {
+    font-size: 0.85em;
+    height: 6em;
+}
+
     -->
   </style>
 
@@ -82,13 +185,61 @@ The number of new accounts that can be provided each year is limited by:
 <p>
 To <b>request access to GiraffeSpotter</b>, please fill out the following form.
 Someone at GiraffeSpotter will review your request and respond to the email you provide below. 
-Your research objectives:
-The organization you represent (if appropriate):
-The Wildbook tools and data that could benefit your research:
-How much data you have already collected for your research:
-Your qualifications:
-What you plan to do with the data: 
+
+<p>
+<input type="button" value="Show request form" id="request-access-button" onClick="return toggleForm();" />
 </p>
+
+<div id="request-access-div">
+
+<% if (errorMessage != null) out.println("<div class=\"request-form-error error\">" + errorMessage + "</div>"); %>
+
+<form id="request-access" method="POST" action="userAccessPolicy.jsp">
+
+<p>
+<b>Your name: *</b><br />
+<input type="text" name="request_name" value="<%=formDisplay(requestName)%>" />
+</p>
+
+<p>
+<b>Your email address: *</b><br />
+<input type="email" name="request_email" value="<%=formDisplay(requestEmail)%>" />
+</p>
+
+<p>
+<b>The organization you represent (if appropriate):</b><br />
+<input type="text" name="request_organization" value="<%=formDisplay(requestOrganization)%>" />
+</p>
+
+<p>
+<b>Your research objectives:</b><br />
+<textarea name="request_objectives"><%=formDisplay(requestObjectives)%></textarea>
+</p>
+
+<p>
+<b>The Wildbook tools and data that could benefit your research:</b><br />
+<textarea name="request_toolsdata"><%=formDisplay(requestToolsdata)%></textarea>
+</p>
+
+<p>
+<b>How much data you have already collected for your research:</b><br />
+<textarea name="request_datacollected"><%=formDisplay(requestDatacollected)%></textarea>
+</p>
+
+<p>
+<b>Your qualifications:</b><br />
+<textarea name="request_qualifications"><%=formDisplay(requestQualifications)%></textarea>
+</p>
+
+<p>
+<b>What you plan to do with the data:</b><br />
+<textarea name="request_dataplan"><%=formDisplay(requestDataplan)%></textarea>
+</p>
+
+<input type="submit" value="Send request" />
+
+</form>
+</div>
 
 
 <h2>Request review</h2>
