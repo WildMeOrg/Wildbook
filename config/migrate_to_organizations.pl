@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 ###  apt-get install libdbd-pg-perl libdbi-perl libjson-perl libuuid-tiny-perl
 
+
 my ($db_name,$db_user,$db_password, $input_file) = @ARGV;
 
 # usage:
@@ -102,7 +103,7 @@ sub do_input {
         );
 
         foreach my $uid (keys %{$data->{data}->{$key}->{members}}) {
-            printf(qq'INSERT INTO "USER_ORGANIZATIONS" ("UUID_EID", "ID_OID", "IDX") VALUES (%s, %s, %d);  -- %s\n',
+            printf(qq'INSERT INTO "ORGANIZATION_MEMBERS" ("USER_ID", "ORGANIZATION_ID", "IDX") VALUES (%s, %s, %d);  -- %s\n',
                 $db->quote($uid), $db->quote($id), $ucount->{$uid}, $data->{data}->{$key}->{members}->{$uid});
             $ucount->{$uid}++;
         }

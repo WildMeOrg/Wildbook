@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.joda.time.DateTime;
 import java.util.List;
+import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
@@ -41,7 +42,7 @@ public class Organization implements java.io.Serializable {
         this.id = Util.generateUUID();
         this.name = name;
         created = System.currentTimeMillis();
-        modified = System.currentTimeMillis();
+        this.updateModified();
     }
 
     public String getId() {
@@ -53,6 +54,7 @@ public class Organization implements java.io.Serializable {
     }
     public void setName(String n) {
         name = n;
+        this.updateModified();
     }
 
     public String getUrl() {
@@ -60,6 +62,7 @@ public class Organization implements java.io.Serializable {
     }
     public void setUrl(String u) {
         url = u;
+        this.updateModified();
     }
 
     public String getDescription() {
@@ -67,6 +70,7 @@ public class Organization implements java.io.Serializable {
     }
     public void setDescription(String d) {
         description = d;
+        this.updateModified();
     }
 
     public MediaAsset getLogo() {
@@ -74,6 +78,7 @@ public class Organization implements java.io.Serializable {
     }
     public void setLogo(MediaAsset ma) {
         logo = ma;
+        this.updateModified();
     }
 
     public List<User> getMembers() {
@@ -81,11 +86,60 @@ public class Organization implements java.io.Serializable {
     }
     public void setMembers(List<User> u) {
         members = u;
+        this.membersReciprocate(u);
+        this.updateModified();
     }
     public void addMember(User u) {
         if (u == null) return;
         if (members == null) members = new ArrayList<User>();
         if (!members.contains(u)) members.add(u);
+        this.membersReciprocate(u);
+        this.updateModified();
+    }
+    public int addMembers(List<User> ulist) {
+        int ct = 0;
+        if ((ulist == null) || (ulist.size() < 1)) return 0;
+        if (members == null) members = new ArrayList<User>();
+        for (User mem : ulist) {
+            if (!members.contains(mem)) {
+                members.add(mem);
+                ct++;
+            }
+        }
+        this.membersReciprocate(ulist);
+        this.updateModified();
+        return ct;
+    }
+    public void removeMember(User u) {
+        if ((u == null) || (members == null)) return;
+        if (u.getOrganizations() == null) return;
+        u.getOrganizations().remove(this);
+        members.remove(u);
+        this.updateModified();
+    }
+    public void removeMembers(List<User> ulist) {
+        if ((members == null) || (ulist == null)) return;
+        members.removeAll(ulist);
+        //now the other end (thx dn)
+        for (User u : ulist) {
+            u.getOrganizations().remove(this);
+        }
+        this.updateModified();
+    }
+    //this removes user for this org and any suborgs (returns how many removed from)
+    public int removeMemberDeep(User u) {
+        if (u == null) return 0;
+        int ct = 0;
+        if (this.members.contains(u)) {
+            ct++;
+            this.removeMember(u);
+        }
+        if (!this.hasChildren()) return ct;
+        for (Organization org : this.children) {
+            if (org == null) continue;
+            ct += org.removeMemberDeep(u);
+        }
+        return ct;
     }
     public int numMembers() {
         if (members == null) return 0;
@@ -98,14 +152,45 @@ public class Organization implements java.io.Serializable {
     public List<Organization> getChildren() {
         return children;
     }
-    public void setChildren(List<Organization> kids) {
+    //note: setChildren() and addChild() will not complete if (any) child is related, to prevent looping
+    //  return success (false would mean related/loop issue)
+    public boolean setChildren(List<Organization> kids) {
+        if (kids != null) {
+            for (Organization org : kids) {
+                if (this.isRelatedTo(org)) {
+                    System.out.println("WARNING: " + this + " .setChildren() failed due to related to " + org);
+                    return false;
+                }
+            }
+        }
         children = kids;
+        this.updateModified();
+        return true;
     }
+    //if this returns null, failed due to relatedness
     public List<Organization> addChild(Organization kid) {
+        if (this.isRelatedTo(kid)) {
+            System.out.println("WARNING: " + this + " .addChild(" + kid + ") failed due to relatedness");
+            return null;
+        }
         if (children == null) children = new ArrayList<Organization>();
         if (kid == null) return children;
-        if (!children.contains(kid)) children.add(kid);
+        if (!children.contains(kid)) {
+            children.add(kid);
+            kid.parent = this;
+        }
+        this.updateModified();
         return children;
+    }
+
+    //returns true if successfully removed
+    public boolean removeChild(Organization kid) {
+        if ((kid == null) || (children == null)) return false;
+        if (!children.contains(kid)) return false;
+        children.remove(kid);
+        kid.parent = null;
+        this.updateModified();
+        return true;
     }
 
 /*  not sure if this is evil ??
@@ -151,6 +236,21 @@ public class Organization implements java.io.Serializable {
         return roots;
     }
 
+    //checks to see if passed org exists above us in tree
+    // note: this will return true if passed self
+    // XXX this assumes no looping!!! XXX
+    public boolean hasAncestor(Organization org) {
+        if (org == null) return false;
+        if (org.equals(this)) return true;
+        if (parent == null) return false;
+        return parent.hasAncestor(org);
+    }
+    //they are in each others tree if:
+    public boolean isRelatedTo(Organization org) {
+        if (org == null) return false;
+        return (this.hasAncestor(org) || org.hasAncestor(this));
+    }
+
     //see also hasMemberDeep()
     public boolean hasMember(User u) {
         if ((members == null) || (u == null)) return false;
@@ -166,12 +266,12 @@ public class Organization implements java.io.Serializable {
         return false;
     }
 
-    //TODO this is open for retooling!  e.g. we could have a special Role (OrgMgr whatev)
+    //  logic basically goes like this:  (1) "admin" role can touch any group; (2) "manager" role can affect any group *they are in*
     public boolean canManage(User user, Shepherd myShepherd) {
         if (user == null) return false;
-        if (user.getUsername().equals("tomcat")) return true;  //need someway to kickstart adding users to groups!
-        if (!this.hasMemberDeep(user)) return false;  //basically user *must* be in group (hence tomcat clause above)
-        return user.hasRoleByName("admin", myShepherd);
+        if (user.hasRoleByName("admin", myShepherd)) return true;  //TODO maybe new role?  "orgadmin" ?
+        if (!this.hasMember(user)) return false;  //TODO should this be .hasMemberDeep() ?
+        return user.hasRoleByName("manager", myShepherd);
     }
 
     //do we recurse?  i think so... you would want a child org (member) to see what you named something
@@ -186,6 +286,40 @@ public class Organization implements java.io.Serializable {
         return keys;
     }
 
+
+    //pass in another org and effectively take over its content.
+    //  note: this doesnt kill the other org - that must be done manually (if desired)
+    public int mergeFrom(Organization other) {
+        int ct = this.addMembers(other.members);  //really very simple for now
+        for (User mem : other.members) {
+            mem.addOrganization(this);
+        }
+        this.updateModified();
+        return ct;
+    }
+
+
+    //this is to handle the bidirectional dn madness when *adding* members
+    //  (removing are handled internally above)
+    private void membersReciprocate(List<User> mems) {
+        if (mems == null) return;
+        for (User mem : mems) {
+            if ((mem.getOrganizations() != null) && !mem.getOrganizations().contains(this)) mem.getOrganizations().add(this);
+        }
+    }
+    private void membersReciprocate(User mem) {
+        if (mem == null) return;
+        List<User> mems = new ArrayList<User>();
+        mems.add(mem);
+        membersReciprocate(mems);
+    }
+
+
+
+    public void updateModified() {
+        modified = System.currentTimeMillis();
+    }
+
     public JSONObject toJSONObject() {
         return this.toJSONObject(false);
     }
@@ -193,6 +327,9 @@ public class Organization implements java.io.Serializable {
         JSONObject j = new JSONObject();
         j.put("id", id);
         j.put("name", name);
+        j.put("url", url);
+        if (logo != null) j.put("logo", logo.toSimpleJSONObject());
+        j.put("description", description);
         j.put("created", created);
         j.put("modified", modified);
         j.put("createdDate", new DateTime(created));
@@ -215,6 +352,8 @@ public class Organization implements java.io.Serializable {
             }
             j.put("children", jc);
         }
+        Organization parent = this.getParent();
+        if (parent != null) j.put("parentId", parent.getId());
         return j;
     }
 

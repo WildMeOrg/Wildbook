@@ -740,9 +740,14 @@
           <column jdbc-type="BIGINT" allows-null="true"/>
         </field>
 
-            	<field name="organizations" persistence-modifier="persistent" default-fetch-group="true" mapped-by="members" >
-                	<collection element-type="org.ecocean.Organization" dependent-element="true" />
-                	<join />
+            	<field name="organizations" persistence-modifier="persistent" default-fetch-group="true" >
+                	<collection element-type="org.ecocean.Organization" dependent-element="false" />
+                	<join>
+				<column name="USER_ID" />
+			</join>
+			<element>
+				<column name="ORGANIZATION_ID" />
+			</element>
       </field>
     </class>
 
@@ -883,11 +888,11 @@
 
 		<!-- this uses parent to find child orgs -->
             	<field name="children" persistence-modifier="persistent" default-fetch-group="false" mapped-by="parent" >
-                	<collection element-type="org.ecocean.Organization" dependent-element="true" />
+                	<collection element-type="org.ecocean.Organization" dependent-element="false" />
                 	<join />
             	</field>
 
-		<field name="members">
+		<field name="members" persistent-modifier="persistent" mapped-by="organizations" default-fetch-group="true" >
 			<collection element-type="org.ecocean.User"/>
 			<join />
 		</field>

@@ -38,9 +38,13 @@ if ((oid == null) && (uid == null)) {  //show all
     if (org == null) {
         out.println("<p>unknown Organization id=" + oid + "</p>");
     } else {
+        if (org.getLogo() != null) out.println("<img style=\"max-height: 200px; margin-right: 30%; float: right;\" src=\"" + org.getLogo().safeURL(request) + "\" />");
         out.println("<h1>" + org.getName() + "</h1>");
-        //FIXME if (org.getLogo() != null) .............  <img src=" org.getLogo().safeUrl()
-        out.println("<p>url: <b>" + org.getUrl() + "</b></p>");
+        if (org.getUrl() != null) {
+            out.println("<p>url: <b><a href=\"" + org.getUrl() + "\">" + org.getUrl() + "</a></b></p>");
+        } else {
+            out.println("<p>url: <i>none</i></p>");
+        }
         out.println("<p>description: <b>" + org.getDescription() + "</b></p>");
         if (org.numMembers() < 1) {
             out.println("<p><i>no members</i></p>");

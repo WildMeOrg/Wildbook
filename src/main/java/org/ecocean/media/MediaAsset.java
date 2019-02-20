@@ -995,6 +995,18 @@ public class MediaAsset implements java.io.Serializable {
         }
 
 
+    //carefree, safe json version
+    public JSONObject toSimpleJSONObject() {
+        JSONObject j = new JSONObject();
+        j.put("id", getId());
+        j.put("uuid", getUUID());
+        j.put("url", safeURL());
+        if ((getMetadata() != null) && (getMetadata().getData() != null) && (getMetadata().getData().opt("attributes") != null)) {
+            j.put("attributes", getMetadata().getData().opt("attributes"));
+        }
+        return j;
+    }
+
     public String toString() {
         List<String> kwNames = getKeywordNames();
         String kwString = (kwNames==null) ? "None" : Util.joinStrings(kwNames);
