@@ -344,7 +344,7 @@ var colDefn = [
 	},
 	{
 		key: 'occurrenceID',
-		label: 'Sighting ID',
+		label: '<%=encprops.getProperty("sightingID")%>',
 		value: _occurrenceID,
 	},
   {
@@ -379,13 +379,13 @@ var colDefn = [
 	},
 	{
 		key: 'creationDate',
-		label: 'Created',
+		label: '<%=encprops.getProperty("created")%>',
 		value: _colCreationDate,
 		sortValue: _colCreationDateSort,
 	},
 	{
 		key: 'modified',
-		label: 'Edit Date',
+		label: '<%=encprops.getProperty("editDate")%>',
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
