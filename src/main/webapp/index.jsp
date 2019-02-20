@@ -16,7 +16,7 @@
 
 <%
 String context=ServletUtilities.getContext(request);
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 
 //set up our Shepherd

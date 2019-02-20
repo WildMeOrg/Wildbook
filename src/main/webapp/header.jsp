@@ -42,7 +42,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 Boolean isUserResearcher = request.isUserInRole("researcher");
 %>
@@ -448,10 +448,10 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
             },
             select: function(ev, ui) {
                 if (ui.item.type == "individual") {
-                    window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
                 }
                 else if (ui.item.type == "locationID") {
-                	window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
                 }
                 /*
                 //restore user later
@@ -467,7 +467,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
             //source: app.config.wildbook.proxyUrl + "/search"
             source: function( request, response ) {
                 $.ajax({
-                    url: '<%=("http://" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
+                    url: '<%=("//" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
                     dataType: "json",
                     data: {
                         term: request.term
