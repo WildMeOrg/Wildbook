@@ -46,14 +46,14 @@ if (Util.stringExists(requestEmail)) {
         try {
             ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
             Map<String, String> tagMap = new HashMap<String, String>();
-            tagMap.put("REQUEST_EMAIL", requestEmail);
-            tagMap.put("REQUEST_NAME", requestName);
-            tagMap.put("REQUEST_ORGANIZATION", requestOrganization);
-            tagMap.put("REQUEST_OBJECTIVES", requestObjectives);
-            tagMap.put("REQUEST_TOOLSDATA", requestToolsdata);
-            tagMap.put("REQUEST_DATACOLLECTED", requestDatacollected);
-            tagMap.put("REQUEST_QUALIFICATIONS", requestQualifications);
-            tagMap.put("REQUEST_DATAPLAN", requestDataplan);
+            tagMap.put("@REQUEST_EMAIL@", requestEmail);
+            tagMap.put("@REQUEST_NAME@", requestName);
+            tagMap.put("@REQUEST_ORGANIZATION@", requestOrganization);
+            tagMap.put("@REQUEST_OBJECTIVES@", requestObjectives);
+            tagMap.put("@REQUEST_TOOLSDATA@", requestToolsdata);
+            tagMap.put("@REQUEST_DATACOLLECTED@", requestDatacollected);
+            tagMap.put("@REQUEST_QUALIFICATIONS@", requestQualifications);
+            tagMap.put("@REQUEST_DATAPLAN@", requestDataplan);
             String[] mailTo = new String[]{"sito.org@gmail.com", "jon@wildme.org"};
             for (int i = 0 ; i < mailTo.length ; i++) {
                 NotificationMailer mailer = new NotificationMailer(context, ServletUtilities.getLanguageCode(request), mailTo[i], "requestAccess", tagMap);
