@@ -155,7 +155,7 @@
 									<span class="button-icon" aria-hidden="true">
 								</button>
 							-->   <h2>
-											<a href="http://www.wwf.fi/norppakummiksi">
+											<a href="//www.wwf.fi/norppakummiksi">
 													<!--<button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>-->
 													<button class="btn btn-primary">Liity Norppa-Kummiksi</button>
 											</a>
@@ -172,7 +172,7 @@
 									</br>
 
 									<a href="https://www.uef.fi/fi/web/norppa"><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab1.png"></a>
-									<a href="http://www.metsa.fi/saimaannorppa">
+									<a href="//www.metsa.fi/saimaannorppa">
 										<img class="second" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab2.png">
 									</a>
 								</div>
@@ -183,7 +183,7 @@
 
 									<div class="col-xs-12" style="text-align: center;">
 									<a style="
-    									background-image: url('http://norppagalleria.wwf.fi/cust/mantamatcher/img/wwf_panda_logo.svg');
+    									background-image: url('//norppagalleria.wwf.fi/cust/mantamatcher/img/wwf_panda_logo.svg');
     									background-repeat: no-repeat;
     									background-size: contain;
     									width: 72px;
@@ -195,10 +195,10 @@
 
 											<ul class="nav">
 																			
-							<li><a href="http://norppagalleria.wwf.fi/privacy.jsp">Rekisteriseloste</a></li>
+							<li><a href="//norppagalleria.wwf.fi/privacy.jsp">Rekisteriseloste</a></li>
 							
-							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/yhteystiedot/">Yhteystiedot</a></li>
-							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/yhteystiedot/palaute/" onClick="ga('send', 'event', {'eventCategory': 'feedback', 'eventAction': 'fee_step1_footer_', 'eventLabel': 'lnk'});" >Palaute</a></li>
+							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="//www.wwf.fi/wwf-suomi/yhteystiedot/">Yhteystiedot</a></li>
+							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="//www.wwf.fi/wwf-suomi/yhteystiedot/palaute/" onClick="ga('send', 'event', {'eventCategory': 'feedback', 'eventAction': 'fee_step1_footer_', 'eventLabel': 'lnk'});" >Palaute</a></li>
 											</ul>
 										</br>
 										<small class="copyright source-org vcard" itemprop="copyrightHolder">Copyright © <span itemprop="copyrightYear">2016</span> <span class="org fn" itemprop="creator">WWF Suomi</span>, valokuvien tekijänoikeudet kuvien yhteydessä</small>
@@ -209,9 +209,9 @@
                 <div class="row grey-background very-footer">
 
                   <p class="col-sm-8 col-md-8 col-lg-8">
-                     <a href="http://www.wildbook.org" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
+                     <a href="//www.wildbook.org" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                   </p>
-                  <a href="http://www.wildbook.org" class="col-sm-4 col-md-4 col-lg-4" title="This site is Powered by Wildbook">
+                  <a href="//www.wildbook.org" class="col-sm-4 col-md-4 col-lg-4" title="This site is Powered by Wildbook">
                      <img src="<%=urlLoc %>/images/logo_wildbook.png" alt=" logo" class="pull-right" />
 
 

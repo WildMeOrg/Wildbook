@@ -61,7 +61,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-      <link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
+      <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
@@ -121,7 +121,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 		else if(request.getRequestURL().toString().indexOf("gallery.jsp")!=-1){
   			//http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg
   			%>
-  				<meta property="og:image" content="http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg" />
+  				<meta property="og:image" content="https://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg" />
 	    		<meta property="og:image:width" content="1200" />
 				<meta property="og:image:height" content="627" />
 				<meta property="og:description" content="WWF:n Norppagalleriassa voit tutustua kaikkiin tunnistettuihin saimaannorppiin. K&auml;y sin&auml;kin katsomassa!" />
@@ -392,14 +392,14 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                       </li>
 
                       <li>
-                        <a href="http://norppagalleria.wwf.fi/gallery.jsp">GALLERIA</a>
+                        <a href="//norppagalleria.wwf.fi/gallery.jsp">GALLERIA</a>
                       </li>
 
                       <% } %>
 
 
-                      <li class="donate pull-right"><a class="bc1-primary-bkg donate-link" href="http://wwf.fi/norppakummiksi/" itemprop="url">Liity ja lahjoita</a>
-                        <ul class="nav-donate" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+                      <li class="donate pull-right"><a class="bc1-primary-bkg donate-link" href="//wwf.fi/norppakummiksi/" itemprop="url">Liity ja lahjoita</a>
+                        <ul class="nav-donate" itemscope="" itemtype="//www.schema.org/SiteNavigationElement">
                           <li><a href="#">Liity kummiksi</a></li>
                           <li><a href="#">Tee kertalahjoitus</a></li>
                         </ul>
