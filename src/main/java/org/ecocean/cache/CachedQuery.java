@@ -23,7 +23,10 @@ import org.json.JSONObject;
 //A non-persistent object representing a single StoredQuery. 
 public class CachedQuery {
   
+    private StoredQuery storedQuery = null;
+
     public CachedQuery(StoredQuery sq){
+      this.storedQuery = sq;
       this.uuid=sq.getUUID();
       this.queryString=sq.getQueryString();
       this.name=sq.getName();
@@ -335,8 +338,10 @@ public class CachedQuery {
      //System.out.println("Cache file path to: "+writePath);
      return new File(writePath);
    }
-   
 
+    public StoredQuery getStoredQuery() {
+        return storedQuery;
+    }
   
 
 }
