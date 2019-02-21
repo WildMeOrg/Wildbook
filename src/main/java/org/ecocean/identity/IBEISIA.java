@@ -448,9 +448,14 @@ myShepherd.closeDBTransaction();
         }
 
         String viewpointModelTag = getViewpointTag(context, taxy);
+        String labelerAlgo = getLabelerAlgo(context, taxy);
         if (viewpointModelTag != null) {
             System.out.println("[INFO] sendDetect() labeler_model_tag set to " + modelTag);
             map.put("labeler_model_tag",viewpointModelTag);
+            if (labelerAlgo!=null) {
+                map.put("labeler_algo",labelerAlgo);
+                System.out.println("[INFO] sendDetect() labeler_algo set to " + labelerAlgo);
+            } else {System.out.println("[INFO] sendDetect() labeler_algo is null; skipping");} 
         } else {
             System.out.println("[INFO] sendDetect() labeler_model_tag is null; DEFAULT will be used");
         }
@@ -519,6 +524,10 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     public static String getViewpointTag(String context) {
         return getViewpointTag(context, null);
     }
+
+    public static String getLabelerAlgo(String context) {
+        return getLabelerAlgo(context, null);
+    }
     
     public static String getViewpointTag(String context, Taxonomy tax) {
         if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "viewpointModelTag").trim();  //best we can hope for
@@ -528,6 +537,16 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         if (vp == null) vp = IA.getProperty(context, "viewpointModelTag");  //too bad, fallback!
         return vp;
     }
+
+    public static String getLabelerAlgo(String context, Taxonomy tax) {
+        if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "labelerAlgo").trim();
+        String propKey = "labelerAlgo_".concat(tax.getScientificName()).replaceAll(" ", "_");
+        System.out.println("[INFO] getLabelerAlgo() using propKey=" + propKey + " based on " + tax);
+        String vp = IA.getProperty(context, propKey).trim();
+        if (vp == null) vp = IA.getProperty(context, "labelerAlgo");
+        return vp;
+    }
+
     /*
     THIS IS NOW UNUSED BY ABOVE (see note above)
     note: this is "for internal use only" -- i.e. this is used for getModelTag above, so re-use with caution?
