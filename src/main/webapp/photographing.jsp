@@ -24,7 +24,7 @@ context=ServletUtilities.getContext(request);
 			
 		</ol> 
 		<h3>
-			Method for photographing Grey Nurse Sharks
+			Method for photographing
 		</h3>
 		<ol>
 			<li>
