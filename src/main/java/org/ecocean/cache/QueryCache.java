@@ -13,19 +13,23 @@ import org.json.JSONObject;
 public class QueryCache {
   
   private Map<String,CachedQuery> cachedQueries;
+  private String context = null;
 
   public QueryCache(){}
-  
-  
-  public CachedQuery getQueryByName(String name, String context){
-    if(cachedQueries==null)loadQueries(context);
+  public QueryCache(String context) {
+        this.context = context;
+  }
+
+  public CachedQuery getQueryByName(String name) {
+    if(cachedQueries==null)loadQueries();
     return cachedQueries.get(name);
   }
   
   
   public Map<String,CachedQuery> cachedQueries(){return cachedQueries;}
   
-  public void loadQueries(String context){
+  public void loadQueries() {
+    if (context == null) throw new RuntimeException("QueryCache.loadQueries() called with context null");
     cachedQueries=new HashMap<String,CachedQuery>();
     Shepherd myShepherd=new Shepherd(context);
     myShepherd.beginDBTransaction();
