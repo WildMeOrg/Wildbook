@@ -2865,6 +2865,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
             jobj.put("location", this.getLocation());
+            if(individual!=null){jobj.put("individualID", this.getIndividualID());}
             boolean fullAccess = this.canUserAccess(request);
 
             //these are for convenience, like .hasImages above (for use in table building e.g.)
