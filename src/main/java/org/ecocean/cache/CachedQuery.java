@@ -136,7 +136,7 @@ public class CachedQuery {
             //load the cache file and return the JSONObject
             //System.out.println("*****Status 1a");
             nextExpirationTimeout=time+expirationTimeoutDuration;
-            return loadCachedJSON(myShepherd); 
+            return loadCachedJSON();
           }
           //gotta regen the cache
           else{
@@ -301,7 +301,7 @@ public class CachedQuery {
      }
    }
    
-   public synchronized JSONObject loadCachedJSON(Shepherd myShepherd){
+   public synchronized JSONObject loadCachedJSON() {
      //just load and return the List<Object> from the cache
      
      //System.out.println("loading cached JSON: ");
@@ -330,7 +330,13 @@ public class CachedQuery {
      }
      return null;
    }
-   
+
+    //this only loads from disk if "it is necessary" (TBD?)
+    public synchronized JSONObject loadCachedJSONIfNeeded() {
+        if (jsonSerializedQueryResult != null) return jsonSerializedQueryResult;
+        return loadCachedJSON();
+    }
+
    public File getCacheFile(){
      String writePath=ShepherdProperties.getProperties("cache.properties","").getProperty("cacheRootDirectory");
      if(!writePath.endsWith("/"))writePath+="/";
