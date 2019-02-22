@@ -1,4 +1,6 @@
 package org.ecocean.identity;
+
+import java.util.ArrayList;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -12,6 +14,15 @@ import org.json.JSONArray;
 public class IAQueryCache {
     private static String NAME_PREFIX = "IBEISIA.";
     private static String NAME_TARGETANNOTATIONS = "targetAnnotations";
+
+    //this is used at the end IBEISIA.sendIdentify() to "store" (if applicable?) the JSONObject which will be cached
+    //  for future use.  possibly more complex logic could decide if/when to store it etc.
+    public static void buildTargetAnnotationsCache(String context, ArrayList<Annotation> qanns, JSONObject jdata) {
+        //qanns can "in theory" contain more than one annot, but we arent ready for that universe yet anyway...
+        if ((jdata == null) || (qanns == null) || (qanns.size() < 1)) return;  //  :(
+System.out.println("!!!! IAQueryCache.buildTargetAnnotationsCache() caching ~" + jdata.toString().length() + " byte of json data");
+        setTargetAnnotationsCache(context, qanns.get(0), jdata);
+    }
 
     public static CachedQuery setTargetAnnotationsCache(String context, Annotation ann, JSONObject jobj) {
         String qname = generateQueryName(context, ann, NAME_TARGETANNOTATIONS);
