@@ -58,7 +58,38 @@ System.out.println("!!!! IAQueryCache.buildTargetAnnotationsCache() caching ~" +
             System.out.println("INFO: IAQueryCache.getTargetAnnotationsCache(" + qname + ") has no such CachedQuery, sorry!");
             return null;
         }
+        q.loadCachedJSONIfNeeded();
         return q.getJSONSerializedQueryResult();
+    }
+
+
+    //if this returns null, then expensive grind happens to find and send ident task
+    //  (on the plus side, it should *set* the cache for next time!)
+    //NOTE:  this *must* return the JSONObject structure expected to be returned from IBEISIA._sendIdentificationTask()
+    public static JSONObject tryTargetAnnotationsCache(String context, Annotation ann, final JSONObject baseRtn) {
+        JSONObject current = getTargetAnnotationsCache(context, ann);
+        if (current == null) {
+            System.out.println("WARNING: IAQueryCache.tryTargetAnnotation() has no current cache for " + ann);
+            //return null;
+        }
+//TODO weed out ann and its siblings?  other????
+        // TODO some other checks here, obviously????? (or will it just expire by itself)
+System.out.println("!!!! IAQueryCache.tryTargetAnnotationsCache() using ~" + current.toString().length() + " byte cache of json data");
+        JSONObject rtn = new JSONObject(baseRtn, JSONObject.getNames(baseRtn));
+        rtn.put("success", false);
+/*
+            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
+                                                               myShepherd, annTaskId, baseUrl);
+            ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
+            taskRes.put("beginIdentify", sent);
+            String jobId = null;
+            if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
+                jobId = sent.optString("response", null);
+            taskRes.put("jobId", jobId);
+            //validIds.toArray(new String[validIds.size()])
+            IBEISIA.log(annTaskId, ann.getId(), jobId, new JSONObject("{\"_action\": \"initIdentify\"}"), context);
+*/
+        return rtn;
     }
 
     //NOTE: this assumes ann as been "approved" for sending
