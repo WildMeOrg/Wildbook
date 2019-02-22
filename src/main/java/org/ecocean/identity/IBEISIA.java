@@ -93,14 +93,14 @@ public class IBEISIA {
         speciesMap.put("whale shark", new String[]{"Rhincodon","typus"});
     }
 
-    public static String STATUS_PENDING = "pending";  //pending review (needs action by user)
-    public static String STATUS_COMPLETE = "complete";  //process is done
-    public static String STATUS_PROCESSING = "processing";  //off at IA, awaiting results
-    public static String STATUS_ERROR = "error";
+    public static final String STATUS_PENDING = "pending";  //pending review (needs action by user)
+    public static final String STATUS_COMPLETE = "complete";  //process is done
+    public static final String STATUS_PROCESSING = "processing";  //off at IA, awaiting results
+    public static final String STATUS_ERROR = "error";
+    public static final String IA_UNKNOWN_NAME = "____";
 
     private static long TIMEOUT_DETECTION = 20 * 60 * 1000;   //in milliseconds
     private static String SERVICE_NAME = "IBEISIA";
-    private static String IA_UNKNOWN_NAME = "____";
 
     private static AtomicBoolean iaPrimed = new AtomicBoolean(false);
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
