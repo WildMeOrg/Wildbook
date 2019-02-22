@@ -9,16 +9,19 @@ import java.util.Vector;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
+
 import org.joda.time.DateTime;
+
 import java.text.SimpleDateFormat;
 
 import org.ecocean.media.AssetStoreType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
@@ -1112,5 +1115,22 @@ public class Occurrence implements java.io.Serializable {
         }
       }  
     } 
+    
+    public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+
+      if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
+          JSONArray jarr = new JSONArray();
+          boolean fullAccess = this.canUserAccess(request);
+          for (Encounter enc : this.getEncounters()) {
+              jarr.put(enc.sanitizeJson(request, new JSONObject()));
+          }
+          jobj.put("encounters", jarr);
+      }
+
+
+      jobj.put("_sanitized", true);
+
+      return jobj;
+  }
 
 }
