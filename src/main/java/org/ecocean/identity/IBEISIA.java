@@ -383,9 +383,7 @@ System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlis
 System.out.println(map);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-        JSONObject jsonData = hashMapToJSONObject2(map);
-        IAQueryCache.buildTargetAnnotationsCache(context, qanns, jsonData);
-        return RestClient.post(url, jsonData);
+        return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
