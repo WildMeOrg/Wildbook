@@ -282,12 +282,6 @@ f<%@ page contentType="text/html; charset=utf-8"
         	<jsp:param name="rangeEnd" value="<%=endNum %>" />
         </jsp:include>
 
-<%
-
-  startNum = startNum + encounterIncrementer;
-  endNum = endNum + encounterIncrementer;
-
-%>
 
 <table width="100%">
   <tr>
