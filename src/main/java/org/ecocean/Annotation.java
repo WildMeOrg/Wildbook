@@ -483,10 +483,9 @@ public class Annotation implements java.io.Serializable {
         public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
           return this.sanitizeMedia(request, false);
         }
-     
+
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        ArrayList<Encounter> encs = new ArrayList<Encounter>();
         Encounter myEnc = this.findEncounter(myShepherd);
         if (myEnc == null) {
             System.out.println("WARNING: getMatchingSet() could not find Encounter for " + this);
@@ -497,44 +496,58 @@ public class Annotation implements java.io.Serializable {
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         String filter;
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
-            filter = "SELECT FROM org.ecocean.Encounter WHERE specificEpithet == \""+mySpecificEpithet+"\" && genus == \""+myGenus+"\" ";
+            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc);
         } else {
             System.out.println("NO MATCHING SET: The parent encounter for Annotation id="+this.id+" has not specified specificEpithet and genus.");
             return anns; 
         }
+        System.out.println("Did the query return any encounters? It got: "+anns.size()); 
+        return anns;
+    }
+
+    //note: this also excludes "sibling annots" (in same encounter)
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc) {
+        if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
+        //do we need to worry about our annot living in another encounter?  i hope not!
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        return getMatchingSetForFilter(myShepherd, filter);
+    }
+    // the figure-it-out-yourself version
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd) {
+        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd));
+    }
+
+    //gets everything, no exclusions (e.g. for cacheing)
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet) {
+        if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
+        return getMatchingSetForFilter(myShepherd, filter);
+    }
+    //figgeritout
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc == null) return null;
+        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet());
+    }
+
+    //pass in a generic SELECT filter query string and get back Annotations
+    static public ArrayList<Annotation> getMatchingSetForFilter(Shepherd myShepherd, String filter) {
+        if (filter == null) return null;
         Query query = myShepherd.getPM().newQuery(filter);
-        Collection c = (Collection) (query.execute());
+        Collection c = (Collection)query.execute();
         Iterator it = c.iterator();
-        int count = 0;
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
         while (it.hasNext()) {
-            count++;
-            Encounter enc = (Encounter) it.next();
-            if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
-                for (Annotation ann : enc.getAnnotations()) {
-                    if (ann.matchAgainst) {
-                        anns.add(ann);
-                    }
-                }
-            }
+            Annotation ann = (Annotation)it.next();
+            //FIXME also do other validAnnotation kinda stuff here !!!!!!!!!!!!!!!!!!!! TODO FIXME XXX
+            anns.add(ann);
         }
-        System.out.println("Did the query return any encounters? It got: "+count); 
-        
         query.closeAll();
         return anns;
     }
 
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
-        ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst";
-        Query query = myShepherd.getPM().newQuery(filter);
-        Collection c = (Collection) (query.execute());
-        Iterator it = c.iterator();
-        while (it.hasNext()) {
-            Annotation ann = (Annotation) it.next(); 
-            anns.add(ann);
-        }
-        query.closeAll();
-        return anns;
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
     }
 
     public String findIndividualId(Shepherd myShepherd) {
