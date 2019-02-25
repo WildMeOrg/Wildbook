@@ -143,13 +143,23 @@ public class StartupWildbook implements ServletContextListener {
     private void startIAQueues(String context) {
         class IAMessageHandler extends QueueMessageHandler {
             public boolean handler(String msg) {
-                org.ecocean.servlet.IAGateway.processQueueMessage(msg);  //yeah we need to move this somewhere else...
+                try {
+                    org.ecocean.servlet.IAGateway.processQueueMessage(msg);  //yeah we need to move this somewhere else...
+                } catch (Exception ex) {
+                    System.out.println("WARNING: IAMessageHandler processQueueMessage() threw " + ex.toString());
+                    ex.printStackTrace();
+                }
                 return true;
             }
         }
         class IACallbackMessageHandler extends QueueMessageHandler {
             public boolean handler(String msg) {
-                org.ecocean.servlet.IAGateway.processCallbackQueueMessage(msg);  //yeah we need to move this somewhere else...
+                try {
+                    org.ecocean.servlet.IAGateway.processCallbackQueueMessage(msg);  //yeah we need to move this somewhere else...
+                } catch (Exception ex) {
+                    System.out.println("WARNING: IACallbackMessageHandler processCallbackQueueMessage() threw " + ex.toString());
+                    ex.printStackTrace();
+                }
                 return true;
             }
         }
