@@ -450,14 +450,14 @@ myShepherd.closeDBTransaction();
         String viewpointModelTag = getViewpointTag(context, taxy);
         String labelerAlgo = getLabelerAlgo(context, taxy);
         if (viewpointModelTag != null) {
-            System.out.println("[INFO] sendDetect() labeler_model_tag set to " + modelTag);
+            System.out.println("[INFO] sendDetect() labeler_model_tag set to " + viewpointModelTag);
             map.put("labeler_model_tag",viewpointModelTag);
             if (labelerAlgo!=null) {
                 map.put("labeler_algo",labelerAlgo);
                 System.out.println("[INFO] sendDetect() labeler_algo set to " + labelerAlgo);
             } else {System.out.println("[INFO] sendDetect() labeler_algo is null; skipping");} 
         } else {
-            System.out.println("[INFO] sendDetect() labeler_model_tag is null; DEFAULT will be used");
+            System.out.println("[INFO] sendDetect() labeler_model_tag is null. Viewpoint detection not available.");
         }
 
         String u = getDetectUrlByModelTag(context, modelTag);
@@ -530,6 +530,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     }
     
     public static String getViewpointTag(String context, Taxonomy tax) {
+        if (tax==null&&IA.getProperty(context, "viewpointModelTag")==null) return null; //got nothin
         if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "viewpointModelTag").trim();  //best we can hope for
         String propKey = "viewpointModelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
         System.out.println("[INFO] getViewpointTag() using propKey=" + propKey + " based on " + tax);
@@ -539,6 +540,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     }
 
     public static String getLabelerAlgo(String context, Taxonomy tax) {
+        if (tax==null&&IA.getProperty(context, "labelerAlgo")==null) return null; //got nothin
         if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "labelerAlgo").trim();
         String propKey = "labelerAlgo_".concat(tax.getScientificName()).replaceAll(" ", "_");
         System.out.println("[INFO] getLabelerAlgo() using propKey=" + propKey + " based on " + tax);
