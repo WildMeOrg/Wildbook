@@ -667,6 +667,22 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
     }
 */
 
+    public Annotation revertToTrivial(Shepherd myShepherd) throws IOException {
+        if (this.isTrivial()) throw new IOException("Already a trivial Annotation: " + this);
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc == null) throw new IOException("Unable to find corresponding Encounter for " + this);
+        MediaAsset ma = this.getMediaAsset();
+        if (ma == null) throw new IOException("Unable to find corresponding MediaAsset for " + this);
+        if ((ma.getFeatures() != null) && (ma.getFeatures().size() > 1)) throw new IOException("Sibling Annotations detected on " + ma + "; cannot revert to trivial " + this);
+        Annotation triv = new Annotation(this.species, ma);  //not going to set IAClass or anything since starting fresh
+        enc.removeAnnotation(this);
+        this.setMatchAgainst(false);
+        this.detachFromMediaAsset();
+        enc.addAnnotation(triv);
+        System.out.println("INFO: revertToTrivial() created annot=" + triv.getId() + " on enc=" + enc.getCatalogNumber() + ", replacing annot=" + this.getId());
+        return triv;
+    }
+
     //creates a new Annotation with the basic properties duplicated (but no "linked" objects, like Features etc)
     public Annotation shallowCopy() {
         Annotation ann = new Annotation();
