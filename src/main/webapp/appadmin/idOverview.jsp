@@ -22,7 +22,7 @@ List<String> colLabel = Arrays.asList("enc id", "time", "loc id", "ma", "ann", "
 String rootDir = getServletContext().getRealPath("/");
 //String dataDir = ServletUtilities.dataDir(context, rootDir);
 String fileName = "idOverviewData.json";
-String dataFile = rootDir + fileName;
+String dataFile = rootDir + "appadmin/" + fileName;
 
 if (Util.requestParameterSet(request.getParameter("generateData"))) {
     String sqlMagic = "SELECT \"ENCOUNTER\".\"CATALOGNUMBER\" as encId," +
