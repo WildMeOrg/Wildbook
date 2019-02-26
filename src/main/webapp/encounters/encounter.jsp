@@ -671,9 +671,9 @@ $(function() {
 						align="absmiddle" />
 					<%=encprops.getProperty("location")%>
 					<button class="btn btn-md" type="button" name="button"
-						id="editLocation">Edit</button>
+						id="editLocation"><%=encprops.getProperty("edit") %></button>
 					<button class="btn btn-md" type="button" name="button"
-						id="closeEditLocation" style="display: none;">Close Edit</button>
+						id="closeEditLocation" style="display: none;"><%=encprops.getProperty("closeEdit") %></button>
 				</h2>
 
 
@@ -1305,9 +1305,9 @@ $(document).ready(function() {
 							height="40px" />
 						<%=encprops.getProperty("identity")%>
 						<button class="btn btn-md" type="button" name="button"
-							id="editIdentity">Edit</button>
+							id="editIdentity"><%=encprops.getProperty("edit") %></button>
 						<button class="btn btn-md" type="button" name="button"
-							id="closeEditIdentity" style="display: none;">Close Edit</button>
+							id="closeEditIdentity" style="display: none;"><%=encprops.getProperty("closeEdit") %></button>
 					</h2>
 
 
@@ -2016,8 +2016,8 @@ $(document).ready(function() {
           <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
           <h2>
             <img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %>
-            <button class="btn btn-md" type="button" name="button" id="editContactBtn">Edit</button>
-            <button class="btn btn-md" type="button" name="button" id="closeEditContact" style="display:none;">Close Edit</button>
+            <button class="btn btn-md" type="button" name="button" id="editContactBtn"><%=encprops.getProperty("edit") %></button>
+            <button class="btn btn-md" type="button" name="button" id="closeEditContact" style="display:none;"><%=encprops.getProperty("closeEdit") %></button>
           </h2>
 
 
@@ -2451,9 +2451,9 @@ $(document).ready(function() {
 									style="border-style: none;" src="../images/workflow_icon.gif" />
 								<%=encprops.getProperty("metadata")%>
 								<button class="btn btn-md" type="button" name="button"
-									id="editMeta">Edit</button>
+									id="editMeta"><%=encprops.getProperty("edit") %></button>
 								<button class="btn btn-md" type="button" name="button"
-									id="closeEditMeta" style="display: none;">Close Edit</button>
+									id="closeEditMeta" style="display: none;"><%=encprops.getProperty("closeEdit") %></button>
 							</h2> <script type="text/javascript">
 $(document).ready(function() {
   var buttons = $("#editMeta, #closeEditMeta").on("click", function(){
@@ -2964,9 +2964,9 @@ if (isOwner) {
 							style="border-style: none;" src="../images/ruler.png" />
 						<c:out value="${measurementTitle}"></c:out>
 						<button class="btn btn-md" type="button" name="button"
-							id="editMeasure">Edit</button>
+							id="editMeasure"><%=encprops.getProperty("edit") %></button>
 						<button class="btn btn-md" type="button" name="button"
-							id="closeEditMeasure" style="display: none;">Close Edit</button>
+							id="closeEditMeasure" style="display: none;"><%=encprops.getProperty("closeEdit") %></button>
 					</h2>
 
 
@@ -3142,10 +3142,10 @@ $(document).ready(function() {
 										height="40px" />
 									<%=encprops.getProperty("tracking")%>
 									<button class="btn btn-md" type="button" name="button"
-										id="editTracking">Edit</button>
+										id="editTracking"><%=encprops.getProperty("edit") %></button>
 									<button class="btn btn-md" type="button" name="button"
 										id="closeEditTracking" style="display: none;">Close
-										Edit</button>
+										<%=encprops.getProperty("edit") %></button>
 								</h2>
 
 
@@ -3484,9 +3484,9 @@ $(document).ready(function() {
 								<img align="absmiddle" src="../images/calendar.png" width="40px"
 									height="40px" /><%=encprops.getProperty("date")%>
 								<button class="btn btn-md" type="button" name="button"
-									id="editDate">Edit</button>
+									id="editDate"><%=encprops.getProperty("edit") %></button>
 								<button class="btn btn-md" type="button" name="button"
-									id="closeEditDate" style="display: none;">Close Edit</button>
+									id="closeEditDate" style="display: none;"><%=encprops.getProperty("closeEdit") %></button>
 							</h2> <script type="text/javascript">
       $(document).ready(function() {
         var buttons = $("#editDate, #closeEditDate").on("click", function(){
@@ -3810,10 +3810,10 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 						width="40px" height="40px" />
 					<%=encprops.getProperty("observationAttributes")%>
 					<button class="btn btn-md" type="button" name="button"
-						id="editObservation">Edit</button>
+						id="editObservation"><%=encprops.getProperty("edit") %></button>
 					<button class="btn btn-md" type="button" name="button"
 						id="closeEditObservation" style="display: none;">Close
-						Edit</button>
+						<%=encprops.getProperty("edit") %></button>
 				</h2>
 
 
@@ -4716,9 +4716,9 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 					<img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
 					<%=encprops.getProperty("dynamicProperties")%>
 					<button class="btn btn-md" type="button" name="button"
-						id="editObservations">Edit</button>
+						id="editObservations"><%=encprops.getProperty("edit") %></button>
 					<button class="btn btn-md" type="button" name="button"
-						id="closeEditObservations" style="display: none;">Close Edit</button>
+						id="closeEditObservations" style="display: none;"><%=encprops.getProperty("closeEdit") %></button>
 				</h2>
 				<label style="display:none;" class="obFormLabel"><small><%=encprops.getProperty("obFormMessage")%></small></label>
 
