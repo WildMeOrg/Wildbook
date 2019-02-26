@@ -474,8 +474,9 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "viewpointModelTag").trim();  //best we can hope for
         String propKey = "viewpointModelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
         System.out.println("[INFO] getViewpointTag() using propKey=" + propKey + " based on " + tax);
-        String vp = IA.getProperty(context, propKey).trim();
+        String vp = IA.getProperty(context, propKey);
         if (vp == null) vp = IA.getProperty(context, "viewpointModelTag");  //too bad, fallback!
+        if (vp!=null) {vp=vp.trim();}
         return vp;
     }
 
@@ -484,8 +485,9 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "labelerAlgo").trim();
         String propKey = "labelerAlgo_".concat(tax.getScientificName()).replaceAll(" ", "_");
         System.out.println("[INFO] getLabelerAlgo() using propKey=" + propKey + " based on " + tax);
-        String vp = IA.getProperty(context, propKey).trim();
+        String vp = IA.getProperty(context, propKey);
         if (vp == null) vp = IA.getProperty(context, "labelerAlgo");
+        if (vp!=null) {vp=vp.trim();}
         return vp;
     }
 
