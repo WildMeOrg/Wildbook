@@ -5,6 +5,7 @@ javax.jdo.*,
 java.util.Iterator,
 java.util.Arrays,
 java.util.List,
+java.io.File,
 org.json.JSONArray,
 org.json.JSONObject,
 org.ecocean.media.*
@@ -18,8 +19,13 @@ List<String> colName = Arrays.asList("encId", "encTimestamp", "encLocId", "asset
 List<String> colClass = Arrays.asList("java.lang.String", "java.lang.Long", "java.lang.String", "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String");
 List<String> colLabel = Arrays.asList("enc id", "time", "loc id", "ma", "ann", "indiv", "img");
 
+String rootDir = getServletContext().getRealPath("/");
+String dataDir = ServletUtilities.dataDir(context, rootDir);
+String fileName = "appadmin/overview.json";
+String dataFile = dataDir + "/" + fileName;
+String webDataDir = CommonConfiguration.getDataDirectoryName(context);
 
-if (Util.requestParameterSet(request.getParameter("data"))) {
+if (Util.requestParameterSet(request.getParameter("generateData"))) {
     String sqlMagic = "SELECT \"ENCOUNTER\".\"CATALOGNUMBER\" as encId," +
         "\"ENCOUNTER\".\"DATEINMILLISECONDS\" as encTimestamp," +
         "\"ENCOUNTER\".\"LOCATIONID\" as encLocId," +
@@ -30,7 +36,7 @@ if (Util.requestParameterSet(request.getParameter("data"))) {
         "JOIN \"ANNOTATION_FEATURES\" USING (\"ID_EID\") " + 
         "JOIN \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") " +
         "JOIN \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") " +
-        "ORDER BY \"MEDIAASSET\".\"ID\" limit 200;";
+        "ORDER BY \"MEDIAASSET\".\"ID\";";
 
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sqlMagic);
     List results = (List)q.execute();
@@ -40,7 +46,9 @@ if (Util.requestParameterSet(request.getParameter("data"))) {
     //rtn.put("cols", colArr);
 
     JSONArray dataArr = new JSONArray();
+    int count = 0;
     while (it.hasNext()) {
+        if (count % 1000 == 0) System.out.println("overview generate count=" + count);
         Object[] fields = (Object[])it.next();
         JSONArray jrow = new JSONArray();
         for (int i = 0 ; i < colName.size() - 1; i++) {
@@ -54,7 +62,11 @@ if (Util.requestParameterSet(request.getParameter("data"))) {
             if (ma == null) {
                 jrow.put(JSONObject.NULL);
             } else {
-                jrow.put(ma.webURL());
+                try {
+                    jrow.put(ma.webURL());
+                } catch (Exception ex) {
+                    jrow.put(JSONObject.NULL);
+                }
             }
         }
 
@@ -66,11 +78,14 @@ if (Util.requestParameterSet(request.getParameter("data"))) {
         }
 */
         dataArr.put(jrow);
+        count++;
     }
     ////rtn.put("data", dataArr);
 
-    response.setContentType("application/json");
-    out.println(dataArr);
+    String dataStr = dataArr.toString();
+    response.setContentType("text/plain");
+    Util.writeToFile(dataStr, dataFile);
+    out.println(count + " encounters saved to " + fileName);
     return;
 }
 
@@ -87,6 +102,16 @@ for (int i = 0 ; i < colName.size() ; i++) {
 <!doctype html>
 <html><head><title>ID Overview</title>
 <style>
+    #controls {
+        padding: 10px;
+        display: inline-block;
+    }
+    #status-message {
+        color: #238;
+        font-size: 0.8em;
+        padding: 5px;
+    }
+
     #result-table tbody {
         font-size: 0.8em;
     }
@@ -160,11 +185,11 @@ var rawData = null;
 
 function init() {
     tableEl = $('#result-table');
+    status('reading data....');
     $.ajax({
-        url: 'idOverview.jsp?data',
+        url: '/<%=(webDataDir+"/"+fileName)%>',
         dataType: 'json',
         success: function(d) {
-//console.log('success!!! %o', d);
             rawData = d;
             //rawTable();
             encTable();
@@ -174,6 +199,18 @@ function init() {
             alert('ERROR loading data');
         },
         contentType: 'application/json',
+/*
+        xhr: function() {
+            var xhr = new window.XMLHttpRequest();
+            //var xhr = $.ajaxSettings.xhr();
+            xhr.addEventListener("progress", function(evt) {
+                if (evt.lengthComputable) {
+                    console.log('%o %o', evt.loaded, evt.total);
+                }
+            }, false);
+            return xhr;
+        },
+*/
         type: 'GET'
     });
 
@@ -222,10 +259,12 @@ function rawTable() {
         pagination: true,
         columns: cols
     });
+    postTableUpdate();
 }
  
 
 function encTable() {
+    status('starting to create table');
     resetTable();
     var cols = new Array();
     var edata = encData();
@@ -233,8 +272,10 @@ function encTable() {
         data: edata,
         search: true,
         pagination: true,
+        sortName: 'encId',
         columns: encDataCols
     });
+    postTableUpdate();
     $('.enc-annot').parent().css('padding', '1px');
 }
 
@@ -247,18 +288,21 @@ function encData() {
     //make it the first time, boo :(
     encDataCols.push(
         { field: 'encId', title: 'enc', sortable: true },
+        { field: 'encTimestamp', title: 'date', sortable: true },
         { field: 'indivId', title: 'indiv(s)', sortable: true }
     );
     var e = {};
     var maxLen = 0;
     for (var i = 0 ; i < rawData.length ; i++) {
+//if (i % 100 == 0) console.info('%d of %d', i, rawData.length);
         if (!e[rawData[i][0]]) e[rawData[i][0]] = new Array();
-        e[rawData[i][0]].push([ rawData[i][3], rawData[i][4], rawData[i][5], rawData[i][6] ]);
+        e[rawData[i][0]].push([ rawData[i][3], rawData[i][4], rawData[i][5], rawData[i][6], rawData[i][1] ]);
         if (e[rawData[i][0]].length > maxLen) maxLen = e[rawData[i][0]].length;
     }
 
     if (maxLen > MAX_LEN) {
-        alert('maxLen of encounters truncated from ' + maxLen + ' to ' + MAX_LEN + '.  :(');
+        //alert('too many annots on some encounters; truncated from (max) ' + maxLen + ' to ' + MAX_LEN);
+        console.warn('too many annots on some encounters; truncated from (max) ' + maxLen + ' to ' + MAX_LEN);
         maxLen = MAX_LEN;
     }
     for (var i = 0 ; i < maxLen ; i++) {
@@ -272,6 +316,7 @@ function encData() {
     for (var eid in e) {
         var row = { encId: eid };
         row.indivId = encIndivCell(e[eid]);
+        row.encTimestamp = toDateString(e[eid]);
         var i = 0;
         while ((i < e[eid].length) && (i < maxLen)) {
             row['annot' + i] = encAnnot(e[eid][i]);
@@ -280,6 +325,21 @@ function encData() {
         encDataCache.push(row);
     }
     return encDataCache;
+}
+
+var dtimer = null;
+function updateDataStatus() {
+    dtimer = window.setTimeout(function() {
+        status(new Date());
+        updateDataStatus();
+    }, 1000);
+console.log('started? %o', dtimer);
+}
+
+function toDateString(milli) {
+    if (!milli[0][4]) return null;
+    var d = new Date(milli[0][4]);
+    return d.toISOString().substr(0,10);
 }
 
 function encIndivCell(annots) {
@@ -313,10 +373,25 @@ function convertData(rowFunc) {
     }
     return rtn;
 }
+
+
+function postTableUpdate() {
+    status('&nbsp;');
+    $('.search').after('<div id="controls">' +
+        '<input type="button" onClick="encTable()" value="by encounter" />' +
+        '<input type="button" onClick="rawTable()" value="raw data" />' +
+    '</div>');
+}
+
+function status(msg) {
+    $('#status-message').html(msg);
+}
+
 </script>
 
 </head>
 <body onLoad="init()">
+<div id="status-message"></div>
 
 
 <table id="result-table"></table>
