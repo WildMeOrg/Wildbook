@@ -20,10 +20,9 @@ List<String> colClass = Arrays.asList("java.lang.String", "java.lang.Long", "jav
 List<String> colLabel = Arrays.asList("enc id", "time", "loc id", "ma", "ann", "indiv", "img");
 
 String rootDir = getServletContext().getRealPath("/");
-String dataDir = ServletUtilities.dataDir(context, rootDir);
-String fileName = "appadmin/overview.json";
-String dataFile = dataDir + "/" + fileName;
-String webDataDir = CommonConfiguration.getDataDirectoryName(context);
+//String dataDir = ServletUtilities.dataDir(context, rootDir);
+String fileName = "idOverviewData.json";
+String dataFile = rootDir + fileName;
 
 if (Util.requestParameterSet(request.getParameter("generateData"))) {
     String sqlMagic = "SELECT \"ENCOUNTER\".\"CATALOGNUMBER\" as encId," +
@@ -187,7 +186,7 @@ function init() {
     tableEl = $('#result-table');
     status('reading data....');
     $.ajax({
-        url: '/<%=(webDataDir+"/"+fileName)%>',
+        url: '<%=fileName%>',
         dataType: 'json',
         success: function(d) {
             rawData = d;
