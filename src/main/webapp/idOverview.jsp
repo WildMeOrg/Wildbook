@@ -352,9 +352,7 @@ function encIndivCell(annots) {
 
 function encAnnot(data) {
     var h = '<div class="enc-annot">';
-    //if (data[3]) h += '<img src="' + data[3] + '" />';
-var fakeUrl = '/wildbook_data_dir/e/e/eee96575-1c04-412b-8d12-51517b853f71/frame00007.jpg';
-    if (data[3]) h += '<img src="' + fakeUrl + '" />';
+    if (data[3]) h += '<img src="' + data[3] + '" />';
     h += '<a class="enc-annot-ma">' + data[0] + '</a>';
     h += '<a class="enc-annot-id" title="' + data[1] + '">' + data[1] + '</a>';
     if (data[2]) h += '<a class="enc-annot-indiv">' + data[2] + '</a>';
