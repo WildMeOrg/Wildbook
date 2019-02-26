@@ -40,34 +40,36 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
-
+myShepherd.setAction("header.jsp");
 // 'sets serverInfo if necessary
 CommonConfiguration.ensureServerInfo(myShepherd, request);
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
-myShepherd.setAction("header.jsp");
-myShepherd.beginDBTransaction();
+
+
 
 String username = null;
 User user = null;
 boolean indocetUser = false;
 
 if(request.getUserPrincipal()!=null){
-
-  user = myShepherd.getUser(request);
-  username = (user!=null) ? user.getUsername() : null;
-  indocetUser = (user!=null && user.hasAffiliation("indocet"));
-
-  //finally{
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
-  //}
+	myShepherd.beginDBTransaction();
+	try{
+  		user = myShepherd.getUser(request);
+  		username = (user!=null) ? user.getUsername() : null;
+  		indocetUser = (user!=null && user.hasAffiliation("indocet"));
+	}
+	catch(Exception e){e.printStackTrace();}
+  	finally{
+    	myShepherd.rollbackDBTransaction();
+  	}
 }
+myShepherd.closeDBTransaction();
 %>
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
     <head>
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>
