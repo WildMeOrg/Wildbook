@@ -14,9 +14,9 @@ org.ecocean.media.*
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-List<String> colName = Arrays.asList("encId", "encTimestamp", "encLocId", "assetId", "annotId", "indivId");
-List<String> colClass = Arrays.asList("java.lang.String", "java.lang.Long", "java.lang.String", "java.lang.Integer", "java.lang.String", "java.lang.String");
-List<String> colLabel = Arrays.asList("enc id", "time", "loc id", "ma", "ann", "indiv");
+List<String> colName = Arrays.asList("encId", "encTimestamp", "encLocId", "assetId", "annotId", "indivId", "assetUrl");
+List<String> colClass = Arrays.asList("java.lang.String", "java.lang.Long", "java.lang.String", "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String");
+List<String> colLabel = Arrays.asList("enc id", "time", "loc id", "ma", "ann", "indiv", "img");
 
 
 if (Util.requestParameterSet(request.getParameter("data"))) {
@@ -30,7 +30,7 @@ if (Util.requestParameterSet(request.getParameter("data"))) {
         "JOIN \"ANNOTATION_FEATURES\" USING (\"ID_EID\") " + 
         "JOIN \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") " +
         "JOIN \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") " +
-        "ORDER BY \"MEDIAASSET\".\"ID\" limit 5000;";
+        "ORDER BY \"MEDIAASSET\".\"ID\" limit 200;";
 
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sqlMagic);
     List results = (List)q.execute();
@@ -43,10 +43,21 @@ if (Util.requestParameterSet(request.getParameter("data"))) {
     while (it.hasNext()) {
         Object[] fields = (Object[])it.next();
         JSONArray jrow = new JSONArray();
-        for (int i = 0 ; i < colName.size() ; i++) {
+        for (int i = 0 ; i < colName.size() - 1; i++) {
             Class<?> cls = Class.forName(colClass.get(i));
             jrow.put(cls.cast(fields[i]));
         }
+
+        int maId = jrow.optInt(3, -1);
+        if (maId > 0) {
+            MediaAsset ma = MediaAssetFactory.load(maId, myShepherd);
+            if (ma == null) {
+                jrow.put(JSONObject.NULL);
+            } else {
+                jrow.put(ma.webURL());
+            }
+        }
+
 /*   rows with elements as jsonobj
         JSONObject jrow = new JSONObject();
         for (int i = 0 ; i < colName.size() ; i++) {
@@ -79,6 +90,53 @@ for (int i = 0 ; i < colName.size() ; i++) {
     #result-table tbody {
         font-size: 0.8em;
     }
+    img.tiny {
+        max-height: 75px;
+    }
+
+    div.enc-annot {
+        max-height: 200px;
+        position: relative;
+    }
+    .enc-annot img {
+        max-width: 100px;
+        max-height: 100%;
+    }
+    .enc-annot-ma, .enc-annot-id, .enc-annot-indiv {
+        width: 100%;
+        position: absolute;
+        background-color: rgba(0,0,0,0.3);
+        color: rgba(255,255,255,0.8) !important;
+        display: inline-block;
+        text-decoration: none;
+        font-size: 0.9em;
+        padding-left: 2px;
+        cursor: pointer;
+    }
+    .enc-annot-ma {
+        top: 0;
+        left: 0;
+    }
+    .enc-annot-id {
+        bottom: 0;
+        left: 0;
+        overflow-x: hidden;
+        white-space: nowrap;
+    }
+    .enc-annot-indiv {
+        display: none;
+        bottom: 1.3em;
+        left: 0;
+    }
+    .enc-annot-ma:hover, .enc-annot-id:hover, .enc-annot-indiv:hover {
+        background-color: #444;
+        color: #FFF !important;
+    }
+
+    .enc-annot:hover .enc-annot-indiv {
+        display: inline-block;
+    }
+
 </style>
 
     <!-- Bootstrap CSS -->
@@ -108,7 +166,8 @@ function init() {
         success: function(d) {
 //console.log('success!!! %o', d);
             rawData = d;
-            rawTable();
+            //rawTable();
+            encTable();
         },
         error: function(x) {
             console.log('error fetching data %o', x);
@@ -128,18 +187,35 @@ function init() {
 */
 }
 
+
+function resetTable() {
+    $('.bootstrap-table').remove();
+    $('#result-table').remove();
+    tableEl = $('<div id="result-table" />');
+    tableEl.appendTo($('body'));
+}
+
 function rawTable() {
-    tableEl.html('');
+    resetTable();
     var cols = new Array();
     for (var i = 0 ; i < colDefn.length ; i++) {
         cols.push(Object.assign({ sortable: true }, colDefn[i]));
+/*
+        if (colDefn[i].field == 'assetId') cols.push({
+            sortable: false,
+            field: 'maUrl',
+            title: 'img'
+        });
+*/
     }
+    cols[6].sortable = false;
     tableEl.bootstrapTable({
         data: convertData(function(row) {
             var newRow = {};
             for (var i = 0 ; i < row.length ; i++) {
                 newRow[colDefn[i].field] = row[i];
             }
+            if (newRow.assetUrl) newRow.assetUrl = '<ximg class="tiny" src="' + newRow.assetUrl + '" />';
             return newRow;
         }),
         search: true,
@@ -148,6 +224,85 @@ function rawTable() {
     });
 }
  
+
+function encTable() {
+    resetTable();
+    var cols = new Array();
+    var edata = encData();
+    tableEl.bootstrapTable({
+        data: edata,
+        search: true,
+        pagination: true,
+        columns: encDataCols
+    });
+    $('.enc-annot').parent().css('padding', '1px');
+}
+
+var encDataCache = false;
+var encDataCols = new Array();
+var MAX_LEN = 8;
+function encData() {
+    if (encDataCache) return encDataCache;
+
+    //make it the first time, boo :(
+    encDataCols.push(
+        { field: 'encId', title: 'enc', sortable: true },
+        { field: 'indivId', title: 'indiv(s)', sortable: true }
+    );
+    var e = {};
+    var maxLen = 0;
+    for (var i = 0 ; i < rawData.length ; i++) {
+        if (!e[rawData[i][0]]) e[rawData[i][0]] = new Array();
+        e[rawData[i][0]].push([ rawData[i][3], rawData[i][4], rawData[i][5], rawData[i][6] ]);
+        if (e[rawData[i][0]].length > maxLen) maxLen = e[rawData[i][0]].length;
+    }
+
+    if (maxLen > MAX_LEN) {
+        alert('maxLen of encounters truncated from ' + maxLen + ' to ' + MAX_LEN + '.  :(');
+        maxLen = MAX_LEN;
+    }
+    for (var i = 0 ; i < maxLen ; i++) {
+        encDataCols.push({
+            field: 'annot' + i,
+            title: 'Ann ' + i,
+            sortable: false
+        });
+    }
+    encDataCache = new Array();
+    for (var eid in e) {
+        var row = { encId: eid };
+        row.indivId = encIndivCell(e[eid]);
+        var i = 0;
+        while ((i < e[eid].length) && (i < maxLen)) {
+            row['annot' + i] = encAnnot(e[eid][i]);
+            i++;
+        }
+        encDataCache.push(row);
+    }
+    return encDataCache;
+}
+
+function encIndivCell(annots) {
+    if (!annots) return '';
+    var inds = {};
+    for (var i = 0 ; i < annots.length ; i++) {
+        if (annots[i][2]) inds[annots[i][2]] = 1;
+    }
+    return Object.keys(inds).join(',');
+}
+
+function encAnnot(data) {
+    var h = '<div class="enc-annot">';
+    //if (data[3]) h += '<img src="' + data[3] + '" />';
+var fakeUrl = '/wildbook_data_dir/e/e/eee96575-1c04-412b-8d12-51517b853f71/frame00007.jpg';
+    if (data[3]) h += '<img src="' + fakeUrl + '" />';
+    h += '<a class="enc-annot-ma">' + data[0] + '</a>';
+    h += '<a class="enc-annot-id" title="' + data[1] + '">' + data[1] + '</a>';
+    if (data[2]) h += '<a class="enc-annot-indiv">' + data[2] + '</a>';
+    h += '</div>';
+    return h;
+}
+
 
 //this takes each row (from rawData) of flat data and returns each row as a proper json obj
 function convertData(rowFunc) {
