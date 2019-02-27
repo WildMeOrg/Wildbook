@@ -45,6 +45,9 @@ if (Util.requestParameterSet(request.getParameter("generateData"))) {
     //rtn.put("cols", colArr);
 
     JSONArray dataArr = new JSONArray();
+    JSONObject meta = new JSONObject();
+    meta.put("timestamp", System.currentTimeMillis());
+    dataArr.put(meta);
     int count = 0;
     while (it.hasNext()) {
         if (count % 1000 == 0) System.out.println("overview generate count=" + count);
@@ -161,6 +164,7 @@ for (int i = 0 ; i < colName.size() ; i++) {
         display: inline-block;
     }
 
+
 </style>
 
     <!-- Bootstrap CSS -->
@@ -178,6 +182,7 @@ for (int i = 0 ; i < colName.size() ; i++) {
 
 <script type="application/javascript">
 
+var currentServerTime = <%=System.currentTimeMillis()%>;
 var colDefn = <%= colDefn.toString() %>;
 var tableEl;
 var rawData = null;
@@ -190,6 +195,8 @@ function init() {
         dataType: 'json',
         success: function(d) {
             rawData = d;
+            var meta = rawData.splice(0, 1);
+            showDataMeta(meta);
             //rawTable();
             encTable();
         },
@@ -212,15 +219,6 @@ function init() {
 */
         type: 'GET'
     });
-
-/*
-    $('#test-table').bootstrapTable({
-        url: 'idOverview.jsp?data',
-        pagination: true,
-        search: true,
-        columns: <%=colDefn.toString()%>
-    });
-*/
 }
 
 
@@ -263,7 +261,6 @@ function rawTable() {
  
 
 function encTable() {
-    status('starting to create table');
     resetTable();
     var cols = new Array();
     var edata = encData();
@@ -272,10 +269,35 @@ function encTable() {
         search: true,
         pagination: true,
         sortName: 'encId',
+        onPostBody: function() { encTableTweak(); },
         columns: encDataCols
     });
     postTableUpdate();
+    encTableTweak();
+}
+
+function encTableTweak() {
     $('.enc-annot').parent().css('padding', '1px');
+
+    $('tr td:first-child').attr('title', function() { return this.innerHTML; }).css({
+        'max-width': '4em',
+        'white-space': 'nowrap',
+        'overflow-x': 'hidden',
+        'cursor': 'pointer'
+    }).bind('click', function(ev) {
+        var eid = ev.target.innerText;
+        openInTab('../encounters/encounter.jsp?number=' + eid);
+        return false;
+    });
+
+    $('tr td:nth-child(3)').css({
+        'font-weight': 'bold',
+        'cursor': 'pointer'
+    }).bind('click', function(ev) {
+        var eid = ev.target.innerText;
+        openInTab('../individuals.jsp?number=' + eid);
+        return false;
+    });
 }
 
 var encDataCache = false;
@@ -288,7 +310,8 @@ function encData() {
     encDataCols.push(
         { field: 'encId', title: 'enc', sortable: true },
         { field: 'encTimestamp', title: 'date', sortable: true },
-        { field: 'indivId', title: 'indiv(s)', sortable: true }
+        { field: 'indivId', title: 'indiv(s)', sortable: true },
+        { field: 'annCt', title: '# anns', sortable: true }
     );
     var e = {};
     var maxLen = 0;
@@ -316,6 +339,7 @@ function encData() {
         var row = { encId: eid };
         row.indivId = encIndivCell(e[eid]);
         row.encTimestamp = toDateString(e[eid]);
+        row.annCt = e[eid].length;
         var i = 0;
         while ((i < e[eid].length) && (i < maxLen)) {
             row['annot' + i] = encAnnot(e[eid][i]);
@@ -326,6 +350,7 @@ function encData() {
     return encDataCache;
 }
 
+/*
 var dtimer = null;
 function updateDataStatus() {
     dtimer = window.setTimeout(function() {
@@ -334,6 +359,7 @@ function updateDataStatus() {
     }, 1000);
 console.log('started? %o', dtimer);
 }
+*/
 
 function toDateString(milli) {
     if (!milli[0][4]) return null;
@@ -373,15 +399,30 @@ function convertData(rowFunc) {
 
 
 function postTableUpdate() {
-    status('&nbsp;');
+    //status('&nbsp;');
     $('.search').after('<div id="controls">' +
         '<input type="button" onClick="encTable()" value="by encounter" />' +
         '<input type="button" onClick="rawTable()" value="raw data" />' +
     '</div>');
 }
 
+function showDataMeta(m) {
+    if (!m || !m[0] || !m[0].timestamp) return;
+    console.info('meta %o', m);
+    var d = currentServerTime - m[0].timestamp;
+    var days = d / (24*60*60*1000);
+    var msg = 'data is ' + Math.floor(days) + ' days old';
+    if (days > 14) msg += ' -- <a href="?generateData">refresh?</a> (it takes a long time!)';
+    status(msg);
+}
+
 function status(msg) {
     $('#status-message').html(msg);
+}
+
+function openInTab(url) {
+    var win = window.open(url, '_blank');
+    if (win) win.focus();
 }
 
 </script>
