@@ -4,6 +4,7 @@ package org.ecocean.cache;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.IOException;
 
 import org.ecocean.cache.StoredQuery;
 import org.ecocean.Shepherd;
@@ -46,7 +47,7 @@ public class QueryCache {
   }
   
   
-  public void invalidateByName(String name){
+  public void invalidateByName(String name) throws IOException {
     if(cachedQueries.containsKey(name)){
       cachedQueries.get(name).invalidate();
     }
