@@ -268,12 +268,12 @@ function encTable() {
         data: edata,
         search: true,
         pagination: true,
+        //customSort: encSort,
         sortName: 'encId',
         onPostBody: function() { encTableTweak(); },
         columns: encDataCols
     });
     postTableUpdate();
-    encTableTweak();
 }
 
 function encTableTweak() {
@@ -297,6 +297,12 @@ function encTableTweak() {
         var eid = ev.target.innerText;
         openInTab('../individuals.jsp?number=' + eid);
         return false;
+    });
+
+    $('.enc-annot').css('cursor', 'pointer').bind('click', function(ev) {
+        var jel = $(ev.currentTarget);
+        var annId = jel.find('.enc-annot-id').text();
+        if (annId) openInTab('../obrowse.jsp?type=Annotation&id=' + annId);
     });
 }
 
@@ -360,6 +366,38 @@ function updateDataStatus() {
 console.log('started? %o', dtimer);
 }
 */
+
+function encSort(sortName, sortOrder, sdata) {
+    var order = sortOrder === 'desc' ? -1 : 1;
+console.log('%o %d', sortName, order);
+console.log('%o', sdata);
+    if (sortName.startsWith('xxxannot')) {  //this doesnt really do what i want it to, so skipping... :(
+        sdata.sort(function(a,b) {
+            var aS = encMAId(a[sortName]);
+            var bS = encMAId(b[sortName]);
+//console.log('%o ? %o', aS, bS);
+            if (aS > bS) return order * 1;
+            if (aS < bS) return order * -1;
+            return 0;
+        });
+
+    } else {  //default
+        sdata.sort(function(a,b) {
+            if (a[sortName] > b[sortName]) return order * 1;
+            if (a[sortName] < b[sortName]) return order * -1;
+            return 0;
+        });
+    }
+}
+
+
+var encMAIdRegExp = new RegExp('"enc-annot-ma">(\\d+)<');
+function encMAId(h) {
+    var m = encMAIdRegExp.exec(h);
+console.info('%o ==> %o', h, m);
+    if (!m || !m[1]) return 0;
+    return m[1] - 0;
+}
 
 function toDateString(milli) {
     if (!milli[0][4]) return null;
