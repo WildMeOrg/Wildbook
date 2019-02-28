@@ -696,19 +696,14 @@ public class Util {
       return values;
     }
 
-    public static void writeToFile(String data, String absolutePath) throws FileNotFoundException {
-      File file=new File(absolutePath);
-      try{
+    public static void writeToFile(String data, String absolutePath) throws IOException {
+        File file = new File(absolutePath);
         FileOutputStream fos=new FileOutputStream(file);
         OutputStreamWriter writer =new OutputStreamWriter(fos, StandardCharsets.UTF_8);
         writer.write(data);
         writer.flush();
         writer.close();
         fos.close();
-      }
-      catch(Exception e){
-        e.printStackTrace();
-      }
    }
 
     public static String readFromFile(String path) throws FileNotFoundException, IOException {
