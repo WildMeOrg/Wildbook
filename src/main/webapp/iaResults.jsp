@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,
+         import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 org.ecocean.identity.IdentityServiceLog,
@@ -11,6 +11,18 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 String context = ServletUtilities.getContext(request);
 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
+String scoreType = request.getParameter("scoreType");
+// we'll show individualScores unless the url specifies scoreType = image (aka annotation)
+boolean individualScores = (scoreType==null || !"image".equals(scoreType));
+
+Integer nResults = null;
+String nResultsStr = request.getParameter("nResults");
+try {
+	nResults = Integer.parseInt(nResultsStr);
+} catch (Exception e) {}
+int RESMAX_DEFAULT = 12;
+int RESMAX = (nResults!=null) ? nResults : RESMAX_DEFAULT;
+
 
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
@@ -18,7 +30,7 @@ if (request.getParameter("acmId") != null) {
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
-       	ArrayList<Annotation> anns = null;
+    ArrayList<Annotation> anns = null;
 	JSONObject rtn = new JSONObject("{\"success\": false}");
 	//Encounter enc = null;
 	try {
@@ -151,10 +163,68 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 %>
 
+<script type="text/javascript" src="javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
 
 <jsp:include page="header.jsp" flush="true" />
 
+<!-- overwrites ia.IBEIS.js for testing -->
+
+
 <div class="container maincontent">
+
+	<div id="result_settings">
+
+		<span id="scoreTypeSettings">
+		<%
+
+		// Here we (statically, backend) build the buttons for selecting between image and individual ranking
+		String individualScoreSelected = (individualScores)  ? " selected btn-selected" : "";
+		String annotationScoreSelected = (!individualScores) ? " selected btn-selected" : "";
+		//String currentUrl = javax.servlet.http.HttpUtils.getRequestURL(request).toString();
+		String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString(); // silly how complicated this is---TODO: ServletUtilities convenience func?
+		System.out.println("Current URL = "+currentUrl);
+		// linkUrl removes scoreType (which may or may not be present) then adds the opposite of the current scoreType
+		String linkUrl = currentUrl;
+		linkUrl = linkUrl.replace("&scoreType=image","");
+		linkUrl = linkUrl.replace("&scoreType=individual","");
+		if (individualScores) linkUrl += "&scoreType=image";
+		else linkUrl+="&scoreType=individual";
+		String individualScoreLink = (!individualScores) ? linkUrl : "";
+		String annotationScoreLink = (individualScores)  ? linkUrl : "";
+		// onclick events for each button (do nothing if you're already on the page)
+		String individualOnClick = (!individualScores) ? "onclick=\"window.location.href = '"+individualScoreLink+"';\"" : "";
+		String annotationOnClick = (individualScores) ?  "onclick=\"window.location.href = '"+annotationScoreLink+"';\"" : "";
+		 %>
+
+		<button class="scoreType <%=individualScoreSelected %>" <%=individualOnClick %> >Individual Scores</button>
+		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
+
+		</span>
+
+
+		<script>
+			var nResultsClicker = function() {
+				var defaultResults = <%=RESMAX%>;
+				var nResults = $("#nResultsPicker").val();
+				if (nResults!=defaultResults) {
+					var destUrl = "<%=currentUrl%>";
+					destUrl = destUrl.replace(/\&nResults=\d*/,""); // remove previoius nResults arg
+					destUrl += "&nResults="+nResults;
+					window.location.href = destUrl;
+				}
+			}
+		</script>
+
+		<!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
+		<!-- need to add javascript to update the link href on  -->
+		<span id="scoreNumSettings">
+				<span id="scoreNumInput">
+					Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
+				</span>
+				<button class="nResults" onclick="nResultsClicker()">set</button>
+		</span>
+
+	</div>
 
 	<div id="initial-waiter" class="waiting throbbing">
 		<p>waiting for results</p>
@@ -162,6 +232,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 
 </div>
+
+
 
 <jsp:include page="footer.jsp" flush="true"/>
 
@@ -173,6 +245,14 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 <link rel="stylesheet" href="css/ia.css" type="text/css" />
 
 
+<style>
+
+div.mainContent {
+	padding-top: 50px;
+}
+
+</style>
+
 
 <script>
 var serverTimestamp = <%= System.currentTimeMillis() %>;
@@ -181,6 +261,16 @@ var taskIds = [];
 var tasks = {};
 var jobIdMap = {};
 var timers = {};
+
+var INDIVIDUAL_SCORES = <%=individualScores%>;
+
+function toggleScoreType() {
+	INDIVIDUAL_SCORES = !INDIVIDUAL_SCORES;
+	$('#encounter-info').remove();
+	init2();
+}
+
+
 var matchInstructions = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
 
 function init2() {   //called from wildbook.init() when finished
@@ -392,7 +482,8 @@ console.warn('manualCallback disabled currently (tid=%s)', tid); return;
 	//alert(m.jobId);
 }
 
-var RESMAX = 12;
+
+var RESMAX = <%=RESMAX%>;
 function showTaskResult(res, taskId) {
 	console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRESULT showTaskResult() %o on %s", res, res.taskId);
 	if (res.status && res.status._response && res.status._response.response && res.status._response.response.json_result &&
@@ -414,10 +505,10 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		var h = 'Matches based on <b>' + algoDesc + '</b>';
 		if (res.timestamp) {
 			var d = new Date(res.timestamp);
-			h += '<span style="color: #FFF; margin: 0 11px; font-size: 0.7em;">' + d.toLocaleString() + '</span>';
+			h += '<span class="algoTimestamp">' + d.toLocaleString() + '</span>';
 		}
 
-		h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" style="margin-left: 30px; font-size: 0.8em; color: #777;">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
+		h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" class="algoInstructions">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
 		$('#task-' + res.taskId + ' .task-title-id').html(h);
 		displayAnnot(res.taskId, qannotId, -1, -1);
 
@@ -637,35 +728,41 @@ function annotClick(ev) {
 	$('#task-' + taskId + ' .annot-' + acmId).show();
 }
 
-function score_sort(cm_dict, topn) {
-console.warn('score_sort() cm_dict %o', cm_dict);
-//.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
-	if (!cm_dict.score_list || !cm_dict.dannot_uuid_list) return;
-	var sorta = [];
-	if (cm_dict.score_list.length < 1) return;
-	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
-	for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
-		if (cm_dict.score_list[i] < 0) continue;
-		sorta.push(cm_dict.score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
-	}
-	sorta.sort().reverse();
-	return sorta;
-}
-
 // function score_sort(cm_dict, topn) {
 // console.warn('score_sort() cm_dict %o', cm_dict);
 // //.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
-// 	if (!cm_dict.annot_score_list || !cm_dict.dannot_uuid_list) return;
+// 	if (!cm_dict.score_list || !cm_dict.dannot_uuid_list) return;
 // 	var sorta = [];
-// 	if (cm_dict.annot_score_list.length < 1) return;
+// 	if (cm_dict.score_list.length < 1) return;
 // 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
-// 	for (var i = 0 ; i < cm_dict.annot_score_list.length ; i++) {
-// 		if (cm_dict.annot_score_list[i] < 0) continue;
-// 		sorta.push(cm_dict.annot_score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
+// 	for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
+// 		if (cm_dict.score_list[i] < 0) continue;
+// 		sorta.push(cm_dict.score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
 // 	}
 // 	sorta.sort().reverse();
 // 	return sorta;
 // }
+
+function score_sort(cm_dict, topn) {
+console.warn('score_sort() cm_dict %o', cm_dict);
+//.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
+	if (!cm_dict.annot_score_list || !cm_dict.dannot_uuid_list) return;
+	var sorta = [];
+
+	// score_list could be either individual-scores or annotation-scores depending on the individualScores boolean global var
+	var score_list = {};
+	if (INDIVIDUAL_SCORES) score_list = cm_dict.score_list;
+	else score_list = cm_dict.annot_score_list;
+
+	if (score_list.length < 1) return;
+	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
+	for (var i = 0 ; i < score_list.length ; i++) {
+		if (score_list[i] < 0) continue;
+		sorta.push(score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
+	}
+	sorta.sort().reverse();
+	return sorta;
+}
 
 
 
