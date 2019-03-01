@@ -375,7 +375,7 @@ public class Annotation implements java.io.Serializable {
             System.out.println("WARNING: Annotation.getBbox() found invalid width/height for id=" + this.getId());
             return null;
         }
-        System.out.println("Set new Bounding box.");
+        //System.out.println("Set new Bounding box.");
         this.bbox = bbox;
         return bbox;
     }
