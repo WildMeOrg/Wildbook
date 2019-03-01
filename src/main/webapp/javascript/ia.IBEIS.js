@@ -3,7 +3,9 @@ wildbook.IA.plugins.push({
     name: 'Wildbook-IA (aka IBEIS)',
     getDomResult: function(task) {
         var gt = this.getGeneralType(task);
-	    var h = '<div class="task-content task-type-' + gt + '" id="task-' + task.id + '">';
+    //var h = '<hr class="task-divider" />'
+    var h = '';
+	    h += '<div class="task-content task-type-' + gt + '" id="task-' + task.id + '">';
         h += '<div class="task-title task-type-' + gt + '" onDblClick="$(\'#task-debug-' + task.id + '\').show();"><span class="task-title-id"><b>Task ' + task.id + '</b></span></div>';
         h += '<div class="task-summary task-type-' + gt + '"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div>';
         h += '</div>';
@@ -33,7 +35,6 @@ wildbook.IA.plugins.push({
         items.push([
             function(enh) {  //the menu text for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                needRerun = false;
                 var menuText = '';
                 if (iaStatus && iaStatus.status) {
                     menuText += 'matching already initiated, status: <span title="task ' + iaStatus.taskId;
@@ -47,14 +48,14 @@ wildbook.IA.plugins.push({
                         menuText = 'start matching';
                         alreadyLinked = true;
                     } else {
-                        menuText += '<i class="error">to start matching, this encounter must have <b>genus/specific epithet</b> set</i>';
+                        menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';
                     }
                 }
                 return menuText;
             },
             function(enh) {  //the menu action for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                if (!rerun && iaStatus && iaStatus.taskId) {
+                if (iaStatus && iaStatus.taskId) {
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 } else {
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
