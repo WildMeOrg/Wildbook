@@ -213,6 +213,7 @@ System.out.println(i + " -> " + ma);
             Task atask = intakeAnnotations(myShepherd, anns);
             System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
             topTask.addChild(atask);
+            myShepherd.getPM().refresh(topTask);
         }
     }
 
