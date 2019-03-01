@@ -157,10 +157,6 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 <div class="container maincontent">
 
-	<div id="initial-waiter" class="waiting throbbing">
-		<p>processing request</p>
-	</div>
-
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
@@ -195,6 +191,7 @@ function init2() {   //called from wildbook.init() when finished
 	// If we don't have anything but null task types after a while, lets just reload the page and get updated info. 
 	// We get to this condition when the page loads too fast and you have only __NULL__ type tasks, 
 	// and no children to traverse.
+	$('.maincontent').html("<div id=\"initial-waiter\" class=\"waiting throbbing\"><p>processing request</p></div>");
 	var reloadTimeout = setTimeout(function(){
 		var onlyNullTaskType = true;
 		for (var i = 0 ; i < taskIds.length ; i++) {
@@ -315,8 +312,11 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 				}
 			}
 			if (!gotResult) {
+				//console.log("Element length: "+$('#task-' + tid).length+" Element contents: "+document.getElementsByClassName("elementa")[0].innerHTML);
+				if ($('#task-' + tid).length) {
+					$('#initial-waiter').remove();
+				}
 				//$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</span></p>');
-				$('#initial-waiter').remove();
 				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
 				if (jobIdMap[tid]) {
 					var tooLong = 15 * 60 * 1000;
@@ -359,6 +359,7 @@ console.info('age = %.2fmin', age / (60*1000));
 				}
 			} else {
 				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+				$('#initial-waiter').remove();
 			}
 		},
 		error: function(a,b,c) {
@@ -542,6 +543,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 otherAnnots.push(res.responseJSON.annotations[i]);
             } else {
                 mainAsset = res.responseJSON.annotations[i].asset;
+		$('#initial-waiter').remove();
             }
         }
 
