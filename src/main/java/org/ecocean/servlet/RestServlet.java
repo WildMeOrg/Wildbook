@@ -921,12 +921,14 @@ System.out.println(thisRequest);
                     cls = obj.getClass();
                     if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
                     else if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
+					else if (cls.getName().equals("org.ecocean.Adoption")) throw new NucleusUserException("Cannot access org.ecocean.Adoption objects at this time");
                     
                 }
             } else {
                 cls = result.getClass();
                 if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
                 else  if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
+				else if (cls.getName().equals("org.ecocean.Adoption")) throw new NucleusUserException("Cannot access org.ecocean.Adoption objects at this time");
             }
             return out;
         }
