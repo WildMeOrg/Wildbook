@@ -396,32 +396,22 @@ myShepherd.closeDBTransaction();
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
-        String modelTag = getModelTag(context, taxy);
-        if (modelTag != null) {
-            System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
-            map.put("model_tag", modelTag);
-        } else {
-            System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
-        }
+
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>       Where is the algo tag?");
 
         String viewpointModelTag = getViewpointTag(context, taxy);
         String labelerAlgo = getLabelerAlgo(context, taxy);
         if (viewpointModelTag != null) {
-            System.out.println("[INFO] sendDetect() labeler_model_tag set to " + viewpointModelTag);
-            map.put("labeler_model_tag",viewpointModelTag);
             if (labelerAlgo!=null) {
                 map.put("labeler_algo",labelerAlgo);
                 System.out.println("[INFO] sendDetect() labeler_algo set to " + labelerAlgo);
             } else {System.out.println("[INFO] sendDetect() labeler_algo is null; skipping");} 
+            System.out.println("[INFO] sendDetect() labeler_model_tag set to " + viewpointModelTag);
+            map.put("labeler_model_tag",viewpointModelTag);
         } else {
             System.out.println("[INFO] sendDetect() labeler_model_tag is null. Viewpoint detection not available.");
         }
 
-        String u = getDetectUrlByModelTag(context, modelTag);
-        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
-        URL url = new URL(u);
-
-        HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", callbackUrl(baseUrl));
 System.out.println("sendDetect() baseUrl = " + baseUrl);
         ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
@@ -437,7 +427,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         }
         map.put("image_uuid_list", malist);
 
-        String modelTag = IA.getProperty(context, "modelTag");
+        String modelTag = getModelTag(context, taxy);
         if (modelTag != null) {
             System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
             map.put("model_tag", modelTag);
@@ -461,6 +451,10 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
             System.out.println("[INFO] sendDetect() nms_thresh is null; DEFAULT will be used");
         }
 
+        String u = getDetectUrlByModelTag(context, modelTag);
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
+        URL url = new URL(u);
+        
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -480,7 +474,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         return vp;
     }
 
-    public static String getLabelerAlgo(String context, Taxonomy tax) {
+    public static String getLabelerAlgo(String context, Taxonomy tax) { 
         if (tax==null&&IA.getProperty(context, "labelerAlgo")==null) return null; //got nothin
         if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "labelerAlgo").trim();
         String propKey = "labelerAlgo_".concat(tax.getScientificName()).replaceAll(" ", "_");
