@@ -358,10 +358,15 @@ myShepherd.closeDBTransaction();
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
+        
+        String u = IA.getProperty(context, "IBEISIARestUrlStartDetectImages", taxy);
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
+        URL url = new URL(u);
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
-        String modelTag = getModelTag(context, taxy);
+
+        String modelTag = IA.getProperty(context, "modelTag", taxy);
         if (modelTag != null) {
             System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
             map.put("model_tag", modelTag);
@@ -369,7 +374,7 @@ myShepherd.closeDBTransaction();
             System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
         }
 
-        String viewpointModelTag = getViewpointTag(context, taxy);
+        String viewpointModelTag = IA.getProperty(context, "labeler_model_tag", taxy);
         if (viewpointModelTag != null) {
             System.out.println("[INFO] sendDetect() labeler_model_tag set to " + modelTag);
             map.put("labeler_model_tag",viewpointModelTag);
@@ -377,9 +382,29 @@ myShepherd.closeDBTransaction();
             System.out.println("[INFO] sendDetect() labeler_model_tag is null; DEFAULT will be used");
         }
 
-        String u = getDetectUrlByModelTag(context, modelTag);
-        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
-        URL url = new URL(u);
+        String labelerAlgo = IA.getProperty(context, "labelerAlgo");
+        if (labelerAlgo != null) {
+            System.out.println("[INFO] sendDetect() labelerAlgo set to " + labelerAlgo);
+            map.put("labelerAlgo", labelerAlgo);
+        } else {
+            System.out.println("[INFO] sendDetect() labelerAlgo is null; DEFAULT will be used");
+        }
+
+        String sensitivity = IA.getProperty(context, "sensitivity");
+        if (sensitivity != null) {
+            System.out.println("[INFO] sendDetect() sensitivity set to " + sensitivity);
+            map.put("sensitivity", sensitivity);
+        } else {
+            System.out.println("[INFO] sendDetect() sentivity is null; DEFAULT will be used");
+        }
+
+        String nms_thresh = IA.getProperty(context, "nms_thresh");
+        if (nms_thresh != null) {
+            System.out.println("[INFO] sendDetect() nms_thresh set to " + nms_thresh);
+            map.put("nms_thresh", nms_thresh);
+        } else {
+            System.out.println("[INFO] sendDetect() nms_thresh is null; DEFAULT will be used");
+        }
 
         map.put("callback_url", callbackUrl(baseUrl));
 System.out.println("sendDetect() baseUrl = " + baseUrl);
@@ -472,19 +497,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         return null;
     }
 
-    //making this private cuz it is mostly "internal use" as the logic is pretty specific to above usage
-    public static Taxonomy taxonomyFromMediaAsset(Shepherd myShepherd, MediaAsset ma) {
-        ArrayList<Annotation> anns = ma.getAnnotations();
-        if (anns.size() < 1) return null;
-        //here we step thru all annots on this asset but likely there will be only one (trivial)
-        //  if there are more then may the gods help us on what we really will get!
-        for (Annotation ann : anns) {
-            Taxonomy tax = ann.getTaxonomy(myShepherd);
-            if (tax != null) {
-                return tax;
-            }
-        }
-        return null;
+
     }
 
     public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas) {
@@ -2670,12 +2683,13 @@ System.out.println(map);
     public static String iaSexFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/sex/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
 System.out.println(">>>>>>>> sex -> " + rtn);
-        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get sex from annot uuid=" + uuid);
         int sexi = rtn.getJSONArray("response").optInt(0, -1);
         if (sexi == -1) return null;
         //what else???
         return null;
     }
+
 //http://52.37.240.178:5000/api/annot/age/months/json/?annot_uuid_list=[{%22__UUID__%22:%224517636f-65ad-a236-950c-107f2c962c19%22}]
 // note - returns array with min/max.... doubles?
     public static Double iaAgeFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
