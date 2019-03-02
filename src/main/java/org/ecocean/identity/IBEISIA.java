@@ -432,6 +432,22 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
             System.out.println("[INFO] sendDetect() nms_thresh is null; DEFAULT will be used");
         }
 
+        String labelerModelTag = IA.getProperty(context, "labelerModelTag");
+        if (labelerModelTag != null) {
+            System.out.println("[INFO] sendDetect() labelerModelTag set to " + labelerModelTag);
+            map.put("labelerModelTag", labelerModelTag);
+        } else {
+            System.out.println("[INFO] sendDetect() labelerModelTag is null; DEFAULT will be used");
+        }
+
+        String labelerAlgo = IA.getProperty(context, "labelerAlgo");
+        if (labelerAlgo != null) {
+            System.out.println("[INFO] sendDetect() labelerAlgo set to " + labelerAlgo);
+            map.put("labelerAlgo", labelerAlgo);
+        } else {
+            System.out.println("[INFO] sendDetect() labelerAlgo is null; DEFAULT will be used");
+        }
+
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -2583,11 +2599,26 @@ System.out.println(map);
     public static String iaSexFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/sex/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
 System.out.println(">>>>>>>> sex -> " + rtn);
-        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get sex from annot uuid=" + uuid);
         int sexi = rtn.getJSONArray("response").optInt(0, -1);
         if (sexi == -1) return null;
         //what else???
         return null;
+    }
+
+    //NOTE!  this will "block" and can take a while as it synchronously will attempt to label it if it has not before
+    //  response comes from ia thus: "response": [{"score": 0.9783339699109396, "species": "giraffe_reticulated", "viewpoint": "right"}]
+    public static JSONObject iaViewpointFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String algo = IA.getProperty(context, "labelerAlgo");   //TODO handle the taxonomy-flavor of these
+        String tag = IA.getProperty(context, "labelerModelTag");
+        if ((algo == null) || (tag == null)) throw new IOException("iaViewPointFromAnnotUUID() must have labelerAlgo and labelerModelTag values set");
+        JSONObject data = new JSONObject();
+        data.put("algo", algo);
+        data.put("model_tag", tag);
+        if (uuid != null) data.put("annot_uuid_list", "[" + toFancyUUID(uuid).toString() + "]");
+        JSONObject rtn = RestClient.post(iaURL(context, "/api/labeler/cnn/json/"), data);
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get viewpoint from annot uuid=" + uuid);
+        return rtn.getJSONArray("response").optJSONObject(0);
     }
 
 //http://104.42.42.134:5010/api/image/uri/original/json/?image_uuid_list=[{%22__UUID__%22:%2283e2439f-d112-1084-af4a-4fa9a5094e0d%22}]
