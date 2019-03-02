@@ -2339,7 +2339,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     return null;
   }
 
-
+  public Taxonomy getTaxonomy(Shepherd myShepherd) {
+    String sciname = this.getTaxonomyString();
+    if (sciname == null) return null;
+    return myShepherd.getOrCreateTaxonomy(sciname, false); // false means don't commit the taxonomy
+}
 
   public String getSubmitterProject() {
       return submitterProject;
