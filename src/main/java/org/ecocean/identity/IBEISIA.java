@@ -393,7 +393,31 @@ myShepherd.closeDBTransaction();
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
-        String u = IA.getProperty(context, "IBEISIARestUrlStartDetectImages");
+
+        HashMap<String,Object> map = new HashMap<String,Object>();
+        Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
+        String modelTag = getModelTag(context, taxy);
+        if (modelTag != null) {
+            System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
+            map.put("model_tag", modelTag);
+        } else {
+            System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
+        }
+
+        String viewpointModelTag = getViewpointTag(context, taxy);
+        String labelerAlgo = getLabelerAlgo(context, taxy);
+        if (viewpointModelTag != null) {
+            System.out.println("[INFO] sendDetect() labeler_model_tag set to " + viewpointModelTag);
+            map.put("labeler_model_tag",viewpointModelTag);
+            if (labelerAlgo!=null) {
+                map.put("labeler_algo",labelerAlgo);
+                System.out.println("[INFO] sendDetect() labeler_algo set to " + labelerAlgo);
+            } else {System.out.println("[INFO] sendDetect() labeler_algo is null; skipping");} 
+        } else {
+            System.out.println("[INFO] sendDetect() labeler_model_tag is null. Viewpoint detection not available.");
+        }
+
+        String u = getDetectUrlByModelTag(context, modelTag);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
         URL url = new URL(u);
 
@@ -441,6 +465,91 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     }
 
 
+    public static String getViewpointTag(String context) {
+        return getViewpointTag(context, null);
+    }
+    
+    public static String getViewpointTag(String context, Taxonomy tax) {
+        if (tax==null&&IA.getProperty(context, "viewpointModelTag")==null) return null; //got nothin
+        if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "viewpointModelTag").trim();  //best we can hope for
+        String propKey = "viewpointModelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
+        System.out.println("[INFO] getViewpointTag() using propKey=" + propKey + " based on " + tax);
+        String vp = IA.getProperty(context, propKey).trim();
+        if (vp == null) vp = IA.getProperty(context, "viewpointModelTag");  //too bad, fallback!
+        return vp;
+    }
+
+    public static String getLabelerAlgo(String context, Taxonomy tax) {
+        if (tax==null&&IA.getProperty(context, "labelerAlgo")==null) return null; //got nothin
+        if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "labelerAlgo").trim();
+        String propKey = "labelerAlgo_".concat(tax.getScientificName()).replaceAll(" ", "_");
+        System.out.println("[INFO] getLabelerAlgo() using propKey=" + propKey + " based on " + tax);
+        String vp = IA.getProperty(context, propKey).trim();
+        if (vp == null) vp = IA.getProperty(context, "labelerAlgo");
+        return vp;
+    }
+
+    /*
+    THIS IS NOW UNUSED BY ABOVE (see note above)
+    note: this is "for internal use only" -- i.e. this is used for getModelTag above, so re-use with caution?
+    (that is, it is meant to generate a string to derive a property key in IA.properties and not much else)
+    
+    */
+
+    public static String inferIaClass(Annotation ann, Shepherd myShepherd) {
+        Taxonomy tax = ann.getTaxonomy(myShepherd);
+        System.out.println("inferIaClass got taxonomy "+tax);
+        String ans = taxonomyToIAClass(myShepherd.getContext(), tax);
+        System.out.println("taxonomyToIAClass mapped that to "+ans);
+        return ans;
+    }
+
+    public static String taxonomyToIAClass(String context, Taxonomy tax) {
+        if (tax == null) return null;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IBEISIA.taxonomyToIAClass");
+        myShepherd.beginDBTransaction();
+        HashMap<String,Taxonomy> tmap = iaTaxonomyMap(myShepherd);
+        myShepherd.rollbackDBTransaction();
+        for (String iaClass : tmap.keySet()) {
+            if (tax.equals(tmap.get(iaClass))) return iaClass;
+        }
+        return null;
+    }
+
+    //making this private cuz it is mostly "internal use" as the logic is pretty specific to above usage
+    public static Taxonomy taxonomyFromMediaAsset(Shepherd myShepherd, MediaAsset ma) {
+        ArrayList<Annotation> anns = ma.getAnnotations();
+        if (anns.size() < 1) return null;
+        //here we step thru all annots on this asset but likely there will be only one (trivial)
+        //  if there are more then may the gods help us on what we really will get!
+        for (Annotation ann : anns) {
+            Taxonomy tax = ann.getTaxonomy(myShepherd);
+            if (tax != null) {
+                return tax;
+            }
+        }
+        return null;
+    }
+
+
+    public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas) {
+        if (Util.collectionIsEmptyOrNull(mas)) return null;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IBEISIA.taxonomyFromMediaAssets");
+        myShepherd.beginDBTransaction();
+        for (MediaAsset ma : mas) {
+            Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
+            if (tax != null) {
+                myShepherd.rollbackDBTransaction();
+                return tax;
+            }
+        }
+        myShepherd.rollbackDBTransaction();
+        return null;
+    }
+
+    
     public static JSONObject getJobStatus(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = IA.getProperty(context, "IBEISIARestUrlGetJobStatus");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobStatus is not set");
