@@ -63,6 +63,7 @@ public class Annotation implements java.io.Serializable {
     // of the recording medium. Useful e.g. for researchers who want to account for a bias where more distinct
     // animals like one with a large scar are easier to re-sight (match).
     private Double distinctiveness;
+    private String viewpoint;
     //*'annot_yaw': 'REAL',
     //~'annot_detect_confidence': 'REAL',
     //~'annot_exemplar_flag': 'INTEGER',
@@ -257,6 +258,32 @@ public class Annotation implements java.io.Serializable {
         if (ma.getHeight()==0 && ma.getWidth()==0) return false;
         return true;
     }
+
+
+    public String getViewpoint() {
+        return viewpoint;
+    }
+    public void setViewpoint(String v) {
+        viewpoint = v;
+    }
+    //  note!  this can block and take a while if IA has yet to compute the viewpoint!
+    public String setViewpointFromIA(String context) throws IOException {
+        if (acmId == null) throw new IOException(this + " does not have acmId set; cannot get viewpoint from IA");
+        try {
+            JSONObject resp = org.ecocean.identity.IBEISIA.iaViewpointFromAnnotUUID(acmId, context);
+            if (resp == null) return null;
+            viewpoint = resp.optString("viewpoint", null);
+            System.out.println("INFO: setViewpointFromIA() got '" + viewpoint + "' (score " + resp.optDouble("score", -1.0) + ") for " + this);
+            return viewpoint;
+        } catch (RuntimeException | IOException | java.security.NoSuchAlgorithmException | java.security.InvalidKeyException ex) {
+            throw new IOException("setViewpointFromIA() on " + this + " failed: " + ex.toString());
+        }
+    }
+/*
+    //  response comes from ia thus: "response": [{"score": 0.9783339699109396, "species": "giraffe_reticulated", "viewpoint": "right"}]
+    public static JSONObject iaViewpointFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+*/
+
 
 //FIXME this all needs to be deprecated once deployed sites are migrated
     public MediaAsset __getMediaAsset() {
