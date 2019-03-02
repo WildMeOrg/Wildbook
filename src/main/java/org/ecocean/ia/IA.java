@@ -22,6 +22,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
+import org.ecocean.Taxonomy;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
@@ -254,8 +255,22 @@ System.out.println(i + " -> " + ma);
     }
 
 
-    public static String getProperty(String context, String label) {  //no-default flavor
-        return getProperty(context, label, null);
+    //(optional!) Taxonomy will append "_Scientific_name" to label and try that.  if not available, then try just label.
+    public static String getProperty(String context, String label, Taxonomy tax, String def) {
+        if ((tax != null) && (tax.getScientificName() != null)) {
+            String propKey = label + "_".concat(tax.getScientificName()).replaceAll(" ", "_");
+            System.out.println("[INFO] IA.getProperty() using propKey=" + propKey + " based on " + tax);
+            String val = getProperty(context, propKey, (String)null);
+            if (val != null) return val;
+        }
+        return IA.getProperty(context, label, def);
+    }
+    public static String getProperty(String context, String label, Taxonomy tax) {  //no-default version
+        return getProperty(context, label, tax, null);
+    }
+
+    public static String getProperty(String context, String label) {  //no-default, no-taxonomy
+        return getProperty(context, label, (String)null);
     }
     public static String getProperty(String context, String label, String def) {
         Properties p = getProperties(context);
