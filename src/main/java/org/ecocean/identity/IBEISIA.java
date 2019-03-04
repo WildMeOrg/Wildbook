@@ -383,8 +383,6 @@ if (Util.collectionIsEmptyOrNull(tlist) || Util.collectionIsEmptyOrNull(tnlist))
 }
 System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size());
 System.out.println(map);
-System.out.println("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
-System.out.println("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
         return RestClient.post(url, hashMapToJSONObject2(map));
@@ -396,8 +394,6 @@ myShepherd.closeDBTransaction();
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
-
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>       Where is the algo tag?");
 
         String viewpointModelTag = getViewpointTag(context, taxy);
         String labelerAlgo = getLabelerAlgo(context, taxy);
@@ -427,7 +423,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         }
         map.put("image_uuid_list", malist);
 
-        String modelTag = getModelTag(context, taxy);
+        String modelTag = getModelTag(context, taxonomyFromMediaAssets(context, mas));
         if (modelTag != null) {
             System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
             map.put("model_tag", modelTag);
@@ -458,9 +454,28 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         return RestClient.post(url, new JSONObject(map));
     }
 
+    public static String getModelTag(String context, Taxonomy tax) {
+        if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "modelTag");  //best we can hope for
+        String propKey = "modelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
+        System.out.println("[INFO] getModelTag() using propKey=" + propKey + " based on " + tax);
+        String mt = IA.getProperty(context, propKey);
+        if (mt == null) mt = IA.getProperty(context, "modelTag");  //too bad, fallback!
+        return mt;
+    }
+
+    private static String getDetectUrlByModelTag(String context, String modelTag) {
+        if (modelTag == null) return IA.getProperty(context, "IBEISIARestUrlStartDetectImages");
+        String u = IA.getProperty(context, "IBEISIARestUrlStartDetectImages." + modelTag);
+        if (u != null) return u;
+        return IA.getProperty(context, "IBEISIARestUrlStartDetectImages");
+    }
 
     public static String getViewpointTag(String context) {
         return getViewpointTag(context, null);
+    }
+
+    public static String getModelTag(String context) {
+        return getModelTag(context, null);
     }
     
     public static String getViewpointTag(String context, Taxonomy tax) {
@@ -3478,6 +3493,25 @@ return Util.generateUUID();
         String jstring = "";
         while (jstring != null) {
             jstring = IA.getProperty(context, "IBEISIdentOpt" + i);
+            if (jstring == null) break;
+            JSONObject j = Util.stringToJSONObject(jstring);
+            if (j != null) opt.add(j);
+            i++;
+        }
+        if (opt.size() < 1) opt.add((JSONObject)null);  //we should always have *one* -- the default empty one
+        return opt;
+    }
+
+    public static List<JSONObject> identOpts(String context, String iaClass) {
+        if (!Util.stringExists(iaClass)) return identOpts(context);
+
+        String cleanedIaClass = iaClass.replaceAll(" ", "_");
+        String iaPropertyKey = "IBEISIdentOpt_"+cleanedIaClass;
+        List<JSONObject> opt = new ArrayList<JSONObject>();
+        int i = 0;
+        String jstring = "";
+        while (jstring != null) {
+            jstring = IA.getProperty(context, iaPropertyKey + i);
             if (jstring == null) break;
             JSONObject j = Util.stringToJSONObject(jstring);
             if (j != null) opt.add(j);
