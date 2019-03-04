@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
+    private static final String[] VALID_VIEWPOINTS = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
 
     private String species; 
 
@@ -262,6 +263,26 @@ public class Annotation implements java.io.Serializable {
 
     public String getViewpoint() {
         return viewpoint;
+    }
+    //this returns this viewpoint, plus one to either side
+    //  (will return null if unset or invalid)
+    public String[] getViewpointAndNeighbors() {
+        return getViewpointAndNeighbors(this.viewpoint);
+    }
+    //returns 3 positions, in clockwise order, with viewpoint in the middle position
+    //   e.g.: front -> frontleft,front,frontright    -or-    backleft -> back,backleft,left
+    public static String[] getViewpointAndNeighbors(String vp) {
+        if ((vp == null) || !isValidViewpoint(vp)) return null;
+        int found = -1;
+        for (int i = 0 ; i < VALID_VIEWPOINTS.length ; i++) {
+            if (VALID_VIEWPOINTS[i].equals(vp)) found = i;
+        }
+        if (found < 0) return null;  //"should never happen"
+        String[] rtn = new String[3];
+        rtn[0] = VALID_VIEWPOINTS[(found + VALID_VIEWPOINTS.length - 1) % VALID_VIEWPOINTS.length];   // #mathftw
+        rtn[1] = vp;
+        rtn[2] = VALID_VIEWPOINTS[(found + 1) % VALID_VIEWPOINTS.length];
+        return rtn;
     }
     public void setViewpoint(String v) {
         viewpoint = v;
@@ -736,6 +757,14 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
 
     public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
         return Task.getRootTasksFor(this, myShepherd);
+    }
+
+    public static boolean isValidViewpoint(String vp) {
+        if (vp == null) return true;  //?? is this desired behavior?
+        return getAllValidViewpoints().contains(vp);
+    }
+    public static List<String> getAllValidViewpoints() {
+        return Arrays.asList(VALID_VIEWPOINTS);
     }
 
 }
