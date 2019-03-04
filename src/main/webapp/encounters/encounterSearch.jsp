@@ -473,7 +473,7 @@ function useData(doc){
         <%
           for (int n = 0; n < totalLocIDs; n++) {
             String word = locIDs.get(n);
-            if (!word.equals("")&&(!word.equals("None"))) {
+            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
         %>
         <option value="<%=word%>"><%=word%></option>
         <%
