@@ -168,7 +168,7 @@ java.util.Properties" %>
 		} else if (ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
-			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + scrubUrl(ma.webURL()) + "\" /></div></div></a>";
+			h += "<a target=\"_new\" href=\"" + scrubUrl(ma.webURL()) + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + scrubUrl(ma.webURL()) + "\" /></div></div></a>";
 
 		}
                 h += "<ul style=\"width: 65%\">";
@@ -201,7 +201,7 @@ String id = request.getParameter("id");
 String type = request.getParameter("type");
 
 // IA debuggin use.. Can retrieve Annotations 
-String acmId = request.getParameter("acmId");
+String acmid = request.getParameter("acmid");
 
 if (!rawOutput(type)) {
 %>
@@ -345,7 +345,7 @@ context=ServletUtilities.getContext(request);
 */
 
 if (type == null) type = "Encounter";
-if (id == null) {
+if (id == null && (acmid == null || !"Annotation".equals(type))) {
 	out.println(showForm());
 	return;
 }
@@ -373,7 +373,7 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("Annotation")) {
-	if (id!=null&&acmId==null) {
+	if (id!=null&&acmid==null) {
 		try {
 			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
 			out.println(showAnnotation(ann));
@@ -381,11 +381,12 @@ if (type.equals("Encounter")) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
 			needForm = true;
 		}
-	} else if (acmId!=null) {
+	}
+	if (id==null&&acmid!=null) {
 		try {
-			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
+			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmid);
                         if ((anns == null) || (anns.size() < 1)) {
-                            out.println("none with acmId " + acmId);
+                            out.println("none with acmid " + acmid);
                         } else {
 			    out.println(showAnnotation(anns.get(0)));
                         }

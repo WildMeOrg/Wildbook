@@ -6,7 +6,8 @@
               java.util.Map,
               java.util.Iterator,
               java.util.Properties,
-              java.util.StringTokenizer
+              java.util.StringTokenizer,
+              org.ecocean.cache.*
               "
 %>
 
@@ -302,7 +303,10 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
-//Shepherd myShepherd=new Shepherd(context);
+int numUsers=0;
+
+QueryCache qc=QueryCacheFactory.getQueryCache(context);
+
 myShepherd.beginDBTransaction();
 
 //String url = "login.jsp";
@@ -314,14 +318,20 @@ myShepherd.beginDBTransaction();
 try{
 
 
-    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
-    numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
-    numUsersWithRoles = myShepherd.getNumUsers()-numDataContributors;
+    //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
+    //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
+    numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
+    numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
+    numUsersWithRoles = numUsers-numDataContributors;
 
 
 }
 catch(Exception e){
+    System.out.println("INFO: *** If you are seeing an exception here (via index.jsp) your likely need to setup QueryCache");
+    System.out.println("      *** This entails configuring a directory via cache.properties and running appadmin/testQueryCache.jsp");
     e.printStackTrace();
 }
 finally{

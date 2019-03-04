@@ -771,6 +771,9 @@ System.out.println("anns -> " + anns);
         jids.put(ann.getId());  //for now there is only one
         taskRes.put("annotationIds", jids);
 System.out.println("+ starting ident task " + annTaskId);
+        JSONObject shortCut = IAQueryCache.tryTargetAnnotationsCache(context, ann, taskRes);
+        if (shortCut != null) return shortCut;
+
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IAGateway._sendIdentificationTask");
         myShepherd.beginDBTransaction();

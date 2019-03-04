@@ -787,10 +787,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.3</version>
+        <version>3.6.1</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
 
@@ -808,12 +808,13 @@
             <argument>target/classes/org/ecocean/package.jdo</argument>
             <argument>target/classes/org/ecocean/genetics/package.jdo</argument>
             <argument>target/classes/org/ecocean/grid/package.jdo</argument>
+			<argument>target/classes/org/ecocean/cache/package.jdo</argument>
             <argument>target/classes/org/ecocean/tag/package.jdo</argument>
             <argument>target/classes/org/ecocean/media/package.jdo</argument>
             <argument>target/classes/org/ecocean/identity/package.jdo</argument>
             <argument>target/classes/org/ecocean/ia/package.jdo</argument>
             <argument>target/classes/org/ecocean/social/package.jdo</argument>
-	    <argument>target/classes/org/ecocean/movement/package.jdo</argument>
+			<argument>target/classes/org/ecocean/movement/package.jdo</argument>
           </arguments>
         </configuration>
         <executions>

@@ -387,11 +387,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 }
 
   var goToEncounterURL = function(selectedWhale) {
-    window.open("/encounters/encounter.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl + "/encounters/encounter.jsp?number=" + selectedWhale);
   }
 
   var goToWhaleURL = function(selectedWhale) {
-    window.open("/individuals.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl + "/individuals.jsp?number=" + selectedWhale);
   }
 
   var getRelationshipData = function(relationshipID) {

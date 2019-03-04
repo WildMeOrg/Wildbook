@@ -54,6 +54,7 @@ public class Annotation implements java.io.Serializable {
     private int height;
     private float[] transformMatrix;
     private double theta;
+    private String viewpoint;
     //*'annot_yaw': 'REAL',
     //~'annot_detect_confidence': 'REAL',
     //~'annot_exemplar_flag': 'INTEGER',
@@ -234,6 +235,32 @@ public class Annotation implements java.io.Serializable {
     public void setTheta(double t) {
         theta = t;
     }
+
+    public String getViewpoint() {
+        return viewpoint;
+    }
+    public void setViewpoint(String v) {
+        viewpoint = v;
+    }
+    //  note!  this can block and take a while if IA has yet to compute the viewpoint!
+    public String setViewpointFromIA(String context) throws IOException {
+        if (acmId == null) throw new IOException(this + " does not have acmId set; cannot get viewpoint from IA");
+        try {
+            JSONObject resp = org.ecocean.identity.IBEISIA.iaViewpointFromAnnotUUID(acmId, context);
+            if (resp == null) return null;
+            viewpoint = resp.optString("viewpoint", null);
+            System.out.println("INFO: setViewpointFromIA() got '" + viewpoint + "' (score " + resp.optDouble("score", -1.0) + ") for " + this);
+            return viewpoint;
+        } catch (RuntimeException | IOException | java.security.NoSuchAlgorithmException | java.security.InvalidKeyException ex) {
+            throw new IOException("setViewpointFromIA() on " + this + " failed: " + ex.toString());
+        }
+    }
+/*
+    //  response comes from ia thus: "response": [{"score": 0.9783339699109396, "species": "giraffe_reticulated", "viewpoint": "right"}]
+    public static JSONObject iaViewpointFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+*/
+
+
 //FIXME this all needs to be deprecated once deployed sites are migrated
     public MediaAsset __getMediaAsset() {
         return mediaAsset;
@@ -459,10 +486,10 @@ public class Annotation implements java.io.Serializable {
         public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
           return this.sanitizeMedia(request, false);
         }
-     
+
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
+        // Make sure we don't include any 'siblings' no matter how we return..
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        ArrayList<Encounter> encs = new ArrayList<Encounter>();
         Encounter myEnc = this.findEncounter(myShepherd);
         if (myEnc == null) {
             System.out.println("WARNING: getMatchingSet() could not find Encounter for " + this);
@@ -471,53 +498,59 @@ public class Annotation implements java.io.Serializable {
         System.out.println("Getting matching set for annotation. Retrieved encounter = "+myEnc.getCatalogNumber());
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
-        String filter;
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
-            filter = "SELECT FROM org.ecocean.Encounter WHERE specificEpithet == \""+mySpecificEpithet+"\" && genus == \""+myGenus+"\" ";
+            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc);
         } else {
-            System.out.println("NO MATCHING SET: The parent encounter for Annotation id="+this.id+" has not specified specificEpithet and genus.");
-            return anns; 
+            System.out.println("MATCHING ALL SPECIES : The parent encounter for query Annotation id="+this.id+" has not specified specificEpithet and genus.");
+            anns = getMatchingSetAllSpecies(myShepherd);
         }
-        Query query = myShepherd.getPM().newQuery(filter);
-        Collection c = (Collection) (query.execute());
-        Iterator it = c.iterator();
-        int count = 0;
-        while (it.hasNext()) {
-            count++;
-            Encounter enc = (Encounter) it.next();
-            if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
-                for (Annotation ann : enc.getAnnotations()) {
+        System.out.println("Did the query return any encounters? It got: "+anns.size()); 
+        return anns;
+    }
 
-                    // Hey! There is some code here that checks against iaClass commented out. This will maybe be important in the 
-                    // future as we start to detect more parts ect... but for now lets leave it out for the good of Wildbooks with older data!
-                    if (ann.getMatchAgainst()) {
-                        //if  ((ann.getIAClass()!=null&&this.iaClass!=null&&ann.getIAClass().equals(this.iaClass))) {
-                            anns.add(ann);
-                        //} else if (this.iaClass==null&&ann.getIAClass()!=null) {
-                        //    anns.add(ann);
-                        //}
-                    }
-                }
-            }
+    //note: this also excludes "sibling annots" (in same encounter)
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc) {
+        if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
+        //do we need to worry about our annot living in another encounter?  i hope not!
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        return getMatchingSetForFilter(myShepherd, filter);
+    }
+    // the figure-it-out-yourself version
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd) {
+        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd));
+    }
+
+    //gets everything, no exclusions (e.g. for cacheing)
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet) {
+        if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
+        return getMatchingSetForFilter(myShepherd, filter);
+    }
+    //figgeritout
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc == null) return null;
+        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet());
+    }
+
+    //pass in a generic SELECT filter query string and get back Annotations
+    static public ArrayList<Annotation> getMatchingSetForFilter(Shepherd myShepherd, String filter) {
+        if (filter == null) return null;
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection)query.execute();
+        Iterator it = c.iterator();
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        while (it.hasNext()) {
+            Annotation ann = (Annotation)it.next();
+            //FIXME also do other validAnnotation kinda stuff here !!!!!!!!!!!!!!!!!!!! TODO FIXME XXX
+            anns.add(ann);
         }
-        System.out.println("Did the query return any encounters? It got: "+count); 
-        
         query.closeAll();
         return anns;
     }
 
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
-        ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst";
-        Query query = myShepherd.getPM().newQuery(filter);
-        Collection c = (Collection) (query.execute());
-        Iterator it = c.iterator();
-        while (it.hasNext()) {
-            Annotation ann = (Annotation) it.next(); 
-            anns.add(ann);
-        }
-        query.closeAll();
-        return anns;
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
     }
 
     public String findIndividualId(Shepherd myShepherd) {
@@ -644,6 +677,22 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return mediaAsset.toHtmlElement(request, myShepherd, this);
     }
 */
+
+    public Annotation revertToTrivial(Shepherd myShepherd) throws IOException {
+        if (this.isTrivial()) throw new IOException("Already a trivial Annotation: " + this);
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc == null) throw new IOException("Unable to find corresponding Encounter for " + this);
+        MediaAsset ma = this.getMediaAsset();
+        if (ma == null) throw new IOException("Unable to find corresponding MediaAsset for " + this);
+        if ((ma.getFeatures() != null) && (ma.getFeatures().size() > 1)) throw new IOException("Sibling Annotations detected on " + ma + "; cannot revert to trivial " + this);
+        Annotation triv = new Annotation(this.species, ma);  //not going to set IAClass or anything since starting fresh
+        enc.removeAnnotation(this);
+        this.setMatchAgainst(false);
+        this.detachFromMediaAsset();
+        enc.addAnnotation(triv);
+        System.out.println("INFO: revertToTrivial() created annot=" + triv.getId() + " on enc=" + enc.getCatalogNumber() + ", replacing annot=" + this.getId());
+        return triv;
+    }
 
     //creates a new Annotation with the basic properties duplicated (but no "linked" objects, like Features etc)
     public Annotation shallowCopy() {

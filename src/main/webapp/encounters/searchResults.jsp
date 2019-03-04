@@ -1183,9 +1183,9 @@ console.log(t);
 </script>
 
 <p class="table-filter-text">
-<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="filter" />
-<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=encprops.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=encprops.getProperty("filter") %>" />
+<input type="button" value="<%=encprops.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 <div class="pageableTable-wrapper">

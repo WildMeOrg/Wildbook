@@ -503,6 +503,9 @@
 			<column default-value="false" />
 			<index name="ANNOTATION_MATCHAGAINST_idx" />
 		</field>
+		<field name="viewpoint">
+			<index name="ANNOTATION_VIEWPOINT_IDX" />
+		</field>
 
             	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >
                 	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
