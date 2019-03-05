@@ -13,6 +13,7 @@ import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.acm.AcmBase;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.ia.Task;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -31,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
+    private static final String[] VALID_VIEWPOINTS = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
 
     private String species; 
 
@@ -239,6 +241,26 @@ public class Annotation implements java.io.Serializable {
     public String getViewpoint() {
         return viewpoint;
     }
+    //this returns this viewpoint, plus one to either side
+    //  (will return null if unset or invalid)
+    public String[] getViewpointAndNeighbors() {
+        return getViewpointAndNeighbors(this.viewpoint);
+    }
+    //returns 3 positions, in clockwise order, with viewpoint in the middle position
+    //   e.g.: front -> frontleft,front,frontright    -or-    backleft -> back,backleft,left
+    public static String[] getViewpointAndNeighbors(String vp) {
+        if ((vp == null) || !isValidViewpoint(vp)) return null;
+        int found = -1;
+        for (int i = 0 ; i < VALID_VIEWPOINTS.length ; i++) {
+            if (VALID_VIEWPOINTS[i].equals(vp)) found = i;
+        }
+        if (found < 0) return null;  //"should never happen"
+        String[] rtn = new String[3];
+        rtn[0] = VALID_VIEWPOINTS[(found + VALID_VIEWPOINTS.length - 1) % VALID_VIEWPOINTS.length];   // #mathftw
+        rtn[1] = vp;
+        rtn[2] = VALID_VIEWPOINTS[(found + 1) % VALID_VIEWPOINTS.length];
+        return rtn;
+    }
     public void setViewpoint(String v) {
         viewpoint = v;
     }
@@ -246,7 +268,7 @@ public class Annotation implements java.io.Serializable {
     public String setViewpointFromIA(String context) throws IOException {
         if (acmId == null) throw new IOException(this + " does not have acmId set; cannot get viewpoint from IA");
         try {
-            JSONObject resp = org.ecocean.identity.IBEISIA.iaViewpointFromAnnotUUID(acmId, context);
+            JSONObject resp = IBEISIA.iaViewpointFromAnnotUUID(acmId, context);
             if (resp == null) return null;
             viewpoint = resp.optString("viewpoint", null);
             System.out.println("INFO: setViewpointFromIA() got '" + viewpoint + "' (score " + resp.optDouble("score", -1.0) + ") for " + this);
@@ -512,7 +534,7 @@ public class Annotation implements java.io.Serializable {
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc) {
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
         //do we need to worry about our annot living in another encounter?  i hope not!
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         return getMatchingSetForFilter(myShepherd, filter);
     }
     // the figure-it-out-yourself version
@@ -536,21 +558,32 @@ public class Annotation implements java.io.Serializable {
     //pass in a generic SELECT filter query string and get back Annotations
     static public ArrayList<Annotation> getMatchingSetForFilter(Shepherd myShepherd, String filter) {
         if (filter == null) return null;
+        long t = System.currentTimeMillis();
+        System.out.println("INFO: getMatchingSetForFilter filter = " + filter);
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection)query.execute();
         Iterator it = c.iterator();
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         while (it.hasNext()) {
             Annotation ann = (Annotation)it.next();
-            //FIXME also do other validAnnotation kinda stuff here !!!!!!!!!!!!!!!!!!!! TODO FIXME XXX
+            if (!IBEISIA.validForIdentification(ann)) continue;
             anns.add(ann);
         }
         query.closeAll();
+        System.out.println("INFO: getMatchingSetForFilter found " + anns.size() + " annots (" + (System.currentTimeMillis() - t) + "ms)");
         return anns;
     }
 
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
         return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
+    }
+
+    // will construnct "&& (viewpoint == null || viewpoint == 'x' || viewpoint == 'y')" for use above
+    //   note: will return "" when this annot has no (valid) viewpoint
+    private String getFilterViewpointClause() {
+        String[] viewpoints = this.getViewpointAndNeighbors();
+        if (viewpoints == null) return "";
+        return "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
     }
 
     public String findIndividualId(Shepherd myShepherd) {
@@ -707,6 +740,14 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
 
     public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
         return Task.getRootTasksFor(this, myShepherd);
+    }
+
+    public static boolean isValidViewpoint(String vp) {
+        if (vp == null) return true;  //?? is this desired behavior?
+        return getAllValidViewpoints().contains(vp);
+    }
+    public static List<String> getAllValidViewpoints() {
+        return Arrays.asList(VALID_VIEWPOINTS);
     }
 
 }
