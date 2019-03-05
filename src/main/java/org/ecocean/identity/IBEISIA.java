@@ -1439,7 +1439,9 @@ System.out.println("     ---> " + annIds);
                         String aid = annIds.optString(i, null);
                         if (aid == null) continue;
                         Annotation ann = ((Annotation) (myShepherd2.getPM().getObjectById(myShepherd2.getPM().newObjectIdInstance(Annotation.class, aid), true)));
-                        if (ann != null) needIdentifying.add(ann);
+                        if (ann != null&&IBEISIA.validForIdentification(ann, context)) {
+                            needIdentifying.add(ann);
+                        }
                     }
                 }
             }
@@ -1453,6 +1455,7 @@ System.out.println("     ---> " + annIds);
                     myShepherd2.storeNewTask(task);
                 }
             } else {
+                System.out.println("[INFO]: No annotations were suitable for identification. Check resulting identification class(es).");
                 myShepherd2.rollbackDBTransaction();
             }
             myShepherd2.closeDBTransaction();
