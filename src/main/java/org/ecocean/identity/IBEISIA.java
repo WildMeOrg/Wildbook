@@ -1562,7 +1562,7 @@ System.out.println("     ---> " + annIds);
                         String aid = annIds.optString(i, null);
                         if (aid == null) continue;
                         Annotation ann = ((Annotation) (myShepherd2.getPM().getObjectById(myShepherd2.getPM().newObjectIdInstance(Annotation.class, aid), true)));
-                        if (ann != null&&IBEISIA.validForIdentification(ann, context)) {
+                        if (ann != null&&IBEISIA.validForIdentification(ann)) {
                             needIdentifying.add(ann);
                         }
                     }
