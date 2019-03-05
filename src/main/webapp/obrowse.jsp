@@ -388,11 +388,15 @@ if (type.equals("Encounter")) {
 	if (id==null&&acmid!=null) {
 		try {
 			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmid);
-                        if ((anns == null) || (anns.size() < 1)) {
-                            out.println("none with acmid " + acmid);
-                        } else {
-			    out.println(showAnnotation(anns.get(0)));
-                        }
+			if ((anns == null) || (anns.size() < 1)) {
+				out.println("none with acmid " + acmid);
+			} else {
+				String allAnns = "";
+				for (int i=0; i<anns.size(); i++) {
+					allAnns += showAnnotation(anns.get(i));
+				}
+				out.println(allAnns);
+			}
 		} catch (Exception e) {
 			out.println("<p>ERROR: " + e.toString() + "</p>");
 			needForm = true;
