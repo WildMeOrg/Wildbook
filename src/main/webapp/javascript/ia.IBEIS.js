@@ -59,10 +59,11 @@ wildbook.IA.plugins.push({
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 } else {
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
                     if (ma.taxonomyString) {
                         var data = {
-                            annotationIds: [ ma.annotation.id ]
+                            annotationIds: [ aid ]
                         };
                         imageEnhancer.popup('<h2>Starting matching....</h2>');
                         wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -112,10 +113,11 @@ wildbook.IA.plugins.push({
                 //     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 // } else {
                 var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
                 if (ma.taxonomyString) {
                     var data = {
-                        annotationIds: [ ma.annotation.id ]
+                        annotationIds: [ aid ]
                     };
                     imageEnhancer.popup('<h2>Starting matching....</h2>');
                     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
