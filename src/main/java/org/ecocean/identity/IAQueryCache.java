@@ -26,7 +26,7 @@ public class IAQueryCache {
         if ((qanns == null) || (qanns.size() < 1)) return -1;  //  :(
         //we want *non* excluding version of this:
         Shepherd myShepherd = new Shepherd(context);
-        ArrayList<Annotation> anns = qanns.get(0).getMatchingSetForTaxonomy(myShepherd);
+        ArrayList<Annotation> anns = qanns.get(0).getMatchingSetForTaxonomy(myShepherd, null);
         if (anns == null) return -2;
         JSONObject jdata = new JSONObject();
         JSONArray idArr = new JSONArray();
