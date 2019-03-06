@@ -15,6 +15,7 @@ import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.acm.AcmBase;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.ia.Task;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
@@ -538,7 +539,7 @@ public class Annotation implements java.io.Serializable {
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params) {
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
         //do we need to worry about our annot living in another encounter?  i hope not!
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause() + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         return getMatchingSetForFilter(myShepherd, filter);
     }
     // the figure-it-out-yourself version
@@ -585,10 +586,26 @@ public class Annotation implements java.io.Serializable {
 
     // will construnct "&& (viewpoint == null || viewpoint == 'x' || viewpoint == 'y')" for use above
     //   note: will return "" when this annot has no (valid) viewpoint
-    private String getFilterViewpointClause() {
+    private String getMatchingSetFilterViewpointClause() {
         String[] viewpoints = this.getViewpointAndNeighbors();
         if (viewpoints == null) return "";
         return "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
+    }
+
+    private String getMatchingSetFilterFromParameters(JSONObject j) {
+        if (j == null) return "";
+        String f = "";
+        if (j.optString("locationId", null) != null) f += " && locationID == '" + Util.basicSanitize(j.getString("locationId")) + "' ";
+        JSONArray larr = j.optJSONArray("locationIds");
+        if (larr != null) {
+            List<String> locs = new ArrayList<String>();
+            for (int i = 0 ; i < larr.length() ; i++) {
+                String val = Util.basicSanitize(larr.optString(i));
+                if (!val.equals("")) locs.add(val);
+            }
+            if (locs.size() > 0) f += " && (locationID == '" + String.join("' || locationID == '", locs) + "') ";
+        }
+        return f;
     }
 
     public String findIndividualId(Shepherd myShepherd) {
