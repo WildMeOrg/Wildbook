@@ -510,6 +510,10 @@ public class Annotation implements java.io.Serializable {
         }
 
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
+        return getMatchingSet(myShepherd, null);
+    }
+    //params (usually?) come from task.parameters
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject params) {
         // Make sure we don't include any 'siblings' no matter how we return..
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Encounter myEnc = this.findEncounter(myShepherd);
@@ -521,7 +525,7 @@ public class Annotation implements java.io.Serializable {
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
-            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc);
+            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
         } else {
             System.out.println("MATCHING ALL SPECIES : The parent encounter for query Annotation id="+this.id+" has not specified specificEpithet and genus.");
             anns = getMatchingSetAllSpecies(myShepherd);
@@ -531,31 +535,32 @@ public class Annotation implements java.io.Serializable {
     }
 
     //note: this also excludes "sibling annots" (in same encounter)
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params) {
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
         //do we need to worry about our annot living in another encounter?  i hope not!
         String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         return getMatchingSetForFilter(myShepherd, filter);
     }
     // the figure-it-out-yourself version
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd) {
-        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd));
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, JSONObject params) {
+        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd), params);
     }
 
     //gets everything, no exclusions (e.g. for cacheing)
-    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet, JSONObject params) {
         if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
         String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
         return getMatchingSetForFilter(myShepherd, filter);
     }
     //figgeritout
-    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, JSONObject params) {
         Encounter enc = this.findEncounter(myShepherd);
         if (enc == null) return null;
-        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet());
+        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet(), params);
     }
 
     //pass in a generic SELECT filter query string and get back Annotations
+    //  currently not taking params, but we can add later if we find useful (for now just trusting filter!)
     static public ArrayList<Annotation> getMatchingSetForFilter(Shepherd myShepherd, String filter) {
         if (filter == null) return null;
         long t = System.currentTimeMillis();

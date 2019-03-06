@@ -76,7 +76,7 @@ public class IA {
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
         return intakeMediaAssets(myShepherd, mas, null);
     }
-    public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, Task parentTask) {
+    public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         if ((mas == null) || (mas.size() < 1)) return null;
         Task task = new Task();
         if (parentTask != null) task.setParameters(parentTask.getParameters());
@@ -108,10 +108,15 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
     }
 
     //similar behavior to above: basically fake /ia api call, but via queue
+    //     parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
+        return intakeAnnotations(myShepherd, anns, null);
+    }
+    public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
         if ((anns == null) || (anns.size() < 1)) return null;
 
         Task topTask = new Task();
+        if (parentTask != null) topTask.setParameters(parentTask.getParameters());
         topTask.setObjectAnnotations(anns);
         String context = myShepherd.getContext();
 
@@ -210,7 +215,7 @@ System.out.println(i + " -> " + ma);
                 if (ann == null) continue;
                 anns.add(ann);
             }
-            Task atask = intakeAnnotations(myShepherd, anns);
+            Task atask = intakeAnnotations(myShepherd, anns, topTask);
             System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
             topTask.addChild(atask);
             myShepherd.getPM().refresh(topTask);
