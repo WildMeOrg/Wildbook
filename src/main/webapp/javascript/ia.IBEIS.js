@@ -44,7 +44,8 @@ wildbook.IA.plugins.push({
                 } else {
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
-                    if (ma.taxonomyString) {
+                    var requireSpecies = wildbook.IA.requireSpeciesForId();
+                    if (requireSpecies=="false"||ma.taxonomyString) {
                         menuText = 'start matching';
                         alreadyLinked = true;
                     } else {
@@ -60,7 +61,8 @@ wildbook.IA.plugins.push({
                 } else {
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
-                    if (ma.taxonomyString) {
+                    var requireSpecies = wildbook.IA.requireSpeciesForId();
+                    if (requireSpecies=="false"||ma.taxonomyString) {
                         var data = {
                             annotationIds: [ ma.annotation.id ]
                         };
@@ -97,7 +99,9 @@ wildbook.IA.plugins.push({
 
                     var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
-                    if (ma.taxonomyString) {
+                    var requireSpecies = wildbook.IA.requireSpeciesForId();
+                    if (requireSpecies=="false"||ma.taxonomyString) {
+
                         menuText = 'start another matching job';
                     } else {
                         menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';
@@ -113,7 +117,8 @@ wildbook.IA.plugins.push({
                 // } else {
                 var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
-                if (ma.taxonomyString) {
+                var requireSpecies = wildbook.IA.requireSpeciesForId();
+                if (requireSpecies=="false"||ma.taxonomyString) {
                     var data = {
                         annotationIds: [ ma.annotation.id ]
                     };
