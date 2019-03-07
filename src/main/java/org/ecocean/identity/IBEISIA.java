@@ -2811,7 +2811,11 @@ NOTE: DISABLED FOR NOW?????   FIXME
         rtn.put("timestamp", System.currentTimeMillis());
         JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
         settings.put("IBEISIARestUrlAddAnnotations", IA.getProperty(context, "IBEISIARestUrlAddAnnotations"));
-        rtn.put("settings", settings);
+        
+        String boolString = IA.getProperty(context, "requireSpeciesForId"); 
+        if (boolString==null||boolString=="") boolString = "false"; 
+        settings.put("requireSpeciesForId", boolString);
+        rtn.put("settings", settings);    
         rtn.put("identOpts", identOpts(context));
         return rtn;
     }
