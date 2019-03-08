@@ -515,6 +515,7 @@ public class Annotation implements java.io.Serializable {
     }
     //params (usually?) come from task.parameters
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject params) {
+System.out.println("[1] getMatchingSet params=" + params);
         // Make sure we don't include any 'siblings' no matter how we return..
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Encounter myEnc = this.findEncounter(myShepherd);
@@ -592,10 +593,13 @@ public class Annotation implements java.io.Serializable {
         return "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
     }
 
-    private String getMatchingSetFilterFromParameters(JSONObject j) {
+    //note, we are give *full* task.parameters; by convention, we only act on task.parameters.matchingSetFilter
+    private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
+        if (taskParams == null) return "";
+        JSONObject j = taskParams.optJSONObject("matchingSetFilter");
         if (j == null) return "";
         String f = "";
-        if (j.optString("locationId", null) != null) f += " && locationID == '" + Util.basicSanitize(j.getString("locationId")) + "' ";
+        if (j.optString("locationId", null) != null) f += " && enc.locationID == '" + Util.basicSanitize(j.getString("locationId")) + "' ";
         JSONArray larr = j.optJSONArray("locationIds");
         if (larr != null) {
             List<String> locs = new ArrayList<String>();
@@ -603,7 +607,7 @@ public class Annotation implements java.io.Serializable {
                 String val = Util.basicSanitize(larr.optString(i));
                 if (!val.equals("")) locs.add(val);
             }
-            if (locs.size() > 0) f += " && (locationID == '" + String.join("' || locationID == '", locs) + "') ";
+            if (locs.size() > 0) f += " && (enc.locationID == '" + String.join("' || enc.locationID == '", locs) + "') ";
         }
         return f;
     }

@@ -128,14 +128,18 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         List<JSONObject> opts = IBEISIA.identOpts(context);
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
+        JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
+        if (parentTask != null) newTaskParams = parentTask.getParameters();
         if (opts.size() == 1) {
-            topTask.setParameters("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
+            newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
+            topTask.setParameters(newTaskParams);
             tasks.add(topTask);  //topTask will be used as *the*(only) task -- no children
         } else {
             for (int i = 0 ; i < opts.size() ; i++) {
                 Task t = new Task();
                 t.setObjectAnnotations(anns);
-                t.setParameters("ibeis.identification", ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));
+                newTaskParams.put("ibeis.identification", ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));  //overwrites each time
+                t.setParameters(newTaskParams);
                 topTask.addChild(t);
                 tasks.add(t);
             }
