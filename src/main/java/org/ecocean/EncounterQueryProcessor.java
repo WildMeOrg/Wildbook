@@ -1293,15 +1293,29 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     //filter for sex------------------------------------------
     if((request.getParameter("male")!=null)||(request.getParameter("female")!=null)||(request.getParameter("unknown")!=null)){
       if(request.getParameter("male")==null) {
-        filter+=" && !sex.startsWith('male')";
+        if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+          filter+="  !sex.startsWith('male')";
+        } else {
+          filter+=" && !sex.startsWith('male')";
+        }
         prettyPrint.append("Sex is not male.<br />");
       }
+
       if(request.getParameter("female")==null) {
-        filter+=" && !sex.startsWith('female')";
+        if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+          filter+="  !sex.startsWith('female')";
+        } else {
+          filter+=" && !sex.startsWith('female')";
+        }
         prettyPrint.append("Sex is not female.<br />");
       }
+
       if(request.getParameter("unknown")==null) {
-        filter+=" && !sex.startsWith('unknown') && sex != null";
+        if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+          filter+=" !sex.startsWith('unknown') && sex != null";
+        } else {
+          filter+=" && !sex.startsWith('unknown') && sex != null";
+        }
         prettyPrint.append("Sex is not unknown.<br />");
       }
     }
