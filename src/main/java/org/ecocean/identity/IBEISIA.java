@@ -2899,6 +2899,11 @@ System.out.println(" ???? setting iaPrimed to " + b);
     }
 
     public static void waitForIAPriming() {
+        if (!isIAPrimed() && new File("/tmp/WB_PRIMEFAKE").exists()) {
+            System.out.println("INFO: /tmp/WB_PRIMEFAKE encountered, faking IA priming");
+            setIAPrimed(true);
+            return;
+        }
         int count = 150;
         while (!isIAPrimed()) {
             count--;
