@@ -213,7 +213,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
         myShepherd.beginDBTransaction();
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
-            if (!validForIdentification(ann)) {
+            if (!validToSendToIA(ann)) {
                 System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
@@ -3542,7 +3542,7 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         return;
     }
 
-    public static boolean validForIdentification(Annotation ann) {
+    public static boolean validToSendToIA(Annotation ann) {
         if (ann == null) return false;
         //System.out.println("BBOX features -> " + ann.getFeatures()); //please leave this line in (ask jon... sigh)
         List<Feature> forceJdoToUnpackTheseFeatures = ann.getFeatures();
@@ -3550,7 +3550,22 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         if (forceJdoToUnpackTheseFeatures!=null) ungodlyHackString = forceJdoToUnpackTheseFeatures.toString();
         int[] bbox = ann.getBbox();
         if (bbox == null) {
-            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
+            System.out.println("NOTE: IBEISIA.validToSendToIA() failing " + ann.toString() + " - invalid bbox");
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean validForIdentification(Annotation ann) {
+        if (!validToSendToIA(ann)) return false;
+        String acmId = ann.getAcmId();
+        if (!Util.stringExists(acmId)) {
+            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - no acm ID");
+            return false;
+        }
+        JSONObject uuid = toFancyUUID(ann.getAcmId());
+        if (uuid==null) {
+            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - could not form uuid from acmId of "+acmId);
             return false;
         }
         return true;
