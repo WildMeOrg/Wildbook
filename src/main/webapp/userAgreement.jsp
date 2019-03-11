@@ -40,18 +40,6 @@ context=ServletUtilities.getContext(request);
       color: #000000;
     }
 
-.watermark-overlay {
-    position: fixed;
-    transform: rotate(-10deg);
-    font-size: 11.0em;
-    text-align: center;
-    z-index: -100;
-    width: 100%;
-    font-weight: bold;
-    opacity: 0.3;
-    color: rgba(255,100,0,1);
-}
-
     -->
 
 h3 {
@@ -63,8 +51,6 @@ h3 {
 
 
 <div class="container maincontent">
-
-<h1 class="watermark-overlay">DRAFT COPY</h1>
 
         
         <%

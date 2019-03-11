@@ -370,6 +370,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <%
                         }
                         %>
+                          <li><a href="<%=urlLoc %>/userAccessPolicy.jsp"><%=props.getProperty("accessPolicy")%></a></li>
                           <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
 
                           <!--  examples of navigation dividers

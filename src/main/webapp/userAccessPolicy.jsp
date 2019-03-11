@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList, java.util.Map, java.util.HashMap, java.util.concurrent.ThreadPoolExecutor" %>
+         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList, java.util.Map, java.util.HashMap, org.json.JSONObject, java.util.concurrent.ThreadPoolExecutor" %>
 
 
 <%!
@@ -54,7 +54,11 @@ if (Util.stringExists(requestEmail)) {
             tagMap.put("@REQUEST_DATACOLLECTED@", requestDatacollected);
             tagMap.put("@REQUEST_QUALIFICATIONS@", requestQualifications);
             tagMap.put("@REQUEST_DATAPLAN@", requestDataplan);
-            String[] mailTo = new String[]{"sito.org@gmail.com", "jon@wildme.org"};
+            tagMap.put("@REQUEST_IP@", ServletUtilities.getRemoteHost(request));
+            tagMap.put("@REQUEST_TIMESTAMP@", Long.toString(System.currentTimeMillis()));
+            String recPath = "/var/spool/WildbookQueryCache/access_request_" + System.currentTimeMillis() + ".json";  //hacktacular hard-coded location
+            Util.writeToFile(new JSONObject(tagMap).toString(), recPath);
+            String[] mailTo = new String[]{"test@example.com"};
             for (int i = 0 ; i < mailTo.length ; i++) {
                 NotificationMailer mailer = new NotificationMailer(context, ServletUtilities.getLanguageCode(request), mailTo[i], "requestAccess", tagMap);
                 mailer.setUrlScheme(request.getScheme());
@@ -121,17 +125,6 @@ $(document).ready(function() {
     border-radius: 10px;
 }
 
-.watermark-overlay {
-    position: fixed;
-    transform: rotate(-10deg);
-    font-size: 11.0em;
-    text-align: center;
-    z-index: -100;
-    width: 100%;
-    font-weight: bold;
-    opacity: 0.3;
-    color: rgba(255,100,0,1);
-}
 
 #request-access textarea,
 #request-access input 
@@ -151,8 +144,6 @@ $(document).ready(function() {
 
 <div class="container maincontent">
 
-<h1 class="watermark-overlay">DRAFT COPY</h1>
-
 <h1>User Access Policy for GiraffeSpotter - Wildbook for Giraffe</h1>
 
 <p style="font-size: 1.2em; font-weight: bold;" >
@@ -170,7 +161,7 @@ and
 </p>
 
 <p>
-This Wildbook provides standardized research software and analytical techniques for the study of giraffe.
+This <a target="_new" href="http://wildbook.org">Wildbook</a> provides standardized research software and analytical techniques for the study of giraffe.
 Access to this resource is provided free of charge to individuals or organizations selected according to the criteria of this policy.
 The number of new accounts that can be provided each year is limited by:
 <ul>
