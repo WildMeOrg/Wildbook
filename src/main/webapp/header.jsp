@@ -379,10 +379,17 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                               <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
 
                               <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
-                        	<li class="divider"></li>
+
+                              <li class="divider"></li>
+
+                              <li><a href="<%=urlLoc %>/publications.jsp"><%=props.getProperty("publications")%></a></li>
+
+                              <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+
                         <%
                         if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                         %>
+                        	<li class="divider"></li>
                           <li><a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a></li>
                         <%
                         }
