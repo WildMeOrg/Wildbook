@@ -520,48 +520,54 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         e.printStackTrace();
     }
 
-    //v2 "forces" queueing -- onward to the glorious future!
-    if (j.optBoolean("enqueue", false) || j.optBoolean("v2", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
-        //TODO if queue is not active/okay, fallback to synchronous???
-        //TODO could probably add other stuff (e.g. security/user etc)
-        j.put("__context", context);
-        j.put("__baseUrl", baseUrl);
-        j.put("__enqueuedByIAGateway", System.currentTimeMillis());
-        //incoming json *probably* (should have) has taskId set... but if not i guess we use the one we generated???
-        if (j.optString("taskId", null) != null) {
-            taskId = j.getString("taskId");
-            res.put("taskId", taskId);
+    try {
+        //v2 "forces" queueing -- onward to the glorious future!
+        if (j.optBoolean("enqueue", false) || j.optBoolean("v2", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
+            //TODO if queue is not active/okay, fallback to synchronous???
+            //TODO could probably add other stuff (e.g. security/user etc)
+            j.put("__context", context);
+            j.put("__baseUrl", baseUrl);
+            j.put("__enqueuedByIAGateway", System.currentTimeMillis());
+            //incoming json *probably* (should have) has taskId set... but if not i guess we use the one we generated???
+            if (j.optString("taskId", null) != null) {
+                taskId = j.getString("taskId");
+                res.put("taskId", taskId);
+            } else {
+                j.put("taskId", taskId);
+            }
+            Task task = Task.load(taskId, myShepherd);
+            if (task == null) task = new Task(taskId);
+            task.setParameters(j.optJSONObject("taskParameters")); //optional
+            myShepherd.storeNewTask(task);
+            myShepherd.commitDBTransaction();  //hack
+            //myShepherd.closeDBTransaction();
+
+            boolean ok = addToQueue(context, j.toString());
+            if (ok) {
+                System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
+                res.remove("error");
+            } else {
+                System.out.println("ERROR: taskId=" + taskId + " was NOT enqueued successfully");
+                res.put("error", "addToQueue() returned false");
+            }
+            res.put("success", ok);
+
+        } else if (j.optJSONObject("detect") != null) {
+            res = _doDetect(j, res, myShepherd, baseUrl);
+
+        } else if (j.optJSONObject("identify") != null) {
+            res = _doIdentify(j, res, myShepherd, context, baseUrl);
+
+        } else if (j.optJSONObject("resolver") != null) {
+            res = Resolver.processAPIJSONObject(j.getJSONObject("resolver"), myShepherd);
+
         } else {
-            j.put("taskId", taskId);
+            res.put("error", "unknown POST command");
+            res.put("success", false);
         }
-        Task task = Task.load(taskId, myShepherd);
-        if (task == null) task = new Task(taskId);
-        task.setParameters(j.optJSONObject("taskParameters")); //optional
-        myShepherd.storeNewTask(task);
-        myShepherd.commitDBTransaction();  //hack
-        //myShepherd.closeDBTransaction();
 
-        boolean ok = addToQueue(context, j.toString());
-        if (ok) {
-            System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
-            res.remove("error");
-        } else {
-            System.out.println("ERROR: taskId=" + taskId + " was NOT enqueued successfully");
-            res.put("error", "addToQueue() returned false");
-        }
-        res.put("success", ok);
-
-    } else if (j.optJSONObject("detect") != null) {
-        res = _doDetect(j, res, myShepherd, baseUrl);
-
-    } else if (j.optJSONObject("identify") != null) {
-        res = _doIdentify(j, res, myShepherd, context, baseUrl);
-
-    } else if (j.optJSONObject("resolver") != null) {
-        res = Resolver.processAPIJSONObject(j.getJSONObject("resolver"), myShepherd);
-
-    } else {
-        res.put("error", "unknown POST command");
+    } catch (Exception ex) {
+        res.put("error", "exception in handling IAGateway input: " + ex.toString());
         res.put("success", false);
     }
 
