@@ -286,83 +286,59 @@ finally{
         </div>
 
 	</div>
-
-
 </section>
 
+<!-- usedta be the carousel -->
+<!-- add different tints for the divs and a litttle bold and color to the headers -->
 <section class="container text-center main-section">
-
 	<h2 class="section-header"><%=props.getProperty("howItWorksH") %></h2>
+        <div class="index-info-tile-1 col-xs-12 col-sm-6 col-md-6 col-lg-6">
+            <h3 class="section-header"><%=props.getProperty("innerPhotoH3") %></h3>
+            <p class="lead">
+                <%=props.getProperty("innerPhotoP") %>
+            </p>
+        </div>
+        <div class="index-info-tile-2 col-xs-12 col-sm-6 col-md-6 col-lg-6">
+            <h3 class="section-header"><%=props.getProperty("innerSubmitH3") %></h3>
+            <p class="lead">
+                <%=props.getProperty("innerSubmitP") %>
+            </p>
+        </div>
+        <div class="index-info-tile-3 col-xs-12 col-sm-6 col-md-6 col-lg-6">
+            <h3 class="section-header"><%=props.getProperty("innerVerifyH3") %></h3>
+            <p class="lead">
+                <%=props.getProperty("innerVerifyP") %>
+            </p>
+        </div>
+        <div class="index-info-tile-4 col-xs-12 col-sm-6 col-md-6 col-lg-6">
+            <h3 class="section-header"><%=props.getProperty("innerMatchingH3") %></h3>
+            <p class="lead">
+                <%=props.getProperty("innerMatchingP") %>
+            </p>
+        </div>
 
-  <!-- All carousel text can be modified in the index properties files -->
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <h3 class="section-header"><%=props.getProperty("innerResultH3") %></h3>
+        </div>
 
-	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
-		<ol class="list-inline carousel-indicators slide-nav">
-	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. <%=props.getProperty("carouselPhoto") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=props.getProperty("carouselSubmit") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=props.getProperty("carouselVerify") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. <%=props.getProperty("carouselMatching") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. <%=props.getProperty("carouselResult") %><span class="caret"></span></li>
-	    </ol>
-		<div class="carousel-inner text-left">
-			<div class="item active">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3><%=props.getProperty("innerPhotoH3") %></h3>
-					<p class="lead">
-						<%=props.getProperty("innerPhotoP") %>
-					</p>
+        <div class="index-info-image col-xs-12 col-sm-6 col-md-6 col-lg-6">
 
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerSubmitH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerSubmitP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerVerifyH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerVerifyP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerMatchingH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerMatchingP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerResultsH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerResultsP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
-				</div>
-			</div>
-		</div>
-	</div>
+            <img src="cust/mantamatcher/img/jag-detect.png" />
+            <label>Jaguar detected in image.</label>
+        </div>
+
+        <div class="index-info-image col-xs-12 col-sm-6 col-md-6 col-lg-6">
+
+            <img src="cust/mantamatcher/img/jag-heatmap.png" />
+            <label>Matching areas of Jaguar pattern.</label>
+        </div>
+
+        <div class="index-info-tile-5 col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <br>
+            <p class="lead">
+                <%=props.getProperty("innerResultP") %>
+            </p>
+        </div>
 </section>
 
 <div class="container-fluid relative data-section">
@@ -415,7 +391,7 @@ finally{
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest shark encounters</h2>
+                    <h2>Latest Jaguar Encounters</h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
