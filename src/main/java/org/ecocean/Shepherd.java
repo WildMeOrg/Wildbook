@@ -3340,7 +3340,7 @@ public class Shepherd {
         list = new ArrayList<User>(c);
       }
       users.closeAll();
-      System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
+      //System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
       return list;
     }
     catch (Exception npe) {
