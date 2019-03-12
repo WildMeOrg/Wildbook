@@ -273,7 +273,7 @@ finally{
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h2>Welcome to the Wildbook for Jaguars!</h2>
+            <h2><%= props.getProperty("mainSplash") %></h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -324,13 +324,13 @@ finally{
         <div class="index-info-image col-xs-12 col-sm-6 col-md-6 col-lg-6">
 
             <img src="cust/mantamatcher/img/jag-detect.png" />
-            <label>Jaguar detected in image.</label>
+            <label><%=props.getProperty("resultImageLabel1") %></label>
         </div>
 
         <div class="index-info-image col-xs-12 col-sm-6 col-md-6 col-lg-6">
 
             <img src="cust/mantamatcher/img/jag-heatmap.png" />
-            <label>Matching areas of Jaguar pattern.</label>
+            <label><%=props.getProperty("resultImageLabel2") %></label>
         </div>
 
         <div class="index-info-tile-5 col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -391,7 +391,7 @@ finally{
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest Jaguar Encounters</h2>
+                    <h2><%=props.getProperty("latestEncs") %></h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
@@ -499,18 +499,18 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified jaguars</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span><%=props.getProperty("identifiedAnimals") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
-            </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-
-                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> citizen scientists</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings<%=props.getProperty("reportedSightings") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> researchers and volunteers</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span><%=props.getProperty("citizenScientists") %></i></p>
+            </section>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span><%=props.getProperty("researcherCount") %></i></p>
             </section>
         </div>
 
