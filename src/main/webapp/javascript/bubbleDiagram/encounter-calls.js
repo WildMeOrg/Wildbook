@@ -318,11 +318,11 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   var encounterData = [];
   var occurringWith = "";
-  d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
+  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == \"" + individualID + "\"" ), function(error, json) {
       if(error) {
         console.log("error")
       }
-      jsonData = json;
+      jsonData = json[0];
       for(var i=0; i < jsonData.encounters.length; i++) {
     	  var occurringWith = "";
         for(var j = 0; j < occurrenceObjectArray.length; j++) {
