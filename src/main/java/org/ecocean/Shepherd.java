@@ -3586,7 +3586,7 @@ public class Shepherd {
         list = new ArrayList<User>(c);
       }
       users.closeAll();
-      System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
+      //System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
       return list;
     }
     catch (Exception npe) {
@@ -4542,8 +4542,8 @@ public class Shepherd {
       String thisUser=allUsers.get(i);
       if((!thisUser.trim().equals(""))&&(getUser(thisUser)!=null)){
 
-        if(qc.getQueryByName(("numRecentEncounters_"+thisUser), getContext())!=null){
-          CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+thisUser), getContext());
+        if(qc.getQueryByName(("numRecentEncounters_"+thisUser))!=null){
+          CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+thisUser));
           matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
         }
         

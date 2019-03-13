@@ -83,8 +83,11 @@ java.util.Properties" %>
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
 		shown.add(ann);
+		String vp = ann.getViewpoint();
+                if (!Annotation.isValidViewpoint(vp)) vp = "<span title=\"INVALID viewpoint value\" style=\"background-color: #F88; font-size: 0.8em; padding: 0 8px;\">" + vp + "</span>";
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
 		h += "<li>" + format("iaClass", ann.getIAClass()) + "</li>";
+		h += "<li>" + format("viewpoint", vp) + "</li>";
 		h += "<li>" + format("acmId", ann.getAcmId()) + "</li>";
 		h += "<li>" + format("matchAgainst", ann.getMatchAgainst()) + "</li>";
 		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
@@ -399,11 +402,15 @@ if (type.equals("Encounter")) {
 	if (id==null&&acmid!=null) {
 		try {
 			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmid);
-                        if ((anns == null) || (anns.size() < 1)) {
-                            out.println("none with acmid " + acmid);
-                        } else {
-			    out.println(showAnnotation(anns.get(0)));
-                        }
+			if ((anns == null) || (anns.size() < 1)) {
+				out.println("none with acmid " + acmid);
+			} else {
+				String allAnns = "";
+				for (int i=0; i<anns.size(); i++) {
+					allAnns += showAnnotation(anns.get(i));
+				}
+				out.println(allAnns);
+			}
 		} catch (Exception e) {
 			out.println("<p>ERROR: " + e.toString() + "</p>");
 			needForm = true;

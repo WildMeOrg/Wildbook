@@ -315,20 +315,22 @@ try{
 
 
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals", context).executeCountQuery(myShepherd).intValue();
+    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
     numNests=myShepherd.getNumNests();
     numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
     numUsersWithRoles = myShepherd.getNumUsers()-numDataContributors;
     //numEncounters=qc.getQueryByName("numEncounters", context).executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
-    numDataContributors=qc.getQueryByName("numUsersWithRoles", context).executeCountQuery(myShepherd).intValue();
-    numUsers=qc.getQueryByName("numUsers", context).executeCountQuery(myShepherd).intValue();
+    numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
+    numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
     numUsersWithRoles = numUsers-numDataContributors;
 
 
 }
 catch(Exception e){
+    System.out.println("INFO: *** If you are seeing an exception here (via index.jsp) your likely need to setup QueryCache");
+    System.out.println("      *** This entails configuring a directory via cache.properties and running appadmin/testQueryCache.jsp");
     e.printStackTrace();
 }
 finally{
