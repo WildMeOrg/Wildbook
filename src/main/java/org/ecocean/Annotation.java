@@ -1,5 +1,6 @@
 
 
+
 /*
   TODO note: this is very ibeis-specific concept of "Annotation"
      we should probably consider a general version which can be manipulated into an ibeis one somehow
@@ -14,6 +15,7 @@ import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.acm.AcmBase;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.ia.Task;
+import org.ecocean.ia.IA;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
@@ -339,8 +341,10 @@ public class Annotation implements java.io.Serializable {
         return sibs;
     }
 
-    //since we are going to loose .species property here, getSpecies() has gone away!
-    //  (it has kind of been replaced by WildbookIAM.getIASpecies()
+    public String getSpecies(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+        return enc.getGenus()+" "+enc.getSpecificEpithet();
+    }
 
     public String getIAClass() {
         return iaClass;
@@ -496,7 +500,7 @@ public class Annotation implements java.io.Serializable {
         //default behavior is limited access
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
             return this.sanitizeJson(request, false);
-        }
+    }
 
 ///////////////////// TODO fix this for Feature upgrade ////////////////////////
         /**
@@ -504,21 +508,34 @@ public class Annotation implements java.io.Serializable {
         * all they want in return are MediaAssets
         * TODO: add metadata?
         **/
-        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
-          org.datanucleus.api.rest.orgjson.JSONObject jobj;
-          if (this.getMediaAsset() != null) {
-            jobj = this.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess);
-          }
-          else {
-            jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
-          }
-          return jobj;
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+        org.datanucleus.api.rest.orgjson.JSONObject jobj;
+        if (this.getMediaAsset() != null) {
+        jobj = this.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess);
         }
-        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
-          return this.sanitizeMedia(request, false);
+        else {
+        jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
         }
+        return jobj;
+    }
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
+        return this.sanitizeMedia(request, false);
+    }
+
+    public String getPartIfPresent() {
+        String thisPart = "";
+        if (this.iaClass!=null&&this.iaClass.contains("+")) {
+            String[] arr = this.iaClass.split("\\+");
+            thisPart = arr[arr.length-1];
+        }
+        return thisPart;
+    }
 
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
+        return getMatchingSet(myShepherd, true);
+    }
+    
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, boolean useClauses) {
         // Make sure we don't include any 'siblings' no matter how we return..
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Encounter myEnc = this.findEncounter(myShepherd);
@@ -530,9 +547,13 @@ public class Annotation implements java.io.Serializable {
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
+            System.out.println("MATCHING SPECIES "+mySpecificEpithet+" "+myGenus+" : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
             anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc);
+        } else if (useClauses) {
+            System.out.println("MATCHING ALL SPECIES : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
+            anns = getMatchingSetForAnnotationAllSpeciesUseClauses(myShepherd);
         } else {
-            System.out.println("MATCHING ALL SPECIES : The parent encounter for query Annotation id="+this.id+" has not specified specificEpithet and genus.");
+            System.out.println("MATCHING ALL SPECIES : The parent encounter for query Annotation id="+this.id+" has not specified specificEpithet and genus, and is not using clauses.");
             anns = getMatchingSetAllSpecies(myShepherd);
         }
         System.out.println("Did the query return any encounters? It got: "+anns.size()); 
@@ -543,9 +564,10 @@ public class Annotation implements java.io.Serializable {
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc) {
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
         //do we need to worry about our annot living in another encounter?  i hope not!
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         return getMatchingSetForFilter(myShepherd, filter);
     }
+
     // the figure-it-out-yourself version
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd) {
         return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd));
@@ -583,6 +605,11 @@ public class Annotation implements java.io.Serializable {
         return anns;
     }
 
+    // If you don't specify a species, still take into account viewpoint and parts  
+    public ArrayList<Annotation> getMatchingSetForAnnotationAllSpeciesUseClauses(Shepherd myShepherd) {
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null");
+    }
+
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
         return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
     }
@@ -592,7 +619,24 @@ public class Annotation implements java.io.Serializable {
     private String getFilterViewpointClause() {
         String[] viewpoints = this.getViewpointAndNeighbors();
         if (viewpoints == null) return "";
-        return "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
+        String clause = "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
+        System.out.println("VIEWPOINT CLAUSE: "+clause);
+        return clause;
+    }
+
+    private String getPartClause(Shepherd myShepherd) {
+        String clause = "";
+        String useParts =  IA.getProperty(myShepherd.getContext(), "usePartsForIdentification");
+        System.out.println("PART CLAUSE: usePartsForIdentification="+useParts);
+        if ("true".equals(useParts)) {
+            String part = this.getPartIfPresent();
+            if (!"".equals(part)&&part!=null) {
+                clause = "&& iaClass.endsWith('"+part+"') ";
+                System.out.println("PART CLAUSE: "+clause);
+                return clause;
+            }
+        }
+        return clause;
     }
 
     public String findIndividualId(Shepherd myShepherd) {
