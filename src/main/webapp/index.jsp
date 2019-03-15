@@ -273,7 +273,7 @@ finally{
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h2>Can your photos help researchers track zebra sharks?</h2>
+            <h2>Can your photos help researchers track leopard sharks?</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
