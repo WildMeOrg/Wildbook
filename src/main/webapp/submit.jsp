@@ -544,44 +544,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 
 <%
-//add locationID to fields selectable
 
-
-if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
-%>
-    <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("studySites") %></label>
-      </div>
-
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
-            <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreLocationsIDs=true;
-                         int locNum=0;
-
-                         while(hasMoreLocationsIDs){
-                               String currentLocationID = "locationID"+locNum;
-                               if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-                                   %>
-
-                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
-                                   <%
-                                 locNum++;
-                            }
-                            else{
-                               hasMoreLocationsIDs=false;
-                            }
-
-                       }
-
-     %>
-      </select>
-      </div>
-    </div>
-<%
-}
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
@@ -1080,6 +1043,49 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </fieldset>
 
 <hr/>
+
+<%
+//add locationID to fields selectable
+
+
+if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
+%>
+  <div class="form-group required">
+    <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+      <label class="control-label"><%=props.getProperty("studySites") %></label>
+    </div>
+
+    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+      <select name="locationID" id="locationID" class="form-control">
+          <option value="" selected="selected"></option>
+                <%
+                       boolean hasMoreLocationsIDs=true;
+                       int locNum=0;
+
+                       while(hasMoreLocationsIDs){
+                             String currentLocationID = "locationID"+locNum;
+                             if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
+                                 %>
+
+                                   <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
+                                 <%
+                               locNum++;
+                          }
+                          else{
+                             hasMoreLocationsIDs=false;
+                          }
+
+                     }
+
+   %>
+    </select>
+    </div>
+  </div>
+<%
+}
+%>
+
+
 
       <div class="form-group">
         <label class="control-label"><%=props.getProperty("otherEmails") %></label>
