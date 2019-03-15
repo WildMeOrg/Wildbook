@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
@@ -33,7 +34,10 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
-    private static final String[] VALID_VIEWPOINTS = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
+
+    private static final String[] VALID_VIEWPOINTS_XY = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
+    private static final String[] VALID_VIEWPOINTS_XZ = new String[]{"front", "upfront", "up", "upback", "back", "downback", "down", "downfront"};
+    private static final String[] VALID_VIEWPOINTS_YZ = new String[]{"up", "upright", "right", "downright", "down", "downleft", "left", "upleft"};
 
     private String species; 
 
@@ -247,21 +251,50 @@ public class Annotation implements java.io.Serializable {
     public String[] getViewpointAndNeighbors() {
         return getViewpointAndNeighbors(this.viewpoint);
     }
-    //returns 3 positions, in clockwise order, with viewpoint in the middle position
-    //   e.g.: front -> frontleft,front,frontright    -or-    backleft -> back,backleft,left
+
+    //private static final String[] VALID_VIEWPOINTS_XY = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
+    //private static final String[] VALID_VIEWPOINTS_XZ = new String[]{"front", "upfront", "up", "upback", "back", "downback", "down", "downfront"};
+    //private static final String[] VALID_VIEWPOINTS_YZ = new String[]{"up", "upright", "right", "downright", "down", "downleft", "left", "upleft"};
+    
+    //returns 5 positions for a PRIMARY viewpoint input, 3 for a SECONDARY. 
+    // work in progress.
     public static String[] getViewpointAndNeighbors(String vp) {
+        //System.out.println("Input vp to getViewpointAndNeighbors: "+vp);
         if ((vp == null) || !isValidViewpoint(vp)) return null;
-        int found = -1;
-        for (int i = 0 ; i < VALID_VIEWPOINTS.length ; i++) {
-            if (VALID_VIEWPOINTS[i].equals(vp)) found = i;
+        List<String[]> vpArrs = new ArrayList<>(3);
+        vpArrs.add(VALID_VIEWPOINTS_XY);
+        vpArrs.add(VALID_VIEWPOINTS_XZ);
+        vpArrs.add(VALID_VIEWPOINTS_YZ);
+        List<String> rtn = new ArrayList<>();
+        arrLoop:
+        for (String[] arr : vpArrs) {
+            for (int i = 0 ; i < arr.length ; i++) {
+                if (arr[i].equals(vp)) {
+                    if (i < 0) return null;  //"should never happen"
+                    // why cant you just wrap like python arrrgggg
+                    if (i==0) {
+                        rtn.add(arr[i+1]);
+                        rtn.add(arr[arr.length-1]);
+                    } else if (i==arr.length-i) {
+                        rtn.add(arr[0]);
+                        rtn.add(arr[i-1]);
+                    } else {
+                        rtn.add(arr[i-1]);
+                        rtn.add(arr[i+1]);
+                    }                  
+                    if (!rtn.contains(vp)) {
+                        rtn.add(vp);
+                    }
+                    if (rtn.size()==5) break arrLoop;   
+                }
+            }
         }
-        if (found < 0) return null;  //"should never happen"
-        String[] rtn = new String[3];
-        rtn[0] = VALID_VIEWPOINTS[(found + VALID_VIEWPOINTS.length - 1) % VALID_VIEWPOINTS.length];   // #mathftw
-        rtn[1] = vp;
-        rtn[2] = VALID_VIEWPOINTS[(found + 1) % VALID_VIEWPOINTS.length];
-        return rtn;
+        System.out.println("Found these Viewpoints in getViewpointAndNeighbors: "+rtn.toString());
+        if (rtn.size()==0) return null;
+        String[] rtnArr = new String[rtn.size()];
+        return rtn.toArray(rtnArr);
     }
+
     public void setViewpoint(String v) {
         viewpoint = v;
     }
@@ -790,7 +823,11 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return getAllValidViewpoints().contains(vp);
     }
     public static List<String> getAllValidViewpoints() {
-        return Arrays.asList(VALID_VIEWPOINTS);
+        List<String> all = new ArrayList<>();
+        Collections.addAll(all, VALID_VIEWPOINTS_XY);
+        Collections.addAll(all, VALID_VIEWPOINTS_XZ);
+        Collections.addAll(all, VALID_VIEWPOINTS_YZ);
+        return all;
     }
 
 }
