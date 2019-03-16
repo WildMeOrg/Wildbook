@@ -39,7 +39,7 @@ public class PPSR {
         if (!req) throw new IOException("one of properties url or ProjectURL is required");
         req = _setJSON(context, jobj, "decription", "ProjectDescription", CommonConfiguration.getHTMLDescription(context));
         if (!req) throw new IOException("one of properties description or ProjectDescription is required");
-        req = _setJSON(context, jobj, "origin", "ProjectDataProvider", "PPSR:wildbook.org");
+        req = _setJSON(context, jobj, "origin", "ProjectDataProvider", "PPSR:wildbook.org:" + guid);
         if (!req) throw new IOException("one of properties origin or ProjectDataProvider is required");
         req = _setJSON(context, jobj, "contact_name", "ProjectContactName", wbname + " Admin");
         if (!req) throw new IOException("one of properties contact_name or ProjectContactName is required");
