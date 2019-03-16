@@ -261,6 +261,16 @@ public class CommonConfiguration {
         return true;
     }
 
+    // this is used in a couple places as a pointer to *this* wildbook
+    //  it is generated (once!) if it doesnt exist
+    public static String getGUID(Shepherd myShepherd) {
+        String guid = SystemValue.getString(myShepherd, "GUID");
+        if (guid != null) return guid;
+        guid = Util.generateUUID();  //now we have one!
+        SystemValue.set(myShepherd, "GUID", guid);
+        return guid;
+    }
+
   public static String getMailHost(String context) {
     String s = getProperty("mailHost", context);
     return s != null ? s.trim() : s;
