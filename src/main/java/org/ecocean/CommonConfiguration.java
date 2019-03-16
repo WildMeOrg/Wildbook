@@ -180,7 +180,7 @@ public class CommonConfiguration {
     public static String getServerURL(String context) {
         URI u = getServerURI(context);
         if (u == null) return null;
-        return u.toASCIIString().replace(":80/", "/");  //hide :80 cuz its tacky
+        return u.toASCIIString().replaceFirst(":80\\b", "");  //hide :80 cuz its tacky
     }
     public static URI getServerURI(Shepherd myShepherd) {
         JSONObject info = getServerInfo(myShepherd);
@@ -202,7 +202,7 @@ public class CommonConfiguration {
     public static String getServerURL(Shepherd myShepherd) {
         URI u = getServerURI(myShepherd);
         if (u == null) return null;
-        return u.toASCIIString().replace(":80/", "/");  //hide :80 cuz its tacky
+        return u.toASCIIString().replaceFirst(":80\\b", "");  //hide :80 cuz its tacky
     }
     //TODO maybe these should be private so as not to be overused
     public static JSONObject getServerInfo(Shepherd myShepherd) {
