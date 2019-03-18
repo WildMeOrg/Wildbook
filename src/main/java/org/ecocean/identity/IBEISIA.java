@@ -110,8 +110,6 @@ public class IBEISIA {
 
     //cache-like, in order to speed up IA; TODO make this some kind of smarter class
     private static HashMap<String,String> cacheAnnotIndiv = new HashMap<String,String>();
-    private static HashMap<String,ArrayList<JSONObject>> targetIdsListCache = new HashMap<String,ArrayList<JSONObject>>();
-    private static HashMap<String,ArrayList<String>> targetNameListCache = new HashMap<String,ArrayList<String>>();
 
     private static String iaBaseURL = null;  //gets set the first time it is needed by iaURL()
 
@@ -311,18 +309,10 @@ System.out.println("sendAnnotations(): sending " + ct);
             return noQueryAnn;
         }
 
-        boolean setExemplarCaches = false;
         if (tanns == null) {
 System.out.println("--- sendIdentify() passed null tanns..... why???");
-            if (targetNameListCache.get(iaClass) == null) {
 System.out.println("     gotta compute :(");
-                tanns = qanns.get(0).getMatchingSet(myShepherd);
-                setExemplarCaches = true;
-            } else {
-System.out.println("     free ride :)");
-                tlist = targetIdsListCache.get(iaClass);
-                tnlist = targetNameListCache.get(iaClass);
-            }
+            tanns = qanns.get(0).getMatchingSet(myShepherd);
         }
 
         if (tanns != null) for (Annotation ann : tanns) {
@@ -350,10 +340,6 @@ System.out.println("     free ride :)");
         }
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
-        if (setExemplarCaches) {
-           targetIdsListCache.put(iaClass, tlist);
-           targetNameListCache.put(iaClass, tnlist);
-        }
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
         //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing.. 
