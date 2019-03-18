@@ -16,6 +16,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Iterator;
 import org.json.JSONObject;
+import java.util.Map;
+import java.util.HashMap;
 
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.Mac;
@@ -256,4 +258,62 @@ System.out.println("======================== postStream -> " + jtext);
         os.close();
     }
 
+
+    //much more generic form...
+    public static String postRaw(URL url, String data, Map<String,String> headers) throws IOException, java.net.ProtocolException {
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setReadTimeout(CONNECTION_TIMEOUT);
+        conn.setConnectTimeout(CONNECTION_TIMEOUT);
+        conn.setDoOutput((data != null));
+        conn.setDoInput(true);
+        conn.setRequestMethod("POST");
+        if (headers != null) {
+            for (String hkey : headers.keySet()) {
+                conn.setRequestProperty(hkey, headers.get(hkey));
+            }
+        }
+        if (data != null) {
+            OutputStream os = conn.getOutputStream();
+            os.write(data.getBytes());
+            os.flush();
+            os.close();
+        }
+        conn.connect();
+
+        boolean success = true;
+        if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) success = false;
+
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        } catch (IOException ioe) {
+            br = new BufferedReader(new InputStreamReader((conn.getErrorStream())));
+        }
+
+        String output;
+        String jtext = "";
+        while ((output = br.readLine()) != null) {
+            jtext += output;
+        }
+        br.close();
+        //conn.disconnect();
+        if (!success) {
+            System.out.println("WARNING: postRaw() on " + url + " failed with code=" + conn.getResponseCode() + "\n" + jtext + "\n============");
+            throw new IOException("HTTP error code = " + conn.getResponseCode());
+        }
+
+        if (jtext.equals("")) return null;
+        return jtext;
+    }
+
+
+    //JSON-friendly generic  (can pass null for headers and it will get set)
+    public static JSONObject postJSON(URL url, JSONObject data, Map<String,String> headers) throws IOException, java.net.ProtocolException {
+        if (headers == null) headers = new HashMap<String, String>();
+        if (headers.get("Content-type") == null) headers.put("Content-type", "application/json");
+        String rtn = postRaw(url, (data == null) ? (String)null : data.toString(), headers);
+        JSONObject jrtn = Util.stringToJSONObject(rtn);
+        if (jrtn == null) throw new IOException("could not convert postRaw() to JSONObject: " + rtn);
+        return jrtn;
+    }
 }

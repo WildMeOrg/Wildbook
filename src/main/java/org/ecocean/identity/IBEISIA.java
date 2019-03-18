@@ -435,7 +435,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         String labelerModelTag = IA.getProperty(context, "labelerModelTag");
         if (labelerModelTag != null) {
             System.out.println("[INFO] sendDetect() labelerModelTag set to " + labelerModelTag);
-            map.put("labelerModelTag", labelerModelTag);
+            map.put("labeler_model_tag", labelerModelTag);
         } else {
             System.out.println("[INFO] sendDetect() labelerModelTag is null; DEFAULT will be used");
         }
@@ -443,7 +443,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         String labelerAlgo = IA.getProperty(context, "labelerAlgo");
         if (labelerAlgo != null) {
             System.out.println("[INFO] sendDetect() labelerAlgo set to " + labelerAlgo);
-            map.put("labelerAlgo", labelerAlgo);
+            map.put("labeler_algo", labelerAlgo);
         } else {
             System.out.println("[INFO] sendDetect() labelerAlgo is null; DEFAULT will be used");
         }
@@ -1308,7 +1308,9 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
-        ann.setViewpoint(iaResult.optString("viewpoint", null));  //not always supported by IA
+        String vp = iaResult.optString("viewpoint", null);  //not always supported by IA
+        if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
+        ann.setViewpoint(vp);
         if (validForIdentification(ann)) {
             ann.setMatchAgainst(true); 
         }
@@ -1439,7 +1441,9 @@ System.out.println("     ---> " + annIds);
                         String aid = annIds.optString(i, null);
                         if (aid == null) continue;
                         Annotation ann = ((Annotation) (myShepherd2.getPM().getObjectById(myShepherd2.getPM().newObjectIdInstance(Annotation.class, aid), true)));
-                        if (ann != null) needIdentifying.add(ann);
+                        if (ann != null&&IBEISIA.validForIdentification(ann)) {
+                            needIdentifying.add(ann);
+                        }
                     }
                 }
             }
@@ -1453,6 +1457,7 @@ System.out.println("     ---> " + annIds);
                     myShepherd2.storeNewTask(task);
                 }
             } else {
+                System.out.println("[INFO]: No annotations were suitable for identification. Check resulting identification class(es).");
                 myShepherd2.rollbackDBTransaction();
             }
             myShepherd2.closeDBTransaction();
@@ -2684,7 +2689,11 @@ NOTE: DISABLED FOR NOW?????   FIXME
         rtn.put("timestamp", System.currentTimeMillis());
         JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
         settings.put("IBEISIARestUrlAddAnnotations", IA.getProperty(context, "IBEISIARestUrlAddAnnotations"));
-        rtn.put("settings", settings);
+        
+        String boolString = IA.getProperty(context, "requireSpeciesForId"); 
+        if (boolString==null||boolString=="") boolString = "false"; 
+        settings.put("requireSpeciesForId", boolString);
+        rtn.put("settings", settings);    
         rtn.put("identOpts", identOpts(context));
         return rtn;
     }
