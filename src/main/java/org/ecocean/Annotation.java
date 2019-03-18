@@ -15,6 +15,7 @@ import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.acm.AcmBase;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.ia.Task;
+import org.json.JSONArray;
 import org.ecocean.ia.IA;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -573,10 +574,15 @@ public class Annotation implements java.io.Serializable {
     }
 
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
-        return getMatchingSet(myShepherd, true);
+        return getMatchingSet(myShepherd, null);
+    }
+    //params (usually?) come from task.parameters
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject params) {
+        return getMatchingSet(myShepherd, params, true);
     }
     
-    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, boolean useClauses) {
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject params, boolean useClauses) {
+System.out.println("[1] getMatchingSet params=" + params);
         // Make sure we don't include any 'siblings' no matter how we return..
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Encounter myEnc = this.findEncounter(myShepherd);
@@ -588,8 +594,7 @@ public class Annotation implements java.io.Serializable {
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
-            System.out.println("MATCHING SPECIES "+mySpecificEpithet+" "+myGenus+" : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
-            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc);
+            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
         } else if (useClauses) {
             System.out.println("MATCHING ALL SPECIES : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
             anns = getMatchingSetForAnnotationAllSpeciesUseClauses(myShepherd);
@@ -602,32 +607,33 @@ public class Annotation implements java.io.Serializable {
     }
 
     //note: this also excludes "sibling annots" (in same encounter)
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params) {
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
         //do we need to worry about our annot living in another encounter?  i hope not!
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         return getMatchingSetForFilter(myShepherd, filter);
     }
 
     // the figure-it-out-yourself version
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd) {
-        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd));
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, JSONObject params) {
+        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd), params);
     }
 
     //gets everything, no exclusions (e.g. for cacheing)
-    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet, JSONObject params) {
         if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
         String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
         return getMatchingSetForFilter(myShepherd, filter);
     }
     //figgeritout
-    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, JSONObject params) {
         Encounter enc = this.findEncounter(myShepherd);
         if (enc == null) return null;
-        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet());
+        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet(), params);
     }
 
     //pass in a generic SELECT filter query string and get back Annotations
+    //  currently not taking params, but we can add later if we find useful (for now just trusting filter!)
     static public ArrayList<Annotation> getMatchingSetForFilter(Shepherd myShepherd, String filter) {
         if (filter == null) return null;
         long t = System.currentTimeMillis();
@@ -648,7 +654,7 @@ public class Annotation implements java.io.Serializable {
 
     // If you don't specify a species, still take into account viewpoint and parts  
     public ArrayList<Annotation> getMatchingSetForAnnotationAllSpeciesUseClauses(Shepherd myShepherd) {
-        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null");
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null");
     }
 
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
@@ -657,7 +663,7 @@ public class Annotation implements java.io.Serializable {
 
     // will construnct "&& (viewpoint == null || viewpoint == 'x' || viewpoint == 'y')" for use above
     //   note: will return "" when this annot has no (valid) viewpoint
-    private String getFilterViewpointClause() {
+    private String getMatchingSetFilterViewpointClause() {
         String[] viewpoints = this.getViewpointAndNeighbors();
         if (viewpoints == null) return "";
         String clause = "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
@@ -672,12 +678,31 @@ public class Annotation implements java.io.Serializable {
         if ("true".equals(useParts)) {
             String part = this.getPartIfPresent();
             if (!"".equals(part)&&part!=null) {
-                clause = "&& iaClass.endsWith('"+part+"') ";
+                clause = " && iaClass.endsWith('"+part+"') ";
                 System.out.println("PART CLAUSE: "+clause);
                 return clause;
             }
         }
         return clause;
+    }
+
+    //note, we are give *full* task.parameters; by convention, we only act on task.parameters.matchingSetFilter
+    private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
+        if (taskParams == null) return "";
+        JSONObject j = taskParams.optJSONObject("matchingSetFilter");
+        if (j == null) return "";
+        String f = "";
+        if (j.optString("locationId", null) != null) f += " && enc.locationID == '" + Util.basicSanitize(j.getString("locationId")) + "' ";
+        JSONArray larr = j.optJSONArray("locationIds");
+        if (larr != null) {
+            List<String> locs = new ArrayList<String>();
+            for (int i = 0 ; i < larr.length() ; i++) {
+                String val = Util.basicSanitize(larr.optString(i));
+                if (!val.equals("")) locs.add(val);
+            }
+            if (locs.size() > 0) f += " && (enc.locationID == '" + String.join("' || enc.locationID == '", locs) + "') ";
+        }
+        return f;
     }
 
     public String findIndividualId(Shepherd myShepherd) {
