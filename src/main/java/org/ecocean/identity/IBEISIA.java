@@ -1420,11 +1420,12 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
 
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
+        ann.setViewpoint(iaResult.optString("viewpoint", null));  //not always supported by IA
         System.out.println("Verifying that new Ann can be matched against with iaClass...");
         if (validForIdentification(ann, context)) {
 
-            ann.setMatchAgainst(true);
             addAnnotationToIdentificationCache(ann, myShepherd);
+            ann.setMatchAgainst(true);
         }
         
         return ann;
