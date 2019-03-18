@@ -67,13 +67,21 @@ public class PPSR {
 
     //internal utility to set based on scistarter/ppsr property mix; returns true if there was a value set, false if not
     //  for convenience, we drop the "sciStarter." and "ppsr." prefixes on the properties passed in!!!
+    //  note: if only one value was set, it will set both to this one (rather than default!)
     static boolean _setJSON(String context, JSONObject jobj, String ssProp, String ppsrProp, String def) {
         if (jobj == null) return false;
         String ssVal = getProperty(context, "sciStarter." + ssProp, def);
         String ppsrVal = getProperty(context, "ppsr." + ppsrProp, def);
         if ((ssVal == null) && (ppsrVal == null)) return false;
+
+        //this sets up so that if one of these got set, but the other is default, other gets the value
+        if (def != null) {
+            if (!def.equals(ssVal) && def.equals(ppsrVal)) ppsrVal = ssVal;
+            if (!def.equals(ppsrVal) && def.equals(ssVal)) ssVal = ppsrVal;
+        }
+
         if (ssVal != null) jobj.put(ssProp, ssVal);
-        if (ppsrVal != null) jobj.put(ppsrProp, ssVal);
+        if (ppsrVal != null) jobj.put(ppsrProp, ppsrVal);
         //the cases where *one* was null (so gets the other value)
         if (ssVal == null) jobj.put(ssProp, ppsrVal);
         if (ppsrVal == null) jobj.put(ppsrProp, ssVal);
