@@ -1308,7 +1308,9 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
-        ann.setViewpoint(iaResult.optString("viewpoint", null));  //not always supported by IA
+        String vp = iaResult.optString("viewpoint", null);  //not always supported by IA
+        if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
+        ann.setViewpoint(vp);
         if (validForIdentification(ann)) {
             ann.setMatchAgainst(true); 
         }
