@@ -35,9 +35,13 @@ public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
 
-    private static final String[] VALID_VIEWPOINTS_XY = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
-    private static final String[] VALID_VIEWPOINTS_XZ = new String[]{"front", "upfront", "up", "upback", "back", "downback", "down", "downfront"};
-    private static final String[] VALID_VIEWPOINTS_YZ = new String[]{"up", "upright", "right", "downright", "down", "downleft", "left", "upleft"};
+    private static final String[][] VALID_VIEWPOINTS = new String[][] {
+        {"up",        "up",            "up",        "up",            "up",       "up",           "up",        "up",          },
+        {"upfront",   "upfrontright",  "upright",   "upbackright",   "upback",   "upbackleft",   "upleft",    "upfrontleft"  },
+        {"front",     "frontright",    "right",     "backright",     "back",     "backleft",     "left",      "frontleft"    },
+        {"downfront", "downfrontright","downright", "downbackright", "downback", "downbackleft", "downleft",  "downfrontleft"},
+        {"down",      "down",          "down",      "down",          "down",     "down",         "down",      "down"         }
+    };
 
     private String species; 
 
@@ -252,42 +256,56 @@ public class Annotation implements java.io.Serializable {
         return getViewpointAndNeighbors(this.viewpoint);
     }
 
-    //private static final String[] VALID_VIEWPOINTS_XY = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
-    //private static final String[] VALID_VIEWPOINTS_XZ = new String[]{"front", "upfront", "up", "upback", "back", "downback", "down", "downfront"};
-    //private static final String[] VALID_VIEWPOINTS_YZ = new String[]{"up", "upright", "right", "downright", "down", "downleft", "left", "upleft"};
-    
-    //returns 5 positions for a PRIMARY viewpoint input, 3 for a SECONDARY. 
-    // work in progress.
+    private boolean isViewpointPrimary() {
+        List<String> primaryList = new ArrayList<>();
+        // I guess primary vp's should never be something that changes?
+        Collections.addAll(primaryList, new String[]{ "front" , "right" ,"back" , "left" , "up" , "down" });
+        if (primaryList.contains(this.getViewpoint())) {
+            return true;
+        }
+        return false;
+    }
+
+    //(viewpoint == null || viewpoint == 'up' || viewpoint == 'upfront' || viewpoint == 'upfrontright'
+    // || viewpoint == 'upright' || viewpoint == 'upbackright' || viewpoint == 'upback' 
+    // || viewpoint == 'upbackleft' || viewpoint == 'upfront' || viewpoint == 'upfrontleft')
+
     public static String[] getViewpointAndNeighbors(String vp) {
-        //System.out.println("Input vp to getViewpointAndNeighbors: "+vp);
-        if ((vp == null) || !isValidViewpoint(vp)) return null;
-        List<String[]> vpArrs = new ArrayList<>(3);
-        vpArrs.add(VALID_VIEWPOINTS_XY);
-        vpArrs.add(VALID_VIEWPOINTS_XZ);
-        vpArrs.add(VALID_VIEWPOINTS_YZ);
         List<String> rtn = new ArrayList<>();
-        arrLoop:
-        for (String[] arr : vpArrs) {
-            for (int i = 0 ; i < arr.length ; i++) {
-                if (arr[i].equals(vp)) {
-                    if (i < 0) return null;  //"should never happen"
-                    // why cant you just wrap like python arrrgggg
-                    if (i==0) {
-                        rtn.add(arr[i+1]);
-                        rtn.add(arr[arr.length-1]);
-                    } else if (i==arr.length-i) {
-                        rtn.add(arr[0]);
-                        rtn.add(arr[i-1]);
-                    } else {
-                        rtn.add(arr[i-1]);
-                        rtn.add(arr[i+1]);
-                    }                  
-                    if (!rtn.contains(vp)) {
+        try { 
+            System.out.println("Input vp to getViewpointAndNeighbors: "+vp);
+            if ((vp == null) || !isValidViewpoint(vp)) return null;
+            for (int i=0;i<VALID_VIEWPOINTS.length;i++) {
+                String[] innerArr = VALID_VIEWPOINTS[i];
+                for (int j=0;j<innerArr.length;j++) {
+                    if (vp.equals(VALID_VIEWPOINTS[i][j])) {
+                        //cases: up, down, side edge, lower or upper. 
+                        // always want the center viewpoint    
                         rtn.add(vp);
+                        //start with top & bottom EZ cases..
+                        if (i==0) {
+                            rtn.addAll(Arrays.asList(VALID_VIEWPOINTS[1]));
+                            break;
+                        } else if (i==VALID_VIEWPOINTS.length-1) {
+                            rtn.addAll(Arrays.asList(VALID_VIEWPOINTS[VALID_VIEWPOINTS.length-2]));
+                            break;
+                        }
+                        for (int h=-1;h<2;h++) {
+                            for (int w=-1;w<2;w++) {
+                                // gettin trixy.. wrap indexes around 
+                                int horizontal = j;
+                                if (w+i==-1) {horizontal=VALID_VIEWPOINTS[i].length-1;}
+                                if (w+i==VALID_VIEWPOINTS[i].length) {horizontal=0;}
+                                if (!rtn.contains(VALID_VIEWPOINTS[i+h][horizontal+w])) {
+                                    rtn.add(VALID_VIEWPOINTS[i+h][horizontal+w]);
+                                }
+                            }
+                        }
                     }
-                    if (rtn.size()==5) break arrLoop;   
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         System.out.println("Found these Viewpoints in getViewpointAndNeighbors: "+rtn.toString());
         if (rtn.size()==0) return null;
@@ -822,11 +840,13 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         if (vp == null) return true;  //?? is this desired behavior?
         return getAllValidViewpoints().contains(vp);
     }
+
     public static List<String> getAllValidViewpoints() {
+        //add code to limit based on IA.properties viewpoints enabled switches if you want i guess
         List<String> all = new ArrayList<>();
-        Collections.addAll(all, VALID_VIEWPOINTS_XY);
-        Collections.addAll(all, VALID_VIEWPOINTS_XZ);
-        Collections.addAll(all, VALID_VIEWPOINTS_YZ);
+        for (int i=0;i<VALID_VIEWPOINTS.length;i++) {
+            Collections.addAll(all, VALID_VIEWPOINTS[i]);
+        }
         return all;
     }
 
