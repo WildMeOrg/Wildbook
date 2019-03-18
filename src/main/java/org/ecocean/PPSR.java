@@ -37,7 +37,7 @@ public class PPSR {
         if (!req) throw new IOException("one of properties name or ProjectName is required");
         req = _setJSON(context, jobj, "url", "ProjectUrl", sysUrl);
         if (!req) throw new IOException("one of properties url or ProjectURL is required");
-        req = _setJSON(context, jobj, "decription", "ProjectDescription", CommonConfiguration.getHTMLDescription(context));
+        req = _setJSON(context, jobj, "description", "ProjectDescription", CommonConfiguration.getHTMLDescription(context));
         if (!req) throw new IOException("one of properties description or ProjectDescription is required");
         req = _setJSON(context, jobj, "origin", "ProjectDataProvider", "PPSR:wildbook.org:" + guid);
         if (!req) throw new IOException("one of properties origin or ProjectDataProvider is required");
