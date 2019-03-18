@@ -435,7 +435,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         String labelerModelTag = IA.getProperty(context, "labelerModelTag");
         if (labelerModelTag != null) {
             System.out.println("[INFO] sendDetect() labelerModelTag set to " + labelerModelTag);
-            map.put("labelerModelTag", labelerModelTag);
+            map.put("labeler_model_tag", labelerModelTag);
         } else {
             System.out.println("[INFO] sendDetect() labelerModelTag is null; DEFAULT will be used");
         }
@@ -443,7 +443,7 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         String labelerAlgo = IA.getProperty(context, "labelerAlgo");
         if (labelerAlgo != null) {
             System.out.println("[INFO] sendDetect() labelerAlgo set to " + labelerAlgo);
-            map.put("labelerAlgo", labelerAlgo);
+            map.put("labeler_algo", labelerAlgo);
         } else {
             System.out.println("[INFO] sendDetect() labelerAlgo is null; DEFAULT will be used");
         }
