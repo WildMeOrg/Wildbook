@@ -89,7 +89,7 @@ public class TestPlugin extends IAPlugin {
     }
 
     @Override
-    public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
+    public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         Task t = new Task();
         t.setObjectMediaAssets(mas);
         JSONObject p = new JSONObject();
@@ -103,7 +103,7 @@ public class TestPlugin extends IAPlugin {
         return t;
     }
     @Override
-    public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
+    public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
         Task t = new Task();
         t.setObjectAnnotations(anns);
         JSONObject p = new JSONObject();
