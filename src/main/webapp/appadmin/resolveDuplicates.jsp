@@ -23,8 +23,14 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd = new Shepherd("context0");
 
 
+
+
+
+
+
+
 if (data) {
-    String sql = "select \"MEDIAASSET\".\"ID\" as assetId, \"MEDIAASSET\".\"ACMID\" as assetAcmId,\"MEDIAASSET\".\"PARAMETERS\" as assetParams,\"ANNOTATION\".\"ID\" as annotId, \"ANNOTATION\".\"ACMID\" as annotAcmId from \"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"ID\" = \"ID_OID\") join \"ANNOTATION_FEATURES\" using (\"ID_EID\") join \"ANNOTATION\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ANNOTATION\".\"ID\") where \"MEDIAASSET\".\"ACMID\" is not null AND \"ANNOTATION\".\"ACMID\" is not null order by \"MEDIAASSET\".\"ID\" limit 300";
+    String sql = "select \"MEDIAASSET\".\"ID\" as assetId, \"MEDIAASSET\".\"ACMID\" as assetAcmId,\"MEDIAASSET\".\"PARAMETERS\" as assetParams,\"ANNOTATION\".\"ID\" as annotId, \"ANNOTATION\".\"ACMID\" as annotAcmId, \"ENCOUNTER\".\"CATALOGNUMBER\" as encId, \"ENCOUNTER\".\"INDIVIDUALID\" as indivId from \"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"ID\" = \"ID_OID\") join \"ANNOTATION_FEATURES\" using (\"ID_EID\") join \"ANNOTATION\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ANNOTATION\".\"ID\") join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") where \"MEDIAASSET\".\"ACMID\" is not null AND \"ANNOTATION\".\"ACMID\" is not null order by \"MEDIAASSET\".\"ID\" limit 300000";
 
     Map<String,Integer> count = new HashMap<String,Integer>();
     List<List<String>> all = new ArrayList<List<String>>();
@@ -46,6 +52,8 @@ if (data) {
         } else {
             lrow.add("");
         }
+        lrow.add((String)row[5]); //encId
+        lrow.add((String)row[6]); //indivId
         all.add(lrow);
 
         if (count.get(assetAcmId) == null) count.put(assetAcmId, 0);
@@ -83,8 +91,8 @@ query.closeAll();
 
 
 
-List<String> colName = Arrays.asList("assetAcmId", "annotAcmId", "assetId", "annotId", "path", "assetAcmCt", "annotAcmCt");
-List<String> colLabel = Arrays.asList("asset acm", "annot acm", "asset id", "annot id", "filename", "asset acm ct", "annot acm ct");
+List<String> colName = Arrays.asList("assetAcmId", "annotAcmId", "assetId", "annotId", "path", "encId", "indivId", "assetAcmCt", "annotAcmCt");
+List<String> colLabel = Arrays.asList("asset acm", "annot acm", "asset id", "annot id", "filename", "enc", "indiv", "asset acm ct", "annot acm ct");
 
 
 JSONArray colDefn = new JSONArray();
@@ -197,9 +205,6 @@ function init() {
         dataType: 'json',
         success: function(d) {
             rawData = d;
-            //var meta = rawData.splice(0, 1);
-            //showDataMeta(meta);
-            //rawTable();
             mkTable();
         },
         error: function(x) {
@@ -219,37 +224,71 @@ function resetTable() {
     tableEl.appendTo($('body'));
 }
 
+var sortOn = 'assetAcmId';
 function mkTable() {
     resetTable();
     var cols = new Array();
     for (var i = 0 ; i < colDefn.length ; i++) {
         cols.push(Object.assign({ sortable: true }, colDefn[i]));
-/*
-        if (colDefn[i].field == 'assetId') cols.push({
-            sortable: false,
-            field: 'maUrl',
-            title: 'img'
-        });
-*/
     }
-    cols[6].sortable = false;
     tableEl.bootstrapTable({
         data: convertData(function(row) {
             var newRow = {};
             for (var i = 0 ; i < row.length ; i++) {
                 newRow[colDefn[i].field] = row[i];
             }
-            if (newRow.assetUrl) newRow.assetUrl = '<ximg class="tiny" src="' + newRow.assetUrl + '" />';
+            var x = newRow.path.lastIndexOf('/');
+            if (x > -1) newRow.path = newRow.path.substring(x + 1);
             return newRow;
         }),
         search: true,
+        onPostBody: function() { tableTweak(); },
+        onSort: function(name, order) { sortOn = name; },
         pagination: true,
+        pageSize: 20,
         columns: cols
     });
     postTableUpdate();
 }
  
 
+function tableTweak() {
+    var cn = getColNum(sortOn);
+    if (cn < 0) return;
+    if ((cn == 0) || (cn == 2) || (cn == 7)) {
+        colorize(0);
+        colorize(2);
+        return;
+    }
+    if ((cn == 1) || (cn == 8)) {
+        colorize(1);
+        return;
+    }
+    colorize(cn);
+}
+
+function colorize(cn) {
+    $('tr td:nth-child(' + (cn+1) + ')').each(function(i, el) {
+        var jel = $(el);
+        var t = jel.text();
+        var c;
+        if (t.length < 6) {
+            c = Math.floor(255 - t.substr(1,2));
+        } else {
+            c = Math.floor(255 - (parseInt(t.substr(5,2), 16) / 2));
+        }
+//console.log('%s -> %s', jel.text(), c);
+        jel.css('background-color', 'rgb(' + c + ',' + c + ',' + c + ')');
+    });
+}
+
+function getColNum(name) {
+    for (var i = 0 ; i < colDefn.length ; i++) {
+        if (colDefn[i].field == name) return i;
+    }
+    return -1;
+}
+/*
 function encTable() {
     resetTable();
     var cols = new Array();
@@ -265,120 +304,7 @@ function encTable() {
     });
     postTableUpdate();
 }
-
-function encTableTweak() {
-    $('.enc-annot').parent().css('padding', '1px');
-
-    $('tr td:first-child').attr('title', function() { return this.innerHTML; }).css({
-        'max-width': '4em',
-        'white-space': 'nowrap',
-        'overflow-x': 'hidden',
-        'cursor': 'pointer'
-    }).bind('click', function(ev) {
-        var eid = ev.target.innerText;
-        openInTab('../encounters/encounter.jsp?number=' + eid);
-        return false;
-    });
-
-    $('tr td:nth-child(3)').css({
-        'font-weight': 'bold',
-        'cursor': 'pointer'
-    }).bind('click', function(ev) {
-        var eid = ev.target.innerText;
-        openInTab('../individuals.jsp?number=' + eid);
-        return false;
-    });
-
-    $('.enc-annot').css('cursor', 'pointer').bind('click', function(ev) {
-        var jel = $(ev.currentTarget);
-        var annId = jel.find('.enc-annot-id').text();
-        if (annId) openInTab('../obrowse.jsp?type=Annotation&id=' + annId);
-    });
-}
-
-var encDataCache = false;
-var encDataCols = new Array();
-var MAX_LEN = 8;
-function encData() {
-    if (encDataCache) return encDataCache;
-
-    //make it the first time, boo :(
-    encDataCols.push(
-        { field: 'encId', title: 'enc', sortable: true },
-        { field: 'encTimestamp', title: 'date', sortable: true },
-        { field: 'indivId', title: 'indiv(s)', sortable: true },
-        { field: 'annCt', title: '# anns', sortable: true }
-    );
-    var e = {};
-    var maxLen = 0;
-    for (var i = 0 ; i < rawData.length ; i++) {
-//if (i % 100 == 0) console.info('%d of %d', i, rawData.length);
-        if (!e[rawData[i][0]]) e[rawData[i][0]] = new Array();
-        e[rawData[i][0]].push([ rawData[i][3], rawData[i][4], rawData[i][5], rawData[i][6], rawData[i][1] ]);
-        if (e[rawData[i][0]].length > maxLen) maxLen = e[rawData[i][0]].length;
-    }
-
-    if (maxLen > MAX_LEN) {
-        //alert('too many annots on some encounters; truncated from (max) ' + maxLen + ' to ' + MAX_LEN);
-        console.warn('too many annots on some encounters; truncated from (max) ' + maxLen + ' to ' + MAX_LEN);
-        maxLen = MAX_LEN;
-    }
-    for (var i = 0 ; i < maxLen ; i++) {
-        encDataCols.push({
-            field: 'annot' + i,
-            title: 'Ann ' + i,
-            sortable: false
-        });
-    }
-    encDataCache = new Array();
-    for (var eid in e) {
-        var row = { encId: eid };
-        row.indivId = encIndivCell(e[eid]);
-        row.encTimestamp = toDateString(e[eid]);
-        row.annCt = e[eid].length;
-        var i = 0;
-        while ((i < e[eid].length) && (i < maxLen)) {
-            row['annot' + i] = encAnnot(e[eid][i]);
-            i++;
-        }
-        encDataCache.push(row);
-    }
-    return encDataCache;
-}
-
-/*
-var dtimer = null;
-function updateDataStatus() {
-    dtimer = window.setTimeout(function() {
-        status(new Date());
-        updateDataStatus();
-    }, 1000);
-console.log('started? %o', dtimer);
-}
 */
-
-function encSort(sortName, sortOrder, sdata) {
-    var order = sortOrder === 'desc' ? -1 : 1;
-console.log('%o %d', sortName, order);
-console.log('%o', sdata);
-    if (sortName.startsWith('xxxannot')) {  //this doesnt really do what i want it to, so skipping... :(
-        sdata.sort(function(a,b) {
-            var aS = encMAId(a[sortName]);
-            var bS = encMAId(b[sortName]);
-//console.log('%o ? %o', aS, bS);
-            if (aS > bS) return order * 1;
-            if (aS < bS) return order * -1;
-            return 0;
-        });
-
-    } else {  //default
-        sdata.sort(function(a,b) {
-            if (a[sortName] > b[sortName]) return order * 1;
-            if (a[sortName] < b[sortName]) return order * -1;
-            return 0;
-        });
-    }
-}
 
 
 var encMAIdRegExp = new RegExp('"enc-annot-ma">(\\d+)<');
@@ -428,22 +354,6 @@ function convertData(rowFunc) {
 
 function postTableUpdate() {
     status('&nbsp;');
-/*
-    $('.search').after('<div id="controls">' +
-        '<input type="button" onClick="encTable()" value="by encounter" />' +
-        '<input type="button" onClick="rawTable()" value="raw data" />' +
-    '</div>');
-*/
-}
-
-function showDataMeta(m) {
-    if (!m || !m[0] || !m[0].timestamp) return;
-    console.info('meta %o', m);
-    var d = currentServerTime - m[0].timestamp;
-    var days = d / (24*60*60*1000);
-    var msg = 'data is ' + Math.floor(days) + ' days old';
-    if (days > 14) msg += ' -- <a href="?generateData">refresh?</a> (it takes a long time!)';
-    status(msg);
 }
 
 function status(msg) {
