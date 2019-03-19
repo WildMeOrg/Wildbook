@@ -129,7 +129,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
         JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
-        if (parentTask != null) newTaskParams = parentTask.getParameters();
+        if (parentTask != null && parentTask.getParameters()!=null) newTaskParams = parentTask.getParameters();
         if (opts.size() == 1) {
             newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
             topTask.setParameters(newTaskParams);
