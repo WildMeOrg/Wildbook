@@ -80,16 +80,6 @@ if (data) {
     return;
 }
 
-/*
-Query query = myShepherd.getPM().newQuery("select from org.ecocean.media.MediaAsset where id > " + startId + " && features.size() > 1");
-query.setOrdering("id");
-query.setRange(pageNum,pageSize);
-Collection c = (Collection) (query.execute());
-ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>(c);
-query.closeAll();
-*/
-
-
 
 List<String> colName = Arrays.asList("assetAcmId", "annotAcmId", "assetId", "annotId", "path", "encId", "indivId", "assetAcmCt", "annotAcmCt");
 List<String> colLabel = Arrays.asList("asset acm", "annot acm", "asset id", "annot id", "filename", "enc", "indiv", "asset acm ct", "annot acm ct");
@@ -288,58 +278,11 @@ function getColNum(name) {
     }
     return -1;
 }
-/*
-function encTable() {
-    resetTable();
-    var cols = new Array();
-    var edata = encData();
-    tableEl.bootstrapTable({
-        data: edata,
-        search: true,
-        pagination: true,
-        //customSort: encSort,
-        sortName: 'encId',
-        onPostBody: function() { encTableTweak(); },
-        columns: encDataCols
-    });
-    postTableUpdate();
-}
-*/
-
-
-var encMAIdRegExp = new RegExp('"enc-annot-ma">(\\d+)<');
-function encMAId(h) {
-    var m = encMAIdRegExp.exec(h);
-console.info('%o ==> %o', h, m);
-    if (!m || !m[1]) return 0;
-    return m[1] - 0;
-}
-
 function toDateString(milli) {
     if (!milli[0][4]) return null;
     var d = new Date(milli[0][4]);
     return d.toISOString().substr(0,10);
 }
-
-function encIndivCell(annots) {
-    if (!annots) return '';
-    var inds = {};
-    for (var i = 0 ; i < annots.length ; i++) {
-        if (annots[i][2]) inds[annots[i][2]] = 1;
-    }
-    return Object.keys(inds).join(',');
-}
-
-function encAnnot(data) {
-    var h = '<div class="enc-annot">';
-    if (data[3]) h += '<img src="' + data[3] + '" />';
-    h += '<a class="enc-annot-ma">' + data[0] + '</a>';
-    h += '<a class="enc-annot-id" title="' + data[1] + '">' + data[1] + '</a>';
-    if (data[2]) h += '<a class="enc-annot-indiv">' + data[2] + '</a>';
-    h += '</div>';
-    return h;
-}
-
 
 //this takes each row (from rawData) of flat data and returns each row as a proper json obj
 function convertData(rowFunc) {
