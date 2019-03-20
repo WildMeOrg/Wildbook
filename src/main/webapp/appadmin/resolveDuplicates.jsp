@@ -117,53 +117,17 @@ for (int i = 0 ; i < colName.size() ; i++) {
     #result-table tbody {
         font-size: 0.8em;
     }
-    img.tiny {
-        max-height: 75px;
+
+    .muted {
+        color: #999;
     }
 
-    div.enc-annot {
-        max-height: 200px;
-        position: relative;
+    #result-table tbody td.more {
+        cursor: zoom-in;
     }
-    .enc-annot img {
-        max-width: 100px;
-        max-height: 100%;
+    td.more-link {
+        cursor: pointer !important;
     }
-    .enc-annot-ma, .enc-annot-id, .enc-annot-indiv {
-        width: 100%;
-        position: absolute;
-        background-color: rgba(0,0,0,0.3);
-        color: rgba(255,255,255,0.8) !important;
-        display: inline-block;
-        text-decoration: none;
-        font-size: 0.9em;
-        padding-left: 2px;
-        cursor: pointer;
-    }
-    .enc-annot-ma {
-        top: 0;
-        left: 0;
-    }
-    .enc-annot-id {
-        bottom: 0;
-        left: 0;
-        overflow-x: hidden;
-        white-space: nowrap;
-    }
-    .enc-annot-indiv {
-        display: none;
-        bottom: 1.3em;
-        left: 0;
-    }
-    .enc-annot-ma:hover, .enc-annot-id:hover, .enc-annot-indiv:hover {
-        background-color: #444;
-        color: #FFF !important;
-    }
-
-    .enc-annot:hover .enc-annot-indiv {
-        display: inline-block;
-    }
-
 
 </style>
 
@@ -186,20 +150,31 @@ var currentServerTime = <%=System.currentTimeMillis()%>;
 var colDefn = <%= colDefn.toString() %>;
 var tableEl;
 var rawData = null;
+var shiftDown = false;
 
 function init() {
     tableEl = $('#result-table');
+    $(document).on('keyup keydown', function(ev) {
+        if (ev.keyCode != 17) return;
+        shiftDown = (ev.type == 'keydown');
+        if (shiftDown) {
+            $('.more').addClass('more-link');
+        } else {
+            $('.more-link').removeClass('more-link');
+        }
+    });
     status('reading data....');
     $.ajax({
         url: 'resolveDuplicates.jsp?data',
         dataType: 'json',
         success: function(d) {
+            status('');
             rawData = d;
             mkTable();
         },
         error: function(x) {
+            status('<b style="color: red;">ERROR loading data</b>');
             console.log('error fetching data %o', x);
-            alert('ERROR loading data');
         },
         contentType: 'application/json',
         type: 'GET'
@@ -214,14 +189,25 @@ function resetTable() {
     tableEl.appendTo($('body'));
 }
 
+function searchTable(text) {
+    theTable.bootstrapTable('resetSearch', text);
+    if (text) {
+        status('filtering on <b>' + text + '</b> &nbsp <i title="show all data" class="muted" style="cursor: pointer;" onClick="previousSearch = \'\'; searchTable(false)">reset filter</i>');
+    } else {
+        status('');
+    }
+    //postTableUpdate();  //done by onPageUpdate
+}
+
 var sortOn = 'assetAcmId';
+var theTable;
 function mkTable() {
     resetTable();
     var cols = new Array();
     for (var i = 0 ; i < colDefn.length ; i++) {
         cols.push(Object.assign({ sortable: true }, colDefn[i]));
     }
-    tableEl.bootstrapTable({
+    theTable = tableEl.bootstrapTable({
         data: convertData(function(row) {
             var newRow = {};
             for (var i = 0 ; i < row.length ; i++) {
@@ -232,13 +218,19 @@ function mkTable() {
             return newRow;
         }),
         search: true,
-        onPostBody: function() { tableTweak(); },
-        onSort: function(name, order) { sortOn = name; },
+        onPostBody: function() {
+            tableTweak();
+            postTableUpdate();
+console.log('POST BODY');
+        },
+        onSort: function(name, order) {
+            sortOn = name;
+        },
         pagination: true,
         pageSize: 20,
         columns: cols
     });
-    postTableUpdate();
+    //postTableUpdate();  //handled by onPostBody above!
 }
  
 
@@ -295,8 +287,43 @@ function convertData(rowFunc) {
 }
 
 
+var previousSearch = null;
+var urlPrefix = [
+    'obrowse.jsp?type=MediaAsset&id=',
+    'obrowse.jsp?type=Annotation&id=',
+    'obrowse.jsp?type=MediaAsset&id=',
+    'obrowse.jsp?type=Annotation&id=',
+    '',
+    'encounters/encounter.jsp?number=',
+    'individuals.jsp?number='
+];
 function postTableUpdate() {
-    status('&nbsp;');
+    $('tbody tr td').filter(':nth-child(1), :nth-child(2), :nth-child(3), :nth-child(4), :nth-child(6), :nth-child(7)').addClass('more').on('click', function(ev) {
+        //var colNum = $(ev.target.parentElement).data('index');
+        var colNum = ev.target.cellIndex;
+        var searchOn = ev.target.innerText;
+        if (colNum == 2) {
+            searchOn = ev.target.parentElement.childNodes[0].innerText;
+        }
+        console.log('shift=%o, colNum=%o, searchOn=%s [%s], ev=%o', shiftDown, colNum, searchOn, previousSearch, ev);
+
+        if (shiftDown) {
+            var id = ev.target.innerText;
+            if (colNum == 0) id = ev.target.parentElement.childNodes[2].innerText;
+            if (colNum == 1) id = ev.target.parentElement.childNodes[3].innerText;
+            openInTab('../' + urlPrefix[colNum] + id);
+            return;
+        }
+
+        if (previousSearch == searchOn) {
+            previousSearch = '';
+            searchTable(false);
+            status('<i class="muted">search reset</i>');
+        } else {
+            searchTable(searchOn);
+            previousSearch = searchOn;
+        }
+    });
 }
 
 function status(msg) {
