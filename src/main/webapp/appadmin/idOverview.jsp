@@ -15,9 +15,9 @@ org.ecocean.media.*
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-List<String> colName = Arrays.asList("encId", "encTimestamp", "encLocId", "assetId", "annotId", "indivId", "assetUrl");
-List<String> colClass = Arrays.asList("java.lang.String", "java.lang.Long", "java.lang.String", "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String");
-List<String> colLabel = Arrays.asList("enc id", "time", "loc id", "ma", "ann", "indiv", "img");
+List<String> colName = Arrays.asList("encId", "encTimestamp", "encLocId", "assetId", "annotId", "indivId", "assetAcmId", "annotAcmId", "assetUrl");
+List<String> colClass = Arrays.asList("java.lang.String", "java.lang.Long", "java.lang.String", "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String");
+List<String> colLabel = Arrays.asList("enc id", "time", "loc id", "ma", "ann", "indiv", "asset acm", "annot acm", "img");
 
 String rootDir = getServletContext().getRealPath("/");
 //String dataDir = ServletUtilities.dataDir(context, rootDir);
@@ -30,9 +30,12 @@ if (Util.requestParameterSet(request.getParameter("generateData"))) {
         "\"ENCOUNTER\".\"LOCATIONID\" as encLocId," +
         "\"MEDIAASSET\".\"ID\" as assetId," +
         "\"ENCOUNTER_ANNOTATIONS\".\"ID_EID\" as annotId," +
-        "\"ENCOUNTER\".\"INDIVIDUALID\" as indivId FROM " +
-        "\"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"ID\" = \"ID_OID\") " +
+        "\"ENCOUNTER\".\"INDIVIDUALID\" as indivId, " +
+        "\"MEDIAASSET\".\"ACMID\" as assetAcmId, " +
+        "\"ANNOTATION\".\"ACMID\" as annotAcmId FROM " +
+        "\"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"MEDIAASSET\".\"ID\" = \"MEDIAASSET_FEATURES\".\"ID_OID\") " +
         "JOIN \"ANNOTATION_FEATURES\" USING (\"ID_EID\") " + 
+        "JOIN \"ANNOTATION\" ON (\"ANNOTATION\".\"ID\" = \"ANNOTATION_FEATURES\".\"ID_OID\") " + 
         "JOIN \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") " +
         "JOIN \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") " +
         "ORDER BY \"MEDIAASSET\".\"ID\";";
@@ -164,6 +167,23 @@ for (int i = 0 ; i < colName.size() ; i++) {
         display: inline-block;
     }
 
+    tbody td {
+        max-width: 12em;
+        overflow-x: hidden;
+        white-space: nowrap;
+        padding: 3px !important;
+    }
+
+    .enc-cell-div {
+        cursor: pointer;
+        display: inline-block;
+        font-size: 0.85em;
+        background-color: #BF6;
+        border-radius: 3px;
+        padding: 0 3px;
+        margin: 1px 4px;
+        white-space: nowrap;
+    }
 
 </style>
 
@@ -197,8 +217,7 @@ function init() {
             rawData = d;
             var meta = rawData.splice(0, 1);
             showDataMeta(meta);
-            //rawTable();
-            encTable();
+            annotAcmTable();
         },
         error: function(x) {
             console.log('error fetching data %o', x);
@@ -242,14 +261,18 @@ function rawTable() {
         });
 */
     }
-    cols[6].sortable = false;
+    cols[8].sortable = false;
     tableEl.bootstrapTable({
         data: convertData(function(row) {
             var newRow = {};
             for (var i = 0 ; i < row.length ; i++) {
                 newRow[colDefn[i].field] = row[i];
             }
-            if (newRow.assetUrl) newRow.assetUrl = '<ximg class="tiny" src="' + newRow.assetUrl + '" />';
+            //if (newRow.assetUrl) newRow.assetUrl = '<ximg class="tiny" src="' + newRow.assetUrl + '" />';
+            if (newRow.assetUrl) {
+                var l = newRow.assetUrl.lastIndexOf('/');
+                if (l > -1) newRow.assetUrl = newRow.assetUrl.substring(l+1);
+            }
             return newRow;
         }),
         search: true,
@@ -260,9 +283,86 @@ function rawTable() {
 }
  
 
+function annotAcmTable() {
+    resetTable();
+    var adata = annotAcmData();
+    tableEl.bootstrapTable({
+        data: adata,
+        search: true,
+        pagination: true,
+        sortName: 'annotAcmId',
+        onPostBody: function() { annotAcmTableTweak(); },
+        pageSize: 15,
+        columns: annotAcmDataCols
+    });
+    postTableUpdate();
+}
+
+
+var annotAcmDataCache = false;
+var annotAcmDataCols = new Array();
+function annotAcmData() {
+    if (annotAcmDataCache) return annotAcmDataCache;
+    annotAcmDataCols.push(
+        { field: 'annotAcmId', title: 'ann acm', sortable: true },
+        { field: 'numAnnots', title: '#ann', sortable: true },
+        { field: 'assetAcmId', title: 'asset acm', sortable: true },
+        { field: 'numEncs', title: '#enc', sortable: true },
+        { field: 'numAnn', title: '#2ann', sortable: true },
+        { field: 'enc', title: 'encounter info', sortable: true }
+    );
+    annotAcmDataCache = new Array();
+    var aCt = {};
+    var aEnc = {};
+    var encA = {};
+    var aA = {};
+    for (var i = 0 ; i < rawData.length ; i++) {
+        if (!rawData[i][7]) continue;
+        if (!aCt[rawData[i][7]]) aCt[rawData[i][7]] = 0;
+        aCt[rawData[i][7]]++;
+        aA[rawData[i][7]] = rawData[i][6];
+        if (!aEnc[rawData[i][7]]) aEnc[rawData[i][7]] = [];
+        if (!encA[rawData[i][0]]) encA[rawData[i][0]] = 0;
+        encA[rawData[i][0]]++;
+        aEnc[rawData[i][7]].push(rawData[i]);
+    }
+    for (var aid in aCt) {
+        if (aCt[aid] < 2) continue;
+        var row = {
+            annotAcmId: aid,
+            numAnnots: aCt[aid],
+            numEncs: aEnc[aid].length,
+            enc: annotAcmEncCell(aEnc[aid], encA)
+        };
+        row.numAnn = 0;
+        for (var i = 0 ; i < aEnc[aid].length ; i++) {
+            if (encA[aEnc[aid][i][0]] > 1) row.numAnn++;
+        }
+        annotAcmDataCache.push(row);
+    }
+    return annotAcmDataCache;
+}
+
+function annotAcmEncCell(encArr, encCt) {
+    var c = new Array();
+    for (var i = 0 ; i < encArr.length ; i++) {
+        c.push(annotAcmEncCellDiv(encArr[i], encCt));
+    }
+    return c.join('');
+}
+function annotAcmEncCellDiv(encRow, encCt) {
+    var who = '';
+    if (encRow[5]) who = '<b>' + encRow[5] + '</b>';
+    return '<div onClick="openInTab(\'../encounters/encounter.jsp?number=' + encRow[0] + '\');" title="assetId=' + encRow[3] + '; date=' + toDateString(encRow[1]) + '" class="enc-cell-div">' + encRow[0].substr(0,8) + ' [' + encCt[encRow[0]] + '] ' + who + '</div>';
+}
+
+function annotAcmTableTweak() {
+    $('tbody tr td:nth-child(6)').css({'max-width': '50%', 'white-space': 'normal'});
+}
+
 function encTable() {
     resetTable();
-    var cols = new Array();
+    //var cols = new Array();
     var edata = encData();
     tableEl.bootstrapTable({
         data: edata,
@@ -324,7 +424,7 @@ function encData() {
     for (var i = 0 ; i < rawData.length ; i++) {
 //if (i % 100 == 0) console.info('%d of %d', i, rawData.length);
         if (!e[rawData[i][0]]) e[rawData[i][0]] = new Array();
-        e[rawData[i][0]].push([ rawData[i][3], rawData[i][4], rawData[i][5], rawData[i][6], rawData[i][1] ]);
+        e[rawData[i][0]].push([ rawData[i][3], rawData[i][4], rawData[i][5], rawData[i][8], rawData[i][1] ]);
         if (e[rawData[i][0]].length > maxLen) maxLen = e[rawData[i][0]].length;
     }
 
@@ -344,7 +444,7 @@ function encData() {
     for (var eid in e) {
         var row = { encId: eid };
         row.indivId = encIndivCell(e[eid]);
-        row.encTimestamp = toDateString(e[eid]);
+        row.encTimestamp = toDateString(e[eid][0][4]);
         row.annCt = e[eid].length;
         var i = 0;
         while ((i < e[eid].length) && (i < maxLen)) {
@@ -400,8 +500,8 @@ console.info('%o ==> %o', h, m);
 }
 
 function toDateString(milli) {
-    if (!milli[0][4]) return null;
-    var d = new Date(milli[0][4]);
+    if (!milli) return null;
+    var d = new Date(milli);
     return d.toISOString().substr(0,10);
 }
 
@@ -440,6 +540,7 @@ function postTableUpdate() {
     //status('&nbsp;');
     $('.search').after('<div id="controls">' +
         '<input type="button" onClick="encTable()" value="by encounter" />' +
+        '<input type="button" onClick="annotAcmTable()" value="by annot acm" />' +
         '<input type="button" onClick="rawTable()" value="raw data" />' +
     '</div>');
 }
