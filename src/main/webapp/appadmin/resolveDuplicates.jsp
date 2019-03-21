@@ -98,11 +98,17 @@ for (int i = 0 ; i < colName.size() ; i++) {
 <!doctype html>
 <html><head><title>Resolve Duplicates</title>
 <style>
+
+    .instruction {
+        padding: 8px;
+        font-size: 0.9em;
+    }
+
     #result-table td {
         padding: 1px 4px;
         white-space: nowrap;
         overflow-x: hidden;
-        max-width: 14em;
+        max-width: 12em;
     }
     #controls {
         padding: 10px;
@@ -339,6 +345,9 @@ function openInTab(url) {
 
 </head>
 <body onLoad="init()">
+<div class="instruction">
+<b>CTRL</b> - link-mode (click to open in new tab)
+</div>
 <div id="status-message"></div>
 
 
