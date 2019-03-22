@@ -139,8 +139,12 @@ if (resolveAnnotAcmId != null) {
 
 .enc {
     padding: 8px;
-    margin: 5px 20px;
+    margin: 5px 5px;
+    display: inline-block;
+    vertical-align: top;
     position: relative;
+    width: 45%;
+    min-height: 150px;
 }
 
 .enc-chosen {
@@ -168,7 +172,7 @@ if (resolveAnnotAcmId != null) {
     border-radius: 4px;
 }
 
-.prop:hover {
+.prop:hover, .prop-hover {
     overflow: auto;
     background-color: #DD4;
     max-height: 10em;
@@ -195,13 +199,46 @@ if (resolveAnnotAcmId != null) {
     display: block;
 }
 
+.action-delete {
+    outline: dashed 2px red;
+    background-color: #FAA;
+}
+
 </style>
 <script>
 $(document).ready(function() {
     findDiff();
     resort();
     $('#encs .enc:first').addClass('enc-chosen');
+
 });
+
+
+function toggleAction(el) {  // delete / mark duplicate radio checkboxes
+    var encId = el.getAttribute('name').substring(7);
+    var val = $('[name="action-' + encId + '"]:checked').val();
+    if (val == 'delete') {
+        $('#' + encId).addClass('action-delete');
+    } else {
+        $('#' + encId).removeClass('action-delete');
+    }
+}
+
+var top2 = false;
+function toggleTop2() {
+    top2 = !top2;
+    $('.enc .prop').hide();
+    findDiff(top2);
+}
+
+function addHover() {
+    $('.prop').hover(function(ev) {
+        var type = ev.target.getAttribute('data-prop');
+        $('.prop-' + type).addClass('prop-hover');
+    }, function(ev) {
+        $('.prop-hover').removeClass('prop-hover');
+    });
+}
 
 var semiHidden = [
     'getModified',
@@ -211,8 +248,11 @@ var semiHidden = [
     'getDWCDateLastModified',
 ];
 var pval = {};
-function findDiff() {
-    $('.enc').each(function(i, el) {
+function findDiff(topTwoOnly) {
+    pval = {};
+    var sel = '.enc';
+    if (topTwoOnly) sel = '.enc:first, .enc:nth-child(2)';
+    $(sel).each(function(i, el) {
         var encId = el.id;
         $(el).find('.prop').each(function(j, pel) {
 //console.log('%o -> %o', el.id, pel.getAttribute('data-prop'));
@@ -228,6 +268,8 @@ function findDiff() {
             } else if (pval[prop] != val) {
 //console.log('diff found in prop %s (via enc %s) %o => %o', prop, encId, pval[prop], val);
                 $('.prop-' + prop).show();
+                pval[prop] = false;
+            } else if (topTwoOnly) {  //this means we had a match, so we want to hide, hence:
                 pval[prop] = false;
             }
         });
@@ -251,8 +293,18 @@ function resort() {
         return -rtn;  //cuz we want desc sort!
     });
     $('#encs').html(guts);
+    addHover();
+    updateButtons();
 }
 
+
+function updateButtons() {
+    $('.button-main, .button-move').show();
+    $('.enc:first .button-main').hide();
+    $('.enc:nth-child(2) .button-move').hide();
+    $('.action-div').show();
+    $('.enc:first .action-div').hide();
+}
 
 var val2 = 100;
 function moveTo2(encId) {
@@ -269,6 +321,10 @@ function makeMain(encId) {
 
 </script>
 </head><body>
+
+<div style="padding: 12px;">
+        <input type="button" value="toggle top2 comp" onClick="return toggleTop2();" />
+</div>
 
 <div id="encs">
 <%
@@ -289,7 +345,17 @@ function makeMain(encId) {
     for (Encounter enc : encs) {
         int numAnns = ((enc.getAnnotations() == null) ? 0 : enc.getAnnotations().size());
         out.println("<div data-adjust=\"0\" data-numanns=\"" + numAnns + "\" class=\"enc\" id=\"" + enc.getCatalogNumber() + "\">");
-        out.println("<b>" + enc.getCatalogNumber() + "</b> (" + numAnns + " anns)<br /><div class=\"props\">");
+        out.println("<b>" + enc.getCatalogNumber() + "</b> (" + numAnns + " anns)");
+%>
+    <div class="controls">
+        <input class="button-move" type="button" value="move to #2" onClick="return moveTo2('<%=enc.getCatalogNumber()%>');" />
+        <input class="button-main" type="button" value="make main" onClick="return makeMain('<%=enc.getCatalogNumber()%>');" />
+        <div class="action-div" id="action-<%=enc.getCatalogNumber()%>" style="margin-top: 20px;">
+            <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="duplicate" id="action-<%=enc.getCatalogNumber()%>-duplicate" checked /> <label for="action-<%=enc.getCatalogNumber()%>-duplicate">mark duplicate</label><br />
+            <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="delete" id="action-<%=enc.getCatalogNumber()%>-delete" /> <label for="action-<%=enc.getCatalogNumber()%>-delete">delete enc</label>
+        </div>
+    </div><div class="props">
+<%
         for (Method m : methods) {
             if (!m.getName().startsWith("get")) continue;
             if (m.getParameters().length != 0) continue;
@@ -309,10 +375,6 @@ function makeMain(encId) {
         }
 */
 %>
-    </div>
-    <div class="controls">
-        <input type="button" value="move to #2" onClick="return moveTo2('<%=enc.getCatalogNumber()%>');" />
-        <input type="button" value="make main" onClick="return makeMain('<%=enc.getCatalogNumber()%>');" />
     </div>
 </div>
 <%
