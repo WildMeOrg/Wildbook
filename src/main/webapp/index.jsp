@@ -349,6 +349,11 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
+int numUsersWithRoles=0;
+int numUsers=0;
+
+QueryCache qc=QueryCacheFactory.getQueryCache(context);
+
 
 myShepherd.beginDBTransaction();
 
@@ -361,14 +366,18 @@ myShepherd.beginDBTransaction();
 try{
 
 
-    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+	numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
     numDataContributors=myShepherd.getNumUsers();
 
 
 }
 catch(Exception e){
+    System.out.println("INFO: *** If you are seeing an exception here (via index.jsp) your likely need to setup QueryCache");
+    System.out.println("      *** This entails configuring a directory via cache.properties and running appadmin/testQueryCache.jsp");
     e.printStackTrace();
+
 }
 finally{
    myShepherd.rollbackDBTransaction();

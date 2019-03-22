@@ -3,6 +3,7 @@
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
 org.ecocean.ia.Task,
+java.net.URL,
 java.util.ArrayList,
 org.json.JSONObject,
 java.util.Properties" %>
@@ -45,11 +46,11 @@ java.util.Properties" %>
 		if (enc == null) return format(null, "none");
 		String h = "<div class=\"encounter shown\"><a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">Encounter <b>" + enc.getCatalogNumber() + "</b></a>";
 		if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
-			h += "<div>Annotations:<ul>";
+			h += "<div>Annotations: <i>(" + enc.getAnnotations().size() + ")</i><ol>";
 			for (int i = 0 ; i < enc.getAnnotations().size() ; i++) {
 				h += "<li><a href=\"obrowse.jsp?type=Annotation&id=" + enc.getAnnotations().get(i).getId() + "\">Annotation " + enc.getAnnotations().get(i).getId() + "</a></li>";
 			}
-			h += "</ul></div>";
+			h += "</ol></div>";
 		}
 		return h + "</div>";
 	}
@@ -71,8 +72,11 @@ java.util.Properties" %>
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
 		shown.add(ann);
+		String vp = ann.getViewpoint();
+                if (!Annotation.isValidViewpoint(vp)) vp = "<span title=\"INVALID viewpoint value\" style=\"background-color: #F88; font-size: 0.8em; padding: 0 8px;\">" + vp + "</span>";
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
 		h += "<li>" + format("iaClass", ann.getIAClass()) + "</li>";
+		h += "<li>" + format("viewpoint", vp) + "</li>";
 		h += "<li>" + format("acmId", ann.getAcmId()) + "</li>";
 		h += "<li>" + format("matchAgainst", ann.getMatchAgainst()) + "</li>";
 		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
@@ -150,24 +154,24 @@ java.util.Properties" %>
 
 	private String showFeatureList(ArrayList<Feature> l) {
 		if ((l == null) || (l.size() < 1)) return format(null, "none");
-		String h = "<ul>";
+		String h = "<i>(" + l.size() + ")</i><ol>";
 		for (int i = 0 ; i < l.size() ; i++) {
 			h += "<li>" + showFeature(l.get(i)) + "</li>";
 		}
-		return h + "</ul>";
+		return h + "</ol>";
 	}
 
 	private String showMediaAsset(MediaAsset ma) {
 		if (ma == null) return "asset: <b>[none]</b>";
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
 		shown.add(ma);
-		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b>";
+		String h = "<div class=\"mediaasset\"><a href=\"obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">Media Asset <b>" + ma.getId() + "</b></a>";
                 if (ma.webURL() == null) {
 			h += "<div style=\"position: absolute; right: 0;\"><i><b>webURL()</b> returned null</i></div>";
 		} else if (ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
-			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></div></div></a>";
+			h += "<a target=\"_new\" href=\"" + scrubUrl(ma.webURL()) + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + scrubUrl(ma.webURL()) + "\" /></div></div></a>";
 
 		}
                 h += "<ul style=\"width: 65%\">";
@@ -187,6 +191,11 @@ java.util.Properties" %>
     private boolean rawOutput(String type) {
         if (type == null) return false;
         return type.equals("MediaAssetMetadata");
+    }
+
+    private String scrubUrl(URL u) {
+        if (u == null) return (String)null;
+        return u.toString().replaceAll("#", "%23");
     }
 
 %><%
@@ -379,11 +388,15 @@ if (type.equals("Encounter")) {
 	if (id==null&&acmid!=null) {
 		try {
 			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmid);
-                        if ((anns == null) || (anns.size() < 1)) {
-                            out.println("none with acmid " + acmid);
-                        } else {
-			    out.println(showAnnotation(anns.get(0)));
-                        }
+			if ((anns == null) || (anns.size() < 1)) {
+				out.println("none with acmid " + acmid);
+			} else {
+				String allAnns = "";
+				for (int i=0; i<anns.size(); i++) {
+					allAnns += showAnnotation(anns.get(i));
+				}
+				out.println(allAnns);
+			}
 		} catch (Exception e) {
 			out.println("<p>ERROR: " + e.toString() + "</p>");
 			needForm = true;

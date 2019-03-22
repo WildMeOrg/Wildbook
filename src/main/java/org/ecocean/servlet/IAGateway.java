@@ -520,48 +520,54 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         e.printStackTrace();
     }
 
-    //v2 "forces" queueing -- onward to the glorious future!
-    if (j.optBoolean("enqueue", false) || j.optBoolean("v2", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
-        //TODO if queue is not active/okay, fallback to synchronous???
-        //TODO could probably add other stuff (e.g. security/user etc)
-        j.put("__context", context);
-        j.put("__baseUrl", baseUrl);
-        j.put("__enqueuedByIAGateway", System.currentTimeMillis());
-        //incoming json *probably* (should have) has taskId set... but if not i guess we use the one we generated???
-        if (j.optString("taskId", null) != null) {
-            taskId = j.getString("taskId");
-            res.put("taskId", taskId);
+    try {
+        //v2 "forces" queueing -- onward to the glorious future!
+        if (j.optBoolean("enqueue", false) || j.optBoolean("v2", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
+            //TODO if queue is not active/okay, fallback to synchronous???
+            //TODO could probably add other stuff (e.g. security/user etc)
+            j.put("__context", context);
+            j.put("__baseUrl", baseUrl);
+            j.put("__enqueuedByIAGateway", System.currentTimeMillis());
+            //incoming json *probably* (should have) has taskId set... but if not i guess we use the one we generated???
+            if (j.optString("taskId", null) != null) {
+                taskId = j.getString("taskId");
+                res.put("taskId", taskId);
+            } else {
+                j.put("taskId", taskId);
+            }
+            Task task = Task.load(taskId, myShepherd);
+            if (task == null) task = new Task(taskId);
+            task.setParameters(j.optJSONObject("taskParameters")); //optional
+            myShepherd.storeNewTask(task);
+            myShepherd.commitDBTransaction();  //hack
+            //myShepherd.closeDBTransaction();
+
+            boolean ok = addToQueue(context, j.toString());
+            if (ok) {
+                System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
+                res.remove("error");
+            } else {
+                System.out.println("ERROR: taskId=" + taskId + " was NOT enqueued successfully");
+                res.put("error", "addToQueue() returned false");
+            }
+            res.put("success", ok);
+
+        } else if (j.optJSONObject("detect") != null) {
+            res = _doDetect(j, res, myShepherd, baseUrl);
+
+        } else if (j.optJSONObject("identify") != null) {
+            res = _doIdentify(j, res, myShepherd, context, baseUrl);
+
+        } else if (j.optJSONObject("resolver") != null) {
+            res = Resolver.processAPIJSONObject(j.getJSONObject("resolver"), myShepherd);
+
         } else {
-            j.put("taskId", taskId);
+            res.put("error", "unknown POST command");
+            res.put("success", false);
         }
-        Task task = Task.load(taskId, myShepherd);
-        if (task == null) task = new Task(taskId);
-        task.setParameters(j.optJSONObject("taskParameters")); //optional
-        myShepherd.storeNewTask(task);
-        myShepherd.commitDBTransaction();  //hack
-        //myShepherd.closeDBTransaction();
 
-        boolean ok = addToQueue(context, j.toString());
-        if (ok) {
-            System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
-            res.remove("error");
-        } else {
-            System.out.println("ERROR: taskId=" + taskId + " was NOT enqueued successfully");
-            res.put("error", "addToQueue() returned false");
-        }
-        res.put("success", ok);
-
-    } else if (j.optJSONObject("detect") != null) {
-        res = _doDetect(j, res, myShepherd, baseUrl);
-
-    } else if (j.optJSONObject("identify") != null) {
-        res = _doIdentify(j, res, myShepherd, context, baseUrl);
-
-    } else if (j.optJSONObject("resolver") != null) {
-        res = Resolver.processAPIJSONObject(j.getJSONObject("resolver"), myShepherd);
-
-    } else {
-        res.put("error", "unknown POST command");
+    } catch (Exception ex) {
+        res.put("error", "exception in handling IAGateway input: " + ex.toString());
         res.put("success", false);
     }
 
@@ -731,7 +737,7 @@ System.out.println("anns -> " + anns);
         JSONArray taskList = new JSONArray();
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
-        List<String> taskIds = new ArrayList<String>();
+        List<Task> subTasks = new ArrayList<Task>();
         if (anns.size() > 1) {  //need to create child Tasks
             JSONObject params = parentTask.getParameters();
             parentTask.setParameters((String)null);  //reset this, kids inherit params
@@ -739,17 +745,17 @@ System.out.println("anns -> " + anns);
                 Task newTask = new Task(parentTask);
                 newTask.setParameters(params);
                 newTask.addObject(anns.get(i));
-                taskIds.add(newTask.getId());
                 myShepherd.storeNewTask(newTask);
+                subTasks.add(newTask);
             }
             myShepherd.storeNewTask(parentTask);
         } else {  //we just use the existing "parent" task
-            taskIds.add(parentTask.getId());
+            subTasks.add(parentTask);
         }
         for (int i = 0 ; i < anns.size() ; i++) {
             Annotation ann = anns.get(i);
             JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
-            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, taskIds.get(i));
+            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, subTasks.get(i));
             taskList.put(taskRes);
         }
         if (limitTargetSize > -1) res.put("_limitTargetSize", limitTargetSize);
@@ -760,17 +766,21 @@ System.out.println("anns -> " + anns);
 
 
     private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl, JSONObject queryConfigDict,
-                                               JSONObject userConfidence, int limitTargetSize, String annTaskId) throws IOException {
+                                               JSONObject userConfidence, int limitTargetSize, Task task) throws IOException {
 
         //String iaClass = ann.getIAClass();
         boolean success = true;
-        if (annTaskId == null) annTaskId = Util.generateUUID();
+        String annTaskId = "UNKNOWN_" + Util.generateUUID();
+        if (task != null) annTaskId = task.getId();
         JSONObject taskRes = new JSONObject();
         taskRes.put("taskId", annTaskId);
         JSONArray jids = new JSONArray();
         jids.put(ann.getId());  //for now there is only one
         taskRes.put("annotationIds", jids);
 System.out.println("+ starting ident task " + annTaskId);
+        JSONObject shortCut = IAQueryCache.tryTargetAnnotationsCache(context, ann, taskRes);
+        if (shortCut != null) return shortCut;
+
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IAGateway._sendIdentificationTask");
         myShepherd.beginDBTransaction();
@@ -798,7 +808,7 @@ System.out.println("+ starting ident task " + annTaskId);
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
-                                                               myShepherd, annTaskId, baseUrl);
+                                                               myShepherd, task, baseUrl);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;

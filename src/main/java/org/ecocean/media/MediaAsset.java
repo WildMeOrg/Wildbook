@@ -34,6 +34,7 @@ import org.ecocean.ia.Task;
 import org.ecocean.acm.AcmBase;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.spi.FileTypeDetector;
 import java.nio.file.Files;
 //import java.time.LocalDateTime;
 import org.joda.time.DateTime;
@@ -48,6 +49,7 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
+import java.awt.datatransfer.MimeTypeParseException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,6 +57,7 @@ import java.util.ArrayList;
 import java.io.FileOutputStream;
 import javax.jdo.Query;
 import javax.xml.bind.DatatypeConverter;
+import javax.activation.MimeType;
 
 /*
 import java.awt.image.BufferedImage;
@@ -446,7 +449,7 @@ public class MediaAsset implements java.io.Serializable {
     // break the reference from Annotation-Feature that (likely) existed ... oops?
     public void removeFeature(Feature f) {
         if (features == null) return;
-        System.out.println("INFO: removeFeature() killing off " + f + " from " + this);
+        System.out.println("INFO: removeFeature() killing off " + f + " from asset id=" + this.id);
         features.remove(f);
     }
 
@@ -1301,8 +1304,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     }
 
     public Boolean isValidImageForIA() {
-        if (validImageForIA!=null) return validImageForIA;
-        return null;
+        return validImageForIA;
     }
 
     public Boolean getValidImageForIA() {
@@ -1311,6 +1313,29 @@ System.out.println(">> updateStandardChildren(): type = " + type);
 
     public void setValidImageForIA(Boolean isValid) {
         this.validImageForIA = isValid;
+    }
+
+
+    public Boolean validateSourceImage() {
+        if ("LOCAL".equals(this.getStore().getType().toString())) {
+            Path lPath = this.localPath();
+            String typeString = null;
+            try {
+                typeString = Files.probeContentType(lPath);
+            } catch (IOException ioe) {ioe.printStackTrace();}
+            try {
+                MimeType type = new MimeType(typeString);
+                typeString = type.getPrimaryType();
+            } catch (Exception e) {e.printStackTrace();}
+            if ("image".equals(typeString)) {
+                File imageFile = this.localPath().toFile();
+                this.validImageForIA = AssetStore.isValidImage(imageFile);
+            } else {
+                System.out.println("WARNING: validateSourceImage was called on a non-image or corrupt MediaAsset with Id: "+this.getId());
+                this.validImageForIA = false;
+            }
+        }
+        return isValidImageForIA();
     }
 
 

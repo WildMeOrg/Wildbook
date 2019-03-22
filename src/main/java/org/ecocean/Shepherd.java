@@ -47,8 +47,11 @@ import java.text.SimpleDateFormat;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-
 import org.datanucleus.api.rest.orgjson.JSONException;
+import org.ecocean.cache.CachedQuery;
+import org.ecocean.cache.QueryCache;
+import org.ecocean.cache.QueryCacheFactory;
+import org.ecocean.cache.StoredQuery;
 
 
 /**
@@ -156,7 +159,7 @@ public class Shepherd implements AutoCloseable {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
+      //System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new Annotation in Shepherd.storeNewAnnotation().");
@@ -171,7 +174,7 @@ public class Shepherd implements AutoCloseable {
     try {
       pm.makePersistent(wSpace);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
+      //System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new workspace in shepherd.storeNewWorkspace().");
@@ -1271,7 +1274,7 @@ public class Shepherd implements AutoCloseable {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
+      //System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
@@ -3647,7 +3650,7 @@ public class Shepherd implements AutoCloseable {
         list = new ArrayList<User>(c);
       }
       users.closeAll();
-      System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
+      //System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
       return list;
     }
     catch (Exception npe) {
@@ -4580,22 +4583,10 @@ public class Shepherd implements AutoCloseable {
 
   public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
     ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
-    String filter = "individualID != null";
-    Extent encClass = pm.getExtent(Encounter.class, true);
-    Query q = pm.newQuery(encClass, filter);
-    q.setOrdering("dwcDateAddedLong descending");
+    String filter = "SELECT FROM org.ecocean.Encounter WHERE individualID != null ORDER BY dwcDateAddedLong descending RANGE 1,"+(numToReturn+1);
+    Query q = pm.newQuery(filter);
     Collection c = (Collection) (q.execute());
-    if ((c != null) && (c.size() > 0)) {
-      int max = (numToReturn > c.size()) ? c.size() : numToReturn;
-      int numAdded=0;
-      while(numAdded<max){
-        ArrayList<Encounter> results=new ArrayList<Encounter>(c);
-        matchingEncounters.add(results.get(numAdded));
-        numAdded++;
-      }
-
-    }
-
+    matchingEncounters = new ArrayList<Encounter>(c);
     q.closeAll();
     return matchingEncounters;
   }
@@ -4607,26 +4598,36 @@ public class Shepherd implements AutoCloseable {
 
 
     String filter = "submitterID != null && dwcDateAddedLong >= "+startTime;
-    System.out.println("     My filter is: "+filter);
+    //System.out.println("     My filter is: "+filter);
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
     q.setResult("distinct submitterID");
     Collection c = (Collection) (q.execute());
     ArrayList<String> allUsers = new ArrayList<String>(c);
     q.closeAll();
+    
+    
     int numAllUsers=allUsers.size();
     //System.out.println("     All users: "+numAllUsers);
+    QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
     for(int i=0;i<numAllUsers;i++){
       String thisUser=allUsers.get(i);
       if((!thisUser.trim().equals(""))&&(getUser(thisUser)!=null)){
 
-        String userFilter = "submitterID == \"" + thisUser + "\" && dwcDateAddedLong >= "+startTime;
-        Extent userClass = pm.getExtent(Encounter.class, true);
-        Query subq = pm.newQuery(userClass, userFilter);
-        Collection userC = (Collection) (subq.execute());
-        matchingUsers.put(thisUser, (new Integer(userC.size())));
-        //System.out.println("     Adding user:"+thisUser+" with "+userC.size());
-        subq.closeAll();
+        if(qc.getQueryByName(("numRecentEncounters_"+thisUser))!=null){
+          CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+thisUser));
+          matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
+        }
+        
+        else{
+          String userFilter = "SELECT FROM org.ecocean.Encounter WHERE submitterID == \"" + thisUser + "\" && dwcDateAddedLong >= "+startTime;
+          //update rankings hourly
+          CachedQuery cq=new CachedQuery(("numRecentEncounters_"+thisUser),userFilter,3600000);
+          qc.addCachedQuery(cq);
+          matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
+          
+        }
+        
       }
     }
 
@@ -4748,7 +4749,26 @@ public class Shepherd implements AutoCloseable {
       query.closeAll();
       return users;
   }
+  
+  public StoredQuery getStoredQuery(String uuid) {
+    StoredQuery sq = null;
+    try {
+      sq = ((StoredQuery) (pm.getObjectById(pm.newObjectIdInstance(StoredQuery.class, uuid), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return sq;
+  }
+  
 
+  public List<StoredQuery> getAllStoredQueries() {
+    Extent encClass = pm.getExtent(StoredQuery.class, true);
+    Query queries = pm.newQuery(encClass);
+    Collection c = (Collection) (queries.execute());
+    ArrayList<StoredQuery> listy=new ArrayList<StoredQuery>(c);
+    queries.closeAll();
+    return listy;
+  }
 
 
 } //end Shepherd class

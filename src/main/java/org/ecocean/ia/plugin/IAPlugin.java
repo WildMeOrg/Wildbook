@@ -34,6 +34,9 @@ public abstract class IAPlugin implements java.io.Serializable {
     //called by StatupWildbook (if plugin enabled) -- override if applicable
     public abstract void startup(ServletContextEvent sce);
 
-    public abstract Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas);
-    public abstract Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns);
+    //note: parentTask can be null so should be handled as such
+    //(for now???) we let *calling* code set returned (child) task as child on parentTask, rather than
+    //  having the code in these methods set the child on the parent  (hence the 'final')
+    public abstract Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask);
+    public abstract Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask);
 }

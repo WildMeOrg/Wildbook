@@ -88,6 +88,7 @@
 				/InterconnectSubmitSpots = authc, roles[imageProcessor]
 				/interconnectSubmitSpots = authc, roles[imageProcessor]
 
+				/import/** = authc, roles[researcher]
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
 
@@ -172,6 +173,8 @@
 		         /UserDelete = authc, roles[admin]
 		         /UserAddProfileImage = authc, roles[researcher]
 		         /UserRemoveProfileImage = authc, roles[researcher]
+          /StandardImport = authc, roles[admin]
+          /FixStandardImport = authc, roles[admin]
 		         /EncounterSearchExportExcelFile = authc, roles[researcher]
 		         /EncounterSearchExportShapefile = authc, roles[researcher]
 		         /EncounterSearchExportEmailAddresses = authc, roles[admin]
@@ -480,6 +483,22 @@
     <servlet-name>ImportIA</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.ImportIA</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>ImportAccess</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.ImportAccess</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>StandardImport</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>FixStandardImport</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>WebImport</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.WebImport</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>ImportExcel</servlet-name>
@@ -567,7 +586,7 @@
 
 	<servlet>
 		<servlet-name>ResumableUpload</servlet-name>
-		<servlet-class>ec.com.mapache.ngflow.servlet.UploadServlet</servlet-class>
+		<servlet-class>org.ecocean.resumableupload.UploadServlet</servlet-class>
 	</servlet>
 	
 	<servlet>
@@ -1732,7 +1751,29 @@
       <servlet-name>ImportExcel</servlet-name>
       <url-pattern>/ImportExcel</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+      <servlet-name>ImportAccess</servlet-name>
+      <url-pattern>/ImportAccess</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+      <servlet-name>StandardImport</servlet-name>
+      <url-pattern>/StandardImport</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+      <servlet-name>WebImport</servlet-name>
+      <url-pattern>/WebImport</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+      <servlet-name>WebImport</servlet-name>
+      <url-pattern>/import/upload</url-pattern>
+  </servlet-mapping>
 
+
+
+    <servlet-mapping>
+      <servlet-name>FixStandardImport</servlet-name>
+      <url-pattern>/FixStandardImport</url-pattern>
+  </servlet-mapping>
 
 
     <servlet-mapping>
