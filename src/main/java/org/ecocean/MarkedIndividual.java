@@ -193,8 +193,8 @@ public class MarkedIndividual implements java.io.Serializable {
         numberEncounters++;
         //refreshDependentProperties(context);
       }
-      setTaxonomyFromEncounters();  //will only set if has no value
-      setSexFromEncounters();       //likewise
+      //setTaxonomyFromEncounters();  //will only set if has no value
+      //setSexFromEncounters();       //likewise
       return isNew;
 
   }
@@ -608,6 +608,13 @@ public class MarkedIndividual implements java.io.Serializable {
       individualID = newName;
     }
 
+    public void rename(String newName) {
+      for (Encounter enc: getEncounterList()) {
+        enc.setIndividualID(newName);
+      }
+      setIndividualID(newName);
+    }
+
 
   /**
    * Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored
@@ -634,6 +641,13 @@ public class MarkedIndividual implements java.io.Serializable {
    */
   public Vector getEncounters() {
     return encounters;
+  }
+  public List<Encounter> getEncounterList() {
+    List<Encounter> encs = new ArrayList<Encounter>();
+    for (Object obj: encounters) {
+      encs.add((Encounter) obj);
+    }
+    return encs;
   }
 
     //you can choose the order of the EncounterDateComparator
@@ -1279,6 +1293,10 @@ public class MarkedIndividual implements java.io.Serializable {
 
   public String getDynamicProperties() {
     return dynamicProperties;
+  }
+
+  public void setDynamicProperties(String dprop) {
+    this.dynamicProperties = dprop;
   }
 
   public void setDynamicProperty(String name, String value) {
