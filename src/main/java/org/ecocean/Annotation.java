@@ -808,6 +808,18 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.resetDateInMilliseconds();
             newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
             newEnc.setGenus(someEnc.getGenus());
+
+            // LOCAL: Lynx only - add to same trapping station when cloning
+            String sid = someEnc.getStudySiteID();
+            if (sid!=null) {
+                newEnc.setStudySiteID(sid);
+                String ga = someEnc.getGovernmentArea();
+                if (ga!=null) newEnc.setGovernmentArea(ga);
+                String hs = someEnc.getHuntingState();
+                if (hs!=null) newEnc.setHuntingState(hs);
+                String ctry = someEnc.getCountry();
+                if (ctry!=null) newEnc.setHuntingState(ctry);
+            }
         }
         return newEnc;
 
