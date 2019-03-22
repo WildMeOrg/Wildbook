@@ -42,16 +42,71 @@ static boolean hasValue(Object v) {
         Integer x = (Integer)v;
         return (x != 0);
     }
-System.out.println("**** " + v.getClass());
+System.out.println("**** resolveDuplicates.hasValue -> " + v.getClass());
     return true;
+}
+
+
+static int demoteAnnotations(Encounter enc) {
+    if (enc == null) return -1;
+    if (enc.getAnnotations() == null) return 0;
+    for (Annotation ann : enc.getAnnotations()) {
+        ann.setMatchAgainst(false);
+        System.out.println("resolveDuplicates: setting matchAgainst FALSE on " + ann);
+    }
+    return enc.getAnnotations().size();
 }
 
 %><%
 
+if ("post".equals(request.getQueryString())) {
+    JSONObject jin = ServletUtilities.jsonFromHttpServletRequest(request);
+    if (jin == null) throw new RuntimeException("POST has empty JSONObject");
+    String mainEncId = jin.optString("mainEncId", "__ERROR__");
+    String resolveAnnotAcmId = jin.optString("resolveAnnotAcmId", "__ERROR__");
+    String context = ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.beginDBTransaction();
+    JSONObject rtn = new JSONObject();
+    String msg = "Success";
+
+    JSONArray encDup = jin.optJSONArray("encDuplicate");
+    if (encDup != null) {
+        for (int i = 0 ; i < encDup.length() ; i++) {
+            Encounter enc = myShepherd.getEncounter(encDup.optString(i, null));
+            if (enc == null) continue;
+            demoteAnnotations(enc);
+            enc.setState("duplicate");
+            enc.setDynamicProperty("duplicateOf", mainEncId);
+            enc.setDynamicProperty("duplicateVia", resolveAnnotAcmId);
+            enc.addComments("<p class=\"duplicate\">marked duplicate of <b>" + mainEncId + "</b> by " + AccessControl.simpleUserString(request) + "</p>");
+            msg += " | dup=" + enc.getCatalogNumber();
+        }
+    }
+
+    JSONArray encDel = jin.optJSONArray("encDelete");
+    if (encDel != null) {
+        for (int i = 0 ; i < encDel.length() ; i++) {
+            Encounter enc = myShepherd.getEncounter(encDel.optString(i, null));
+            if (enc == null) continue;
+            System.out.println("resolveDuplicates: DELETE " + enc);
+            demoteAnnotations(enc);
+            msg += " | DEL=" + enc.getCatalogNumber();
+            myShepherd.getPM().deletePersistent(enc);
+        }
+    }
+
+    rtn.put("message", msg);
+    rtn.put("_in", jin);
+    out.println(rtn.toString());
+    myShepherd.commitDBTransaction();
+    return;
+}
+
 boolean data = "data".equals(request.getQueryString());
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-myShepherd = new Shepherd("context0");
+myShepherd = new Shepherd(context);
 
 
 
@@ -133,8 +188,18 @@ String resolveAnnotAcmId = request.getParameter("resolveAnnotAcmId");
 if (resolveAnnotAcmId != null) {
 %>
 <style>
+input[type="button"] {
+    margin: 4px;
+}
+
 #encs {
     margin-right: 100px;
+}
+
+.ect {
+    font-size: 0.8em;
+    color: #666;
+    margin-right: 10px;
 }
 
 .enc {
@@ -184,6 +249,11 @@ if (resolveAnnotAcmId != null) {
     background-color: #444 !important;
 }
 
+.state-duplicate {
+    color: #FFF !important;
+    background-color: #970 !important;
+}
+
 .controls {
     position: absolute;
     padding-left: 10px;
@@ -204,16 +274,69 @@ if (resolveAnnotAcmId != null) {
     background-color: #FAA;
 }
 
+.enc-id {
+    cursor: pointer;
+}
+.enc-id:hover {
+    color: #180;
+}
+
 </style>
 <script>
+var resolveAnnotAcmId = '<%=resolveAnnotAcmId%>';
+
 $(document).ready(function() {
     findDiff();
     resort();
     $('#encs .enc:first').addClass('enc-chosen');
-
+    $('.enc-id').on('click', function(ev) {
+        openInTab('../encounters/encounter.jsp?number=' + ev.target.innerText);
+    });
 });
 
 
+function openInTab(url) {
+    var win = window.open(url, '_blank');
+    if (win) win.focus();
+}
+
+function save() {
+    $('#save-button').hide();
+    var mainId = $('.enc:first').attr('id');
+    var upf = {};
+    var edel = new Array();
+    $('.enc.action-delete').each(function(i, el) {
+        edel.push(el.id);
+    });
+    var edup = new Array();
+    $('.enc:not(.action-delete):not(:first)').each(function(i, el) {
+        edup.push(el.id);
+    });
+
+    var data = {
+        resolveAnnotAcmId: resolveAnnotAcmId,
+        mainEncId: mainId,
+        encDuplicate: edup,
+        encDelete: edel,
+        updateFields: upf
+    };
+
+    $.ajax({
+        url: 'resolveDuplicates.jsp?post',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json',
+        complete: function(d) {
+            console.log('complete: %o', d);
+            if (!d.responseJSON) {
+                $('body').prepend('<p><b>ERROR?</b>: ' + JSON.stringify(d) + '</p>');
+            } else {
+                $('body').prepend("<p style=\"padding: 10px; font-size: 0.9em;\">" + (d.responseJSON.error || d.responseJSON.message) + "</p>");
+            }
+        },
+        type: 'POST'
+    });
+}
 
 function setActionAll(which) {
     $('.action-div [value="' + which + '"]').prop('checked', true);
@@ -305,6 +428,10 @@ function resort() {
     $('#encs').html(guts);
     addHover();
     updateButtons();
+    $('.ect').remove();
+    $('.enc-id').each(function(i, el) {
+        $(el).before('<span class="ect">' + (i+1) + '</span>');
+    });
 }
 
 
@@ -336,9 +463,7 @@ function makeMain(encId) {
         <input type="button" value="toggle top2 comp" onClick="return toggleTop2();" />
         <input type="button" value="all delete" onClick="setActionAll('delete');" />
         <input type="button" value="all duplicate" onClick="setActionAll('duplicate');" />
-</div>
-
-<div id="encs">
+        <input id="save-button" type="button" style="background-color: red;" value="SAVE CHANGES" onClick="save();" />
 <%
     Class<?> cls = Encounter.class;
     //Field fields[] = cls.getDeclaredFields();
@@ -354,10 +479,17 @@ function makeMain(encId) {
     //List<String> skip = Arrays.asList("getClone", "getMedia", "getEncounterNumber", "getAnnotations", "getID", "getPrimaryMediaAsset", "getAccessControl", "getDWCGlobalUniqueIdentifier", "getOKExposeViaTapirLink");
     List<String> okMethods = Arrays.asList("getAge", "getAlternateID", "getAssignedUsername", "getBehavior", "getBodyCondition", "getComments", "getCountry", "getDate", "getDateInMilliseconds", "getDay", "getDecimalLatitudeAsDouble", "getDecimalLongitudeAsDouble", "getDepth", "getDepthAsDouble", "getDistinguishingScar", "getDWCDateAdded", "getDWCDateAddedLong", "getDWCDateLastModified", "getDynamicProperties", "getEndDateInMilliseconds", "getEndDateTime", "getEndDecimalLatitudeAsDouble", "getEndDecimalLongitudeAsDouble", "getEventID", "getGeneticSex", "getGenus", "getHaplotype", "getHour", "getIdentificationRemarks", "getImmunoglobin", "getIndividualID", "getInformOthers", "getInformOthersEmails", "getInjured", "getInterestedResearchers", "getLifeStage", "getLivingStatus", "getLocation", "getLocationCode", "getLocationID", "getMatchedBy", "getMaximumDepthInMeters", "getMaximumElevationInMeters", "getMeasurements", "getMeasurementUnit", "getMeasureUnits", "getMetalTags", "getMinutes", "getModified", "getMonth", "getOccurrenceID", "getOccurrenceRemarks", "getOtherCatalogNumbers", "getParasiteLoad", "getPatterningCode", "getPhotographerAddress", "getPhotographerEmail", "getPhotographerEmails", "getPhotographerName", "getPhotographerPhone", "getPhotographers", "getPointLocation", "getRComments", "getRecordedBy", "getReleaseDateLong", "getReproductiveStage", "getSampleTakenForDiet", "getSatelliteTag", "getSex", "getShortDate", "getSizeAsDouble", "getSizeGuess", "getSoil", "getSpecificEpithet", "getStartDateTime", "getState", "getSubmitterAddress", "getSubmitterEmail", "getSubmitterEmails", "getSubmitterID", "getSubmitterName", "getSubmitterOrganization", "getSubmitterPhone", "getSubmitterProject", "getSubmitters", "getSurveyID", "getSurveyTrackID", "getTaxonomyString", "getTissueSamples", "getVerbatimEventDate", "getVerbatimLocality", "getYear");
 
+%>
+<p>total encounters: <b><%=((encs == null) ? 0 : encs.size())%></b></p>
+</div>
+
+<div id="encs">
+<%
+
     for (Encounter enc : encs) {
         int numAnns = ((enc.getAnnotations() == null) ? 0 : enc.getAnnotations().size());
         out.println("<div data-adjust=\"0\" data-numanns=\"" + numAnns + "\" class=\"enc\" id=\"" + enc.getCatalogNumber() + "\">");
-        out.println("<b>" + enc.getCatalogNumber() + "</b> (" + numAnns + " anns)");
+        out.println("<b class=\"enc-id\">" + enc.getCatalogNumber() + "</b> (" + numAnns + " anns)");
 %>
     <div class="controls">
         <input class="button-move" type="button" value="move to #2" onClick="return moveTo2('<%=enc.getCatalogNumber()%>');" />
@@ -375,7 +507,9 @@ function makeMain(encId) {
 //System.out.println("OK: " + m.getName());
             try {
                 Object val = m.invoke(enc);
-                if (hasValue(val)) out.println("<div data-prop=\"" + m.getName() + "\" class=\"prop-" + m.getName() + " prop\">" + m.getName() + ": <b class=\"val\">" + val + "</b></div>");
+                String extraClass = "";
+                if (m.getName().equals("getState") && "duplicate".equals(val)) extraClass = " state-duplicate";
+                if (hasValue(val)) out.println("<div data-prop=\"" + m.getName() + "\" class=\"prop-" + m.getName() + " prop" + extraClass + "\">" + m.getName() + ": <b class=\"val\">" + val + "</b></div>");
             } catch (java.lang.reflect.InvocationTargetException ex) {}
             //out.println("<div class=\"prop\">" + m.getName() + "</div>");
         }
