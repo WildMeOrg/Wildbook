@@ -433,7 +433,7 @@ public class Shepherd {
 
   /**
    * Removes a marked individual from the database.
-   * ALL DATA FOR THE INDIVIDUAL WILL BE LOST!!!
+   * ALL DATA FOR THE INDIVIDUAL WILL BE LOST!!
    *
    * @param MarkedIndividual to delete from the database
    * @see MarkedIndividual
@@ -2447,6 +2447,7 @@ public class Shepherd {
   public ArrayList<Encounter> getEncountersArrayWithMillis(long millis) {
     String milliString = String.valueOf(millis);
     
+    // uhhhhhhhh
     String up = milliString.substring(0, milliString.length() - 6) + 999999;
     String down = milliString.substring(0, milliString.length() - 6) + 000000;
     
@@ -2471,6 +2472,31 @@ public class Shepherd {
     } else {
       return null;
     }
+  }
+
+  public List<Encounter> getEncountersSubmittedDuring(long start, long end) {
+    String startStr = String.valueOf(start);
+    String endStr   = String.valueOf(end);
+    //String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && dwcDateAddedLong >= "+startStr+" && dateInMilliseconds <= "+endStr+" ";
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && dwcDateAddedLong >= "+startStr+" && dwcDateAddedLong <= "+endStr+" ";
+    Query encQuery = pm.newQuery(keywordQueryString);
+    Collection col = null;
+    int colSize = -1;
+    try {
+      encQuery = pm.newQuery(keywordQueryString);
+      if (encQuery.execute() != null) {
+        col = (Collection) encQuery.execute();
+        colSize = col.size();        
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Exception on query : "+keywordQueryString);    
+      return null;
+    }
+    List<Encounter> encs = new ArrayList<Encounter>(col);
+    encQuery.closeAll();
+    System.out.println("getEncountersSubmittedDuring used query string "+keywordQueryString+"; returning "+encs.size()+ " (collection size "+colSize+")");
+    return encs;
   }
   
   public ArrayList<Encounter> getEncounterArrayWithShortDate(String sd) {
