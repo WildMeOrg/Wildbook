@@ -381,8 +381,10 @@ var semiHidden = [
     'getDWCDateLastModified',
 ];
 var pval = {};
+var pvalOk = {};
 function findDiff(topTwoOnly) {
     pval = {};
+    pvalOk = {};
     var sel = '.enc';
     if (topTwoOnly) sel = '.enc:first, .enc:nth-child(2)';
     $(sel).each(function(i, el) {
@@ -397,17 +399,21 @@ function findDiff(topTwoOnly) {
             var val = $(pel).find('.val').text();
 //console.log('%o [%o] -> %o', encId, prop, val);
             if (pval[prop] == undefined) {
+                pvalOk[prop] = 1;
                 pval[prop] = val;
             } else if (pval[prop] != val) {
-//console.log('diff found in prop %s (via enc %s) %o => %o', prop, encId, pval[prop], val);
+                pvalOk[prop] = false;
+console.log('diff found in prop %s (via enc %s) %o => %o', prop, encId, pval[prop], val);
                 $('.prop-' + prop).show();
                 pval[prop] = false;
             } else if (topTwoOnly) {  //this means we had a match, so we want to hide, hence:
+                pvalOk[prop] = true;
                 pval[prop] = false;
             }
         });
     });
     for (p in pval) {
+        if (pvalOk[p] === true) continue;
         if (pval[p] === false) continue;
         $('.prop-' + p).show().addClass('bonus');
     }
@@ -480,7 +486,7 @@ function makeMain(encId) {
     List<String> okMethods = Arrays.asList("getAge", "getAlternateID", "getAssignedUsername", "getBehavior", "getBodyCondition", "getComments", "getCountry", "getDate", "getDateInMilliseconds", "getDay", "getDecimalLatitudeAsDouble", "getDecimalLongitudeAsDouble", "getDepth", "getDepthAsDouble", "getDistinguishingScar", "getDWCDateAdded", "getDWCDateAddedLong", "getDWCDateLastModified", "getDynamicProperties", "getEndDateInMilliseconds", "getEndDateTime", "getEndDecimalLatitudeAsDouble", "getEndDecimalLongitudeAsDouble", "getEventID", "getGeneticSex", "getGenus", "getHaplotype", "getHour", "getIdentificationRemarks", "getImmunoglobin", "getIndividualID", "getInformOthers", "getInformOthersEmails", "getInjured", "getInterestedResearchers", "getLifeStage", "getLivingStatus", "getLocation", "getLocationCode", "getLocationID", "getMatchedBy", "getMaximumDepthInMeters", "getMaximumElevationInMeters", "getMeasurements", "getMeasurementUnit", "getMeasureUnits", "getMetalTags", "getMinutes", "getModified", "getMonth", "getOccurrenceID", "getOccurrenceRemarks", "getOtherCatalogNumbers", "getParasiteLoad", "getPatterningCode", "getPhotographerAddress", "getPhotographerEmail", "getPhotographerEmails", "getPhotographerName", "getPhotographerPhone", "getPhotographers", "getPointLocation", "getRComments", "getRecordedBy", "getReleaseDateLong", "getReproductiveStage", "getSampleTakenForDiet", "getSatelliteTag", "getSex", "getShortDate", "getSizeAsDouble", "getSizeGuess", "getSoil", "getSpecificEpithet", "getStartDateTime", "getState", "getSubmitterAddress", "getSubmitterEmail", "getSubmitterEmails", "getSubmitterID", "getSubmitterName", "getSubmitterOrganization", "getSubmitterPhone", "getSubmitterProject", "getSubmitters", "getSurveyID", "getSurveyTrackID", "getTaxonomyString", "getTissueSamples", "getVerbatimEventDate", "getVerbatimLocality", "getYear");
 
 %>
-<p>total encounters: <b><%=((encs == null) ? 0 : encs.size())%></b></p>
+<p><span style="font-size: 0.9em; background-color: #AAA; color: #EEE; padding: 2px 6px;"><%=resolveAnnotAcmId%></span> total encounters: <b><%=((encs == null) ? 0 : encs.size())%></b> &nbsp <a href="resolveDuplicates.jsp">back to list</a></p>
 </div>
 
 <div id="encs">
