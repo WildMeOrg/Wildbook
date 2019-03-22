@@ -971,6 +971,15 @@ public class Encounter implements java.io.Serializable {
   public static String getWebUrl(String encId, String serverUrl) {
     return (serverUrl+"/encounters/encounter.jsp?number="+encId);
   }
+  public String getHyperlink(HttpServletRequest req, int labelLength) {
+    String label="";
+    if (labelLength==1) label = "Enc ";
+    if (labelLength> 1) label = "Encounter ";
+    return "<a href=\""+getWebUrl(req)+"\">"+label+getCatalogNumber()+ "</a>";
+  }
+  public String getHyperlink(HttpServletRequest req) {
+    return getHyperlink(req, 1);
+  }
 
   /**
    * Sets the phone number of the person who took the primaryImage this encounter.
