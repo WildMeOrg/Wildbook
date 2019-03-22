@@ -625,6 +625,9 @@ $(function() {
                 </h1>
 
 
+<% String dup = enc.getDynamicPropertyValue("duplicateOf");  if (dup != null) { %>
+<div style="display: inline-block; padding: 1px 5px; background-color: #AAA; color: #833; border-radius: 4px;">This encounter is marked as a <b>duplicate of <a href="encounter.jsp?number=<%=dup%>"><%=dup%></a></b>.</div><% } %>
+
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
  					<table style="border-spacing: 10px;margin-left:-10px;border-collapse: inherit;">
  						<tr valign="middle">
