@@ -330,6 +330,7 @@ function annotAcmData() {
         if (aCt[aid] < 2) continue;
         var row = {
             annotAcmId: aid,
+            assetAcmId: aA[aid],
             numAnnots: aCt[aid],
             numEncs: aEnc[aid].length,
             enc: annotAcmEncCell(aEnc[aid], encA)
