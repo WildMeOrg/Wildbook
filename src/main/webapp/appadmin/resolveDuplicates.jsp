@@ -214,6 +214,16 @@ $(document).ready(function() {
 });
 
 
+
+function setActionAll(which) {
+    $('.action-div [value="' + which + '"]').prop('checked', true);
+    if (which == 'delete') {
+        $('.enc:not(:first)').addClass('action-delete');
+    } else {
+        $('.enc').removeClass('action-delete');
+    }
+}
+
 function toggleAction(el) {  // delete / mark duplicate radio checkboxes
     var encId = el.getAttribute('name').substring(7);
     var val = $('[name="action-' + encId + '"]:checked').val();
@@ -324,6 +334,8 @@ function makeMain(encId) {
 
 <div style="padding: 12px;">
         <input type="button" value="toggle top2 comp" onClick="return toggleTop2();" />
+        <input type="button" value="all delete" onClick="setActionAll('delete');" />
+        <input type="button" value="all duplicate" onClick="setActionAll('duplicate');" />
 </div>
 
 <div id="encs">
