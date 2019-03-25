@@ -244,7 +244,7 @@ The managers may also request outside assistance in reviewing your application.
 The managers weigh these and other criteria when reviewing a request for access:
 <ul>
     <li>Your ability and willingness to contribute new giraffe data</li>
-    <li>Your ability and willingness to follow the analytical techniques used on Giraffespotter</li>
+    <li>Your ability and willingness to follow the analytical techniques used on GiraffeSpotter</li>
     <li>Your ability and willingness to develop new techniques for giraffe research</li>
     <li>Your ability and willingness to develop new science for other fields using giraffe data</li>
     <li>Your ability and willingness to use giraffe data collaboratively</li>
@@ -253,7 +253,7 @@ The managers weigh these and other criteria when reviewing a request for access:
 </ul>
 
 The final decision for a request is made the site managers. Responses are provided via email.
-Giraffespotter wishes to acknowledge in advance that not all valid requests for access can be approved
+GiraffeSpotter wishes to acknowledge in advance that not all valid requests for access can be approved
 due to limitations on available resources.
 </p>
 
@@ -261,7 +261,7 @@ due to limitations on available resources.
 <h2>By invitation</h2>
 
 <p>
-Giraffespotter may choose to invite appropriate individuals to participate without a formal request for access.
+GiraffeSpotter may choose to invite appropriate individuals to participate without a formal request for access.
 Invitations for access are reviewed in accordance with the criteria defined above.
 </p>
 
