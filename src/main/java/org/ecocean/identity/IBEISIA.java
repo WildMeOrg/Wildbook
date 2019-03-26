@@ -359,12 +359,13 @@ myShepherd.closeDBTransaction();
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
         
+        Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
+
         String u = IA.getProperty(context, "IBEISIARestUrlStartDetectImages", taxy);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
         URL url = new URL(u);
 
         HashMap<String,Object> map = new HashMap<String,Object>();
-        Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
 
         String modelTag = IA.getProperty(context, "modelTag", taxy);
         if (modelTag != null) {
@@ -498,6 +499,19 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
     }
 
 
+        //making this private cuz it is mostly "internal use" as the logic is pretty specific to above usage
+    public static Taxonomy taxonomyFromMediaAsset(Shepherd myShepherd, MediaAsset ma) {
+        ArrayList<Annotation> anns = ma.getAnnotations();
+        if (anns.size() < 1) return null;
+        //here we step thru all annots on this asset but likely there will be only one (trivial)
+        //  if there are more then may the gods help us on what we really will get!
+        for (Annotation ann : anns) {
+            Taxonomy tax = ann.getTaxonomy(myShepherd);
+            if (tax != null) {
+                return tax;
+            }
+        }
+        return null;
     }
 
     public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas) {
@@ -2688,6 +2702,28 @@ System.out.println(">>>>>>>> sex -> " + rtn);
         if (sexi == -1) return null;
         //what else???
         return null;
+    }
+
+    //NOTE!  this will "block" and can take a while as it synchronously will attempt to label it if it has not before
+    //  response comes from ia thus: "response": [{"score": 0.9783339699109396, "species": "giraffe_reticulated", "viewpoint": "right"}]
+    public static JSONObject iaViewpointFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String algo = IA.getProperty(context, "labelerAlgo");   //TODO handle the taxonomy-flavor of these
+        String tag = IA.getProperty(context, "labelerModelTag");
+        if ((algo == null) || (tag == null)) throw new IOException("iaViewPointFromAnnotUUID() must have labelerAlgo and labelerModelTag values set");
+        JSONObject data = new JSONObject();
+        data.put("algo", algo);
+        data.put("model_tag", tag);
+        if (uuid != null) data.put("annot_uuid_list", "[" + toFancyUUID(uuid).toString() + "]");
+        JSONObject rtn = RestClient.post(iaURL(context, "/api/labeler/cnn/json/"), data);
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get viewpoint from annot uuid=" + uuid);
+        return rtn.getJSONArray("response").optJSONObject(0);
+    }
+
+    //http://104.42.42.134:5010/api/image/uri/original/json/?image_uuid_list=[{%22__UUID__%22:%2283e2439f-d112-1084-af4a-4fa9a5094e0d%22}]
+    public static String iaFilepathFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/image/uri/original/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get filename from image uuid=" + uuid);
+        return rtn.getJSONArray("response").optString(0, null);
     }
 
 //http://52.37.240.178:5000/api/annot/age/months/json/?annot_uuid_list=[{%22__UUID__%22:%224517636f-65ad-a236-950c-107f2c962c19%22}]
