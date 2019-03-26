@@ -52,19 +52,31 @@ String username = null;
 User user = null;
 boolean indocetUser = false;
 
-if(request.getUserPrincipal()!=null){
-	myShepherd.beginDBTransaction();
-	try{
-  		user = myShepherd.getUser(request);
-  		username = (user!=null) ? user.getUsername() : null;
-  		indocetUser = (user!=null && user.hasAffiliation("indocet"));
-	}
-	catch(Exception e){e.printStackTrace();}
-  	finally{
-    	myShepherd.rollbackDBTransaction();
-  	}
+System.out.println("We're in header.jsp trying to track down a shepherd. Have "+myShepherd+" isActive="+myShepherd.isDBTransactionActive());
+myShepherd.beginDBTransaction();
+try {
+  if(request.getUserPrincipal()!=null){
+    user = myShepherd.getUser(request);
+    username = (user!=null) ? user.getUsername() : null;
+    indocetUser = (user!=null && user.hasAffiliation("indocet"));
+  }
 }
-myShepherd.closeDBTransaction();
+catch(Exception e){
+  System.out.println("Exception on indocetCheck in header.jsp:");
+  e.printStackTrace();
+  myShepherd.closeDBTransaction();
+}
+finally{
+  System.out.println("About to close the dbtransaction in header.jsp. Have "+myShepherd+" isActive="+myShepherd.isDBTransactionActive());
+  myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
+  System.out.println("Success! I've closed the dbtransaction in header.jsp. Have "+myShepherd+" isActive="+myShepherd.isDBTransactionActive());
+}
+
+System.out.println("We're in header.jsp AGAIN trying to track down a shepherd. Have "+myShepherd+" isActive="+myShepherd.isDBTransactionActive());
+
+
+
 %>
 
 
