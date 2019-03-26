@@ -27,23 +27,28 @@ CommonConfiguration.ensureServerInfo(myShepherd, request);
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
-myShepherd.setAction("header.jsp");
+myShepherd.setAction("footer.jsp");
 myShepherd.beginDBTransaction();
 
 String username = null;
 User user = null;
 boolean indocetUser = false;
 
-if(request.getUserPrincipal()!=null){
-
-  user = myShepherd.getUser(request);
-  username = (user!=null) ? user.getUsername() : null;
-  indocetUser = (user!=null && user.hasAffiliation("indocet"));
-
-  //finally{
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
-  //}
+try {
+  if(request.getUserPrincipal()!=null){
+    user = myShepherd.getUser(request);
+    username = (user!=null) ? user.getUsername() : null;
+    indocetUser = (user!=null && user.hasAffiliation("indocet"));
+  }
+}
+catch(Exception e){
+  System.out.println("Exception on indocetCheck in footer.jsp:");
+  e.printStackTrace();
+  myShepherd.closeDBTransaction();
+}
+finally{
+  myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
 }
         %>
 
