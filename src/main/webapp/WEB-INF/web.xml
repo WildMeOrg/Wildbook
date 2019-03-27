@@ -317,10 +317,7 @@
 				 #lockdown Keyword handling
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
-				 
-				 /EncounterRemoveUser = authc, roles[researcher]
-				/EncounterAddUser = authc, roles[researcher]
-				
+				 				
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
 				/pictureBook.jsp = authc, roles[researcher]
 				
@@ -418,7 +415,7 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
   
-      <servlet>
+  <servlet>
     <servlet-name>EncounterRemoveUser</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
   </servlet>
@@ -1303,17 +1300,7 @@
     <servlet-name>EncounterSetLivingStatus</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetLivingStatus</servlet-class>
   </servlet>
-  
-    <servlet>
-    <servlet-name>EncounterRemoveUser</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
-  </servlet>
-  
-      <servlet>
-    <servlet-name>EncounterAddUser</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterAddUser</servlet-class>
-  </servlet>
-
+    
   <!--
   <servlet>
     <servlet-name>EncounterAddImage</servlet-name>
@@ -2014,23 +2001,13 @@
     <servlet-name>EncounterRemoveSpots</servlet-name>
     <url-pattern>/EncounterRemoveSpots</url-pattern>
   </servlet-mapping>
-  
-    <servlet-mapping>
-    <servlet-name>EncounterRemoveUser</servlet-name>
-    <url-pattern>/EncounterRemoveUser</url-pattern>
-  </servlet-mapping>
-  
-    <servlet-mapping>
-    <servlet-name>EncounterAddUser</servlet-name>
-    <url-pattern>/EncounterAddUser</url-pattern>
-  </servlet-mapping>
-  
-    <servlet-mapping>
+    
+  <servlet-mapping>
     <servlet-name>RelationshipCreate</servlet-name>
     <url-pattern>/RelationshipCreate</url-pattern>
   </servlet-mapping>
 
-      <servlet-mapping>
+  <servlet-mapping>
     <servlet-name>RelationshipDelete</servlet-name>
     <url-pattern>/RelationshipDelete</url-pattern>
   </servlet-mapping>

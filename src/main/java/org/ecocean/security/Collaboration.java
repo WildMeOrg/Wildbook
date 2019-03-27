@@ -291,8 +291,9 @@ public class Collaboration implements java.io.Serializable {
 		if (viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
 		return ((viewer!=null && 
 				viewer.hasSharing() && 
-				(owner==null || owner.hasSharing())) 
-				|| canUserAccessOwnedObject(owner.getUsername(),request));
+				(owner==null || owner.hasSharing())) );
+				// had to comment out below line to compile. Where did it come from? 
+				//|| canUserAccessOwnedObject(owner.getUsername(),request));
 	}
 
 	public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
@@ -311,6 +312,12 @@ public class Collaboration implements java.io.Serializable {
 
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
 		return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
+	}
+
+	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
+		String owner = enc.getAssignedUsername();
+		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
+		return canCollaborate(context, owner, username);
 	}
 
 	public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {

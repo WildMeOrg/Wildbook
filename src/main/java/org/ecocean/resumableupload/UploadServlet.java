@@ -240,7 +240,7 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
 	public static String getUploadDir(HttpServletRequest request) {
 			System.out.println("UploadServlet is calling getUploadDir on request (about to print): ");
 			ServletUtilities.printParams(request);
-			String subDir = ServletUtilities.getParameterOrAttributeOrSesssionAttribute("subdir", request);
+			String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir", request);
 			System.out.println("UploadServlet got subdir "+subDir);
 			if (subDir==null) {subDir = "";}
 			else {subDir = "/"+subDir;}

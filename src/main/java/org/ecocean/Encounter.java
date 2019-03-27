@@ -3806,24 +3806,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     if(informOthers==null){this.informOthers=null;}
     else{
       this.informOthers=users;
-    }
-    
+    } 
   }
-
-    
-   public void addInformOther(User user) {
-      if (user == null) return;
-      if (informOthers == null) informOthers = new ArrayList<User>();
-      if (!informOthers.contains(user)) informOthers.add(user);
-  }
-
-  public void setInformOthers(List<User> users) {
-    if(informOthers==null){this.informOthers=null;}
-    else{
-      this.informOthers=users;
-    }
-    
-  }
-
     
 }

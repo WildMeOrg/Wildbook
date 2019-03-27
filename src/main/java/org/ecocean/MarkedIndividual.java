@@ -690,23 +690,7 @@ public class MarkedIndividual implements java.io.Serializable {
   public String getWebUrl(HttpServletRequest req) {
     return getWebUrl(this.getIndividualID(), req);
   }
-
-  public Encounter[] getDateSortedEncounters(int limit) {
-    return (getDateSortedEncounters(false, limit));
-  }
-
-  public Encounter[] getDateSortedEncounters(boolean reverse, int limit) {
-    Encounter[] allEncs = getDateSortedEncounters(reverse);
-    return (Arrays.copyOfRange(allEncs, 0, Math.min(limit,allEncs.length)));
-  }
   
-  public static String getWebUrl(String individualID, HttpServletRequest req) {
-    return (CommonConfiguration.getServerURL(req)+"/individuals.jsp?number="+individualID);
-  }
-  public String getWebUrl(HttpServletRequest req) {
-    return getWebUrl(this.getIndividualID(), req);
-  }
-
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters() {return getDateSortedEncounters(false);}
 

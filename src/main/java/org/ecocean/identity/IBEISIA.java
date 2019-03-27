@@ -3633,7 +3633,7 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
     }
 
 
-    public static boolean validForIdentification(Annotation ann)  {
+    public static boolean validToSendToIA(Annotation ann) {
         if (ann == null) return false;
         //System.out.println("BBOX features -> " + ann.getFeatures()); //please leave this line in (ask jon... sigh)
         List<Feature> forceJdoToUnpackTheseFeatures = ann.getFeatures();
