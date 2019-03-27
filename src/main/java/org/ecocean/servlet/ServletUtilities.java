@@ -56,9 +56,7 @@ import java.sql.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Enumeration;
-
 import java.util.HashMap;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
@@ -754,15 +752,16 @@ public static void printParams(HttpServletRequest request) {
 
 
 public static String getParameterOrAttribute(String name, HttpServletRequest request) {
-  String result = request.getParameter(name);
-  if (result == null) {
-    Object attr = request.getAttribute(name);
-    if (attr!=null) result = attr.toString();
-  }
-  return result;
+    if (name == null) return null;
+    String result = request.getParameter(name);
+    if (result == null) {
+        Object attr = request.getAttribute(name);
+        if (attr != null) result = attr.toString();
+    }
+    return result;
 }
 
-public static String getParameterOrAttributeOrSesssionAttribute(String name, HttpServletRequest request) {
+public static String getParameterOrAttributeOrSessionAttribute(String name, HttpServletRequest request) {
   String result = request.getParameter(name);
   if (result == null) {
     Object attr = request.getAttribute(name);

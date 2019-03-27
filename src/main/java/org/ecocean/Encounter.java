@@ -55,6 +55,7 @@ import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
 //import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+import org.ecocean.ia.IA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
 import org.ecocean.Survey;
@@ -105,8 +106,8 @@ public class Encounter implements java.io.Serializable {
    * <p/>
    * Wherever possible, this class will be extended with Darwin Core attributes for greater adoption of the standard.
    */
-  private String sex = "unknown";
-  private String locationID = "None";
+  private String sex = null;
+  private String locationID = null;
   private Double maximumDepthInMeters;
   private Double maximumElevationInMeters;
   private String catalogNumber = "";
@@ -1208,11 +1209,11 @@ public class Encounter implements java.io.Serializable {
     if (day > 0) {
       date = String.format("%04d-%02d-%02d %s", year, month, day, time);
     }
-    else if(month>-1) {
+    else if(month>0) {
       date = String.format("%04d-%02d %s", year, month, time);
     }
     else {
-      date = String.format("%04d %s", year, month, time);
+      date = String.format("%04d %s", year, time);
     }
 
     return date;
@@ -2782,6 +2783,14 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         annotations.add(ann);
     }
 
+    public void useAnnotationsForMatching(boolean use) {
+      if (getAnnotations()!=null&&getAnnotations().size()>=1) {
+        for (Annotation ann : getAnnotations()) {
+          ann.setMatchAgainst(use);
+        }
+      }
+    }
+
 /*  officially deprecating this (until needed?) ... work now being done with replaceAnnotation() basically   -jon
     public void addAnnotationReplacingUnityFeature(Annotation ann) {
         int unityAnnotIndex = -1;
@@ -2820,8 +2829,17 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
     public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
         if ((anns == null) || (anns.size() < 1)) return null;
-        int minGapSize = 4;  //must skip this or more frames to count as new Encounter
-        SortedMap<Integer,Annotation> ordered = new TreeMap<Integer,Annotation>();
+          
+        //Determine skipped frames before another encounter should be made. 
+      int minGapSize = 4;  
+      try {
+        String gapFromProperties = IA.getProperty(myShepherd.getContext(), "newEncounterFrameGap");
+        if (gapFromProperties!=null) {
+          minGapSize = Integer.parseInt(gapFromProperties);
+        }
+      } catch (NumberFormatException nfe) {}
+
+        SortedMap<Integer,List<Annotation>> ordered = new TreeMap<Integer,List<Annotation>>();
         MediaAsset parentRoot = null;
         for (Annotation ann : anns) {
 System.out.println("========================== >>>>>> " + ann);
@@ -2833,7 +2851,8 @@ System.out.println("   -->>> ma = " + ma);
             int offset = ma.getParameters().optInt("extractOffset", -1);
 System.out.println("   -->>> offset = " + offset);
             if (offset < 0) continue;
-            ordered.put(offset, ann);
+            if (ordered.get(offset) == null) ordered.put(offset, new ArrayList<Annotation>());
+            ordered.get(offset).add(ann);
         }
         if (ordered.size() < 1) return null;  //none used!
 
@@ -2854,7 +2873,7 @@ System.out.println(" cluster [" + (groupsMade) + "] -> " + newEnc);
                 }
             }
             prevOffset = i;
-            tmpAnns.add(ordered.get(i));
+            tmpAnns.addAll(ordered.get(i));
         }
         //deal with dangling tmpAnns content
         if (tmpAnns.size() > 0) {
@@ -3142,6 +3161,13 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 	public boolean canUserAccess(HttpServletRequest request) {
 		return Collaboration.canUserAccessEncounter(this, request);
 	}
+        public boolean canUserEdit(User user) {
+            return isUserOwner(user);
+        }
+        public boolean isUserOwner(User user) {  //the definition of this might change?
+            if ((user == null) || (submitters == null)) return false;
+            return submitters.contains(user);
+        }
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
             jobj.put("location", this.getLocation());
@@ -3516,12 +3542,15 @@ throw new Exception();
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
+        System.out.println("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
         enc.setGenus(this.getGenus());
         enc.setSpecificEpithet(this.getSpecificEpithet());
         enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
         enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
         //just going to go ahead and go nuts here and copy most "logical"(?) things.  reset on clone if needed
         enc.setSubmitterID(this.getSubmitterID());
+        enc.setSubmitters(this.submitters);
+        enc.setPhotographers(this.photographers);
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
@@ -3747,7 +3776,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       return listy;
     }
     
-
     public void addSubmitter(User user) {
         if (user == null) return;
         if (submitters == null) submitters = new ArrayList<User>();
@@ -3768,6 +3796,20 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }
     }
     
+   public void addInformOther(User user) {
+      if (user == null) return;
+      if (informOthers == null) informOthers = new ArrayList<User>();
+      if (!informOthers.contains(user)) informOthers.add(user);
+  }
+
+  public void setInformOthers(List<User> users) {
+    if(informOthers==null){this.informOthers=null;}
+    else{
+      this.informOthers=users;
+    }
+    
+  }
+
     
    public void addInformOther(User user) {
       if (user == null) return;

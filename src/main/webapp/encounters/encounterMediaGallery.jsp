@@ -194,8 +194,12 @@ function forceLink(el) {
                                                     jt.put(Util.toggleJSONObject(t.toJSONObject()));
                                                 }
                                                 j.put("tasks", jt);
-						j.put("annotationId", ann.getId());
-                                                j.put("annotationIdentificationStatus", ann.getIdentificationStatus());
+                                                JSONObject ja = new JSONObject();
+						ja.put("id", ann.getId());
+                                                //ja.put("acmId", ann.getAcmId());
+                                                ja.put("iaClass", ann.getIAClass());
+                                                ja.put("identificationStatus", ann.getIdentificationStatus());
+                                                j.put("annotation", ja);
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
@@ -507,9 +511,144 @@ $(window).on('resizeEnd', function(ev) {
 	checkImageEnhancerResize();
 });
 
+
+function annotEditAjax(data) {
+    $('.popup-content').html('<div class="throbbing">updating</div>');
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/AnnotationEdit',
+        data: JSON.stringify(data),
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        complete: function(d) {
+            console.info('return => %o', d);
+            if (!d || !d.responseJSON) {
+                $('.popup-content').html('<div class="error">unknown error</div>');
+                return;
+            }
+            if (d.responseJSON.success) {
+            window.location.reload();
+                return;
+            }
+            $('.popup-content').html('<div class="error">' + (d.responseJSON.error || d.responseJSON.message) + '</div>');
+        }
+    });
+    return false;
+}
+
+function removeFeatAnnEnc(fid, aid, eid) {
+    return annotEditAjax({ id: aid, featureId: fid, encounterId: eid, remove: true });
+}
+
+function swapEncounters(aid1, aid2) {
+    return annotEditAjax({ id: aid1, swapEncounterId: aid2 });
+}
+
+function swapAnnotIndivIds(aid1, aid2) {
+    return annotEditAjax({ id: aid1, swapIndividualId: aid2 });
+}
+
+function assignIndiv(annotId) {
+    var indivId = $('#edit-assign-individ').val();
+    return annotEditAjax({ id: annotId, assignIndividualId: indivId });
+}
+
+
+var editMode = false;
+function editClick(ev) {
+console.log(ev);
+    ev.stopPropagation();
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    var el = ev.target.parentElement;
+    var annId = el.id;
+    var h = '<h1>' + annId + '</h1>';
+    var maEl = el.parentElement.parentElement;
+    var mid = imageEnhancer.mediaAssetIdFromElement($(maEl));
+    var ma = assetById(mid);
+    if (!ma) return;
+console.log(ma);
+    var h = '';
+    var myFeat;
+    for (var i = 0 ; i < ma.features.length ; i++) {
+        if (ma.features[i].id == annId) {
+            myFeat = ma.features[i];
+        }
+    }
+    h += '<div style="color: #A33; font-size: 1.3em;">Editing <b>Annot ' + niceId(myFeat.annotationId) + '</b> (on <b>Enc ' + niceId(myFeat.encounterId) + '</b>)</div>';
+    for (var i = 0 ; i < ma.features.length ; i++) {
+        if ((ma.features[i].id == annId) || !ma.features[i].encounterId) continue;
+        h += '<input type="button" value="swap Annots: ' + niceId(myFeat.annotationId) + ' ==&gt; [Enc ' + niceId(ma.features[i].encounterId)+ '] // ' + niceId(ma.features[i].annotationId) + ' ==&gt; [Enc ' + niceId(myFeat.encounterId) + ']" ';
+        h += ' onClick="swapEncounters(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        if (myFeat.individualId && ma.features[i].individualId) {
+            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + niceId(ma.features[i].encounterId) + ')" '; 
+            h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        } else if (myFeat.individualId) {
+            h += '<input type="button" value="set name ' + myFeat.individualId + ' on [Enc ' + niceId(ma.features[i].encounterId) + '] (unset this)" '; 
+            h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        } else if (ma.features[i].individualId) {
+            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on the above Encounter (unset ' + niceId(ma.features[i].encounterId) + ')" '; 
+            h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        }
+    }
+    h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><input style="background-color: #F30;" type="button" value="remove Feat ' + niceId(myFeat.id) + ' / Ann ' + niceId(myFeat.annotationId) + ' / Enc ' + niceId(myFeat.encounterId) + '" onClick="return removeFeatAnnEnc(\'' + myFeat.id + '\', \'' + myFeat.annotationId + '\', \'' + myFeat.encounterId + '\');" /></div>';
+    h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><i>or,</i> assign <b>Enc ' + niceId(myFeat.encounterId) + '</b> to <input id="edit-assign-individ" /> <input type="button" value="accept" onClick="return assignIndiv(\'' + myFeat.annotationId + '\');" /></div>';
+    imageEnhancer.popup(h);
+    $('.image-enhancer-popup').draggable();
+
+    //make autocomplete for indiv form input
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(document.getElementById('edit-assign-individ'), args);
+
+    return false;
+}
+
+function niceId(id) {
+    return id.substring(0,8);
+}
+
 //initializes image enhancement (layers)
 jQuery(document).ready(function() {
-	doImageEnhancer('figure img');
+    doImageEnhancer('figure img');
+    $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
+    $(document).bind('keydown keyup', function(ev) {
+        if (wildbook.user.isAnonymous()) return true;
+        var editModeWas = editMode;
+        if ((ev.key != 'Shift') && (ev.key != 'Control')) return;
+        editMode = (ev.shiftKey && ev.ctrlKey);
+        //console.info('editMode -> %o', editMode);
+        if (editMode == editModeWas) return;
+        if (!editMode) {
+            $('.edit-mode-ui').remove();
+            $('.image-enhancer-keyword-wrapper').show();
+            return;
+        }
+        $('.image-enhancer-keyword-wrapper').hide();
+        $('body').append('<div class="edit-mode-ui" style="position: fixed; left: 30px; top: 30px; font-size: 3em; color: rgba(255,255,20,0.8); z-index: 2000;"><b>EDIT MODE</b></div>');
+
+        $('.image-enhancer-feature').append('<div class="edit-mode-ui" style="cursor: cell; padding: 0px 4px; font-size: 0.8em; font-weight: bold; position: absolute; left: 10px; top: 10px; background-color: rgba(255,255,255,0.7); display: inline-block;" xonClick="return editClick(this);" >EDIT</div>');
+        $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
+    });
+
+    if (wildbookGlobals.username) {
+        $('.image-enhancer-wrapper').each(function(i, el) {
+            var mid = imageEnhancer.mediaAssetIdFromElement($(el));
+	    var ma = assetById(mid);
+            var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.filename) + '">' + ma.filename + '</a></div>';
+            $(el).closest('figure').after(h);
+            //$(el).closest('.my-gallery').after(h);
+        });
+    }
 });
 
 function doImageEnhancer(sel) {
@@ -632,7 +771,7 @@ console.warn('foocontext --> %o', aid);
     if (!aid) return;
     var ma = assetByAnnotationId(aid);
 console.warn("====== enhancerDisplayAnnots %o ", ma);
-    if (!ma || !ma.features || !ma.annotationId) return;
+    if (!ma || !ma.features || !ma.annotation || !ma.annotation.id) return;
     var featwrap = $('<div class="image-enhancer-feature-wrapper" />');
     featwrap.data('enhancerScale', el.data('enhancerScale'));
     el.append(featwrap);
@@ -641,7 +780,7 @@ console.warn("====== enhancerDisplayAnnots %o ", ma);
     el.append(featzoom);
     var ord = featureSortOrder(ma.features);
     for (var i = 0 ; i < ord.length ; i++) {
-        enhancerDisplayFeature(featwrap, opt, ma.annotationId, ma.features[ord[i]], i);
+        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i);
     }
 }
 
@@ -699,6 +838,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         height: feat.parameters.height * scale
     });
     fel.tooltip({ content: function() { return $(this).prop('data-tooltip'); } });
+/*  note: now handled by <a> below
     fel.on('click', function(ev) {
         ev.stopPropagation();
         var encId = $(this).data('encounterId');
@@ -706,7 +846,11 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         document.body.innerHTML = '';
         window.location.href = 'encounter.jsp?number=' + encId;
     });
+*/
     if (feat.parameters.theta) fel.css('transform', 'rotate(' + feat.parameters.theta + 'rad)');
+    if (inGalleryMode() || (feat.encounterId != encounterNumber)) {
+        fel.append('<a onClick="event.stopPropagation(); return true;" href="encounter.jsp?number=' + feat.encounterId + '" class="annot-link el el-circle-arrow-right">&#x2b8a;</a>');
+    }
     el.append(fel);
 }
 
@@ -932,15 +1076,15 @@ function assetById(mid) {
 function assetByAnnotationId(aid) {
 	if (!aid || !assets || (assets.length < 1)) return false;
 	for (var i = 0 ; i < assets.length ; i++) {
-		if (assets[i].annotationId == aid) return assets[i];
+		if (assets[i].annotation && (assets[i].annotation.id == aid)) return assets[i];
 	}
 	return false;
 }
 
 function encounterNumberFromAsset(asset) {
-    if (!asset || !asset.annotationId || !asset.features) return false;
+    if (!asset || !asset.annotation || !asset.annotation.id || !asset.features) return false;
     for (var i = 0 ; i < asset.features.length ; i++) {
-        if (asset.features[i].annotationId == asset.annotationId) return asset.features[i].encounterId;
+        if (asset.features[i].annotationId == asset.annotation.id) return asset.features[i].encounterId;
     }
     return false;
 }

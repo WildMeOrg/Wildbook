@@ -82,20 +82,25 @@ public class StandardImport extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
-
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String importId = Util.generateUUID();
+    if (request.getCharacterEncoding() == null) {
+      request.setCharacterEncoding("utf-8");
+    }
+    response.setContentType("text/html; charset=UTF-8");
+    String context = ServletUtilities.getContext(request);
     myShepherd = new Shepherd(context);
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
 
-    photoDirectory = "/data/iot/";
-    String filename = "/data/iot/DunbarImport.xlsx";
-    String dataSource = "IOT Bulk Import of Dunbar";
-    //photoDirectory = "/data/indocet/";
-    //String filename = "/data/indocet/indocet_blended.xlsx";
-    if (request.getParameter("filename") != null) filename = request.getParameter("filename");
-    File dataFile = new File(filename);
+    //this might better be set via a different configuration variable of its own
+    String uploadDir = CommonConfiguration.getUploadTmpDir(context);
+
+    String subdir = Util.safePath(request.getParameter("subdir"));
+    if (subdir != null) uploadDir += subdir;
+    photoDirectory = uploadDir;
+    String filename = Util.safePath(request.getParameter("filename"));
+    if (filename == null) filename = "upload.xlsx";  //meh?
+    File dataFile = new File(uploadDir + "/" + filename);
     boolean dataFound = dataFile.exists();
 
     missingColumns = new HashSet<String>();
@@ -104,10 +109,11 @@ public class StandardImport extends HttpServlet {
 		numFolderRows = 0;
     numAnnots = 0;
 
-    committing =  (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
+    committing = Util.requestParameterSet(request.getParameter("commit"));
 
     out.println("<h2>File Overview: </h2>");
     out.println("<ul>");
+    out.println("<li>Directory: "+uploadDir+"</li>");
     out.println("<li>Filename: "+filename+"</li>");
     out.println("<li>File found = "+dataFound+"</li>");
 
@@ -141,6 +147,9 @@ public class StandardImport extends HttpServlet {
     out.println("</ul>");
 
     int printPeriod = 100;
+    LocalDateTime ldt = new LocalDateTime();
+    String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
+    System.out.println("===== importId " + importId + " (committing=" + committing + ")");
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Beginning row loop:</h2>"); 
     out.println("<ul>");
@@ -164,7 +173,9 @@ public class StandardImport extends HttpServlet {
         ArrayList<Annotation> annotations = loadAnnotations(row);
         numAnnots+=annotations.size();
         Encounter enc = loadEncounter(row, annotations);
+        enc.addComments(importComment);
         occ = loadOccurrence(row, occ, enc);
+        occ.addComments(importComment);
         mark = loadIndividual(row, enc);
 
         if (committing) {
@@ -253,6 +264,7 @@ public class StandardImport extends HttpServlet {
     out.println("<h2><strong> "+numAnnots+" </strong> annots</h2>");    
 
     out.println("<h2>Import completed successfully</h2>");    
+    if (committing) out.println("<p>Import reference ID <b>" + importId + "</b></p>");
     //fs.close();
   }
 
@@ -553,6 +565,7 @@ public class StandardImport extends HttpServlet {
     if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
     // same for sex analysis
     if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "SexAnalysis.processingLabTaskID");
+System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	if (tissueSampleID!=null) {
       sample = myShepherd.getTissueSample(tissueSampleID, encID);
   		if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
@@ -1206,6 +1219,7 @@ public class StandardImport extends HttpServlet {
   // Apache POI, shame on you for making me write this. Shame! Shame! Shame! SHAME!
   // (as if I actually wrote this. thanks stackoverflow!)
   public static boolean isRowEmpty(Row row) {
+    if (row == null) return true;
     for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
         Cell cell = row.getCell(c);
         if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)

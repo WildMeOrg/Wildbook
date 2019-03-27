@@ -15,6 +15,8 @@ import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.acm.AcmBase;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.ia.Task;
+import org.json.JSONArray;
+import org.ecocean.ia.IA;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
@@ -23,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +36,14 @@ public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
     private static final String[] VALID_VIEWPOINTS = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
+
+    private static final String[][] VALID_VIEWPOINTS = new String[][] {
+        {"up",        "up",            "up",        "up",            "up",       "up",           "up",        "up",          },
+        {"upfront",   "upfrontright",  "upright",   "upbackright",   "upback",   "upbackleft",   "upleft",    "upfrontleft"  },
+        {"front",     "frontright",    "right",     "backright",     "back",     "backleft",     "left",      "frontleft"    },
+        {"downfront", "downfrontright","downright", "downbackright", "downback", "downbackleft", "downleft",  "downfrontleft"},
+        {"down",      "down",          "down",      "down",          "down",     "down",         "down",      "down"         }
+    };
 
     private String species; 
 
@@ -253,14 +264,12 @@ public class Annotation implements java.io.Serializable {
     public void setTheta(double t) {
         theta = t;
     }
-
     public boolean isIAReady() {
         MediaAsset ma = this.getMediaAsset();
         if (ma==null) return false;
         if (ma.getHeight()==0 && ma.getWidth()==0) return false;
         return true;
     }
-
 
     public String getViewpoint() {
         return viewpoint;
@@ -270,21 +279,64 @@ public class Annotation implements java.io.Serializable {
     public String[] getViewpointAndNeighbors() {
         return getViewpointAndNeighbors(this.viewpoint);
     }
-    //returns 3 positions, in clockwise order, with viewpoint in the middle position
-    //   e.g.: front -> frontleft,front,frontright    -or-    backleft -> back,backleft,left
-    public static String[] getViewpointAndNeighbors(String vp) {
-        if ((vp == null) || !isValidViewpoint(vp)) return null;
-        int found = -1;
-        for (int i = 0 ; i < VALID_VIEWPOINTS.length ; i++) {
-            if (VALID_VIEWPOINTS[i].equals(vp)) found = i;
+
+    private boolean isViewpointPrimary() {
+        List<String> primaryList = new ArrayList<>();
+        // I guess primary vp's should never be something that changes?
+        Collections.addAll(primaryList, new String[]{ "front" , "right" ,"back" , "left" , "up" , "down" });
+        if (primaryList.contains(this.getViewpoint())) {
+            return true;
         }
-        if (found < 0) return null;  //"should never happen"
-        String[] rtn = new String[3];
-        rtn[0] = VALID_VIEWPOINTS[(found + VALID_VIEWPOINTS.length - 1) % VALID_VIEWPOINTS.length];   // #mathftw
-        rtn[1] = vp;
-        rtn[2] = VALID_VIEWPOINTS[(found + 1) % VALID_VIEWPOINTS.length];
-        return rtn;
+        return false;
     }
+
+    //(viewpoint == null || viewpoint == 'up' || viewpoint == 'upfront' || viewpoint == 'upfrontright'
+    // || viewpoint == 'upright' || viewpoint == 'upbackright' || viewpoint == 'upback' 
+    // || viewpoint == 'upbackleft' || viewpoint == 'upfront' || viewpoint == 'upfrontleft')
+
+    public static String[] getViewpointAndNeighbors(String vp) {
+        List<String> rtn = new ArrayList<>();
+        try { 
+            System.out.println("Input vp to getViewpointAndNeighbors: "+vp);
+            if ((vp == null) || !isValidViewpoint(vp)) return null;
+            for (int i=0;i<VALID_VIEWPOINTS.length;i++) {
+                String[] innerArr = VALID_VIEWPOINTS[i];
+                for (int j=0;j<innerArr.length;j++) {
+                    if (vp.equals(VALID_VIEWPOINTS[i][j])) {
+                        //cases: up, down, side edge, lower or upper. 
+                        // always want the center viewpoint    
+                        rtn.add(vp);
+                        //start with top & bottom EZ cases..
+                        if (i==0) {
+                            rtn.addAll(Arrays.asList(VALID_VIEWPOINTS[1]));
+                            break;
+                        } else if (i==VALID_VIEWPOINTS.length-1) {
+                            rtn.addAll(Arrays.asList(VALID_VIEWPOINTS[VALID_VIEWPOINTS.length-2]));
+                            break;
+                        }
+                        for (int h=-1;h<2;h++) {
+                            for (int w=-1;w<2;w++) {
+                                // gettin trixy.. wrap indexes around 
+                                int horizontal = j;
+                                if (w+i==-1) {horizontal=VALID_VIEWPOINTS[i].length-1;}
+                                if (w+i==VALID_VIEWPOINTS[i].length) {horizontal=0;}
+                                if (!rtn.contains(VALID_VIEWPOINTS[i+h][horizontal+w])) {
+                                    rtn.add(VALID_VIEWPOINTS[i+h][horizontal+w]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("Found these Viewpoints in getViewpointAndNeighbors: "+rtn.toString());
+        if (rtn.size()==0) return null;
+        String[] rtnArr = new String[rtn.size()];
+        return rtn.toArray(rtnArr);
+    }
+
     public void setViewpoint(String v) {
         viewpoint = v;
     }
@@ -305,7 +357,6 @@ public class Annotation implements java.io.Serializable {
     //  response comes from ia thus: "response": [{"score": 0.9783339699109396, "species": "giraffe_reticulated", "viewpoint": "right"}]
     public static JSONObject iaViewpointFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 */
-
 
 //FIXME this all needs to be deprecated once deployed sites are migrated
     public MediaAsset __getMediaAsset() {
@@ -362,8 +413,10 @@ public class Annotation implements java.io.Serializable {
         return sibs;
     }
 
-    //since we are going to loose .species property here, getSpecies() has gone away!
-    //  (it has kind of been replaced by WildbookIAM.getIASpecies()
+    public String getSpecies(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+        return enc.getGenus()+" "+enc.getSpecificEpithet();
+    }
 
     public String getIAClass() {
         return iaClass;
@@ -511,7 +564,7 @@ public class Annotation implements java.io.Serializable {
         //default behavior is limited access
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
             return this.sanitizeJson(request, false);
-        }
+    }
 
 ///////////////////// TODO fix this for Feature upgrade ////////////////////////
         /**
@@ -519,21 +572,30 @@ public class Annotation implements java.io.Serializable {
         * all they want in return are MediaAssets
         * TODO: add metadata?
         **/
-        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
-          org.datanucleus.api.rest.orgjson.JSONObject jobj;
-          if (this.getMediaAsset() != null) {
-            jobj = this.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess);
-          }
-          else {
-            jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
-          }
-          return jobj;
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+        org.datanucleus.api.rest.orgjson.JSONObject jobj;
+        if (this.getMediaAsset() != null) {
+        jobj = this.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess);
         }
-        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
-          return this.sanitizeMedia(request, false);
+        else {
+        jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
         }
-
+        return jobj;
+    }
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
+        return this.sanitizeMedia(request, false);
+    }
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
+        return getMatchingSet(myShepherd, null);
+    }
+    //params (usually?) come from task.parameters
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject params) {
+        return getMatchingSet(myShepherd, params, true);
+    }
+    
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject params, boolean useClauses) {
+System.out.println("[1] getMatchingSet params=" + params);
+        // Make sure we don't include any 'siblings' no matter how we return..
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Encounter myEnc = this.findEncounter(myShepherd);
         if (myEnc == null) {
@@ -543,43 +605,48 @@ public class Annotation implements java.io.Serializable {
         System.out.println("Getting matching set for annotation. Retrieved encounter = "+myEnc.getCatalogNumber());
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
-        String filter;
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
-            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc);
+        	anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
+        } else if (useClauses) {
+            System.out.println("MATCHING ALL SPECIES : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
+            anns = getMatchingSetForAnnotationAllSpeciesUseClauses(myShepherd);
+
         } else {
-            System.out.println("NO MATCHING SET: The parent encounter for Annotation id="+this.id+" has not specified specificEpithet and genus.");
-            return anns; 
+            System.out.println("MATCHING ALL SPECIES : The parent encounter for query Annotation id="+this.id+" has not specified specificEpithet and genus, and is not using clauses.");
+            anns = getMatchingSetAllSpecies(myShepherd);
         }
         System.out.println("Did the query return any encounters? It got: "+anns.size()); 
         return anns;
     }
 
     //note: this also excludes "sibling annots" (in same encounter)
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params) {
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
         //do we need to worry about our annot living in another encounter?  i hope not!
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         return getMatchingSetForFilter(myShepherd, filter);
     }
+
     // the figure-it-out-yourself version
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd) {
-        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd));
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, JSONObject params) {
+        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd), params);
     }
 
     //gets everything, no exclusions (e.g. for cacheing)
-    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet, JSONObject params) {
         if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
         String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
         return getMatchingSetForFilter(myShepherd, filter);
     }
     //figgeritout
-    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, JSONObject params) {
         Encounter enc = this.findEncounter(myShepherd);
         if (enc == null) return null;
-        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet());
+        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet(), params);
     }
 
     //pass in a generic SELECT filter query string and get back Annotations
+    //  currently not taking params, but we can add later if we find useful (for now just trusting filter!)
     static public ArrayList<Annotation> getMatchingSetForFilter(Shepherd myShepherd, String filter) {
         if (filter == null) return null;
         long t = System.currentTimeMillis();
@@ -598,16 +665,57 @@ public class Annotation implements java.io.Serializable {
         return anns;
     }
 
+    // If you don't specify a species, still take into account viewpoint and parts  
+    public ArrayList<Annotation> getMatchingSetForAnnotationAllSpeciesUseClauses(Shepherd myShepherd) {
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null");
+    }
+
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
         return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
     }
 
     // will construnct "&& (viewpoint == null || viewpoint == 'x' || viewpoint == 'y')" for use above
     //   note: will return "" when this annot has no (valid) viewpoint
-    private String getFilterViewpointClause() {
+    private String getMatchingSetFilterViewpointClause() {
         String[] viewpoints = this.getViewpointAndNeighbors();
         if (viewpoints == null) return "";
-        return "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
+        String clause = "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
+        System.out.println("VIEWPOINT CLAUSE: "+clause);
+        return clause;
+    }
+
+    private String getPartClause(Shepherd myShepherd) {
+        String clause = "";
+        String useParts =  IA.getProperty(myShepherd.getContext(), "usePartsForIdentification");
+        System.out.println("PART CLAUSE: usePartsForIdentification="+useParts);
+        if ("true".equals(useParts)) {
+            String part = this.getPartIfPresent();
+            if (!"".equals(part)&&part!=null) {
+                clause = " && iaClass.endsWith('"+part+"') ";
+                System.out.println("PART CLAUSE: "+clause);
+                return clause;
+            }
+        }
+        return clause;
+    }
+
+    //note, we are give *full* task.parameters; by convention, we only act on task.parameters.matchingSetFilter
+    private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
+        if (taskParams == null) return "";
+        JSONObject j = taskParams.optJSONObject("matchingSetFilter");
+        if (j == null) return "";
+        String f = "";
+        if (j.optString("locationId", null) != null) f += " && enc.locationID == '" + Util.basicSanitize(j.getString("locationId")) + "' ";
+        JSONArray larr = j.optJSONArray("locationIds");
+        if (larr != null) {
+            List<String> locs = new ArrayList<String>();
+            for (int i = 0 ; i < larr.length() ; i++) {
+                String val = Util.basicSanitize(larr.optString(i));
+                if (!val.equals("")) locs.add(val);
+            }
+            if (locs.size() > 0) f += " && (enc.locationID == '" + String.join("' || enc.locationID == '", locs) + "') ";
+        }
+        return f;
     }
 
     public String findIndividualId(Shepherd myShepherd) {
@@ -675,6 +783,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         for (Annotation ann : sibs) {
             Encounter enc = ann.findEncounter(myShepherd);
             if (ann.isTrivial()) {
+                ann.setMatchAgainst(false);
                 if (enc == null) {  //weird case, but yneverknow (trivial annot with no encounter?)
                     ann.detachFromMediaAsset();  //but this.annot is now on asset, so we are good: kill ann!
                 } else {

@@ -107,8 +107,6 @@
     rEncounters = hiddenData.securityScrubbedResults(rEncounters);
 
 
-
-
     acceptedEncounters.closeAll();
     
 		Vector blocked = Encounter.blocked(rEncounters, request);

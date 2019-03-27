@@ -246,7 +246,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
 		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID
+		  mapTypeId: google.maps.MapTypeId.TERRAIN
 		});
 
 	  //adding the fullscreen control to exit fullscreen
@@ -472,7 +472,7 @@ function FSControl(controlDiv, map) {
         <%
           for (int n = 0; n < totalLocIDs; n++) {
             String word = locIDs.get(n);
-            if (!word.equals("")) {
+            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
         %>
         <option value="<%=word%>"><%=word%>
         </option>

@@ -94,7 +94,7 @@
 }
 
 .annot-summary {
-	padding: 1px 10px;
+	/*padding: 1px 10px;*/
 	margin: 4px 0;
 }
 
@@ -115,11 +115,18 @@
 	transform: scale(1.2);
 }
 
-.annot-action-checkbox-inactive {
-	display: none;
+div div .annot-action-checkbox-inactive {
+	visibility: hidden;
+	margin: 0.45em; /* vertically centers-ish */
 }
-
+span.illustrationLink {
+	visibility: hidden;
+}
+.annot-summary:hover span.illustrationLink {
+	visibility: visible;
+}
 .annot-summary:hover .annot-action-checkbox-inactive {
+	visibility: visible;
 	cursor: pointer;
 	display: inline-block;
 }

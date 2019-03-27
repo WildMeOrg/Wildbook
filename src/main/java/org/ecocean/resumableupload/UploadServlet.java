@@ -285,7 +285,7 @@ System.out.println(item);
             }
 
                 String base_dir = getUploadDir(request);
-System.out.println("We got base_dir = " + base_dir);
+System.out.println("[INFO] UploadServlet got base_dir=" + base_dir);
 
 		// Here we add a ".temp" to every upload file to indicate NON-FINISHED
 System.out.println("aaaa ==> " + FlowFilename);

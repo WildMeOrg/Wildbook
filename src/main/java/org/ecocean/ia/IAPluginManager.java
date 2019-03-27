@@ -82,6 +82,8 @@ public class IAPluginManager {
     }
 
 
+//currently rootTask gets created here.  this could change in the future, to accommodate passing params around etc.
+
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
         String context = myShepherd.getContext();
         if (plugins.get(context) == null) {
@@ -91,7 +93,7 @@ public class IAPluginManager {
         Task rootTask = new Task();
         rootTask.setObjectMediaAssets(mas);
         for (IAPlugin p : plugins.get(context)) {
-            Task subTask = p.intakeMediaAssets(myShepherd, mas);
+            Task subTask = p.intakeMediaAssets(myShepherd, mas, rootTask);
             if (subTask == null) {
                 IA.log("WARNING: IAPluginManager.intakeMediaAssets() got NULL for " + p);
             } else {
@@ -111,7 +113,7 @@ public class IAPluginManager {
         Task rootTask = new Task();
         rootTask.setObjectAnnotations(anns);
         for (IAPlugin p : plugins.get(context)) {
-            Task subTask = p.intakeAnnotations(myShepherd, anns);
+            Task subTask = p.intakeAnnotations(myShepherd, anns, rootTask);
             if (subTask == null) {
                 IA.log("WARNING: IAPluginManager.intakeAnnotations() got NULL for " + p);
             } else {

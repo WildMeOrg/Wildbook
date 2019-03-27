@@ -1227,10 +1227,12 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
         filter = filterWithCondition(filter, "!sex.startsWith('male')");
         prettyPrint.append("Sex is not male.<br />");
       }
+
       if(request.getParameter("female")==null) {
         filter = filterWithCondition(filter, "!sex.startsWith('female')");
         prettyPrint.append("Sex is not female.<br />");
       }
+
       if(request.getParameter("unknown")==null) {
         filter = filterWithCondition(filter, "!sex.startsWith('unknown') && sex != null");
         prettyPrint.append("Sex is not unknown.<br />");

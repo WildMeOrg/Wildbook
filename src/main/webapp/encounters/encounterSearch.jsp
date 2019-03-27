@@ -359,7 +359,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
 		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID,
+		  mapTypeId: google.maps.MapTypeId.TERRAIN,
 		  fullscreenControl: true
 		});
 
@@ -494,7 +494,7 @@ function useData(doc){
         <%
           for (int n = 0; n < totalLocIDs; n++) {
             String word = locIDs.get(n);
-            if (!word.equals("")&&(!word.equals("None"))) {
+            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
         %>
         <option value="<%=word%>"><%=word%></option>
         <%

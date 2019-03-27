@@ -39,6 +39,17 @@ import java.security.MessageDigest;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.EOFException;
+import java.nio.file.Files;
+import javax.imageio.ImageIO;
+import javax.imageio.IIOException;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.image.BufferedImage;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -708,5 +719,65 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
         }
         return j;
     }
+
+    //this is really a more "generic" utility, so might want to live elsewhere
+    // h/t https://stackoverflow.com/a/10069478
+    public static boolean isValidImage(final File file) {
+        if (file == null) return false;
+        InputStream digestInputStream = null;
+        try {
+            digestInputStream = new FileInputStream(file);
+            final ImageInputStream imageInputStream = ImageIO.createImageInputStream(digestInputStream);
+            final java.util.Iterator<ImageReader> imageReaders = ImageIO.getImageReaders(imageInputStream);
+            if (!imageReaders.hasNext()) {
+                System.out.println("WARNING: isValidImage(" + file + ") has no image");
+                return false;
+            }
+            final ImageReader imageReader = imageReaders.next();
+            imageReader.setInput(imageInputStream);
+            final BufferedImage image = imageReader.read(0);
+            if (image == null) {
+                System.out.println("WARNING: isValidImage(" + file + ") has null image");
+                return false;
+            }
+            image.flush();
+            String formatName = imageReader.getFormatName();
+            if (formatName.equals("JPEG")) {
+                imageInputStream.seek(imageInputStream.getStreamPosition() - 2);
+                final byte[] lastTwoBytes = new byte[2];
+                imageInputStream.read(lastTwoBytes);
+                if (lastTwoBytes[0] != (byte)0xff || lastTwoBytes[1] != (byte)0xd9) {
+                    System.out.println("WARNING: isValidImage(" + file + ") is truncated[1]");
+                    return false;
+                } else {
+                    System.out.println("INFO: isValidImage(" + file + ") is valid JPEG");
+                    return true;
+                }
+            }
+            System.out.println("INFO: isValidImage(" + file + ") fell thru[1], valid image? formatName=" + formatName);
+            return true;
+        } catch (final IndexOutOfBoundsException e) {
+            System.out.println("WARNING: isValidImage(" + file + ") is truncated[2]");
+            return false;
+        } catch (final java.io.FileNotFoundException e) {
+            System.out.println("WARNING: isValidImage(" + file + ") file not found");
+            return false;
+        } catch (final IIOException e) {
+            if (e.getCause() instanceof EOFException) {
+                System.out.println("WARNING: isValidImage(" + file + ") is truncated[3]");
+                return false;
+            }
+        } catch (final IOException e) {
+            System.out.println("WARNING: isValidImage(" + file + ") threw " + e.toString());
+            return false;
+        } finally {
+            try {
+                digestInputStream.close();
+            } catch (Exception ex) {}
+        }
+        System.out.println("INFO: isValidImage(" + file + ") fell thru[2] - success?");
+        return true;
+    }
+
 
 }

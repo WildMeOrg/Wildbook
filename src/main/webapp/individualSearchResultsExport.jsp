@@ -183,6 +183,15 @@ if(request.getQueryString()!=null){
 
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
+  <tr><td bgcolor="#CCCCCC"><strong>Picture Book</strong><br/><%=props.getProperty("generatePictureBook") %></td></tr>
+  <tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/pictureBook.jsp?<%=queryString%>">
+    <%=props.getProperty("clickHere") %></a>
+        </td></tr>
+</table>
+</p>
+
+<p>
+<table border="1" bordercolor="black" cellspacing="0">
 	<tr><td bgcolor="#CCCCCC"><strong>CAPTURE with annual seasons (example only)</strong><br/>For use with the web version available <a href="http://www.mbr-pwrc.usgs.gov/software/capture.html">here.</a></td></tr>
 	<tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=queryString%>">
 		Click here</a>

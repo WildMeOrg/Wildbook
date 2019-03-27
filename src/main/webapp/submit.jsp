@@ -14,7 +14,7 @@ s
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
-	
+
 <link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 
@@ -102,15 +102,13 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
-
-<%
-if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-%> 
+    <%
+	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+	%>
 	<script src="javascript/pages/submit.js"></script>
-<%
-     }
-%>
-
+	<%
+	}
+	%>
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
   <script type="text/javascript">
     animatedcollapse.addDiv('advancedInformation', 'fade=1');
@@ -390,7 +388,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
       target="_self" dir="ltr"
       lang="en"
       onsubmit="return false;"
-      class="form-horizontal" 
+      class="form-horizontal"
       accept-charset="UTF-8"
 >
 
@@ -414,7 +412,7 @@ $('#social_files_iframe').on('load', function(ev) {
 	var j = JSON.parse($(doc).find('body').text());
 	console.info('iframe returned %o', j);
 
-	
+
 	console.log("social_files_id : "+j.id);
 	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
 	//now do actual submit
@@ -1195,15 +1193,15 @@ function sendButtonClicked() {
     	    $("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
    		}
-   		else{	console.log('Here!'); 	
+   		else{	console.log('Here!');
    			    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-   					
+
    					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-   					if(!isEmpty(recaptachaResponse)) {		
+   					if(!isEmpty(recaptachaResponse)) {
    						$("#encounterForm").attr("action", "EncounterForm");
-   						
+
    						if (sendSocialPhotosBackground()) return false;
-   						
+
    						submitForm();
    					}
 		}
@@ -1217,7 +1215,7 @@ function sendButtonClicked() {
 
 
       <p class="text-center">
-        <button class="large" type="submit" onclick="return sendButtonClicked();">
+        <button id="submitEncounterButton" class="large" type="submit" onclick="return sendButtonClicked();">
           <%=props.getProperty("submit_send") %>
           <span class="button-icon" aria-hidden="true" />
         </button>

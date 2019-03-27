@@ -41,6 +41,12 @@ if (!org.ecocean.servlet.ReCAPTCHA.sessionIsHuman(request)) {
 %>
 
 <script>
+/*
+    note: make sure you have nginx (etc) set to allow big enough upload
+        e.g.  https://www.cyberciti.biz/faq/linux-unix-bsd-nginx-413-request-entity-too-large/
+
+        client_max_body_size 100M;
+*/
 function uploadFinished() {
 	console.log("uploadFinished! Callback executing");
 	document.getElementById('updone').innerHTML = '<i>upload finished, redirecting...</i>';
