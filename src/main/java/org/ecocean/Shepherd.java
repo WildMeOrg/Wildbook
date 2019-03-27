@@ -1541,13 +1541,6 @@ public class Shepherd {
       npe.printStackTrace();
       return null;
     }
-    List<String> configNames = CommonConfiguration.getIndexedPropertyValues("genusSpecies", getContext());
-    allNames.addAll(configNames);
-
-    List<String> allNamesList = new ArrayList<String>(allNames);
-    java.util.Collections.sort(allNamesList);
-    //return (allNamesList);
-    return (configNames);
   }
 
   public Iterator getAllAnnotationsNoQuery() {
@@ -2383,57 +2376,6 @@ public class Shepherd {
     samples.closeAll();
     return myArray;
   }
-
-  public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
-
-    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individualID == \""+indy.getIndividualID()+"\" ";
-    String vars=" VARIABLES org.ecocean.Encounter enc3_0";
-    for(int i=0; i<kwReadableNames.length; i++){
-      filter+="  && features.contains(feat"+i+") && feat"+i+".asset.keywords.contains(word"+i+") &&  word"+i+".readableName == \""+kwReadableNames[i]+"\" ";
-      vars+=";org.ecocean.Keyword word"+i+";org.ecocean.media.Feature feat"+i;
-    }
-
-    ArrayList<Annotation> results = new ArrayList<Annotation>();
-    try {
-      Query query=this.getPM().newQuery(filter+vars);
-      query.setRange(0, maxResults);
-      Collection coll = (Collection) (query.execute());
-      results=new ArrayList<Annotation>(coll);
-      if (query!=null) query.closeAll();
-    }
-    catch(Exception e){
-      e.printStackTrace();
-    }
-
-    ArrayList<MediaAsset> assResults = new ArrayList<MediaAsset>();
-    for (Annotation ann: results) {
-      if (ann!=null && ann.getMediaAsset()!=null) assResults.add(ann.getMediaAsset());
-    }
-    return assResults;
-  }
-
-  public List<MediaAsset> getPhotosForIndividual(MarkedIndividual indy, int maxResults) {
-    // i hope this works?
-    String[] noKeywordNames = new String[0];
-    List<MediaAsset> results = getKeywordPhotosForIndividual(indy, noKeywordNames, maxResults);
-    return results;
-  }
-
-  // this method returns the MediaAsset on an Indy with the given keyword, with preference
-  // for assets with the additional keyword "ProfilePhoto"
-  public MediaAsset getBestKeywordPhoto(MarkedIndividual indy, String kwName) {
-
-    List<MediaAsset> results = getKeywordPhotosForIndividual(indy, new String[]{kwName, "ProfilePhoto"}, 1);
-    MediaAsset result = (results!=null && results.size()>0) ? results.get(0) : null;
-    if (result != null) return (result);
-
-    // we couldn't find a profile photo with the keyword
-    results = getKeywordPhotosForIndividual(indy, new String[]{kwName}, 1);
-    if (results!=null && results.size()>0) return (results.get(0));
-    
-    return null;
-  }
-
 
   public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
 

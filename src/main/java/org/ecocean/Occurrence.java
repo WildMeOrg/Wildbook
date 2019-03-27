@@ -338,14 +338,6 @@ public class Occurrence implements java.io.Serializable {
     occurrenceID = id;
   }
   
-  public static String getWebUrl(String occId, HttpServletRequest req) {
-    return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+occId);
-  }
-
-  public String getWebUrl(HttpServletRequest req) {
-    return getWebUrl(getOccurrenceID(), req);
-  }
-
   public Integer getIndividualCount(){return individualCount;}
   public void setIndividualCount(Integer count){
       if(count!=null){individualCount = count;}

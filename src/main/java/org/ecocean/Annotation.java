@@ -35,16 +35,13 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
-    private static final String[] VALID_VIEWPOINTS = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
-
     private static final String[][] VALID_VIEWPOINTS = new String[][] {
         {"up",        "up",            "up",        "up",            "up",       "up",           "up",        "up",          },
         {"upfront",   "upfrontright",  "upright",   "upbackright",   "upback",   "upbackleft",   "upleft",    "upfrontleft"  },
         {"front",     "frontright",    "right",     "backright",     "back",     "backleft",     "left",      "frontleft"    },
         {"downfront", "downfrontright","downright", "downbackright", "downback", "downbackleft", "downleft",  "downfrontleft"},
         {"down",      "down",          "down",      "down",          "down",     "down",         "down",      "down"         }
-    };
-
+};
     private String species; 
 
     private String iaClass; // This is just how it gonna be for now. Swap the methods to draw from Taxonomy later if ya like?
@@ -585,6 +582,16 @@ public class Annotation implements java.io.Serializable {
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
         return this.sanitizeMedia(request, false);
     }
+
+    public String getPartIfPresent() {
+        String thisPart = "";
+        if (this.iaClass!=null&&this.iaClass.contains("+")) {
+            String[] arr = this.iaClass.split("\\+");
+            thisPart = arr[arr.length-1];
+        }
+        return thisPart;
+    }
+
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
         return getMatchingSet(myShepherd, null);
     }
@@ -885,7 +892,11 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return getAllValidViewpoints().contains(vp);
     }
     public static List<String> getAllValidViewpoints() {
-        return Arrays.asList(VALID_VIEWPOINTS);
+        //add code to limit based on IA.properties viewpoints enabled switches if you want i guess
+        List<String> all = new ArrayList<>();
+        for (int i=0;i<VALID_VIEWPOINTS.length;i++) {
+            Collections.addAll(all, VALID_VIEWPOINTS[i]);
+        }
+        return all;
     }
-
 }

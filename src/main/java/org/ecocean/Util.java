@@ -793,13 +793,7 @@ public class Util {
     public static boolean booleanNotFalse(String value) {
         return requestParameterSet(value);
     }
-    
-    // convenience method for comparing string values
-    public static boolean shouldReplace(String val1, String val2) {
-      return (stringExists(val1) && !stringExists(val2));
-    }
-
-    
+        
     public static String basicSanitize(String input) {
       String sanitized = null;
       if (input!=null) {
