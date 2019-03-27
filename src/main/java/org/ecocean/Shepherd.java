@@ -161,7 +161,7 @@ public class Shepherd {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
+      //System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new Annotation in Shepherd.storeNewAnnotation().");
@@ -176,7 +176,7 @@ public class Shepherd {
     try {
       pm.makePersistent(wSpace);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
+      //System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new workspace in shepherd.storeNewWorkspace().");
@@ -463,6 +463,16 @@ public class Shepherd {
       return null;
     }
     return tempEnc;
+  }
+  
+  public Annotation getAnnotation(String uuid) {
+    Annotation annot = null;
+    try {
+      annot = ((Annotation) (pm.getObjectById(pm.newObjectIdInstance(Annotation.class, uuid.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return annot;
   }
 
   public MediaAsset getMediaAsset(String num) {
@@ -1053,7 +1063,7 @@ public class Shepherd {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
+      //System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
@@ -1509,6 +1519,27 @@ public class Shepherd {
     while (allTaxonomies.hasNext()) {
       Taxonomy taxy = allTaxonomies.next();
       allNames.add(taxy.getScientificName());
+    }
+    List<String> configNames = CommonConfiguration.getIndexedPropertyValues("genusSpecies", getContext());
+    allNames.addAll(configNames);
+
+    List<String> allNamesList = new ArrayList<String>(allNames);
+    java.util.Collections.sort(allNamesList);
+    //return (allNamesList);
+    return (configNames);
+  }
+
+
+  
+  public Iterator<Survey> getAllSurveysNoQuery() {
+    try {
+      Extent svyClass = pm.getExtent(Survey.class, true);
+      Iterator it = svyClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSurveysNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
     }
     List<String> configNames = CommonConfiguration.getIndexedPropertyValues("genusSpecies", getContext());
     allNames.addAll(configNames);
@@ -2145,14 +2176,8 @@ public class Shepherd {
 
 
   public User getUserByEmailAddress(String email){
-    ArrayList<User> users=new ArrayList<User>();
-    String filter="SELECT FROM org.ecocean.User WHERE emailAddress == \""+email+"\"";
-    Query query=getPM().newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){users=new ArrayList<User>(c);}
-    query.closeAll();
-    if(users.size()>0){return users.get(0);}
-    return null;
+    String hashedEmailAddress=User.generateEmailHash(email);
+    return getUserByHashedEmailAddress(hashedEmailAddress);
   }
   
   public User getUserByHashedEmailAddress(String hashedEmail){
@@ -2358,6 +2383,57 @@ public class Shepherd {
     samples.closeAll();
     return myArray;
   }
+
+  public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
+
+    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individualID == \""+indy.getIndividualID()+"\" ";
+    String vars=" VARIABLES org.ecocean.Encounter enc3_0";
+    for(int i=0; i<kwReadableNames.length; i++){
+      filter+="  && features.contains(feat"+i+") && feat"+i+".asset.keywords.contains(word"+i+") &&  word"+i+".readableName == \""+kwReadableNames[i]+"\" ";
+      vars+=";org.ecocean.Keyword word"+i+";org.ecocean.media.Feature feat"+i;
+    }
+
+    ArrayList<Annotation> results = new ArrayList<Annotation>();
+    try {
+      Query query=this.getPM().newQuery(filter+vars);
+      query.setRange(0, maxResults);
+      Collection coll = (Collection) (query.execute());
+      results=new ArrayList<Annotation>(coll);
+      if (query!=null) query.closeAll();
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
+
+    ArrayList<MediaAsset> assResults = new ArrayList<MediaAsset>();
+    for (Annotation ann: results) {
+      if (ann!=null && ann.getMediaAsset()!=null) assResults.add(ann.getMediaAsset());
+    }
+    return assResults;
+  }
+
+  public List<MediaAsset> getPhotosForIndividual(MarkedIndividual indy, int maxResults) {
+    // i hope this works?
+    String[] noKeywordNames = new String[0];
+    List<MediaAsset> results = getKeywordPhotosForIndividual(indy, noKeywordNames, maxResults);
+    return results;
+  }
+
+  // this method returns the MediaAsset on an Indy with the given keyword, with preference
+  // for assets with the additional keyword "ProfilePhoto"
+  public MediaAsset getBestKeywordPhoto(MarkedIndividual indy, String kwName) {
+
+    List<MediaAsset> results = getKeywordPhotosForIndividual(indy, new String[]{kwName, "ProfilePhoto"}, 1);
+    MediaAsset result = (results!=null && results.size()>0) ? results.get(0) : null;
+    if (result != null) return (result);
+
+    // we couldn't find a profile photo with the keyword
+    results = getKeywordPhotosForIndividual(indy, new String[]{kwName}, 1);
+    if (results!=null && results.size()>0) return (results.get(0));
+    
+    return null;
+  }
+
 
   public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
 
@@ -2672,6 +2748,17 @@ public class Shepherd {
       e.printStackTrace();
     }
     return ((al.size()>0) ? ((MarkedIndividual) al.get(0)) : null);
+  }
+  
+  public Task getTask(String id) {
+    Task theTask = null;
+    try {
+      theTask = ((org.ecocean.ia.Task) (pm.getObjectById(pm.newObjectIdInstance(Task.class, id.trim()), true)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return theTask;
   }
 
   public MarkedIndividual getMarkedIndividualQuiet(String name) {
@@ -3423,7 +3510,7 @@ public class Shepherd {
         list = new ArrayList<User>(c);
       }
       users.closeAll();
-      System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
+      //System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
       return list;
     }
     catch (Exception npe) {
@@ -4496,8 +4583,8 @@ public class Shepherd {
       String thisUser=allUsers.get(i);
       if((!thisUser.trim().equals(""))&&(getUser(thisUser)!=null)){
 
-        if(qc.getQueryByName(("numRecentEncounters_"+thisUser), getContext())!=null){
-          CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+thisUser), getContext());
+        if(qc.getQueryByName(("numRecentEncounters_"+thisUser))!=null){
+          CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+thisUser));
           matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
         }
         

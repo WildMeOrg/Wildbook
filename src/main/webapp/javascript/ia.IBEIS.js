@@ -6,7 +6,7 @@ wildbook.IA.plugins.push({
     //var h = '<hr class="task-divider" />'
     var h = '';
 	    h += '<div class="task-content task-type-' + gt + '" id="task-' + task.id + '">';
-        h += '<div class="task-title accordion task-type-' + gt + '" onDblClick="$(\'#task-debug-' + task.id + '\').show();"><span class="task-title-id"><b>Task ' + task.id + '</b></span></div>';
+        h += '<div class="task-title task-type-' + gt + '" onDblClick="$(\'#task-debug-' + task.id + '\').show();"><span class="task-title-id"><b>Task ' + task.id + '</b></span></div>';
         h += '<div class="task-summary task-type-' + gt + '"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div>';
         h += '</div>';
         return h;
@@ -63,15 +63,17 @@ wildbook.IA.plugins.push({
                     registerTaskId(iaStatus.taskId);
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 } else {
-                    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+	            	var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
+                    var requireSpecies = wildbook.IA.requireSpeciesForId();
                     if (ma.detectionStatus) {
                         return; // no action if we're waiting for detection
                     }
-                    else if (ma.taxonomyString) {
+                    else if (requireSpecies=="false"||ma.taxonomyString) {
                         console.log('no detection status for ma '+JSON.stringify(ma));
                         var data = {
-                            annotationIds: [ ma.annotationId ]
+                            annotationIds: [ aid ]
                         };
                         imageEnhancer.popup('<h2>Starting matching....</h2>');
                         wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -107,7 +109,9 @@ wildbook.IA.plugins.push({
 
                     var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
-                    if (ma.taxonomyString) {
+                    var requireSpecies = wildbook.IA.requireSpeciesForId();
+                    if (requireSpecies=="false"||ma.taxonomyString) {
+
                         menuText = 'start another matching job';
                     } else {
                         menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';
@@ -122,10 +126,12 @@ wildbook.IA.plugins.push({
                 //     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 // } else {
                 var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
-                if (ma.taxonomyString) {
+                var requireSpecies = wildbook.IA.requireSpeciesForId();
+                if (requireSpecies=="false"||ma.taxonomyString) {
                     var data = {
-                        annotationIds: [ ma.annotationId ]
+                        annotationIds: [ aid ]
                     };
                     imageEnhancer.popup('<h2>Starting matching....</h2>');
                     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -137,7 +143,6 @@ wildbook.IA.plugins.push({
                             }
                             //i think we at least got a task sent off!
                             imageEnhancer.popupClose();
-                            registerTaskId(xhr.responseJSON.taskId);
                             wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
                         } else {
                             imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
@@ -185,9 +190,9 @@ wildbook.IA.plugins.push({
             statusText: ma.detectionStatus,
             taskId: ma.tasks[ma.tasks.length - 1].id
         };
-        if (ma.annotationIdentificationStatus) {
-            rtn.status = ma.annotationIdentificationStatus;
-            rtn.statusText += '/' + ma.annotationIdentificationStatus;
+        if (ma.annotation && ma.annotation.identificationStatus) {
+            rtn.status = ma.annotation.identificationStatus;
+            rtn.statusText += '/' + ma.annotation.identificationStatus;
         }
         if (!rtn.status) {  //no old-world props on objs
             rtn.status = 'pending';

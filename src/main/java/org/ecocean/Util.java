@@ -13,10 +13,6 @@ import java.util.UUID;
 
 import org.json.JSONObject;
 import org.json.JSONException;
-
-
-
-
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
@@ -24,11 +20,6 @@ import java.util.TimeZone;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
-
-
-
-
-
 
 //EXIF-related imports
 import java.io.File;
@@ -62,23 +53,12 @@ import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
 
-
-
-
-
-
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
 import javax.jdo.Query;
 //import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-
-
-
-
-
-
 
 import org.ecocean.tag.MetalTag;
 import org.ecocean.*;
@@ -608,8 +588,6 @@ public class Util {
     }
 
     public static String prettyPrintDateTime(DateTime dt) {
-      System.out.println("prettyPrintDateTime:");
-      System.out.println("  dt.hourOfDay = "+dt.hourOfDay().get());
       boolean isOnlyDate = dateTimeIsOnlyDate(dt);
       String currentToString = dt.toString();
       if (isOnlyDate) {
@@ -815,6 +793,11 @@ public class Util {
     public static boolean booleanNotFalse(String value) {
         return requestParameterSet(value);
     }
+    
+    // convenience method for comparing string values
+    public static boolean shouldReplace(String val1, String val2) {
+      return (stringExists(val1) && !stringExists(val2));
+    }
 
     
     public static String basicSanitize(String input) {
@@ -848,11 +831,31 @@ public class Util {
       return strBuff.toString();
     }
 
+    //this can be used to scrub user-provided paths to disallow "questionable" entries that might be
+    //  trying to access parts of the filesystem they should not have access to.
+    //  currently scrubs: parent directories in path (../) and hidden "dot" files (.config etc)
+    //present behavior will return null if unsafe substrings are found
+    //  NOTE: a leading '/' is stripped off to be safe.  this puts the onus on the user of this method
+    //     to prepend a '/' when using at a subpath, e.g. "/my/absolute/" + safePath(userProvidedString)
+    //     but hopefully will prevent absolute paths accidentally getting used.
+    public static String safePath(String path) {
+        if (path == null) return null;
+        if (new File(path).getName().startsWith(".")) {
+            System.out.println("WARNING: safePath(" + path + ") detected hidden dot file; failing");
+            return null;
+        }
+        if (path.indexOf("..") > -1) {
+            System.out.println("WARNING: safePath(" + path + ") detected '..' in path; failing");
+            return null;
+        }
+        if (path.indexOf("/") == 0) return path.substring(1);
+        return path;
+    }
+
   public static <KeyType, ValType> void addToMultimap(Map<KeyType, Set<ValType>> multimap, KeyType key, ValType val) {
     if (!multimap.containsKey(key)) multimap.put(key, new HashSet<ValType>());
     multimap.get(key).add(val);
   }
-
 
 }
 

@@ -18,6 +18,9 @@
 		<field name="parentId" persistence-modifier="persistent">
 			<column jdbc-type="INT" allows-null="true"/>
 		</field>
+		<field name="validImageForIA" persistence-modifier="persistent">
+			<column jdbc-type="BIT" allows-null="true"/>
+		</field>
             	<field name="revision" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
@@ -57,7 +60,7 @@
 
 
 	<class name="MediaAssetMetadata">
-		<property name="dataAsString" persistence-modifier="persistent">
+		<property name="dataAsString" persistence-modifier="persistent" default-fetch-group="true">
                 	<column jdbc-type="LONGVARCHAR" name="data" />
 		</property>
 	</class>
@@ -108,10 +111,10 @@
 		<field name="id" primary-key="true">
 			<column length="36" />
 		</field>
-            	<field name="assets" persistence-modifier="persistent" default-fetch-group="false">
-                	<collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
-                	<join />
-            	</field>
+		<field name="assets" persistence-modifier="persistent" default-fetch-group="false">
+			<collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
+			<join />
+		</field>
 	</class>
 
 	<class name="Feature" identity-type="application">

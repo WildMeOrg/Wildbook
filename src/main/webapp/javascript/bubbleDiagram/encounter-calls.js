@@ -229,9 +229,14 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     td.enter().append("td").html(function(d) {
       if(d == 'TissueSample') {
         return "<img class='encounterImg' src='images/microscope.gif'/>";
-      } if(d == 'image') {
+      } 
+      if(d == 'image') {
         return "<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>"
-      } if(d == 'both') {
+      } 
+      if(d == 'youtube-image') {
+          return "<img class='encounterImg' src='images/youtube.png'/>"
+      } 
+      if(d == 'both') {
         return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
       }
       if(typeof d == "object") {
@@ -266,9 +271,14 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
       td.html(function(d) {
         if(d == 'TissueSample') {
           return "<img class='encounterImg' src='images/microscope.gif'/>";
-        } if(d == 'image') {
+        } 
+        if(d == 'image') {
           return "<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>"
-        } if(d == 'both') {
+        } 
+        if(d == 'youtube-image') {
+            return "<img class='encounterImg' src='images/youtube.png'/>"
+          } 
+        if(d == 'both') {
           return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
         }
         return d;
@@ -308,11 +318,11 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   var encounterData = [];
   var occurringWith = "";
-  d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
+  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == \"" + individualID + "\"" ), function(error, json) {
       if(error) {
         console.log("error")
       }
-      jsonData = json;
+      jsonData = json[0];
       for(var i=0; i < jsonData.encounters.length; i++) {
     	  var occurringWith = "";
         for(var j = 0; j < occurrenceObjectArray.length; j++) {
@@ -343,11 +353,22 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
           if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
             var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
-          } else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
-            var dataTypes = "image";
-          } else if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
+          } 
+          else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
+            
+        	  if((jsonData.encounters[i].eventID)&&(jsonData.encounters[i].eventID.indexOf("youtube") > -1)){
+        		  var dataTypes = "youtube-image";
+        	  }
+        	  //otherwise it's just a plain old image
+        	  else{
+        		  var dataTypes = "image";
+        	  }
+        	  
+          }
+          else if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
             var dataTypes = "both"
-          } else {
+          } 
+          else {
             var dataTypes = "";
           }
         }
@@ -366,11 +387,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 }
 
   var goToEncounterURL = function(selectedWhale) {
-    window.open("/encounters/encounter.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl + "/encounters/encounter.jsp?number=" + selectedWhale);
   }
 
   var goToWhaleURL = function(selectedWhale) {
-    window.open("/individuals.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl + "/individuals.jsp?number=" + selectedWhale);
   }
 
   var getRelationshipData = function(relationshipID) {

@@ -41,8 +41,6 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
-// 'sets serverInfo if necessary
-
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 
@@ -440,10 +438,8 @@ finally{
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
-                              
                               <!--
                               <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp"><%=props.getProperty("surveySearch")%></a></li>
-                              
                               <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
                            	  -->
                            </ul>
@@ -469,10 +465,9 @@ finally{
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
-
-                                <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>
-                                  <li><a href="<%=CommonConfiguration.getTapirLinkURL(context) %>"><%=props.getProperty("tapirLink")%></a></li>
-                                <% }
+								<li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
+								
+                                <% 
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
                                 <% } %>

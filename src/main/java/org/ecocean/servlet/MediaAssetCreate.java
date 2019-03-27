@@ -294,6 +294,7 @@ System.out.println(i + ") params -> " + params.toString());
          update:  errrr, maybe not.  i think we *must* grab "real" (exif) metadata so we can get (primarily) date/time for image. :/
          but probably still could be done in the background....
 */
+                    targetMA.validateSourceImage();
                     targetMA.updateMetadata();
                     targetMA.addLabel("_original");
                     targetMA.setAccessControl(request);

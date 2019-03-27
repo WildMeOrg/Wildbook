@@ -24,6 +24,8 @@ UploadServlet.setSubdirForUpload(subdir, request);
 
 String dirName = UploadServlet.getUploadDir(request);
 
+String wbName = ContextConfiguration.getNameForContext(context);
+
 %>
 <jsp:include page="../header.jsp" flush="true"/>
 <style> 
@@ -38,10 +40,7 @@ String dirName = UploadServlet.getUploadDir(request);
 <div class="container maincontent">
 
   <h1 class="import-header">Bulk Import: Instructions</h1>
-
-  <p class="warning" style="color:#F00">WARNING: This is an alpha-level feature, meaning it is untested and expected to contain bugs. This feature is currently intended for testing only. Please contact Drew at Wild Me if you have any questions.</p>
-
-  <p>The goal of this tool is to allow scientists to add large amounts of data to Flukebook at once, such as an entire season's observations, while performing the data-blending and data-integrity checks themselves.</p>
+  <p>The goal of this tool is to allow scientists to add large amounts of data to <%=wbName%> at once, such as an entire season's observations, while performing the data-blending and data-integrity checks themselves.</p>
   
   <p>To ensure data integrity, this process is split into several steps with review in-between.</p>
   
@@ -61,7 +60,7 @@ String dirName = UploadServlet.getUploadDir(request);
   </p>
 
   <p>
-  	The Wildbook Standard Format is very simple, and perfectly mirrors the Wildbook data model: each row in your .xlsx file corresponds to one Encounter on Flukebook. Each column header is of the form <code>ClassName.fieldName</code>, for example, <code>Encounter.locationID</code>. Column order does not matter and empty columns are ignored.
+  	The Wildbook Standard Format is very simple, and perfectly mirrors the Wildbook data model: each row in your .xlsx file corresponds to one Encounter on <%=wbName%>. Each column header is of the form <code>ClassName.fieldName</code>, for example, <code>Encounter.locationID</code>. Column order does not matter and empty columns are ignored.
   </p>
 
   <p>Most importantly, <strong>the <code>Encounter.mediaAsset</code> column(s) must contain the <em>exact</em> filename(s) of the photo(s)</strong> associated with each record. These are the names of the photos uploaded in the Photo Upload step, and this is how the computer identifies which photo goes where.</p>

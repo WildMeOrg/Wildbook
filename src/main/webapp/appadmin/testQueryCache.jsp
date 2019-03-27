@@ -69,48 +69,48 @@ if(request.getParameter("delete")!=null){
 
 try{
 	
-	if(qc.getQueryByName("numMarkedIndividuals", context)==null){
+	if(qc.getQueryByName("numMarkedIndividuals")==null){
 		StoredQuery sq=new StoredQuery("numMarkedIndividuals", "SELECT FROM org.ecocean.MarkedIndividual WHERE individualID != null");
 		sq.setExpirationTimeoutDuration(600000);
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-		qc.loadQueries(context);
+		qc.loadQueries();
 	}
-	if(qc.getQueryByName("numEncounters", context)==null){
+	if(qc.getQueryByName("numEncounters")==null){
 		StoredQuery sq=new StoredQuery("numEncounters", "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null");
 		sq.setExpirationTimeoutDuration(600000);
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-		qc.loadQueries(context);
+		qc.loadQueries();
 
 	}
 	
-	if(qc.getQueryByName("numUsersWithRoles", context)==null){
+	if(qc.getQueryByName("numUsersWithRoles")==null){
 		StoredQuery sq=new StoredQuery("numUsersWithRoles", "SELECT DISTINCT username FROM org.ecocean.Role");
 		sq.setExpirationTimeoutDuration(600000);
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-		qc.loadQueries(context);
+		qc.loadQueries();
 	}
 	
-	if(qc.getQueryByName("numUsers", context)==null){
+	if(qc.getQueryByName("numUsers")==null){
 		StoredQuery sq=new StoredQuery("numUsers", "SELECT FROM org.ecocean.User WHERE uuid != null");
 		sq.setExpirationTimeoutDuration(600000);
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-		qc.loadQueries(context);
+		qc.loadQueries();
 	}
-	if(qc.getQueryByName("top3Encounters", context)==null){
+	if(qc.getQueryByName("top3Encounters")==null){
 		StoredQuery sq=new StoredQuery("top3Encounters", "SELECT FROM org.ecocean.Encounter WHERE individualID != null ORDER BY dwcDateAddedLong descending RANGE 1,4");
 		sq.setExpirationTimeoutDuration(600000);
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-		qc.loadQueries(context);
+		qc.loadQueries();
 	}
 	
 	
@@ -122,7 +122,7 @@ try{
 	<h2>Round 1: Cached?</h2>
 	<ul>
 	<%
-	//qc.loadQueries(context);
+	//qc.loadQueries();
 	Iterator<String> iter=keys.iterator();
 	int numQueries=queries.size();
 

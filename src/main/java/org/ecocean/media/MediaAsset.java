@@ -34,6 +34,7 @@ import org.ecocean.ia.Task;
 import org.ecocean.acm.AcmBase;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.spi.FileTypeDetector;
 import java.nio.file.Files;
 //import java.time.LocalDateTime;
 import org.joda.time.DateTime;
@@ -48,6 +49,7 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
+import java.awt.datatransfer.MimeTypeParseException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,6 +57,7 @@ import java.util.ArrayList;
 import java.io.FileOutputStream;
 import javax.jdo.Query;
 import javax.xml.bind.DatatypeConverter;
+import javax.activation.MimeType;
 
 /*
 import java.awt.image.BufferedImage;
@@ -137,7 +140,7 @@ public class MediaAsset implements java.io.Serializable {
 
     private String acmId;
 
-
+    private Boolean validImageForIA;
 
     /**
      * To be called by AssetStore factory method.
@@ -912,6 +915,7 @@ public class MediaAsset implements java.io.Serializable {
         public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
               org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
               jobj.put("id", this.getId());
+              jobj.put("acmId", this.getAcmId());
                 jobj.put("detectionStatus", this.getDetectionStatus());
               jobj.remove("parametersAsString");
             //jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
@@ -945,6 +949,7 @@ public class MediaAsset implements java.io.Serializable {
                     //we add this stuff for gallery/image to link to co-occurring indiv/enc
                     Annotation ann = ft.getAnnotation();
                     if (ann != null) {
+                        jf.put("annotationAcmId", ann.getAcmId());
                         jf.put("annotationId", ann.getId());
                         jf.put("annotationIsOfInterest", ann.getIsOfInterest());
                         Encounter enc = ann.findEncounter(myShepherd);
@@ -1334,6 +1339,32 @@ System.out.println(">> updateStandardChildren(): type = " + type);
 
     public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
         return Task.getRootTasksFor(this, myShepherd);
+    }
+
+    public Boolean isValidImageForIA() {
+        return validImageForIA;
+    }
+
+    public Boolean validateSourceImage() {
+        if ("LOCAL".equals(this.getStore().getType().toString())) {
+            Path lPath = this.localPath();
+            String typeString = null;
+            try {
+                typeString = Files.probeContentType(lPath);
+            } catch (IOException ioe) {ioe.printStackTrace();}
+            try {
+                MimeType type = new MimeType(typeString);
+                typeString = type.getPrimaryType();
+            } catch (Exception e) {e.printStackTrace();}
+            if ("image".equals(typeString)) {
+                File imageFile = this.localPath().toFile();
+                this.validImageForIA = AssetStore.isValidImage(imageFile);
+            } else {
+                System.out.println("WARNING: validateSourceImage was called on a non-image or corrupt MediaAsset with Id: "+this.getId());
+                this.validImageForIA = false;
+            }
+        }
+        return isValidImageForIA();
     }
 
 

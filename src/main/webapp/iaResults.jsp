@@ -49,6 +49,16 @@ if (request.getParameter("acmId") != null) {
 			jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
 		}
                 janns.put(jann);
+				if (ann.getMatchAgainst()==true) {
+					JSONObject jann = new JSONObject();
+					jann.put("id", ann.getId());
+					jann.put("acmId", ann.getAcmId());
+					MediaAsset ma = ann.getMediaAsset();
+					if (ma != null) {
+						jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
+					}
+					janns.put(jann);
+				}
             }
 	    rtn.put("success", true);
             rtn.put("annotations", janns);
@@ -272,42 +282,62 @@ function toggleScoreType() {
 
 
 var matchInstructions = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
-
 function init2() {   //called from wildbook.init() when finished
 	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div>');
 	parseTaskIds();
 	for (var i = 0 ; i < taskIds.length ; i++) {
-		tryTaskId(taskIds[i]);
+		var tid = taskIds[i];
+		tryTaskId(tid);
 	}
+	// If we don't have any ID task elements, it's reasonable to assume we are waiting for something.
+	// If we don't have anything but null task types after a while, lets just reload the page and get updated info. 
+	// We get to this condition when the page loads too fast and you have only __NULL__ type tasks, 
+	// and no children to traverse.
+	$('.maincontent').html("<div id=\"initial-waiter\" class=\"waiting throbbing\"><p>processing request</p></div>");
+	var reloadTimeout = setTimeout(function(){
+		var onlyNullTaskType = true;
+		for (var i = 0 ; i < taskIds.length ; i++) {
+			var processedTask = tasks[tid];
+			console.log("Processed Task: "+JSON.stringify(processedTask));
+			var type = wildbook.IA.getPluginType(processedTask);
+			console.log("TYPE : "+type);
+			if (type!="__NULL__"||processedTask.children) {
+				onlyNullTaskType = false;
+				$('#initial-waiter').remove();
+			}
+		}
+		console.log("-- >> What are the current tasks? : "+JSON.stringify(tasks));
+		if (onlyNullTaskType==true) {
+			console.log("RELOADING!");
+			clearTimeout(reloadTimeout);
+			location.reload(true);
+		} else {
+			clearTimeout(reloadTimeout);
+			console.log("NOT RELOADING!!!!!");
+		}
+	},4000);
 }
-
 $(document).ready(function() { wildbook.init(function() { init2(); }); });
-
-
 function parseTaskIds() {
 	var a = window.location.search.substring(1).split('&');
 	for (var i = 0 ; i < a.length ; i++) {
 		if (a[i].indexOf('taskId=') == 0) taskIds.push(a[i].substring(7));
 	}
 }
-
 function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task); //this will be json task (w/children)
+	    console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
         } else {
             alert('Error fetching task id=' + tid);
             console.error('tryTaskId(%s) failed: %o', tid, x);
         }
     });
 }
-
-
 function getCachedTask(tid) {
     return tasks[tid];
 }
-
-
 function cacheTaskAndChildren(task) {
     if (!task || !task.id || tasks[task.id]) return;
     tasks[task.id] = task;
@@ -380,6 +410,10 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 				}
 			}
 			if (!gotResult) {
+				//console.log("Element length: "+$('#task-' + tid).length+" Element contents: "+document.getElementsByClassName("elementa")[0].innerHTML);
+				if ($('#task-' + tid).length) {
+					$('#initial-waiter').remove();
+				}
 				//$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</span></p>');
 				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
 				if (jobIdMap[tid]) {
@@ -423,6 +457,7 @@ console.info('age = %.2fmin', age / (60*1000));
 				}
 			} else {
 				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+				$('#initial-waiter').remove();
 			}
 		},
 		error: function(a,b,c) {
@@ -510,7 +545,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 		h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" class="algoInstructions">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
 		$('#task-' + res.taskId + ' .task-title-id').html(h);
-		displayAnnot(res.taskId, qannotId, -1, -1);
+		displayAnnot(res.taskId, qannotId, -1, -1, -1);
 
 		var sorted = score_sort(res.status._response.response.json_result['cm_dict'][qannotId]);
 		if (!sorted || (sorted.length < 1)) {
@@ -521,9 +556,27 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		}
 		var max = sorted.length;
 		if (max > RESMAX) max = RESMAX;
+		// ----- BEGIN Hotspotter IA Illustration: here we construct the illustration link URLs for each dannot -----
+		// these URLs are passed-along and rendered in html by displayAnnotDetails
+		var resJSON = res.status._response.response.json_result['cm_dict'][qannotId];
+		// names conforming to IA args
+		var extern_reference = resJSON.dannot_extern_reference;
+		var query_annot_uuid = qannotId;
+		var version = "heatmask";
+
 		for (var i = 0 ; i < max ; i++) {
 			var d = sorted[i].split(/\s/);
-			displayAnnot(res.taskId, d[1], i, d[0]);
+			var acmId = d[0];
+			var database_annot_uuid = d[1];
+
+			var illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
+			illustUrl += "&query_annot_uuid="+query_annot_uuid;
+			illustUrl += "&database_annot_uuid="+database_annot_uuid;
+			illustUrl += "&version="+version;
+			console.log("ILLUSTRATION "+i+" "+illustUrl);
+
+			displayAnnot(res.taskId, d[1], i, d[0] / 1000, illustUrl);
+			// ----- END Hotspotter IA Illustration-----
 		}
 		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
@@ -535,7 +588,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 // Fix the acmId ---> annotID situation here. 
 
-function displayAnnot(taskId, acmId, num, score) {
+function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
 	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
 	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
@@ -551,11 +604,11 @@ console.info('%d ===> %s', num, acmId);
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl); }
 	});
 }
 
-function displayAnnotDetails(taskId, res, num) {
+function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 	var isQueryAnnot = (num < 0);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
 		console.warn('error on (task %s) res = %o', taskId, res);
@@ -590,13 +643,13 @@ function displayAnnotDetails(taskId, res, num) {
                 otherAnnots.push(res.responseJSON.annotations[i]);
             } else {
                 mainAsset = res.responseJSON.annotations[i].asset;
+		$('#initial-waiter').remove();
             }
         }
-
         if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
-
         if (mainAsset) {
 console.info('mainAsset -> %o', mainAsset);
+console.info('illustrationUrl '+illustrationUrl);
             if (mainAsset.url) {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="' + mainAsset.url + '" />');
             } else {
@@ -611,12 +664,18 @@ console.info('mainAsset -> %o', mainAsset);
                 if (j > -1) fn = fn.substring(j + 1);
                 imgInfo += ' ' + fn + ' ';
             }
-            if (mainAsset.features && (mainAsset.features.length > 0)) {
-                var encId = mainAsset.features[0].encounterId;
-                var indivId = mainAsset.features[0].individualId;
+            var ft = findMyFeature(acmId, mainAsset);
+            if (ft) {
+                var encId = ft.encounterId;
+                var indivId = ft.individualId;
                 if (encId) {
                     h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+                    
+		    if (!indivId) {
+				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
+		    }
+
                 }
                 if (indivId) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
@@ -640,16 +699,28 @@ console.info('qdata[%s] = %o', taskId, qdata);
                 } else {
                     if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
                 }
-            }  //end if (mainAsset.features...)
+            }  //end if (ft) ....
+            // Illustration
+            if (illustrationUrl) {
+            	var selector = '#task-' + taskId + ' .annot-summary-' + acmId;
+            	// TODO: generify
+            	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
+            	illustrationUrl = iaBase+illustrationUrl
+            	var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect match</a></span>';
+            	console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
+            	$(selector).append(illustrationHtml);
+            }
+
         }  //end if (mainAsset)
 
     if (otherAnnots.length > 0) {
         imgInfo += '<div><i>Alternate references:</i><ul>';
         for (var i = 0 ; i < otherAnnots.length ; i++) {
             imgInfo += '<li title="Annot ' + otherAnnots[i].id + '"><b>Annot ' + otherAnnots[i].id.substring(0,12) + '</b>';
-            if (otherAnnots[i].asset && otherAnnots[i].asset.features && (otherAnnots[i].asset.features.length > 0)) {
-                var encId = otherAnnots[i].asset.features[0].encounterId;
-                var indivId = otherAnnots[i].asset.features[0].individualId;
+            var ft = findMyFeature(acmId, otherAnnots[i].asset);  //TODO is acmId correct here???
+            if (ft) {
+                var encId = ft.encounterId;
+                var indivId = ft.individualId;
                 if (encId) imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
                 if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
             }
@@ -760,22 +831,18 @@ console.warn('score_sort() cm_dict %o', cm_dict);
 		if (score_list[i] < 0) continue;
 		sorta.push(score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
 	}
-	sorta.sort().reverse();
+	sorta.sort(function(a,b) { return parseFloat(a) - parseFloat(b); }).reverse();
 	return sorta;
 }
 
-
-
-/*
-function foo() {
-    	$('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
-    	$('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
-	//if (qMediaAsset) addImage(fakeEncounter({}, qMediaAsset),jQuery('#image-main'));
-	if (qMediaAsset) jQuery('#image-main').append('<img src="' + wildbook.cleanUrl(qMediaAsset.url) + '" />');
-	jQuery('#image-compare').append('<img style="height: 11px; width: 50%; margin: 40px 25%;" src="images/image-processing.gif" />');
-	checkForResults();
+function findMyFeature(annotAcmId, asset) {
+console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
+    if (!asset || !Array.isArray(asset.features) || (asset.features.length < 1)) return;
+    for (var i = 0 ; i < asset.features.length ; i++) {
+        if (asset.features[i].annotationAcmId == annotAcmId) return asset.features[i];
+    }
+    return;
 }
-*/
 
 function checkForResults() {
 	jQuery.ajax({
