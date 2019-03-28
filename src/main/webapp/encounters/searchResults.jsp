@@ -338,12 +338,6 @@ var testColumns = {
 	modified: { label: 'Edit Date', val: _colModified },
 };
 
-
-
-
-
-
-
 $(document).keydown(function(k) {
 	if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
 	if (k.which == 38) return tableDn();
@@ -372,14 +366,15 @@ var colDefn = [
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
+	// {
+	// 	key: 'verbatimLocality',
+	// 	label: '<%=encprops.getProperty("location")%>',
+	// },
 	{
-		key: 'verbatimLocality',
-		label: '<%=encprops.getProperty("location")%>',
+		key: 'locationID',
+		label: '<%=encprops.getProperty("locationID")%>',
+		value: _notUndefined('locationID'),
 	},
-//	{
-//		key: 'locationID',
-// 		label: '<%=encprops.getProperty("locationID")%>',
-//	},
 	{
 		key: 'taxonomy',
 		label: '<%=encprops.getProperty("taxonomy")%>',
@@ -388,7 +383,7 @@ var colDefn = [
 	{
 		key: 'submitterID',
 		label: '<%=encprops.getProperty("submitterName")%>',
-		value: _submitterID,
+		value: _notUndefined('submitterID'),
 	},
 	{
 		key: 'creationDate',
@@ -735,6 +730,22 @@ function fetchProgress(ev) {
 console.info(percent);
 }
 
+// a functor!
+function _notUndefined(fieldName) {
+  function _helperFunc(o) {	
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
+  }
+  return _helperFunc;
+}
+// non-functor version!
+function _notUndefinedValue(obj, fieldName) {
+  function _helperFunc(o) {	
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
+  }
+  return _helperFunc(obj);
+}
 
 function _colIndividual(o) {
 	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
@@ -768,10 +779,10 @@ function _colNumberLocations(o) {
 
 
 function _colTaxonomy(o) {
-	var animal = 'n/a';
-	if (o.get('genus')) return o.get('genus');
-	if (o.get('specificEpithet')) return o.get('specificEpithet');
-	return 'n/a';
+	var genus = _notUndefinedValue(o, 'genus');
+	var species = _notUndefinedValue(o, 'specificEpithet');
+	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
+	return genus+' '+species;
 }
 
 
