@@ -194,7 +194,7 @@ if (data) {
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.6.2/core.min.js"></script>
     <script src="../javascript/bootstrap-table/bootstrap-table.min.js"></script>
-    <script src="../javascript/bootstrap-table/extensions/multiple-sort/bootstrap-table-multiple-sort.js"></script>
+    <script src="../javascript/bootstrap-table/extensions/multiple-sort/bootstrap-table-multiple-sort.min.js"></script>
 
 <%
 
@@ -695,10 +695,10 @@ function mkTable() {
     }
     theTable = tableEl.bootstrapTable({
         showMultiSort: true,
-        showMultiSortButton: true,
+        showMultiSortButton: false,
         sortPriority: [
             {"sortName": "annotAcmCt", "sortOrder": "desc"},
-            {"sortName": "assetId", "sortOrder": "asc"}
+            {"sortName": "annotAcmId", "sortOrder": "asc"}
         ],
         data: convertData(function(row) {
             var newRow = {};
@@ -713,18 +713,23 @@ function mkTable() {
         onPostBody: function() {
             tableTweak();
             postTableUpdate();
-console.log('POST BODY');
         },
         onSort: function(name, order) {
             sortOn = name;
+            if (sortOn == 'annotAcmCt') mainSort();
         },
         pagination: true,
         pageSize: 20,
         columns: cols
     });
+    mainSort();
     //postTableUpdate();  //handled by onPostBody above!
 }
  
+
+function mainSort() {
+    theTable.bootstrapTable('multipleSort');
+}
 
 function tableTweak() {
     var cn = getColNum(sortOn);
