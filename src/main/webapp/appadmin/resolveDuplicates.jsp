@@ -57,6 +57,19 @@ static int demoteAnnotations(Encounter enc) {
     return enc.getAnnotations().size();
 }
 
+static int killAnnotations(Encounter enc, Shepherd myShepherd) {
+    if (enc == null) return -1;
+    if (enc.getAnnotations() == null) return 0;
+    int ct = 0;
+    for (Annotation ann : enc.getAnnotations()) {
+        ct++;
+        System.out.println("resolveDuplicates: detaching and deleting " + ann);
+        ann.detachFromMediaAsset();  //this gets rid of feature, btw
+        myShepherd.getPM().deletePersistent(ann);
+    }
+    return ct;
+}
+
 %><%
 
 if ("post".equals(request.getQueryString())) {
@@ -90,7 +103,7 @@ if ("post".equals(request.getQueryString())) {
             Encounter enc = myShepherd.getEncounter(encDel.optString(i, null));
             if (enc == null) continue;
             System.out.println("resolveDuplicates: DELETE " + enc);
-            demoteAnnotations(enc);
+            killAnnotations(enc, myShepherd);
             msg += " | DEL=" + enc.getCatalogNumber();
             myShepherd.getPM().deletePersistent(enc);
         }
@@ -281,6 +294,11 @@ input[type="button"] {
     color: #180;
 }
 
+#save-message {
+    padding: 10px;
+    font-size: 0.9em;
+}
+
 </style>
 <script>
 var resolveAnnotAcmId = '<%=resolveAnnotAcmId%>';
@@ -290,7 +308,8 @@ $(document).ready(function() {
     resort();
     $('#encs .enc:first').addClass('enc-chosen');
     $('.enc-id').on('click', function(ev) {
-        openInTab('../encounters/encounter.jsp?number=' + ev.target.innerText);
+        //openInTab('../encounters/encounter.jsp?number=' + ev.target.innerText);
+        openInTab('../obrowse.jsp?type=Encounter&id=' + ev.target.innerText);
     });
 });
 
@@ -302,6 +321,7 @@ function openInTab(url) {
 
 function save() {
     $('#save-button').hide();
+    $('#save-message').remove();
     var mainId = $('.enc:first').attr('id');
     var upf = {};
     var edel = new Array();
@@ -309,7 +329,7 @@ function save() {
         edel.push(el.id);
     });
     var edup = new Array();
-    $('.enc:not(.action-delete):not(:first)').each(function(i, el) {
+    $('.enc.action-duplicate').each(function(i, el) {
         edup.push(el.id);
     });
 
@@ -321,6 +341,12 @@ function save() {
         updateFields: upf
     };
 
+    if ((edel.length < 1) && (edup.length < 1)) {
+        $('body').prepend('<p id="save-message">no annots were marked for duplication / deletion</p>');
+        $('#save-button').show();
+        return;
+    }
+
     $.ajax({
         url: 'resolveDuplicates.jsp?post',
         data: JSON.stringify(data),
@@ -329,9 +355,9 @@ function save() {
         complete: function(d) {
             console.log('complete: %o', d);
             if (!d.responseJSON) {
-                $('body').prepend('<p><b>ERROR?</b>: ' + JSON.stringify(d) + '</p>');
+                $('body').prepend('<p id="save-message"><b>ERROR?</b>: ' + JSON.stringify(d) + '</p>');
             } else {
-                $('body').prepend("<p style=\"padding: 10px; font-size: 0.9em;\">" + (d.responseJSON.error || d.responseJSON.message) + "</p>");
+                $('body').prepend('<p id="save-message">' + (d.responseJSON.error || d.responseJSON.message) + "</p>");
             }
         },
         type: 'POST'
@@ -340,21 +366,15 @@ function save() {
 
 function setActionAll(which) {
     $('.action-div [value="' + which + '"]').prop('checked', true);
-    if (which == 'delete') {
-        $('.enc:not(:first)').addClass('action-delete');
-    } else {
-        $('.enc').removeClass('action-delete');
-    }
+    $('.enc').removeClass('action-delete').removeClass('action-ignore').removeClass('action-duplicate');
+    $('.enc:not(:first)').addClass('action-' + which);
 }
 
 function toggleAction(el) {  // delete / mark duplicate radio checkboxes
     var encId = el.getAttribute('name').substring(7);
+    $('#' + encId).removeClass('action-delete').removeClass('action-ignore').removeClass('action-duplicate');
     var val = $('[name="action-' + encId + '"]:checked').val();
-    if (val == 'delete') {
-        $('#' + encId).addClass('action-delete');
-    } else {
-        $('#' + encId).removeClass('action-delete');
-    }
+    $('#' + encId).addClass('action-' + val);
 }
 
 var top2 = false;
@@ -501,7 +521,8 @@ function makeMain(encId) {
         <input class="button-move" type="button" value="move to #2" onClick="return moveTo2('<%=enc.getCatalogNumber()%>');" />
         <input class="button-main" type="button" value="make main" onClick="return makeMain('<%=enc.getCatalogNumber()%>');" />
         <div class="action-div" id="action-<%=enc.getCatalogNumber()%>" style="margin-top: 20px;">
-            <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="duplicate" id="action-<%=enc.getCatalogNumber()%>-duplicate" checked /> <label for="action-<%=enc.getCatalogNumber()%>-duplicate">mark duplicate</label><br />
+            <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="ignore" id="action-<%=enc.getCatalogNumber()%>-ignore" checked /> <label for="action-<%=enc.getCatalogNumber()%>-ignore">ignore</label><br />
+            <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="duplicate" id="action-<%=enc.getCatalogNumber()%>-duplicate" /> <label for="action-<%=enc.getCatalogNumber()%>-duplicate">mark duplicate</label><br />
             <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="delete" id="action-<%=enc.getCatalogNumber()%>-delete" /> <label for="action-<%=enc.getCatalogNumber()%>-delete">delete enc</label>
         </div>
     </div><div class="props">
