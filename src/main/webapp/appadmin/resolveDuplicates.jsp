@@ -270,7 +270,11 @@ input[type="button"] {
 .controls {
     position: absolute;
     padding-left: 10px;
-    top: 30px;
+    top: 60px;
+    display: inline-block;
+}
+
+.header-div {
     display: inline-block;
 }
 
@@ -307,10 +311,6 @@ $(document).ready(function() {
     findDiff();
     resort();
     $('#encs .enc:first').addClass('enc-chosen');
-    $('.enc-id').on('click', function(ev) {
-        //openInTab('../encounters/encounter.jsp?number=' + ev.target.innerText);
-        openInTab('../obrowse.jsp?type=Encounter&id=' + ev.target.innerText);
-    });
 });
 
 
@@ -382,6 +382,10 @@ function toggleTop2() {
     top2 = !top2;
     $('.enc .prop').hide();
     findDiff(top2);
+}
+
+function toggleDeleteVisible() {
+    $('.action-delete').toggle();
 }
 
 function addHover() {
@@ -458,6 +462,11 @@ function resort() {
     $('.enc-id').each(function(i, el) {
         $(el).before('<span class="ect">' + (i+1) + '</span>');
     });
+
+    $('.enc-id').on('click', function(ev) {
+        //openInTab('../encounters/encounter.jsp?number=' + ev.target.innerText);
+        openInTab('../obrowse.jsp?type=Encounter&id=' + ev.target.innerText);
+    });
 }
 
 
@@ -487,6 +496,7 @@ function makeMain(encId) {
 
 <div style="padding: 12px;">
         <input type="button" value="toggle top2 comp" onClick="return toggleTop2();" />
+        <input type="button" value="toggle delete visible" onClick="return toggleDeleteVisible();" />
         <input type="button" value="all delete" onClick="setActionAll('delete');" />
         <input type="button" value="all duplicate" onClick="setActionAll('duplicate');" />
         <input id="save-button" type="button" style="background-color: red;" value="SAVE CHANGES" onClick="save();" />
@@ -515,8 +525,14 @@ function makeMain(encId) {
     for (Encounter enc : encs) {
         int numAnns = ((enc.getAnnotations() == null) ? 0 : enc.getAnnotations().size());
         out.println("<div data-adjust=\"0\" data-numanns=\"" + numAnns + "\" class=\"enc\" id=\"" + enc.getCatalogNumber() + "\">");
-        out.println("<b class=\"enc-id\">" + enc.getCatalogNumber() + "</b> (" + numAnns + " anns)");
+        out.println("<div class=\"header-div\"><b class=\"enc-id\">" + enc.getCatalogNumber() + "</b> (" + numAnns + " anns)<br /><b>assets:</b> ");
+        for (MediaAsset ma : enc.getMedia()) {
+            String ftNote = "";
+            if ((ma.getFeatures() != null) && (ma.getFeatures().size() > 1)) ftNote = ":" + ma.getFeatures().size();
+            out.println("<a target=\"new\" href=\"../obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">[" + ma.getId() + ftNote + "]</a>");
+        }
 %>
+        </div>
     <div class="controls">
         <input class="button-move" type="button" value="move to #2" onClick="return moveTo2('<%=enc.getCatalogNumber()%>');" />
         <input class="button-main" type="button" value="make main" onClick="return makeMain('<%=enc.getCatalogNumber()%>');" />
