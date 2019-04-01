@@ -151,7 +151,7 @@ public class Collaboration implements java.io.Serializable {
 		return null;
 */
 	}
-
+	
 	public static boolean canCollaborate(String context, String u1, String u2) {
 		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
 		if (u1.equals(u2)) return true;
@@ -208,8 +208,9 @@ public class Collaboration implements java.io.Serializable {
 		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
 
 		if (request.getUserPrincipal() == null) return false;
-		String username = request.getUserPrincipal().getName();
-//System.out.println("username->"+username);
+		return canUserAccessEncounter(enc, context, request.getUserPrincipal().getName());
+        }
+	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
 		String owner = enc.getAssignedUsername();
 		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
 //System.out.println("owner->" + owner);

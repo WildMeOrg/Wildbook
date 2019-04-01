@@ -211,7 +211,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 							
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 							System.out.println("scanTaskHandler: About to create a scanTask...");
-							successfulStore=myShepherd.storeNewTask(st);
+							successfulStore=myShepherd.storeNewScanTask(st);
 							if(!successfulStore){
 
 								System.out.println("scanTaskHandler: Unsuccessful store...");
@@ -310,7 +310,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
 						
 						//launch EC2 instances
-            es.execute(new EC2RequestThread());
+            //es.execute(new EC2RequestThread());
 						
             //now build our jobs for the task
 						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql));
@@ -481,7 +481,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 						if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 						System.out.println("scanTaskHandler: About to create a TuningTask...");
-						successfulStore=myShepherd.storeNewTask(st);
+						successfulStore=myShepherd.storeNewScanTask(st);
 						if(!successfulStore){
 
 							System.out.println("scanTaskHandler: Unsuccessful TuningTask store...");
@@ -657,7 +657,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						st.setNumComparisons(numComparisons);
 						if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 						System.out.println("scanTaskHandler: About to create a TuningTask...");
-						successfulStore=myShepherd.storeNewTask(st);
+						successfulStore=myShepherd.storeNewScanTask(st);
 						if(!successfulStore){
 
 							System.out.println("scanTaskHandler: Unsuccessful FalseMatchTask store...");

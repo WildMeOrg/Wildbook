@@ -100,6 +100,7 @@ public class SiteSearch extends HttpServlet {
         try{ 
           query = myShepherd.getPM().newQuery(MarkedIndividual.class);
           query.setFilter(filter);
+          query.setOrdering("individualID ascending");
   
           //
           // Check to make sure our query is fine, log error if not.

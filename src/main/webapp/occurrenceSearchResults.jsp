@@ -58,7 +58,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
-    //myShepherd.setAction("occurrenceSearchResults.jsp");
+    myShepherd.setAction("occurrenceSearchResults.jsp");
 
 
 
@@ -154,7 +154,7 @@
         <li><a class="active"><%=occProps.getProperty("table")%>
         </a></li>
             <li><a
-           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
+           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("permitExport")%>
          </a></li>
 
       </ul>
@@ -236,13 +236,14 @@ $(document).keydown(function(k) {
 
 // functor!
 function _notUndefined(fieldName) {
-  function _helperFunc(o) {
+  function _helperFunc(o) {	
     if (o[fieldName] == undefined) return '';
     return o[fieldName];
   }
   return _helperFunc;
 }
 
+// Split up some collections before we try to display them. 
 
 var colDefn = [
 /*
@@ -256,23 +257,30 @@ var colDefn = [
     key: 'imageSet',
     label: '<%=occProps.getProperty("imageSet")%>',
     value: _notUndefined('imageSet'),
-  },*/
+  },
+  
+*/
+ 
   {
     key: 'ID',
     label: 'ID',
     value: _notUndefined('occurrenceID'),
   },
   {
-    key: 'groupSize',
-    label: 'group size',
-    value: _notUndefined('groupSize'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+    key: 'dateTimeCreated',
+    label: 'Date Created',
+    value: _notUndefined('dateTimeCreated'),
   },
   {
-    key: 'individualCount',
-    label: 'num Id\'d individuals',
-    value: _notUndefined('individualCount'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+	    key: 'correspondingSurveyID',
+	    label: 'Corresponding Survey',
+	    value: _notUndefined('correspondingSurveyID'),
+  }, 	
+  {
+	key: 'numberEncounters',
+	label: '<%=props.getProperty("numEncounters")%>',
+	value: _colNumberEncounters,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
   },
   {
 		key: 'decimalLatitude',
@@ -287,6 +295,12 @@ var colDefn = [
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   /*
+  {
+    key: 'individualCount',
+    label: 'Encounters',
+    value: _notUndefined('individualCount'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
 	{
 		key: 'individual',
 		label: '<%=props.getProperty("markedIndividual")%>',
@@ -295,12 +309,6 @@ var colDefn = [
 		//sortFunction: function(a,b) {},
 	},
 
-	{
-		key: 'numberEncounters',
-		label: '<%=props.getProperty("numEncounters")%>',
-		value: _colNumberEncounters,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
 	{
 		key: 'maxYearsBetweenResightings',
 		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
@@ -318,7 +326,6 @@ var colDefn = [
 	}*/
 
 ];
-
 
 var howMany = 30;
 var start = 0;
@@ -613,9 +620,12 @@ function _colIndividual(o) {
 
 
 function _colNumberEncounters(o) {
-	if (o.numberEncounters == undefined) return '';
-	return o.numberEncounters;
+	if (o.encounters == undefined) return '';
+	//console.log("Here's the encs: "+JSON.stringify(o.encounters));
+	//console.log("Here's th length: "+o.encounters.length);
+	return o.encounters.length;
 }
+
 
 /*
 function _colYearsBetween(o) {
@@ -666,13 +676,19 @@ function _colThumb(o) {
 	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
 }
 
-
 function _colModified(o) {
 	var m = o.get('modified');
 	if (!m) return '';
 	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
+}
+
+function _colOccDate(o) {
+	var dateMillis = o.get('millis');
+	if (!dateMillis) return '';
+	var dateString = new Date(dateMillis).toString();
+	return dateString;
 }
 
 
@@ -685,7 +701,7 @@ function _textExtraction(n) {
 
 function applyFilter() {
 	var t = $('#filter-text').val();
-console.log(t);
+	console.log(t);
 	sTable.filter(t);
 	start = 0;
 	newSlice(1);
@@ -697,9 +713,9 @@ console.log(t);
 </script>
 
 <p class="table-filter-text">
-<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="filter" />
-<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=props.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=props.getProperty("filter") %>" />
+<input type="button" value="<%=props.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 
@@ -740,7 +756,9 @@ console.log(t);
       <p><strong><%=occProps.getProperty("matchingOccurrences")%>
       </strong>: <span id="count-total"></span>
       </p>
-      <%myShepherd.beginDBTransaction();%>
+      <%
+      myShepherd.beginDBTransaction();
+      %>
       <p><strong><%=occProps.getProperty("totalOccurrences")%>
     </strong>: <%=(myShepherd.getNumOccurrences())%>
       </p>

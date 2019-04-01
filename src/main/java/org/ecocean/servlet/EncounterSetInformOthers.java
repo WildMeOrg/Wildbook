@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.User;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -31,6 +32,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 
 public class EncounterSetInformOthers extends HttpServlet {
@@ -64,8 +69,24 @@ public class EncounterSetInformOthers extends HttpServlet {
     if ((myShepherd.isEncounter(sharky)) && (request.getParameter("informothers") != null)) {
       Encounter myShark = myShepherd.getEncounter(sharky);
       informers = request.getParameter("informothers").trim();
+
       try {
-        myShark.setInformOthers(informers);
+        myShark.setOLDInformOthersFORLEGACYCONVERSION(informers);
+        List<String> nameList = new ArrayList<>();
+        if (informers!=null&&informers.contains(",")) {
+            nameList = Arrays.asList(informers.split(","));
+        } else {
+            nameList.add(informers);
+        }
+        List<User> userList = new ArrayList<>();
+        for (String nameString : nameList) {
+            User u = myShepherd.getUser(nameString);
+            if (u!=null) {userList.add(u);}
+        }
+        if (!userList.isEmpty()) {
+            myShark.setInformOthers(userList);
+        }
+
       } catch (Exception le) {
         locked = true;
         myShepherd.rollbackDBTransaction();
@@ -107,5 +128,3 @@ public class EncounterSetInformOthers extends HttpServlet {
 
 
 }
-	
-	

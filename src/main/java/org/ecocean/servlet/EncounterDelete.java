@@ -30,10 +30,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
-import java.util.Iterator;
-import java.util.List;
+//import java.util.Iterator;
+//import java.util.List;
 import java.util.Map;
-import java.util.Vector;
+//import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.slf4j.Logger;
@@ -81,17 +81,16 @@ public class EncounterDelete extends HttpServlet {
     
     //boolean isOwner = true;
 
-
-    if (request.getParameter("number") != null) {
+    myShepherd.beginDBTransaction();
+    if ((request.getParameter("number") != null)&&(myShepherd.isEncounter(request.getParameter("number")))) {
       String message = "Encounter " + request.getParameter("number") + " was deleted from the database.";
       ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      myShepherd.beginDBTransaction();
       Encounter enc2trash = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2trash);
 
 
       if (enc2trash.getIndividualID()==null) {
-        myShepherd.beginDBTransaction();
+        //myShepherd.beginDBTransaction();
 
         try {
 
@@ -126,6 +125,23 @@ public class EncounterDelete extends HttpServlet {
      
           }
 
+          //Set all associated annotations matchAgainst to false
+          enc2trash.useAnnotationsForMatching(false);
+          
+          //break association with User object submitters
+          if(enc2trash.getSubmitters()!=null){
+            enc2trash.setSubmitters(null);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
+          
+          //break asociation with User object photographers
+          if(enc2trash.getPhotographers()!=null){
+            enc2trash.setPhotographers(null);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
+
           //record who deleted this encounter
           enc2trash.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Deleted this encounter from the database.");
           myShepherd.commitDBTransaction();
@@ -137,52 +153,47 @@ public class EncounterDelete extends HttpServlet {
           //remove from grid too
           GridManager gm = GridManagerFactory.getGridManager();
           gm.removeMatchGraphEntry(request.getParameter("number"));
+          
+          myShepherd.commitDBTransaction();
+
+          //log it
+          Logger log = LoggerFactory.getLogger(EncounterDelete.class);
+          log.info("Click to restore deleted encounter: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/ResurrectDeletedEncounter?number=" + request.getParameter("number")+"\">"+request.getParameter("number")+"</a>");
 
 
-        } catch (Exception edel) {
+          out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
+          
+          out.println(ServletUtilities.getFooter(context));
+
+
+
+        } 
+        catch (Exception edel) {
           locked = true;
           log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
           edel.printStackTrace();
           myShepherd.rollbackDBTransaction();
 
         }
+        
+        // Notify new-submissions address
+        Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc2trash);
+        tagMap.put("@USER@", request.getRemoteUser());
+        tagMap.put("@ENCOUNTER_ID@", request.getParameter("number"));
+        String mailTo = CommonConfiguration.getNewSubmissionEmail(context);
+        NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "encounterDelete", tagMap);
+        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+        es.execute(mailer);
+        es.shutdown();
 
 
-        if (!locked) {
-          myShepherd.commitDBTransaction();
 
-          //log it
-          Logger log = LoggerFactory.getLogger(EncounterDelete.class);
-		  log.info("Click to restore deleted encounter: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/ResurrectDeletedEncounter?number=" + request.getParameter("number")+"\">"+request.getParameter("number")+"</a>");
-
-
-          out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
-          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-          int allStatesSize=allStates.size();
-          if(allStatesSize>0){
-            for(int i=0;i<allStatesSize;i++){
-              String stateName=allStates.get(i);
-              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-            }
-          }
-          
-          out.println(ServletUtilities.getFooter(context));
-
-          // Notify new-submissions address
-          Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc2trash);
-          tagMap.put("@USER@", request.getRemoteUser());
-          tagMap.put("@ENCOUNTER_ID@", request.getParameter("number"));
-          String mailTo = CommonConfiguration.getNewSubmissionEmail(context);
-          NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "encounterDelete", tagMap);
-          ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-          es.execute(mailer);
-          es.shutdown();
-        } 
+        /*
         else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I have NOT removed encounter " + request.getParameter("number") + " from the database. An exception occurred in the deletion process.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
+          out.println("<p><a href=\"//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
           
           List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
@@ -196,7 +207,9 @@ public class EncounterDelete extends HttpServlet {
 
 
         }
-      } else {
+        */
+      } 
+      else {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("Encounter " + request.getParameter("number") + " is assigned to a Marked Individual and cannot be deleted until it has been removed from that individual.");
@@ -204,16 +217,21 @@ public class EncounterDelete extends HttpServlet {
         
         out.println(ServletUtilities.getFooter(context));
       }
-    } else {
+      
+      
+      
+    } 
+    else {
+      myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't know which encounter you're trying to remove.");
       out.println(ServletUtilities.getFooter(context));
 
     }
 
-
-    out.close();
     myShepherd.closeDBTransaction();
+    out.close();
+
   }
 }
 

@@ -249,6 +249,7 @@ function clickApproveDeny(ev) {
 	var jel = $(ev.target);
 	var p = jel.parent();
 	var uname = p.data('username');
+	console.warn("current data: username="+uname+" approve="+which);
 	p.html('&nbsp;').addClass('throbbing');
 	$.ajax({
 		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which,

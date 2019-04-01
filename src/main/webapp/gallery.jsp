@@ -142,8 +142,6 @@ if (rIndividuals.size() < listNum) {
 %>
 
 
-<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
-<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
 
 
 <style>
@@ -286,7 +284,6 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 
-//myShepherd.beginDBTransaction();
 
 %>
 

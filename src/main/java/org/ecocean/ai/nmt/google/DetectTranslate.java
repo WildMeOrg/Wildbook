@@ -42,6 +42,21 @@ public class DetectTranslate {
     text=translation.getTranslatedText();
     return text;
   }
+  
+  public static String translateIfNotEnglish(String text){
+    String shortForm=text;
+    try{
+    if(shortForm.length()>500){shortForm=shortForm.substring(0,499);}
+      String langCode=DetectTranslate.detectLanguage(shortForm);
+      if((!langCode.toLowerCase().equals("en"))&&(!langCode.toLowerCase().equals("und"))){
+        System.out.println("Translating: "+text);
+        text=DetectTranslate.translateToEnglish(text).replaceAll(",", " ").replaceAll("\n", " ").replaceAll("'", "").replaceAll("\"", "").replaceAll("′","").replaceAll("’","").toLowerCase();
+        System.out.println("Translated to: "+text);
+      }
+    }
+    catch(Exception e){}
+    return text;
+  }
 
 
 

@@ -51,13 +51,16 @@ public class GridHeartbeatReceiver extends HttpServlet {
 
     //get the gridManager and populate needed values
     GridManager gm = GridManagerFactory.getGridManager();
-    String supportedAppletVersion = gm.getSupportedAppletVersion();
+    gm.processHeartbeat(request);
+    //String supportedAppletVersion = gm.getSupportedAppletVersion();
 
+    /*
     if ((request.getParameter("version") != null) && (request.getParameter("version").equals(supportedAppletVersion)) && (request.getParameter("nodeIdentifier") != null)) {
       gm.processHeartbeat(request);
     } else {
       statusText = "rejected";
     }
+    */
 
 
     try {

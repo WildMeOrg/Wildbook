@@ -2006,11 +2006,11 @@ if(enc.getLocation()!=null){
                                     %>
                                     <br/>
                                     <%
-                                      if(enc.getInformOthers()!=null){
+                                      if(enc.getOLDInformOthersFORLEGACYCONVERSION()!=null){
 
-                                      if(enc.getInformOthers().indexOf(",")!=-1) {
+                                      if(enc.getOLDInformOthersFORLEGACYCONVERSION().indexOf(",")!=-1) {
                                       //break up the string
-                                      StringTokenizer stzr=new StringTokenizer(enc.getInformOthers(),",");
+                                      StringTokenizer stzr=new StringTokenizer(enc.getOLDInformOthersFORLEGACYCONVERSION(),",");
 
                                       while(stzr.hasMoreTokens()) {
                                       %>
@@ -2021,7 +2021,7 @@ if(enc.getLocation()!=null){
                                         }
                                         else{
                                         %>
-                                        <span id="displayInformOthers"><%=enc.getInformOthers()%></span><br/> <%
+                                        <span id="displayInformOthers"><%=enc.getOLDInformOthersFORLEGACYCONVERSION()%></span><br/> <%
                                         }
                                         }
                                         else {
@@ -2357,8 +2357,8 @@ if(enc.getLocation()!=null){
                   <div class="form-group row">
                     <div class="col-sm-6" id="informOthersDiv">
                       <input class="form-control" name="informothers" type="text" id="informOthers"
-                        <%if(enc.getInformOthers()!=null){ %>
-                        value="<%=enc.getInformOthers().trim()%>"
+                        <%if(enc.getOLDInformOthersFORLEGACYCONVERSION()!=null){ %>
+                        value="<%=enc.getOLDInformOthersFORLEGACYCONVERSION().trim()%>"
                         <%}%> />
                         <span class="form-control-feedback" id="informCheck">&check;</span>
                         <span class="form-control-feedback" id="informError">X</span>

@@ -251,7 +251,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
 		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID
+		  mapTypeId: google.maps.MapTypeId.TERRAIN
 		});
 
 	  //adding the fullscreen control to exit fullscreen
@@ -478,7 +478,7 @@ function FSControl(controlDiv, map) {
         <%
           for (int n = 0; n < totalLocIDs; n++) {
             String word = locIDs.get(n);
-            if (!word.equals("")) {
+            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
         %>
         <option value="<%=word%>"><%=word%>
         </option>
@@ -664,7 +664,7 @@ function FSControl(controlDiv, map) {
         if (totalVBDs > 1) {
       %>
 
-      <select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField"
+      <select multiple size="5" name="verbatimEventDateField"
               id="verbatimEventDateField">
         <option value="None"></option>
         <%
@@ -1174,12 +1174,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 
-        <tr>
-	  <td><br /><strong><%=props.getProperty("submitterName")%>:</strong>
-	    <input name="nameField" type="text" size="60"> <br> <em><%=props.getProperty("namesBlank")%>
-	    </em>
-	  </td>
-</tr>
+
       </table>
 
     </div>
@@ -1729,8 +1724,8 @@ else {
     <%
       Shepherd inShepherd=new Shepherd("context0");
       inShepherd.setAction("individualSearch.jsp2");
-      List<User> users = inShepherd.getAllUsers();
-      int numUsers = users.size();
+        List<User> users = inShepherd.getUsersWithUsername("username ascending");
+        int numUsers = users.size();
 
       if (loggedIn) {
     %>
@@ -1757,16 +1752,7 @@ else {
     <%
       }
     %>
-
-      <div class="col-md-6">
-          <strong><%=props.getProperty("restrictSearchOrg")%></strong><br />
-    			<input type="checkbox" name="guid" value="NCAquariums"/>
-      </div>
-    </div>
-
-
-
-
+      </select>
 <%
 inShepherd.rollbackDBTransaction();
 inShepherd.closeDBTransaction();

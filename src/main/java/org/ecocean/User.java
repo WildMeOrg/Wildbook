@@ -4,8 +4,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
-
+import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * <code>User</code> stores information about a contact/user.
@@ -20,6 +21,7 @@ public class User implements Serializable {
   private String fullName;
   //Primary email address
   private String emailAddress;
+  private String hashedEmailAddress;
   // User's snail-mail address/location
   private String physicalAddress;
   //Primary phone number
@@ -43,6 +45,7 @@ public class User implements Serializable {
   	private String username;
   	private String password ;
   	private String salt;
+  	private String uuid;
   	
   	//String currentContext;
   	
@@ -57,6 +60,7 @@ public class User implements Serializable {
   	public User(){}
   	
   	public User(String fullName, String emailAddress, String physicalAddress, String phoneNumber, String affiliation, String notes) {
+  	  uuid=Util.generateUUID();
   	  setFullName(fullName);
   	  setEmailAddress(emailAddress);
   	  setPhysicalAddress(physicalAddress);
@@ -68,13 +72,37 @@ public class User implements Serializable {
   	}
   	
   	public User(String username,String password, String salt){
+  	  uuid=Util.generateUUID();
   	  setUsername(username);
   	  setPassword(password);
   	  setSalt(salt);
-			setReceiveEmails(true);
+			setReceiveEmails(false);
   	  RefreshDate();
   	  this.lastLogin=-1;
   	}
+  	
+    public User(String email,String uuid){
+      this.uuid=uuid;
+      setEmailAddress(email);
+      setReceiveEmails(true);
+      String salt=ServletUtilities.getSalt().toHex();
+      String pass=Util.generateUUID();
+      String hashedPassword=ServletUtilities.hashAndSaltPassword(pass, salt);
+      setPassword(hashedPassword);
+      RefreshDate();
+      this.lastLogin=-1;
+    }
+    
+    public User(String uuid){
+      this.uuid=uuid;
+      setReceiveEmails(false);
+      String salt=ServletUtilities.getSalt().toHex();
+      String pass=Util.generateUUID();
+      String hashedPassword=ServletUtilities.hashAndSaltPassword(pass, salt);
+      setPassword(hashedPassword);
+      RefreshDate();
+      this.lastLogin=-1;
+    }
 
   public void RefreshDate()
   {
@@ -100,13 +128,26 @@ public class User implements Serializable {
   {
     return this.emailAddress;
   }
+  public String getHashedEmailAddress ()
+  {
+    return this.hashedEmailAddress;
+  }
   public void setEmailAddress (String emailAddress){
     if(emailAddress!=null){
       this.emailAddress = emailAddress;
+      this.hashedEmailAddress = generateEmailHash(emailAddress);
     }
-    else{this.emailAddress=null;}
+    else{
+      this.emailAddress=null;
+      //NOTE: we intentionally do NOT null the hashed email address. the hash is a reflection that someone was there, allowing us to count users even if we acknowledge a right-to-forget (GDPR) and remove the email address itself
+    }
     RefreshDate();
   }
+
+    public static String generateEmailHash(String addr) {
+        if ((addr == null) || (addr.trim().equals(""))) return null;
+        return ServletUtilities.hashString(addr.trim().toLowerCase());
+    }
 
   public String getPhysicalAddress ()
   {
@@ -261,5 +302,15 @@ public class User implements Serializable {
 
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
+		
+		public String getUUID() {return uuid;}
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("uuid", uuid)
+                .append("username", username)
+                .append("fullName", fullName)
+                .toString();
+    }
 
 }
