@@ -41,11 +41,13 @@ try {
 
 
 List<File> imageFiles = new ArrayList<File>();
-for (File f: contents) {
-	String name = f.getName().toLowerCase();
-	// I will never use regex. Never!!!! READABILITY SHALL REIGN ETERNAL
-	if (name.endsWith(".jpg")||name.endsWith(".png")||name.endsWith(".jpeg")) {
-		imageFiles.add(f);
+if (contents!=null) {
+	for (File f: contents) {
+		String name = f.getName().toLowerCase();
+		// I will never use regex. Never!!!! READABILITY SHALL REIGN ETERNAL
+		if (name.endsWith(".jpg")||name.endsWith(".png")||name.endsWith(".jpeg")) {
+			imageFiles.add(f);
+		}
 	}
 }
 nImages = imageFiles.size();

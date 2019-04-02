@@ -3507,6 +3507,8 @@ else {
 String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
 %>
     <%-- START IMAGES --%>
+      <div id="add-image-zone" class="bc4">
+
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
         	<jsp:param name="encounterNumber" value="<%=num%>" />
         	<jsp:param name="queryString" value="<%=queryString%>" />
@@ -3518,7 +3520,9 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 		<%
 		if(isOwner){
 		%>
-	        <div id="add-image-zone" class="bc4">
+          <br/>
+          <br>
+            <div id="inner-add-image">
 
 	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
 
@@ -3539,6 +3543,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 	            </div>
 	          </div>
 	        </div>
+        </div>
         <%
         }
         %>

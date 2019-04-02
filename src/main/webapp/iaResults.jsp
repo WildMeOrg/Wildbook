@@ -39,29 +39,21 @@ if (request.getParameter("acmId") != null) {
 	if ((anns == null) || (anns.size() < 1)) {
 		rtn.put("error", "unknown error");
 	} else {
-            JSONArray janns = new JSONArray();
-            for (Annotation ann : anns) {
-                JSONObject jann = new JSONObject();
-                jann.put("id", ann.getId());
-                jann.put("acmId", ann.getAcmId());
-		MediaAsset ma = ann.getMediaAsset();
-		if (ma != null) {
-			jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
-		}
-                janns.put(jann);
-				if (ann.getMatchAgainst()==true) {
-					JSONObject jann = new JSONObject();
-					jann.put("id", ann.getId());
-					jann.put("acmId", ann.getAcmId());
-					MediaAsset ma = ann.getMediaAsset();
-					if (ma != null) {
-						jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
-					}
-					janns.put(jann);
+        JSONArray janns = new JSONArray();
+        for (Annotation ann : anns) {
+        				if (ann.getMatchAgainst()==true) {
+				JSONObject jann = new JSONObject();
+				jann.put("id", ann.getId());
+				jann.put("acmId", ann.getAcmId());
+				MediaAsset ma = ann.getMediaAsset();
+				if (ma != null) {
+					jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
 				}
-            }
+				janns.put(jann);
+			}
+		}
 	    rtn.put("success", true);
-            rtn.put("annotations", janns);
+        rtn.put("annotations", janns);
 	}
 /*
 	if ((qann != null) && (qann.getMediaAsset() != null)) {
