@@ -2714,15 +2714,18 @@ else {
             ArrayList<String> usernames=userShepherd.getAllUsernames();
 
             int numUsers=usernames.size();
+            String thisUserFullname = null;
             for(int i=0;i<numUsers;i++){
                 String thisUsername=usernames.get(i);
+                if (thisUsername==null) {continue;}
                 User thisUser2=userShepherd.getUser(thisUsername);
-                String thisUserFullname=thisUsername;
+                thisUserFullname=thisUsername;
                 if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
               %>
               <option value="<%=thisUsername%>"><%=thisUserFullname%></option>
               <%
             }
+
             userShepherd.rollbackDBTransaction();
             userShepherd.closeDBTransaction();
             %>
