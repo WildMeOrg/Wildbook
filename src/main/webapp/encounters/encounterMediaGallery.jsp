@@ -490,12 +490,20 @@ if(request.getParameter("encounterNumber")!=null){
       //maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
     }
 
+
 /*   now added to image hamburger menu
     var removeAssetLink = "<p id=\"remove"+assetId+"\" style=\"text-align:right\"> <a title=\"Remove above image from encounter\" href=\"\" onclick=\"removeAsset("+assetId+")\">Remove image from encounter</a></p>";
 
     $('#enc-gallery').append(removeAssetLink);
 */
   });
+  // we need to add a phantom image for alignment if there are an odd number of them
+  console.log("we got some assets! length="+assets.length);
+  if ((assets.length % 2) != 0) {
+    var lastImageHeight = $("#enc-gallery figure").last().height();
+    console.log("odd number! encGallery is adding a phantom div with height "+lastImageHeight);
+    $("#enc-gallery").append("<div class='col-sm-6' style='visibility:hidden; height:"+lastImageHeight+"'>Look at this amazing div with all its wonderful contents</div>");
+  }
 
 
 

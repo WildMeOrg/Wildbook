@@ -9,6 +9,7 @@ java.util.Vector,
 java.util.ArrayList,
 org.json.JSONObject,
 java.util.Properties" %>
+
 <%!
 	public Shepherd myShepherd = null;
 
@@ -121,62 +122,62 @@ java.util.Properties" %>
 		h += "<li>" + format("matchAgainst", ann.getMatchAgainst()) + "</li>";
 		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
                 h += "<li>" + format("AoI", ann.getIsOfInterest()) + "</li>";
-		h += "<li>features: " + showFeatureList(ann.getFeatures()) + "</li>";
-		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd)) + "</li>";
-		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset()) + "</li>";
+		h += "<li>features: " + showFeatureList(ann.getFeatures(), req) + "</li>";
+		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd), req) + "</li>";
+		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset(), req) + "</li>";
 		return h + "</ul></div>";
 	}
 
-        private String showTask(Task task) {
-            String h = "<div><b>" + task.getId() + "</b> " + task.toString() + "<ul>";
-            Task parent = task.getParent();
-            if (parent == null) {
-                h += "<li><i class=\"format-value format-none\">No parent</i></li>";
-            } else {
-                h += "<li><b>Parent: <a href=\"?type=Task&id=" + parent.getId() + "\">" + parent.getId() + "</a></b> <span class=\"quiet\">" + parent.toString() + "</span>";
-                if (parent.numChildren() > 1) {  //must be > 1 cuz we need siblings
-                    h += "<ol>";
-                    for (Task kid : parent.getChildren()) {
-                        if (kid.equals(task)) continue;
-                        h += "<li><a title=\"sibling\" href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
-                    }
-                    h += "</ol>";
-                }
-                h += "</li>";
-            }
-            h += "<li><b>" + task.numChildren() + " children</b> Task(s)";
-            if (task.numChildren() > 0) {
+    private String showTask(Task task) {
+        String h = "<div><b>" + task.getId() + "</b> " + task.toString() + "<ul>";
+        Task parent = task.getParent();
+        if (parent == null) {
+            h += "<li><i class=\"format-value format-none\">No parent</i></li>";
+        } else {
+            h += "<li><b>Parent: <a href=\"?type=Task&id=" + parent.getId() + "\">" + parent.getId() + "</a></b> <span class=\"quiet\">" + parent.toString() + "</span>";
+            if (parent.numChildren() > 1) {  //must be > 1 cuz we need siblings
                 h += "<ol>";
-                for (Task kid : task.getChildren()) {
-                    h += "<li><a href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
+                for (Task kid : parent.getChildren()) {
+                    if (kid.equals(task)) continue;
+                    h += "<li><a title=\"sibling\" href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
                 }
                 h += "</ol>";
             }
             h += "</li>";
-            h += "<li><b>" + task.countObjectMediaAssets() + " MediaAsset</b> object(s)";
-            if (task.hasObjectMediaAssets()) {
-                h += "<ol>";
-                for (MediaAsset ma : task.getObjectMediaAssets()) {
-                    h += "<li><a href=\"?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a> <span class=\"quiet\">" + ma.toString() + "</span></li>";
-                }
-                h += "</ol>";
-            }
-            h += "</li>";
-            h += "<li><b>" + task.countObjectAnnotations() + " Annotation</b> object(s)";
-            if (task.hasObjectAnnotations()) {
-                h += "<ol>";
-                for (Annotation ann : task.getObjectAnnotations()) {
-                    h += "<li><a href=\"?type=Annotation&id=" + ann.getId() + "\">" + ann.getId() + "</a> <span class=\"quiet\">" + ann.toString() + "</span></li>";
-                }
-                h += "</ol>";
-            }
-            h += "</li>";
-            h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
-            h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
-            h += "<li><a target=\"_new\" href=\"ia?v2&includeChildren&taskId=" + task.getId() + "\">JSON task tree</a></li>";
-            h += "</ul>";
-            return h;
         }
+        h += "<li><b>" + task.numChildren() + " children</b> Task(s)";
+        if (task.numChildren() > 0) {
+            h += "<ol>";
+            for (Task kid : task.getChildren()) {
+                h += "<li><a href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
+            }
+            h += "</ol>";
+        }
+        h += "</li>";
+        h += "<li><b>" + task.countObjectMediaAssets() + " MediaAsset</b> object(s)";
+        if (task.hasObjectMediaAssets()) {
+            h += "<ol>";
+            for (MediaAsset ma : task.getObjectMediaAssets()) {
+                h += "<li><a href=\"?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a> <span class=\"quiet\">" + ma.toString() + "</span></li>";
+            }
+            h += "</ol>";
+        }
+        h += "</li>";
+        h += "<li><b>" + task.countObjectAnnotations() + " Annotation</b> object(s)";
+        if (task.hasObjectAnnotations()) {
+            h += "<ol>";
+            for (Annotation ann : task.getObjectAnnotations()) {
+                h += "<li><a href=\"?type=Annotation&id=" + ann.getId() + "\">" + ann.getId() + "</a> <span class=\"quiet\">" + ann.toString() + "</span></li>";
+            }
+            h += "</ol>";
+        }
+        h += "</li>";
+        h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
+        h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
+        h += "<li><a target=\"_new\" href=\"ia?v2&includeChildren&taskId=" + task.getId() + "\">JSON task tree</a></li>";
+        h += "</ul>";
+        return h;
+    }
 
 	private String showLabels(ArrayList<String> l) {
 		if ((l == null) || (l.size() < 1)) return "[none]";
@@ -228,69 +229,64 @@ java.util.Properties" %>
 		return h + "</ul></div>";
 	}
 
-        private String showSurvey(Survey surv, HttpServletRequest req) {
-            if (surv == null) return "(null Survey)";
-            String h = "<p>[<a target=\"_new\" href=\"surveys/survey.jsp?surveyID=" + surv.getID() + "\">" + surv.getID() + "</a>] " + surv.toString() + "</p><b>SurveyTracks:</b><ul>";
-            ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
-            if (tracks == null) {
-                h += "<li>(no Tracks)</li>";
-            } else {
-                for (SurveyTrack tr : tracks) {
-                    h += "<li>" + showSurveyTrack(tr, req) + "</li>";
-                }
+    private String showSurvey(Survey surv, HttpServletRequest req) {
+        if (surv == null) return "(null Survey)";
+        String h = "<p>[<a target=\"_new\" href=\"surveys/survey.jsp?surveyID=" + surv.getID() + "\">" + surv.getID() + "</a>] " + surv.toString() + "</p><b>SurveyTracks:</b><ul>";
+        ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
+        if (tracks == null) {
+            h += "<li>(no Tracks)</li>";
+        } else {
+            for (SurveyTrack tr : tracks) {
+                h += "<li>" + showSurveyTrack(tr, req) + "</li>";
             }
-            h += "</ul>";
-            return h;
         }
-
-        private String showSurveyTrack(SurveyTrack st, HttpServletRequest req) {
-            if (st == null) return "(null SurveyTrack)";
-            String h = "<p>" + st.toString() + "</p>";
-            h += "<ul><b>Path:</b> <li>" + showPath(st.getPath(), req) + "</li></ul>";
-            h += "<ul><b>Occurrences:</b> ";
-            ArrayList<Occurrence> occs = st.getOccurrences();
-            if (occs == null) {
-                h += "<li>(no Occurrences)</li>";
-            } else {
-                for (Occurrence occ : occs) {
-                    h += "<li>" + showOccurrence(occ, req) + "</li>";
-                }
-            }
-            h += "</ul>";
-            return h;
-        }
-
-        private String showPath(Path p, HttpServletRequest req) {
-            if (p == null) return "(no Path)";
-            String h = "<p>" + p.toString() + "</p>";
-            int showPts = p.getNumPointLocations();
-            if (showPts > 0) {
-                h += "<ul><b>PointLocations</b> ";
-                if (showPts > 10) {
-                    h += "<i>Showing only 10 of " + showPts + "</i>";
-                    showPts = 10;  //just a sampling!  this can get ridiculously huge...
-                }
-                for (int i = 0 ; i < showPts ; i++) {
-                    h += "<li>" + p.getPointLocations().get(i).toString() + "</li>";
-                }
-                h += "</ul>";
-            }
-            return h;
-        }
-
-        private String showOccurrence(Occurrence occ, HttpServletRequest req) {
-            if (occ == null) return "(no Occurrence)";
-            return "[<a target=\"_new\" href=\"occurrence.jsp?number=" + occ.getID() + "\">" + occ.getID() + "</a>] " + occ.toString();
-        }
-    	private boolean rawOutput(String type) {
-        	if (type == null) return false;
-        	return type.equals("MediaAssetMetadata");
-    	}
-
-    private String scrubUrl(URL u) {
-        if (u == null) return (String)null;
-        return u.toString().replaceAll("#", "%23");
+        h += "</ul>";
+        return h;
     }
+
+    private String showSurveyTrack(SurveyTrack st, HttpServletRequest req) {
+        if (st == null) return "(null SurveyTrack)";
+        String h = "<p>" + st.toString() + "</p>";
+        h += "<ul><b>Path:</b> <li>" + showPath(st.getPath(), req) + "</li></ul>";
+        h += "<ul><b>Occurrences:</b> ";
+        ArrayList<Occurrence> occs = st.getOccurrences();
+        if (occs == null) {
+            h += "<li>(no Occurrences)</li>";
+        } else {
+            for (Occurrence occ : occs) {
+                h += "<li>" + showOccurrence(occ, req) + "</li>";
+            }
+        }
+        h += "</ul>";
+        return h;
+    }
+
+    private String showPath(Path p, HttpServletRequest req) {
+        if (p == null) return "(no Path)";
+        String h = "<p>" + p.toString() + "</p>";
+        int showPts = p.getNumPointLocations();
+        if (showPts > 0) {
+            h += "<ul><b>PointLocations</b> ";
+            if (showPts > 10) {
+                h += "<i>Showing only 10 of " + showPts + "</i>";
+                showPts = 10;  //just a sampling!  this can get ridiculously huge...
+            }
+            for (int i = 0 ; i < showPts ; i++) {
+                h += "<li>" + p.getPointLocations().get(i).toString() + "</li>";
+            }
+            h += "</ul>";
+        }
+        return h;
+    }
+
+    private String showOccurrence(Occurrence occ, HttpServletRequest req) {
+        if (occ == null) return "(no Occurrence)";
+        return "[<a target=\"_new\" href=\"occurrence.jsp?number=" + occ.getID() + "\">" + occ.getID() + "</a>] " + occ.toString();
+    }
+	private boolean rawOutput(String type) {
+    	if (type == null) return false;
+    	return type.equals("MediaAssetMetadata");
+	}
 
     private String scrubUrl(URL u) {
         if (u == null) return (String)null;

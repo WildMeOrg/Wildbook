@@ -12,30 +12,30 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 
-  String num = request.getParameter("number");
-//int number=(new Integer(num)).intValue();
-  Shepherd myShepherd = new Shepherd(context);
-  boolean proceed = true;
-  String side = "Left";
-  
-  String individualID="";
-  String nickname="";
+String num = request.getParameter("number");
+// int number=(new Integer(num)).intValue();
+Shepherd myShepherd = new Shepherd(context);
+boolean proceed = true;
+String side = "Left";
 
- 
-     //setup data dir
-    String rootWebappPath = getServletContext().getRealPath("/");
-    File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
-    //File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    //if(!encountersDir.exists()){encountersDir.mkdir();}
-
-  if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-    side = "Right";
-  }
+String individualID="";
+String nickname="";
 
 
-  myShepherd.beginDBTransaction();
+ //setup data dir
+String rootWebappPath = getServletContext().getRealPath("/");
+File webappsDir = new File(rootWebappPath).getParentFile();
+File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+//if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+//File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+//if(!encountersDir.exists()){encountersDir.mkdir();}
+
+if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+  side = "Right";
+}
+
+
+myShepherd.beginDBTransaction();
 if (myShepherd.isEncounter(num)) {
     Encounter enc = myShepherd.getEncounter(num);
     
@@ -285,12 +285,12 @@ if (myShepherd.isEncounter(num)) {
 %>
 
   	 <!-- indie ID and nickname rendering -->
-  	<di:text x="575" y="1601" font="Multicolore-plain-36fillPaint="#000000" align="center"><%=individualID %></di:text>
-  	<di:text x="575" y="1701" font="Multicolore-plain-36" fillPaint="#000000" align="center"><%=nickname %></di:text>
+<di:text x="575" y="1601" font="Multicolore-plain-36" fillPaint="#000000" align="center"><%=individualID %></di:text>
+<di:text x="575" y="1701" font="Multicolore-plain-36" fillPaint="#000000" align="center"><%=nickname %></di:text>
  
  
 
-	<di:image x="1550" y="1400" srcurl="../images/wild-me-logo-200x200.png" width="200" height="200"  />
+<di:image x="1550" y="1400" srcurl="../images/wild-me-logo-200x200.png" width="200" height="200"  />
 </di:img>
 
 <!-- Put the image URL in now -->
