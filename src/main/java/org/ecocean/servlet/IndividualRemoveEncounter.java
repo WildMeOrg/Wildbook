@@ -81,7 +81,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
           if(removeFromMe!=null){
             name_s = removeFromMe.getName();
             while (removeFromMe.getEncounters().contains(enc2remove)) {
-              removeFromMe.removeEncounter(enc2remove, context);
+              removeFromMe.removeEncounter(enc2remove);
             }
             removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
             if (removeFromMe.totalEncounters() == 0) {
@@ -93,7 +93,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
           //while (myShepherd.getUnidentifiableEncountersForMarkedIndividual(old_name).contains(enc2remove)) {
           //  removeFromMe.removeEncounter(enc2remove, context);
           //}
-          enc2remove.setIndividualID(null);
+          //enc2remove.setIndividualID(null);
           enc2remove.setOccurrenceID(null);
 
           enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");

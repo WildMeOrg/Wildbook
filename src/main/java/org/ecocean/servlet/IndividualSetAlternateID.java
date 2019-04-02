@@ -66,8 +66,13 @@ public class IndividualSetAlternateID extends HttpServlet {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
       alternateID = request.getParameter("alternateid");
       try {
-        myShark.setAlternateID(alternateID);
-        myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set alternate ID: " + alternateID + ".");
+        //FIXME  how should we actually set "alternate id" in world of .names MultiValue now.
+        //       probably need to pass in some sort of context/hint (e.g. "are you setting it for an org, yourself, etc?")
+        if (alternateID != null) {
+            System.out.println("WARNING: IndividualSetAlternateID servlet using legacy concept of alternateID, please fix this!");
+            myShark.setAlternateID(alternateID);
+            myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set alternate ID: " + alternateID + ".");
+        }
 
       } catch (Exception le) {
         locked = true;

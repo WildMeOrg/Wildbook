@@ -1010,6 +1010,16 @@
     <url-pattern>/AnnotationEdit</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>OrganizationEdit</servlet-name>
+    <servlet-class>org.ecocean.servlet.OrganizationEdit</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>OrganizationEdit</servlet-name>
+    <url-pattern>/OrganizationEdit</url-pattern>
+  </servlet-mapping>
+
       <servlet>
     <servlet-name>SiteSearch</servlet-name>
     <servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>

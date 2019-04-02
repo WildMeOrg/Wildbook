@@ -141,14 +141,15 @@
     </class>
 
     <class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
-      <field name="individualID" primary-key="true">
-        <column length="100"/>
-      </field>
+      <field name="individualID" primary-key="true" />
+
+      	<field name="names" persistence-modifier="persistent" element-type="org.ecocean.MultiValue" default-fetch-group="true" />
+
       <field name="comments" persistence-modifier="persistent" default-fetch-group="false">
         <column jdbc-type="LONGVARCHAR"/>
       </field>
-      <field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Encounter"/>
+      <field name="encounters" persistence-modifier="persistent" default-fetch-group="true" mapped-by="individual" >
+        <collection element-type="org.ecocean.Encounter" dependent-element="true" />
         <join/>
       </field>
 
@@ -754,6 +755,7 @@
       </field>
       <field name="salt" persistence-modifier="persistent">
         <column jdbc-type="LONGVARCHAR"/>
+      </field>
 
         <field name="userStatement">
           <column jdbc-type="LONGVARCHAR"/>
@@ -772,6 +774,14 @@
           <column jdbc-type="BIGINT" allows-null="true"/>
         </field>
 
+            	<field name="organizations" persistence-modifier="persistent" default-fetch-group="true" >
+                	<collection element-type="org.ecocean.Organization" dependent-element="false" />
+                	<join>
+				<column name="USER_ID" />
+			</join>
+			<element>
+				<column name="ORGANIZATION_ID" />
+			</element>
       </field>
     </class>
 
@@ -888,6 +898,40 @@
 			<column allows-null="true" />
 		</field>
 	</class>
+
+
+	<class name="MultiValue" identity-type="application">
+		<field name="id" primary-key="true" value-strategy="identity" persistence-modifier="persistent" />
+		<field name="values" table="MULTIVALUE_VALUES" persistence-modifier="persistent" default-fetch-group="true" >
+			<map key-type="java.lang.String" serialized-value="true" />
+			<join />
+		</field>
+	</class>
+
+
+	<class name="Organization" identity-type="application">
+		<field name="id" primary-key="true">
+        		<column length="36"/>
+		</field>
+		<field name="created">
+			<index name="ORGANIZATION_CREATED_idx" />
+		</field>
+
+		<!-- this points up to the parent -->
+      		<field name="parent" persistence-modifier="persistent" element-type="org.ecocean.Organization" recursion-depth="3"/>
+
+		<!-- this uses parent to find child orgs -->
+            	<field name="children" persistence-modifier="persistent" default-fetch-group="false" mapped-by="parent" >
+                	<collection element-type="org.ecocean.Organization" dependent-element="false" />
+                	<join />
+            	</field>
+
+		<field name="members" persistent-modifier="persistent" mapped-by="organizations" default-fetch-group="true" >
+			<collection element-type="org.ecocean.User"/>
+			<join />
+		</field>
+	</class>
+
 
   </package>
 </jdo>

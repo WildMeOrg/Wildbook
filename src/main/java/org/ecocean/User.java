@@ -2,6 +2,10 @@ package org.ecocean;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.servlet.ServletUtilities;
@@ -49,7 +53,12 @@ public class User implements Serializable {
 	
 	//String currentContext;
   	
-  private boolean acceptedUserAgreement=false;
+  	//String currentContext;
+  	
+  	
+    private List<Organization> organizations = null;
+
+  	private boolean acceptedUserAgreement=false;
   
   private boolean receiveEmails=true; 
 
@@ -315,7 +324,76 @@ public class User implements Serializable {
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
 		
-		public String getUUID() {return uuid;}
+    public String getUUID() {return uuid;}
+    public String getId() { return uuid; }  //adding this "synonym"(?) for consistency
+
+    public boolean hasRoleByName(String name, Shepherd myShepherd) {
+        if (name == null) return false;
+        List<Role> roles = myShepherd.getAllRolesForUserInContext(this.username, myShepherd.getContext());
+        if (roles == null) return false;
+        for (Role r : roles) {
+            if (r.getRolename().equals(name)) return true;
+        }
+        return false;
+    }
+
+    //some glorious day this would be better to recurse thru some Organization Objects to get keys.  sigh, to dream.
+    public Set<String> getMultiValueKeys() {
+        Set<String> rtn = new HashSet<String>();
+        rtn.add("_userId_:" + uuid);  //kinda like "private" key?
+/*  these should migrate to Organizations!!
+        if (Util.stringExists(userProject)) rtn.add("_userProject_:" + userProject.toLowerCase());
+        if (Util.stringExists(affiliation)) rtn.add("_affiliation_:" + affiliation.toLowerCase());
+*/
+        //if the best context we have is a user, we add all the (toplevel) groups they are members of
+        if (organizations != null) {
+        }
+        return rtn;
+    }
+
+    public List<Organization> getOrganizations() {
+        return organizations;
+    }
+    public void setOrganizations(List<Organization> orgs) {
+        organizations = orgs;
+        this.organizationsReciprocate(orgs);
+    }
+    public void addOrganization(Organization org) {
+        if (org == null) return;
+        if (organizations == null) organizations = new ArrayList<Organization>();
+        if (!organizations.contains(org)) organizations.add(org);
+        this.organizationsReciprocate(org);
+    }
+    public void removeOrganization(Organization org) {
+        if ((org == null) || (organizations == null)) return;
+        if (org.getMembers() == null) return;
+        org.getMembers().remove(this);
+        org.updateModified();
+        organizations.remove(org);
+    }
+    //see also isMemberOfDeep()
+    public boolean isMemberOf(Organization org) {
+        if (org == null) return false;
+        return org.hasMember(this);
+    }
+    public boolean isMemberOfDeep(Organization org) {
+        if (org == null) return false;
+        return org.hasMemberDeep(this);
+    }
+    //this is to handle the bidirectional dn madness when *adding* orgs
+    //  (removing are handled internally above)
+    private void organizationsReciprocate(List<Organization> orgs) {
+        if (orgs == null) return;
+        for (Organization org : orgs) {
+            if ((org.getMembers() != null) && !org.getMembers().contains(this)) org.getMembers().add(this);
+        }
+    }
+    private void organizationsReciprocate(Organization org) {  //single version for convenience
+        if (org == null) return;
+        List<Organization> orgs = new ArrayList<Organization>();
+        orgs.add(org);
+        organizationsReciprocate(orgs);
+    }
 
     public String toString() {
         return new ToStringBuilder(this)
