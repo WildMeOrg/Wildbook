@@ -82,17 +82,17 @@ public class FeatureType implements java.io.Serializable {
     }
 
     public static ArrayList<FeatureType> initAll(Shepherd myShepherd) {
-System.out.println("#### initAll()");
         myShepherd.beginDBTransaction();
         allTypes = new ArrayList<FeatureType>();
         Extent ext = myShepherd.getPM().getExtent(FeatureType.class, true);
         Query q = myShepherd.getPM().newQuery(ext);
         Collection c = (Collection) (q.execute());
         for (Object f : c) {
-System.out.println("  - " + (FeatureType)f);
             allTypes.add((FeatureType)f);
         }
         myShepherd.rollbackDBTransaction();
+        System.out.println("INFO: FeatureType.initAll() found " + allTypes.size() + " FeatureTypes");
+        if (allTypes.size() < 1) initializeFeatureTypes(myShepherd);
         return allTypes;
     }
 
@@ -105,4 +105,28 @@ System.out.println("  - " + (FeatureType)f);
 */
     }
 
+    private static void initializeFeatureTypes(Shepherd myShepherd) {
+        if ((allTypes != null) && (allTypes.size() > 0)) return;
+        //we hard-code these here for now?  at least they can go thru git
+        String[] ftypes = new String[]{
+            "org.ecocean.boundingBox",   //our go-to for typical IA-created Annotations
+            "org.ecocean.flukeEdge.referenceSpots",
+            "org.ecocean.flukeEdge.edgeSpots",
+            "org.ecocean.dorsalEdge.referenceSpots",
+            "org.ecocean.dorsalEdge.edgeSpots",
+            "org.ecocean.whaleshark.referenceSpots",
+            "org.ecocean.whaleshark.spots",
+            "org.ecocean.MediaAssetPlaceholder"   //experimental (really only in flukebook)
+        };
+        System.out.println("INFO: no FeatureTypes found; creating them:");
+        allTypes = new ArrayList<FeatureType>();
+        myShepherd.beginDBTransaction();
+        for (int i = 0 ; i < ftypes.length ; i++) {
+            FeatureType ft = new FeatureType(ftypes[i]);
+            allTypes.add(ft);
+            myShepherd.getPM().makePersistent(ft);
+            System.out.println("      - " + ftypes[i]);
+        }
+        myShepherd.commitDBTransaction();
+    }
 }

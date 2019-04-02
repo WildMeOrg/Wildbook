@@ -473,7 +473,7 @@ function useData(doc){
         <%
           for (int n = 0; n < totalLocIDs; n++) {
             String word = locIDs.get(n);
-            if (!word.equals("")&&(!word.equals("None"))) {
+            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
         %>
         <option value="<%=word%>"><%=word%></option>
         <%
@@ -726,8 +726,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         </br>
         
 				<p>
-					<input name="observationKey1" type="text" id="observationKey1" value="" placeholder="Observation Name">
-					<input name="observationValue1" type="text" id="observationValue1" value="" placeholder="Observation Value">
+					<input name="observationKey1" type="text" id="observationKey1" value="" placeholder="<%=encprops.getProperty("observationName") %>">
+					<input name="observationValue1" type="text" id="observationValue1" value="" placeholder="<%=encprops.getProperty("observationValue") %>">
 				</p>
       
 				<div id="additionalObsFields"></div>

@@ -65,11 +65,11 @@ public class WildbookIAM extends IAPlugin {
 
     //TODO we need to "reclaim" these from IA.intake() stuff!
     @Override
-    public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
+    public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         return null;
     }
     @Override
-    public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
+    public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
         return null;
     }
 
@@ -397,6 +397,10 @@ System.out.println("fromResponse ---> " + ids);
         if (ma == null) return false;
         if (!ma.isMimeTypeMajor("image")) return false;
         if ((ma.getWidth() < 1) || (ma.getHeight() < 1)) return false;
+        if (mediaAssetToUri(ma) == null) {
+            System.out.println("WARNING: WildbookIAM.validMediaAsset() failing from null mediaAssetToUri() for " + ma);
+            return false;
+        }
         return true;
     }
 
