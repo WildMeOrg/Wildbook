@@ -101,7 +101,18 @@ public class MultiValue implements java.io.Serializable {
         return removeValuesByKeys(generateKeys(keyHint), value);
     }
 
-    //TODO? getAllValues()
+    //this is made contain only one of each (in the event of duplicates)
+    public Set<String> getAllValues() {
+        Set<String> rtn = new HashSet<String>();
+        if (values == null) return rtn;
+        for (List<String> vals : values.values()) {
+            if (vals == null) continue;
+            for (String val : vals) {
+                if (!rtn.contains(val)) rtn.add(val);
+            }
+        }
+        return rtn;
+    }
 
     public Set<String> getKeys() {
         return values.keySet();
@@ -157,5 +168,11 @@ public class MultiValue implements java.io.Serializable {
                 .toString();
     }
 
+    public JSONObject debug() {
+        JSONObject j = new JSONObject();
+        j.put("values_raw", new JSONObject(values));
+        j.put("id", id);
+        return j;
+    }
 }
 
