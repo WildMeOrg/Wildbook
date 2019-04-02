@@ -1,4 +1,79 @@
-<html><head><title>Annotation check</title>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+     import="org.ecocean.*,
+java.util.Collection,
+java.io.IOException,
+java.util.ArrayList,
+javax.jdo.Query,
+java.util.List,
+java.util.Map,
+org.json.JSONObject,
+
+org.ecocean.servlet.ServletUtilities,
+org.ecocean.media.*
+              "
+
+%><%
+JSONObject update = null;
+if ("update".equals(request.getQueryString())) {
+    update = ServletUtilities.jsonFromHttpServletRequest(request);
+}
+
+String STATUS_KEY = "annotCheckStatus";
+String context = ServletUtilities.getContext(request);
+Shepherd myShepherd = new Shepherd(context);
+myShepherd = new Shepherd("context0");
+
+JSONObject status = SystemValue.getJSONObject(myShepherd, STATUS_KEY);
+if (status == null) status = new JSONObject();
+
+if (update != null) {
+    response.setHeader("Content-type", "application/json");
+    Integer assetId = update.optInt("assetId", -1);
+    if (assetId > 0) {
+        status.put(assetId.toString(), update);
+        SystemValue.set(myShepherd, STATUS_KEY, status);
+        myShepherd.commitDBTransaction();
+    } else {
+        update.put("error", "could not find assetId in JSON");
+        myShepherd.rollbackDBTransaction();
+    }
+    out.println(update);
+
+} else {
+
+
+%><html><head><title>Annotation check</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+function update(data, callback) {
+    $.ajax({
+        url: 'annotCheck.jsp?update',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        complete: function(d) {
+            console.info('complete -> %o', d);
+            if (typeof callback == 'function') callback(d.responseJSON);
+        },
+        dataType: 'json',
+        type: 'POST'
+    });
+}
+
+function markPassed(mid) {
+    update({
+        assetId: mid,
+        passed: true
+    }, function(d) {
+        console.log('yes!!! %o', d);
+        var div = $('#ma-' + d.assetId);
+        div.addClass('passed');
+        div.find('.pass-button').hide();
+    });
+console.log(mid);
+    return true;
+}
+
+</script>
 <style>
 body {
     font-family: sans, arial;
@@ -10,6 +85,10 @@ body {
 }
 div.ma {
     clear: both;
+}
+
+.passed {
+    opacity: 0.2;
 }
 
 .ma a {
@@ -41,28 +120,7 @@ div.ann:hover {
 </style>
 </head>
 
-<body>
-<%@ page contentType="text/html; charset=utf-8" language="java"
-     import="org.ecocean.*,
-java.util.Collection,
-java.io.IOException,
-java.util.ArrayList,
-javax.jdo.Query,
-java.util.List,
-java.util.Map,
-org.json.JSONObject,
-
-org.ecocean.servlet.ServletUtilities,
-org.ecocean.media.*
-              "
-%>
-
-
-
-<%
-String context = ServletUtilities.getContext(request);
-Shepherd myShepherd = new Shepherd(context);
-myShepherd = new Shepherd("context0");
+<body><%
 
 int pageSize = 30;
 int startId = 0;
@@ -93,7 +151,9 @@ ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>(c);
 query.closeAll();
 
 for (MediaAsset ma : mas) {
-    out.println("<div class=\"ma\">");
+    JSONObject maStatus = status.optJSONObject(Integer.toString(ma.getId()));
+    boolean passed = (maStatus != null);  //good enough for now?
+    out.println("<div id=\"ma-" + ma.getId() + "\" class=\"ma" + (passed ? " passed" : "") + "\">");
     out.println("<img xtitle=\"" + ma.toString() + "\" src=\"" + ma.webURL() + "\" />");
     out.println("<a title=\"" + ma.toString() + "\" href=\"../obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">MA " + ma.getId() + "</a>");
     for (Annotation ann : ma.getAnnotations()) {
@@ -113,8 +173,14 @@ for (MediaAsset ma : mas) {
         }
         out.println("</div>");
     }
+    //if (!passed) out.println("<input class=\"pass-button\" type=\"button\" onClick=\"return markPassed(" +ma.getId() + ")\" value=\"mark passed\" />");
+    out.println("<input class=\"pass-button\" type=\"button\" onClick=\"return markPassed(" +ma.getId() + ")\" value=\"mark passed\" />");
     out.println("</div>");
 }
 
 %>
 </body></html>
+
+<%
+}  //POST if/else
+%>
