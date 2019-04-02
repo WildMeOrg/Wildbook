@@ -81,6 +81,7 @@ if (!isUserLoggedIn) {
 	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
       <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
+      <link rel="stylesheet" href="<%=urlLoc %>/css/multipleSubmit.css">
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
       <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
@@ -95,7 +96,8 @@ if (!isUserLoggedIn) {
 
 
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
-      
+
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/multipleSubmit/formSubmission.js"></script>
       
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
@@ -350,9 +352,14 @@ if (!isUserLoggedIn) {
                     
                       <li class="active home text-hide"><a href="<%=homeLinkTarget%>"><%=props.getProperty("home")%></a></li>
 
-                      <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("contribute")%><span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+                          <li><a href="<%=urlLoc %>/multipleSubmit/selectImages.jsp"><%=props.getProperty("reportMultiple")%></a></li>
+                        </ul>
+                      </li>
 
-                      <!-- submit encounter, survey -->
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>

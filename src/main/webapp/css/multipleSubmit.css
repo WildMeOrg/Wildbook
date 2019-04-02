@@ -1,0 +1,9 @@
+.btn-file-selector {
+    font-size: 2em;
+    padding: 15px;
+    padding-left: 33%;
+}
+
+.hidden-input {
+    display: none;
+}
