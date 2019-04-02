@@ -65,6 +65,7 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.identity.IBEISIA;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -330,6 +331,7 @@ System.out.println("*** trying redirect?");
         long maxSizeBytes = maxSizeMB * 1048576;
 
         if (ServletFileUpload.isMultipartContent(request)) {
+          
             try {
                 ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
                 upload.setHeaderEncoding("UTF-8");
@@ -364,8 +366,11 @@ System.out.println("*** trying redirect?");
 
         } else {
             doneMessage = "Sorry this Servlet only handles file upload request";
+            System.out.println("Not a multi-part form submission!");
         }
 
+
+        
         if (fv.get("social_files_id") != null) {
           System.out.println("BBB: Social_files_id: "+fv.get("social_files_id"));
           
@@ -410,6 +415,8 @@ System.out.println("*** trying redirect?");
       if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
         spamBot = true;
       }
+      
+      System.out.println("spambot: "+spamBot);
       //else if(spamFields.toString().toLowerCase().indexOf("[url]")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().indexOf("url=")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().trim().equals("")){spamBot=true;}
@@ -559,7 +566,7 @@ System.out.println("*** trying redirect?");
                 }
 
             } catch (Exception le) {
-
+                le.printStackTrace();
             }
 
 
@@ -569,8 +576,16 @@ System.out.println("about to do enc()");
             boolean llSet = false;
             //Encounter enc = new Encounter();
             //System.out.println("Submission detected date: "+enc.getDate());
+            
             String encID = enc.generateEncounterNumber();
+            if ((fv.get("catalogNumber") != null)&&(!fv.get("catalogNumber").toString().trim().equals(""))) {
+              if((!myShepherd.isEncounter(fv.get("catalogNumber").toString()))){
+                encID=fv.get("catalogNumber").toString().trim();
+              }
+            }
             enc.setEncounterNumber(encID);
+            
+            
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
 
@@ -679,6 +694,31 @@ System.out.println("enc ?= " + enc.toString());
             enc.setPhotographers(photographers);
             //end photographer-user processing
             
+            
+            //User management - informOthers processing
+            String othersString=getVal(fv, "informothers");
+            List<User> informOthers=new ArrayList<User>();
+            if((othersString!=null)&&(!othersString.trim().equals(""))) {
+              
+              StringTokenizer str=new StringTokenizer(othersString,",");
+              int numTokens=str.countTokens();
+              for(int y=0;y<numTokens;y++) {
+                String tok=str.nextToken().trim();
+                if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
+                  User user=myShepherd.getUserByEmailAddress(tok);
+                  informOthers.add(user);
+                }
+                else {
+                  User user=new User(tok,Util.generateUUID());
+                  myShepherd.getPM().makePersistent(user);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  informOthers.add(user);
+                }
+              }
+            }
+            enc.setInformOthers(informOthers);
+            //end informOthers-user processing
             
             
             
@@ -973,9 +1013,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       if (!getVal(fv, "country").equals("")) {
         enc.setCountry(getVal(fv, "country"));
       }
-      if (!getVal(fv, "informothers").equals("")) {
-        enc.setInformOthers(getVal(fv, "informothers"));
-      }
+
 
       // xxxxxxx
       //add research team for GAq
@@ -1068,6 +1106,12 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
+
+                // might want to set detection status here (on the main thread)
+
+                for (MediaAsset ma: enc.getMedia()) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                }
                 Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
                 myShepherd.storeNewTask(task);
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
@@ -1094,8 +1138,8 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
       if (!spamBot) {
         
         //send submitter on to confirmSubmit.jsp
-        response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
-        
+        //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
+        WebUtils.redirectToSavedRequest(request, response, ("/confirmSubmit.jsp?number=" + encID));
         
         //start email appropriate parties
         if(CommonConfiguration.sendEmailNotifications(context)){
@@ -1153,8 +1197,18 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
             }
           
             // Email interested others
-            
-              
+            if ((enc.getInformOthersEmails()!=null)&&(enc.getInformOthersEmails().size()>0)) {
+              List<String> cOther = enc.getInformOthersEmails();
+              for (String emailTo : cOther) {
+
+                String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
+                mailer.setUrlScheme(request.getScheme());
+                es.execute(mailer);
+              }
+            }
+            /*  
             if ((enc.getInformOthers() != null) && (!enc.getInformOthers().trim().equals(""))) {
               List<String> cOther = NotificationMailer.splitEmails(enc.getInformOthers());
               for (String emailTo : cOther) {
@@ -1165,6 +1219,9 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
                 es.execute(mailer);
               }
             }
+            */
+            
+            
             es.shutdown();
           }
           catch(Exception e){

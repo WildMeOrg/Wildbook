@@ -193,8 +193,8 @@ public class MarkedIndividual implements java.io.Serializable {
         numberEncounters++;
         //refreshDependentProperties(context);
       }
-      setTaxonomyFromEncounters();  //will only set if has no value
-      setSexFromEncounters();       //likewise
+      //setTaxonomyFromEncounters();  //will only set if has no value
+      //setSexFromEncounters();       //likewise
       return isNew;
 
   }
@@ -608,6 +608,13 @@ public class MarkedIndividual implements java.io.Serializable {
       individualID = newName;
     }
 
+    public void rename(String newName) {
+      for (Encounter enc: getEncounterList()) {
+        enc.setIndividualID(newName);
+      }
+      setIndividualID(newName);
+    }
+
 
   /**
    * Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored
@@ -634,6 +641,13 @@ public class MarkedIndividual implements java.io.Serializable {
    */
   public Vector getEncounters() {
     return encounters;
+  }
+  public List<Encounter> getEncounterList() {
+    List<Encounter> encs = new ArrayList<Encounter>();
+    for (Object obj: encounters) {
+      encs.add((Encounter) obj);
+    }
+    return encs;
   }
 
     //you can choose the order of the EncounterDateComparator
@@ -1281,6 +1295,10 @@ public class MarkedIndividual implements java.io.Serializable {
     return dynamicProperties;
   }
 
+  public void setDynamicProperties(String dprop) {
+    this.dynamicProperties = dprop;
+  }
+
   public void setDynamicProperty(String name, String value) {
     name = name.replaceAll(";", "_").trim().replaceAll("%20", " ");
     value = value.replaceAll(";", "_").trim();
@@ -1680,6 +1698,7 @@ public List<String> getAllEmailsToUpdate(){
 		List<User> allUsers=new ArrayList<User>();
 		if(enc.getSubmitters()!=null)allUsers.addAll(enc.getSubmitters());
 		if(enc.getPhotographers()!=null)allUsers.addAll(enc.getPhotographers());
+		if(enc.getInformOthers()!=null)allUsers.addAll(enc.getInformOthers());
 		int numUsers=allUsers.size();
 		for(int k=0;k<numUsers;k++){
 		  User use=allUsers.get(k);
@@ -1688,7 +1707,7 @@ public List<String> getAllEmailsToUpdate(){
 		  }
 		}
 		
-		
+		/*
 		if((enc.getInformOthers()!=null)&&(!enc.getInformOthers().trim().equals(""))){
 							String photog = enc.getInformOthers();
 							if (photog.indexOf(",") != -1) {
@@ -1700,6 +1719,7 @@ public List<String> getAllEmailsToUpdate(){
 							}
 							else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
 		}
+		*/
 
 	}
 

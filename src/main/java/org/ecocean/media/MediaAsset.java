@@ -446,7 +446,7 @@ public class MediaAsset implements java.io.Serializable {
     // break the reference from Annotation-Feature that (likely) existed ... oops?
     public void removeFeature(Feature f) {
         if (features == null) return;
-        System.out.println("INFO: removeFeature() killing off " + f + " from " + this);
+        System.out.println("INFO: removeFeature() killing off " + f + " from asset id=" + this.id);
         features.remove(f);
     }
 
@@ -1140,6 +1140,15 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         if (!keywords.contains(k)) keywords.add(k);
         return keywords;
     }
+    public int numKeywords() {
+        if (keywords==null) return 0;
+        return keywords.size();
+    }
+
+    public Keyword getKeyword(int i) {
+        return keywords.get(i);
+    }
+
     public ArrayList<Keyword> getKeywords() {
         return keywords;
     }

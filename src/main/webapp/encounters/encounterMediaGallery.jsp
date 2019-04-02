@@ -28,6 +28,30 @@ java.util.*" %>
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 
+  <%!
+
+  // if there is a MediaAsset with detection status not null and no annotation that is done
+  boolean shouldEvict(Annotation ann) {
+    // idstatus complete/pending means we're done with IA (or at least done evicting cache)
+    if (IBEISIA.STATUS_COMPLETE.equals(ann.getIdentificationStatus())) return false;
+    if (IBEISIA.STATUS_PENDING.equals(ann.getIdentificationStatus())) return false;
+    if (IBEISIA.STATUS_PROCESSING.equals(ann.getIdentificationStatus())) return false;
+    MediaAsset ma = ann.getMediaAsset();
+    // detectionstatus null means we haven't done any IA
+    if (ma!=null && ma.getDetectionStatus() == null) return false;
+    System.out.println("   EMG: EVICTING cache! Ann.idStatus="+ann.getIdentificationStatus()+" and ma.detectionStatus="+ma.getDetectionStatus());
+    return true;
+  }
+
+  boolean shouldEvict(Encounter enc) {
+    for (Annotation ann: enc.getAnnotations()) {
+      if (shouldEvict(ann)) return true;
+    }
+    return false;
+  }
+
+  %>
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -99,6 +123,10 @@ function forceLink(el) {
 
 		  Encounter enc = encs.get(f);
 		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
+      if (shouldEvict(enc)) {
+        // I believe we need to evict the cache here so that we'll see detection results on the encounter page
+        org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+      }
 
       if (!enc.canUserAccess(request)) {
         System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
@@ -124,7 +152,7 @@ function forceLink(el) {
 
 		      MediaAsset ma = ann.getMediaAsset();
 		      String filename = ma.getFilename();
-		      System.out.println("    EMG: got ma at"+filename);
+		      System.out.println("    EMG: got ma at "+filename);
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
@@ -196,6 +224,12 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 						}
 						// Should fix oman images not appearing on import
 						j.put("url", ma.webURL().toString());
+
+            if (Util.stringExists(ma.getDetectionStatus())) {
+              j.put("detectionStatus",ma.getDetectionStatus());
+            } else {
+              System.out.println("DETECTION STATUS"+ma.getDetectionStatus()+" missing for ma "+ma);
+            }
 
 						all.put(j);
 					}
@@ -321,11 +355,69 @@ for (int i=0; i<captionLinks.size(); i++) {
     display:inline;
   }
 
+
+
+.ia-status-div {
+    height: 1.3em;
+    background-color: #EEE;
+    margin: 4px 10px;
+    border-radius: 5px;
+}
+
+.ia-status-div .ia-status {  /* this is the individual section (detection, identification) */
+    display: inline-block;
+    width: 45%;
+    margin: 0 2.5%;
+    cursor: pointer;
+    border-radius: 2px;
+    padding: 0 4px;
+    text-align: center;
+    font-size: 0.8em;
+}
+
+.ia-status-div .ia-status:hover {
+    color: #DD0 !important;
+}
+
+.ia-status-div .ia-state-unknown {
+    background-color: #888;
+    color: #FFF;
+}
+.ia-status-div .ia-state-complete {
+    background-color: #0C1;
+    color: #EFE;
+}
+.ia-status-div .ia-state-complete:before {
+    content: "\2713 ";
+}
+.ia-status-div .ia-state-error {
+    background-color: #B00;
+    color: #EFE;
+}
+.ia-status-div .ia-state-error:before {
+    content: "\2717 ";
+}
+.ia-status-div .ia-state-warn {
+    background-color: #F80;
+    color: #EFE;
+}
+.ia-status-div .ia-state-warn:before {
+    content: "\26A0 ";
+}
+
+.ia-status-div .ia-state-wait {
+    background-color: #333;
+    color: #EFE;
+}
+.ia-status-div .ia-state-wait:before {
+    content: "\231B ";
+}
+
 </style>
 <%
 if(request.getParameter("encounterNumber")!=null){
 %>
-	<h2><%=encprops.getProperty("gallery") %></h2>
+	<h2 onDblClick="activateAllIAStatus()"><%=encprops.getProperty("gallery") %></h2>
 <%
 }
 %>
@@ -861,6 +953,131 @@ function encounterNumberFromElement(el) {  //should be img element
 function inGalleryMode() {
     return (typeof(encounterNumber) == 'undefined');
 }
+
+
+//(for now?) this serves dual purpose:
+// 1. update asset.iaStatus hash object
+// 2. use that to update display of said info
+function updateIAStatus(asset) {
+    if (!asset) return;
+    console.info('updateIAStatus() iaStatus IN  => %s', JSON.stringify(asset.iaStatus));
+    if (asset.taskTree) {
+        asset.iaStatus.detection = _parseDetection(asset.taskTree);
+        asset.iaStatus.identification = _parseIdentification(asset.taskTree);
+    } else {
+        if (asset.features && asset.features[0] && asset.features[0].type) {
+            asset.iaStatus.detection.state = 'complete';
+            asset.iaStatus.detection.msg = 'OK: Detected annotation is present. (Detection task unavailable.)';
+        } else {
+            asset.iaStatus.detection.state = 'unknown';
+            asset.iaStatus.detection.msg = 'Seems to be no detected annotation or task. Identification still possible.';
+        }
+        asset.iaStatus.identification.state = 'unknown';
+        asset.iaStatus.identification.msg = 'Identification not yet started.';
+    }
+    console.info('updateIAStatus() iaStatus OUT => %s', JSON.stringify(asset.iaStatus));
+    var el = $('#ia-status-div-' + asset.id + '-' + asset.annotationId);
+    el.html('');
+    for (type in {detection: 0, identification: 0}) {
+        var state = asset.iaStatus[type].state || 'unknown';
+        var msg = asset.iaStatus[type].msg || 'unknown state';
+console.log('msg ----> %s  <--- %o', msg, asset.iaStatus[type]);
+        var h = '<div title="' + type + ': ' + msg + '" class="ia-status ia-state-' + state + '" id="ia-status-' + type + '">';
+        h += type;
+        h += '</div>';
+        el.append(h);
+    }
+}
+
+function _parseDetection(task) {
+    if (!task) return;
+    if (task.mediaAssetIds) { //we assume this *must* mean we are a detection task, and thats good enough.  :/
+        var rtn = { task: task };
+        if (!task.results) {
+            rtn.state = 'wait';
+            rtn.msg = 'Detection task found, but no results.  Possibly still processing?';
+        } else {
+            for (var i = 0 ; i < task.results.length ; i++) {
+                if (!task.results[i].status) continue;  //kinda cheap hack.. should probably investigate this TODO
+                //TODO actually check out what most recent has to say here....
+                rtn.state = 'complete';
+                rtn.msg = 'most recent result status _action=' + task.results[i].status._action;
+                break;
+            }
+        }
+        return rtn;
+
+    } else {
+        if (Array.isArray(task.children)) {
+            for (var i = 0 ; i < task.children.length ; i++) {
+                var rtn = _parseDetection(task.children[i]);
+                if (rtn) return rtn;
+            }
+        }
+    }
+    //if we fall thru, we must not have found any usable detection task
+    return {
+        state: 'unknown',
+        msg: 'Detection task not found. Identification still possible.'
+    };
+}
+
+function _parseIdentification(task) {
+    return { state: 'unknown', msg: 'Unknown, but has root task ' + task.id };
+}
+
+function activateAllIAStatus() {
+    $('.image-enhancer-wrapper').each(function(n, el) {
+        var mid = imageEnhancer.mediaAssetIdFromElement($(el));
+        displayIAStatus(assetById(mid));
+    });
+}
+
+//this should probably be moved to ia.IBEIS.js obviously?
+function displayIAStatus(asset) {
+    var jel = $('#image-enhancer-wrapper-' + asset.id + '-' + asset.annotationId);
+    var iadiv = $('<div id="ia-status-div-' + asset.id + '-' + asset.annotationId + '" class="ia-status-div" />');
+    jel.closest('figure').after(iadiv);
+    populateAssetIAStatus(asset, function() {
+console.info('got -> %o', asset.iaStatus);
+        updateIAStatus(asset);
+    });
+}
+
+function populateAssetIAStatus(asset, callback) {
+    asset.iaStatus = { detection: {}, identification: {}, shouldRunIdentification: true };
+    if (!asset || !asset.tasks || !Array.isArray(asset.tasks) || (asset.tasks.length < 1)) return;
+    //ordered by created, so last element is most recent
+    var recentTask = asset.tasks[asset.tasks.length - 1];
+    getTaskFullTree(recentTask.id, function(fullTask) {
+        asset.taskTree = fullTask;
+        //updateIAStatus(asset);
+        populateTaskResults(asset.taskTree, asset);  //this does updateIAStatus internally
+        if (typeof(callback) == 'function') callback(asset);
+    });
+}
+
+function getTaskFullTree(taskId, callback) {
+    jQuery.get(wildbookGlobals.baseUrl + '/ia?v2&includeChildren&taskId=' + taskId, function(rtn) {
+        var j = JSON.parse(rtn);
+        if (j && j.task) callback(j.task);
+    });
+}
+
+//note this will recurse down into children!
+function populateTaskResults(task, asset) {
+    jQuery.get(wildbookGlobals.baseUrl + '/iaLogs.jsp?taskId=' + task.id, function(rtn) {
+        task.results = JSON.parse(rtn);
+        console.log('----- results! %s => %s', task.id, rtn);
+        updateIAStatus(asset);
+    });
+    if (task.children) {
+        for (var i = 0 ; i < task.children.length ; i++) {
+            populateTaskResults(task.children[i], asset);
+        }
+    }
+}
+
 
 </script>
 <style>

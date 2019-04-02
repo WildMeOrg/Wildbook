@@ -38,6 +38,9 @@ String dirName = UploadServlet.getUploadDir(request);
 <div class="container maincontent">
 
   <h1 class="import-header">Bulk Import: Instructions</h1>
+
+  <p class="warning" style="color:#F00">WARNING: This is an alpha-level feature, meaning it is untested and expected to contain bugs. This feature is currently intended for testing only. Please contact Drew at Wild Me if you have any questions.</p>
+
   <p>The goal of this tool is to allow scientists to add large amounts of data to Flukebook at once, such as an entire season's observations, while performing the data-blending and data-integrity checks themselves.</p>
   
   <p>To ensure data integrity, this process is split into several steps with review in-between.</p>

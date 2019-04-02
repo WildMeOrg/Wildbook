@@ -338,13 +338,13 @@ var colDefn = [
 
 	{
 		key: 'individualID',
-		label: 'ID',
+		label: '<%=encprops.getProperty("ID")%>',
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
 	},
 	{
 		key: 'occurrenceID',
-		label: 'Sighting ID',
+		label: '<%=encprops.getProperty("sightingID")%>',
 		value: _occurrenceID,
 	},
   {
@@ -358,14 +358,15 @@ var colDefn = [
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
+	// {
+	// 	key: 'verbatimLocality',
+	// 	label: '<%=encprops.getProperty("location")%>',
+	// },
 	{
-		key: 'verbatimLocality',
-		label: '<%=encprops.getProperty("location")%>',
+		key: 'locationID',
+		label: '<%=encprops.getProperty("locationID")%>',
+		value: _notUndefined('locationID'),
 	},
-//	{
-//		key: 'locationID',
-// 		label: '<%=encprops.getProperty("locationID")%>',
-//	},
 	{
 		key: 'taxonomy',
 		label: '<%=encprops.getProperty("taxonomy")%>',
@@ -374,17 +375,17 @@ var colDefn = [
 	{
 		key: 'submitterID',
 		label: '<%=encprops.getProperty("submitterName")%>',
-		value: _submitterID,
+		value: _notUndefined('submitterID'),
 	},
 	{
 		key: 'creationDate',
-		label: 'Created',
+		label: '<%=encprops.getProperty("created")%>',
 		value: _colCreationDate,
 		sortValue: _colCreationDateSort,
 	},
 	{
 		key: 'modified',
-		label: 'Edit Date',
+		label: '<%=encprops.getProperty("editDate")%>',
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
@@ -724,16 +725,16 @@ console.info(percent);
 // a functor!
 function _notUndefined(fieldName) {
   function _helperFunc(o) {	
-    if (o[fieldName] == undefined) return '';
-    return o[fieldName];
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
   }
   return _helperFunc;
 }
 // non-functor version!
 function _notUndefinedValue(obj, fieldName) {
   function _helperFunc(o) {	
-    if (o[fieldName] == undefined) return '';
-    return o[fieldName];
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
   }
   return _helperFunc(obj);
 }
@@ -772,7 +773,8 @@ function _colNumberLocations(o) {
 
 function _colTaxonomy(o) {
 	var genus = _notUndefinedValue(o, 'genus');
-	var species = _notUndefinedValue(o, 'species');
+	var species = _notUndefinedValue(o, 'specificEpithet');
+	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
 	return genus+' '+species;
 }
 
@@ -1163,9 +1165,9 @@ console.log(t);
 </script>
 
 <p class="table-filter-text">
-<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="filter" />
-<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=encprops.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=encprops.getProperty("filter") %>" />
+<input type="button" value="<%=encprops.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 <div class="pageableTable-wrapper">

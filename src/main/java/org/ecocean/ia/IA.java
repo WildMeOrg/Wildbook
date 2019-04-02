@@ -22,6 +22,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
+import org.ecocean.Taxonomy;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
@@ -71,9 +72,14 @@ public class IA {
     //i think objects ingested here must(?) be persisted (and committed), as we have to assume (or we know)
     //  that these processes will use queues which operate in different (Shepherd) threads and will thus try
     //  to find the objects via the db.  :/
+    //     parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
+        return intakeMediaAssets(myShepherd, mas, null);
+    }
+    public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, Task parentTask) {
         if ((mas == null) || (mas.size() < 1)) return null;
         Task task = new Task();
+        if (parentTask != null) task.setParameters(parentTask.getParameters());
         task.setObjectMediaAssets(mas);
         myShepherd.storeNewTask(task);
 
@@ -114,6 +120,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
             one we need to make a set of subtasks
         */
 
+/*
         String iaClass = anns.get(0).getIAClass(); //IAClass is a standard with image analysis that identifies the featuretype used for identification
         List<JSONObject> opts = null;
         // below gets it working for dolphins but can be generalized easily from IA.properties
@@ -121,11 +128,12 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         String bottlenose = "dolphin_bottlenose_fin"; 
         if (bottlenose.equals(iaClass) || bottlenose.equals(inferredIaClass)) {
             System.out.println("IA.java is sending a Tursiops truncatus job");
-            opts = IBEISIA.identOpts(context, iaClass);
+            opts = IBEISIA.identOpts(context, bottlenose);
         } else { // defaults to the default ia.properties IBEISIdentOpt, in our case humpback flukes
             opts = IBEISIA.identOpts(context);
         }
-
+*/
+        List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
         if (opts.size() == 1) {
@@ -201,7 +209,7 @@ System.out.println(i + " -> " + ma);
                 if (ma == null) continue;
                 mas.add(ma);
             }
-            Task mtask = intakeMediaAssets(myShepherd, mas);
+            Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
             System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask + " for " + topTask);
             topTask.addChild(mtask);
         }
@@ -259,9 +267,21 @@ System.out.println(i + " -> " + ma);
         return url;
     }
 
-
+    //(optional!) Taxonomy will append "_Scientific_name" to label and try that.  if not available, then try just label.
+    public static String getProperty(String context, String label, Taxonomy tax, String def) {
+        if ((tax != null) && (tax.getScientificName() != null)) {
+            String propKey = label + "_".concat(tax.getScientificName()).replaceAll(" ", "_");
+            System.out.println("[INFO] IA.getProperty() using propKey=" + propKey + " based on " + tax);
+            String val = getProperty(context, propKey, (String)null);
+            if (val != null) return val;
+        }
+        return IA.getProperty(context, label, def);
+    }
+    public static String getProperty(String context, String label, Taxonomy tax) {  //no-default version
+        return getProperty(context, label, tax, null);
+    }
     public static String getProperty(String context, String label) {  //no-default flavor
-        return getProperty(context, label, null);
+        return getProperty(context, label, (String)null);
     }
     public static String getProperty(String context, String label, String def) {
         Properties p = getProperties(context);

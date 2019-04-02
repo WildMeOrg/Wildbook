@@ -25,7 +25,9 @@ import org.ecocean.Shepherd;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.Annotation;
+import org.ecocean.Taxonomy;
 import org.ecocean.identity.IBEISIA;
+import org.ecocean.ia.IA;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -140,6 +142,8 @@ public class RestKeyword extends HttpServlet {
                           }
                       }
   
+                      Taxonomy taxy = IBEISIA.taxonomyFromMediaAssets(context, mas); // keeps our logic consistent w/ IA stuff
+
   System.out.println("INFO: RestKeyword mas = " + mas.toString());
   System.out.println("INFO: RestKeyword toAdd = " + toAdd.toString());
   System.out.println("INFO: RestKeyword toRemove = " + toRemove.toString());
@@ -161,6 +165,7 @@ public class RestKeyword extends HttpServlet {
                               // We could simply use kwName as the viewpoint, but
                               // not sure if IA would play nicely with "Tail Fluke" for humpbacks
                               String viewpoint = getViewpoint(kwName);
+
                               if (viewpoint!=null) {
                                 ArrayList<Annotation> anns = ma.getAnnotations();
                                 for (Annotation ann: anns) {
@@ -221,7 +226,7 @@ public class RestKeyword extends HttpServlet {
     }
 
     // logic custom to Flukebook, currently only applicable for dolphins
-    public String getViewpoint(String kwName) {
+    public static String getViewpoint(String kwName) {
       if (kwName==null) return null;
       String lower = kwName.toLowerCase();
       if (lower.contains("dorsal")) {
@@ -229,6 +234,39 @@ public class RestKeyword extends HttpServlet {
         if (lower.contains("right")) return "right";
       }
       return null;
+    }
+
+    // This gets the corresponding IA viewpoint for a kwName, taxonomy (opt null), and context
+    // the properties keys are of the format:
+    //    viewpointModelTag_Scintificus_namus_Key_Word_Name=viewpointValueForIa
+    public static String getViewpoint(String kwName, Taxonomy taxy, String context) {
+      if (kwName==null) return null;
+      // taxonomyStr is either "" or something like "_Tursiops_truncatus_"
+      String taxonomyStr = (taxy==null) ? "" : "_"+taxy.getScientificName().replaceAll(" ","_")+"_";
+      String propKey = "viewpointModelTag"+taxonomyStr+kwName.replaceAll(" ","_");
+      return IA.getProperty(context, propKey);
+    }
+
+    // TODO: make this one generic
+    public static String getKwNameFromIaViewpoint(String iaViewpoint) {
+      if (iaViewpoint==null) return null;
+      String lower = iaViewpoint.toLowerCase();
+      if (lower.contains("left")) return "Left Dorsal Fin";
+      if (lower.contains("right")) return "Right Dorsal Fin";
+      return null;
+    }
+
+    // This gets the corresponding kwName for an iaViewpoint, taxonomy (opt null), and context
+    // the properties keys are of the format:
+    //    viewpointModelTag_Scintificus_namus_iaViewpoint=kwName
+    public static String getKwNameFromIaViewpoint(String iaViewpoint, Taxonomy taxy, String context) {
+      if (iaViewpoint==null) return null;
+      String lower = iaViewpoint.toLowerCase();
+      // taxonomyStr is either "" or something like "_Tursiops_truncatus_"
+      String taxonomyStr = (taxy==null) ? "" : "_"+taxy.getScientificName().replaceAll(" ","_")+"_";
+      String propKey = "viewpointModelTag"+taxonomyStr+iaViewpoint.replaceAll(" ","_");
+      System.out.println("[INFO]: getKwNameFromIaViewpoint looking for propKey "+propKey);
+      return IA.getProperty(context, propKey);
     }
 
 

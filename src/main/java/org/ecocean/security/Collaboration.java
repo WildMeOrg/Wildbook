@@ -186,27 +186,53 @@ public class Collaboration implements java.io.Serializable {
     return returnMe;
 	}
 
-	public static Collaboration collaborationBetweenUsers(User u1, User u2, String context) {
-		return collaborationBetweenUsers(context, u1.getUsername(), u2.getUsername());
-	}
+	// public static Collaboration collaborationBetweenUsers(User u1, User u2, String context) {
+	// 	return collaborationBetweenUsers(context, u1.getUsername(), u2.getUsername());
+	// }
 
 	public static Collaboration collaborationBetweenUsers(Shepherd myShepherd, String u1, String u2) {
 		return findCollaborationWithUser(u2, collaborationsForUser(myShepherd, u1));
 	}
 
-
-
-	public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
-		return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
+	public static Collaboration collaborationBetweenUsers(User u1, User u2, String context) {
+		if (u1==null || u2==null) return null;
+		return collaborationBetweenUsers(u1.getUsername(), u2.getUsername(), context);
 	}
+
+	public static Collaboration collaborationBetweenUsers(String username1, String username2, String context) {
+		Shepherd myShepherd = new Shepherd(context);
+		if (username1==null || username2==null) return null;
+		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ";
+		queryString += "(username1 == '"+username1+"' && username2 == '"+username2+"') || ";
+		queryString += "(username1 == '"+username2+"' && username2 == '"+username1+"')";
+		myShepherd.setAction("collaborationBetweenUsers");
+		myShepherd.beginDBTransaction();
+		Query query = myShepherd.getPM().newQuery(queryString);
+		List results=myShepherd.getAllOccurrences(query);
+		query.closeAll();
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+
+		if (results == null || results.size()<1) return null;
+		return ((Collaboration) results.get(0));
+	}
+
+
+
+	// public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
+	// 	return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
+	// }
 	public static boolean canCollaborate(User u1, User u2, String context) {
-		return ( u1.hasSharing() && u2.hasSharing() &&
-			     canCollaborate(context, u1.getUsername(), u2.getUsername()));
+		if (u1.equals(u2)) return true;
+		Collaboration c = collaborationBetweenUsers(u1, u2, context);
+		if (c == null) return false;
+		if (c.getState().equals(STATE_APPROVED)) return true;
+		return false;
 	}
 	public static boolean canCollaborate(String context, String u1, String u2) {
 		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
 		if (u1.equals(u2)) return true;
-		Collaboration c = collaborationBetweenUsers(context, u1, u2);
+		Collaboration c = collaborationBetweenUsers(u1, u2, context);
 		if (c == null) return false;
 		if (c.getState().equals(STATE_APPROVED)) return true;
 		return false;
@@ -263,9 +289,10 @@ public class Collaboration implements java.io.Serializable {
 
 	public static boolean canUserViewOwnedObject(User viewer, User owner) {
 		if (viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
-		return (viewer!=null && 
+		return ((viewer!=null && 
 				viewer.hasSharing() && 
-				(owner==null || owner.hasSharing()));
+				(owner==null || owner.hasSharing())) 
+				|| canUserAccessOwnedObject(owner.getUsername(),request));
 	}
 
 	public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
