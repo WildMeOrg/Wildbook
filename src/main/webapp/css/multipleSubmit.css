@@ -1,9 +1,15 @@
 .btn-file-selector {
     font-size: 2em;
     padding: 15px;
-    padding-left: 33%;
+    margin-left: 33%;
+    margin-top: 45px;
+    margin-bottom: 45px;
 }
 
 .hidden-input {
     display: none;
+}
+
+.recaptcha-div {
+    margin-left: 33%;
 }

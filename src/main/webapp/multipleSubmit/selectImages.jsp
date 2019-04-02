@@ -13,8 +13,8 @@
     String context=ServletUtilities.getContext(request);
     Properties props = new Properties();
     props = ShepherdProperties.getProperties("multipleSubmit.properties", langCode,context);
-    //Properties recaptchaProps = new Properties();
-    //recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", langCode,context);
+    Properties recaptchaProps = new Properties();
+    recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", langCode,context);
 %>
 
 
@@ -24,7 +24,8 @@
     <div class="row">
         <div class="col-xs-12 col-lg-12">
             <h2><%= props.getProperty("pageHeader")%></h2>
-            <p><%= props.getProperty("headerDesc")%></p>
+            <p><b><%= props.getProperty("headerDesc")%></b></p>
+            <p>[ make link to instruction page ?or just a hover? idunno ]</p>
             <hr>
             <br>
 
@@ -38,29 +39,31 @@
 
                 <!-- specify number of individuals and number of encounters in two input items -->
 
-                <div class="row"> 
+                <div class="row form-file-selection"> 
                     <div class="col-sm-4">
-                        <label>Specify number of individuals:</label>
+                        <label><%= props.getProperty("specifyIndyNum")%></label>
                     </div>
                     <div class="col-sm-4">
-                        <input type="number" name="numberIndividuals" min="1" max="50">
+                        <input type="number" name="numberIndividuals" min="1" max="48">
                     </div>
                 </div>
 
                 <br>
 
-                <div class="row">
+                <div class="row form-file-selection">
                     <div class="col-sm-4">
-                        <label>Specify number of encounters:</label>
+                        <label><%= props.getProperty("specifyEncNum")%></label>
                     </div>
                     <div class="col-sm-4"> 
-                        <input type="number" name="numberEncounters" min="1" max="50">
+                        <input type="number" name="numberEncounters" min="1" max="48">
                     </div>
                 </div>
                 
+                <br>
+
                 <!-- uses a button to click file input so we can style easier (file inputs suck to style) -->
 
-                <div>    
+                <div class="form-file-selection">    
                     <input class="btn btn-large btn-file-selector" type="button" onclick="document.getElementById('file-selector-input').click()" value="Select Files" />
                 </div>
                 <input id="file-selector-input" name="allFiles" class="hidden-input" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" style="display:none;" multiple size="50" onChange="updateList(this);" />
@@ -68,11 +71,22 @@
                 <br>
 
                 <!-- Recaptcha widget -->
-                <%= ServletUtilities.captchaWidget(request) %>
+                <div class="recaptcha-div hidden-input form-define-metadata">
+
+                    <%= ServletUtilities.captchaWidget(request) %>
+
+                </div>
 
                 <br>
 
-                <button class="btn btn-large" id="sendButton" type="submit" onclick="return sendButtonClicked();" disabled>Continue</button>
+                <!-- next page -->
+                <button class="btn btn-large" id="continueButton" type="button" onclick="continueButtonClicked();"><%= props.getProperty("continue")%></button>
+
+                <!-- back to file selection -->
+                <button class="btn btn-large hidden-input" id="backButton" type="button" onclick="backButtonClicked();"><%= props.getProperty("back")%></button>
+
+                <!-- actually done now, send it off -->
+                <button class="btn btn-large hidden-input" id="sendButton" type="submit" onclick="sendButtonClicked();"><%= props.getProperty("complete")%></button>
 
             </form>
         </div> 
