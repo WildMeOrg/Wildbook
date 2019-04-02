@@ -36,6 +36,16 @@ if (request.getParameter("acmId") != null) {
 			jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
 		}
                 janns.put(jann);
+				if (ann.getMatchAgainst()==true) {
+					JSONObject jann = new JSONObject();
+					jann.put("id", ann.getId());
+					jann.put("acmId", ann.getAcmId());
+					MediaAsset ma = ann.getMediaAsset();
+					if (ma != null) {
+						jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
+					}
+					janns.put(jann);
+				}
             }
 	    rtn.put("success", true);
             rtn.put("annotations", janns);
@@ -175,42 +185,62 @@ var tasks = {};
 var jobIdMap = {};
 var timers = {};
 var matchInstructions = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
-
 function init2() {   //called from wildbook.init() when finished
 	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div>');
 	parseTaskIds();
 	for (var i = 0 ; i < taskIds.length ; i++) {
-		tryTaskId(taskIds[i]);
+		var tid = taskIds[i];
+		tryTaskId(tid);
 	}
+	// If we don't have any ID task elements, it's reasonable to assume we are waiting for something.
+	// If we don't have anything but null task types after a while, lets just reload the page and get updated info. 
+	// We get to this condition when the page loads too fast and you have only __NULL__ type tasks, 
+	// and no children to traverse.
+	$('.maincontent').html("<div id=\"initial-waiter\" class=\"waiting throbbing\"><p>processing request</p></div>");
+	var reloadTimeout = setTimeout(function(){
+		var onlyNullTaskType = true;
+		for (var i = 0 ; i < taskIds.length ; i++) {
+			var processedTask = tasks[tid];
+			console.log("Processed Task: "+JSON.stringify(processedTask));
+			var type = wildbook.IA.getPluginType(processedTask);
+			console.log("TYPE : "+type);
+			if (type!="__NULL__"||processedTask.children) {
+				onlyNullTaskType = false;
+				$('#initial-waiter').remove();
+			}
+		}
+		console.log("-- >> What are the current tasks? : "+JSON.stringify(tasks));
+		if (onlyNullTaskType==true) {
+			console.log("RELOADING!");
+			clearTimeout(reloadTimeout);
+			location.reload(true);
+		} else {
+			clearTimeout(reloadTimeout);
+			console.log("NOT RELOADING!!!!!");
+		}
+	},4000);
 }
-
 $(document).ready(function() { wildbook.init(function() { init2(); }); });
-
-
 function parseTaskIds() {
 	var a = window.location.search.substring(1).split('&');
 	for (var i = 0 ; i < a.length ; i++) {
 		if (a[i].indexOf('taskId=') == 0) taskIds.push(a[i].substring(7));
 	}
 }
-
 function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task); //this will be json task (w/children)
+	    console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
         } else {
             alert('Error fetching task id=' + tid);
             console.error('tryTaskId(%s) failed: %o', tid, x);
         }
     });
 }
-
-
 function getCachedTask(tid) {
     return tasks[tid];
 }
-
-
 function cacheTaskAndChildren(task) {
     if (!task || !task.id || tasks[task.id]) return;
     tasks[task.id] = task;
@@ -279,6 +309,10 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 				}
 			}
 			if (!gotResult) {
+				//console.log("Element length: "+$('#task-' + tid).length+" Element contents: "+document.getElementsByClassName("elementa")[0].innerHTML);
+				if ($('#task-' + tid).length) {
+					$('#initial-waiter').remove();
+				}
 				//$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</span></p>');
 				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
 				if (jobIdMap[tid]) {
@@ -322,6 +356,7 @@ console.info('age = %.2fmin', age / (60*1000));
 				}
 			} else {
 				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+				$('#initial-waiter').remove();
 			}
 		},
 		error: function(a,b,c) {
@@ -505,11 +540,10 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 otherAnnots.push(res.responseJSON.annotations[i]);
             } else {
                 mainAsset = res.responseJSON.annotations[i].asset;
+		$('#initial-waiter').remove();
             }
         }
-
         if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
-
         if (mainAsset) {
 console.info('mainAsset -> %o', mainAsset);
 console.info('illustrationUrl '+illustrationUrl);

@@ -7,6 +7,8 @@ import java.lang.String;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
+import java.io.IOException;
 
 import javax.jdo.Query;
 
@@ -23,7 +25,13 @@ import org.json.JSONObject;
 //A non-persistent object representing a single StoredQuery. 
 public class CachedQuery {
   
+    private StoredQuery storedQuery = null;
+    public static final String STATUS_PENDING = "pending";  //pending review (needs action by user)
+    public static final String CACHE_PROPERTIES_PROPFILE = "cache.properties";
+    public static final String CACHE_PROPERTIES_ROOTDIR = "cacheRootDirectory";
+
     public CachedQuery(StoredQuery sq){
+      this.storedQuery = sq;
       this.uuid=sq.getUUID();
       this.queryString=sq.getQueryString();
       this.name=sq.getName();
@@ -118,7 +126,7 @@ public class CachedQuery {
       myShepherd.closeDBTransaction();
     }
     
-    public JSONObject executeCollectionQuery(Shepherd myShepherd,boolean useSerializedJSONCache){
+    public JSONObject executeCollectionQuery(Shepherd myShepherd,boolean useSerializedJSONCache) throws IOException {
 
       //first, can we use serialized cache and if so, does it exist
       if(useSerializedJSONCache){
@@ -133,7 +141,7 @@ public class CachedQuery {
             //load the cache file and return the JSONObject
             //System.out.println("*****Status 1a");
             nextExpirationTimeout=time+expirationTimeoutDuration;
-            return loadCachedJSON(myShepherd); 
+            return loadCachedJSON();
           }
           //gotta regen the cache
           else{
@@ -216,7 +224,7 @@ public class CachedQuery {
       return collectionQueryCount;
     } 
     
-    public synchronized void invalidate(){
+    public synchronized void invalidate() throws IOException {
       collectionQueryCount=null;
       jsonSerializedQueryResult=null;
       
@@ -283,29 +291,30 @@ public class CachedQuery {
      return null;
    }  
    
-   private JSONObject serializeCollectionToJSON(Collection c, Shepherd myShepherd){
+   private JSONObject serializeCollectionToJSON(Collection c, Shepherd myShepherd) {
+        File cfile = null; 
      try{
        //System.out.println("in serializeCollectionToJSON for query: "+getName());
        JSONObject jsonobj = convertToJson((Collection)c, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext());
        jsonSerializedQueryResult=jsonobj;
-       Util.writeToFile(jsonobj.toString(), getCacheFile().getAbsolutePath());
+       cfile = getCacheFile();
+       Util.writeToFile(jsonobj.toString(), cfile.getAbsolutePath());
        //System.out.println("Checking does JSON file exist? "+getCacheFile().exists());
        return jsonobj;
      }
      catch(Exception e){
+        System.out.println("NOTE: you must have tomcat-writeable directory set for " + CACHE_PROPERTIES_ROOTDIR + " in " + CACHE_PROPERTIES_PROPFILE);
+        if (cfile != null) System.out.println(" dir = " + cfile.getParentFile());
        e.printStackTrace();
        return null;
      }
    }
    
-   public synchronized JSONObject loadCachedJSON(Shepherd myShepherd){
+   public synchronized JSONObject loadCachedJSON() {
      //just load and return the List<Object> from the cache
      
      //System.out.println("loading cached JSON: ");
      try{
-       String writePath=ShepherdProperties.getProperties("cache.properties","").getProperty("cacheRootDirectory");
-       if(!writePath.endsWith("/"))writePath+="/";
-       writePath+=getName()+"/"+getName()+".json";
        File sFile=getCacheFile();
        //System.out.println("loading cached JSON: "+sFile.getAbsolutePath());
        
@@ -327,16 +336,30 @@ public class CachedQuery {
      }
      return null;
    }
-   
-   public File getCacheFile(){
-     String writePath=ShepherdProperties.getProperties("cache.properties","").getProperty("cacheRootDirectory");
-     if(!writePath.endsWith("/"))writePath+="/";
-     writePath+=getName()+".json";
-     //System.out.println("Cache file path to: "+writePath);
-     return new File(writePath);
-   }
-   
 
+    //this only loads from disk if "it is necessary" (TBD?)
+    public synchronized JSONObject loadCachedJSONIfNeeded() {
+        if (jsonSerializedQueryResult != null) return jsonSerializedQueryResult;
+        return loadCachedJSON();
+    }
+
+    public File getCacheFile() throws IOException {
+        Properties cprops = null;
+        try {
+            cprops = ShepherdProperties.getProperties(CACHE_PROPERTIES_PROPFILE, "");
+        } catch (java.lang.NullPointerException npe) {}  //this is thrown above if we dont have a file, so we catch it, then:
+        if (cprops == null) throw new IOException("CachedQuery.getCacheFile() failed to find " + CACHE_PROPERTIES_PROPFILE);
+        String writePath = cprops.getProperty(CACHE_PROPERTIES_ROOTDIR);
+        if (writePath == null) throw new IOException("CachedQuery.getCacheFile() must have set " + CACHE_PROPERTIES_ROOTDIR + " (tomcat readable) in " + CACHE_PROPERTIES_PROPFILE);
+        if(!writePath.endsWith("/"))writePath+="/";
+        writePath+=getName()+".json";
+        //System.out.println("Cache file path to: "+writePath);
+        return new File(writePath);
+    }
+
+    public StoredQuery getStoredQuery() {
+        return storedQuery;
+    }
   
 
 }

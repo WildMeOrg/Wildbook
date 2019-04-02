@@ -471,7 +471,7 @@ function FSControl(controlDiv, map) {
         <%
           for (int n = 0; n < totalLocIDs; n++) {
             String word = locIDs.get(n);
-            if (!word.equals("")) {
+            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
         %>
         <option value="<%=word%>"><%=word%>
         </option>
@@ -657,7 +657,7 @@ function FSControl(controlDiv, map) {
         if (totalVBDs > 1) {
       %>
 
-      <select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField"
+      <select multiple size="5" name="verbatimEventDateField"
               id="verbatimEventDateField">
         <option value="None"></option>
         <%

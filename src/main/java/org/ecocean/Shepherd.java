@@ -154,7 +154,7 @@ public class Shepherd {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
+      //System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new Annotation in Shepherd.storeNewAnnotation().");
@@ -169,7 +169,7 @@ public class Shepherd {
     try {
       pm.makePersistent(wSpace);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
+      //System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new workspace in shepherd.storeNewWorkspace().");
@@ -1035,7 +1035,7 @@ public class Shepherd {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
-      System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
+      //System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
@@ -3340,7 +3340,7 @@ public class Shepherd {
         list = new ArrayList<User>(c);
       }
       users.closeAll();
-      System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
+      //System.out.println("Shepherd.getAllUsers() found "+list.size()+" users");
       return list;
     }
     catch (Exception npe) {
@@ -4316,8 +4316,8 @@ public class Shepherd {
       String thisUser=allUsers.get(i);
       if((!thisUser.trim().equals(""))&&(getUser(thisUser)!=null)){
 
-        if(qc.getQueryByName(("numRecentEncounters_"+thisUser), getContext())!=null){
-          CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+thisUser), getContext());
+        if(qc.getQueryByName(("numRecentEncounters_"+thisUser))!=null){
+          CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+thisUser));
           matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
         }
         
