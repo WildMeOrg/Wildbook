@@ -113,19 +113,19 @@ public class AnnotationEdit extends HttpServlet {
                         if (indivId1 != null) {
                             MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(indivId1);
                             if (indiv != null) {
-                                indiv.removeEncounter(enc1, context);
-                                indiv.addEncounter(enc2, context);
+                                indiv.removeEncounter(enc1);
+                                indiv.addEncounter(enc2);
                             }
                         }
                         if (indivId2 != null) {
                             MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(indivId2);
                             if (indiv != null) {
-                                indiv.removeEncounter(enc2, context);
-                                indiv.addEncounter(enc1, context);
+                                indiv.removeEncounter(enc2);
+                                indiv.addEncounter(enc1);
                             }
                         }
-                        enc2.setIndividualID(indivId1);
-                        enc1.setIndividualID(indivId2);
+                        //enc2.setIndividualID(indivId1);
+                        //enc1.setIndividualID(indivId2);
                         System.out.println("INFO: AnnotationEdit swapped MarkedIndividual ids - enc=" + enc1.getCatalogNumber() + "[annot=" + annot.getId() + "]=>(" + enc1.getIndividualID() + "); enc=" + enc2.getCatalogNumber() + "[annot=" + swapAnnot.getId() + "]=>(" + enc2.getIndividualID() + ")");
                         rtn.put("success", true);
                         rtn.put("updatedMarkedIndividualId1", indivId2);
@@ -200,7 +200,7 @@ public class AnnotationEdit extends HttpServlet {
                 Encounter enc = annot.findEncounter(myShepherd);
                 if (enc.hasMarkedIndividual()) {
                     MarkedIndividual oldIndiv = myShepherd.getMarkedIndividualQuiet(enc.getIndividualID());
-                    oldIndiv.removeEncounter(enc, context);
+                    oldIndiv.removeEncounter(enc);
                 }
                 boolean newIndiv = false;
                 MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(assignIndivId);
@@ -208,9 +208,9 @@ public class AnnotationEdit extends HttpServlet {
                     indiv = new MarkedIndividual(assignIndivId, enc);
                     newIndiv = true;
                 } else {
-                    indiv.addEncounter(enc, context);
+                    indiv.addEncounter(enc);
                 }
-                enc.setIndividualID(assignIndivId);
+                //enc.setIndividualID(assignIndivId);
                 System.out.println("INFO: AnnotationEdit assigned " + indiv + " on " + enc + " via " + annot);
                 rtn.put("success", true);
                 rtn.put("newMarkedIndividual", newIndiv);

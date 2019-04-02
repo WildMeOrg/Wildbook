@@ -89,9 +89,9 @@ public class EncounterQueryProcessor extends QueryProcessor {
     if(request.getParameter("resightOnly")!=null) {
       //String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID != null)";
+        filter+="(individual != null)";
       }
-      else{filter+=" && (individualID != null)";}
+      else{filter+=" && (individual != null)";}
       prettyPrint.append("Identified and resighted.<br />");
     }
     //end resighted filter--------------------------------------------------------------------------------------
@@ -99,9 +99,9 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //filter for unassigned encounters------------------------------------------
     if(request.getParameter("unassigned")!=null) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID == null)";
+        filter+="(individual == null)";
       }
-      else{filter+=" && (individualID == null)";}
+      else{filter+=" && (individual == null)";}
       prettyPrint.append("Unidentified.<br />");
     }
     //end unassigned filter--------------------------------------------------------------------------------------
@@ -216,10 +216,10 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 String kwParam=str.nextToken().trim();
                 if(!kwParam.equals("")){
                   if(locIDFilter.equals("(")){
-                    locIDFilter+=" individualID == \""+kwParam+"\"";
+                    locIDFilter+=" individual.individualID == \""+kwParam+"\"";
                   }
                   else{
-                    locIDFilter+=" || individualID == \""+kwParam+"\"";
+                    locIDFilter+=" || individual.individualID == \""+kwParam+"\"";
                   }
                   prettyPrint.append(kwParam+" ");
                 }

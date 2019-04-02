@@ -112,11 +112,11 @@ public class IndividualCreate extends HttpServlet {
           MarkedIndividual newShark = null;
           try {
             newShark = new MarkedIndividual(newIndividualID, enc2make);
-            enc2make.assignToMarkedIndividual(newIndividualID);
+            //enc2make.assignToMarkedIndividual(newIndividualID);
             enc2make.setMatchedBy("Unmatched first encounter");
             newShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + newIndividualID + ".</p>");
             newShark.setDateTimeCreated(ServletUtilities.getDate());
-            newShark.refreshDependentProperties(context);
+            newShark.refreshDependentProperties();
             
             ok2add=myShepherd.addMarkedIndividual(newShark);
             

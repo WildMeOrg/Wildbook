@@ -102,13 +102,13 @@ public class EncounterVMData extends HttpServlet {
             	                                        if ((candEnc != null) && ServletUtilities.isUserAuthorizedForEncounter(candEnc, request)) {
       					            candEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
       					            candEnc.setMatchedBy("Visual Matcher");
-                                                          indiv.addEncounter(candEnc, context);
+                                                          indiv.addEncounter(candEnc);
                                                       }
       
       						myShepherd.addMarkedIndividual(indiv);
                 } 
       
-      					enc.assignToMarkedIndividual(matchID);
+      					//enc.assignToMarkedIndividual(matchID);
       					enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
       					enc.setMatchedBy("Visual Matcher");
       					myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());

@@ -2347,7 +2347,7 @@ System.out.println(" ============ dt millis = " + dt);
         int startE = 0;
         if (indiv == null) {
             indiv = new MarkedIndividual(individualId, encs.get(0));
-            encs.get(0).setIndividualID(individualId);
+            //encs.get(0).setIndividualID(individualId);
             startE = 1;
             System.out.println("INFO: assignFromIA() created " + indiv);
             rtn.put("newMarkedIndividual", indiv);
@@ -2357,8 +2357,8 @@ System.out.println(" ============ dt millis = " + dt);
                 System.out.println("INFO: " + encs.get(i) + " already was assigned to indiv; skipping");
                 continue;
             }
-            indiv.addEncounter(encs.get(i), myShepherd.getContext());
-            encs.get(i).setIndividualID(individualId);
+            indiv.addEncounter(encs.get(i));
+            //encs.get(i).setIndividualID(individualId);
         }
         indiv.refreshNumberEncounters();
 
@@ -2435,7 +2435,7 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         int startE = 0;
         if (indiv == null) {
             indiv = new MarkedIndividual(individualId, encs.get(0));
-            encs.get(0).setIndividualID(individualId);
+            //encs.get(0).setIndividualID(individualId);
             startE = 1;
             System.out.println("INFO: assignFromIANoCreate() created " + indiv);
             rtn.put("newMarkedIndividual", indiv);
@@ -2445,8 +2445,8 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
                 System.out.println("INFO: " + encs.get(i) + " already was assigned to indiv; skipping");
                 continue;
             }
-            indiv.addEncounter(encs.get(i), myShepherd.getContext());
-            encs.get(i).setIndividualID(individualId);
+            indiv.addEncounter(encs.get(i));
+            //encs.get(i).setIndividualID(individualId);
         }
 
         rtn.put("encounters", encs);

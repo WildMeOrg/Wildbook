@@ -57,6 +57,19 @@ static int demoteAnnotations(Encounter enc) {
     return enc.getAnnotations().size();
 }
 
+static int killAnnotations(Encounter enc, Shepherd myShepherd) {
+    if (enc == null) return -1;
+    if (enc.getAnnotations() == null) return 0;
+    int ct = 0;
+    for (Annotation ann : enc.getAnnotations()) {
+        ct++;
+        System.out.println("resolveDuplicates: detaching and deleting " + ann);
+        ann.detachFromMediaAsset();  //this gets rid of feature, btw
+        myShepherd.getPM().deletePersistent(ann);
+    }
+    return ct;
+}
+
 %><%
 
 if ("post".equals(request.getQueryString())) {
@@ -90,7 +103,7 @@ if ("post".equals(request.getQueryString())) {
             Encounter enc = myShepherd.getEncounter(encDel.optString(i, null));
             if (enc == null) continue;
             System.out.println("resolveDuplicates: DELETE " + enc);
-            demoteAnnotations(enc);
+            killAnnotations(enc, myShepherd);
             msg += " | DEL=" + enc.getCatalogNumber();
             myShepherd.getPM().deletePersistent(enc);
         }
@@ -173,14 +186,15 @@ if (data) {
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.13.4/dist/bootstrap-table.min.css">
+    <link rel="stylesheet" href="../javascript/bootstrap-table/bootstrap-table.min.css">
 
     <!-- jQuery first, then Popper.js, then Bootstrap JS, and then Bootstrap Table JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.6.2/core.min.js"></script>
-    <script src="https://unpkg.com/bootstrap-table@1.13.4/dist/bootstrap-table.min.js"></script>
+    <script src="../javascript/bootstrap-table/bootstrap-table.min.js"></script>
+    <script src="../javascript/bootstrap-table/extensions/multiple-sort/bootstrap-table-multiple-sort.min.js"></script>
 
 <%
 
@@ -257,7 +271,11 @@ input[type="button"] {
 .controls {
     position: absolute;
     padding-left: 10px;
-    top: 30px;
+    top: 60px;
+    display: inline-block;
+}
+
+.header-div {
     display: inline-block;
 }
 
@@ -281,6 +299,11 @@ input[type="button"] {
     color: #180;
 }
 
+#save-message {
+    padding: 10px;
+    font-size: 0.9em;
+}
+
 </style>
 <script>
 var resolveAnnotAcmId = '<%=resolveAnnotAcmId%>';
@@ -289,9 +312,6 @@ $(document).ready(function() {
     findDiff();
     resort();
     $('#encs .enc:first').addClass('enc-chosen');
-    $('.enc-id').on('click', function(ev) {
-        openInTab('../encounters/encounter.jsp?number=' + ev.target.innerText);
-    });
 });
 
 
@@ -302,6 +322,7 @@ function openInTab(url) {
 
 function save() {
     $('#save-button').hide();
+    $('#save-message').remove();
     var mainId = $('.enc:first').attr('id');
     var upf = {};
     var edel = new Array();
@@ -309,7 +330,7 @@ function save() {
         edel.push(el.id);
     });
     var edup = new Array();
-    $('.enc:not(.action-delete):not(:first)').each(function(i, el) {
+    $('.enc.action-duplicate').each(function(i, el) {
         edup.push(el.id);
     });
 
@@ -321,6 +342,12 @@ function save() {
         updateFields: upf
     };
 
+    if ((edel.length < 1) && (edup.length < 1)) {
+        $('body').prepend('<p id="save-message">no annots were marked for duplication / deletion</p>');
+        $('#save-button').show();
+        return;
+    }
+
     $.ajax({
         url: 'resolveDuplicates.jsp?post',
         data: JSON.stringify(data),
@@ -329,9 +356,9 @@ function save() {
         complete: function(d) {
             console.log('complete: %o', d);
             if (!d.responseJSON) {
-                $('body').prepend('<p><b>ERROR?</b>: ' + JSON.stringify(d) + '</p>');
+                $('body').prepend('<p id="save-message"><b>ERROR?</b>: ' + JSON.stringify(d) + '</p>');
             } else {
-                $('body').prepend("<p style=\"padding: 10px; font-size: 0.9em;\">" + (d.responseJSON.error || d.responseJSON.message) + "</p>");
+                $('body').prepend('<p id="save-message">' + (d.responseJSON.error || d.responseJSON.message) + "</p>");
             }
         },
         type: 'POST'
@@ -340,21 +367,15 @@ function save() {
 
 function setActionAll(which) {
     $('.action-div [value="' + which + '"]').prop('checked', true);
-    if (which == 'delete') {
-        $('.enc:not(:first)').addClass('action-delete');
-    } else {
-        $('.enc').removeClass('action-delete');
-    }
+    $('.enc').removeClass('action-delete').removeClass('action-ignore').removeClass('action-duplicate');
+    $('.enc:not(:first)').addClass('action-' + which);
 }
 
 function toggleAction(el) {  // delete / mark duplicate radio checkboxes
     var encId = el.getAttribute('name').substring(7);
+    $('#' + encId).removeClass('action-delete').removeClass('action-ignore').removeClass('action-duplicate');
     var val = $('[name="action-' + encId + '"]:checked').val();
-    if (val == 'delete') {
-        $('#' + encId).addClass('action-delete');
-    } else {
-        $('#' + encId).removeClass('action-delete');
-    }
+    $('#' + encId).addClass('action-' + val);
 }
 
 var top2 = false;
@@ -362,6 +383,10 @@ function toggleTop2() {
     top2 = !top2;
     $('.enc .prop').hide();
     findDiff(top2);
+}
+
+function toggleDeleteVisible() {
+    $('.action-delete').toggle();
 }
 
 function addHover() {
@@ -438,6 +463,11 @@ function resort() {
     $('.enc-id').each(function(i, el) {
         $(el).before('<span class="ect">' + (i+1) + '</span>');
     });
+
+    $('.enc-id').on('click', function(ev) {
+        //openInTab('../encounters/encounter.jsp?number=' + ev.target.innerText);
+        openInTab('../obrowse.jsp?type=Encounter&id=' + ev.target.innerText);
+    });
 }
 
 
@@ -467,6 +497,7 @@ function makeMain(encId) {
 
 <div style="padding: 12px;">
         <input type="button" value="toggle top2 comp" onClick="return toggleTop2();" />
+        <input type="button" value="toggle delete visible" onClick="return toggleDeleteVisible();" />
         <input type="button" value="all delete" onClick="setActionAll('delete');" />
         <input type="button" value="all duplicate" onClick="setActionAll('duplicate');" />
         <input id="save-button" type="button" style="background-color: red;" value="SAVE CHANGES" onClick="save();" />
@@ -495,13 +526,20 @@ function makeMain(encId) {
     for (Encounter enc : encs) {
         int numAnns = ((enc.getAnnotations() == null) ? 0 : enc.getAnnotations().size());
         out.println("<div data-adjust=\"0\" data-numanns=\"" + numAnns + "\" class=\"enc\" id=\"" + enc.getCatalogNumber() + "\">");
-        out.println("<b class=\"enc-id\">" + enc.getCatalogNumber() + "</b> (" + numAnns + " anns)");
+        out.println("<div class=\"header-div\"><b class=\"enc-id\">" + enc.getCatalogNumber() + "</b> (" + numAnns + " anns)<br /><b>assets:</b> ");
+        for (MediaAsset ma : enc.getMedia()) {
+            String ftNote = "";
+            if ((ma.getFeatures() != null) && (ma.getFeatures().size() > 1)) ftNote = ":" + ma.getFeatures().size();
+            out.println("<a target=\"new\" href=\"../obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">[" + ma.getId() + ftNote + "]</a>");
+        }
 %>
+        </div>
     <div class="controls">
         <input class="button-move" type="button" value="move to #2" onClick="return moveTo2('<%=enc.getCatalogNumber()%>');" />
         <input class="button-main" type="button" value="make main" onClick="return makeMain('<%=enc.getCatalogNumber()%>');" />
         <div class="action-div" id="action-<%=enc.getCatalogNumber()%>" style="margin-top: 20px;">
-            <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="duplicate" id="action-<%=enc.getCatalogNumber()%>-duplicate" checked /> <label for="action-<%=enc.getCatalogNumber()%>-duplicate">mark duplicate</label><br />
+            <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="ignore" id="action-<%=enc.getCatalogNumber()%>-ignore" checked /> <label for="action-<%=enc.getCatalogNumber()%>-ignore">ignore</label><br />
+            <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="duplicate" id="action-<%=enc.getCatalogNumber()%>-duplicate" /> <label for="action-<%=enc.getCatalogNumber()%>-duplicate">mark duplicate</label><br />
             <input onClick="return toggleAction(this);" type="radio" name="action-<%=enc.getCatalogNumber()%>" value="delete" id="action-<%=enc.getCatalogNumber()%>-delete" /> <label for="action-<%=enc.getCatalogNumber()%>-delete">delete enc</label>
         </div>
     </div><div class="props">
@@ -656,6 +694,12 @@ function mkTable() {
         cols.push(Object.assign({ sortable: true }, colDefn[i]));
     }
     theTable = tableEl.bootstrapTable({
+        showMultiSort: true,
+        showMultiSortButton: false,
+        sortPriority: [
+            {"sortName": "annotAcmCt", "sortOrder": "desc"},
+            {"sortName": "annotAcmId", "sortOrder": "asc"}
+        ],
         data: convertData(function(row) {
             var newRow = {};
             for (var i = 0 ; i < row.length ; i++) {
@@ -669,18 +713,23 @@ function mkTable() {
         onPostBody: function() {
             tableTweak();
             postTableUpdate();
-console.log('POST BODY');
         },
         onSort: function(name, order) {
             sortOn = name;
+            if (sortOn == 'annotAcmCt') mainSort();
         },
         pagination: true,
         pageSize: 20,
         columns: cols
     });
+    mainSort();
     //postTableUpdate();  //handled by onPostBody above!
 }
  
+
+function mainSort() {
+    theTable.bootstrapTable('multipleSort');
+}
 
 function tableTweak() {
     var cn = getColNum(sortOn);

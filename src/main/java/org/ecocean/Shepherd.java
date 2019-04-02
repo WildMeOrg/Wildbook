@@ -808,6 +808,11 @@ public class Shepherd {
     return user;
   }
   
+    public User getUser(HttpServletRequest request) {
+        if ((request == null) || (request.getUserPrincipal() == null) || (request.getUserPrincipal().getName() == null)) return null;
+        return getUser(request.getUserPrincipal().getName());
+    }
+
   
   public List<User> getUsersWithUsername() {
     return getUsersWithUsername("username ascending");
@@ -1418,7 +1423,7 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getUnassignedEncounters() {
-    String filter = "this.individualID == null";
+    String filter = "this.individual == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -1437,7 +1442,7 @@ public class Shepherd {
 
   /*
   public Iterator getUnassignedEncountersIncludingUnapproved() {
-    String filter = "this.individualID == null";
+    String filter = "this.individual == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -1446,7 +1451,7 @@ public class Shepherd {
   */
 
   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
-    String filter = "this.individualID == null && this.state != \"unidentifiable\"";
+    String filter = "this.individual == null && this.state != \"unidentifiable\"";
     //Extent encClass=pm.getExtent(encounter.class, true);
     orphanedEncounters.setFilter(filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -2124,16 +2129,6 @@ public class Shepherd {
   }
 
 
-  public Iterator<Occurrence> getAllOccurrencesForMarkedIndividual(Query query,String indie) {
-    //Query acceptedEncounters = pm.newQuery(encClass, filter2use);
-
-    Collection c = (Collection) (query.execute());
-    //System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
-    Iterator it = c.iterator();
-    //query.closeAll();
-    return it;
-  }
-
   public Occurrence getOccurrenceForEncounter(String encounterID){
     String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+"\"  VARIABLES org.ecocean.Encounter enc";
     Query query=getPM().newQuery(filter);
@@ -2236,14 +2231,16 @@ public class Shepherd {
 */
   }
 
-  public List<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
+  public List<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(MarkedIndividual indiv) {
     HashMap<String,Integer> hmap = new HashMap<String,Integer>();
-    //TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
-   //TreeMap<String, Integer> map=new TreeMap<String, Integer>(cmp);
    TreeMap<String, Integer> map=new TreeMap<String, Integer>();
-   String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
-   Query query=getPM().newQuery(filter);
-   Iterator<Occurrence> it=getAllOccurrencesForMarkedIndividual(query,indie);
+
+    String filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual == ind VARIABLES org.ecocean.Encounter enc";
+    Query query = getPM().newQuery(filter);
+    query.declareParameters("MarkedIndividual ind");
+    Collection c = (Collection)query.execute(indiv);
+    Iterator<Occurrence> it = c.iterator();
+
    if(it!=null){
       while(it.hasNext()){
          Occurrence oc=it.next();
@@ -2253,8 +2250,8 @@ public class Shepherd {
          int numEncounters=encounters.size();
          for(int i=0;i<numEncounters;i++){
            Encounter enc=encounters.get(i);
-           if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals(indie))){
-             MarkedIndividual indieEnc=this.getMarkedIndividual(enc.getIndividualID());
+           if ((enc.getIndividual() != null) && (!enc.getIndividual().equals(indiv))) {
+             MarkedIndividual indieEnc = enc.getIndividual();
              //check if we already have this Indie
              if(!hmap.containsKey(indieEnc.getIndividualID())){
                hmap.put(indieEnc.getIndividualID(), (new Integer(1)));
@@ -2661,10 +2658,10 @@ public class Shepherd {
     return it;
   }
 
-  public MarkedIndividual getMarkedIndividual(String name) {
+  public MarkedIndividual getMarkedIndividual(String id) {
     MarkedIndividual tempShark = null;
     try {
-      tempShark = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, name.trim()), true)));
+      tempShark = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, id.trim()), true)));
     } catch (Exception nsoe) {
       nsoe.printStackTrace();
       return null;
@@ -2754,7 +2751,7 @@ public class Shepherd {
         MarkedIndividual indiv = getMarkedIndividualQuiet(name);
         if (indiv != null) return indiv;
         indiv = new MarkedIndividual(name, enc);
-        enc.assignToMarkedIndividual(name);
+        enc.assignToMarkedIndividual(indiv);
         return indiv;
     }
 
@@ -4494,10 +4491,22 @@ public class Shepherd {
 
   public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
     ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
-    String filter = "SELECT FROM org.ecocean.Encounter WHERE individualID != null ORDER BY dwcDateAddedLong descending RANGE 1,"+(numToReturn+1);
-    Query q = pm.newQuery(filter);
+    String filter = "individual != null";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    q.setOrdering("dwcDateAddedLong descending");
     Collection c = (Collection) (q.execute());
-    matchingEncounters = new ArrayList<Encounter>(c);
+    if ((c != null) && (c.size() > 0)) {
+      int max = (numToReturn > c.size()) ? c.size() : numToReturn;
+      int numAdded=0;
+      while(numAdded<max){
+        ArrayList<Encounter> results=new ArrayList<Encounter>(c);
+        matchingEncounters.add(results.get(numAdded));
+        numAdded++;
+      }
+
+    }
+
     q.closeAll();
     return matchingEncounters;
   }

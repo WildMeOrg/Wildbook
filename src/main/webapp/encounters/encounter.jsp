@@ -629,8 +629,9 @@ $(function() {
 								} //end while
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
-				if(enc.getIndividualID()!=null){
-					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
+				if(enc.hasMarkedIndividual()) {
+                                    String dispName = enc.getIndividual().getDisplayName(request);
+					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
                	<h1 class="<%=classColor%>" id="headerText">
