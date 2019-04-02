@@ -298,6 +298,25 @@ for (int i=0; i<captionLinks.size(); i++) {
     display:inline;
   }
 
+div.gallery-download {
+    text-align: center;
+    font-size: 0.8em;
+    margin-top: -2.5em;
+}
+
+.gallery-download a {
+    display: inline-block;
+    background-color: #DDD;
+    margin: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+.gallery-download a:hover {
+    background-color: #CCA;
+}
+
+
 </style>
 <%
 if(request.getParameter("encounterNumber")!=null){
@@ -508,6 +527,7 @@ jQuery(document).ready(function() {
         $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
     });
 
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownloadLink", context))) { %>
     if (wildbookGlobals.username) {
         $('.image-enhancer-wrapper').each(function(i, el) {
             var mid = imageEnhancer.mediaAssetIdFromElement($(el));
@@ -517,6 +537,7 @@ jQuery(document).ready(function() {
             //$(el).closest('.my-gallery').after(h);
         });
     }
+<% } //end encounterGalleryDownloadLink %>
 });
 
 function doImageEnhancer(sel) {
