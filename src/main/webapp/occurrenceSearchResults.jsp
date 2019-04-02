@@ -16,7 +16,7 @@
 
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
-    occProps = ShepherdProperties.getProperties("occurrence.properties");
+    occProps = ShepherdProperties.getProperties("occurrence.properties",langCode, context);
 
     int startNum = 1;
     int endNum = 10;
@@ -287,45 +287,45 @@ var colDefn = [
  
   {
     key: 'ID',
-    label: 'ID',
+    label: '<%=occProps.getProperty("ID")%>',
     value: _notUndefined('occurrenceID'),
   },
   {
     key: 'dateTimeLong',
-    label: 'Date',
+    label: '<%=occProps.getProperty("date")%>',
     value: _date,
   },
   {
     key: 'groupBehavior',
-    label: 'Group Behavior',
+    label: '<%=occProps.getProperty("groupBehavior")%>',
     value: _notUndefined('groupBehavior'),
   },
   {
     key: 'taxonomies',
-    label: 'Species',
+    label: '<%=occProps.getProperty("species")%>',
     value: _species,
   },
   {
     key: 'individualCount',
-    label: '# Individuals',
+    label: '<%=occProps.getProperty("individualCount")%>',
     value: _notUndefined('individualCount'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
   {
 		key: 'decimalLatitude',
-		label: 'latitude',
+		label: '<%=occProps.getProperty("latitude")%>',
     value: _notZero('decimalLatitude'),
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   {
 		key: 'decimalLongitude',
-		label: 'longitude',
+		label: '<%=occProps.getProperty("longitude")%>',
     value: _notZero('decimalLongitude'),
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   {
     key: 'effortCode',
-    label: 'effort',
+    label: '<%=occProps.getProperty("'effort")%>',
     value: _notUndefined('effortCode'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
@@ -751,9 +751,9 @@ function applyFilter() {
 </script>
 
 <p class="table-filter-text">
-<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="filter" />
-<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=props.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=props.getProperty("filter") %>" />
+<input type="button" value="<%=props.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 

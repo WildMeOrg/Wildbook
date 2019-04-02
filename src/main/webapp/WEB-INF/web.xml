@@ -156,7 +156,7 @@
 
 		/GenePopExport = authc, roles[researcher]
 
-		/IndividualSetNickname = authc, roles[researcher]
+		/IndividualSetNickName = authc, roles[researcher]
 
     /match.jsp = authc
 
@@ -246,7 +246,7 @@
 
 				   /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 				   /interconnect/mac/Interconnect.jar = authc, roles[researcher]
-				   /UpdateEmailAddress = authc, roles[admin]
+				   #/UpdateEmailAddress = authc, roles[admin]
 
 
 				/BatchUpload/** = authc, roles[admin]
@@ -320,10 +320,35 @@
 				 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[researcher]
 				 /googleSearch.jsp = authc, roles[researcher]
 				 /googleSearchResults.jsp = authc, roles[researcher]
-				 				         /EncounterAddComment = authc, roles[researcher]
-				         /OccurrenceAddComment = authc, roles[researcher]
-						 /CalendarXMLServer = authc, roles[researcher]
+				 /EncounterAddComment = authc, roles[researcher]
+				 /OccurrenceAddComment = authc, roles[researcher]
+				 /CalendarXMLServer = authc, roles[researcher]
 				 /CalendarXMLServer2 = authc, roles[researcher]
+				 
+				 /EncounterSetGenusSpecies = authc, roles[researcher]
+				 #/EncounterSetInformOthers = authc, roles[researcher]
+				 /RestKeyword = authc, roles[researcher]
+				 /IndividualAddFile = authc, roles[researcher]
+				 /EncounterResetDate = authc, roles[researcher]
+				 /IndividualSearchExportCapture = authc, roles[researcher]
+				 /EncounterSetLocation = authc, roles[researcher]
+				 /EncounterSetLocationID = authc, roles[researcher]
+				 /CRCExportReport = authc, roles[researcher]
+				 /IndividualSetSex = authc, roles[researcher]
+				 /EncounterSetSex = authc, roles[researcher]
+				 /EncounterSetMaximumDepth = authc, roles[researcher]
+				 /EncounterSetMaximumElevation = authc, roles[researcher]
+				 /EncounterSetOccurrenceRemarks = authc, roles[researcher]
+				 /EncounterRemoveSpots = authc, roles[researcher]
+				 /EncounterSetPatterningCode = authc, roles[researcher]
+				 /EncounterSetReleaseDate = authc, roles[researcher]
+				 /EncounterSetMeasurements = authc, roles[researcher]
+				 /GetIndividualSearchGoogleMapsPoints = authc, roles[researcher]
+				 /EncounterSetTags = authc, roles[researcher]
+				 /EncounterSetDynamicProperty = authc, roles[researcher]
+				 /IndividualRemoveDataFile = authc, roles[researcher]
+				 /EncounterSetMatchedBy = authc, roles[researcher]
+				 /EncounterSetLivingStatus = authc, roles[researcher]
 
 
 						   /welcome.jsp = authc
@@ -339,7 +364,6 @@
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
-					/IndividualSetNickname = authc, roles[researcher]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
@@ -353,6 +377,12 @@
 				 #lockdown Keyword handling
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
+				 
+				 /EncounterRemoveUser = authc, roles[researcher]
+				/EncounterAddUser = authc, roles[researcher]
+				
+				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
+				/pictureBook.jsp = authc, roles[researcher]
 				
 
             </param-value>
@@ -384,6 +414,26 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+  
+      <servlet>
+    <servlet-name>EncounterRemoveUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
+  </servlet>
+  
+      <servlet>
+    <servlet-name>EncounterAddUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterAddUser</servlet-class>
+  </servlet>
+  
+      <servlet-mapping>
+    <servlet-name>EncounterRemoveUser</servlet-name>
+    <url-pattern>/EncounterRemoveUser</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+    <servlet-name>EncounterAddUser</servlet-name>
+    <url-pattern>/EncounterAddUser</url-pattern>
+  </servlet-mapping>
   
   <servlet>
     <description>SubmitSurvey</description>
@@ -467,12 +517,12 @@
       <servlet-name>EncounterSetVerbatimEventDate</servlet-name>
       <servlet-class>org.ecocean.servlet.EncounterSetVerbatimEventDate</servlet-class>
   </servlet>
-
+<!--
   <servlet>
     <servlet-name>EncounterSetInformOthers</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetInformOthers</servlet-class>
   </servlet>
-
+-->
     <servlet>
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
@@ -574,10 +624,12 @@
     <servlet-class>org.ecocean.servlet.IndividualAddFile</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>EncounterApprove</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterApprove</servlet-class>
   </servlet>
+-->
 
     <servlet>
     <servlet-name>EncounterForm</servlet-name>
@@ -625,17 +677,18 @@
   </servlet>
 
 
-
+<!--
   <servlet>
     <servlet-name>UpdateEmailAddress</servlet-name>
     <servlet-class>org.ecocean.servlet.UpdateEmailAddress</servlet-class>
   </servlet>
-
+-->
+  <!--
   <servlet>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <servlet-class>org.ecocean.servlet.RemoveEmailAddress</servlet-class>
   </servlet>
-
+  -->
   <!--
   <servlet>
     <servlet-name>TrackIt</servlet-name>
@@ -979,10 +1032,12 @@
     <servlet-class>org.ecocean.servlet.OccurrenceAddEncounter</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>TrackerFeed</servlet-name>
     <servlet-class>org.ecocean.servlet.TrackerFeed</servlet-class>
   </servlet>
+  -->
 
   <!--
     <servlet>
@@ -1473,7 +1528,7 @@
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
 <url-pattern>/api/*</url-pattern>
-<url-pattern>/rest/*</url-pattern>
+
 </servlet-mapping>
 
 <servlet-mapping>
@@ -2125,11 +2180,12 @@
     <url-pattern>/MassExposeGBIF</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <url-pattern>/RemoveEmailAddress</url-pattern>
   </servlet-mapping>
-
+  -->
   <servlet-mapping>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
     <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
@@ -2176,12 +2232,12 @@
   </servlet-mapping>
 -->
 
-
+<!--
   <servlet-mapping>
     <servlet-name>UpdateEmailAddress</servlet-name>
     <url-pattern>/UpdateEmailAddress</url-pattern>
   </servlet-mapping>
-
+-->
 
   <servlet-mapping>
     <servlet-name>KeywordHandler</servlet-name>
@@ -2218,11 +2274,12 @@
       <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>EncounterSetInformOthers</servlet-name>
     <url-pattern>/EncounterSetInformOthers</url-pattern>
   </servlet-mapping>
-
+-->
 
   <servlet-mapping>
     <servlet-name>IndividualAddFile</servlet-name>

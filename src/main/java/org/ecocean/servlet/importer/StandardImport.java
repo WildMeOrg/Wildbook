@@ -59,8 +59,14 @@ public class StandardImport extends HttpServlet {
 	String photoDirectory;
   String dataSource;
 
-  // this prefix is added to any individualID, occurrenceID, or sightingID imported
+  int numAnnots=0; // for loggin'
+
+  // these prefixes are added to any individualID, occurrenceID, or sightingID imported
   String individualPrefix="";
+  String occurrencePrefix="";
+  String sightingPlatformPrefix="";
+  String defaultSubmitterID="ESO"; // leave null to not set a default
+  String defaultCountry="Oman";
 
 	private AssetStore astore;
 
@@ -83,9 +89,9 @@ public class StandardImport extends HttpServlet {
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
 
-    photoDirectory = "/data/SDRP/images/";
-    String filename = "/data/SDRP/sdrp-2015-2018.xlsx";
-    String dataSource = "SDRP bulk import";
+    photoDirectory = "/data/iot/";
+    String filename = "/data/iot/DunbarImport.xlsx";
+    String dataSource = "IOT Bulk Import of Dunbar";
     //photoDirectory = "/data/indocet/";
     //String filename = "/data/indocet/indocet_blended.xlsx";
     if (request.getParameter("filename") != null) filename = request.getParameter("filename");
@@ -96,6 +102,7 @@ public class StandardImport extends HttpServlet {
     missingPhotos = new ArrayList<String>();
 		foundPhotos = new ArrayList<String>();
 		numFolderRows = 0;
+    numAnnots = 0;
 
     committing =  (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
 
@@ -155,6 +162,7 @@ public class StandardImport extends HttpServlet {
 
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
+        numAnnots+=annotations.size();
         Encounter enc = loadEncounter(row, annotations);
         occ = loadOccurrence(row, occ, enc);
         mark = loadIndividual(row, enc);
@@ -168,7 +176,7 @@ public class StandardImport extends HttpServlet {
                 myShepherd.storeNewAnnotation(ann);
                 ma.setMetadata();
                 // may want to skip below for runtime and fix later w script
-                ma.updateStandardChildren(myShepherd);
+                // ma.updateStandardChildren(myShepherd);
               }
             }
             catch (Exception e) {
@@ -179,13 +187,20 @@ public class StandardImport extends HttpServlet {
 
           myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
         	if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
-        	if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
+        	if (!myShepherd.isMarkedIndividual(mark)) {
+            mark.refreshDependentProperties(context);
+            myShepherd.storeNewMarkedIndividual(mark);
+          }
         	myShepherd.commitDBTransaction();
         }
 
         if (verbose) {
           out.println("<li>Parsed row ("+i+")<ul>"
-          +"<li> Enc "+getEncounterDisplayString(enc)+"</li>"
+          +"<li> Enc "+getEncounterDisplayString(enc)+" <ul>");
+          for (MediaAsset ma: enc.getMedia()) {
+            out.println("<li>"+ma.toString()+"</li>");
+          }
+          out.println("</ul></li>"
           +"<li> individual "+mark+"</li>"
           +"<li> occurrence "+occ+"</li>"
           +"<li> dateInMillis "+enc.getDateInMilliseconds()+"</li>"
@@ -235,6 +250,7 @@ public class StandardImport extends HttpServlet {
     out.println("</ul>");
 
     out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
+    out.println("<h2><strong> "+numAnnots+" </strong> annots</h2>");    
 
     out.println("<h2>Import completed successfully</h2>");    
     //fs.close();
@@ -264,6 +280,7 @@ public class StandardImport extends HttpServlet {
   	// would love to have a more concise way to write following couplets, c'est la vie
 
   	Double seaSurfaceTemp = getDouble (row, "Occurrence.seaSurfaceTemperature");
+    if (seaSurfaceTemp == null) seaSurfaceTemp = getDouble(row, "Occurrence.seaSurfaceTemp");
   	if (seaSurfaceTemp != null) occ.setSeaSurfaceTemp(seaSurfaceTemp);
 
   	Integer individualCount = getInteger(row, "Occurrence.individualCount");
@@ -297,7 +314,7 @@ public class StandardImport extends HttpServlet {
 
   	String sightingPlatform = getString(row, "Survey.vessel");
     if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation");
-  	if (sightingPlatform!=null) occ.setSightingPlatform(individualPrefix+sightingPlatform);
+  	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatformPrefix+sightingPlatform);
     String surveyComments = getString(row, "Survey.comments");
     if (surveyComments!=null) occ.addComments(surveyComments);
 
@@ -328,8 +345,16 @@ public class StandardImport extends HttpServlet {
     Double swellHeight = getDouble(row, "Occurrence.swellHeight");
     if (swellHeight!=null) occ.setSwellHeight(swellHeight);
     String seaState = getString(row, "Occurrence.seaState");
+    if (seaState==null) {
+      Integer intSeaState = getInteger(row, "Occurrence.seaState");
+      if (intSeaState!=null) seaState = intSeaState.toString();
+    }
     if (seaState!=null) occ.setSeaState(seaState);
     Double visibilityIndex = getDouble(row, "Occurrence.visibilityIndex");
+    if (visibilityIndex==null) {
+      Integer visIndexInt = getIntFromMap(row, "Occurrence.visibilityIndex");
+      if (visIndexInt!=null) visibilityIndex = visIndexInt.doubleValue();
+    }
     if (visibilityIndex!=null) occ.setVisibilityIndex(visibilityIndex);
 
     Double transectBearing = getDouble(row, "Occurrence.transectBearing");
@@ -475,7 +500,7 @@ public class StandardImport extends HttpServlet {
 
   	String submitterID = getString(row, "Encounter.submitterID");
     // don't commit this line
-    if (submitterID==null) submitterID = "SDRP";
+    if (submitterID==null) submitterID = defaultSubmitterID;
   	if (submitterID!=null) enc.setSubmitterID(submitterID);
 
   	String behavior = getString(row, "Encounter.behavior");
@@ -596,7 +621,7 @@ public class StandardImport extends HttpServlet {
 
   public ArrayList<Annotation> loadAnnotations(Row row) {
 
-  	if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
+  	//if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
   	ArrayList<Annotation> annots = new ArrayList<Annotation>();
   	for (int i=0; i<getNumMediaAssets(); i++) {
   		MediaAsset ma = getMediaAsset(row, i);
@@ -605,8 +630,13 @@ public class StandardImport extends HttpServlet {
   		String species = getSpeciesString(row);
   		Annotation ann = new Annotation(species, ma);
   		ann.setIsExemplar(true);
+
+      Double quality = getDouble(row, "Encounter.quality"+i);
+      if (quality != null) ann.setQuality(quality);
+
+      //ann.setMatchAgainst(true);
   		annots.add(ann);
-  		//if (ma!=null && ma.localPath()!=null) foundPhotos.add(ma.localPath().toString());
+
   	}
   	if (annots.size()>0) {
       for (int i=0; i<annots.size(); i++) {
@@ -743,7 +773,7 @@ public class StandardImport extends HttpServlet {
 
 	  // keywording
 
-    ArrayList<Keyword> kws = getKeywordsForAsset(row, i);
+    ArrayList<Keyword> kws = getKeywordForAsset(row, i);
     ma.setKeywords(kws);
 
 	  // Keyword keyword = null;
@@ -760,10 +790,10 @@ public class StandardImport extends HttpServlet {
   private ArrayList<Keyword> getKeywordsForAsset(Row row, int n) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     int maxAssets = getNumAssets(row);
-    int maxKeywords=2;
+    int maxKeywords=4;
     int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; // 
-    // we have up to two keywords per row.
-    for (int i=n; i<stopAtKeyword; i++) {
+    // we have up to 4 keywords per row.
+    for (int i=n; i<=stopAtKeyword; i++) {
       String kwColName = "Encounter.keyword"+i;
       String kwName = getString(row, kwColName);
       if (kwName==null) {
@@ -774,6 +804,22 @@ public class StandardImport extends HttpServlet {
       Keyword kw = myShepherd.getOrCreateKeyword(kwName);
       if (kw!=null) ans.add(kw);
     }
+    return ans;
+  }
+
+  private ArrayList<Keyword> getKeywordForAsset(Row row, int n) {
+    ArrayList<Keyword> ans = new ArrayList<Keyword>();
+
+    String kwColName = "Encounter.keyword"+n;
+    String kwName = getString(row, kwColName);
+    if (kwName==null) {
+      kwColName = "Encounter.keyword0"+n;
+      kwName = getString(row, kwColName);
+    }
+    if (kwName==null) return ans;
+    Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+    if (kw!=null) ans.add(kw);
+
     return ans;
   }
 
@@ -934,12 +980,31 @@ public class StandardImport extends HttpServlet {
     String occID = getStringOrInt(row,"Occurrence.occurrenceID");
     if (!Util.stringExists(occID)) occID = getStringOrInt(row, "Encounter.occurrenceID");
     if (!Util.stringExists(occID)) return occID;
-    return (individualPrefix+occID);
+    occID = occID.replace("LiveVesselSighting","");
+    return (occurrencePrefix+occID);
   }
 
   public boolean isOccurrenceOnRow(Occurrence occ, Row row) {
     return (occ!=null && !occ.getOccurrenceID().equals(getOccurrenceID(row)));
   }
+
+
+  private static final Map<String, Integer> qualityMap = new HashMap<String, Integer>(){
+    { // whoah, DOUBLE brackets! Java, you so crazy!
+      put("No Data", null);
+      put("Bad", 2);
+      put("Fair", 3);
+      put("Good", 4);
+      put("Excellent", 5);
+    }
+  };
+
+  public Integer getIntFromMap(Row row, String colName) {
+    String key = getString(row, colName);
+    if (key == null || !qualityMap.containsKey(key)) return null;
+    return qualityMap.get(key);
+  }
+
 
   // following 'get' functions swallow errors
   public static Integer getInteger(Row row, int i) {
@@ -1161,9 +1226,9 @@ public class StandardImport extends HttpServlet {
 	public String getEncounterDisplayString(Encounter enc) {
 		if (enc==null) return null;
 		if (committing) {
-			return "<a href=\""+getEncounterURL(enc)+"\" >"+enc.getCatalogNumber()+"</a>";
+			return "<a href=\""+getEncounterURL(enc)+"\" >"+enc.toString()+"</a>";
 		}
-		return enc.getCatalogNumber();
+		return enc.toString();
 	}
 
 

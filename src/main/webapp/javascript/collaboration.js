@@ -78,6 +78,8 @@ function _collaborateMultiHtml(users) {
 		var u = users[0].split(':');
 		var uclick = '<span class="user-bio-button" title="info on ' + u[1] + '" onClick="openUserBio(\'' + u[0] + '\')">' + u[1] + '</span>';
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, uclick) + '</b></p>';
+		h += '<p>' + wildbookGlobals.properties.lang.collaboration.invitePromptOneBody +'</p>';
+		console.log("we are in the inner loop with invitePromptOneBody = "+wildbookGlobals.properties.lang.collaboration.invitePromptOneBody);
 		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + u[0] + '\');" /> ' + cancelButton + '</p>';
 
@@ -121,6 +123,8 @@ function _collaborateHtml(uid, name) {
 		var uclick = '<span class="user-bio-button" title="info on ' + allCollab[uid].name + '" onClick="openUserBio(\'' + uid + '\')">' + allCollab[uid].name + '</span>';
 		//h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, allCollab[uid].name) + '</b></p>';
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, uclick) + '</b></p>';
+		h += '<p>' + wildbookGlobals.properties.lang.collaboration.invitePromptOneBody +'</p>';
+		console.log("we are in the inner loop with invitePromptOneBody = "+wildbookGlobals.properties.lang.collaboration.invitePromptOneBody);
 		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + uid + '\');" /> ' + cancelButton + '</p>';
 

@@ -83,7 +83,7 @@ public class LightRestServlet extends HttpServlet
 {
     private static final long serialVersionUID = -4445182084242929362L;
 
-    private static final String[] Encounter_Light_Str_Fields = {"catalogNumber","individualID","occurrenceID","sex","otherCatalogNumbers","verbatimLocality","locationID","submitterName","submitterProject","submitterOrganization","genus","specificEpithet", "dwcDateAdded","modified"};
+    private static final String[] Encounter_Light_Str_Fields = {"catalogNumber","individualID","occurrenceID","sex","otherCatalogNumbers","verbatimLocality","locationID","submitterName","submitterProject","submitterID","submitterOrganization","genus","specificEpithet", "dwcDateAdded","modified"};
     private static final String[] Encounter_Light_Int_Fields = {"year","month","day"};
 
     public static final NucleusLogger LOGGER_REST = NucleusLogger.getLoggerInstance("DataNucleus.REST");
@@ -232,19 +232,19 @@ public class LightRestServlet extends HttpServlet
         try
         {
             String token = getNextTokenAfterSlash(req);
-            if (token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql"))
+            if ((token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql"))&&(req.getRemoteUser()!=null))
             {
                 // GET "/query?the_query_details" or GET "/jdoql?the_query_details" where "the_query_details" is "SELECT FROM ... WHERE ... ORDER BY ..."
                 String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
                 PersistenceManager pm = pmf.getPersistenceManager();
                 String servletID=Util.generateUUID();
-                ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "new");
+                ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "new");
                 
                 
                 try
                 {
                     pm.currentTransaction().begin();
-                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "begin");
+                    ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "begin");
                     
 
                     Query query = pm.newQuery("JDOQL", queryString);
@@ -271,7 +271,7 @@ public class LightRestServlet extends HttpServlet
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
                     pm.currentTransaction().commit();
-                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "commit");
+                    ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "commit");
                     
                 }
                 finally
@@ -279,17 +279,18 @@ public class LightRestServlet extends HttpServlet
                     if (pm.currentTransaction().isActive())
                     {
                         pm.currentTransaction().rollback();
-                        ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "rollback");
+                        ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "rollback");
                         
                     }
                     pm.close();
                     //ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "close");
-                    ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                    ShepherdPMF.removeShepherdState("LightRestServlet.class"+"_"+servletID);
                     
                     
                 }
                 return;
             }
+            /*
             else if (token.equalsIgnoreCase("jpql"))
             {
                 // GET "/jpql?the_query_details" where "the_query_details" is "SELECT ... FROM ... WHERE ... ORDER BY ..."
@@ -333,11 +334,12 @@ public class LightRestServlet extends HttpServlet
                 }
                 return;
             }
+            */
             else
             {
                 // GET "/{candidateclass}..."
                 String className = token;
-                ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(RestServlet.class.getClassLoader());
+                ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(LightRestServlet.class.getClassLoader());
                 AbstractClassMetaData cmd = nucCtx.getMetaDataManager().getMetaDataForEntityName(className);
                 try
                 {
@@ -353,6 +355,7 @@ public class LightRestServlet extends HttpServlet
                     resp.getWriter().write(error.toString());
                     resp.setStatus(404);
                     resp.setHeader("Content-Type", "application/json");
+                    ShepherdPMF.removeShepherdState("LightRestServlet.class");
                     return;
                 }
 
@@ -360,6 +363,7 @@ public class LightRestServlet extends HttpServlet
                 if (id == null)
                 {
                     // Find objects by type or by query
+                  if(req.getRemoteUser()!=null){
                     try
                     {
                         // get the whole extent for this candidate
@@ -395,6 +399,7 @@ public class LightRestServlet extends HttpServlet
                                 pm.currentTransaction().rollback();
                             }
                             pm.close();
+                            ShepherdPMF.removeShepherdState("LightRestServlet.class");
                         }
                         return;
                     }
@@ -405,6 +410,7 @@ public class LightRestServlet extends HttpServlet
                         resp.getWriter().write(error.toString());
                         resp.setStatus(400);
                         resp.setHeader("Content-Type", "application/json");
+                        ShepherdPMF.removeShepherdState("LightRestServlet.class");
                         return;
                     }
                     catch (NucleusException ex)
@@ -414,6 +420,7 @@ public class LightRestServlet extends HttpServlet
                         resp.getWriter().write(error.toString());
                         resp.setStatus(404);
                         resp.setHeader("Content-Type", "application/json");
+                        ShepherdPMF.removeShepherdState("LightRestServlet.class");
                         return;
                     }
                     catch (RuntimeException ex)
@@ -424,8 +431,20 @@ public class LightRestServlet extends HttpServlet
                         resp.getWriter().write(error.toString());
                         resp.setStatus(404);
                         resp.setHeader("Content-Type", "application/json");
+                        ShepherdPMF.removeShepherdState("LightRestServlet.class");
                         return;
                     }
+                    
+                  }
+                  else{
+                    JSONObject error = new JSONObject();
+                    error.put("exception", "You have to log in to GET a full class list of objects.");
+                    resp.getWriter().write(error.toString());
+                    resp.setStatus(400);
+                    resp.setHeader("Content-Type", "application/json");
+                    ShepherdPMF.removeShepherdState("LightRestServlet.class");
+                    return;
+                  }
                 }
 
                 // GET "/{candidateclass}/id" - Find object by id
@@ -445,13 +464,13 @@ public class LightRestServlet extends HttpServlet
                     //resp.getWriter().write(jsonobj.toString());
                     resp.setHeader("Content-Type","application/json");
                     //pm.currentTransaction().commit();
-                    return;
+                    
                 }
                 catch (NucleusObjectNotFoundException ex)
                 {
                     resp.setContentLength(0);
                     resp.setStatus(404);
-                    return;
+                   
                 }
                 catch (NucleusException ex)
                 {
@@ -460,7 +479,7 @@ public class LightRestServlet extends HttpServlet
                     resp.getWriter().write(error.toString());
                     resp.setStatus(404);
                     resp.setHeader("Content-Type", "application/json");
-                    return;
+                    
                 }
                 finally
                 {
@@ -469,6 +488,8 @@ public class LightRestServlet extends HttpServlet
                         pm.currentTransaction().rollback();
                     }
                     pm.close();
+                    ShepherdPMF.removeShepherdState("LightRestServlet.class");
+                    return;
                 }
             }
         }
@@ -909,11 +930,15 @@ System.out.println(thisRequest);
                     cls = obj.getClass();
                     if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
                     else if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
+                    else if (cls.getName().equals("org.ecocean.Adoption")) throw new NucleusUserException("Cannot access org.ecocean.Adoption objects at this time");
+                    
                 }
             } else {
                 cls = result.getClass();
                 if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
                 else if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
+                else if (cls.getName().equals("org.ecocean.Adoption")) throw new NucleusUserException("Cannot access org.ecocean.Adoption objects at this time");
+                
                 
             }
             return out;
@@ -1006,6 +1031,7 @@ System.out.println("??? TRY COMPRESS ??");
         private void getPMF(HttpServletRequest req){
             String context="context0";
             context=ServletUtilities.getContext(req);
+            ShepherdPMF.setShepherdState("LightRestServlet.class", "new");
             pmf=ShepherdPMF.getPMF(context);
             this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
             thisRequest = req;

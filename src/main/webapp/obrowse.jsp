@@ -4,6 +4,7 @@
 org.ecocean.media.*,
 org.ecocean.ia.Task,
 org.ecocean.movement.*,
+java.net.URL,
 java.util.Vector,
 java.util.ArrayList,
 org.json.JSONObject,
@@ -103,12 +104,17 @@ java.util.Properties" %>
 		return h + "</ul></div>";
 	}
 
+    private String getAnnotationLink(Annotation ann) {
+        return "obrowse.jsp?type=Annotation&id="+ann.getId();
+    }
+
 	private String showAnnotation(Annotation ann, HttpServletRequest req) {
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
 		shown.add(ann);
-		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
+		String h = "<div class=\"annotation\">Annotation <b><a href=\""+getAnnotationLink(ann)+"\" >" + ann.getId() + "</a></b><ul>";
 		h += "<li>iaClass: <b>" + ((ann.getIAClass() == null) ? "[null]" : ann.getIAClass()) + "</b></li>";
+        h += "<li>amcId: <b>"+ann.getAcmId()+"</b></li>";
         h += "<li>AoI: <b>" + ann.getIsOfInterest() + "</b></li>";
 		h += "<li>features: " + showFeatureList(ann.getFeatures(), req) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd), req) + "</li>";
@@ -200,7 +206,7 @@ java.util.Properties" %>
 		} else if (ma.webURL().toString().matches(".+.mp4$")) {
 			h += "<div style=\"position: absolute; right: 0;\"><a target=\"_new\" href=\"" + ma.webURL() + "\">[link]</a><br /><video width=\"320\" controls><source src=\"" + ma.webURL() + "\" type=\"video/mp4\" /></video></div>";
 		} else {
-			h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></div></div></a>";
+			h += "<a target=\"_new\" href=\"" + scrubUrl(ma.webURL()) + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + scrubUrl(ma.webURL()) + "\" /></div></div></a>";
 
 		}
                 h += "<ul style=\"width: 65%\">";
@@ -274,6 +280,11 @@ java.util.Properties" %>
         	if (type == null) return false;
         	return type.equals("MediaAssetMetadata");
     	}
+
+    private String scrubUrl(URL u) {
+        if (u == null) return (String)null;
+        return u.toString().replaceAll("#", "%23");
+    }
 
 %><%
 

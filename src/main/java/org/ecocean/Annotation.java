@@ -13,6 +13,7 @@ import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.acm.AcmBase;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.ia.Task;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -31,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
+    private static final String[] VALID_VIEWPOINTS = new String[]{"front", "frontright", "right", "backright", "back", "backleft", "left", "frontleft"};
 
     private String species; 
 
@@ -63,6 +65,7 @@ public class Annotation implements java.io.Serializable {
     // of the recording medium. Useful e.g. for researchers who want to account for a bias where more distinct
     // animals like one with a large scar are easier to re-sight (match).
     private Double distinctiveness;
+    private String viewpoint;
     //*'annot_yaw': 'REAL',
     //~'annot_detect_confidence': 'REAL',
     //~'annot_exemplar_flag': 'INTEGER',
@@ -257,6 +260,52 @@ public class Annotation implements java.io.Serializable {
         if (ma.getHeight()==0 && ma.getWidth()==0) return false;
         return true;
     }
+
+
+    public String getViewpoint() {
+        return viewpoint;
+    }
+    //this returns this viewpoint, plus one to either side
+    //  (will return null if unset or invalid)
+    public String[] getViewpointAndNeighbors() {
+        return getViewpointAndNeighbors(this.viewpoint);
+    }
+    //returns 3 positions, in clockwise order, with viewpoint in the middle position
+    //   e.g.: front -> frontleft,front,frontright    -or-    backleft -> back,backleft,left
+    public static String[] getViewpointAndNeighbors(String vp) {
+        if ((vp == null) || !isValidViewpoint(vp)) return null;
+        int found = -1;
+        for (int i = 0 ; i < VALID_VIEWPOINTS.length ; i++) {
+            if (VALID_VIEWPOINTS[i].equals(vp)) found = i;
+        }
+        if (found < 0) return null;  //"should never happen"
+        String[] rtn = new String[3];
+        rtn[0] = VALID_VIEWPOINTS[(found + VALID_VIEWPOINTS.length - 1) % VALID_VIEWPOINTS.length];   // #mathftw
+        rtn[1] = vp;
+        rtn[2] = VALID_VIEWPOINTS[(found + 1) % VALID_VIEWPOINTS.length];
+        return rtn;
+    }
+    public void setViewpoint(String v) {
+        viewpoint = v;
+    }
+    //  note!  this can block and take a while if IA has yet to compute the viewpoint!
+    public String setViewpointFromIA(String context) throws IOException {
+        if (acmId == null) throw new IOException(this + " does not have acmId set; cannot get viewpoint from IA");
+        try {
+            JSONObject resp = IBEISIA.iaViewpointFromAnnotUUID(acmId, context);
+            if (resp == null) return null;
+            viewpoint = resp.optString("viewpoint", null);
+            System.out.println("INFO: setViewpointFromIA() got '" + viewpoint + "' (score " + resp.optDouble("score", -1.0) + ") for " + this);
+            return viewpoint;
+        } catch (RuntimeException | IOException | java.security.NoSuchAlgorithmException | java.security.InvalidKeyException ex) {
+            throw new IOException("setViewpointFromIA() on " + this + " failed: " + ex.toString());
+        }
+    }
+/*
+    //  response comes from ia thus: "response": [{"score": 0.9783339699109396, "species": "giraffe_reticulated", "viewpoint": "right"}]
+    public static JSONObject iaViewpointFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+*/
+
 
 //FIXME this all needs to be deprecated once deployed sites are migrated
     public MediaAsset __getMediaAsset() {
@@ -483,10 +532,9 @@ public class Annotation implements java.io.Serializable {
         public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
           return this.sanitizeMedia(request, false);
         }
-     
+
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        ArrayList<Encounter> encs = new ArrayList<Encounter>();
         Encounter myEnc = this.findEncounter(myShepherd);
         if (myEnc == null) {
             System.out.println("WARNING: getMatchingSet() could not find Encounter for " + this);
@@ -497,44 +545,69 @@ public class Annotation implements java.io.Serializable {
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         String filter;
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
-            filter = "SELECT FROM org.ecocean.Encounter WHERE specificEpithet == \""+mySpecificEpithet+"\" && genus == \""+myGenus+"\" ";
+            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc);
         } else {
             System.out.println("NO MATCHING SET: The parent encounter for Annotation id="+this.id+" has not specified specificEpithet and genus.");
             return anns; 
         }
+        System.out.println("Did the query return any encounters? It got: "+anns.size()); 
+        return anns;
+    }
+
+    //note: this also excludes "sibling annots" (in same encounter)
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc) {
+        if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
+        //do we need to worry about our annot living in another encounter?  i hope not!
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getFilterViewpointClause() + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        return getMatchingSetForFilter(myShepherd, filter);
+    }
+    // the figure-it-out-yourself version
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd) {
+        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, this.findEncounter(myShepherd));
+    }
+
+    //gets everything, no exclusions (e.g. for cacheing)
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet) {
+        if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
+        return getMatchingSetForFilter(myShepherd, filter);
+    }
+    //figgeritout
+    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc == null) return null;
+        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet());
+    }
+
+    //pass in a generic SELECT filter query string and get back Annotations
+    static public ArrayList<Annotation> getMatchingSetForFilter(Shepherd myShepherd, String filter) {
+        if (filter == null) return null;
+        long t = System.currentTimeMillis();
+        System.out.println("INFO: getMatchingSetForFilter filter = " + filter);
         Query query = myShepherd.getPM().newQuery(filter);
-        Collection c = (Collection) (query.execute());
+        Collection c = (Collection)query.execute();
         Iterator it = c.iterator();
-        int count = 0;
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
         while (it.hasNext()) {
-            count++;
-            Encounter enc = (Encounter) it.next();
-            if (enc.getCatalogNumber()!=myEnc.getCatalogNumber()) {
-                for (Annotation ann : enc.getAnnotations()) {
-                    if (ann.matchAgainst) {
-                        anns.add(ann);
-                    }
-                }
-            }
+            Annotation ann = (Annotation)it.next();
+            if (!IBEISIA.validForIdentification(ann)) continue;
+            anns.add(ann);
         }
-        System.out.println("Did the query return any encounters? It got: "+count); 
-        
         query.closeAll();
+        System.out.println("INFO: getMatchingSetForFilter found " + anns.size() + " annots (" + (System.currentTimeMillis() - t) + "ms)");
         return anns;
     }
 
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
-        ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst";
-        Query query = myShepherd.getPM().newQuery(filter);
-        Collection c = (Collection) (query.execute());
-        Iterator it = c.iterator();
-        while (it.hasNext()) {
-            Annotation ann = (Annotation) it.next(); 
-            anns.add(ann);
-        }
-        query.closeAll();
-        return anns;
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
+    }
+
+    // will construnct "&& (viewpoint == null || viewpoint == 'x' || viewpoint == 'y')" for use above
+    //   note: will return "" when this annot has no (valid) viewpoint
+    private String getFilterViewpointClause() {
+        String[] viewpoints = this.getViewpointAndNeighbors();
+        if (viewpoints == null) return "";
+        return "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
     }
 
     public String findIndividualId(Shepherd myShepherd) {
@@ -667,6 +740,22 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
     }
 */
 
+    public Annotation revertToTrivial(Shepherd myShepherd) throws IOException {
+        if (this.isTrivial()) throw new IOException("Already a trivial Annotation: " + this);
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc == null) throw new IOException("Unable to find corresponding Encounter for " + this);
+        MediaAsset ma = this.getMediaAsset();
+        if (ma == null) throw new IOException("Unable to find corresponding MediaAsset for " + this);
+        if ((ma.getFeatures() != null) && (ma.getFeatures().size() > 1)) throw new IOException("Sibling Annotations detected on " + ma + "; cannot revert to trivial " + this);
+        Annotation triv = new Annotation(this.species, ma);  //not going to set IAClass or anything since starting fresh
+        enc.removeAnnotation(this);
+        this.setMatchAgainst(false);
+        this.detachFromMediaAsset();
+        enc.addAnnotation(triv);
+        System.out.println("INFO: revertToTrivial() created annot=" + triv.getId() + " on enc=" + enc.getCatalogNumber() + ", replacing annot=" + this.getId());
+        return triv;
+    }
+
     //creates a new Annotation with the basic properties duplicated (but no "linked" objects, like Features etc)
     public Annotation shallowCopy() {
         Annotation ann = new Annotation();
@@ -680,6 +769,14 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
 
     public List<Task> getRootIATasks(Shepherd myShepherd) {  //convenience
         return Task.getRootTasksFor(this, myShepherd);
+    }
+
+    public static boolean isValidViewpoint(String vp) {
+        if (vp == null) return true;  //?? is this desired behavior?
+        return getAllValidViewpoints().contains(vp);
+    }
+    public static List<String> getAllValidViewpoints() {
+        return Arrays.asList(VALID_VIEWPOINTS);
     }
 
 }

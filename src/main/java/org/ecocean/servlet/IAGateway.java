@@ -596,7 +596,10 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
             for (int i = 0 ; i < ids.length() ; i++) {
                 int id = ids.optInt(i, 0);
                 if (id < 1) continue;
+                myShepherd.beginDBTransaction();
                 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                myShepherd.getPM().refresh(ma);
+
                 if (ma != null) {
                     ma.setDetectionStatus(IBEISIA.STATUS_PROCESSING);
                     mas.add(ma);
@@ -617,7 +620,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
         if (mas.size() > 0) {
             if (task != null) {
                 task.setObjectMediaAssets(mas);
-                task.setParameters("{\"ibeis.detection\": true}");
+                task.addParameter("ibeis.detection", true);
             }
             for (MediaAsset ma : mas) {
                 validIds.add(Integer.toString(ma.getId()));

@@ -4,23 +4,153 @@ import javax.servlet.http.*;
 
 import java.io.*;
 import java.util.*;
-
 import org.ecocean.*;
+import org.ecocean.media.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.*;
-
 import javax.jdo.*;
-
 import java.lang.StringBuffer;
-
 import jxl.write.*;
 import jxl.Workbook;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
 public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
+
+  // The goal of this class is to make it so we can define a column in one place
+  // and each row of the export be generated automatically from the list of
+  // ExportColumns
+  private static class ExportColumn {
+
+    public final String header;
+    public final Method getter;
+    public final int    colNum;
+
+    private final Class declaringClass;
+    private final Class valueType;
+
+    // since we have multiple MediaAssets and Keywords per row, these are used for those cols
+    private int maNum = -1;
+    private int kwNum = -1;
+
+    public ExportColumn(Class declaringClass, String header, Method getter, int colNum) {
+      this.declaringClass = declaringClass;
+      this.header = header;
+      this.getter = getter;
+      this.colNum = colNum;
+      this.valueType = getter.getReturnType();
+    }
+
+    // adds this to a running list of ExportColumns
+    public ExportColumn(Class declaringClass, String header, Method getter, List<ExportColumn> columns) {
+      this(declaringClass, header, getter, columns.size());
+      columns.add(this);
+    }
+
+    public String getStringValue(Object obj) throws InvocationTargetException, IllegalAccessException {
+      if (obj == null) return null;
+      Object value = null;
+      try {
+        value = getter.invoke(declaringClass.cast(obj)); // this is why we need declaringClass
+      } catch (InvocationTargetException e) {
+        System.out.println("EncounterSearchExportMetadataExcel got an InvocationTargetException on column "+header+" and object "+obj);
+        return null;
+      }
+      if (value == null) return null;
+      return value.toString();
+    }
+
+    public int getMaNum() {return maNum;}
+    public void setMaNum(int n) {this.maNum = n;}
+
+    public int getKwNum() {return kwNum;}
+    public void setKwNum(int n) {this.kwNum = n;}
+
+    public Class getDeclaringClass() {
+      return declaringClass;
+    }
+    public boolean isFor(Class c) {
+      return (declaringClass!=null && declaringClass == c);
+    }
+
+    public Label getHeaderLabel() {
+      return new Label(colNum, 0, header);
+    }
+    public void writeHeaderLabel(WritableSheet sheet) throws jxl.write.WriteException {
+      sheet.addCell(getHeaderLabel());
+    }
+
+    public Label getLabel(Object obj, int rowNum) throws InvocationTargetException, IllegalAccessException {
+      return new Label(colNum, rowNum, getStringValue(obj));
+    }
+    public void writeLabel(Object obj, int rowNum, WritableSheet sheet) throws jxl.write.WriteException, InvocationTargetException, IllegalAccessException {
+      if (obj==null) return;
+      sheet.addCell(getLabel(obj, rowNum));
+    }
+
+  }
+
+  // this would be a static method of above subclass if java allowed that
+  public static ExportColumn newEasyColumn(String classDotFieldNameHeader, List<ExportColumn> columns) throws ClassNotFoundException, NoSuchMethodException {
+    
+    String[] parts = classDotFieldNameHeader.split("\\.");
+
+    String className = parts[0];
+    className = Util.capitolizeFirstLetterOnly(className);
+    className = "org.ecocean."+className; // hmmm a little hacky no?
+    Class declaringClass = null;
+    try {
+      declaringClass = Class.forName(className);
+    } catch (ClassNotFoundException cnfe) {
+      System.out.println("[ERROR]: newEasyColumn failed to find the class specified by "+classDotFieldNameHeader+". Parsed className "+className);
+      return null;
+    }
+    
+    String fieldName = parts[1];
+    String getterName = "get"+Util.capitolizeFirstLetter(fieldName);
+    Method getter = null;
+
+    try {
+      getter = declaringClass.getMethod(getterName, null); // null means no arguments
+    } catch (NoSuchMethodException nsme) {
+      System.out.println("[ERROR]: newEasyColumn failed to find the method specified by "+classDotFieldNameHeader+". Parsed getter name "+getterName+"; skipping this entire column!");
+      return null;
+    }
+    
+    return new ExportColumn(declaringClass, classDotFieldNameHeader, getter, columns);
+
+  }
+
+
+
   private static final int BYTES_DOWNLOAD = 1024;
+
+  private int numMediaAssetCols = 0;
+  private int numKeywords = 0;
+
+  private void setMediaAssetCounts(Vector rEncounters) {
+    System.out.println("EncounterSearchExportMetadataExcel: setting environment vars for "+rEncounters.size()+" encs.");
+    int maxNumMedia = 0;
+    int maxNumKeywords = 0;
+    for (int i=0;i<rEncounters.size();i++) {
+      Encounter enc=(Encounter)rEncounters.get(i);
+      ArrayList<MediaAsset> mas = enc.getMedia();
+      int numMedia = mas.size();
+      if (numMedia > maxNumMedia) maxNumMedia = numMedia;
+      for (MediaAsset ma : mas) {
+        int numKw = ma.numKeywords();
+        if (numKw > maxNumKeywords) maxNumKeywords = numKw;
+      }
+    }
+    numMediaAssetCols = maxNumMedia;
+    numKeywords = maxNumKeywords;
+    System.out.println("EncounterSearchExportMetadataExcel: environment vars numMediaAssetCols = "+numMediaAssetCols+"; maxNumKeywords = "+maxNumKeywords);
+
+  }
+
 
   public void init(ServletConfig config) throws ServletException {
       super.init(config);
@@ -56,43 +186,146 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       rEncounters = queryResult.getResult();
       int numMatchingEncounters = rEncounters.size();
 
+      // Security: categorize hidden encounters with the initializer
+      HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+
+      // so we know how many MA columns we need
+      setMediaAssetCounts(rEncounters);
+
+
       // business logic start here
       WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile);
       WritableSheet sheet = excelWorkbook.createSheet("Search Results", 0);
-      String[] colHeaders = new String[]{
-        "catalog number",
-        "individual ID",
-        "occurrence ID",
-        "year",
-        "month",
-        "day",
-        "hour",
-        "minutes",
-        "milliseconds (definitive datetime)",
-        "latitude",
-        "longitude",
-        "locationID",
-        "country",
-        "other catalog numbers",
-        "submitter name",
-        "submitter organization",
-        "sex",
-        "behavior",
-        "life stage",
-        "group role",
-        "researcher comments",
-        "verbatim locality",
-        "alternate ID",
-        "web URL",
-        "individual web URL",
-        "occurrence web URL"
-      };
-      for (int i=0; i<colHeaders.length; i++) {
-        sheet.addCell(new Label(i, 0, colHeaders[i]));
+      
+      List<ExportColumn> columns = new ArrayList<ExportColumn>();
+      newEasyColumn("Encounter.catalogNumber", columns); // adds Encounter.catalogNumber to columns
+      newEasyColumn("Encounter.individualID", columns);
+      newEasyColumn("Encounter.alternateID", columns);
+      newEasyColumn("Occurrence.occurrenceID", columns);
+      newEasyColumn("Encounter.decimalLatitude", columns);
+      newEasyColumn("Encounter.decimalLongitude", columns);
+      newEasyColumn("Encounter.locationID", columns);
+      newEasyColumn("Encounter.verbatimLocality", columns);
+      newEasyColumn("Encounter.country", columns);
+      Method encDepthGetter = Encounter.class.getMethod("getDepthAsDouble", null); // depth is special bc the getDepth getter can fail with a NPE
+      ExportColumn depthIsSpecial = new ExportColumn(Encounter.class, "Encounter.depth", encDepthGetter, columns);
+      newEasyColumn("Encounter.dateInMilliseconds", columns);
+      newEasyColumn("Encounter.year", columns);
+      newEasyColumn("Encounter.month", columns);
+      newEasyColumn("Encounter.day", columns);
+      newEasyColumn("Encounter.hour", columns);
+      newEasyColumn("Encounter.minutes", columns);
+      newEasyColumn("Encounter.submitterOrganization", columns);
+      newEasyColumn("Encounter.submitterID", columns);
+      newEasyColumn("Encounter.recordedBy", columns);
+      newEasyColumn("Occurrence.groupComposition", columns);
+      newEasyColumn("Occurrence.groupBehavior", columns);
+      newEasyColumn("Occurrence.minGroupSizeEstimate", columns);
+      newEasyColumn("Occurrence.bestGroupSizeEstimate", columns);
+      newEasyColumn("Occurrence.maxGroupSizeEstimate", columns);
+      newEasyColumn("Occurrence.numAdults", columns);
+      newEasyColumn("Occurrence.numJuveniles", columns);
+      newEasyColumn("Occurrence.numCalves", columns);
+      newEasyColumn("Occurrence.initialCue", columns);
+      newEasyColumn("Occurrence.seaState", columns);
+      newEasyColumn("Occurrence.seaSurfaceTemp", columns);
+      newEasyColumn("Occurrence.swellHeight", columns);
+      newEasyColumn("Occurrence.visibilityIndex", columns);
+      newEasyColumn("Occurrence.effortCode", columns);
+      newEasyColumn("Occurrence.observer", columns);
+      newEasyColumn("Occurrence.transectName", columns);
+      newEasyColumn("Occurrence.transectBearing", columns);
+      newEasyColumn("Occurrence.distance", columns);
+      newEasyColumn("Occurrence.bearing", columns);
+      newEasyColumn("Occurrence.comments", columns);
+      newEasyColumn("Occurrence.humanActivityNearby", columns);
+      newEasyColumn("Encounter.patterningCode", columns);
+      newEasyColumn("Encounter.flukeType", columns);
+      newEasyColumn("Encounter.behavior", columns);
+      newEasyColumn("Encounter.groupRole", columns);
+      newEasyColumn("Encounter.sex", columns);
+      newEasyColumn("Encounter.lifeStage", columns);
+      newEasyColumn("Encounter.genus", columns);
+      newEasyColumn("Encounter.specificEpithet", columns);
+      newEasyColumn("Encounter.otherCatalogNumbers", columns);
+      newEasyColumn("Encounter.occurrenceRemarks", columns);
+
+
+      // int numMediaAssets = 3;
+      // for (int i=0; i<=numMediaAssets; i++) {
+      Method maGetFilename = MediaAsset.class.getMethod("getFilename", null);
+      Method keywordGetName = Keyword.class.getMethod("getReadableName");
+      for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
+        String mediaAssetColName = "Encounter.mediaAsset"+maNum;
+        ExportColumn maFilenameK = new ExportColumn(MediaAsset.class, mediaAssetColName, maGetFilename, columns);
+        maFilenameK.setMaNum(maNum); // important for later!
+
+        for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
+          String keywordColName = "Encounter.mediaAsset"+maNum+".keyword"+kwNum;
+          ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName, keywordGetName, columns);
+          keywordCol.setMaNum(maNum);
+          keywordCol.setKwNum(kwNum);
+        }
+
       }
 
-      // Security: categorize hidden encounters with the initializer
-      HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+      // }
+
+      //
+
+        // "Encounter.mediaAsset0",
+        // "Encounter.feature0",
+        // "Encounter.quality0",
+        // "Encounter.distinctiveness0",
+        // "Encounter.keyword0.0",
+        // "Encounter.keyword0.1",
+        // "Encounter.keyword0.2",
+        // "Encounter.keyword3",
+        // "Encounter.mediaAsset4",
+        // "Encounter.feature4",
+        // "Encounter.quality4",
+        // "Encounter.distinctiveness4",
+        // "Encounter.keyword4",
+
+      // newEasyColumn("", columns);
+      // newEasyColumn("", columns);
+      // newEasyColumn("", columns);
+
+
+      
+
+      for (ExportColumn exportCol: columns) {
+        exportCol.writeHeaderLabel(sheet);
+      }
+
+      String[] colHeaders = new String[]{
+        "Survey.vessel",
+        "Survey.id",
+        "MarkedIndividual.name0.nameType",
+        "MarkedIndividual.name0.value",
+        "MarkedIndividual.name1.nameType",
+        "MarkedIndividual.name1.value",
+        "Encounter.name0.nameType",
+        "Encounter.name0.value",
+        "Encounter.name1.nameType",
+        "Encounter.name1.value",
+        "Encounter.name2.nameType",
+        "Encounter.name2.value",
+        "Encounter.measurement.length",
+        "Encounter.measurement.weight",
+        "SatelliteTag.serialNumber",
+        "Encounter.distinguishingScar",
+        "TissueSample.sampleID",
+        "MicrosatelliteMarkersAnalysis.analysisID",
+        "SexAnalysis.processingLabTaskID",
+        "SexAnalysis.sex"
+      };
+
+      int headerOffset=10;
+      // for (int i=headerOffset; i<colHeaders.length+headerOffset; i++) {
+      //   sheet.addCell(new Label(i, 0, colHeaders[i-headerOffset]));
+      // }
+
 
       // Excel export =========================================================
       int row = 0;
@@ -103,33 +336,39 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         if (hiddenData.contains(enc)) continue;
         row++;
 
-        // write data cells (corresponding to colHeaders above)
-        sheet.addCell(new Label(0,  row, enc.getCatalogNumber()));
-        sheet.addCell(new Label(1,  row, enc.getIndividualID()));
-        sheet.addCell(new Label(2,  row, enc.getOccurrenceID()));
-        sheet.addCell(new Label(3,  row, String.valueOf(enc.getYear())));
-        sheet.addCell(new Label(4,  row, String.valueOf(enc.getMonth())));
-        sheet.addCell(new Label(5,  row, String.valueOf(enc.getDay())));
-        sheet.addCell(new Label(6,  row, String.valueOf(enc.getHour())));
-        sheet.addCell(new Label(7,  row, enc.getMinutes()));
-        sheet.addCell(new Label(8,  row, String.valueOf(enc.getDateInMilliseconds())));
-        sheet.addCell(new Label(9,  row, enc.getDecimalLatitude()));
-        sheet.addCell(new Label(10, row, enc.getDecimalLongitude()));
-        sheet.addCell(new Label(11, row, enc.getLocationID()));
-        sheet.addCell(new Label(12, row, enc.getCountry()));
-        sheet.addCell(new Label(13, row, enc.getOtherCatalogNumbers()));
-        sheet.addCell(new Label(14, row, enc.getSubmitterName()));
-        sheet.addCell(new Label(15, row, enc.getSubmitterOrganization()));
-        sheet.addCell(new Label(16, row, enc.getSex()));
-        sheet.addCell(new Label(17, row, enc.getBehavior()));
-        sheet.addCell(new Label(18, row, enc.getLifeStage()));
-        sheet.addCell(new Label(19, row, enc.getGroupRole()));
-        sheet.addCell(new Label(20, row, enc.getRComments()));
-        sheet.addCell(new Label(21, row, enc.getVerbatimLocality()));
-        sheet.addCell(new Label(22, row, enc.getAlternateID()));
-        sheet.addCell(new Label(23, row, ServletUtilities.getEncounterUrl(enc.getCatalogNumber(),request)));
-        sheet.addCell(new Label(24, row, ServletUtilities.getIndividualUrl(enc.getIndividualID(),request)));
-        sheet.addCell(new Label(25, row, ServletUtilities.getOccurrenceUrl(enc.getOccurrenceID(),request)));
+        // get attached objects
+        Occurrence occ = myShepherd.getOccurrence(enc);
+        MarkedIndividual ind = myShepherd.getMarkedIndividual(enc);
+        List<MediaAsset> mas = enc.getMedia();
+
+        // use exportColumns, passing in the appropriate object for each column
+        // (can't use switch statement bc Class is not a java primitive type)
+        for (ExportColumn exportCol: columns) {
+          if (exportCol.isFor(Encounter.class)) exportCol.writeLabel(enc, row, sheet);
+          else if (exportCol.isFor(Occurrence.class)) exportCol.writeLabel(occ, row, sheet);
+          else if (exportCol.isFor(MarkedIndividual.class)) exportCol.writeLabel(ind, row, sheet);
+          else if (exportCol.isFor(MediaAsset.class)) {
+            int num = exportCol.getMaNum();
+            if (num >= mas.size()) continue;
+            MediaAsset ma = mas.get(num);
+            if (ma == null) continue; // on to next column
+            exportCol.writeLabel(ma, row, sheet);
+          }
+          else if (exportCol.isFor(Keyword.class)) {
+            int maNum = exportCol.getMaNum();
+            if (maNum >= mas.size()) continue;
+            MediaAsset ma = mas.get(maNum);
+            if (ma == null) continue; // on to next column
+            int kwNum = exportCol.getKwNum();
+            if (kwNum >= ma.numKeywords()) continue;
+            Keyword kw = ma.getKeyword(kwNum);
+            if (kw == null) continue;
+            exportCol.writeLabel(kw, row, sheet);
+          }
+          else System.out.println("EncounterSearchExportMetadataExcel: no object found for class "+exportCol.getDeclaringClass());
+        }
+
+
      	} //end for loop iterating encounters
 
       // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data

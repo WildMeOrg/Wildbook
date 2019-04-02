@@ -17,14 +17,14 @@
 				<li>Collaborative datasets should list all data contributors in descending order of quantity of encounters contributed. The year should be listed as the year when the dataset was pooled and downloaded.</li>
 				<li>Example citation for a dataset:
 					<ul>
-						<li>S.Gero, J. Levenson, J. Van Ost., J Holmberg, A. Marine-Biologist, C. Researcher, O. Cean.  (2016). Collaborative dataset from: Flukebook.org. Consolidated and downloaded: June 15, 2016.</li>
+						<li>S.Gero, J. Levenson, J. Van Oast., J Holmberg, A. Marine-Biologist, C. Researcher, O. Cean.  (2016). Collaborative dataset from: Flukebook.org. Consolidated and downloaded: June 15, 2016.</li>
 					
 					</ul>
 				
 				</li>
 				<li>General citation for Flukebook:
 					<ul>
-						<li>J. Levenson, S. Gero, J. Van Oast, and J. Holmberg. 2015. Flukebook: a cloud-based photo-identification analysis tools for marine mammal research. Accessible at: http://www.flukebook.org </li>
+						<li>J. Levenson, S. Gero, J. Van Oast, and J. Holmberg. 2015. Flukebook: a cloud-based photo-identification analysis tools for marine mammal research. Accessible at: https://www.flukebook.org </li>
 					
 					</ul>
 				

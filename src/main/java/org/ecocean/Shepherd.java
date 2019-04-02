@@ -42,8 +42,11 @@ import java.text.SimpleDateFormat;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-
 import org.datanucleus.api.rest.orgjson.JSONException;
+import org.ecocean.cache.CachedQuery;
+import org.ecocean.cache.QueryCache;
+import org.ecocean.cache.QueryCacheFactory;
+import org.ecocean.cache.StoredQuery;
 
 
 /**
@@ -365,6 +368,10 @@ public class Shepherd {
     pm.deletePersistent(wSpace);
   }
 
+  public void throwAwayCollaboration(Collaboration collab) {
+    pm.deletePersistent(collab);
+  }
+
   public void throwAwayTissueSample(TissueSample genSample) {
     //String removedParameters = genSample.getHTMLString();
     //List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
@@ -426,7 +433,7 @@ public class Shepherd {
 
   /**
    * Removes a marked individual from the database.
-   * ALL DATA FOR THE INDIVIDUAL WILL BE LOST!!!
+   * ALL DATA FOR THE INDIVIDUAL WILL BE LOST!!
    *
    * @param MarkedIndividual to delete from the database
    * @see MarkedIndividual
@@ -499,6 +506,7 @@ public class Shepherd {
     }
     return null;
   }
+
 
   // Returns all of a user's workspaces.
   public ArrayList<Workspace> getWorkspacesForUser(String owner) {
@@ -2448,6 +2456,7 @@ public class Shepherd {
   public ArrayList<Encounter> getEncountersArrayWithMillis(long millis) {
     String milliString = String.valueOf(millis);
     
+    // uhhhhhhhh
     String up = milliString.substring(0, milliString.length() - 6) + 999999;
     String down = milliString.substring(0, milliString.length() - 6) + 000000;
     
@@ -2472,6 +2481,31 @@ public class Shepherd {
     } else {
       return null;
     }
+  }
+
+  public List<Encounter> getEncountersSubmittedDuring(long start, long end) {
+    String startStr = String.valueOf(start);
+    String endStr   = String.valueOf(end);
+    //String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && dwcDateAddedLong >= "+startStr+" && dateInMilliseconds <= "+endStr+" ";
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && dwcDateAddedLong >= "+startStr+" && dwcDateAddedLong <= "+endStr+" ";
+    Query encQuery = pm.newQuery(keywordQueryString);
+    Collection col = null;
+    int colSize = -1;
+    try {
+      encQuery = pm.newQuery(keywordQueryString);
+      if (encQuery.execute() != null) {
+        col = (Collection) encQuery.execute();
+        colSize = col.size();        
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Exception on query : "+keywordQueryString);    
+      return null;
+    }
+    List<Encounter> encs = new ArrayList<Encounter>(col);
+    encQuery.closeAll();
+    System.out.println("getEncountersSubmittedDuring used query string "+keywordQueryString+"; returning "+encs.size()+ " (collection size "+colSize+")");
+    return encs;
   }
   
   public ArrayList<Encounter> getEncounterArrayWithShortDate(String sd) {
@@ -2689,7 +2723,8 @@ public class Shepherd {
 
   public MarkedIndividual getMarkedIndividual(Encounter enc) {
     if (enc==null) return null;
-    return (getMarkedIndividual(enc.getIndividualID()));
+    if (!Util.stringExists(enc.getIndividualID())) return null;
+    return (getMarkedIndividualQuiet(enc.getIndividualID()));
   }
 
 
@@ -3944,6 +3979,16 @@ public class Shepherd {
     return al;
   }
 
+  public List<Encounter> getEncountersByFieldSubstring(String fieldName, String fieldVal) {
+    String filter = "this."+fieldName+".indexOf('"+fieldVal+"') != -1";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList al = new ArrayList(c);
+    acceptedEncounters.closeAll();
+    return al;
+  }
+
   public      Encounter  getEncounterByIndividualAndOccurrence(String indID, String occID) {
     List<Encounter> encs = getEncountersByIndividualAndOccurrence(indID, occID);
     if (encs.size()>0) return encs.get(0);
@@ -4429,22 +4474,10 @@ public class Shepherd {
 
   public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
     ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
-    String filter = "individualID != null";
-    Extent encClass = pm.getExtent(Encounter.class, true);
-    Query q = pm.newQuery(encClass, filter);
-    q.setOrdering("dwcDateAddedLong descending");
+    String filter = "SELECT FROM org.ecocean.Encounter WHERE individualID != null ORDER BY dwcDateAddedLong descending RANGE 1,"+(numToReturn+1);
+    Query q = pm.newQuery(filter);
     Collection c = (Collection) (q.execute());
-    if ((c != null) && (c.size() > 0)) {
-      int max = (numToReturn > c.size()) ? c.size() : numToReturn;
-      int numAdded=0;
-      while(numAdded<max){
-        ArrayList<Encounter> results=new ArrayList<Encounter>(c);
-        matchingEncounters.add(results.get(numAdded));
-        numAdded++;
-      }
-
-    }
-
+    matchingEncounters = new ArrayList<Encounter>(c);
     q.closeAll();
     return matchingEncounters;
   }
@@ -4456,26 +4489,36 @@ public class Shepherd {
 
 
     String filter = "submitterID != null && dwcDateAddedLong >= "+startTime;
-    System.out.println("     My filter is: "+filter);
+    //System.out.println("     My filter is: "+filter);
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
     q.setResult("distinct submitterID");
     Collection c = (Collection) (q.execute());
     ArrayList<String> allUsers = new ArrayList<String>(c);
     q.closeAll();
+    
+    
     int numAllUsers=allUsers.size();
     //System.out.println("     All users: "+numAllUsers);
+    QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
     for(int i=0;i<numAllUsers;i++){
       String thisUser=allUsers.get(i);
       if((!thisUser.trim().equals(""))&&(getUser(thisUser)!=null)){
 
-        String userFilter = "submitterID == \"" + thisUser + "\" && dwcDateAddedLong >= "+startTime;
-        Extent userClass = pm.getExtent(Encounter.class, true);
-        Query subq = pm.newQuery(userClass, userFilter);
-        Collection userC = (Collection) (subq.execute());
-        matchingUsers.put(thisUser, (new Integer(userC.size())));
-        //System.out.println("     Adding user:"+thisUser+" with "+userC.size());
-        subq.closeAll();
+        if(qc.getQueryByName(("numRecentEncounters_"+thisUser), getContext())!=null){
+          CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+thisUser), getContext());
+          matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
+        }
+        
+        else{
+          String userFilter = "SELECT FROM org.ecocean.Encounter WHERE submitterID == \"" + thisUser + "\" && dwcDateAddedLong >= "+startTime;
+          //update rankings hourly
+          CachedQuery cq=new CachedQuery(("numRecentEncounters_"+thisUser),userFilter,3600000);
+          qc.addCachedQuery(cq);
+          matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
+          
+        }
+        
       }
     }
 
@@ -4597,7 +4640,26 @@ public class Shepherd {
       query.closeAll();
       return users;
   }
+  
+  public StoredQuery getStoredQuery(String uuid) {
+    StoredQuery sq = null;
+    try {
+      sq = ((StoredQuery) (pm.getObjectById(pm.newObjectIdInstance(StoredQuery.class, uuid), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return sq;
+  }
+  
 
+  public List<StoredQuery> getAllStoredQueries() {
+    Extent encClass = pm.getExtent(StoredQuery.class, true);
+    Query queries = pm.newQuery(encClass);
+    Collection c = (Collection) (queries.execute());
+    ArrayList<StoredQuery> listy=new ArrayList<StoredQuery>(c);
+    queries.closeAll();
+    return listy;
+  }
 
 
 } //end Shepherd class
