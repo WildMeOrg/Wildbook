@@ -790,7 +790,7 @@ public static String captchaWidget(HttpServletRequest request, String params) {
   if ((siteKey == null) || (secretKey == null)) return "<div class=\"error captcha-error captcha-missing-key\">Unable to get captcha key settings.</div>";
   return "<script>function recaptchaCompleted() { return (grecaptcha && grecaptcha.getResponse(0)); }</script>\n" +
   "<script src='https://www.google.com/recaptcha/api.js" + ((params == null) ? "" : "?" + params) + "' async defer></script>\n" +
-  "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
+  "<div class=\"g-recaptcha\" data-callback=\"recaptchaCallback\" data-sitekey=\"" + siteKey + "\"></div>";
 }
 
 //  https://developers.google.com/recaptcha/docs/verify
