@@ -871,10 +871,23 @@
 
 	<class name="MultiValue" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity" persistence-modifier="persistent" />
+<!--
+		<property name="valuesAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" />
+		</property>
+-->
+
+		<field name="valuesAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="values" />
+		</field>
+
+<!--
+		<field name="values" persistence-modifier="persistent" default-fetch-group="true" serialized="true"  cacheable="false" />
 		<field name="values" table="MULTIVALUE_VALUES" persistence-modifier="persistent" default-fetch-group="true" >
-			<map key-type="java.lang.String" serialized-value="true" />
+			<map key-type="java.lang.String" serialized-value="true" value-type="java.util.ArrayList" />
 			<join />
 		</field>
+-->
 	</class>
 
 
