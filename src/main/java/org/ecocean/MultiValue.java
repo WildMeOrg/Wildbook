@@ -130,7 +130,7 @@ public class MultiValue implements java.io.Serializable {
     //this is made contain only one of each (in the event of duplicates)
     public Set<String> getAllValues() {
         Set<String> rtn = new HashSet<String>();
-        if (values == null) return rtn;
+        if (getValues() == null) return rtn;
         Iterator it = values.keys();
         while (it.hasNext()) {
             String key = (String)it.next();
@@ -145,7 +145,7 @@ public class MultiValue implements java.io.Serializable {
     }
 
     public Set<String> getKeys() {
-        if (values == null) return null;
+        if (getValues() == null) return null;
         Set<String> rtn = new HashSet<String>();
         Iterator it = values.keys();
         while (it.hasNext()) {
@@ -156,7 +156,7 @@ public class MultiValue implements java.io.Serializable {
 
     public JSONObject toJSONObject(Object keyHint) {
         JSONObject rtn = new JSONObject();
-        if (values == null) return rtn;
+        if (getValues() == null) return rtn;
         for (String key : generateKeys(keyHint)) {
             rtn.put(key, values.optJSONArray(key));
         }
@@ -164,7 +164,7 @@ public class MultiValue implements java.io.Serializable {
     }
     public JSONObject toJSONObject() {  //default only
         JSONObject rtn = new JSONObject();
-        if (values == null) return rtn;
+        if (getValues() == null) return rtn;
         rtn.put(DEFAULT_KEY_VALUE, values.optJSONArray(DEFAULT_KEY_VALUE));
         return rtn;
     }
