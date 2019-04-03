@@ -23,15 +23,6 @@ public class MultiValue implements java.io.Serializable {
     public MultiValue() {
     }
 
-/*
-    public MultiValue(JSONObject values) {
-System.out.println("ZZZZZZZ values=" + values);
-System.out.println("ZZZZZZZ valuesAsString=" + valuesAsString);
-        this.values = values;
-        if (values != null) this.valuesAsString = values.toString();
-    }
-*/
-
     /*
         a note on 'keyHint':
 
@@ -43,7 +34,7 @@ System.out.println("ZZZZZZZ valuesAsString=" + valuesAsString);
 
     public MultiValue(Object keyHint, String initialValue) {
         super();
-        this.setValuesByKeys(generateKeys(keyHint), initialValue);
+        this.addValuesByKeys(generateKeys(keyHint), initialValue);
     }
 
     public int getId() {
@@ -54,69 +45,47 @@ System.out.println("ZZZZZZZ valuesAsString=" + valuesAsString);
         if (values != null) return values;
         JSONObject j = Util.stringToJSONObject(valuesAsString);
         values = j;
-//System.out.println("DEBUG: getValues values=" + values);
         return j;
     }
     public void setValues(JSONObject j) {
         if (j == null) return;
-//System.out.println("DEBUG: setValues values=" + j);
         values = j;
         valuesAsString = j.toString();
     }
-/*
-    public void updateValuesAsString() {
-System.out.println("DEBUG: updateValuesAsString() ???? values ---> " + values);
-        if (values == null) {
-            valuesAsString = null;
-        } else {
-            valuesAsString = values.toString();
-        }
-        setValuesAsString(valuesAsString);
-System.out.println("DEBUG: updateValuesAsString() ???? valuesAsString ---> " + valuesAsString);
-    }
-*/
 
     public String getValuesAsString() {
         if (valuesAsString != null) return valuesAsString;
         if (values == null) return null;
         valuesAsString = values.toString();
-//System.out.println("DEBUG: getValuesAsString valuesAsString=" + valuesAsString);
         return valuesAsString;
     }
 
     public void setValuesAsString(String s) {
-//System.out.println("DEBUG: setValuesAsString s=" + s);
         valuesAsString = s;
         values = Util.stringToJSONObject(s);
     }
 
-
-    public void setValuesByKeys(Set<String> keys, String value) {
+    public void addValuesByKeys(Set<String> keys, String value) {
         if (keys == null) return;
         if (value == null) return;
         for (String key : keys) {
-            setValuesByKey(key, value);
+            addValuesByKey(key, value);
         }
     }
-    public void setValuesByKey(String key, String value) {
-//System.out.println("key=>[" + key + "] value=" + value);
+    public void addValuesByKey(String key, String value) {
         if (key == null) return;
         if (value == null) return;
         JSONObject clone = getValues();
         if (clone == null) clone = new JSONObject();
-//System.out.println("????? 1.CLONE -> " + clone);
-        //if (clone != null) clone = new JSONObject(values, JSONObject.getNames(values));
         if (clone.optJSONArray(key) == null) clone.put(key, new JSONArray());
         if (!getValuesByKey(key).contains(value)) clone.getJSONArray(key).put(value);  //getValuesByKey is fine working on orig values
-//JSONObject j = new JSONObject(values.toString());
-//System.out.println("????? 2.CLONE -> " + clone);
         setValues(clone);
     }
-    public void setValues(Object keyHint, String value) {
-        setValuesByKeys(generateKeys(keyHint), value);
+    public void addValues(Object keyHint, String value) {
+        addValuesByKeys(generateKeys(keyHint), value);
     }
-    public void setValuesDefault(String value) {
-        setValuesByKey(DEFAULT_KEY_VALUE, value);
+    public void addValuesDefault(String value) {
+        addValuesByKey(DEFAULT_KEY_VALUE, value);
     }
 
     //this could get values across multiple keys, but wont get duplicates
@@ -144,20 +113,6 @@ System.out.println("DEBUG: updateValuesAsString() ???? valuesAsString ---> " + v
     public List<String> getValuesDefault() {
         return getValuesByKey(DEFAULT_KEY_VALUE);
     }
-/* dont really think we need these?
-    //returns a map from keys to values (for only passed keys)
-    public Map<String,List<String>> getValuesMap(Object keyHint) {
-        return getValuesMapByKeys(generateKeys(keyHint));
-    }
-    public Map<String,List<String>> getValuesMapByKeys(Set<String> keys) {
-        Map<String,List<String>> rtn = new HashMap<String,List<String>>();
-        for (String key : keys) {
-            if (values.get(key) == null) continue;
-            rtn.put(key, values.get(key));
-        }
-        return rtn;
-    }
-*/
 
     //TODO FIXME
     public boolean removeAllValues(String value) {  //regardless of key
