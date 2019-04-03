@@ -197,15 +197,15 @@ public class MarkedIndividual implements java.io.Serializable {
     //this adds to the default
     public void addName(String name) {
         if (names == null) names = new MultiValue();
-        names.setValuesDefault(name);
+        names.addValuesDefault(name);
     }
     public void addName(Object keyHint, String name) {
         if (names == null) names = new MultiValue();
-        names.setValues(keyHint, name);
+        names.addValues(keyHint, name);
     }
     public void addNameByKey(String key, String value) {
         if (names == null) names = new MultiValue();
-        names.setValuesByKey(key, value);
+        names.addValuesByKey(key, value);
     }
 
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
@@ -215,20 +215,20 @@ public class MarkedIndividual implements java.io.Serializable {
     public MultiValue setNamesFromLegacy() {
         if (names == null) names = new MultiValue();
         if (Util.stringExists(legacyIndividualID)) {
-            names.setValuesDefault(legacyIndividualID);
-            names.setValuesByKey(NAMES_KEY_LEGACYINDIVIDUALID, legacyIndividualID);
+            names.addValuesDefault(legacyIndividualID);
+            names.addValuesByKey(NAMES_KEY_LEGACYINDIVIDUALID, legacyIndividualID);
         }
         if (Util.stringExists(nickName)) {
-            names.setValuesDefault(nickName);
-            names.setValuesByKey(NAMES_KEY_NICKNAME, nickName);
+            names.addValuesDefault(nickName);
+            names.addValuesByKey(NAMES_KEY_NICKNAME, nickName);
         }
         //note: alternateids seems to sometimes (looking at you flukebook) contain "keys" of their own, e.g. "IFAW:fluffy"
         //   in some perfect world this would be used as own keys.  :(
         if (Util.stringExists(alternateid)) {
             String[] part = alternateid.split("\\s*[;,]\\s*");
             for (int i = 0 ; i < part.length ; i++) {
-                names.setValuesDefault(part[i]);
-                names.setValuesByKey(NAMES_KEY_ALTERNATEID, part[i]);
+                names.addValuesDefault(part[i]);
+                names.addValuesByKey(NAMES_KEY_ALTERNATEID, part[i]);
             }
         }
         return names;
