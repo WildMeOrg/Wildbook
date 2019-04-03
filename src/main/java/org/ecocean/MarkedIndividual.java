@@ -52,7 +52,10 @@ import org.datanucleus.api.rest.orgjson.JSONException;
 public class MarkedIndividual implements java.io.Serializable {
 
     private String individualID = "";
+
     private MultiValue names;
+    private static HashMap<Integer,String> NAMES_CACHE = new HashMap<Integer,String>();  //this is for searching
+
     private String alternateid;  //TODO this will go away soon
     private String legacyIndividualID;  //TODO this "could" go away "eventually"
 
@@ -185,7 +188,7 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     public List<String> getNamesList(Object keyHint) {
         if (names == null) return null;
-        return names.getValues(keyHint);
+        return names.getValuesAsList(keyHint);
     }
     public List<String> getNamesList() {
         if (names == null) return null;
@@ -2211,6 +2214,17 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		this.refreshDateFirstIdentified();
 		this.refreshDateLastestSighting();
 	}
+
+    public static Map<Integer,String> updateNamesCache(Shepherd myShepherd) {
+        NAMES_CACHE = new HashMap<Integer,String>();
+        Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MultiValue");
+        Collection c = (Collection) (query.execute());
+        for (Object m : c) {
+            MultiValue mv = (MultiValue)m;
+            NAMES_CACHE.put(mv.getId(), String.join(";", mv.getAllValues()));
+        }
+        return NAMES_CACHE;
+    }
 
 
     public String toString() {

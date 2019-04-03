@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Collection;
 import javax.servlet.http.HttpServletRequest;
 import org.json.JSONObject;
@@ -13,13 +14,24 @@ import org.json.JSONArray;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class MultiValue implements java.io.Serializable {
+    static final long serialVersionUID = 8831423450447974780L;
     private int id;
-    private Map<String,List<String>> values = new HashMap<String,List<String>>();
+    protected JSONObject values;
+    protected String valuesAsString;
     private static final String DEFAULT_KEY_VALUE = "*";
 
     public MultiValue() {
     }
-  
+
+/*
+    public MultiValue(JSONObject values) {
+System.out.println("ZZZZZZZ values=" + values);
+System.out.println("ZZZZZZZ valuesAsString=" + valuesAsString);
+        this.values = values;
+        if (values != null) this.valuesAsString = values.toString();
+    }
+*/
+
     /*
         a note on 'keyHint':
 
@@ -30,21 +42,75 @@ public class MultiValue implements java.io.Serializable {
     */
 
     public MultiValue(Object keyHint, String initialValue) {
-        this();
+        super();
         this.setValuesByKeys(generateKeys(keyHint), initialValue);
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public JSONObject getValues() {
+        if (values != null) return values;
+        JSONObject j = Util.stringToJSONObject(valuesAsString);
+        values = j;
+//System.out.println("DEBUG: getValues values=" + values);
+        return j;
+    }
+    public void setValues(JSONObject j) {
+        if (j == null) return;
+//System.out.println("DEBUG: setValues values=" + j);
+        values = j;
+        valuesAsString = j.toString();
+    }
+/*
+    public void updateValuesAsString() {
+System.out.println("DEBUG: updateValuesAsString() ???? values ---> " + values);
+        if (values == null) {
+            valuesAsString = null;
+        } else {
+            valuesAsString = values.toString();
+        }
+        setValuesAsString(valuesAsString);
+System.out.println("DEBUG: updateValuesAsString() ???? valuesAsString ---> " + valuesAsString);
+    }
+*/
+
+    public String getValuesAsString() {
+        if (valuesAsString != null) return valuesAsString;
+        if (values == null) return null;
+        valuesAsString = values.toString();
+//System.out.println("DEBUG: getValuesAsString valuesAsString=" + valuesAsString);
+        return valuesAsString;
+    }
+
+    public void setValuesAsString(String s) {
+//System.out.println("DEBUG: setValuesAsString s=" + s);
+        valuesAsString = s;
+        values = Util.stringToJSONObject(s);
+    }
+
+
     public void setValuesByKeys(Set<String> keys, String value) {
-        if (value == null) return;  //??
+        if (keys == null) return;
+        if (value == null) return;
         for (String key : keys) {
-            if (values.get(key) == null) values.put(key, new ArrayList<String>());
-            if (!values.get(key).contains(value)) values.get(key).add(value);
+            setValuesByKey(key, value);
         }
     }
-    public void setValuesByKey(String key, String value) {  //convenience method
-        Set<String> keys = new HashSet<String>();
-        keys.add(key);
-        setValuesByKeys(keys, value);
+    public void setValuesByKey(String key, String value) {
+//System.out.println("key=>[" + key + "] value=" + value);
+        if (key == null) return;
+        if (value == null) return;
+        JSONObject clone = getValues();
+        if (clone == null) clone = new JSONObject();
+//System.out.println("????? 1.CLONE -> " + clone);
+        //if (clone != null) clone = new JSONObject(values, JSONObject.getNames(values));
+        if (clone.optJSONArray(key) == null) clone.put(key, new JSONArray());
+        if (!getValuesByKey(key).contains(value)) clone.getJSONArray(key).put(value);  //getValuesByKey is fine working on orig values
+//JSONObject j = new JSONObject(values.toString());
+//System.out.println("????? 2.CLONE -> " + clone);
+        setValues(clone);
     }
     public void setValues(Object keyHint, String value) {
         setValuesByKeys(generateKeys(keyHint), value);
@@ -54,15 +120,18 @@ public class MultiValue implements java.io.Serializable {
     }
 
     //this could get values across multiple keys, but wont get duplicates
-    public List<String> getValues(Object keyHint) {
+    public List<String> getValuesAsList(Object keyHint) {
         return getValuesByKeys(generateKeys(keyHint));
     }
     public List<String> getValuesByKeys(Set<String> keys) {
         List<String> rtn = new ArrayList<String>();
+        if (getValues() == null) return rtn;
         for (String key : keys) {
-            if (values.get(key) == null) continue;
-            for (String val : values.get(key)) {
-                if (!rtn.contains(val)) rtn.add(val);
+            JSONArray v = values.optJSONArray(key);
+            if (v == null) continue;
+            for (int i = 0 ; i < v.length() ; i++) {
+                String val = v.optString(i, null);
+                if ((val != null) && !rtn.contains(val)) rtn.add(val);
             }
         }
         return rtn;
@@ -73,8 +142,9 @@ public class MultiValue implements java.io.Serializable {
         return getValuesByKeys(keys);
     }
     public List<String> getValuesDefault() {
-        return values.get(DEFAULT_KEY_VALUE);
+        return getValuesByKey(DEFAULT_KEY_VALUE);
     }
+/* dont really think we need these?
     //returns a map from keys to values (for only passed keys)
     public Map<String,List<String>> getValuesMap(Object keyHint) {
         return getValuesMapByKeys(generateKeys(keyHint));
@@ -87,6 +157,7 @@ public class MultiValue implements java.io.Serializable {
         }
         return rtn;
     }
+*/
 
     //TODO FIXME
     public boolean removeAllValues(String value) {  //regardless of key
@@ -105,32 +176,41 @@ public class MultiValue implements java.io.Serializable {
     public Set<String> getAllValues() {
         Set<String> rtn = new HashSet<String>();
         if (values == null) return rtn;
-        for (List<String> vals : values.values()) {
-            if (vals == null) continue;
-            for (String val : vals) {
-                if (!rtn.contains(val)) rtn.add(val);
+        Iterator it = values.keys();
+        while (it.hasNext()) {
+            String key = (String)it.next();
+            JSONArray v = values.optJSONArray(key);
+            if (v == null) continue;
+            for (int i = 0 ; i < v.length() ; i++) {
+                String val = v.optString(i, null);
+                if ((val != null) && !rtn.contains(val)) rtn.add(val);
             }
         }
         return rtn;
     }
 
     public Set<String> getKeys() {
-        return values.keySet();
+        if (values == null) return null;
+        Set<String> rtn = new HashSet<String>();
+        Iterator it = values.keys();
+        while (it.hasNext()) {
+            rtn.add((String)it.next());
+        }
+        return rtn;
     }
 
     public JSONObject toJSONObject(Object keyHint) {
         JSONObject rtn = new JSONObject();
-        rtn.put("values", new JSONArray(getValues(keyHint)));
-        rtn.put("map", new JSONObject(getValuesMap(keyHint)));
+        if (values == null) return rtn;
+        for (String key : generateKeys(keyHint)) {
+            rtn.put(key, values.optJSONArray(key));
+        }
         return rtn;
     }
     public JSONObject toJSONObject() {  //default only
         JSONObject rtn = new JSONObject();
-        if (values.get(DEFAULT_KEY_VALUE) == null) return rtn;
-        JSONObject jmap = new JSONObject();
-        jmap.put(DEFAULT_KEY_VALUE, new JSONArray(values.get(DEFAULT_KEY_VALUE)));
-        rtn.put("map", jmap);
-        rtn.put("values", new JSONArray(values.get(DEFAULT_KEY_VALUE)));
+        if (values == null) return rtn;
+        rtn.put(DEFAULT_KEY_VALUE, values.optJSONArray(DEFAULT_KEY_VALUE));
         return rtn;
     }
 
@@ -170,7 +250,7 @@ public class MultiValue implements java.io.Serializable {
 
     public JSONObject debug() {
         JSONObject j = new JSONObject();
-        j.put("values_raw", new JSONObject(values));
+        j.put("values_raw", getValues());
         j.put("id", id);
         return j;
     }
