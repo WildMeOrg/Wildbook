@@ -2215,6 +2215,25 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		this.refreshDateLastestSighting();
 	}
 
+    // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
+    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
+        List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
+        if (NAMES_CACHE == null) return rtn;
+        List<String> nameIds = new ArrayList<String>();
+        for (Integer nid : NAMES_CACHE.keySet()) {
+            if (NAMES_CACHE.get(nid).matches(regex)) nameIds.add(Integer.toString(nid));
+        }
+        if (nameIds.size() < 1) return rtn;
+        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE names.id == " + String.join(" || names.id == ", nameIds);
+        Query query = myShepherd.getPM().newQuery(jdoql);
+        Collection c = (Collection) (query.execute());
+        for (Object m : c) {
+            MarkedIndividual ind = (MarkedIndividual)m;
+            rtn.add(ind);
+        }
+        return rtn;
+    }
+
     public static Map<Integer,String> updateNamesCache(Shepherd myShepherd) {
         NAMES_CACHE = new HashMap<Integer,String>();
         Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MultiValue");
