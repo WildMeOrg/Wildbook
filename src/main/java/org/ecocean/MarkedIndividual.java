@@ -2220,12 +2220,14 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 	}
 
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
+    // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
         if (NAMES_CACHE == null) return rtn;  //snh
+        if (regex == null) return rtn;
         List<String> nameIds = new ArrayList<String>();
         for (Integer nid : NAMES_CACHE.keySet()) {
-            if (NAMES_CACHE.get(nid).matches(regex)) nameIds.add(Integer.toString(nid));
+            if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) nameIds.add(Integer.toString(nid));
         }
         if (nameIds.size() < 1) return rtn;
         String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE names.id == " + String.join(" || names.id == ", nameIds);
@@ -2246,11 +2248,12 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
     public static Map<Integer,String> updateNamesCache(final Shepherd myShepherd) {
         NAMES_CACHE = new HashMap<Integer,String>();
-        Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MultiValue");
+        Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual");
         Collection c = (Collection) (query.execute());
         for (Object m : c) {
-            MultiValue mv = (MultiValue)m;
-            NAMES_CACHE.put(mv.getId(), String.join(";", mv.getAllValues()));
+            MarkedIndividual ind = (MarkedIndividual) m;
+            if (ind.names == null) continue;
+            NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
         }
         return NAMES_CACHE;
     }
@@ -2259,7 +2262,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     public void refreshNamesCache() {
         if (names == null) return;
         if (NAMES_CACHE == null) return;  //snh
-        NAMES_CACHE.put(names.getId(), String.join(";", names.getAllValues()));
+        NAMES_CACHE.put(names.getId(), this.getId() + ";" + String.join(";", names.getAllValues()).toLowerCase());
     }
 
 
