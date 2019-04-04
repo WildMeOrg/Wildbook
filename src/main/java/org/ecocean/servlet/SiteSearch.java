@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
+import org.ecocean.Util;
 import org.ecocean.User;
 import org.ecocean.CommonConfiguration;
 import org.slf4j.Logger;
@@ -83,46 +84,20 @@ public class SiteSearch extends HttpServlet {
         //
         // Query on Individuals
         //
-        filter = "this.nickName.toLowerCase().matches('"
-                + regex
-                + "') || this.individualID.toLowerCase().matches('"
-                + regex
-                + "') || this.alternateid.toLowerCase().matches('"
-                + regex + "')"
-                
-                
-                ;
-        
-        Query query=null;;
+
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("SiteSearch.class");
         myShepherd.beginDBTransaction();
-        try{ 
-          query = myShepherd.getPM().newQuery(MarkedIndividual.class);
-          query.setFilter(filter);
-          query.setOrdering("individualID ascending");
-  
-          //
-          // Check to make sure our query is fine, log error if not.
-          //
-          if (logger.isDebugEnabled()) {
-              logger.debug(filter);
-              try {
-                  query.compile();
-              } catch (Throwable ex) {
-                  logger.error("Bad query", ex);
-              }
-          }
-  
-          @SuppressWarnings("unchecked")
-          List<MarkedIndividual> individuals = (List<MarkedIndividual>) query.execute();
+
+        List<MarkedIndividual> individuals = MarkedIndividual.findByNames(myShepherd, regex);
   
           for (MarkedIndividual ind : individuals) {
               HashMap<String, String> hm = new HashMap<String, String>();
-              if (StringUtils.isBlank(ind.getNickName())) {
+              List<String> names = ind.getNamesList(request);
+              if (Util.collectionIsEmptyOrNull(names)) {
                   hm.put("label", ind.getIndividualID());
               } else {
-                  hm.put("label", ind.getNickName() + " (" + ind.getIndividualID() + ")");
+                  hm.put("label", String.join(", ", names) + " (" + ind.getIndividualID().substring(0,8) + ")");
               }
               hm.put("value", ind.getIndividualID());
               hm.put("type", "individual");
@@ -135,14 +110,9 @@ public class SiteSearch extends HttpServlet {
               }
               list.add(hm);
           }
-          //query.closeAll();
-        }
-        catch(Exception e){}
-        finally{
-          if(query!=null){query.closeAll();}
+
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
-        }
          
 
         /*

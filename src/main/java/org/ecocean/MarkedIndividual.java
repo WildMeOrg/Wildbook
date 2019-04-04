@@ -52,7 +52,10 @@ import org.datanucleus.api.rest.orgjson.JSONException;
 public class MarkedIndividual implements java.io.Serializable {
 
     private String individualID = "";
+
     private MultiValue names;
+    private static HashMap<Integer,String> NAMES_CACHE = new HashMap<Integer,String>();  //this is for searching
+
     private String alternateid;  //TODO this will go away soon
     private String legacyIndividualID;  //TODO this "could" go away "eventually"
 
@@ -178,13 +181,14 @@ public class MarkedIndividual implements java.io.Serializable {
     //MultiValue has some subtleties to it!
     public void setNames(MultiValue mv) {
         names = mv;
+        refreshNamesCache();
     }
     public MultiValue getNames() {
         return names;
     }
     public List<String> getNamesList(Object keyHint) {
         if (names == null) return null;
-        return names.getValues(keyHint);
+        return names.getValuesAsList(keyHint);
     }
     public List<String> getNamesList() {
         if (names == null) return null;
@@ -193,15 +197,18 @@ public class MarkedIndividual implements java.io.Serializable {
     //this adds to the default
     public void addName(String name) {
         if (names == null) names = new MultiValue();
-        names.setValuesDefault(name);
+        names.addValuesDefault(name);
+        refreshNamesCache();
     }
     public void addName(Object keyHint, String name) {
         if (names == null) names = new MultiValue();
-        names.setValues(keyHint, name);
+        names.addValues(keyHint, name);
+        refreshNamesCache();
     }
     public void addNameByKey(String key, String value) {
         if (names == null) names = new MultiValue();
-        names.setValuesByKey(key, value);
+        names.addValuesByKey(key, value);
+        refreshNamesCache();
     }
 
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
@@ -211,20 +218,20 @@ public class MarkedIndividual implements java.io.Serializable {
     public MultiValue setNamesFromLegacy() {
         if (names == null) names = new MultiValue();
         if (Util.stringExists(legacyIndividualID)) {
-            names.setValuesDefault(legacyIndividualID);
-            names.setValuesByKey(NAMES_KEY_LEGACYINDIVIDUALID, legacyIndividualID);
+            names.addValuesDefault(legacyIndividualID);
+            names.addValuesByKey(NAMES_KEY_LEGACYINDIVIDUALID, legacyIndividualID);
         }
         if (Util.stringExists(nickName)) {
-            names.setValuesDefault(nickName);
-            names.setValuesByKey(NAMES_KEY_NICKNAME, nickName);
+            names.addValuesDefault(nickName);
+            names.addValuesByKey(NAMES_KEY_NICKNAME, nickName);
         }
         //note: alternateids seems to sometimes (looking at you flukebook) contain "keys" of their own, e.g. "IFAW:fluffy"
         //   in some perfect world this would be used as own keys.  :(
         if (Util.stringExists(alternateid)) {
             String[] part = alternateid.split("\\s*[;,]\\s*");
             for (int i = 0 ; i < part.length ; i++) {
-                names.setValuesDefault(part[i]);
-                names.setValuesByKey(NAMES_KEY_ALTERNATEID, part[i]);
+                names.addValuesDefault(part[i]);
+                names.addValuesByKey(NAMES_KEY_ALTERNATEID, part[i]);
             }
         }
         return names;
@@ -2238,6 +2245,52 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		this.refreshDateFirstIdentified();
 		this.refreshDateLastestSighting();
 	}
+
+    // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
+    // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
+    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
+        List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
+        if (NAMES_CACHE == null) return rtn;  //snh
+        if (regex == null) return rtn;
+        List<String> nameIds = new ArrayList<String>();
+        for (Integer nid : NAMES_CACHE.keySet()) {
+            if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) nameIds.add(Integer.toString(nid));
+        }
+        if (nameIds.size() < 1) return rtn;
+        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE names.id == " + String.join(" || names.id == ", nameIds);
+        Query query = myShepherd.getPM().newQuery(jdoql);
+        Collection c = (Collection) (query.execute());
+        for (Object m : c) {
+            MarkedIndividual ind = (MarkedIndividual)m;
+            rtn.add(ind);
+        }
+        return rtn;
+    }
+
+    //only does once (when needed)
+    public static boolean initNamesCache(final Shepherd myShepherd) {
+        if ((NAMES_CACHE != null) && (NAMES_CACHE.size() > 0)) return false;
+        updateNamesCache(myShepherd);
+        return true;
+    }
+    public static Map<Integer,String> updateNamesCache(final Shepherd myShepherd) {
+        NAMES_CACHE = new HashMap<Integer,String>();
+        Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual");
+        Collection c = (Collection) (query.execute());
+        for (Object m : c) {
+            MarkedIndividual ind = (MarkedIndividual) m;
+            if (ind.names == null) continue;
+            NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
+        }
+        return NAMES_CACHE;
+    }
+
+    //updates cache based upon this instance (assumes names has changed)
+    public void refreshNamesCache() {
+        if (names == null) return;
+        if (NAMES_CACHE == null) return;  //snh
+        NAMES_CACHE.put(names.getId(), this.getId() + ";" + String.join(";", names.getAllValues()).toLowerCase());
+    }
 
 
     public String toString() {
