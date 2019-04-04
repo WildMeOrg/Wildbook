@@ -12,6 +12,7 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -479,6 +480,21 @@ public class Util {
         return j;
     }
 
+    // note, this will (silently) *skip* non-string elements!  you have been warned.
+    public static List<String> jsonArrayToStringList(JSONArray arr) {
+        if (arr == null) return null;
+        List<String> rtn = new ArrayList<String>();
+        for (int i = 0 ; i < arr.length() ; i++) {
+            String val = arr.optString(i, null);
+            if (val != null) rtn.add(val);
+        }
+        return rtn;
+    }
+    public static boolean jsonArrayContains(JSONArray arr, String str) {
+        if ((str == null) || (arr == null)) return false;  //might be a matter of philosophical debate
+        return jsonArrayToStringList(arr).contains(str);
+    }
+
     public static org.datanucleus.api.rest.orgjson.JSONObject stringToDatanucleusJSONObject(String s) {
       org.datanucleus.api.rest.orgjson.JSONObject j = null;
       if (s == null) return j;
@@ -493,11 +509,11 @@ public class Util {
     //NEW
     
     //this basically just swallows exceptions in parsing and returns a null if failure
-    public static org.json.JSONArray stringToJSONArray(String s) {
-        org.json.JSONArray j = null;
+    public static JSONArray stringToJSONArray(String s) {
+        JSONArray j = null;
         if (s == null) return j;
         try {
-            j = new org.json.JSONArray(s);
+            j = new JSONArray(s);
         } catch (JSONException je) {
             System.out.println("error parsing json string (" + s + "): " + je.toString());
         }

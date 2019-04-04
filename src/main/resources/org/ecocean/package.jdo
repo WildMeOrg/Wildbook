@@ -902,9 +902,8 @@
 
 	<class name="MultiValue" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity" persistence-modifier="persistent" />
-		<field name="values" table="MULTIVALUE_VALUES" persistence-modifier="persistent" default-fetch-group="true" >
-			<map key-type="java.lang.String" serialized-value="true" />
-			<join />
+		<field name="valuesAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="values" />
 		</field>
 	</class>
 

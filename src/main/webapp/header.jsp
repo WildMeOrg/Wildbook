@@ -43,8 +43,7 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
-
-
+if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
 String username = null;
 User user = null;
@@ -67,7 +66,6 @@ finally{
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 }
-
 
 
 %>
