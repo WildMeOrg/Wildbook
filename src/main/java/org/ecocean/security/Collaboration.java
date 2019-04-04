@@ -284,10 +284,10 @@ public class Collaboration implements java.io.Serializable {
 		if (ownerName == null || request.isUserInRole("admin")) return true;
 		User viewer = myShepherd.getUser(request);
 		User owner = myShepherd.getUser(ownerName);
-		return canUserViewOwnedObject(viewer, owner);
+		return canUserViewOwnedObject(viewer, owner, request);
 	}
 
-	public static boolean canUserViewOwnedObject(User viewer, User owner) {
+	public static boolean canUserViewOwnedObject(User viewer, User owner, HttpServletRequest request) {
 		if (viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
 		return ((viewer!=null && 
 				viewer.hasSharing() && 
