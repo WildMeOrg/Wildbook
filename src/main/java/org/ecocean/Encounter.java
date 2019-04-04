@@ -429,8 +429,8 @@ public class Encounter implements java.io.Serializable {
       mergeDataFrom(enc2);
       MarkedIndividual ind = myShepherd.getMarkedIndividual(enc2);
       if (ind!=null) {
-        ind.removeEncounter(enc2,myShepherd.getContext());
-        ind.addEncounter(this,myShepherd.getContext()); // duplicate-safe
+        ind.removeEncounter(enc2);
+        ind.addEncounter(this); // duplicate-safe
       }
       Occurrence occ = myShepherd.getOccurrence(enc2);
       if (occ!=null) {
@@ -448,10 +448,11 @@ public class Encounter implements java.io.Serializable {
     // copies otherEnc's data into thisEnc, not overwriting anything
     public void mergeDataFrom(Encounter enc2) {
 
+      if (enc2.getIndividual()!=null) setIndividual(enc2.getIndividual());
+
       // simple string fields
       if (shouldReplace(enc2.getSex(), getSex())) setSex(enc2.getSex());
       if (shouldReplace(enc2.getLocationID(), getLocationID())) setLocationID(enc2.getLocationID());
-      if (shouldReplace(enc2.getIndividualID(), getIndividualID())) setIndividualID(enc2.getIndividualID());
       if (shouldReplace(enc2.getVerbatimLocality(), getVerbatimLocality())) setVerbatimLocality(enc2.getVerbatimLocality());
       if (shouldReplace(enc2.getOccurrenceID(), getOccurrenceID())) setOccurrenceID(enc2.getOccurrenceID());
       if (shouldReplace(enc2.getRecordedBy(), getRecordedBy())) setRecordedBy(enc2.getRecordedBy());

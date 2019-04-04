@@ -68,6 +68,8 @@ public class StandardImport extends HttpServlet {
   String defaultSubmitterID="ESO"; // leave null to not set a default
   String defaultCountry="Oman";
 
+  HttpServletRequest request;
+
 	private AssetStore astore;
 
 	// just for lazy loading a var used on each row
@@ -82,6 +84,7 @@ public class StandardImport extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
+    this.request = request; // so we can access this elsewhere without passing it around
     String importId = Util.generateUUID();
     if (request.getCharacterEncoding() == null) {
       request.setCharacterEncoding("utf-8");
@@ -199,7 +202,7 @@ public class StandardImport extends HttpServlet {
           myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
         	if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
         	if (!myShepherd.isMarkedIndividual(mark)) {
-            mark.refreshDependentProperties(context);
+            mark.refreshDependentProperties();
             myShepherd.storeNewMarkedIndividual(mark);
           }
         	myShepherd.commitDBTransaction();
@@ -419,7 +422,7 @@ public class StandardImport extends HttpServlet {
     if (enc!=null) enc.addAnnotations(annotations);
     else enc = new Encounter (annotations);
 
-    if (individualID!=null) enc.setIndividualID(individualID);
+    //if (individualID!=null) enc.setIndividualID(individualID);
     if (occurrenceID!=null) enc.setOccurrenceID(occurrenceID);
 
   	// since we need access to the encounter ID
@@ -931,9 +934,15 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
     MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(individualID);
     if (mark==null) { // new individual
-	    mark = new MarkedIndividual(individualID, enc);
+	    mark = new MarkedIndividual(enc);
 	    newIndividual = true;
 	  }
+
+    // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
+    Organization org = getOrganization(row);
+    if (org!=null) mark.addName(org, individualID);
+    else mark.addName(request, individualID);
+
 	  if (mark==null) {
       System.out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
       return mark;
@@ -1166,7 +1175,12 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
     return ans;
   }
 
-
+  public Organization getOrganization(Row row) {
+    String orgID = getString(row, "Encounter.submitterOrganization");
+    if (orgID==null) return null;
+    Organization org = myShepherd.getOrCreateOrganizationByName(orgID, committing);
+    return org;
+  }
 
   public Integer getInteger(Row row, String colName) {
   	if (!colIndexMap.containsKey(colName)) {
