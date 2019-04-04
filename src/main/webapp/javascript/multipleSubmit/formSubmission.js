@@ -52,15 +52,28 @@ function showSelectedMedia() {
     var files = document.getElementById('file-selector-input').files;
     var imageTiles = "";
     var metadataTiles = "";
+
+    var numEnc = $('#numberEncounters').val();
+    var numInd = $('#numberIndividuals').val();
+
+    for (var i=0;i<numInd;i++) {
+        // Generate SMALL line for Indy.. Maybe just the name.
+        // OR just axe this? You dont submit indy names in submit.jsp...
+    }
+
+    for (var i=0;i<numEnc;i++) {
+        // The same every time!
+        metadataTiles += multipleSubmitUI.generateMetadataTile(files[i]);
+    }
+
     for (var i=0;i<files.length;i++) {
         imageTiles += multipleSubmitUI.generateImageTile(files[i],i);
         // we actually want to do this for the number of encs defined in the number input..
-        metadataTiles += multipleSubmitUI.generateMetadataTile(files[i]);
         console.log("Selected files #"+i+": "+files.toString());
     }
     // TODO: This, better. You shouldn't need to iterate through twice. find a better way of appending instead of .htmling those big blobs.
-    $("#image-tiles-main").html(imageTiles);
     $("#metadata-tiles-main").html(metadataTiles);
+    $("#image-tiles-main").html(imageTiles);
     for (var i=0;i<files.length;i++) {
         multipleSubmitUI.renderImageInBrowser(files[i],i);
     }
@@ -81,3 +94,14 @@ function showSelectedMedia() {
 function sendButtonClicked() {
     // SHOWTIME! Send these images off to certain doom
 }
+
+
+// GET TO DA CLOCKPICKAA
+$(document).ready(function(){
+    $('.datepicker').datepicker({
+        format: 'mm/dd/yyyy',
+        startDate: '-3d'
+    });
+});  
+
+

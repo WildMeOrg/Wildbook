@@ -13,3 +13,28 @@
 .recaptcha-div {
     margin-left: 33%;
 }
+
+.image-tile-div {
+    height: 250px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.image-filename {
+    color: white;
+    font-weight: bold;
+    position: absolute;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+#root-div {
+    padding: 25px;
+}
+
+.encounter-tile-div {
+    color: white;
+    background-color: grey;
+    margin: 5px;
+}

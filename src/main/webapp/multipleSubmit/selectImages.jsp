@@ -21,7 +21,7 @@
 <script> 
 // Only use to convey property values to JS file
 var tempBytes = "<%=maxMediaSize%>";
-console.log("tempBytes = "+tempBytes);
+console.log("tempBytes (in MB) = "+tempBytes);
 if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
     maxBytes = (parseInt(tempBytes)*1048576);
 }
@@ -29,7 +29,7 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
 
 
 <jsp:include page="../header.jsp" flush="true"/>
-<div class="container maincontent">
+<div id="root-div" class="container-fluid maincontent">
 
     <div class="row">
         <div class="col-xs-12 col-lg-12">
@@ -37,7 +37,6 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
             <p><b><%= props.getProperty("headerDesc")%></b></p>
             <p>[ make link to instruction page ?or just a hover? idunno ]</p>
             <hr>
-            <br>
 
             <form id="multipleSubmission"
                 method="post"
@@ -50,41 +49,44 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 <!-- specify number of individuals and number of encounters in two input items -->
 
                 <div class="row form-file-selection"> 
+                    <br>    
                     <div class="col-sm-4">
                         <label><%= props.getProperty("specifyIndyNum")%></label>
                     </div>
                     <div class="col-sm-4">
-                        <input type="number" name="numberIndividuals" required value="1" min="1" max="48">
+                        <input id="numberIndividuals" type="number" name="numberIndividuals" required value="1" min="1" max="48">
                     </div>
                 </div>
 
-                <br>
 
                 <div class="row form-file-selection">
+                    <br>
                     <div class="col-sm-4">
                         <label><%= props.getProperty("specifyEncNum")%></label>
                     </div>
                     <div class="col-sm-4"> 
-                        <input type="number" name="numberEncounters" required value="1" min="1" max="48">
+                        <input id="numberEncounters" type="number" name="numberEncounters" required value="1" min="1" max="48">
                     </div>
                 </div>
                 
-                <br>
 
                 <!-- uses a button to click file input so we can style easier (file inputs suck to style) -->
                 <div class="form-file-selection">    
+                    <br>
                     <input class="btn btn-large btn-file-selector" type="button" onclick="document.getElementById('file-selector-input').click()" value="Select Files" />
                 </div>
                 <input id="file-selector-input" name="allFiles" class="hidden-input" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" style="display:none;" multiple size="50" onChange="updateSelected(this);" />
                 <div><p id="input-file-list"></p></div> 
                 <br>
 
-                <!-- Here is where we are going to put UI to define encounter metadata -->
+                <!-- Here is where we are going to put UI to define encounter metadata from JS -->
                 <div id="metadata-tiles-main" class="row">
                 
                 </div>
 
-                <!-- Here is where we are going to dump rendered images and encounter UI -->
+                <br>
+
+                <!-- Here is where we are going to dump rendered images and encounter UI from JS -->
                 <div id="image-tiles-main" class="row">
                 
                 </div>
