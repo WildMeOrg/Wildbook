@@ -598,6 +598,11 @@
     <servlet-class>org.ecocean.servlet.MediaAssetAttach</servlet-class>
   </servlet>
 
+    <servlet>
+    <servlet-name>MultipleSubmit</servlet-name>
+    <servlet-class>org.ecocean.servlet.MultipleSubmit</servlet-class>
+  </servlet>
+
 
   <servlet>
     <servlet-name>EncounterResetDate</servlet-name>
@@ -2139,7 +2144,10 @@
     <url-pattern>/LoginUserSocial</url-pattern>
   </servlet-mapping>
 
-
+  <servlet-mapping>
+    <servlet-name>MultipleSubmit</servlet-name>
+    <url-pattern>/MultipleSubmit</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>EncounterVMData</servlet-name>

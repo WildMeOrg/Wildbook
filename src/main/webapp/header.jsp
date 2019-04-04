@@ -82,6 +82,7 @@ if (!isUserLoggedIn) {
 
       <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
       <link rel="stylesheet" href="<%=urlLoc %>/css/multipleSubmit.css">
+      
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
       <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
@@ -98,6 +99,9 @@ if (!isUserLoggedIn) {
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/multipleSubmit/formSubmission.js"></script>
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/multipleSubmit/ui.multipleSubmit.js"></script>
+
+      <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
       
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
