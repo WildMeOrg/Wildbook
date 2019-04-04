@@ -114,18 +114,39 @@ public class MultiValue implements java.io.Serializable {
         return getValuesByKey(DEFAULT_KEY_VALUE);
     }
 
-    //TODO FIXME
-    public boolean removeAllValues(String value) {  //regardless of key
-        System.out.println("removeAllValues() FEATURE NOT YET SUPPORTED");
-        return false;
+    public void removeValuesByKeys(Set<String> keys, String value) {
+        if (keys == null) return;
+        if (value == null) return;
+        JSONObject clone = getValues();
+        if (clone == null) return;
+        for (String k : getKeys()) {
+            if (!keys.contains(k)) continue;
+            //even tho we "expect" to not have duplicates in the array, we check for them anyway
+            JSONArray orig = clone.optJSONArray(k);
+            if (orig == null) continue;
+            JSONArray smaller = new JSONArray();
+            for (int i = 0 ; i < orig.length() ; i++) {
+                String el = orig.optString(i, null);
+                if (!value.equals(el)) smaller.put(el);
+            }
+            clone.put(k, smaller);
+        }
+        setValues(clone);
     }
-    public boolean removeValuesByKeys(Set<String> keys, String value) {
-        System.out.println("removeAllValuesByKeys() FEATURE NOT YET SUPPORTED");
-        return false;
+    public void removeValuesByKey(String key, String value) {  //convenience singular key
+        Set<String> keys = new HashSet<String>();
+        keys.add(key);
+        removeValuesByKeys(keys, value);
     }
-    public boolean removeValues(Object keyHint, String value) {
-        return removeValuesByKeys(generateKeys(keyHint), value);
+    public void removeValues(Object keyHint, String value) {
+        removeValuesByKeys(generateKeys(keyHint), value);
     }
+    public void removeValues(String value) {  //regardless of key
+        removeValuesByKeys(getKeys(), value);
+    }
+
+    ////// do we needs something like  removeKey()  ??
+
 
     //this is made contain only one of each (in the event of duplicates)
     public Set<String> getAllValues() {
