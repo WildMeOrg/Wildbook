@@ -42,6 +42,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+
+/// DEPRECATED!!! This importer is not compatible with the new naming scheme and must be updated
+
 public class IndocetStandardImport extends HttpServlet {
 
 	// variables shared by any single import instance
@@ -451,7 +454,8 @@ public class IndocetStandardImport extends HttpServlet {
   	if (behavior!=null) enc.setBehavior(behavior);
 
   	String individualID = getIndividualID(row);
-  	if (individualID!=null) enc.setIndividualID(individualID);
+    // DEPRECATED
+  	//if (individualID!=null) enc.setIndividualID(individualID);
 
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);

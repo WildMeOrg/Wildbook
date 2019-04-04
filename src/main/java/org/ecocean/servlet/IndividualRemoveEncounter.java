@@ -78,6 +78,17 @@ public class IndividualRemoveEncounter extends HttpServlet {
         try {
           MarkedIndividual removeFromMe = myShepherd.getMarkedIndividual(old_name);
           
+          //while (myShepherd.getUnidentifiableEncountersForMarkedIndividual(old_name).contains(enc2remove)) {
+          //  removeFromMe.removeEncounter(enc2remove, context);
+          //}
+          //enc2remove.setIndividualID(null);
+          
+
+          // Why were we ever nulling the OccurrenceID on IndividualRemoveEncounter????
+          //enc2remove.setOccurrenceID(null);
+
+          enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");
+          
           if(removeFromMe!=null){
             name_s = removeFromMe.getName();
             while (removeFromMe.getEncounters().contains(enc2remove)) {
@@ -89,15 +100,6 @@ public class IndividualRemoveEncounter extends HttpServlet {
               wasRemoved = true;
             }
           }
-
-          //while (myShepherd.getUnidentifiableEncountersForMarkedIndividual(old_name).contains(enc2remove)) {
-          //  removeFromMe.removeEncounter(enc2remove, context);
-          //}
-          //enc2remove.setIndividualID(null);
-          enc2remove.setOccurrenceID(null);
-
-          enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");
-          
 
 
         } catch (java.lang.NullPointerException npe) {

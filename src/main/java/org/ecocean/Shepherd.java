@@ -807,12 +807,53 @@ public class Shepherd {
     query.closeAll();
     return user;
   }
-  
-    public User getUser(HttpServletRequest request) {
-        if ((request == null) || (request.getUserPrincipal() == null) || (request.getUserPrincipal().getName() == null)) return null;
-        return getUser(request.getUserPrincipal().getName());
-    }
 
+  public Organization getOrganizationByName(String name) {
+    Organization org= null;
+    String filter="SELECT FROM org.ecocean.Organization WHERE name == \""+name.trim()+"\"";   
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      org=(Organization)it.next();
+    }
+    query.closeAll();
+    return org;
+  }
+
+  public Organization getOrCreateOrganizationByName(String name) {
+    return getOrCreateOrganizationByName(name, true);
+  }
+
+
+  public Organization getOrCreateOrganizationByName(String name, boolean commit) {
+    Organization org = getOrganizationByName(name);
+    if (org == null) {
+      org = new Organization(name);
+      if (commit) storeNewOrganization(org);
+    }
+    return org;
+  }
+
+  public String storeNewOrganization(Organization org) {
+    //enc.setOccurrenceID(uniqueID);
+    boolean transactionWasActive = isDBTransactionActive();
+    beginDBTransaction();
+    try {
+      pm.makePersistent(org);
+      commitDBTransaction();
+      //System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
+      e.printStackTrace();
+      return "fail";
+    } finally {
+      closeDBTransaction();
+    }
+    if (transactionWasActive) beginDBTransaction();
+    return (org.getId());
+  }
   
   public List<User> getUsersWithUsername() {
     return getUsersWithUsername("username ascending");

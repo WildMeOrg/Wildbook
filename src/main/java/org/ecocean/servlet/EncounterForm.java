@@ -792,20 +792,25 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
         }
 
 
+         
+
       if (fv.get("manualID") != null && fv.get("manualID").toString().length() > 0) {
             String indID = fv.get("manualID").toString();
-            enc.setIndividualID(indID);
             MarkedIndividual ind = myShepherd.getMarkedIndividualQuiet(indID);
             if (ind==null) {
-                ind = new MarkedIndividual(indID, enc);
+                ind = new MarkedIndividual(enc);
+                ind.addName(request, indID); // we don't just create the individual using the encounter+indID bc this request might key the name off of the logged-in user
                 myShepherd.storeNewMarkedIndividual(ind);
                 System.out.println("        ENCOUNTERFORM: created new individual "+indID);
             } else {
-                ind.addEncounter(enc, myShepherd.getContext());
+                ind.addEncounter(enc);
+                ind.addName(request, indID); // adds the just-entered name to the individual
                 System.out.println("        ENCOUNTERFORM: added enc to individual "+indID);
-
             }
+            if (ind!=null) enc.setIndividual(ind);
+            enc.setFieldID(indID);
         }
+    
 
 
       if (fv.get("occurrenceID") != null && fv.get("occurrenceID").toString().length() > 0) {

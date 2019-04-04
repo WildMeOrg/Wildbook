@@ -36,6 +36,7 @@ import org.json.JSONArray;
 import java.io.*;
 import java.math.BigDecimal;
 
+/// DEPRECATED!!! This importer is not compatible with the new naming scheme and must be updated
 public class ImportAccess extends HttpServlet {
   /**
    * 
@@ -598,7 +599,8 @@ public class ImportAccess extends HttpServlet {
     System.out.println("    PROCIDPHOTOS set project "+project);
 
 
-    if (indID!=null) enc.setIndividualID(indID);
+    // DEPRECATED
+    //if (individualID!=null) enc.setIndividualID(individualID);
     System.out.println("    PROCIDPHOTOS set indID "+indID);
 
 

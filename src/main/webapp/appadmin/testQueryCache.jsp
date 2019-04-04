@@ -70,7 +70,7 @@ if(request.getParameter("delete")!=null){
 try{
 	
 	if(qc.getQueryByName("numMarkedIndividuals")==null){
-		StoredQuery sq=new StoredQuery("numMarkedIndividuals", "SELECT FROM org.ecocean.MarkedIndividual WHERE individualID != null");
+		StoredQuery sq=new StoredQuery("numMarkedIndividuals", "SELECT FROM org.ecocean.MarkedIndividual");
 		sq.setExpirationTimeoutDuration(600000);
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
@@ -105,7 +105,7 @@ try{
 		qc.loadQueries();
 	}
 	if(qc.getQueryByName("top3Encounters")==null){
-		StoredQuery sq=new StoredQuery("top3Encounters", "SELECT FROM org.ecocean.Encounter WHERE individualID != null ORDER BY dwcDateAddedLong descending RANGE 1,4");
+		StoredQuery sq=new StoredQuery("top3Encounters", "SELECT FROM org.ecocean.Encounter ORDER BY dwcDateAddedLong descending RANGE 1,4");
 		sq.setExpirationTimeoutDuration(600000);
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
