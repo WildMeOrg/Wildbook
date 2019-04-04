@@ -99,7 +99,7 @@ public class SpotterConserveIO {
             if (jocc.length() % 2 == 1) throw new RuntimeException("sightings JSONArray is odd length=" + jocc.length());
             int halfSize = (int) jocc.length() / 2;
             for (int i = 0 ; i < halfSize ; i++) {
-                Occurrence occ = ciToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize));
+                Occurrence occ = ciToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin);
                 if (occ != null) occs.add(occ);
             }
             st.setOccurrences(occs);
@@ -124,7 +124,8 @@ public class SpotterConserveIO {
     }
 
 
-    public static Occurrence ciToOccurrence(JSONObject jin, JSONObject jin2) {
+    public static Occurrence ciToOccurrence(JSONObject jin, JSONObject jin2, JSONObject allJson) {
+        int tripId = allJson.optInt("_tripId", 0);
         Occurrence occ = new Occurrence();
         occ.setOccurrenceID(Util.generateUUID());
         occ.addComments(jin.optString("Comments", null));
@@ -138,6 +139,7 @@ public class SpotterConserveIO {
         occ.setNumCalves(numCalves);
         occ.setNumAdults(numAdults);
         occ.setBestGroupSizeEstimate(new Double(numTotal));
+        occ.setSource("SpotterConserveIO:ci:" + tripId);
 
 /* also notable?
 Other Vessels On Scene: 0,
@@ -163,11 +165,12 @@ Distance Category: "B"
             ArrayList<Encounter> encs = new ArrayList<Encounter>();
             JSONArray je = jin.getJSONArray("CINMS Photo Log");
             for (int i = 0 ; i < je.length() ; i++) {
-                Encounter enc = ciToEncounter(je.optJSONObject(i), jin, occ.getOccurrenceID());
+                Encounter enc = ciToEncounter(je.optJSONObject(i), jin, occ.getOccurrenceID(), allJson);
                 if (enc != null) encs.add(enc);
             }
             occ.setEncounters(encs);
         }
+        occ.setSubmitter(ciToUser(allJson));
         return occ;
     }
 
@@ -182,13 +185,15 @@ Distance Category: "B"
         Animals Identified: 1
 }
 */
-    public static Encounter ciToEncounter(JSONObject jin, JSONObject occJson, String occId) {  //occJson we need for species (if not more)
+    public static Encounter ciToEncounter(JSONObject jin, JSONObject occJson, String occId, JSONObject allJson) {  //occJson we need for species (if not more)
         Encounter enc = new Encounter();
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(findInteger(jin, "Animals Identified"));
         enc.setDynamicProperty("CINMS PID Code", jin.optString("PID Code", null));
         enc.setDynamicProperty("CINMS Card Number", jin.optString("Card Number", null));
         enc.setOccurrenceID(occId);
+        User sub = ciToUser(allJson);
+        enc.addSubmitter(sub);
 
         String dc = jin.optString("create_date", null);
         if (dc != null) {
@@ -245,6 +250,10 @@ System.out.println("MADE " + enc);
         return species.split(" +");
     }
 
+    public static User ciToUser(JSONObject jin) {
+//System.out.println("ciToUser -> " + jin);
+        return null;
+    }
 
 /******************************************
     Whale Alert flavor
@@ -284,7 +293,7 @@ System.out.println("MADE " + enc);
         occ.setDecimalLongitude(resolveLatLon(jin, "device_longitude", "Longitude"));
         occ.setIndividualCount(jin.optInt("Number Sighted", 0));
         //occ.setBestGroupSizeEstimate(jin.optDouble("Number Sighted", 0.0));
-        //// ????? User sub = waToUser(jin);
+        occ.setSource("SpotterConserveIO:wa:" + tripId);
 
         //  also notable???     Whale Alert Other Species: ""
 
@@ -304,6 +313,7 @@ System.out.println("MADE " + enc);
             }
             occ.setEncounters(encs);
         }
+        occ.setSubmitter(waToUser(jin));
         myShepherd.getPM().makePersistent(occ);
         return occ;
     }
@@ -312,8 +322,9 @@ System.out.println("MADE " + enc);
     public static Encounter waToEncounter(String photoUrl, JSONObject occJson, Occurrence occ, Shepherd myShepherd) {
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);
         if (urlStore == null) throw new RuntimeException("Could not find a URLAssetStore to store images");
-        //// ????? User sub = waToUser(jin);
         Encounter enc = new Encounter();
+        User sub = waToUser(occJson);
+        enc.addSubmitter(sub);
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(???)
         enc.setOccurrenceID(occ.getID());
@@ -377,6 +388,7 @@ System.out.println("MADE " + enc);
     }
 
     public static User waToUser(JSONObject jin) {
+System.out.println("waToUser -> " + jin);
         /* something-something User()  see: JH work on user-submission
         String subEmail = jin.optString("Whale Alert Submitter Email", null);
         String subName = jin.optString("Whale Alert Submitter Name", null);
@@ -425,6 +437,7 @@ System.out.println("MADE " + enc);
         occ.setIndividualCount(jin.optInt("Number Sighted", 0));
         //occ.setBestGroupSizeEstimate(jin.optDouble("Number Sighted", 0.0));
         occ.setTaxonomy(oaToTaxonomy(jin, myShepherd));
+        occ.setSource("SpotterConserveIO:oa:" + tripId);
 
         //  also notable???     Whale Alert Other Species: ""
         //      Animal Status: "Test",
@@ -442,6 +455,7 @@ System.out.println("MADE " + enc);
             }
             occ.setEncounters(encs);
         }
+        occ.setSubmitter(oaToUser(jin, myShepherd, occ));
         myShepherd.getPM().makePersistent(occ);
         return occ;
     }
