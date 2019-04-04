@@ -182,6 +182,7 @@ public class MarkedIndividual implements java.io.Serializable {
     //MultiValue has some subtleties to it!
     public void setNames(MultiValue mv) {
         names = mv;
+        refreshNamesCache();
     }
     public MultiValue getNames() {
         return names;
@@ -198,14 +199,17 @@ public class MarkedIndividual implements java.io.Serializable {
     public void addName(String name) {
         if (names == null) names = new MultiValue();
         names.addValuesDefault(name);
+        refreshNamesCache();
     }
     public void addName(Object keyHint, String name) {
         if (names == null) names = new MultiValue();
         names.addValues(keyHint, name);
+        refreshNamesCache();
     }
     public void addNameByKey(String key, String value) {
         if (names == null) names = new MultiValue();
         names.addValuesByKey(key, value);
+        refreshNamesCache();
     }
 
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
@@ -2218,7 +2222,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
-        if (NAMES_CACHE == null) return rtn;
+        if (NAMES_CACHE == null) return rtn;  //snh
         List<String> nameIds = new ArrayList<String>();
         for (Integer nid : NAMES_CACHE.keySet()) {
             if (NAMES_CACHE.get(nid).matches(regex)) nameIds.add(Integer.toString(nid));
@@ -2234,7 +2238,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         return rtn;
     }
 
-    public static Map<Integer,String> updateNamesCache(Shepherd myShepherd) {
+    //only does once (when needed)
+    public static boolean initNamesCache(final Shepherd myShepherd) {
+        if ((NAMES_CACHE != null) && (NAMES_CACHE.size() > 0)) return false;
+        updateNamesCache(myShepherd);
+        return true;
+    }
+    public static Map<Integer,String> updateNamesCache(final Shepherd myShepherd) {
         NAMES_CACHE = new HashMap<Integer,String>();
         Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MultiValue");
         Collection c = (Collection) (query.execute());
@@ -2243,6 +2253,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             NAMES_CACHE.put(mv.getId(), String.join(";", mv.getAllValues()));
         }
         return NAMES_CACHE;
+    }
+
+    //updates cache based upon this instance (assumes names has changed)
+    public void refreshNamesCache() {
+        if (names == null) return;
+        if (NAMES_CACHE == null) return;  //snh
+        NAMES_CACHE.put(names.getId(), String.join(";", names.getAllValues()));
     }
 
 
