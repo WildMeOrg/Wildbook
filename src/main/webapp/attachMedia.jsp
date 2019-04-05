@@ -33,6 +33,13 @@
     cursor: pointer;
 }
 
+#occs tr {
+    cursor: pointer;
+}
+#occs tr:hover td {
+    background-color: #BFF !important;
+}
+
 </style>
 
 <%@ page contentType="text/html; charset=utf-8" 
@@ -44,6 +51,8 @@ java.util.Collection,
 java.util.Arrays,
 java.util.ArrayList,
 java.util.List,
+java.util.HashMap,
+java.util.Map,
 javax.jdo.*,
 java.util.Properties" %>
 
@@ -53,6 +62,26 @@ private static String submittersTd(Occurrence occ) {
     if (occ == null) return "<td class=\"dull\">X</td>";
     if (Util.collectionIsEmptyOrNull(occ.getSubmitters())) return "<td class=\"dull\">-</td>";
     return "<td title=\"number of submitters: " + occ.getSubmitters().size() + "\">" + occ.getSubmitters().get(0).getDisplayName() + "</td>";
+}
+
+private static Map<String,String> getTripInfo(Occurrence occ) {
+    Map<String,String> typeLabel = new HashMap<String,String>();
+    typeLabel.put("ci", "Channel Is");
+    typeLabel.put("wa", "WhaleAlert");
+
+    Map<String,String> rtn = new HashMap<String,String>();
+    String src = occ.getSource();
+    if (src == null) src = ":??:-1";
+    String f[] = src.split(":");
+    if (f.length > 1) {
+        rtn.put("typeCode", f[1]);
+        rtn.put("typeLabel", (typeLabel.get(f[1]) == null) ? "???" : typeLabel.get(f[1]));
+    } else {
+        rtn.put("typeCode", "??");
+        rtn.put("typeLabel", "???");
+    }
+    rtn.put("id", (f.length > 2) ? f[2] : "-1");
+    return rtn;
 }
 
 private static String phString(JSONObject ftp) {
@@ -108,6 +137,11 @@ String context = ServletUtilities.getContext(request);
 <script>
 $(document).ready(function() {
     $('#occs').tablesorter();
+    //$('#occs tbody td:nth-child(3)').on('click', function(ev) {
+    $('#occs tr').on('click', function(ev) {
+        var occId = $(ev.currentTarget).find(':nth-child(3)').text();
+        window.location.href = 'attachMedia.jsp?id=' + occId;
+    });
 });
 </script>
 
@@ -116,8 +150,42 @@ $(document).ready(function() {
 </div>
 
 <%
+String id = request.getParameter("id");
+
 if (AccessControl.isAnonymous(request)) {
     out.println("<h1>Please <a href=\"login.jsp\">login</a></h1>");
+
+} else if (Util.requestParameterSet(id)) {
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.beginDBTransaction();
+    Occurrence occ = myShepherd.getOccurrence(id);
+    if (occ == null) {  //TODO also some security check that user can access this occurrence!!
+        out.println("<h2>Invalid ID " + id + "</h2>");
+        return;
+    }
+    Map<String,String> tripInfo = getTripInfo(occ);
+
+%>
+<div style="padding: 0 20px;">
+<h2><%=occ.getOccurrenceID()%></h2>
+<p>
+<%=tripInfo.get("typeLabel")%>
+<b>Trip ID = <%=tripInfo.get("id")%></b>
+</p>
+<p>
+<%
+String survId = occ.getCorrespondingSurveyID();
+if (survId == null) {
+    out.println("<i>No survey associated</i>");
+} else {
+    out.println("Survey: <a href=\"surveys/survey.jsp?surveyID.jsp=" + survId + "\"><b>" + survId.substring(0,8) + "</b></a>");
+}
+%>
+</p>
+<p><%=occ.getComments()%></p>
+</div>
+<%
+    
 
 } else {
     Shepherd myShepherd = new Shepherd(context);
@@ -148,10 +216,9 @@ if (AccessControl.isAnonymous(request)) {
         for (Object o : coll) {
             String row = "<tr>";
             Occurrence occ = (Occurrence) o;
-            String[] src = null;
-            if (occ.getSource() != null) src = occ.getSource().split(":");
-            row += "<td>" + (((src != null) && (src.length > 2)) ? src[1] : "??") + "</td>";
-            row += "<td class=\"td-int\">" + (((src != null) && (src.length > 2)) ? src[2] : "-") + "</td>";
+            Map<String,String> tripInfo = getTripInfo(occ);
+            row += "<td>" + tripInfo.get("typeLabel") + "</td>";
+            row += "<td class=\"td-int\">" + tripInfo.get("id") + "</td>";
             row += "<td>" + occ.getOccurrenceID() + "</td>";
             row += "<td>" + occ.getDateTimeCreated() + "</td>";
             row += "<td class=\"td-int td-num-" + occ.getNumberEncounters() + "\">" + occ.getNumberEncounters() + "</td>";
