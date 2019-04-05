@@ -30,6 +30,7 @@ public class SpotterConserveIO {
     private static int PROJECT_ID_WA = 7;
     private static String SYSTEMVALUE_KEY_LASTSYNC_CI = "SpotterConserveIO_lastSync_CI";
     private static String SYSTEMVALUE_KEY_LASTSYNC_WA = "SpotterConserveIO_lastSync_WA";
+    private static String OBS_WEATHER_NAME = "weather";
     public static String apiUsername = null;
     public static String apiPassword = null;
     public static String apiUrlPrefix = null;
@@ -81,9 +82,27 @@ public class SpotterConserveIO {
         SurveyTrack st = ciToSurveyTrack(jin);
         survey.addSurveyTrack(st);
 ///TODO do we .setEffort based on survey track lengths or what???
+
+        if (jin.optJSONArray("CINMS Weather") != null) {
+            ArrayList<Observation> wths = new ArrayList<Observation>();
+            JSONArray jw = jin.getJSONArray("CINMS Weather");
+            for (int i = 0 ; i < jw.length() ; i++) {
+                Observation wth = ciToWeather(jw.optJSONObject(i), survey);
+                if (wth != null) wths.add(wth);
+            }
+            survey.addObservationArrayList(wths);
+        }
         return survey;
     }
 
+    public static Observation ciToWeather(JSONObject wj, Survey surv) {
+        if (wj == null) return null;
+        Observation obs = new Observation(OBS_WEATHER_NAME, wj.toString(), surv, surv.getID());
+        DateTime dt = toDateTime(wj.optString("create_date", null));
+        obs.setDateAddedMilli((dt == null) ? null : dt.getMillis());
+        obs.setDateLastModifiedMilli();
+        return obs;
+    }
 
     public static SurveyTrack ciToSurveyTrack(JSONObject jin) {
         SurveyTrack st = new SurveyTrack();
@@ -108,18 +127,6 @@ public class SpotterConserveIO {
         Path path = trackToPath(jin.optJSONObject("track"));
         if (path != null) st.setPath(path);
 
-/*
-        if (jin.optJSONArray("CINMS Weather") != null) {
-            // maybe we make our own "weather datacollectionevent" !
-            List<Observation> wths = new ArrayList<Observation>();
-            JSONArray jw = jin.getJSONArray("CINMS Weather");
-            for (int i = 0 ; i < jw.length() ; i++) {
-                //Observation wth = ciToWeather(jw.optJSONObject(i));
-                //if (wth != null) wths.add(wth);
-            }
-            //.setWeather(wths);
-        }
-*/
         return st;
     }
 
@@ -139,6 +146,7 @@ public class SpotterConserveIO {
         occ.setNumCalves(numCalves);
         occ.setNumAdults(numAdults);
         occ.setBestGroupSizeEstimate(new Double(numTotal));
+        occ.setSightingPlatform(allJson.optString("CINMS Vessel", null));
         occ.setSource("SpotterConserveIO:ci:" + tripId);
 
 /* also notable?
