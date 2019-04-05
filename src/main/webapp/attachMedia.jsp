@@ -24,7 +24,13 @@
 }
 
 .td-num-0, .dull {
-    color: #AAA;
+    color: #BBB !important;
+}
+
+.hover-note {
+    margin-right: 7px;
+    color: blue;
+    cursor: pointer;
 }
 
 </style>
@@ -33,6 +39,7 @@
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.Feature,
+org.json.JSONObject,
 java.util.Collection,
 java.util.Arrays,
 java.util.ArrayList,
@@ -47,6 +54,18 @@ private static String submittersTd(Occurrence occ) {
     if (Util.collectionIsEmptyOrNull(occ.getSubmitters())) return "<td class=\"dull\">-</td>";
     return "<td title=\"number of submitters: " + occ.getSubmitters().size() + "\">" + occ.getSubmitters().get(0).getDisplayName() + "</td>";
 }
+
+private static String phString(JSONObject ftp) {
+    if (ftp == null) return "";
+    String phnote = "";
+    phnote += "PID Code: " + ftp.optString("PID Code", "-");
+    phnote += "; Card #" + ftp.optString("Card Number", "-");
+    int s = ftp.optInt("Image Start", 0);
+    int e = ftp.optInt("Image End", 0);
+    if (s * e > 0) phnote += ", images " + s + "-" + e;
+    return phnote;
+}
+
 %>
 
 <%
@@ -138,6 +157,7 @@ if (AccessControl.isAnonymous(request)) {
             row += "<td class=\"td-int td-num-" + occ.getNumberEncounters() + "\">" + occ.getNumberEncounters() + "</td>";
             int numPhotos = 0;
             int numPlaceholders = 0;
+            List<String> phlist = new ArrayList<String>();
             if (occ.getNumberEncounters() > 0) {
                 for (Encounter enc : occ.getEncounters()) {
                     if (enc.getAnnotations() == null) continue;
@@ -147,13 +167,22 @@ if (AccessControl.isAnonymous(request)) {
                         if (ft.getMediaAsset() != null) {   //we do *not* check feature type in this case.  should we?
                             numPhotos++;
                         } else if (ft.isType("org.ecocean.MediaAssetPlaceholder")) {
+                            String phs = phString(ft.getParameters());
+                            if (!phlist.contains(phs)) phlist.add(phs);
                             numPlaceholders++;
                         }
                     }
                 }
             }
+
+            String phnote = "";
+            if (phlist.size() > 0) {
+                phnote = String.join(" | ", phlist);
+                //phnote = "<span class=\"hover-note\" title=\"" + phnote + "\">\u2731</span>";
+                phnote = " title=\"" + phnote + "\" ";
+            }
             row += "<td class=\"td-int td-num-" + numPhotos + "\">" + numPhotos + "</td>";
-            row += "<td class=\"td-int td-num-" + numPlaceholders + "\">" + numPlaceholders + "</td>";
+            row += "<td " + phnote + " class=\"td-int td-num-" + numPlaceholders + "\">" + numPlaceholders + "</td>";
             if (admin) row += submittersTd(occ);
             out.println(row + "</tr>");
         }
