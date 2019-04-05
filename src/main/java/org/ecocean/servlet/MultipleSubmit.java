@@ -31,6 +31,8 @@ public class MultipleSubmit extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+        System.out.println("GOT THE POST FROM MULTIPLE SUBMIT!");
+
         if (ServletUtilities.captchaIsValid(request)) {
 
         }

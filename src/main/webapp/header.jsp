@@ -98,8 +98,9 @@ if (!isUserLoggedIn) {
 
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
 
-      <script type="text/javascript"  src="<%=urlLoc %>/javascript/multipleSubmit/formSubmission.js"></script>
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/multipleSubmit/form.multipleSubmit.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/multipleSubmit/ui.multipleSubmit.js"></script>
+       <script type="text/javascript"  src="<%=urlLoc %>/javascript/multipleSubmit/api.multipleSubmit.js"></script>
 
       <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
       
@@ -360,7 +361,7 @@ if (!isUserLoggedIn) {
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("contribute")%><span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-                          <li><a href="<%=urlLoc %>/multipleSubmit/selectImages.jsp"><%=props.getProperty("reportMultiple")%></a></li>
+                          <li><a href="<%=urlLoc %>/multipleSubmit/multipleSubmit.jsp"><%=props.getProperty("reportMultiple")%></a></li>
                         </ul>
                       </li>
 

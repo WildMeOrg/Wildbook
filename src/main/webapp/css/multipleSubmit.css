@@ -11,22 +11,40 @@
 }
 
 .recaptcha-div {
-    margin-left: 33%;
+    margin-left: 40%;
 }
 
 .image-tile-div {
-    height: 250px;
+    height: 18em;
     margin-top: 15px;
     margin-bottom: 15px;
     overflow: hidden;
+    position: relative;
 }
 
 .image-filename {
+    /*display: none;*/
     color: white;
+    background-color: black;
     font-weight: bold;
     position: absolute;
     margin-top: 5px;
     margin-left: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    border-radius: 15px, 50px;
+}
+
+.image-element {
+    position: absolute;
+}
+
+.img-input {
+    position: absolute;
+}
+
+.image-filename:hover {
+    display: inline;
 }
 
 #root-div {
@@ -35,6 +53,22 @@
 
 .encounter-tile-div {
     color: white;
-    background-color: grey;
+    background-color: darkslategrey;
     margin: 5px;
+    padding-bottom: 10px;
+}
+
+/*
+We do want to make the editable overlay only visible on hover for visibility.
+*/
+
+.image-overlay {
+    position: absolute;
+    color: transparent;
+    background-color: transparent;
+}
+
+.image-overlay:hover {
+    color: white;
+    background-color: black;
 }

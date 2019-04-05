@@ -27,7 +27,6 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
 }
 </script>
 
-
 <jsp:include page="../header.jsp" flush="true"/>
 <div id="root-div" class="container-fluid maincontent">
 
@@ -46,18 +45,7 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 lang="en"
                 accept-charset="UTF-8">
 
-                <!-- specify number of individuals and number of encounters in two input items -->
-
-                <div class="row form-file-selection"> 
-                    <br>    
-                    <div class="col-sm-4">
-                        <label><%= props.getProperty("specifyIndyNum")%></label>
-                    </div>
-                    <div class="col-sm-4">
-                        <input id="numberIndividuals" type="number" name="numberIndividuals" required value="1" min="1" max="48">
-                    </div>
-                </div>
-
+                <!-- specify number of encounters in two input items -->
 
                 <div class="row form-file-selection">
                     <br>
@@ -68,7 +56,6 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                         <input id="numberEncounters" type="number" name="numberEncounters" required value="1" min="1" max="48">
                     </div>
                 </div>
-                
 
                 <!-- uses a button to click file input so we can style easier (file inputs suck to style) -->
                 <div class="form-file-selection">    
@@ -92,7 +79,6 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 </div>
 
                 <div class="recaptcha-div hidden-input form-define-metadata">
-
 
                     <!-- Recaptcha widget -->
                     <div id="recaptcha-div">

@@ -48,22 +48,17 @@ function backButtonClicked() {
     $(".recaptcha-box").hide();
 }
 
+//This is the workhorse
 function showSelectedMedia() {
     var files = document.getElementById('file-selector-input').files;
     var imageTiles = "";
     var metadataTiles = "";
 
     var numEnc = $('#numberEncounters').val();
-    var numInd = $('#numberIndividuals').val();
-
-    for (var i=0;i<numInd;i++) {
-        // Generate SMALL line for Indy.. Maybe just the name.
-        // OR just axe this? You dont submit indy names in submit.jsp...
-    }
 
     for (var i=0;i<numEnc;i++) {
         // The same every time!
-        metadataTiles += multipleSubmitUI.generateMetadataTile(files[i]);
+        metadataTiles += multipleSubmitUI.generateMetadataTile(i);
     }
 
     for (var i=0;i<files.length;i++) {
@@ -77,7 +72,33 @@ function showSelectedMedia() {
     for (var i=0;i<files.length;i++) {
         multipleSubmitUI.renderImageInBrowser(files[i],i);
     }
+
+    // After all the encounter stuff is loaded..
+    $('.encDate').datepicker({
+        format: 'mm/dd/yyyy',
+        startDate: '-3d'
+    });
+
+    // Listen for mousover on all added images.
+    listenForMouseoverAllImages(files.length);
+    
 }
+
+function listenForMouseoverAllImages(imageNumber) {
+    for (var i=0;i<imageNumber;i++) {
+        var classname = getImageUIIdForIndex(imageNumber);
+        var elements = document.getElementsByClassName(classname);
+        for (var j=0;j<elements.length;j++) {
+            elements[i].onmouseover = function() {
+                elements[i].style.display = "block";
+            }
+            elments[i].onmouseout = function() {
+                elements[i].style.display = "none";
+            }
+        }
+    }
+}
+
 
 /*
 
@@ -92,16 +113,9 @@ function showSelectedMedia() {
 */
 
 function sendButtonClicked() {
+
     // SHOWTIME! Send these images off to certain doom
+    sendData();
 }
-
-
-// GET TO DA CLOCKPICKAA
-$(document).ready(function(){
-    $('.datepicker').datepicker({
-        format: 'mm/dd/yyyy',
-        startDate: '-3d'
-    });
-});  
 
 
