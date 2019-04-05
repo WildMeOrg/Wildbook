@@ -204,10 +204,14 @@ Distance Category: "B"
         enc.addSubmitter(sub);
 
         String dc = jin.optString("create_date", null);
+        if (dc == null) dc = occJson.optString("create_date", null); //use the Occurrence date instead
         if (dc != null) {
             enc.setDWCDateAdded(dc);
             DateTime dt = toDateTime(dc);
-            if (dt != null) enc.setDWCDateAdded(dt.getMillis());  //sets the millis version on enc.  SIGH!!!!!!!!!!!
+            if (dt != null) {
+                enc.setDWCDateAdded(dt.getMillis());
+                enc.setDateInMilliseconds(dt.getMillis());
+            }
         }
         String tax[] = ciSpeciesSplit(occJson.optString("CINMS Species", null));
         if ((tax != null) && (tax.length > 1)) {
@@ -219,6 +223,7 @@ Distance Category: "B"
         int imageStart = jin.optInt("Image Number Start", -1);
         int imageEnd = jin.optInt("Image Number End", -1);
         if ((imageStart < 0) || (imageEnd < 0) || (imageEnd < imageStart)) {
+            enc.addComments("<p class=\"error\"><b>NOTE:</b> invalid range for image start/end; ignored</p><xmp>" + jin.toString(4) + "</xmp>");
             System.out.println("WARNING: " + enc + " had no valid image range [" + imageStart + " - " + imageEnd + "]");
         } else {
             ArrayList<Annotation> anns = new ArrayList<Annotation>();
