@@ -40,11 +40,27 @@
     background-color: #BFF !important;
 }
 
+.occ-enc td {
+    padding: 1px 5px;
+}
+.occ-enc tr {
+    border: solid 2px #888;
+}
+
+.ph-info {
+    font-size: 0.9em;
+    background-color: #CCC;
+    padding: 0 5px;
+    margin: 0 2px;
+    border-radius: 3px;
+}
+
 </style>
 
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
+org.ecocean.media.MediaAsset,
 org.ecocean.media.Feature,
 org.json.JSONObject,
 java.util.Collection,
@@ -167,10 +183,12 @@ if (AccessControl.isAnonymous(request)) {
 
 %>
 <div style="padding: 0 20px;">
+<a href="attachMedia.jsp">[back to list]</a>
 <h2><%=occ.getOccurrenceID()%></h2>
 <p>
 <%=tripInfo.get("typeLabel")%>
 <b>Trip ID = <%=tripInfo.get("id")%></b>
+<i><%=occ.getDateTimeCreated()%></i>
 </p>
 <p>
 <%
@@ -183,6 +201,37 @@ if (survId == null) {
 %>
 </p>
 <p><%=occ.getComments()%></p>
+<table class="occ-enc">
+<%
+for (Encounter enc : occ.getEncounters()) {
+    out.println("<tr>");
+    out.println("<td><a href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
+    out.println("<td>" + enc.getDate() + "</td>");
+    out.println("<td>" + enc.getTaxonomyString() + "</td>");
+
+    List<JSONObject> ph = new ArrayList<JSONObject>();
+    List<MediaAsset> media = new ArrayList<MediaAsset>();
+    String phinfo = "";
+    if (enc.getAnnotations() != null) {
+        for (Annotation ann : enc.getAnnotations()) {
+            if (Util.collectionIsEmptyOrNull(ann.getFeatures())) continue;
+            Feature ft = ann.getFeatures().get(0);
+System.out.println(ft.getParameters());
+            if (ft.getMediaAsset() != null) {   //we do *not* check feature type in this case.  should we?
+                media.add(ft.getMediaAsset());
+            } else if (ft.isType("org.ecocean.MediaAssetPlaceholder")) {
+                if (phinfo.equals("")) phinfo = "<span class=\"ph-info\">" + phString(ft.getParameters()) + "</span> ";
+                ph.add(ft.getParameters());
+            }
+        }
+    }
+
+    out.println("<td>" + media.size() + " photos added</td>");  //TODO do something with media list!
+    out.println("<td>" + phinfo + "</td>");
+    out.println("</tr>");
+}
+%>
+</table>
 </div>
 <%
     
