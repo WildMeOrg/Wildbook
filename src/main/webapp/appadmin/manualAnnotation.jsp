@@ -51,6 +51,7 @@ boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
 String encounterId = request.getParameter("encounterId");
 String viewpoint = request.getParameter("viewpoint");
 boolean save = Util.requestParameterSet(request.getParameter("save"));
+boolean cloneEncounter = Util.requestParameterSet(request.getParameter("cloneEncounter"));
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
@@ -121,7 +122,9 @@ iaClass = <b><%=iaClass%></b>
 
 <p>
 <% if (enc == null) { %>
-<i>will <b>not attach</b> to any Encounter</i>
+<i>will <b>not attach (or clone)</b> to any Encounter</i>
+<% } else if (cloneEncounter) { %>
+will <i>clone</i> <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b> and attach to clone
 <% } else { %>
 attaching to <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b>
 <% } %>
@@ -141,11 +144,21 @@ if (save) {
     Annotation ann = new Annotation(null, ft, iaClass);
     ann.setMatchAgainst(matchAgainst);
     ann.setViewpoint(viewpoint);
+    String encMsg = "(no encounter)";
     if (enc != null) {
-        enc.addAnnotation(ann);
-        enc.addComments("<p data-annot-id=\"" + ann.getId() + "\"><i>new Annotation</i> manually added by " + AccessControl.simpleUserString(request) + "</p>");
+        if (cloneEncounter) {
+            Encounter clone = enc.cloneWithoutAnnotations();
+            clone.addAnnotation(ann);
+            clone.addComments("<p data-annot-id=\"" + ann.getId() + "\">Encounter cloned and <i>new Annotation</i> manually added by " + AccessControl.simpleUserString(request) + "</p>");
+            myShepherd.getPM().makePersistent(clone);
+            encMsg = clone.toString() + " cloned from " + enc.toString();
+        } else {
+            enc.addAnnotation(ann);
+            enc.addComments("<p data-annot-id=\"" + ann.getId() + "\"><i>new Annotation</i> manually added by " + AccessControl.simpleUserString(request) + "</p>");
+            encMsg = enc.toString();
+        }
     }
-    System.out.println("manualAnnotation: added " + ann + " and " + ft + " to enc=" + enc);
+    System.out.println("manualAnnotation: added " + ann + " and " + ft + " to enc=" + encMsg);
     myShepherd.getPM().makePersistent(ft);
     myShepherd.getPM().makePersistent(ann);
     myShepherd.commitDBTransaction();
