@@ -48,12 +48,10 @@ function backButtonClicked() {
     $(".recaptcha-box").hide();
 }
 
-//This is the workhorse
 function showSelectedMedia() {
     var files = document.getElementById('file-selector-input').files;
     var imageTiles = "";
     var metadataTiles = "";
-
     var numEnc = $('#numberEncounters').val();
 
     for (var i=0;i<numEnc;i++) {
@@ -64,7 +62,7 @@ function showSelectedMedia() {
     for (var i=0;i<files.length;i++) {
         imageTiles += multipleSubmitUI.generateImageTile(files[i],i);
         // we actually want to do this for the number of encs defined in the number input..
-        console.log("Selected files #"+i+": "+files.toString());
+        //console.log("Selected files #"+i+": "+files.toString());
     }
     // TODO: This, better. You shouldn't need to iterate through twice. find a better way of appending instead of .htmling those big blobs.
     $("#metadata-tiles-main").html(metadataTiles);
@@ -73,49 +71,73 @@ function showSelectedMedia() {
         multipleSubmitUI.renderImageInBrowser(files[i],i);
     }
 
-    // After all the encounter stuff is loaded..
     $('.encDate').datepicker({
         format: 'mm/dd/yyyy',
         startDate: '-3d'
     });
 
-    // Listen for mousover on all added images.
-    listenForMouseoverAllImages(files.length);
-    
 }
 
-function listenForMouseoverAllImages(imageNumber) {
-    for (var i=0;i<imageNumber;i++) {
-        var classname = getImageUIIdForIndex(imageNumber);
-        var elements = document.getElementsByClassName(classname);
-        for (var j=0;j<elements.length;j++) {
-            elements[i].onmouseover = function() {
-                elements[i].style.display = "block";
-            }
-            elments[i].onmouseout = function() {
-                elements[i].style.display = "none";
-            }
-        }
+//function listenForMouseoverAllImages() {
+//    for (var i=0;i<imageNumber;i++) {
+//        var elements = document.getElementsByClassName('img-input');
+//        for (var j=0;j<elements.length;j++) {
+//            document.getElementById(multipleSubmitUI.getImageIdForIndex(i)).onmouseover = function() {
+//                this.style.visibility = "visible";
+//            } 
+//            elements[j].onmouseover = function() {
+//                this.style.visibility = "visible";
+//            }
+//        }
+//    }
+//}
+
+function showOverlay(index) {
+    var imgDiv = document.getElementById("img-overlay-"+index);
+    var tileDiv = document.getElementById("image-tile-div-"+index);
+    if (!$(tileDiv).hasClass('img-selected')) { 
+        // pop a label over the top that says 'click to select'
+    }
+    imgDiv.hidden = false;
+}
+
+function hideOverlay(index) {
+    var imgDiv = document.getElementById("img-overlay-"+index);
+    var tileDiv = document.getElementById("image-tile-div-"+index);
+    // ignore if we have clicked this item to focus
+    if (!$(tileDiv).hasClass('img-selected')) {
+        imgDiv.hidden = true;
     }
 }
 
+function imageTileClicked(index) {
+    var tileDiv = document.getElementById("image-tile-div-"+index);
+    console.log("Clicked! class=img-tile-div-"+index);
+    if ($(tileDiv).hasClass('img-selected')) {
+        $(tileDiv).removeClass('img-selected');
+    } else {
+        $(tileDiv).addClass('img-selected');
+    }    
+}
 
 /*
 
     TO DO: 
 
-    1. Append image tiles one element at a time instead of all at once.
+    1. Append image tiles one element at a time instead of all at once. <---- !!!
 
-    2. Append all metadataTile, then each imageTile+image PAIR.. 
+    2. Allow click/focus on each image edit
+
+    3. build out enc metadata form sections w/ show hide
+
+    4. make img-overlay inputs the correct type.. build dropdowns based on previous information.
 
     5. think about result state- to a new jsp to wait? stick with single page?
 
 */
 
 function sendButtonClicked() {
-
     // SHOWTIME! Send these images off to certain doom
     sendData();
 }
-
 
