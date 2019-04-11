@@ -47,11 +47,9 @@ public class WorkAppletHeadlessEpic {
   private int numMatches = 0;
   private static String version = "1.3";
 
-  //thread pool handling comparison threads
-  ThreadPoolExecutor threadHandler;
 
-  //public static String thisURLRoot = "https://www.whaleshark.org";
-  public static ArrayList<String> urlArray = new ArrayList<String>(); 
+
+ public static ArrayList<String> urlArray = new ArrayList<String>(); 
   
   
   
@@ -197,10 +195,8 @@ public class WorkAppletHeadlessEpic {
            
             
             
-            //set up our thread processor for each comparison thread
-            ArrayBlockingQueue abq = new ArrayBlockingQueue(500);
-            threadHandler = new ThreadPoolExecutor(numProcessors, numProcessors, 0, TimeUnit.SECONDS, abq);
-  
+
+            
             boolean successfulConnect = true;
   
             ScanWorkItem swi = new ScanWorkItem();
@@ -351,12 +347,22 @@ public class WorkAppletHeadlessEpic {
                 int vectorSize = workItems.size();
                 System.out.println("...received " + vectorSize + " comparisons to make...");
   
+                //set up our thread processor for each comparison thread
+                ArrayBlockingQueue abq = new ArrayBlockingQueue(1000);
+                //thread pool handling comparison threads
                 //spawn the thread for each comparison
+                ThreadPoolExecutor threadHandler = new ThreadPoolExecutor(numProcessors, numProcessors, 0, TimeUnit.SECONDS, abq);
+                
                 for (int q = 0; q < vectorSize; q++) {
                   ScanWorkItem tempSWI = (ScanWorkItem) workItems.get(q);
   
                   //we also pass in workItemResults, which is a threadsafe vector of the results returned from each thread
-                  threadHandler.submit(new AppletWorkItemThread(tempSWI, workItemResults));
+                  try{
+                    threadHandler.submit(new AppletWorkItemThread(tempSWI, workItemResults));
+                  }
+                  catch(Exception e){
+                    System.out.println("...a thread threw an error, so I'm gonna skip it...");
+                  }
                 }
                 System.out.println("...done spawning threads...");
   
@@ -367,6 +373,10 @@ public class WorkAppletHeadlessEpic {
                 
                 
                 System.out.println("...all threads done!...");
+                threadHandler.shutdown();
+                //cleanup thread handlers
+                abq = null;
+                threadHandler = null;
   
                 //check the results and make variable changes as needed
                 int resultsSize = workItemResults.size();
@@ -480,9 +490,7 @@ public class WorkAppletHeadlessEpic {
   
             }
   
-            //cleanup thread handlers
-            abq = null;
-            threadHandler = null;
+
             workItems = null;
             workItemResults = null;
             swi = null;

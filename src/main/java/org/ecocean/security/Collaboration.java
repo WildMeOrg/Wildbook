@@ -121,6 +121,30 @@ public class Collaboration implements java.io.Serializable {
 		return collaborationsForUser(context, username, null);
 	}
 
+	public static List<Collaboration> collaborationsForUser(Shepherd myShepherd, String username) {
+		return collaborationsForUser(myShepherd, username, null);
+	}
+
+
+	// copied with Shepherd instead of context in hopes this fixes the issue where we couldn't save an updated collab with another shepherd
+  @SuppressWarnings("unchecked")
+	public static List<Collaboration> collaborationsForUser(Shepherd myShepherd, String username, String state) {
+		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username + "') || (username2 == '" + username + "'))";
+		if (state != null) {
+			queryString += " && state == '" + state + "'";
+		}
+//System.out.println("qry -> " + queryString);
+		myShepherd.setAction("Collaboration.class1");
+		Query query = myShepherd.getPM().newQuery(queryString);
+    //ArrayList got = myShepherd.getAllOccurrences(query);
+		List returnMe=myShepherd.getAllOccurrences(query);
+		query.closeAll();
+    return returnMe;
+
+	}
+
+
+
   @SuppressWarnings("unchecked")
 	public static List<Collaboration> collaborationsForUser(String context, String username, String state) {
 //TODO cache!!!  (may be hit a lot)
@@ -141,15 +165,18 @@ public class Collaboration implements java.io.Serializable {
     return returnMe;
 	}
 
+	public static Collaboration collaborationBetweenUsers(User u1, User u2, String context) {
+		return collaborationBetweenUsers(context, u1.getUsername(), u2.getUsername());
+	}
+
+	public static Collaboration collaborationBetweenUsers(Shepherd myShepherd, String u1, String u2) {
+		return findCollaborationWithUser(u2, collaborationsForUser(myShepherd, u1));
+	}
+
+
+
 	public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
 		return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
-/*
-		List<Collaboration> all = collaborationsForUser(context, u1);
-		for (Collaboration c : all) {
-			if (c.username1.equals(u2) || c.username2.equals(u2)) return c;
-		}
-		return null;
-*/
 	}
 
 	public static boolean canCollaborate(String context, String u1, String u2) {
@@ -208,8 +235,9 @@ public class Collaboration implements java.io.Serializable {
 		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
 
 		if (request.getUserPrincipal() == null) return false;
-		String username = request.getUserPrincipal().getName();
-//System.out.println("username->"+username);
+		return canUserAccessEncounter(enc, context, request.getUserPrincipal().getName());
+        }
+	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
 		String owner = enc.getAssignedUsername();
 		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
 //System.out.println("owner->" + owner);

@@ -152,7 +152,7 @@ td, th {
 
 <ul id="tabmenu">
   <li><a
-    href="encounter.jsp?number=<%=num%>">xxEncounter
+    href="encounter.jsp?number=<%=num%>">Encounter
     <%=num%>
   </a></li>
   <%

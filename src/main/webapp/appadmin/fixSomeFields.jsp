@@ -34,36 +34,17 @@ Shepherd myShepherd=new Shepherd(context);
 <%
 
 myShepherd.beginDBTransaction();
-
-int numFixes=0;
-
-<<<<<<< HEAD
-try {
-
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
-
-  Iterator allSpaces=myShepherd.getAllWorkspaces();
-
-  boolean committing=true;
-
-
-  while(allSpaces.hasNext()){
-
-    Workspace wSpace=(Workspace)allSpaces.next();
-
-    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
-
-  	numFixes++;
-
-    if (committing) {
-      myShepherd.throwAwayWorkspace(wSpace);
-  		myShepherd.commitDBTransaction();
-  		myShepherd.beginDBTransaction();
-    }
-  }
-=======
 try{
+	
+    List<String> encs=null;
+    String filter="SELECT DISTINCT catalogNumber FROM org.ecocean.Encounter";  
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    encs=new ArrayList<String>(c);
+    query.closeAll();
+    %>
+    <li><%=encs.toString() %></li>
+	<%
 
 	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
 	

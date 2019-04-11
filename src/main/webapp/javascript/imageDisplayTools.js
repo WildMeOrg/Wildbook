@@ -31,7 +31,7 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
   intoElem.append(
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" />').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-        mkImg(maJson)
+        maLib.mkImg(maJson)
       )
     )
   );
@@ -76,7 +76,7 @@ maLib.defaultCaptionFunction = function(maJson) {
 var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
 fig.append(
   $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-    mkImg(maJson)
+    maLib.mkImg(maJson)
   )
 );
 */
@@ -133,7 +133,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
   fig.append(
     $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-      mkImg(maJson)
+      maLib.mkImg(maJson)
     )
   );
   fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
@@ -185,7 +185,7 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
 
   fig.append(
     $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-      mkImg(maJson)
+      maLib.mkImg(maJson)
     )
   );
 
@@ -262,7 +262,7 @@ maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   intoElem.append(
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" />').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-        mkImg(maJson)
+        maLib.mkImg(maJson)
       )
     )
   );
@@ -572,9 +572,9 @@ console.warn('>>>>>>>>>>>>>>>>>>>>>>>>> %o', url);
     return url;
 }
 
-function mkImg(maJson) {
+maLib.mkImg = function(maJson) {
     var url = maLib.getUrl(maJson);
-    return '<img class="lazyload" id="figure-img-' + maJson.id + '" data-enh-mediaAssetId="' + maJson.id + '" src="/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
+    return '<img class="lazyload" id="figure-img-' + maJson.id + ':' + maJson.annotation.id + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-annotationId="' + maJson.annotation.id + '" src="' + wildbookGlobals.baseUrl + '/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" />';
 }
 
 // execute above function

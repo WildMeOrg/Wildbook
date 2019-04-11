@@ -46,7 +46,7 @@ public class GridManager {
   private int numAllowedNodes = 25;
   //private long nodeTimeout = 180000;
   //private String appletVersion = "1.2";
-  public long checkoutTimeout = 120000;
+  public long checkoutTimeout = 240000;
   public int groupSize = 20;
   public int creationDeletionThreadQueueSize = 1;
   public int scanTaskLimit = 150;
@@ -55,7 +55,7 @@ public class GridManager {
   private int numScanTasks = 0;
   //private int numScanWorkItems = 0;
   private int numCollisions = 0;
-  public int maxGroupSize = 100;
+  public int maxGroupSize = 240;
   public int numCompletedWorkItems = 0;
   
   //public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
@@ -453,6 +453,7 @@ public class GridManager {
     //if toDO doesn't have any work, start popping stuff off underway to help finish up
     else {
       iterNum=underway.size();
+      if (iterNum>maxGroupSize)iterNum=maxGroupSize;
       for (int i = 0; i < iterNum; i++) {
         //if (cont) {
           ScanWorkItem item = underway.get(i);
@@ -485,6 +486,13 @@ public class GridManager {
     for (int i = 0; i < underway.size(); i++) {
       if (underway.get(i).getTaskIdentifier().equals(taskID)) {
         underway.remove(i);
+        //numScanWorkItems--;
+        i--;
+      }
+    }
+    for (int i = 0; i < toDo.size(); i++) {
+      if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
+        toDo.remove(i);
         //numScanWorkItems--;
         i--;
       }
