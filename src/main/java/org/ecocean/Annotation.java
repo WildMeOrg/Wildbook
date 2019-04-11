@@ -229,6 +229,12 @@ public class Annotation implements java.io.Serializable {
         return transformMatrix;
     }
 
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+        Encounter enc = findEncounter(myShepherd);
+        if (enc == null) return null;
+        return enc.getTaxonomy(myShepherd);
+    }
+
     //TODO this needs to be fixed to mean "has the unity feature"... i think(!?) -- but migrating to features needs a legacy-compatible version!  ouch
     //       good luck on that one, jon
     public boolean isTrivial() {

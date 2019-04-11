@@ -2136,6 +2136,13 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         this.setSpecificEpithet(sp[1]);
     }
 
+
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+      String sciname = this.getTaxonomyString();
+      if (sciname == null) return null;
+      return myShepherd.getOrCreateTaxonomy(sciname, false); // false means don't commit the taxonomy
+    }
+
     //find the first one(s) we can
     public void setLatLonFromAssets() {
         if ((annotations == null) || (annotations.size() < 1)) return;
