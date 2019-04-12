@@ -46,11 +46,11 @@ java.util.Properties" %>
 		if (enc == null) return format(null, "none");
 		String h = "<div class=\"encounter shown\"><a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">Encounter <b>" + enc.getCatalogNumber() + "</b></a>";
 		if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
-			h += "<div>Annotations:<ul>";
+			h += "<div>Annotations: <i>(" + enc.getAnnotations().size() + ")</i><ol>";
 			for (int i = 0 ; i < enc.getAnnotations().size() ; i++) {
 				h += "<li><a href=\"obrowse.jsp?type=Annotation&id=" + enc.getAnnotations().get(i).getId() + "\">Annotation " + enc.getAnnotations().get(i).getId() + "</a></li>";
 			}
-			h += "</ul></div>";
+			h += "</ol></div>";
 		}
 		return h + "</div>";
 	}
@@ -72,8 +72,11 @@ java.util.Properties" %>
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
 		shown.add(ann);
+		String vp = ann.getViewpoint();
+                if (!Annotation.isValidViewpoint(vp)) vp = "<span title=\"INVALID viewpoint value\" style=\"background-color: #F88; font-size: 0.8em; padding: 0 8px;\">" + vp + "</span>";
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
 		h += "<li>" + format("iaClass", ann.getIAClass()) + "</li>";
+		h += "<li>" + format("viewpoint", vp) + "</li>";
 		h += "<li>" + format("acmId", ann.getAcmId()) + "</li>";
 		h += "<li>" + format("matchAgainst", ann.getMatchAgainst()) + "</li>";
 		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
@@ -151,11 +154,11 @@ java.util.Properties" %>
 
 	private String showFeatureList(ArrayList<Feature> l) {
 		if ((l == null) || (l.size() < 1)) return format(null, "none");
-		String h = "<ul>";
+		String h = "<i>(" + l.size() + ")</i><ol>";
 		for (int i = 0 ; i < l.size() ; i++) {
 			h += "<li>" + showFeature(l.get(i)) + "</li>";
 		}
-		return h + "</ul>";
+		return h + "</ol>";
 	}
 
 	private String showMediaAsset(MediaAsset ma) {
@@ -201,7 +204,7 @@ String id = request.getParameter("id");
 String type = request.getParameter("type");
 
 // IA debuggin use.. Can retrieve Annotations 
-String acmId = request.getParameter("acmId");
+String acmid = request.getParameter("acmid");
 
 if (!rawOutput(type)) {
 %>
@@ -345,7 +348,7 @@ context=ServletUtilities.getContext(request);
 */
 
 if (type == null) type = "Encounter";
-if (id == null) {
+if (id == null && (acmid == null || !"Annotation".equals(type))) {
 	out.println(showForm());
 	return;
 }
@@ -373,7 +376,7 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("Annotation")) {
-	if (id!=null&&acmId==null) {
+	if (id!=null&&acmid==null) {
 		try {
 			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
 			out.println(showAnnotation(ann));
@@ -381,14 +384,19 @@ if (type.equals("Encounter")) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
 			needForm = true;
 		}
-	} else if (acmId!=null) {
+	}
+	if (id==null&&acmid!=null) {
 		try {
-			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
-                        if ((anns == null) || (anns.size() < 1)) {
-                            out.println("none with acmId " + acmId);
-                        } else {
-			    out.println(showAnnotation(anns.get(0)));
-                        }
+			ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmid);
+			if ((anns == null) || (anns.size() < 1)) {
+				out.println("none with acmid " + acmid);
+			} else {
+				String allAnns = "";
+				for (int i=0; i<anns.size(); i++) {
+					allAnns += showAnnotation(anns.get(i));
+				}
+				out.println(allAnns);
+			}
 		} catch (Exception e) {
 			out.println("<p>ERROR: " + e.toString() + "</p>");
 			needForm = true;

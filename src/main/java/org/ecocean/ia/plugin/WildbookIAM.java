@@ -65,11 +65,11 @@ public class WildbookIAM extends IAPlugin {
 
     //TODO we need to "reclaim" these from IA.intake() stuff!
     @Override
-    public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
+    public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         return null;
     }
     @Override
-    public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
+    public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
         return null;
     }
 

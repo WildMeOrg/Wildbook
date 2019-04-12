@@ -1,6 +1,8 @@
 <%@ page language="java"
      import="org.ecocean.Shepherd,
+org.ecocean.Util,
 org.ecocean.servlet.ServletUtilities,
+org.ecocean.CommonConfiguration,
 org.json.JSONObject,
 java.util.ArrayList,
 org.ecocean.media.*
@@ -15,7 +17,8 @@ org.ecocean.media.*
 /*
 this can use a little nginx magic to allow something like /imagedl/MEDIA_ASSET_ID/some_file_name.jpg to deliver
 the *master* image associated with some media asset.  nice for downloading as the original filename.
-NOTE: it currently has some hardcoded paths in here, like "shepherd_data_dir" !!  FIXME
+
+TODO - should we require the user be logged in here?  i guess that could also be stopped with shiro
 
 	location ~ /imagedl/(.+)/(.+) {
 		include proxy_params;
@@ -25,7 +28,18 @@ NOTE: it currently has some hardcoded paths in here, like "shepherd_data_dir" !!
 */
 
 String context = ServletUtilities.getContext(request);
+
+//we bail if not enabled
+if (!Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownloadLink", context))) {
+    response.setContentType("text/html");
+    response.setStatus(401);
+    out.println("<h1>401 no access</h1>");
+    return;
+}
+
 Shepherd myShepherd = new Shepherd(context);
+
+String ddir = CommonConfiguration.getDataDirectoryName(context);
 
 String idString = request.getParameter("id");
 int id = 0;
@@ -76,7 +90,8 @@ if (path == null) {
     return;
 }
 
-response.setHeader("X-Accel-Redirect", "/shepherd_data_dir/" + path);
+response.setHeader("X-Accel-Redirect", "/" + ddir + "/" + path);
+
 //response.setHeader("X-Accel-Redirect", masters.get(0).webURL().toString());
 //response.setContentType("text/plain");
 //out.println(masters.get(0).getParameters());

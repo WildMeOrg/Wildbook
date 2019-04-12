@@ -104,8 +104,8 @@ public class Encounter implements java.io.Serializable {
    * <p/>
    * Wherever possible, this class will be extended with Darwin Core attributes for greater adoption of the standard.
    */
-  private String sex = "unknown";
-  private String locationID = "None";
+  private String sex = null;
+  private String locationID = null;
   private Double maximumDepthInMeters;
   private Double maximumElevationInMeters;
   private String catalogNumber = "";
@@ -2134,6 +2134,13 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if ((sp == null) || (sp.length != 2)) return;
         this.setGenus(sp[0]);
         this.setSpecificEpithet(sp[1]);
+    }
+
+
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+      String sciname = this.getTaxonomyString();
+      if (sciname == null) return null;
+      return myShepherd.getOrCreateTaxonomy(sciname, false); // false means don't commit the taxonomy
     }
 
     //find the first one(s) we can

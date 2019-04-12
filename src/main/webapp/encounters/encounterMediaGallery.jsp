@@ -167,7 +167,7 @@ function forceLink(el) {
 		      capos[0]+=encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a><br>";
 		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
 		      
-		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" "+ma.getId()+"</p>";
+		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
 		      captionLinks.add(capos);
 		      //end caption render JSP side
 		      
@@ -377,6 +377,25 @@ div.gallery-download {
   input[type="file"] {
     display:inline;
   }
+
+div.gallery-download {
+    text-align: center;
+    font-size: 0.8em;
+    margin-top: -2.5em;
+}
+
+.gallery-download a {
+    display: inline-block;
+    background-color: #DDD;
+    margin: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+.gallery-download a:hover {
+    background-color: #CCA;
+}
+
 
 </style>
 <%
@@ -588,6 +607,7 @@ jQuery(document).ready(function() {
         $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
     });
 
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownloadLink", context))) { %>
     if (wildbookGlobals.username) {
         $('.image-enhancer-wrapper').each(function(i, el) {
             var mid = imageEnhancer.mediaAssetIdFromElement($(el));
@@ -597,6 +617,7 @@ jQuery(document).ready(function() {
             //$(el).closest('.my-gallery').after(h);
         });
     }
+<% } //end encounterGalleryDownloadLink %>
 });
 
 function doImageEnhancer(sel) {
