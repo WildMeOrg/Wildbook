@@ -59,7 +59,9 @@ java.util.Properties" %>
 		if (f == null) return format(null, "none");
 		if (shown.contains(f)) return "<div class=\"feature shown\">" + format("Feature", f.getId(), f.toString()) + "</div>";
 		shown.add(f);
-		String h = "<div class=\"feature\">Feature <b>" + f.getId() + "</b><ul>";
+		String h = "<div class=\"feature\">Feature <b>" + f.getId() + "</b>";
+                h += "<input type=\"button\" onClick=\"toggleZoom('" + f.getId() + "')\" value=\"toggle zoom\" style=\"margin-left: 10px;\" />";
+                h += "<ul>";
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
 		h += "<li>" + showMediaAsset(f.getMediaAsset()) + "</li>";
 		h += "<li>" + showAnnotation(f.getAnnotation()) + "</li>";
@@ -210,6 +212,7 @@ if (!rawOutput(type)) {
 %>
 <html><head><title>obrowse</title>
 <script src="tools/jquery/js/jquery.min.js"></script>
+<script src="javascript/annot.js"></script>
 <style>
 
 body {
@@ -219,6 +222,7 @@ body {
 .img-margin {
     float: right;
     display: inline-block;
+    oveflow-hidden;
 }
 
 .format-label {
@@ -248,6 +252,9 @@ body {
 
 #img-wrapper {
     position: relative;
+    width: 400px;
+    height: 700px;
+    overflow: hidden;
 }
 .featurebox {
     position: absolute;
@@ -262,9 +269,7 @@ body {
 	position: relative;
 }
 .mediaasset img {
-	xposition: absolute;
-	top: 0;
-	xright: 20px;
+	position: absolute;
 	max-width: 350px;
 }
 
@@ -291,6 +296,22 @@ pre.json {
 <script>
 var features = {};
 
+var zoomedId = false;
+function toggleZoom(featId) {
+console.log('featId=%o', featId);
+    var imgEl = $('img')[0];
+    if (zoomedId == featId) {
+        zoomedId = false;
+        unzoomFeature(imgEl);
+        $('.featurebox').show();
+        return;
+    }
+console.log('feature=%o', features[featId]);
+    if (!features || !features[featId]) return;
+    $('.featurebox').hide();
+    zoomToFeature(imgEl, { parameters: features[featId] });
+    zoomedId = featId;
+}
 function addFeature(id, bbox) {
     features[id] = bbox;
 }
