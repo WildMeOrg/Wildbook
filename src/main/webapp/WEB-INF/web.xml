@@ -599,8 +599,8 @@
   </servlet>
 
     <servlet>
-    <servlet-name>MultipleSubmit</servlet-name>
-    <servlet-class>org.ecocean.servlet.MultipleSubmit</servlet-class>
+    <servlet-name>MultipleSubmitAPI</servlet-name>
+    <servlet-class>org.ecocean.servlet.MultipleSubmitAPI</servlet-class>
   </servlet>
 
 
@@ -2145,8 +2145,8 @@
   </servlet-mapping>
 
   <servlet-mapping>
-    <servlet-name>MultipleSubmit</servlet-name>
-    <url-pattern>/MultipleSubmit</url-pattern>
+    <servlet-name>MultipleSubmitAPI</servlet-name>
+    <url-pattern>/MultipleSubmitAPI</url-pattern>
   </servlet-mapping>
 
   <servlet>

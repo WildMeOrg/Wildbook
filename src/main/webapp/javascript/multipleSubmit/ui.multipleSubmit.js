@@ -17,12 +17,16 @@ multipleSubmitUI = {
         return "img-input-"+String(index);
     },
 
+    getEncInputClassForIndex: function(index) {
+        return "img-input-"+String(index);
+    },
+
     generateMetadataTile: function(index) {
         var metadataTile = "";
         metadataTile += "<div id=\"encounter-metadata-"+index+"\" class=\"encounter-tile-div col-xs-12 col-xl-12\">";
-        metadataTile += "   <label>Encounter "+index+"</label>";
-        metadataTile += "   <input id=\"encLocation\" type=\"text\" name=\"encLocation\" required placeholder=\"Enter Location\">";
-	    metadataTile +=	"	<input name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"encDate\"/>";
+        metadataTile += "   <label class=\"encounter-label\" >&nbspEncounter"+index+"&nbsp</label>";
+        metadataTile +=     multipleSubmitUI.generateLocationDropdown(index);
+        metadataTile +=	"	<input name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"encDate\"/>";
         metadataTile += "   <label>&nbsp;</label>";   
         metadataTile += "   <br/>";
         metadataTile += "</div>";
@@ -44,10 +48,10 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getImageUIIdForIndex(index);
         var overlay = "";
         overlay += "  <div hidden id=\"img-overlay-"+index+"\" class=\"img-overlay-"+index+" img-input "+uiClass+"\" >";
+        overlay += "      <label class=\""+uiClass+"\">File: "+file.name+"</label>";
         // make a "click to focus" prompt here on hover
         overlay += multipleSubmitUI.generateEncNumDropdown(index);
         overlay += "      <textarea class=\""+uiClass+"\" placeholder=\"More Info\" rows=\"3\" cols=\"23\" />";                     
-        overlay += "      <label class=\"image-filename "+uiClass+"\">File: "+file.name+"</label>";
         overlay += "  </div>";
         return overlay; 
     },
@@ -64,7 +68,36 @@ multipleSubmitUI = {
         return encDrop;
     },
 
-
+    generateLocationDropdown: function(index) {
+        var uiClass = multipleSubmitUI.getEncInputClassForIndex(index);
+        var uiId = "loc-" + uiClass;
+        var dd = "";
+        dd += "<select id=\""+uiId+"\" class=\""+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
+        dd += "    <option selected=\"selected\" value=\"null\" disabled>Choose Location</option>";
+        // This is async so we will add it to option list after return.
+        // What happens if this comes back before the page renders? Fire? Panic? Death? 
+        multipleSubmitAPI.getLocations(function(locObj){
+            var ddLocs = "";
+            if (locObj.hasOwnProperty('locationIds')) {
+                var locs = locObj.locationIds;
+                console.log("Type? "+(typeof locs));
+                console.log("----------------> locs: "+JSON.stringify(locs));
+                for (var i in locs) {
+                    var option = document.createElement("option");
+                    option.text = locs[i];
+                    option.value = locs[i];
+                    if (document.getElementById(uiId)!=null) {
+                        document.getElementById(uiId).appendChild(option);
+                    } else {
+                        ddLocs += "<option value=\""+locs[i]+"\">"+locs[i]+"</option>";
+                    }
+                }  
+            }
+        });
+        dd += "</select>";
+        return dd;
+    },
+    
     renderImageInBrowser: function(file,id) {
         if (this.notNullOrEmptyString(String(file))) {
             var reader = new FileReader();

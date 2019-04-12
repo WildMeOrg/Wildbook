@@ -63,10 +63,13 @@ div .img-input {
 }
 
 .encounter-tile-div {
-    color: white;
     background-color: darkslategrey;
     margin: 5px;
     padding-bottom: 10px;
+}
+
+.encounter-label {
+    color: white;
 }
 
 .image-label {
