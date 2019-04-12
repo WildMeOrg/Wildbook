@@ -277,7 +277,8 @@
 				/EncounterAddUser = authc, roles[researcher]
 				
 				/AnnotationEdit = authc, roles[admin]
-
+				
+				/obrowse.jsp = authc, roles[admin]
             </param-value>
         </init-param>
     </filter>
