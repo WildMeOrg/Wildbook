@@ -58,11 +58,12 @@ if (request.getParameter("acmId") != null) {
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
+        String taskId = request.getParameter("taskId");
 	JSONObject res = new JSONObject("{\"success\": false}");
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
 	res.put("individualId", request.getParameter("individualID"));
-	//note: short circuiting for now!  needs more testing
+        res.put("taskId", taskId);
 
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
@@ -127,7 +128,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		return;
 	}
 
-// TODO enc.setMatchedBy() + comments + etc?????
+        String matchMsg = enc.getMatchedBy();
+        if (matchMsg == null) matchMsg = "";
+        matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
+        enc.setMatchedBy(matchMsg);  //(aka setIdentificationRemarks)
 	enc.setIndividualID(indiv.getIndividualID());
 	enc.setState("approved");
 	indiv.addEncounter(enc, context);
@@ -148,7 +152,6 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 
   //session.setMaxInactiveInterval(6000);
-  //String taskId = request.getParameter("taskId");
 
 %>
 
@@ -642,9 +645,9 @@ console.info('taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAn
 	} else if (jel.data('individ') && queryAnnotation.indivId) {
 		h = 'The two encounters have <b>different individuals</b> already assigned and must be handled manually.';
 	} else if (jel.data('individ')) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\');" type="button" value="Set to individual ' + jel.data('individ') + '" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' + taskId + '\');" type="button" value="Set to individual ' + jel.data('individ') + '" />';
 	} else if (queryAnnotation.indivId) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' + taskId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
 	} else {
                 //disable onChange for now -- as autocomplete will trigger!
 		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
@@ -826,7 +829,8 @@ console.warn(inds);
 }
 
 
-function approvalButtonClick(encID, indivID, encID2) {
+function approvalButtonClick(encID, indivID, encID2, taskId) {
+console.log('xxz %o', taskId);  return;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 	console.info('approvalButtonClick: id(%s) => %s %s', indivID, encID, encID2);
 	if (!indivID || !encID) {
@@ -834,7 +838,7 @@ function approvalButtonClick(encID, indivID, encID2) {
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
-	var url = 'iaResults.jsp?number=' + encID + '&individualID=' + indivID;
+	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
 	if (encID2) url += '&enc2=' + encID2;
 	jQuery.ajax({
 		url: url,
