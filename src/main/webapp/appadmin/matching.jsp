@@ -48,6 +48,10 @@ body {
     padding: 4px 10px;
 }
 
+td {
+    width: 12%;
+}
+
 td.task-res {
     width: 20%;
 }
@@ -65,15 +69,42 @@ tr.no-res td.task-res {
     background-color: #FCC;
 }
 
+tr:hover {
+    background-color: #DDA;
+}
 th {
     font-weight: bold;
 }
 
 </style>
+<script>
+    var hideOk = false;
+    function checkTable() {
+        if (hideOk) {
+            $('.named').hide();
+        } else {
+            $('.named').show();
+        }
+    }
+    function toggleOk() {
+        hideOk = !hideOk;
+        checkTable();
+    }
+
+    $(document).ready(function() {
+        $('#task-table').on('post-body.bs.table', function(ev) {
+            checkTable();
+        });
+    });
+</script>
 
 <div class="container maincontent">
 
-<table id="task-table"><thead><tr>
+<div style="margin: 0 0 15px 0;">
+    <input type="button" value="toggle named encounters" onClick="toggleOk()" />
+</div>
+
+<table id="task-table" xdata-page-size="6" data-height="650" data-toggle="table" data-pagination="false" ><thead><tr>
 <%
 
 String context = ServletUtilities.getContext(request);
@@ -95,7 +126,7 @@ if (user == null) throw new RuntimeException("401");
 String[] headers = new String[]{"ID Task", "Date", "Loc ID", "Annot", "Encounter", "Ind ID", "Match Res", "User(s)"};
 if (!adminMode) headers = new String[]{"ID Task", "Date", "Loc ID", "Encounter", "Ind ID", "Match Res"};
 for (int i = 0 ; i < headers.length ; i++) {
-    out.println("<th>" + headers[i] + "</th>");
+    out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
 }
 
 out.println("</tr></thead><tbody>");
@@ -142,10 +173,19 @@ for (Task task : tasks) {
         JSONArray as = res.optJSONArray("annot_score_list");
         JSONArray nl = res.optJSONArray("dname_list");
         if ((as == null) || (nl == null) || (as.length() != nl.length())) continue;
+        int found = -1;
         for (int i = 0 ; i < as.length() ; i++) {
             String name = nl.optString(i, null);
-            if ((thisName != null) && thisName.equals(name) && (i < 6)) goodEnough = true;
+            if ((thisName != null) && thisName.equals(name)) {
+                if (i < 6) goodEnough = true;
+                found = i;
+            }
             taskRes += "<span class=\"task-name\" title=\"" + as.optDouble(i) + "\">" + name + "</span> ";
+        }
+        if (found < 0) {
+            taskRes = "? " + taskRes;
+        } else {
+            taskRes = (found + 1) + ": " + taskRes;
         }
     }
 /*
@@ -156,7 +196,11 @@ for (Task task : tasks) {
     logDump += "</div>";
 */
     if (goodEnough) classes += " good-enough";
-    if (thisName == null) classes += " unnamed";
+    if (thisName == null) {
+        classes += " unnamed";
+    } else {
+        classes += " named";
+    }
     if (taskRes.equals("")) classes += " no-res";
 
 
@@ -181,7 +225,7 @@ for (Task task : tasks) {
 <% } %>
 
 <% if (enc.hasMarkedIndividual()) { %>
-    <td class="ind-name" id="<%=enc.getIndividualID()%>"><a href="../individual.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a></td>
+    <td class="ind-name" id="<%=enc.getIndividualID()%>"><a href="../individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a></td>
 <% } else { %>
     <td class="ind-name">-</td>
 <% } %>
