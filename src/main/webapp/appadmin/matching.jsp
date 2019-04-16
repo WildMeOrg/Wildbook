@@ -29,6 +29,9 @@ private boolean userEquals(User u1, User u2) {
 <jsp:include page="../header.jsp" flush="true" />
     <script src="../javascript/bootstrap-table/bootstrap-table.min.js"></script>
     <link rel="stylesheet" href="../javascript/bootstrap-table/bootstrap-table.min.css">
+<%
+boolean adminMode = "admin".equals(AccessControl.simpleUserString(request));
+%>
 <style>
 body {
     font-family: arial, sans;
@@ -49,6 +52,7 @@ body {
 }
 
 td {
+    position: relative;
     width: 12%;
 }
 
@@ -76,14 +80,29 @@ th {
     font-weight: bold;
 }
 
+div.obrowse {
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    background-color: #8F2;
+}
 </style>
 <script>
     var hideOk = false;
+    var adminMode = <%=adminMode%>;
     function checkTable() {
         if (hideOk) {
             $('.named').hide();
         } else {
             $('.named').show();
+        }
+        if (adminMode) {
+            $('tr').each(function(i, el){
+                $(el).find('td:first, td:nth-child(4), td:nth-child(5)').append('<div class="obrowse" onClick="openObrowse(this);" />');
+            });
         }
     }
     function toggleOk() {
@@ -92,10 +111,16 @@ th {
     }
 
     $(document).ready(function() {
+        checkTable();
         $('#task-table').on('post-body.bs.table', function(ev) {
             checkTable();
         });
     });
+
+    function openObrowse(el) {
+        var tmap = { 0: 'Task', 3: 'Annotation', 4: 'Encounter' };
+        wildbook.openInTab('../obrowse.jsp?type=' + tmap[el.parentNode.cellIndex] + '&id=' + el.parentNode.id);
+    }
 </script>
 
 <div class="container maincontent">
@@ -119,7 +144,6 @@ query.range(0,100);
 Collection c = (Collection) (query.execute());
 List<Task> tasks = new ArrayList<Task>(c);
 query.closeAll();
-boolean adminMode = "admin".equals(AccessControl.simpleUserString(request));
 User user = AccessControl.getUser(request, myShepherd);
 if (user == null) throw new RuntimeException("401");
 
@@ -138,12 +162,15 @@ for (Task task : tasks) {
     Annotation ann = null;
     if (annots != null) ann = annots.get(0);  //"should never" (currently) have > 1
     Encounter enc = ann.findEncounter(myShepherd);
-    List<User> subs = enc.getSubmitters();
-    boolean ok = adminMode;
-    for (User u : subs) {
-        if (userEquals(user, u)) ok = true;
+    List<User> subs = null;
+    if (enc != null) {
+        subs = enc.getSubmitters();
+        boolean ok = adminMode;
+        for (User u : subs) {
+            if (userEquals(user, u)) ok = true;
+        }
+        if (!ok) continue;
     }
-    if (!ok) continue;
 
     DateTime dt = null;
     if (task.getCreatedLong() > 0L) dt = new DateTime(task.getCreatedLong());
@@ -212,7 +239,7 @@ for (Task task : tasks) {
 
     <td><%=cleanDate(dt)%></td>
 
-    <td><%=(enc.getLocationID() == null) ? "-" : enc.getLocationID()%></td>
+    <td><%=((enc == null) || (enc.getLocationID() == null)) ? "-" : enc.getLocationID()%></td>
 
 <% if ((ann == null) && adminMode) { %>
     <td>(no annotation, deleted?)</td>
@@ -226,7 +253,7 @@ for (Task task : tasks) {
     <td title="<%=enc.getTaxonomyString()%>" id="<%=enc.getCatalogNumber()%>"><a href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber()%>">Enc <%=enc.getCatalogNumber().substring(0,8)%></a></td>
 <% } %>
 
-<% if (enc.hasMarkedIndividual()) { %>
+<% if ((enc != null) && enc.hasMarkedIndividual()) { %>
     <td class="ind-name" id="<%=enc.getIndividualID()%>"><a href="../individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a></td>
 <% } else { %>
     <td class="ind-name">-</td>
