@@ -305,6 +305,12 @@ public class User implements Serializable {
 		
 		public String getUUID() {return uuid;}
 
+    //basically mean uuid-equivalent, so deal
+    public boolean equals(final User u2) {
+        if ((uuid == null) || (u2 == null) || (u2.getUUID() == null)) return false;
+        return uuid.equals(u2.getUUID());
+    }
+
     public String toString() {
         return new ToStringBuilder(this)
                 .append("uuid", uuid)
