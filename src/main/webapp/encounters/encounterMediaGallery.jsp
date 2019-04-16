@@ -218,6 +218,21 @@ for (int i=0; i<captionLinks.size(); i++) {
 	cursor: -moz-zoom-in;
 }
 
+.pointer-arrow {
+    background-image: url(../images/pointer-arrow.svg);
+    position: absolute;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    width: 50px;
+    height: 80px;
+    bottom: -10px;
+    left: 0;
+}
+
+.image-enhancer-wrapper:hover .pointer-arrow {
+    display: none;
+}
+
 .caption-youtube {
     padding: 1px 3px;
     background-color: rgba(255,200,200,0.5);
@@ -621,8 +636,67 @@ console.info(' ===========>   %o %o', el, enh);
 
 	opt.callback = function() {
 		$('.image-enhancer-keyword-wrapper').on('click', function(ev) { ev.stopPropagation(); });
+                applyArrows();
 	};
     imageEnhancer.applyTo(sel, opt);
+
+}
+
+function applyArrows() {
+    $('.image-enhancer-wrapper').each(function(wi, wel) {
+        var activeEl = false;
+        var otherBoxes = [];
+        $(wel).find('.image-enhancer-feature').each(function(fi, fel) {
+            var jel = $(fel);
+console.log('xxx fi=%d fel=%o', fi, fel);
+console.log('xxx pos: %o %dx%d', jel.position(), jel.width(), jel.height());
+            if (jel.hasClass('image-enhancer-feature-focused')) {
+                activeEl = jel;
+            } else {
+                otherBoxes.push([jel.position().left, jel.position().top, jel.width(), jel.height()]);
+            }
+        });
+        if (!activeEl) return;
+
+        //no arrow when only one annot.  is this cool?  i can see we might want it anyway (for when detection missed an animal)
+        if (!otherBoxes || (otherBoxes.length < 1)) return;
+
+        var arrow = $('<div class="pointer-arrow" />');
+        activeEl.append(arrow);
+        //try these, in order of preference...
+        var tryOffset = [
+            (activeEl.width() - arrow.width()) / 2,
+            (activeEl.width() - arrow.width()) * 0.25,
+            (activeEl.width() - arrow.width()) * 0.75,
+            15,
+            (activeEl.width() - arrow.width()) - 15
+        ];
+        var lowest = 999;
+        var offset = 0;
+console.log('arrow width=%d xxxx', arrow.width());
+        for (var i = 0 ; i < tryOffset.length ; i++) {
+            var num = numTouching(tryOffset[i], activeEl, arrow, otherBoxes);
+console.log('xxxx (%d) offset=%d ==> num=%d', i, tryOffset[i], num);
+            if (num < lowest) {
+                lowest = num;
+                offset = tryOffset[i];
+            }
+        }
+        arrow.css('left', offset);
+    });
+}
+
+function numTouching(offset, el, arrow, boxes) {
+    if (!boxes || (boxes.length < 1)) return 0;
+    //var ctrX = offset + el.position().left + el.width() / 2;
+    var ctrX = offset + el.position().left + arrow.width() / 2;
+console.log('xxx ctrX=%d', ctrX);
+    var num = 0;
+    for (var i = 0 ; i < boxes.length ; i++) {
+console.log('xxx %d: %d,%d %dx%d', i, boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3]);
+        if ((ctrX > boxes[i][0]) && (ctrX < boxes[i][0] + boxes[i][2])) num++;
+    }
+    return num;
 }
 
 function enhancerCaption(el, opt) {
