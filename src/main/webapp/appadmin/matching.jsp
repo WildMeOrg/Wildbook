@@ -176,6 +176,8 @@ for (Task task : tasks) {
         int found = -1;
         for (int i = 0 ; i < as.length() ; i++) {
             String name = nl.optString(i, null);
+            if ("____".equals(name)) name = null;
+            if (name == null) continue;
             if ((thisName != null) && thisName.equals(name)) {
                 if (i < 6) goodEnough = true;
                 found = i;
