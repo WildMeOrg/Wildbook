@@ -598,7 +598,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
             	// TODO: generify
             	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
             	illustrationUrl = iaBase+illustrationUrl
-            	var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect match</a></span>';
+            	var illustrationHtml = '<span class="illustrationLink"><a href="'+illustrationUrl+'" title="view HEAT MAP" target="_blank">inspect</a></span>';
             	console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
             	$(selector).append(illustrationHtml);
             }
