@@ -300,11 +300,14 @@ public class Annotation implements java.io.Serializable {
                         for (int h=-1;h<2;h++) {
                             for (int w=-1;w<2;w++) {
                                 // gettin trixy.. wrap indexes around 
-                                int horizontal = j;
-                                if (w+i==-1) {horizontal=VALID_VIEWPOINTS[i].length-1;}
-                                if (w+i==VALID_VIEWPOINTS[i].length) {horizontal=0;}
-                                if (!rtn.contains(VALID_VIEWPOINTS[i+h][horizontal+w])) {
-                                    rtn.add(VALID_VIEWPOINTS[i+h][horizontal+w]);
+                                int horizontal = j+w;
+                                if (horizontal==-1) {
+                                    horizontal=VALID_VIEWPOINTS[1].length-1;
+                                } else if (horizontal==8) {
+                                    horizontal=0;
+                                }
+                                if (!rtn.contains(VALID_VIEWPOINTS[i+h][horizontal])) {
+                                    rtn.add(VALID_VIEWPOINTS[i+h][horizontal]);
                                 }
                             }
                         }
