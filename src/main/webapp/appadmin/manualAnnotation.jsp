@@ -4,9 +4,10 @@ org.ecocean.servlet.ServletUtilities,
 org.json.JSONObject,
 org.ecocean.media.*
               "
-%>
+%><% int imgHeight = 500; %>
 <html>
 <head><title>Manual Annotation</title>
+<script src="../tools/jquery/js/jquery.min.js"></script>
 <style>
 body {
     font-family: arial, sans;
@@ -17,13 +18,14 @@ body {
 }
 
 #img-wrapper {
-    width: 40%;
+    overflow: hidden;
+    height: <%=imgHeight%>px;
     float: right;
     position: relative;
 }
 img.asset {
-    height: 300px;
-    position: absolute;
+    height: <%=imgHeight%>px;
+    xposition: absolute;
 }
 
 #bbox {
@@ -31,8 +33,80 @@ img.asset {
     border: solid 3px rgba(255,255,0,0.5);
     position: absolute;
 }
+.axis {
+    width: 2000px;
+    height: 2000px;
+    position: absolute;
+    display: none;
+}
+
+#x-axis {
+    border-left: dotted 1px yellow;
+}
+#y-axis {
+    border-top: dotted 1px yellow;
+}
+
+.axis, #bbox {
+    pointer-events: none;
+}
+
 </style>
 <script>
+var boxStart = false;
+var origBbox = null;
+$(document).ready(function() {
+    origBbox = {
+        top: $('#bbox').css('top'),
+        left: $('#bbox').css('left'),
+        width: $('#bbox').css('width'),
+        height: $('#bbox').css('height')
+    };
+
+    $('#img-wrapper').on('mousemove', function(ev) {
+        if (boxStart) {
+            var w = Math.abs(ev.offsetX - boxStart[0]);
+            var h = Math.abs(ev.offsetY - boxStart[1]);
+            var x = Math.min(boxStart[0], ev.offsetX);
+            var y = Math.min(boxStart[1], ev.offsetY);
+            $('#bbox').css({
+                left: x,
+                top: y,
+                width: w,
+                height: h
+            });
+        } else {
+            $('#x-axis').css('left', ev.offsetX);
+            $('#y-axis').css('top', ev.offsetY);
+        }
+    }).on('mouseover', function(ev) {
+        $('.axis').show();
+    }).on('mouseout', function(ev) {
+        if (boxStart) $('#bbox').css(origBbox);
+        boxStart = false;
+        $('.axis').hide();
+    }).on('click', function(ev) {
+        if (boxStart) {
+            var w = Math.abs(ev.offsetX - boxStart[0]);
+            var h = Math.abs(ev.offsetY - boxStart[1]);
+            var x = Math.min(boxStart[0], ev.offsetX);
+            var y = Math.min(boxStart[1], ev.offsetY);
+            var bbox = [
+                Math.floor(x / scale),
+                Math.floor(y / scale),
+                Math.floor(w / scale),
+                Math.floor(h / scale)
+            ].join(',');
+            document.location.href = 'manualAnnotation.jsp' + document.location.search.replace(/bbox=[^&]+/, '') + '&bbox=' + bbox;
+        } else {
+            boxStart = [ev.offsetX, ev.offsetY];
+            $('#bbox').css('left', ev.offsetX);
+            $('#bbox').css('top', ev.offsetY);
+            $('#bbox').css('width', 10);
+            $('#bbox').css('height', 10);
+        }
+    });
+});
 </script>
 </head>
 <body>
@@ -49,6 +123,8 @@ String iaClass = request.getParameter("iaClass");
 String maparam = request.getParameter("matchAgainst");
 boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
 String encounterId = request.getParameter("encounterId");
+///skipping this for now cuz i dont want to deal with altering the *annot* once we change a feature (i.e. acmId etc so IA thinks is new)
+String featureId = null;///request.getParameter("featureId");
 String viewpoint = request.getParameter("viewpoint");
 boolean save = Util.requestParameterSet(request.getParameter("save"));
 boolean cloneEncounter = Util.requestParameterSet(request.getParameter("cloneEncounter"));
@@ -57,7 +133,29 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.beginDBTransaction();
 
-MediaAsset ma = MediaAssetFactory.load(assetId, myShepherd);
+Feature ft = null;
+MediaAsset ma = null;
+int[] xywh = null;
+
+if (featureId != null) {
+    try {
+        ft = ((Feature) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Feature.class, featureId), true)));
+    } catch (Exception ex) {}
+    if (ft == null) {
+        out.println("<p class=\"error\">Invalid <b>featureId=" + featureId + "</b></p>");
+        return;
+    }
+    ma = ft.getMediaAsset();
+    if (ft.getParameters() != null) {
+        xywh = new int[4];
+        xywh[0] = (int)Math.round(ft.getParameters().optDouble("x", 10.0));
+        xywh[1] = (int)Math.round(ft.getParameters().optDouble("y", 10.0));
+        xywh[2] = (int)Math.round(ft.getParameters().optDouble("width", 100.0));
+        xywh[3] = (int)Math.round(ft.getParameters().optDouble("height", 100.0));
+    }
+}
+
+if (ma == null) ma = MediaAssetFactory.load(assetId, myShepherd);
 if (ma == null) {
     out.println("<p class=\"error\">Invalid <b>assetId=" + assetId + "</b></p>");
     return;
@@ -72,7 +170,6 @@ if (encounterId != null) {
     }
 }
 
-int[] xywh = null;
 if (bbox != null) {
     String[] parts = bbox.split(",");
     if (parts.length == 4) {
@@ -90,22 +187,26 @@ if (bbox != null) {
     }
 }
 
-if ((bbox == null) || (xywh == null)) {
-    out.println("<p class=\"error\">Invalid <b>bbox=" + bbox + "</b> (should be <i>x,y,w,h</i>)</p>");
-    return;
+if ((bbox == null) && (xywh == null)) {
+    xywh = new int[]{-10,-10,1,1};
+    //out.println("<p class=\"error\">Invalid <b>bbox=" + bbox + "</b> (should be <i>x,y,w,h</i>)</p>");
+    //return;
 }
-double scale = 300d / ma.getHeight();
+double scale = imgHeight / ma.getHeight();
 
 %>
 
+<script>scale = <%=scale%>;</script>
 
 <div id="img-wrapper">
-    <img title="<%=ma.toString()%>" class="asset" src="<%=ma.webURL()%>" />
+    <div class="axis" id="x-axis"></div>
+    <div class="axis" id="y-axis"></div>
+    <img class="asset" src="<%=ma.webURL()%>" />
     <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * scale)%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
 </div>
 
 <p>
-MediaAsset <b><a target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
+MediaAsset <b><a title="<%=ma.toString()%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
 </p>
 
 <p>
@@ -121,7 +222,9 @@ iaClass = <b><%=iaClass%></b>
 </p>
 
 <p>
-<% if (enc == null) { %>
+<% if (ft != null) { %>
+editing/altering <b>Feature <%=ft.getId()%></b>
+<% } else if (enc == null) { %>
 <i>will <b>not attach (or clone)</b> to any Encounter</i>
 <% } else if (cloneEncounter) { %>
 will <i>clone</i> <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b> and attach to clone
@@ -132,6 +235,11 @@ attaching to <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.g
 
 <%
 if (save) {
+    if (ft != null) {
+        out.println("saved(not) " + ft);
+        return;
+    }
+
     FeatureType.initAll(myShepherd);
     JSONObject fparams = new JSONObject();
     fparams.put("x", xywh[0]);
@@ -139,7 +247,7 @@ if (save) {
     fparams.put("width", xywh[2]);
     fparams.put("height", xywh[3]);
     fparams.put("_manualAnnotation", System.currentTimeMillis());
-    Feature ft = new Feature("org.ecocean.boundingBox", fparams);
+    ft = new Feature("org.ecocean.boundingBox", fparams);
     ma.addFeature(ft);
     Annotation ann = new Annotation(null, ft, iaClass);
     ann.setMatchAgainst(matchAgainst);
