@@ -563,6 +563,7 @@ console.log(ma);
     }
     h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><input style="background-color: #F30;" type="button" value="remove Feat ' + niceId(myFeat.id) + ' / Ann ' + niceId(myFeat.annotationId) + ' / Enc ' + niceId(myFeat.encounterId) + '" onClick="return removeFeatAnnEnc(\'' + myFeat.id + '\', \'' + myFeat.annotationId + '\', \'' + myFeat.encounterId + '\');" /></div>';
     h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><i>or,</i> assign <b>Enc ' + niceId(myFeat.encounterId) + '</b> to <input id="edit-assign-individ" /> <input type="button" value="accept" onClick="return assignIndiv(\'' + myFeat.annotationId + '\');" /></div>';
+    h += '<a style="float:right; padding: 1px 5px; background-color: #BBB;" target="_new" href="../appadmin/manualAnnotation.jsp?assetId=' + mid + '&encounterId=' + myFeat.encounterId + '&cloneEncounter=true">ADD annot</a>';
     imageEnhancer.popup(h);
     $('.image-enhancer-popup').draggable();
 
