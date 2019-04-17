@@ -32,11 +32,11 @@ multipleSubmitUI = {
 
         metadataTile +=	"   <div id=\"enc-metadata-inner-"+index+"\" class=\"edit-closed\">";	
         metadataTile +=         ("<p>"+multipleSubmitUI.generateLocationDropdown(index)+"</p>");
-        metadataTile +=	"	    <p><input name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"encDate\"/></p>";
+        metadataTile +=	"	    <p><input name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"encDate\" size=\"36\" /></p>";
         metadataTile +=	"       <textarea class=\"\" placeholder=\"More Info\" rows=\"5\" cols=\"36\" />";
         metadataTile += "       <label>&nbsp;</label>";
         metadataTile +=	"   </div>";
-        	   
+
         metadataTile += "   <br/>";
         metadataTile += "</div>";
         return metadataTile;
@@ -81,10 +81,8 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getEncInputClassForIndex(index);
         var uiId = "loc-" + uiClass;
         var dd = "";
-        dd += "<select id=\""+uiId+"\" class=\""+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
+        dd += "<select id=\""+uiId+"\" class=\""+uiClass+" loc-input\" name=\"enc-num-dropdown-"+index+"\">";
         dd += "    <option selected=\"selected\" value=\"null\" disabled>Choose Location</option>";
-        // This is async so we will add it to option list after return.
-        // What happens if this comes back before the page renders? Fire? Panic? Death? 
         multipleSubmitAPI.getLocations(function(locObj){
             var ddLocs = "";
             if (locObj.hasOwnProperty('locationIds')) {
@@ -124,7 +122,7 @@ multipleSubmitUI = {
     }, 
 
     encsDefined() {
-        return document.getElementById('numberEncounters').value;
+        return document.getElementById('number-encounters').value;
     }
     
 };

@@ -34,7 +34,7 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
         <div class="col-xs-12 col-lg-12">
             <h2><%= props.getProperty("pageHeader")%></h2>
             <p><b><%= props.getProperty("headerDesc")%></b></p>
-            <p>[ make link to instruction page ?or just a hover? idunno ]</p>
+            <p>[ We urge you to follow this link to the instructions if you have not used this feature before. ]</p>
             <hr>
 
             <form id="multipleSubmission"
@@ -53,7 +53,7 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                         <label><%= props.getProperty("specifyEncNum")%></label>
                     </div>
                     <div class="col-sm-4"> 
-                        <input id="numberEncounters" type="number" name="numberEncounters" required value="1" min="1" max="48">
+                        <input id="number-encounters" type="number" name="number-encounters" required value="1" min="1" max="48">
                     </div>
                 </div>
 
@@ -65,6 +65,9 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 <input id="file-selector-input" name="allFiles" class="hidden-input" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" style="display:none;" multiple size="50" onChange="updateSelected(this);" />
                 <div><p id="input-file-list"></p></div> 
                 <br>
+
+                <!-- easy place to store this -->
+                <input id="recaptcha-checked" name="recaptcha-checked" type="hidden" value="false" />
 
                 <!-- Here is where we are going to put UI to define encounter metadata from JS -->
                 <div id="metadata-tiles-main" class="row">

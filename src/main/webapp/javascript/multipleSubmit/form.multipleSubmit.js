@@ -3,6 +3,7 @@
 function recaptchaCallback() {
     console.log("recaptchaCallback triggered!");
     document.getElementById("sendButton").disabled = false;
+    document.getElementById("recaptcha-checked").value = "true";
 }
 
 // file selection and form switching
@@ -111,8 +112,8 @@ function hideOverlay(index) {
 }
 
 function imageTileClicked(index) {
-    var tileDiv = document.getElementById("image-tile-div-"+index);
-    console.log("Clicked! class=img-tile-div-"+index);
+    var tileDiv = document.getElementById(multipleSubmitUI.getImageIdForIndex(index));
+    console.log("Clicked! id="+multipleSubmitUI.getImageIdForIndex(index));
     if ($(tileDiv).hasClass('img-selected')) {
         $(tileDiv).removeClass('img-selected');
     } else {
@@ -151,6 +152,8 @@ function showEditMetadata(index) {
 
 function sendButtonClicked() {
     // SHOWTIME! Send these images off to certain doom
-    sendData();
-}
+    multipleSubmitAPI.sendData(function(result){
 
+
+    });
+}

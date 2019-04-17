@@ -95,3 +95,7 @@ div .img-input {
 .edit-closed {
     display: none;
 }
+
+.loc-input {
+    width: 18em;    
+}

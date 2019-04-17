@@ -2,24 +2,36 @@
 // Add function to retrieve all metadata and images and send to servlet.
 multipleSubmitAPI = {
 
-    sendData: function() {
+    sendData: function(callback) {
         var fd = new FormData();
         var files = document.getElementById('file-selector-input').files;
+        console.log("POSTing #"+files.length+" files.");
         for (var i=0;i<files.length;i++) {
             fd.append('image-file-'+i,files[i]);
         }
-        // (also get all the filled inputs!)
+
+        var numEncs = document.getElementById("number-encounters").value;
+
+        fd.append("number-encounters", String(numEncs));
+
+        for (var i=0;i<numEncs;i++) {
+            fd.append('enc-data-'+i, "encounter-"+i);
+        }
+        var obj = {"json-data": "json-value"}; // just a test now, gonna pack it all in thar
+        fd.append("json-data", JSON.stringify(obj));
+        fd.append('recaptcha-checked', document.getElementById("recaptcha-checked").value);
+
         $.ajax({
             url: '../MultipleSubmitAPI',
             type: 'POST',
             data: fd,
             contentType: false,
             processData: false,
-            success: function(success) {
-                console.log("Success posting! "+success);
+            success: function(result) {
+                console.log("Success posting! "+JSON.stringify(result));
             },
             error: function(error) {
-                console.log("Error posting! BARF! "+error);
+                console.log("Error posting! BARF! "+JSON.stringify(result));
             }
         });
     },
@@ -27,11 +39,11 @@ multipleSubmitAPI = {
     getLocations: function(callback) {
         var errOb = {};
         $.ajax({
-            type: 'GET',
             url: '../MultipleSubmitAPI?getLocations=true',
+            type: 'GET',
             dataType: 'json',
             success: function(result) {
-                console.log("Success GETting location ids! "+JSON.stringify(result));
+                console.log("Success GETting location ids! ");
                 //var json = JSON.parse(result);
                 callback(result);
             },
