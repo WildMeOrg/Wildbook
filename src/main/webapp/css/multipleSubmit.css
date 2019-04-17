@@ -65,11 +65,14 @@ div .img-input {
 .encounter-tile-div {
     background-color: darkslategrey;
     margin: 5px;
+    padding-left: 10px;
+    padding-top: 10px;
     padding-bottom: 10px;
 }
 
 .encounter-label {
     color: white;
+    font-weight: bolder;
 }
 
 .image-label {
@@ -87,4 +90,8 @@ div .img-input {
 .image-overlay:hover {
     color: white;
     background-color: black;
+}
+
+.edit-closed {
+    display: none;
 }

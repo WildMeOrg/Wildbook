@@ -120,6 +120,19 @@ function imageTileClicked(index) {
     }    
 }
 
+function showEditMetadata(index) {
+    console.log("got the click! on element: "+index);
+    var editDiv = document.getElementById("enc-metadata-inner-"+index);
+    console.log("Where it at? --> "+editDiv);
+    if (editDiv.classList.contains("edit-closed")) {
+        $(editDiv).slideDown();
+        editDiv.classList.remove("edit-closed");
+    } else {
+        $(editDiv).slideUp();
+        editDiv.classList.add("edit-closed");
+    }
+}
+
 /*
 
     TO DO: 

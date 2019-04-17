@@ -23,11 +23,20 @@ multipleSubmitUI = {
 
     generateMetadataTile: function(index) {
         var metadataTile = "";
-        metadataTile += "<div id=\"encounter-metadata-"+index+"\" class=\"encounter-tile-div col-xs-12 col-xl-12\">";
-        metadataTile += "   <label class=\"encounter-label\" >&nbspEncounter"+index+"&nbsp</label>";
-        metadataTile +=     multipleSubmitUI.generateLocationDropdown(index);
-        metadataTile +=	"	<input name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"encDate\"/>";
-        metadataTile += "   <label>&nbsp;</label>";   
+        metadataTile += "<div class=\"encounter-tile-div col-xs-12 col-xl-12\">";
+
+        metadataTile += "   <p>";
+        metadataTile += "       <label class=\"encounter-label\">&nbspShow Encounter #"+index+"&nbsp</label>";
+        metadataTile += "       <label class=\"btn btn-default btn-sm\" onclick=\"showEditMetadata("+index+")\">Show Details</label>";
+        metadataTile += "   </p>";
+
+        metadataTile +=	"   <div id=\"enc-metadata-inner-"+index+"\" class=\"edit-closed\">";	
+        metadataTile +=         ("<p>"+multipleSubmitUI.generateLocationDropdown(index)+"</p>");
+        metadataTile +=	"	    <p><input name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"encDate\"/></p>";
+        metadataTile +=	"       <textarea class=\"\" placeholder=\"More Info\" rows=\"5\" cols=\"36\" />";
+        metadataTile += "       <label>&nbsp;</label>";
+        metadataTile +=	"   </div>";
+        	   
         metadataTile += "   <br/>";
         metadataTile += "</div>";
         return metadataTile;
@@ -81,7 +90,7 @@ multipleSubmitUI = {
             if (locObj.hasOwnProperty('locationIds')) {
                 var locs = locObj.locationIds;
                 console.log("Type? "+(typeof locs));
-                console.log("----------------> locs: "+JSON.stringify(locs));
+                //console.log("----------------> locs: "+JSON.stringify(locs));
                 for (var i in locs) {
                     var option = document.createElement("option");
                     option.text = locs[i];
