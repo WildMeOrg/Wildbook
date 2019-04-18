@@ -179,7 +179,7 @@ wildbook.IA.plugins.push({
         var rtn = {
             status: ma.detectionStatus,
             statusText: ma.detectionStatus,
-            taskId: ma.tasks[ma.tasks.length - 1].id
+            taskId: ma.tasks[0].id
         };
         if (ma.annotation && ma.annotation.identificationStatus) {
             rtn.status = ma.annotation.identificationStatus;
