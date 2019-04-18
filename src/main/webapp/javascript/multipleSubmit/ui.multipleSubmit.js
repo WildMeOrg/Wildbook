@@ -24,19 +24,16 @@ multipleSubmitUI = {
     generateMetadataTile: function(index) {
         var metadataTile = "";
         metadataTile += "<div class=\"encounter-tile-div col-xs-12 col-xl-12\">";
-
         metadataTile += "   <p>";
         metadataTile += "       <label class=\"encounter-label\">&nbspShow Encounter #"+index+"&nbsp</label>";
         metadataTile += "       <label class=\"btn btn-default btn-sm\" onclick=\"showEditMetadata("+index+")\">Show Details</label>";
         metadataTile += "   </p>";
-
         metadataTile +=	"   <div id=\"enc-metadata-inner-"+index+"\" class=\"edit-closed\">";	
         metadataTile +=         ("<p>"+multipleSubmitUI.generateLocationDropdown(index)+"</p>");
-        metadataTile +=	"	    <p><input name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"encDate\" size=\"36\" /></p>";
-        metadataTile +=	"       <textarea class=\"\" placeholder=\"More Info\" rows=\"5\" cols=\"36\" />";
+        metadataTile +=	"	    <p><input id=\"enc-date-"+index+"\" name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"encDate\" size=\"36\" /></p>";
+        metadataTile +=	"       <textarea id=\"enc-comments-"+index+"\" placeholder=\"More Info\" rows=\"5\" cols=\"36\" />";
         metadataTile += "       <label>&nbsp;</label>";
         metadataTile +=	"   </div>";
-
         metadataTile += "   <br/>";
         metadataTile += "</div>";
         return metadataTile;
@@ -45,7 +42,7 @@ multipleSubmitUI = {
     generateImageTile: function(file, index) {
         var imageTile = "";
         imageTile += "<div id=\"image-tile-div-"+index+"\" class=\"image-tile-div col-xs-6 col-sm-4 col-md-3 col-lg-3 col-xl-3\" onclick=\"imageTileClicked("+index+")\" onmouseover=\"showOverlay("+index+")\" onmouseout=\"hideOverlay("+index+")\" >";
-        //imageTile += "  <label class=\"image-filename\">File: "+file.name+"</label>";
+        imageTile += "  <input class=\"img-filename-"+index+"\" type=\"hidden\" value=\""+file.name+"\" />";
         imageTile += "  <img class=\"image-element\" id=\""+multipleSubmitUI.getImageIdForIndex(index)+"\" src=\"#\" alt=\"Displaying "+file.name+"\" />";
         imageTile += multipleSubmitUI.generateImageDataOverlay(file,index);                
         imageTile += "</div>";
@@ -68,7 +65,7 @@ multipleSubmitUI = {
     generateEncNumDropdown: function(index) { 
         var uiClass = multipleSubmitUI.getImageUIIdForIndex(index);
         var encDrop = "";
-        encDrop += "<select class=\""+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
+        encDrop += "<select id=\"enc-num-dropdown-"+index+"\" class=\""+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
         encDrop += "    <option selected=\"selected\" value=\""+i+"\" disabled>Choose Encounter Number</option>";
         for (var i=0;i<multipleSubmitUI.encsDefined();i++) {
             encDrop += "<option value=\""+i+"\">"+(i+1)+"</option>";

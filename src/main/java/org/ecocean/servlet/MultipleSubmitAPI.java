@@ -87,47 +87,47 @@ public class MultipleSubmitAPI extends HttpServlet {
         response.setContentType("application/json");
         JSONObject rtn = new JSONObject();
         rtn.put("success", "false");
-        System.out.println("Recaptcha checked? : "+request.getParameter("recaptcha-checked"));
-        System.out.println("PARAM NAMES:");
-
-        String numEncStr = request.getParameter("number-encounters");
-        int numEncs = 0;
-        System.out.println("number-encounters: "+numEncStr);
-        if (hasVal(numEncStr)) {
-            numEncs = Integer.valueOf(numEncStr);
-        }
+        ///System.out.println("Recaptcha checked? : "+request.getParameter("recaptcha-checked"));
+        System.out.println("PART NAMES:");
 
         String jsonStr = request.getParameter("json-data");
         System.out.println("Sent JSON (as string) : "+jsonStr);
         JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
         System.out.println("Assert is JSONObject "+json.getClass());
         
+        String numEncStr = json.get("number-encounters").getAsString();
+        int numEncs = 0;
+        System.out.println("number-encounters: "+numEncStr);
+        if (hasVal(numEncStr)) {
+            numEncs = Integer.valueOf(numEncStr);
+        }
+
         Collection<Part> partCol = request.getParts();
         ArrayList<Part> params = new ArrayList<>(partCol);
         for (Part param : params) {
-            System.out.println("Param- Name:"+param.getName()+" Type: "+param.getContentType());
+            String filename = "";
+            if (param.getSubmittedFileName()!=null) filename = param.getSubmittedFileName();
+            System.out.println("Param- Name:"+param.getName()+" Type: "+param.getContentType()+"  Filename: "+filename);
         }
 
-        Part rePart = request.getPart("recaptcha-checked");
-        String reString = rePart.getSubmittedFileName();
-        System.out.println("Filename reString: "+reString);
+        //Part rePart = request.getPart("recaptcha-checked");
+        //String reString = rePart.getSubmittedFileName();
+        //System.out.println("Filename reString: "+reString);
 
-        if ("true".equals(request.getParameter("recaptcha-checked"))) {
+        if ("true".equals(json.get("recaptcha-checked").getAsString())) {
             try {
-                String submitting = request.getParameter("submitEncounters");
-                System.out.println("Submitting = "+submitting);
-                if (submitting!=null&&"true".equals(submitting)) {
+                for (int i=0;i<numEncs;i++) {
+                    // create encounter. 
+                    //retrieve information about images for that encounter
+                    // make assets 
+                    //associate assets
+                    // anns? 
 
                     Shepherd myShepherd = new Shepherd(context);
-
                     AssetStore astore = AssetStore.getDefault(myShepherd);
-
-                    //make encs, then mas
                     rtn = postEncountersAndAssets(rtn, context, request);
-
-                    //rtn = makeMediaAssetFromPart(part, "encId", astore);
+                    rtn.put("success", "true");
                 }
-                rtn.put("success", "true");
             } catch (Exception e) {
                 e.printStackTrace();
             }

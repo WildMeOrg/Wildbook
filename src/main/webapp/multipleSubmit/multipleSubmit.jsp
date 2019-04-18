@@ -101,6 +101,8 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 <!-- actually done now, send it off -->
                 <button class="btn btn-large hidden-input" id="sendButton" type="button" disabled onclick="sendButtonClicked();"><%= props.getProperty("complete")%></button>
 
+                <!-- display text for java exceptions recieved from server -->
+                <div id="server-error"></div>
             </form>
         </div> 
         <hr>

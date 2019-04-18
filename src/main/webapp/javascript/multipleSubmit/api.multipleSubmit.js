@@ -3,23 +3,48 @@
 multipleSubmitAPI = {
 
     sendData: function(callback) {
+
         var fd = new FormData();
+        var json = {};
+
         var files = document.getElementById('file-selector-input').files;
         console.log("POSTing #"+files.length+" files.");
+        json["number-images"] = files.length;
+
+        var imgArrs = {};
         for (var i=0;i<files.length;i++) {
+            // push to arrays of image numbers with the enc numbers as key
             fd.append('image-file-'+i,files[i]);
+            //var imgName = files[i].name;
+            var targetEnc =  document.getElementById("enc-num-dropdown-"+i).value;
+            if (imgArrs.hasOwnProperty(targetEnc)) {
+                imgArrs[targetEnc].push(i);
+            } else {
+                imgArrs[targetEnc] = [i];   
+            }
         }
+        json["enc-image-lists"] = imgArrs;
 
         var numEncs = document.getElementById("number-encounters").value;
+        json["number-encounters"] = numEncs;   
 
-        fd.append("number-encounters", String(numEncs));
+        // enc-num-dropdown-(index)
+        //image-filename-(index)
+        
+        json['recaptcha-checked'] = document.getElementById("recaptcha-checked").value
 
         for (var i=0;i<numEncs;i++) {
-            fd.append('enc-data-'+i, "encounter-"+i);
+            var encJson = {};
+            //encJson[location] =
+            encJson["date"] = document.getElementById("enc-date-"+i).value; 
+            encJson["comments"] = document.getElementById("enc-comments-"+i).value;
+            encJson["location"] = document.getElementById("loc-img-input-"+i).value;
+            // need all image names associated with this enc. 
+
+            json['enc-data-'+i] = encJson;
         }
-        var obj = {"json-data": "json-value"}; // just a test now, gonna pack it all in thar
-        fd.append("json-data", JSON.stringify(obj));
-        fd.append('recaptcha-checked', document.getElementById("recaptcha-checked").value);
+
+        fd.append("json-data", JSON.stringify(json));
 
         $.ajax({
             url: '../MultipleSubmitAPI',
@@ -29,9 +54,12 @@ multipleSubmitAPI = {
             processData: false,
             success: function(result) {
                 console.log("Success posting! "+JSON.stringify(result));
+                callback(result);
             },
             error: function(error) {
-                console.log("Error posting! BARF! "+JSON.stringify(result));
+                //console.log("Error posting! BARF! "+JSON.stringify(error));
+                $('#server-error').html(error);
+                callback(error);
             }
         });
     },
@@ -48,7 +76,8 @@ multipleSubmitAPI = {
                 callback(result);
             },
             error: function(error) {
-                console.log("Error GETting! BARF! "+JSON.stringify(error));
+                //console.log("Error GETting! BARF! "+JSON.stringify(error));
+                $('#server-error').html(error);
                 callback(errOb);
             } 
         });

@@ -53,7 +53,7 @@ function showSelectedMedia() {
     var files = document.getElementById('file-selector-input').files;
     var imageTiles = "";
     var metadataTiles = "";
-    var numEnc = $('#numberEncounters').val();
+    var numEnc = document.getElementById("number-encounters").value;
 
     for (var i=0;i<numEnc;i++) {
         // The same every time!
@@ -153,7 +153,6 @@ function showEditMetadata(index) {
 function sendButtonClicked() {
     // SHOWTIME! Send these images off to certain doom
     multipleSubmitAPI.sendData(function(result){
-
-
+        console.log(JSON.stringify(result));
     });
 }
