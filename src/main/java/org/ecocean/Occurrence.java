@@ -96,6 +96,7 @@ public class Occurrence implements java.io.Serializable {
 
   private String submitterID;   //not sure if this should atrophy, now that we have .submitters ???  TODO what does Encounter do?
   private List<User> submitters;
+  private List<User> informOthers;
 
   // Convention: getters/setters for Taxonomy objects use noun "Taxonomy".
   // while convenience string-only methods with noun "Species"
@@ -268,6 +269,18 @@ public class Occurrence implements java.io.Serializable {
         }
     }
 
+    public void addInformOther(User user) {
+        if (user == null) return;
+        if (informOthers == null) informOthers = new ArrayList<User>();
+        if (!informOthers.contains(user)) informOthers.add(user);
+    }
+    public List<User> getInformOthers() {
+        return informOthers;
+    }
+    public void setInformOthers(List<User> users) {
+        this.informOthers=users;
+    }
+    
     public String getSource() {
         return source;
     }

@@ -7,6 +7,7 @@ import org.ecocean.servlet.ServletUtilities;
 import java.util.Properties;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.joda.time.DateTime;
 import org.ecocean.datacollection.*;
 import org.ecocean.movement.*;
@@ -26,14 +27,18 @@ import java.io.UnsupportedEncodingException;
 
 public class SpotterConserveIO {
 
-    private static int PROJECT_ID_CI = 2;
-    private static int PROJECT_ID_WA = 7;
-    private static String SYSTEMVALUE_KEY_LASTSYNC_CI = "SpotterConserveIO_lastSync_CI";
-    private static String SYSTEMVALUE_KEY_LASTSYNC_WA = "SpotterConserveIO_lastSync_WA";
-    private static String OBS_WEATHER_NAME = "weather";
+    private static final int PROJECT_ID_CI = 2;
+    private static final int PROJECT_ID_WA = 7;
+    private static final String SYSTEMVALUE_KEY_LASTSYNC_CI = "SpotterConserveIO_lastSync_CI";
+    private static final String SYSTEMVALUE_KEY_LASTSYNC_WA = "SpotterConserveIO_lastSync_WA";
+    private static final String OBS_WEATHER_NAME = "weather";
+    private static final String PROP_ORGID_CI_VOLUNTEER = "channelIslandsVolunteerOrgId";
+    private static final String PROP_ORGID_CI = "channelIslandsOrgId";
+    private static final String PROP_USERID_CI = "channelIslandsUserId";
     public static String apiUsername = null;
     public static String apiPassword = null;
     public static String apiUrlPrefix = null;
+    public static Properties props = null;  //will be set by init()
 
     public static void init(HttpServletRequest request) {
         init(ServletUtilities.getContext(request));
@@ -41,7 +46,7 @@ public class SpotterConserveIO {
 
     //should be called once -- sets up credentials for REST calls
     public static void init(String context) {
-        Properties props = ShepherdProperties.getProperties("spotter-conserve-io.properties", "", context);
+        if (props == null) props = ShepherdProperties.getProperties("spotter-conserve-io.properties", "", context);
         if (props == null) throw new RuntimeException("no spotter-conserve-io.properties");
         apiUsername = props.getProperty("apiUsername");
         apiPassword = props.getProperty("apiPassword");
@@ -63,7 +68,8 @@ public class SpotterConserveIO {
 
 
     //this is the "starting point" for JSON from the API
-    public static Survey ciToSurvey(JSONObject jin) {
+    public static Survey ciToSurvey(JSONObject jin, Shepherd myShepherd) {
+        if (jin == null) return null;
         DateTime startDate = toDateTime(jin.optString("start_date", null));
         DateTime endDate = toDateTime(jin.optString("end_date", null));
         DateTime createDate = toDateTime(jin.optString("create_date", null));
@@ -79,7 +85,7 @@ public class SpotterConserveIO {
         survey.setOrganization("conserve.io");
 
         //there will be only one SurveyTrack pulled from this data, fwiw
-        SurveyTrack st = ciToSurveyTrack(jin);
+        SurveyTrack st = ciToSurveyTrack(jin, myShepherd);
         survey.addSurveyTrack(st);
 ///TODO do we .setEffort based on survey track lengths or what???
 
@@ -104,7 +110,7 @@ public class SpotterConserveIO {
         return obs;
     }
 
-    public static SurveyTrack ciToSurveyTrack(JSONObject jin) {
+    public static SurveyTrack ciToSurveyTrack(JSONObject jin, Shepherd myShepherd) {
         SurveyTrack st = new SurveyTrack();
 
         if (jin.optJSONArray("sightings") != null) {
@@ -118,7 +124,7 @@ public class SpotterConserveIO {
             if (jocc.length() % 2 == 1) throw new RuntimeException("sightings JSONArray is odd length=" + jocc.length());
             int halfSize = (int) jocc.length() / 2;
             for (int i = 0 ; i < halfSize ; i++) {
-                Occurrence occ = ciToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin);
+                Occurrence occ = ciToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin, myShepherd);
                 if (occ != null) occs.add(occ);
             }
             st.setOccurrences(occs);
@@ -131,7 +137,7 @@ public class SpotterConserveIO {
     }
 
 
-    public static Occurrence ciToOccurrence(JSONObject jin, JSONObject jin2, JSONObject allJson) {
+    public static Occurrence ciToOccurrence(JSONObject jin, JSONObject jin2, JSONObject allJson, Shepherd myShepherd) {
         int tripId = allJson.optInt("_tripId", 0);
         Occurrence occ = new Occurrence();
         occ.setOccurrenceID(Util.generateUUID());
@@ -173,12 +179,14 @@ Distance Category: "B"
             ArrayList<Encounter> encs = new ArrayList<Encounter>();
             JSONArray je = jin.getJSONArray("CINMS Photo Log");
             for (int i = 0 ; i < je.length() ; i++) {
-                Encounter enc = ciToEncounter(je.optJSONObject(i), jin, occ.getOccurrenceID(), allJson);
+                Encounter enc = ciToEncounter(je.optJSONObject(i), jin, occ.getOccurrenceID(), allJson, myShepherd);
                 if (enc != null) encs.add(enc);
             }
             occ.setEncounters(encs);
         }
-        occ.setSubmitter(ciToUser(allJson));
+        occ.setSubmitter(ciToUser(allJson, myShepherd));
+        List<User> vols = ciGetVolunteerUsers(allJson, myShepherd);
+        occ.setInformOthers(vols);
         return occ;
     }
 
@@ -193,15 +201,17 @@ Distance Category: "B"
         Animals Identified: 1
 }
 */
-    public static Encounter ciToEncounter(JSONObject jin, JSONObject occJson, String occId, JSONObject allJson) {  //occJson we need for species (if not more)
+    public static Encounter ciToEncounter(JSONObject jin, JSONObject occJson, String occId, JSONObject allJson, Shepherd myShepherd) {  //occJson we need for species (if not more)
         Encounter enc = new Encounter();
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(findInteger(jin, "Animals Identified"));
         enc.setDynamicProperty("CINMS PID Code", jin.optString("PID Code", null));
         enc.setDynamicProperty("CINMS Card Number", jin.optString("Card Number", null));
         enc.setOccurrenceID(occId);
-        User sub = ciToUser(allJson);
+        User sub = ciToUser(allJson, myShepherd);
         enc.addSubmitter(sub);
+        List<User> vols = ciGetVolunteerUsers(allJson, myShepherd);
+        enc.setInformOthers(vols);
 
         String dc = jin.optString("create_date", null);
         if (dc == null) dc = occJson.optString("create_date", null); //use the Occurrence date instead
@@ -263,9 +273,30 @@ System.out.println("MADE " + enc);
         return species.split(" +");
     }
 
-    public static User ciToUser(JSONObject jin) {
-//System.out.println("ciToUser -> " + jin);
-        return null;
+/*
+    unfortunately, we get a lot of noise for the "Observer Names" field, which need to be broken up
+    into names to search on User.fullName ... examples we need to split on:
+ci_data/ci_21339.json:  "Observer Names": "Jess Morten, Sean Hastings, Brad pilot", 
+ci_data/ci_21340.json:  "Observer Names": "Emilee Hurlbert", 
+ci_data/ci_21346.json:  "Observer Names": "Maria Ornelas\n",   #trailing noise! ugh
+ci_data/ci_21367.json:  "Observer Names": "Carolyn McCleskey,Sue Miller",  #comma-no-space, oof
+ci_data/ci_21371.json:  "Observer Names": "Rosie Romo\nDave Morse (PID)\n",   #wtf, gimme a break!
+ci_data/ci_21384.json:  "Observer Names": "Sophie Busch", 
+ci_data/ci_21390.json:  "Observer Names": "Sophie Busch and Marian Jean",    #you serious here???
+ci_data/ci_21408.json:  "Observer Names": "Larry Driscoll\nAnn Camou",      #etc.
+
+*/
+    public static List<User> ciGetVolunteerUsers(JSONObject jin, Shepherd myShepherd) {
+        if (jin == null) return null;
+        String namesIn = jin.optString("Observer Names", "").replaceAll("\\n$", "").replaceAll(" \\([^\\)]+\\)", "");
+        if (namesIn.equals("")) return null;
+        namesIn = namesIn.replaceAll("\\n", ",").replaceAll("\\s+and\\s+", ",");
+System.out.println("vols namesIn=[" + namesIn + "]");
+        return ciGetVolunteerUsers(myShepherd, Arrays.asList(namesIn.split("\\s*,\\s*")));
+    }
+
+    public static User ciToUser(JSONObject jin, Shepherd myShepherd) {
+        return ciGetSubmitterUser(myShepherd);
     }
 
 /******************************************
@@ -814,6 +845,49 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         SystemValue.set(myShepherd, SYSTEMVALUE_KEY_LASTSYNC_WA, time);
         myShepherd.commitDBTransaction();
         return time;
+    }
+
+
+    public static User ciGetSubmitterUser(Shepherd myShepherd) {
+        String uid = props.getProperty(PROP_USERID_CI);
+        if (uid == null) return null;
+        return myShepherd.getUserByUUID(uid);
+    }
+
+    // fullName is a (cleaned!) list of user fullnames
+    //  users *will be created* if they cannot be found within the main or volunteer organizations
+    public static List<User> ciGetVolunteerUsers(Shepherd myShepherd, List<String> fullNames) {
+        if (fullNames == null) return null;
+        String orgId = props.getProperty(PROP_ORGID_CI);
+        String vorgId = props.getProperty(PROP_ORGID_CI_VOLUNTEER);
+        Organization org = Organization.load(orgId, myShepherd);
+        Organization vorg = Organization.load(vorgId, myShepherd);
+        if ((org == null) || (vorg == null)) throw new RuntimeException("You must have valid " + PROP_ORGID_CI + " and " + PROP_ORGID_CI_VOLUNTEER + " set in SpotterConserverIO properties file");
+        List<User> vols = new ArrayList<User>();
+        for (String fn : fullNames) {
+            if (!Util.stringExists(fn)) continue;
+            User u = null;
+            if ((org != null) && (org.getMembers() != null)) {
+                for (User mem : org.getMembers()) {
+                    if (fn.equals(mem.getFullName())) u = mem;
+                }
+            }
+            if ((u == null) && (vorg != null) && (vorg.getMembers() != null)) {
+                for (User mem : vorg.getMembers()) {
+                    if (fn.equals(mem.getFullName())) u = mem;
+                }
+            }
+            if (u == null) {
+                u = new User(Util.generateUUID());
+                u.setFullName(fn);
+                u.setNotes("auto-created by SpotterConserveIO data import");
+                myShepherd.getPM().makePersistent(u);
+                vorg.addMember(u);
+            }
+            vols.add(u);
+        }
+        myShepherd.getPM().makePersistent(vorg);
+        return vols;
     }
 
 }
