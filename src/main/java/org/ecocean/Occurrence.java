@@ -94,11 +94,13 @@ public class Occurrence implements java.io.Serializable {
   private Integer numCalves;
   private String observer;
 
-  private String submitterID;
+  private String submitterID;   //not sure if this should atrophy, now that we have .submitters ???  TODO what does Encounter do?
+  private List<User> submitters;
 
   // Convention: getters/setters for Taxonomy objects use noun "Taxonomy".
   // while convenience string-only methods with noun "Species"
   private List<Taxonomy> taxonomies;
+    private String source;  //this is for SpotterConserveIO mostly but...
 
   // do we have these?
 
@@ -238,6 +240,40 @@ public class Occurrence implements java.io.Serializable {
   public String getSubmitterID() {
     return submitterID;
   }
+
+    public List<User> getSubmitters() {
+        return submitters;
+    }
+    public void setSubmitters(List<User> u) {
+        submitters = u;
+    }
+    public void setSubmitter(User u) {  //overwrites existing
+        if (u == null) return;
+        submitters = new ArrayList<User>();
+        submitters.add(u);
+    }
+    public void addSubmitter(User u) {
+        if (u == null) return;
+        if (submitters == null) submitters = new ArrayList<User>();
+        if (!submitters.contains(u)) submitters.add(u);
+    }
+    public void setSubmittersFromEncounters() {  //note: this overrides any previously set
+        if (encounters == null) return;
+        submitters = new ArrayList<User>();
+        for (Encounter enc : encounters) {
+            if (enc.getSubmitters() == null) continue;
+            for (User u : enc.getSubmitters()) {
+                if (!submitters.contains(u)) submitters.add(u);
+            }
+        }
+    }
+
+    public String getSource() {
+        return source;
+    }
+    public void setSource(String s) {
+        source = s;
+    }
 
   public void setAssets(List<MediaAsset> assets) {
     this.assets = assets;
