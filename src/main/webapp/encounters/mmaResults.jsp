@@ -109,128 +109,130 @@
     String pathCR = mmaTest.getKey();
     File fCR = new File(pathCR);
     String encId = fCR.getParentFile().getName();
-    Encounter enc = shepherd.getEncounter(encId);
-    String nameCR = fCR.getName();
-    String name = nameCR.substring(0, nameCR.indexOf("_CR"));
-    //String linkCR = convertFileToURL(dataDirUrlPrefix, fCR);
-    String linkCR = pathCR.replaceAll("/var/lib/tomcat8/webapps/","https://www.mantamatcher.org/");
-    String linkEH = linkCR.replace("_CR", "_EH");
-    String encUrl = String.format(pageUrlFormatEnc, encId);
-    boolean encIsAssigned = (enc.getIndividualID() != null && !"Unassigned".equals(enc.getIndividualID()));
-%>
-
-<div id="mma-queryImage">
-  <a href="<% out.print(encUrl); %>" target="_blank"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-queryImg"/></a>
-  <p><% out.print(name); %></p>
-</div>
-
-<div id="mma-desc">
-  <table>
-    <tr>
-      <th><% out.print(bundle.getProperty("version")); %></th>
-      <td class="mma-version"><% out.print(MessageFormat.format(bundle.getProperty("version.val"), results.getVersion())); %></td>
-    </tr>
-    <tr>
-      <th><% out.print(bundle.getProperty("queryEncounter")); %></th>
-      <td class="mma-queryEncounter"><a href="<% out.print(encUrl); %>"><% out.print(results.getTestEncounterNumber()); %></a></td>
-    </tr>
-    <tr>
-      <th><% out.print(bundle.getProperty("locations")); %></th>
-      <td class="mma-queryEncounter"><% out.print(dispLocIDs); %></td>
-    </tr>
-    <tr>
-      <th><% out.print(bundle.getProperty("dateOfScan")); %></th>
-      <td class="mma-date"><% out.print(DF.format(results.getDate())); %></td>
-    </tr>
-    <tr>
-      <th><% out.print(bundle.getProperty("matchCount")); %></th>
-      <td class="mma-count"><% out.print(results.getMapTests().isEmpty() ? "&nbsp;" : results.getMapTests().entrySet().iterator().next().getValue().size()); %></td>
-    </tr>
-    <tr>
-      <th><% out.print(bundle.getProperty("confidence")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.worstBest")); %></span></th>
-      <td class="mma-confidence"><% out.print(String.format("%.6f", results.getConfidence())); %></td>
-    </tr>
-  </table>
-</div>
-<div id="mma-results">
-  <table id="mma-resultsTable">
-    <tr>
-      <th><% out.print(bundle.getProperty("table.column.rank")); %></th>
-      <th><% out.print(bundle.getProperty("table.column.similarity")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("table.column.similarityDesc")); %></span></th>
-      <th><% out.print(bundle.getProperty("table.column.matchDetails")); %></th>
-      <th><% out.print(bundle.getProperty("table.column.matchedImage")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.newWindow")); %></span></th>
-      <th><% out.print(bundle.getProperty("table.column.queryImage")); %><br/><span class="mma-small"><% out.print(encIsAssigned ? MessageFormat.format(bundle.getProperty("desc.assignedTo"), enc.getIndividualID()) : bundle.getProperty("desc.unassigned")); %></span></th>
-    </tr>
-<%
-  if (!mmaTest.getValue().isEmpty()) {
-    for (MMAMatch match : mmaTest.getValue()) {
-      if (match.getFileRef() == null)
-          continue;
-      Encounter encMatch = shepherd.getEncounter(match.getMatchEncounterNumber());
-      if (encMatch == null)
-        continue;
-      String indUrl = null;
-      boolean indMatch = false;
-      if (encMatch.getIndividualID() != null && !"".equals(encMatch.getIndividualID()) && !"Unassigned".equals(encMatch.getIndividualID())) {
-        indUrl = String.format(pageUrlFormatInd, encMatch.getIndividualID());
-        if (encIsAssigned && encMatch.getIndividualID().equals(enc.getIndividualID()))
-          indMatch = true;
-      }
-      String keyPig = findKeyFromValue(encMatch.getPatterningCode(), mapPig);
-      String pigMatch = keyPig == null ? keyPig : bundle.getProperty(keyPig);
-
-      Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(match.getFileRef());
-      File match_fCR = mmMap.get("CR");
-      String match_encId = match_fCR.getParentFile().getName();
-      //String match_linkCR = convertFileToURL(dataDirUrlPrefix, match_fCR);
-      String match_linkCR = match_fCR.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/","https://www.mantamatcher.org/");
-      String match_linkEH = match_linkCR.replace("_CR.", "_EH.");
-      String match_encUrl = String.format(pageUrlFormatEnc, match_encId);
-%>
-<%  if (indMatch) { %>
-    <tr class="ind-match">
-<%  } else { %>
-    <tr>
-<%  } %>
-      <td class="rank"><% out.print(match.getRank()); %></td>
-      <td class="similarity"><% out.print(String.format("%.6f", match.getScore())); %></td>
-      <td class="filename">
-        <table id="mma-resultDetailsTable">
-<%      if (indUrl != null) { %>
-          <tr><th><% out.print(bundle.getProperty("individual")); %></th><td><a href="<% out.print(indUrl); %>" target="_blank"><% out.print(encMatch.getIndividualID()); %></a></td></tr>
-<%      } else { %>
-          <tr><th><% out.print(bundle.getProperty("individual")); %></th><td>&nbsp;</td></tr>
-<%      } %>
-          <tr><th><% out.print(bundle.getProperty("encounter.date")); %></th><td><span class="nowrap"><% out.print(encMatch.getDate()); %></span></td></tr>
-          <tr><th><% out.print(bundle.getProperty("pigmentation")); %></th><td><span class="nowrap"><% out.print(pigMatch == null ? "&nbsp;" : pigMatch); %></span></td></tr>
-<%      if (indUrl != null && !encIsAssigned) { %>
-          <tr><td colspan="2">
-            <form action="../IndividualAddEncounter" method="post">
-              <input type="hidden" name="number" value="<% out.print(enc.getCatalogNumber()); %>"/>
-              <input type="hidden" name="individual" value="<% out.print(encMatch.getIndividualID()); %>"/>
-              <input type="hidden" name="matchType" value="Pattern match"/>
-              <input type="submit" name="submit" value="<% out.print(MessageFormat.format(bundle.getProperty("assign"), encMatch.getIndividualID())); %>" title="<% out.print(bundle.getProperty("assign.title")); %>"/>
-            </form>
-          </td></tr>
-<%      } %>
-        </table>
-      </td>
-      <td class="matchedImage"><a href="<% out.print(match_encUrl); %>" target="_blank"><img src="<% out.print(match_linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-matchImg"/></a></td>
-      <td class="queryImage"><a href="<% out.print(encUrl); %>"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-queryImg"/></a></td>
-    </tr>
-<%
-    }
-  } else {
-%>
-    <tr>
-      <td class="noMatches" colspan="5"><% out.print(bundle.getProperty("noMatches")); %></td>
-    </tr>
-<%
+	    if(shepherd.isEncounter(encId)){
+	    Encounter enc = shepherd.getEncounter(encId);
+	    String nameCR = fCR.getName();
+	    String name = nameCR.substring(0, nameCR.indexOf("_CR"));
+	    //String linkCR = convertFileToURL(dataDirUrlPrefix, fCR);
+	    String linkCR = pathCR.replaceAll("/var/lib/tomcat8/webapps/","https://www.mantamatcher.org/");
+	    String linkEH = linkCR.replace("_CR", "_EH");
+	    String encUrl = String.format(pageUrlFormatEnc, encId);
+	    boolean encIsAssigned = (enc.getIndividualID() != null && !"Unassigned".equals(enc.getIndividualID()));
+	%>
+	
+	<div id="mma-queryImage">
+	  <a href="<% out.print(encUrl); %>" target="_blank"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-queryImg"/></a>
+	  <p><% out.print(name); %></p>
+	</div>
+	
+	<div id="mma-desc">
+	  <table>
+	    <tr>
+	      <th><% out.print(bundle.getProperty("version")); %></th>
+	      <td class="mma-version"><% out.print(MessageFormat.format(bundle.getProperty("version.val"), results.getVersion())); %></td>
+	    </tr>
+	    <tr>
+	      <th><% out.print(bundle.getProperty("queryEncounter")); %></th>
+	      <td class="mma-queryEncounter"><a href="<% out.print(encUrl); %>"><% out.print(results.getTestEncounterNumber()); %></a></td>
+	    </tr>
+	    <tr>
+	      <th><% out.print(bundle.getProperty("locations")); %></th>
+	      <td class="mma-queryEncounter"><% out.print(dispLocIDs); %></td>
+	    </tr>
+	    <tr>
+	      <th><% out.print(bundle.getProperty("dateOfScan")); %></th>
+	      <td class="mma-date"><% out.print(DF.format(results.getDate())); %></td>
+	    </tr>
+	    <tr>
+	      <th><% out.print(bundle.getProperty("matchCount")); %></th>
+	      <td class="mma-count"><% out.print(results.getMapTests().isEmpty() ? "&nbsp;" : results.getMapTests().entrySet().iterator().next().getValue().size()); %></td>
+	    </tr>
+	    <tr>
+	      <th><% out.print(bundle.getProperty("confidence")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.worstBest")); %></span></th>
+	      <td class="mma-confidence"><% out.print(String.format("%.6f", results.getConfidence())); %></td>
+	    </tr>
+	  </table>
+	</div>
+	<div id="mma-results">
+	  <table id="mma-resultsTable">
+	    <tr>
+	      <th><% out.print(bundle.getProperty("table.column.rank")); %></th>
+	      <th><% out.print(bundle.getProperty("table.column.similarity")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("table.column.similarityDesc")); %></span></th>
+	      <th><% out.print(bundle.getProperty("table.column.matchDetails")); %></th>
+	      <th><% out.print(bundle.getProperty("table.column.matchedImage")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.newWindow")); %></span></th>
+	      <th><% out.print(bundle.getProperty("table.column.queryImage")); %><br/><span class="mma-small"><% out.print(encIsAssigned ? MessageFormat.format(bundle.getProperty("desc.assignedTo"), enc.getIndividualID()) : bundle.getProperty("desc.unassigned")); %></span></th>
+	    </tr>
+	<%
+	  if (!mmaTest.getValue().isEmpty()) {
+	    for (MMAMatch match : mmaTest.getValue()) {
+	      if (match.getFileRef() == null)
+	          continue;
+	      Encounter encMatch = shepherd.getEncounter(match.getMatchEncounterNumber());
+	      if (encMatch == null)
+	        continue;
+	      String indUrl = null;
+	      boolean indMatch = false;
+	      if (encMatch.getIndividualID() != null && !"".equals(encMatch.getIndividualID()) && !"Unassigned".equals(encMatch.getIndividualID())) {
+	        indUrl = String.format(pageUrlFormatInd, encMatch.getIndividualID());
+	        if (encIsAssigned && encMatch.getIndividualID().equals(enc.getIndividualID()))
+	          indMatch = true;
+	      }
+	      String keyPig = findKeyFromValue(encMatch.getPatterningCode(), mapPig);
+	      String pigMatch = keyPig == null ? keyPig : bundle.getProperty(keyPig);
+	
+	      Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(match.getFileRef());
+	      File match_fCR = mmMap.get("CR");
+	      String match_encId = match_fCR.getParentFile().getName();
+	      //String match_linkCR = convertFileToURL(dataDirUrlPrefix, match_fCR);
+	      String match_linkCR = match_fCR.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/","https://www.mantamatcher.org/");
+	      String match_linkEH = match_linkCR.replace("_CR.", "_EH.");
+	      String match_encUrl = String.format(pageUrlFormatEnc, match_encId);
+	%>
+	<%  if (indMatch) { %>
+	    <tr class="ind-match">
+	<%  } else { %>
+	    <tr>
+	<%  } %>
+	      <td class="rank"><% out.print(match.getRank()); %></td>
+	      <td class="similarity"><% out.print(String.format("%.6f", match.getScore())); %></td>
+	      <td class="filename">
+	        <table id="mma-resultDetailsTable">
+	<%      if (indUrl != null) { %>
+	          <tr><th><% out.print(bundle.getProperty("individual")); %></th><td><a href="<% out.print(indUrl); %>" target="_blank"><% out.print(encMatch.getIndividualID()); %></a></td></tr>
+	<%      } else { %>
+	          <tr><th><% out.print(bundle.getProperty("individual")); %></th><td>&nbsp;</td></tr>
+	<%      } %>
+	          <tr><th><% out.print(bundle.getProperty("encounter.date")); %></th><td><span class="nowrap"><% out.print(encMatch.getDate()); %></span></td></tr>
+	          <tr><th><% out.print(bundle.getProperty("pigmentation")); %></th><td><span class="nowrap"><% out.print(pigMatch == null ? "&nbsp;" : pigMatch); %></span></td></tr>
+	<%      if (indUrl != null && !encIsAssigned) { %>
+	          <tr><td colspan="2">
+	            <form action="../IndividualAddEncounter" method="post">
+	              <input type="hidden" name="number" value="<% out.print(enc.getCatalogNumber()); %>"/>
+	              <input type="hidden" name="individual" value="<% out.print(encMatch.getIndividualID()); %>"/>
+	              <input type="hidden" name="matchType" value="Pattern match"/>
+	              <input type="submit" name="submit" value="<% out.print(MessageFormat.format(bundle.getProperty("assign"), encMatch.getIndividualID())); %>" title="<% out.print(bundle.getProperty("assign.title")); %>"/>
+	            </form>
+	          </td></tr>
+	<%      } %>
+	        </table>
+	      </td>
+	      <td class="matchedImage"><a href="<% out.print(match_encUrl); %>" target="_blank"><img src="<% out.print(match_linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-matchImg"/></a></td>
+	      <td class="queryImage"><a href="<% out.print(encUrl); %>"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-queryImg"/></a></td>
+	    </tr>
+	<%
+	    }
+	  } else {
+	%>
+	    <tr>
+	      <td class="noMatches" colspan="5"><% out.print(bundle.getProperty("noMatches")); %></td>
+	    </tr>
+	<%
+	  }
+	%>
+	  </table>
+	</div>
+	<%
   }
-%>
-  </table>
-</div>
-<%
   }
 %>
 

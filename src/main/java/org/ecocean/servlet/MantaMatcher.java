@@ -131,6 +131,7 @@ public final class MantaMatcher extends DispatchServlet {
       getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
 
     } catch (Exception ex) {
+      ex.printStackTrace();
       handleException(req, res, ex);
     }
     finally{
