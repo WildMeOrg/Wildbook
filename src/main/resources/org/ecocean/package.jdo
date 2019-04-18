@@ -224,6 +224,11 @@
 		<join/>
 	</field>
 
+      <field name="informOthers" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.User" dependent-element="false"/>
+        <join/>
+      </field>
+
       <field name="groupBehavior" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>

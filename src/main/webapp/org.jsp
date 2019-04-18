@@ -77,6 +77,7 @@ if ((oid == null) && (uid == null)) {  //show all
         out.println("<p>unknown User id=" + uid + "</p>");
     } else {
         out.println("<h1>" + user.getFullName() + " / username=<i>" + user.getUsername() + "</i></h1>");
+        out.println("<b><a href=\"user.jsp?id=" + user.getUUID() + "\">profile</a></b>");
         List<Organization> orgs = user.getOrganizations();
         if ((orgs == null) || (orgs.size() < 1)) {
             out.println("<p><i>no orgs</i></p>");
