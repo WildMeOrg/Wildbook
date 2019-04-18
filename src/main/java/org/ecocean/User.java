@@ -135,6 +135,12 @@ public class User implements Serializable {
     RefreshDate();
   }
 
+    public String getDisplayName() {
+        if (fullName != null) return fullName;
+        if (username != null) return username;
+        return uuid;
+    }
+
   public String getEmailAddress ()
   {
     return this.emailAddress;
