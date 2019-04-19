@@ -468,6 +468,9 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
     public static String tweetText(String context, String key, Map<String,String> vars) {
         String text = TwitterUtil.getProperty(context, key);
         if (text == null) return null;
+        String ref = Util.generateUUID().substring(0,6);
+        System.out.println("tweetText REF=" + ref + " key=" + key);
+        vars.put("REF", ref);
         //is there a "standard" java way to do this? sh/could be in Util? (template substitution)  etc.
         for (String k : vars.keySet()) {
             text = text.replaceAll("%" + k, vars.get(k));
