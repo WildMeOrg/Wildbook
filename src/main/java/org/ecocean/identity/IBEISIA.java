@@ -79,9 +79,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-//import twitter4j.*;
-
-
 
 
 public class IBEISIA {
@@ -1799,6 +1796,7 @@ System.out.println("**** " + ann);
             exitIdentificationLoop(infDict, myShepherd);
         }
 
+        jlog.put("twitterBot", TwitterBot.processIdentificationResults(myShepherd, anns, infDict.optJSONObject("annot_pair_dict"), taskID));
         resolveNames(needNameResolution, j.optJSONObject("cm_dict"), myShepherd);
         log(taskID, null, jlog, myShepherd.getContext());
         myShepherd.commitDBTransaction();
