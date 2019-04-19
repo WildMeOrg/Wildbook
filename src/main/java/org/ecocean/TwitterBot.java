@@ -236,6 +236,8 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     }
 */
 
+
+/*
     public static void sendDetectionAndIdentificationTweet(String context, String screenName, String imageId, String whaleId, boolean detected, boolean identified, String info){
         Map<String,String> vars = new HashMap<String,String>();  //%SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV, %URL_SUBMIT
         vars.put("SOURCE_SCREENNAME", screenName);
@@ -260,6 +262,7 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
         sendTweet(tweetText(context, "tweetTextIATimeout1", vars));
         sendTweet(tweetText(context, "tweetTextIATimeout2", vars));
     }
+*/
 
 /*
   public static JSONArray removePendingEntry(JSONArray pendingResults, int index){
@@ -522,7 +525,7 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
     //the only thing we need to do here is handle the case there were not annotations made
     //  since otherwise those annotations are going on for identification (and we have nothing to send)
     // NOTE: non-twitter results get passed here too!! in that case we should do nothing and return null
-    public static String processDetectionResults(Shepherd myShepherd, ArrayList<MediaAsset> mas) {
+    public static String processDetectionResults(Shepherd myShepherd, final ArrayList<MediaAsset> mas) {
 System.out.println("processDetectionResults() -> " + mas);
         if ((mas == null) || (mas.size() < 1)) return null;
         int successful = 0;
@@ -549,6 +552,44 @@ System.out.println("processDetectionResults() -> " + mas);
         //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
         sendTweet(tweetText(context, "tweetTextIANone", vars));
         return "Failed to find any Annotations; sent tweet";
+    }
+
+    //this input format is cuz this is how IBEISIA has this originally (the key in the map is the acmId)
+    public static String processIdentificationResults(Shepherd myShepherd, final HashMap<String,Annotation> annMap, final JSONObject annotPairDict, String taskId) {
+        if (annMap == null) return null;
+        return processIdentificationResults(myShepherd, new ArrayList<Annotation>(annMap.values()), annotPairDict, taskId);
+    }
+    //annotPairDict is from the IA results.  in the future we could let this be null and if so fetch it
+    public static String processIdentificationResults(Shepherd myShepherd, final List<Annotation> anns, final JSONObject annotPairDict, String taskId) {
+System.out.println("processIdentificationResults() -> " + anns + " ==> " + annotPairDict);
+        if ((anns == null) || (anns.size() < 1)) return null;
+
+        //now we have to find the source tweet (which should be the only one even if more than one annot)
+        int successful = 0;
+        MediaAsset tweetMA = null;
+        for (Annotation ann : anns) {
+            MediaAsset ma = ann.getMediaAsset();
+            tweetMA = TwitterUtil.parentTweet(myShepherd, ma);
+            if (tweetMA != null) break;
+        }
+        if (tweetMA == null) return null;  //no tweet stuff
+
+        Status originTweet = TwitterUtil.toStatus(tweetMA);
+        if (originTweet == null) return "Error finding originTweet for " + tweetMA + " (anns=" + anns + ")";
+
+        String context = myShepherd.getContext();
+        Map<String,String> vars = new HashMap<String,String>();
+        vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
+        vars.put("MATCH_URL", CommonConfiguration.getServerURL(context) + "/iaResults.jsp?taskId=" + taskId);
+
+        if ((annotPairDict == null) || (annotPairDict.optJSONArray("review_pair_list") == null) ||
+            (annotPairDict.getJSONArray("review_pair_list").length() < 1)) {
+            sendTweet(tweetText(context, "tweetTextIADetect", vars));
+            return "Got " + anns.size() + " annots, but empty ident results[" + taskId + "]; tweet sent.";
+        }
+
+        sendTweet(tweetText(context, "tweetTextIABoth", vars));
+        return "Got " + anns.size() + " annots, and some possible matches!! [" + taskId + "] tweet sent.";
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
