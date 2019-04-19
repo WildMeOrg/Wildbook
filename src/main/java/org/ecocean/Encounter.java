@@ -382,6 +382,15 @@ public class Encounter implements java.io.Serializable {
         this.resetDateInMilliseconds();
     }
 
+    public Encounter(DateTime dt, String locationId) {
+      this.catalogNumber = Util.generateUUID();
+      this.setDWCDateAdded();
+      this.setDWCDateLastModified();
+      this.resetDateInMilliseconds();
+      this.setLocationID(locationID);
+      if (dt!=null) this.setDateInMilliseconds(dt.getMillis());
+    }
+
 
     public String getZebraClass() {
         return zebraClass;
