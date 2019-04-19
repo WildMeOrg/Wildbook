@@ -387,7 +387,7 @@ public class Encounter implements java.io.Serializable {
       this.setDWCDateAdded();
       this.setDWCDateLastModified();
       this.resetDateInMilliseconds();
-      this.setLocationID(locationID);
+      this.setLocationID(locationId);
       if (dt!=null) this.setDateInMilliseconds(dt.getMillis());
     }
 
