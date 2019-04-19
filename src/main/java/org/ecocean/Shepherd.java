@@ -132,6 +132,19 @@ public class Shepherd {
    * @return an Integer number that represents the unique number of this new encounter in the datatbase
    * @ see encounter
    */
+
+  public void storeNewEncounter(Encounter enc) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(enc);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Encounter in shepherd.storeNewEncounter().");
+      e.printStackTrace();
+    }
+  }
+
   public String storeNewEncounter(Encounter enc, String uniqueID) {
     enc.setEncounterNumber(uniqueID);
     beginDBTransaction();
