@@ -28,6 +28,8 @@ import java.io.PrintWriter;
 
 public abstract class Share {
     private static final String PROP_FILE = "opendata.properties";
+    private static final String LICENSE_CC_BY_NC = "CC-BY-NC";
+
     protected String context = null;
 
     protected Share(final String context) {
@@ -37,7 +39,6 @@ public abstract class Share {
 
     public abstract void init();
 
-    //public abstract String typeCode();  //this designates type, used in properties file etc.
     public String typeCode() {
         return this.getClass().getSimpleName();
     }
@@ -45,6 +46,13 @@ public abstract class Share {
     public boolean isEnabled() {
         return Util.booleanNotFalse(getProperty("enabled", "false"));
     }
+
+
+    //does the work of making the thing and "sending" it (as applicable)
+    public abstract void generate();
+
+    //can this item be shared in this capacity?
+    public abstract boolean isShareable(Object obj);
 
     public String getProperty(String label) {  //no-default
         return getProperty(label, (String)null);
