@@ -14,7 +14,12 @@ public class OBISSeamap extends Share {
         }
     }
 
-    //public String typeCode() { return "OBISSeamap"; }
 
+    public void generate() {
+    }
+
+    public boolean isShareable(Object obj) {
+        return false;
+    }
 
 }
