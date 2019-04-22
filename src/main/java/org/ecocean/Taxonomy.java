@@ -16,6 +16,7 @@ public class Taxonomy implements java.io.Serializable {
   // usually "Genus species" or "Genus species subspecies"
   private String scientificName;
   private List<String> commonNames; 
+  private Integer itisTsn;
 
   // A Convention: getters/setters for Taxonomy objects (in other Classes) will use noun "Taxonomy".
   // while convenience string-only methods will use noun "Species" (and might require Shepherds to see which Taxonomy objects exist in the DB, for e.g. putting a species string on an Encounter)
@@ -53,7 +54,7 @@ public class Taxonomy implements java.io.Serializable {
     return commonNames;
   }
   public void addCommonName(String commonName) {
-    this.commonNames.add(commonName);
+    if (!this.commonNames.contains(commonName)) this.commonNames.add(commonName);
   }
   public String getCommonName() {
     return getCommonName(0);
@@ -62,6 +63,13 @@ public class Taxonomy implements java.io.Serializable {
     if (commonNames==null || commonNames.size()<=i) return null;
     return commonNames.get(i);
   }
+
+    public Integer getItisTsn() {
+        return itisTsn;
+    }
+    public void setItisTsn(Integer tsn) {
+        itisTsn = tsn;
+    }
 
     public boolean equals(Taxonomy other) {
         if ((other == null) || (scientificName == null) || (other.getScientificName() == null)) return false;
