@@ -35,18 +35,23 @@
     position: absolute;
     margin-left: 3%;
     margin-top: 3%;
-    margin-right: 3%;
-    background-color: black;
+    margin-right: 6%;
+    width: 91%;
+    background-color: rgba(0,0,0,0.55);
 }
 
 .img-input-label {
     font-size: 0.9em;
+    padding-left: 3%;
     color: white;
+    opacity: 1.0;
 }
 
+/*
 div .img-input {
     opacity: 0.65;
 }
+*/
 
 .image-filename:hover {
     display: inline;
@@ -89,7 +94,7 @@ div .img-input {
 
 .image-overlay:hover {
     color: white;
-    background-color: black;
+    background-color: rgba(0,0,0,0.65);
 }
 
 .edit-closed {

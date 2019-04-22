@@ -208,6 +208,7 @@ public class MultipleSubmitAPI extends HttpServlet {
         }
         System.out.println("This locationId for new encounter: "+locStr);
         System.out.println("The locationId FROM the encounter: "+enc.getLocationID());
+        enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " with Multiple Submit form. </p>");
         return enc;
     }
 
