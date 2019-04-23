@@ -85,8 +85,9 @@ public class OBISSeamap extends Share {
         if (enc == null) return false;
         if (getShareAll()) return true;
         User cu = getCollaborationUser();
-        if ((cu != null) && Util.stringExists(cu.getUsername()))
-            return Collaboration.canUserAccessEncounter(enc, context, cu.getUsername()); 
+        if ((cu != null) && Util.stringExists(cu.getUsername()) && Collaboration.canUserAccessEncounter(enc, context, cu.getUsername()))
+            return true;
+        if (isShareOrganizationUser(enc.getSubmitters())) return true;
         return false;
     }
 
