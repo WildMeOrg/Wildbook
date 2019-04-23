@@ -101,6 +101,14 @@ div .img-input {
     display: none;
 }
 
-.loc-input {
-    width: 18em;    
+
+.enc-top-input {
+    margin-bottom: 2em;    
 }
+
+/*
+.comment-box {
+    margin-left: 3%;
+    margin-right: 3%;
+}
+*/

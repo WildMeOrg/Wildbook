@@ -3,10 +3,8 @@
 multipleSubmitAPI = {
 
     sendData: function(callback) {
-
         var fd = new FormData();
         var json = {};
-
         var files = document.getElementById('file-selector-input').files;
         console.log("POSTing #"+files.length+" files.");
         json["number-images"] = files.length;
@@ -24,13 +22,8 @@ multipleSubmitAPI = {
             }
         }
         json["enc-image-lists"] = imgArrs;
-
         var numEncs = document.getElementById("number-encounters").value;
         json["number-encounters"] = numEncs;   
-
-        // enc-num-dropdown-(index)
-        //image-filename-(index)
-        
         json['recaptcha-checked'] = document.getElementById("recaptcha-checked").value
 
         for (var i=0;i<numEncs;i++) {
@@ -38,14 +31,13 @@ multipleSubmitAPI = {
             //encJson[location] =
             encJson["date"] = document.getElementById("enc-date-"+i).value; 
             encJson["comments"] = document.getElementById("enc-comments-"+i).value;
-            encJson["location"] = document.getElementById("loc-img-input-"+i).value;
+            encJson["location"] = document.getElementById("loc-enc-input-"+i).value;
+            encJson["species"] = document.getElementById("spec-enc-input-"+i).value;
             // need all image names associated with this enc. 
 
             json['enc-data-'+i] = encJson;
         }
-
         fd.append("json-data", JSON.stringify(json));
-
         $.ajax({
             url: '../MultipleSubmitAPI',
             type: 'POST',
@@ -72,6 +64,25 @@ multipleSubmitAPI = {
             dataType: 'json',
             success: function(result) {
                 console.log("Success GETting location ids! ");
+                //var json = JSON.parse(result);
+                callback(result);
+            },
+            error: function(error) {
+                //console.log("Error GETting! BARF! "+JSON.stringify(error));
+                $('#server-error').html(error);
+                callback(errOb);
+            } 
+        });
+    },
+
+    getSpecies: function(callback) {
+        var errOb = {};
+        $.ajax({
+            url: '../MultipleSubmitAPI?getSpecies=true',
+            type: 'GET',
+            dataType: 'json',
+            success: function(result) {
+                console.log("Success GETting species names! ");
                 //var json = JSON.parse(result);
                 callback(result);
             },

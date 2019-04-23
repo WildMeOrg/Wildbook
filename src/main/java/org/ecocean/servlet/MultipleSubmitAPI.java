@@ -64,6 +64,12 @@ public class MultipleSubmitAPI extends HttpServlet {
             if (getLocations!=null&&"true".equals(getLocations)) {
                 rtn = getLocations(rtn, context);
             }
+
+            String getSpecies = request.getParameter("getSpecies");
+            if (getSpecies!=null&&"true".equals(getSpecies)) {
+                rtn = getSpecies(rtn, context);
+            }
+
             rtn.put("success", "true");
         } catch (Exception e) {
             e.printStackTrace();
@@ -82,6 +88,20 @@ public class MultipleSubmitAPI extends HttpServlet {
                 rtnArr.put(loc);
             }
             rtn.put("locationIds", rtnArr);
+        }      
+        return rtn;
+    }
+
+    private JSONObject getSpecies(JSONObject rtn, String context) {        
+        JSONArray rtnArr = new JSONArray();
+        List<String> spcs = new ArrayList<>();
+        if (CommonConfiguration.getIndexedPropertyValues("genusSpecies", context).size()>0) {
+            System.out.println("Gonna try and return "+CommonConfiguration.getIndexedPropertyValues("genusSpecies", context).size()+" genusSpecies");
+            spcs = CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+            for (String spc : spcs) {
+                rtnArr.put(spc);
+            }
+            rtn.put("allSpecies", rtnArr);
         }      
         return rtn;
     }
@@ -175,7 +195,6 @@ public class MultipleSubmitAPI extends HttpServlet {
                 ma.addLabel("_original");
                 ma.copyIn(uploadFile);
                 ma.validateSourceImage();
-
                 ma.updateMetadata();
             } catch (IOException ioe) {
                 System.out.println("SEVERE: IOException copying image file "+part.getSubmittedFileName()+" to MediaAsset with id="+ma.getId());
@@ -196,6 +215,7 @@ public class MultipleSubmitAPI extends HttpServlet {
     private Encounter createEncounter(JsonObject json, int encIdx) {
         String locStr = json.get("enc-data-"+encIdx).getAsJsonObject().get("location").getAsString();
         String dateStr = json.get("enc-data-"+encIdx).getAsJsonObject().get("date").getAsString();
+        String specStr = json.get("enc-data-"+encIdx).getAsJsonObject().get("species").getAsString();
         DateTimeFormatter formatter = DateTimeFormat.forPattern("MM/dd/yyyy");
         DateTime dt = null;
         if (hasVal(dateStr)) {
@@ -206,6 +226,13 @@ public class MultipleSubmitAPI extends HttpServlet {
         if (hasVal(comments)) {
             enc.setComments(comments);
         }
+        if (hasVal(specStr)) {
+            String[] genSpec = specStr.split(" ");
+            enc.setGenus(genSpec[0]);
+            if (genSpec.length==2){
+                enc.setSpecificEpithet(genSpec[1]);
+            }
+        }
         System.out.println("This locationId for new encounter: "+locStr);
         System.out.println("The locationId FROM the encounter: "+enc.getLocationID());
         enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " with Multiple Submit form. </p>");
@@ -213,7 +240,9 @@ public class MultipleSubmitAPI extends HttpServlet {
     }
 
     private boolean hasVal(String str) {
-        if (str!=null&&!"".equals(str)) return true;
+        if (str!=null&&!"".equals(str.trim())) {
+            return true;
+        }
         return false;
     }
 }

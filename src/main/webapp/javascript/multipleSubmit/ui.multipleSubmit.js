@@ -18,7 +18,7 @@ multipleSubmitUI = {
     },
 
     getEncInputClassForIndex: function(index) {
-        return "img-input-"+String(index);
+        return "enc-input-"+String(index);
     },
 
     generateMetadataTile: function(index) {
@@ -29,12 +29,14 @@ multipleSubmitUI = {
         metadataTile += "       <label class=\"btn btn-default btn-sm\" onclick=\"showEditMetadata("+index+")\">Show Details</label>";
         metadataTile += "   </p>";
         metadataTile +=	"   <div id=\"enc-metadata-inner-"+index+"\" class=\"edit-closed\">";	
-        metadataTile +=         ("<p>"+multipleSubmitUI.generateLocationDropdown(index)+"</p>");
-        metadataTile +=	"	    <p><input id=\"enc-date-"+index+"\" name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"form-control encDate\" size=\"36\" /></p>";
-        metadataTile +=	"       <textarea id=\"enc-comments-"+index+"\" class=\"form-control\" placeholder=\"More Info\" rows=\"5\" cols=\"36\" />";
-        metadataTile += "       <label>&nbsp;</label>";
+        metadataTile +=         "<div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateLocationDropdown(index)+"</div>";
+        metadataTile +=	"	     <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">";
+        metadataTile += "           <p class=\"img-input-label\"><small>Select Date:</small></p>";
+        metadataTile += "           <input id=\"enc-date-"+index+"\" name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"form-control encDate\" size=\"36\" />";
+        metadataTile += "       </div>";
+        metadataTile += "       <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateSpeciesDropdown(index)+"</div>";
+        metadataTile +=	"       <p><textarea id=\"enc-comments-"+index+"\" class=\"form-control comment-box\" placeholder=\"More Info\" rows=\"3\" cols=\"36\" /></p>";
         metadataTile +=	"   </div>";
-        metadataTile += "   <br/>";
         metadataTile += "</div>";
         return metadataTile;
     }, 
@@ -74,14 +76,39 @@ multipleSubmitUI = {
         return encDrop;
     },
 
+    generateSpeciesDropdown: function(index) { 
+        var uiClass = multipleSubmitUI.getEncInputClassForIndex(index);
+        var speciesDrop = "";
+        var uiId = "spec-" + uiClass;
+        speciesDrop += "<p class=\"img-input-label\"><small>Select Species:</small></p>";
+        speciesDrop += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" name=\"species-dropdown-"+index+"\">";
+        multipleSubmitAPI.getSpecies(function(result){
+            var allSpecies = result.allSpecies
+            for (var i=0;i<allSpecies.length;i++) {
+                var species = allSpecies[i];
+                console.log("allSpecies? --> "+JSON.stringify(result));
+                var option = document.createElement("option");
+                option.text = species; 
+                option.value = species;
+                console.log("Appending child for species="+species);
+                if (document.getElementById(uiId)!=null) {
+                    document.getElementById(uiId).appendChild(option);
+                }
+            }
+        });
+        speciesDrop += "</select>";
+        return speciesDrop;
+    },
+
     generateLocationDropdown: function(index) {
         var uiClass = multipleSubmitUI.getEncInputClassForIndex(index);
         var uiId = "loc-" + uiClass;
         var dd = "";
-        dd += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+" loc-input\" name=\"enc-num-dropdown-"+index+"\">";
+        dd += "<p class=\"img-input-label\"><small>Select Location:</small></p>";
+        dd += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
         dd += "    <option selected=\"selected\" value=\"null\" disabled>Choose Location</option>";
         multipleSubmitAPI.getLocations(function(locObj){
-            var ddLocs = "";
+            var ddLocs = ""; 
             if (locObj.hasOwnProperty('locationIds')) {
                 var locs = locObj.locationIds;
                 console.log("Type? "+(typeof locs));
@@ -120,6 +147,6 @@ multipleSubmitUI = {
 
     encsDefined() {
         return document.getElementById('number-encounters').value;
-    }
-    
+    },
+
 };
