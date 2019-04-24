@@ -1,5 +1,17 @@
 <style>
 
+a.button {
+    font-weight: bold;
+    font-size: 0.9em;
+    background-color: #AAA;
+    border-radius: 4px;
+    padding: 0 6px;
+    text-decoration: none;
+}
+a.button:hover {
+    background-color: #DDA;
+}
+
 #occs {
     margin: 20px;
 }
@@ -49,7 +61,8 @@
 
 .ph-info {
     font-size: 0.9em;
-    background-color: #CCC;
+    background-color: #FFA;
+    color: #888;
     padding: 0 5px;
     margin: 0 2px;
     border-radius: 3px;
@@ -120,6 +133,7 @@ String context = ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
+boolean showUpload = false;
   
 
 
@@ -183,8 +197,8 @@ if (AccessControl.isAnonymous(request)) {
 
 %>
 <div style="padding: 0 20px;">
-<a href="attachMedia.jsp">[back to list]</a>
-<h2><%=occ.getOccurrenceID()%></h2>
+<a class="button" href="attachMedia.jsp">back to list</a>
+<h2>Occurrence <%=occ.getOccurrenceID().substring(0,8)%></h2>
 <p>
 <%=tripInfo.get("typeLabel")%>
 <b>Trip ID = <%=tripInfo.get("id")%></b>
@@ -201,6 +215,47 @@ if (survId == null) {
 %>
 </p>
 <p><%=occ.getComments()%></p>
+
+
+
+<%
+
+String toEncId = request.getParameter("toEncounter");
+Encounter addToEncounter = null;
+if (toEncId != null) addToEncounter = myShepherd.getEncounter(toEncId);
+if (addToEncounter != null) {
+    //TODO other safety checks here like can user alter this encounter?
+    if (!occ.getEncounters().contains(addToEncounter)) addToEncounter = null;
+}
+
+if (Util.requestParameterSet(request.getParameter("newEncounter"))) {
+    showUpload = true;
+%>
+
+<a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>">full listing for Occ <%=occ.getOccurrenceID().substring(0,8)%></a>
+<a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="back to full listing for Occ <%=occ.getOccurrenceID().substring(0,8)%>">Cancel</a>
+<h2>Photos that will get attached to NEW ENCOUNTER</h2>
+
+<%
+
+
+} else if ((toEncId != null) && (addToEncounter == null)) {
+    out.println("<h1 class=\"error\">Invalid Encounter id=" + toEncId + "</h1>");
+
+} else if (addToEncounter != null) {
+    showUpload = true;
+%>
+
+<a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="back to full listing for Occ <%=occ.getOccurrenceID().substring(0,8)%>">Cancel</a>
+<h2>hey lets add images to <%=addToEncounter.getCatalogNumber()%>!!</h2>
+<%=addToEncounter%>
+<p>
+ (and show enc details here as on occ listing)
+</p>
+
+<%
+} else {
+%>
 <table class="occ-enc">
 <%
 for (Encounter enc : occ.getEncounters()) {
@@ -228,13 +283,19 @@ System.out.println(ft.getParameters());
 
     out.println("<td>" + media.size() + " photos added</td>");  //TODO do something with media list!
     out.println("<td>" + phinfo + "</td>");
+    out.println("<td><a href=\"attachMedia.jsp?id=" + occ.getOccurrenceID() + "&toEncounter=" + enc.getCatalogNumber() + "\" class=\"button\">add photos here</a></td>");
     out.println("</tr>");
 }
 %>
 </table>
 </div>
+
+<p style="padding: 10px 20px;" >
+    <a href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>&newEncounter" class="button">add new encounter and photos</a>
+</p>
 <%
     
+    }  //end newEncounter option
 
 } else {
     Shepherd myShepherd = new Shepherd(context);
@@ -307,5 +368,14 @@ System.out.println(ft.getParameters());
     query.closeAll();
     myShepherd.rollbackDBTransaction();
 }
+
+if (showUpload) {
 %>
+
+<div style="text-align: center; background-color: #FFA; padding: 80px;">
+UPLOAD FORM GOES HERE
+</div>
+
+<% } %>
+<div style="padding-top: 20px;"></div>
           <jsp:include page="footer.jsp" flush="true"/>
