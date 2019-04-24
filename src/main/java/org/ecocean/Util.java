@@ -685,7 +685,7 @@ public class Util {
     }
 
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals("") && !str.equals("None") && !str.equals("unknown") && !str.equals(""));
+      return (str!=null && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown") && !str.equals(""));
     }
     
     //these two utility functions handle the case where the argument (Collection, and subclasses like Lists) is null!
