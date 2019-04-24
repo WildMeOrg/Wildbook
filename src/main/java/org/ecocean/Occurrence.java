@@ -869,6 +869,18 @@ public class Occurrence implements java.io.Serializable {
 
     }
 
+    public MediaAsset getRepresentativeMediaAsset() {
+        if (getNumberEncounters() < 0) return null;
+        MediaAsset rep = null;
+        for (Encounter enc : this.getEncounters()) {
+            if (enc.getMedia() == null) continue;
+            for (MediaAsset ma : enc.getMedia()) {
+                if (ma.hasKeyword("ProfilePhoto") || (rep == null)) rep = ma;
+            }
+        }
+        return rep;
+    }
+
     //this is called when a batch of encounters (which should be on this occurrence) were made from detection
     // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
     public void fromDetection(Shepherd myShepherd, HttpServletRequest request) {
@@ -1031,6 +1043,17 @@ public class Occurrence implements java.io.Serializable {
     }
     public void setNumCalves(Integer numCalves) {
       this.numCalves = numCalves;
+    }
+    //this tries to be a way to get number even when individualCount is not set...
+    public Integer getGroupSizeCalculated() {
+        if (individualCount != null) return individualCount;
+        if ((numCalves == null) && (numJuveniles == null) && (numAdults == null)) return getNumberEncounters();  //meh?
+        int s = 0;
+        if (numCalves != null) s += numCalves;
+        if (numJuveniles != null) s += numJuveniles;
+        if (numAdults != null) s += numAdults;
+        /// not sure if we want to do something like:  if (getNumberEncounters() > s) return getNumberEncounters() ???
+        return s;
     }
     public String getObserver() {
       return observer;
