@@ -6,14 +6,17 @@ import org.ecocean.Occurrence;
 import org.ecocean.Taxonomy;
 import org.ecocean.User;
 import org.ecocean.Util;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import javax.jdo.Query;
 import java.util.Collection;
 import java.util.List;
+import java.net.URL;
 import java.util.ArrayList;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import org.joda.time.DateTime;
 
 public class OBISSeamap extends Share {
 
@@ -51,7 +54,7 @@ public class OBISSeamap extends Share {
         query.closeAll();
         for (Occurrence occ : occs) {
             if (!isShareable(occ)) continue;
-            String row = tabRow(occ);
+            String row = tabRow(occ, myShepherd);
             if (row != null) writer.write(row + "\n");
         }
 
@@ -64,7 +67,7 @@ public class OBISSeamap extends Share {
         query.closeAll();
         for (Encounter enc : encs) {
             if (!isShareable(enc)) continue;
-            String row = tabRow(enc);
+            String row = tabRow(enc, myShepherd);
             if (row != null) writer.write(row + "\n");
         }
 
@@ -104,28 +107,99 @@ public class OBISSeamap extends Share {
 
     //these are the row (record) for tab-delim output; assuming OBISSeamap flat-file Darwin Core
     //  NOTE: these do not include trailing newline
-    public String tabRow(Occurrence occ) {
+    public String tabRow(Occurrence occ, Shepherd myShepherd) {
         if (occ == null) return null;
         List<String> fields = new ArrayList<String>();
-        fields.add(getGUID(occ.getOccurrenceID()));
-        Taxonomy tx = occ.getTaxonomy();
-        if ((tx == null) || (tx.getScientificName() == null)) {
+        fields.add(getGUID("O-" + occ.getOccurrenceID()));
+        Long d = occ.getDateTimeLong();
+        if (d == null) d = occ.getMillisFromEncounters();
+        if (d == null) {
+            log("cannot share " + occ + " due to invalid date!");
+            return null;
+        }
+        fields.add((new DateTime(d)).toString().substring(0,16).replace("T", " "));
+        occ.setLatLonFromEncs(false);
+        Double dlat = occ.getDecimalLatitude();
+        Double dlon = occ.getDecimalLongitude();
+        if ((dlat == null) || (dlon == null)) {
+            log("cannot share " + occ + " due to invalid lat/lon!");
+            return null;
+        }
+        fields.add(Double.toString(dlat));
+        fields.add(Double.toString(dlon));
+        Taxonomy tx = occ.getTaxonomy();  //this often fails.  :(
+        String txString = null;
+        if (tx != null) txString = tx.getScientificName();
+        if ((txString == null) && (occ.getEncounters() != null)) {
+            for (Encounter enc : occ.getEncounters()) {
+                txString = enc.getTaxonomyString();
+            }
+        }
+        if (txString == null) {
             log("cannot share " + occ + " due to invalid Taxonomy!");
             return null;
         }
-        fields.add(tx.getScientificName());
+        fields.add(txString);
+        fields.add(Integer.toString(occ.getGroupSizeCalculated()));
+        MediaAsset ma = occ.getRepresentativeMediaAsset();
+        if (ma == null) {
+            fields.add("");
+        } else {
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_watermark");
+            if ((kids == null) || (kids.size() < 1)) {
+                fields.add("");
+            } else {
+                URL u = kids.get(0).webURL();
+                if (u == null) {
+                    fields.add("");
+                } else {
+                    fields.add(u.toString());
+                }
+            }
+        }
         return String.join("\t", fields);
     }
 
-    public String tabRow(Encounter enc) {
+    public String tabRow(Encounter enc, Shepherd myShepherd) {
         if (enc == null) return null;
         List<String> fields = new ArrayList<String>();
-        fields.add(getGUID(enc.getCatalogNumber()));
+        fields.add(getGUID("E-" + enc.getCatalogNumber()));
+        String d = enc.getDate();
+        if (!Util.stringExists(d)) {
+            log("cannot share " + enc + " due to invalid date!");
+            return null;
+        }
+        fields.add(d);
+        Double dlat = enc.getLatitudeAsDouble();
+        Double dlon = enc.getLongitudeAsDouble();
+        if ((dlat == null) || (dlon == null)) {
+            log("cannot share " + enc + " due to invalid lat/lon!");
+            return null;
+        }
+        fields.add(Double.toString(dlat));
+        fields.add(Double.toString(dlon));
         if (!Util.stringExists(enc.getTaxonomyString())) {
             log("cannot share " + enc + " due to invalid Taxonomy!");
             return null;
         }
         fields.add(enc.getTaxonomyString());
+        fields.add("1");  //for encounter, always just one individual
+        ArrayList<MediaAsset> mas = enc.getMedia();
+        if ((mas == null) || (mas.size() < 1)) {
+            fields.add("");
+        } else {
+            ArrayList<MediaAsset> kids = mas.get(0).findChildrenByLabel(myShepherd, "_watermark");
+            if ((kids == null) || (kids.size() < 1)) {
+                fields.add("");
+            } else {
+                URL u = kids.get(0).webURL();
+                if (u == null) {
+                    fields.add("");
+                } else {
+                    fields.add(u.toString());
+                }
+            }
+        }
         return String.join("\t", fields);
     }
 
