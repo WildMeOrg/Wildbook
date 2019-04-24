@@ -51,8 +51,9 @@ java.util.Properties" %>
 		if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
 			h += "<div>Annotations: <i>(" + enc.getAnnotations().size() + ")</i><ol>";
 			for (int i = 0 ; i < enc.getAnnotations().size() ; i++) {
+				h += "<li><a href=\"obrowse.jsp?type=Annotation&id=" + enc.getAnnotations().get(i).getId() + "\">Annotation " + enc.getAnnotations().get(i).getId() + "</a></li>";
 			}
-			h += "</ul></div>";
+			h += "</ol></div>";
 		} else if(enc.getAnnotations()==null){
 			h+="<div> Annotations = NULL</div>";
 		} else if(enc.getAnnotations().size()==0) {
