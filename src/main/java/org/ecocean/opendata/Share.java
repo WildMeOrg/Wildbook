@@ -22,6 +22,7 @@ public abstract class Share {
 
     //we cache these (via init()) so that we dont have to read all the time (e.g. in isShareable())
     private User collaborationUser = null;
+    private boolean triedCollaborationUser = false;
     private List<User> orgUsers = null;  //get the users within share organization
     private Boolean shareAll = null;
 
@@ -70,7 +71,9 @@ public abstract class Share {
     }
 
     public User getCollaborationUser() {
-        if (collaborationUser != null) return collaborationUser;  //yes, it will check each time if (intentionally) null/unset. :/
+        if (collaborationUser != null) return collaborationUser;
+        if (triedCollaborationUser) return null;  //dont need to check
+        triedCollaborationUser = true;
         String uid = getProperty("collaborationUser", null);
         if (uid == null) return null;
         Shepherd myShepherd = new Shepherd(context);
