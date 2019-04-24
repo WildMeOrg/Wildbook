@@ -146,19 +146,20 @@ public class MultipleSubmitAPI extends HttpServlet {
                 AssetStore astore = AssetStore.getDefault(myShepherd);
                 for (int i=0;i<numEncs;i++) {
                     System.out.println("Making anns for enc "+i);
-                    
                     try {
                         Encounter enc = createEncounter(json, i);
                         myShepherd.storeNewEncounter(enc);
                         System.out.println("Created Encounter id="+enc.getID());
                         JsonArray arr = encImgLists.getAsJsonArray(String.valueOf(i));
-                        for (int j=0;j<arr.size();j++) {
-                            String keyNum = arr.get(j).getAsString();
-                            Part encPart = request.getPart("image-file-"+keyNum);
-                            System.out.println("Got part for ann num="+j);
-                            Annotation ann = makeMediaAssetFromPart(encPart, astore, enc, myShepherd);
-                            enc.addAnnotation(ann);
-                            System.out.println("Created Annotation id="+ann.getId());
+                        if (arr!=null) {
+                            for (int j=0;j<arr.size();j++) {
+                                String keyNum = arr.get(j).getAsString();
+                                Part encPart = request.getPart("image-file-"+keyNum);
+                                System.out.println("Got part for ann num="+j);
+                                Annotation ann = makeMediaAssetFromPart(encPart, astore, enc, myShepherd);
+                                enc.addAnnotation(ann);
+                                System.out.println("Created Annotation id="+ann.getId());
+                            }
                         }
                     } catch (Exception e) {
                         System.out.println("Exception creating Encounter and assets!");
@@ -213,16 +214,16 @@ public class MultipleSubmitAPI extends HttpServlet {
     }
 
     private Encounter createEncounter(JsonObject json, int encIdx) {
-        String locStr = json.get("enc-data-"+encIdx).getAsJsonObject().get("location").getAsString();
-        String dateStr = json.get("enc-data-"+encIdx).getAsJsonObject().get("date").getAsString();
-        String specStr = json.get("enc-data-"+encIdx).getAsJsonObject().get("species").getAsString();
+        String locStr = Util.sanitizeUserInput(json.get("enc-data-"+encIdx).getAsJsonObject().get("location").getAsString());
+        String dateStr = Util.sanitizeUserInput(json.get("enc-data-"+encIdx).getAsJsonObject().get("date").getAsString());
+        String specStr = Util.sanitizeUserInput(json.get("enc-data-"+encIdx).getAsJsonObject().get("species").getAsString());
         DateTimeFormatter formatter = DateTimeFormat.forPattern("MM/dd/yyyy");
         DateTime dt = null;
         if (hasVal(dateStr)) {
             dt = formatter.parseDateTime(dateStr);
         }
         Encounter enc = new Encounter(dt, locStr);
-        String comments = json.get("enc-data-"+encIdx).getAsJsonObject().get("comments").getAsString();
+        String comments = Util.sanitizeUserInput(json.get("enc-data-"+encIdx).getAsJsonObject().get("comments").getAsString());
         if (hasVal(comments)) {
             enc.setComments(comments);
         }
