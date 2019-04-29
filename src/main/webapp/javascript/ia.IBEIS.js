@@ -46,7 +46,7 @@ wildbook.IA.plugins.push({
                     var ma = assetById(mid);
                     var requireSpecies = wildbook.IA.requireSpeciesForId();
                     if (requireSpecies=="false"||ma.taxonomyString) {
-                        menuText = 'start matching';
+                        //menuText = 'start matching';
                         alreadyLinked = true;
                     } else {
                         menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';

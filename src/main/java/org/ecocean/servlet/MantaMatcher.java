@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.text.ParseException;
 import java.util.*;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -126,9 +127,18 @@ public final class MantaMatcher extends DispatchServlet {
 
       MantaMatcherScan scan = MantaMatcherUtilities.findMantaMatcherScan(context,ma , id);
       MMAResultsProcessor.MMAResult mmaResults = parseResults(req, scan.getScanOutputTXT(), ma);
-      req.setAttribute(REQUEST_KEY_SCAN, scan);
-      req.setAttribute(REQUEST_KEY_RESULTS, mmaResults);
-      getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
+      if(mmaResults==null)System.out.println("mmaResults is NULL!!");
+      req.getSession().setAttribute(REQUEST_KEY_SCAN, scan);
+      req.getSession().setAttribute(REQUEST_KEY_RESULTS, mmaResults);
+      //req.getSession().setAttribute("encId", request);
+      
+      //getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
+      
+      String name = "Jane"; //create a string
+
+      RequestDispatcher rs = req.getRequestDispatcher(JSP_MMA_RESULTS); //the page you want to send your value
+      rs.forward(req,res); //forward it
+      
 
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -163,10 +173,16 @@ public final class MantaMatcher extends DispatchServlet {
       // Parse results.
       System.out.println("...about to parseMatchResults!");
       return MMAResultsProcessor.parseMatchResults(myShepherd, text, ma, dataDir);
-    } finally {
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
+    finally {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
+    System.out.println("parseResults is NULL!!!!");  
+    return null;
   }
 
   public void resetMmaCompatible(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {

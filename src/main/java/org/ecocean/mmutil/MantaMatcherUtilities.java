@@ -407,6 +407,7 @@ public final class MantaMatcherUtilities {
   public static String createMantaMatcherResultsLink(HttpServletRequest req, MediaAsset ma, Encounter enc, String scanId) {
     String paramSPV = String.format("%s=%s", MantaMatcher.PARAM_KEY_SPV, URLEncoder.encode(new Integer(ma.getId()).toString()));
     String paramScanId = String.format("%s=%s", MantaMatcher.PARAM_KEY_SCANID, URLEncoder.encode(scanId));
-    return String.format("%s/MantaMatcher/displayResults?%s&%s", req.getContextPath(), paramSPV, paramScanId);
+    String paramEncId = String.format("%s=%s", "encounterNumber", URLEncoder.encode(enc.getCatalogNumber()));
+    return String.format("%s/MantaMatcher/displayResults?%s&%s&%s", req.getContextPath(), paramSPV, paramScanId, paramEncId);
   }
 }

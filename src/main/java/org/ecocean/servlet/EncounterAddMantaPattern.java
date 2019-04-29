@@ -586,7 +586,9 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             System.out.println("...building resultsURL...");
             String paramSPV = String.format("%s=%s", MantaMatcher.PARAM_KEY_SPV, URLEncoder.encode(new Integer(ma.getId()).toString()));
             String paramScanId = String.format("%s=%s", MantaMatcher.PARAM_KEY_SCANID, URLEncoder.encode(scan.getId()));
-            String resultsURL = String.format("%s/MantaMatcher/displayResults?%s&%s", request.getContextPath(), paramSPV, paramScanId);
+            String encN = String.format("%s=%s", "encounterNumber", URLEncoder.encode(encounterNumber));
+            
+            String resultsURL = String.format("%s/MantaMatcher/displayResults?%s&%s&%s", request.getContextPath(), paramSPV, paramScanId, encN);
             System.out.println("...successfully trying to redirect user to: "+resultsURL);
             
             response.sendRedirect(resultsURL);

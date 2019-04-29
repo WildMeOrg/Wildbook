@@ -94,7 +94,7 @@ public final class MMAResultsProcessor {
       else
         parseMatchResultsCore(shepherd, result, sections[i].trim(), dataDir, result.dirTest);
     }
-
+    System.out.println("Done with parseMatchResults!");
     return result;
   }
 
@@ -144,15 +144,20 @@ public final class MMAResultsProcessor {
         Pattern p = Pattern.compile("^(\\d+)\\) \\{([^{}]+)\\} \\[([\\d.]+)\\]\\s*(?:\\(best match: '([^']+)', path='([^']+)'\\))?$", Pattern.MULTILINE);
         List<MMAMatch> matches = new ArrayList<>();
         while ((s = sc.findInLine(p)) != null) {
+          System.out.println("Parsing a results line: "+sc.toString());
           mr = sc.match();
           MMAMatch res = new MMAMatch();
           res.rank = Integer.parseInt(mr.group(1));
+          System.out.println("...rank: "+res.rank);
           res.score = Float.parseFloat(mr.group(3));
+          System.out.println("...score: "+res.score);
           if (mr.group(4) != null && mr.group(5) != null) {
+            System.out.println("...result1: "+res.toString());
             res.bestMatch = mr.group(4);
             res.bestMatchPath = mr.group(5);
             // Parse/assign encounter number.
             res.matchEncounterNumber = mr.group(2);
+            System.out.println("...result2: "+res.toString());
             try {
               // Obtain encounter dir for matched image.
               //File dir = new File(Encounter.dir(dataDir, res.matchEncounterNumber));
@@ -167,8 +172,10 @@ public final class MMAResultsProcessor {
                 res.pigmentation = enc.getPatterningCode();
                 // Only add items with a non-zero score (only lines with 'best match' anyway).
                 matches.add(res);
+                System.out.println("...result3 added!: "+res.toString());
               }
             } catch (Exception ex) {
+              ex.printStackTrace();
               // Ignore; just means previously matched encounter can't now be found.
               log.trace("Failed to find encounter for match: " + res.matchEncounterNumber);
             }
@@ -180,10 +187,16 @@ public final class MMAResultsProcessor {
           catch (NoSuchElementException ex)
           {
             // Ignore.
+            //ex.printStackTrace();
           }
         }
+        System.out.println("in parseMatchResultsCore...about to set result.mapTests with matches.size: "+matches.size());
         result.mapTests.put(pathCR, matches);
       }
+    }
+    catch(Exception e){
+      System.out.println("parseMatchResultsCore just utterly failed");
+      e.printStackTrace();
     }
   }
 
@@ -196,6 +209,7 @@ public final class MMAResultsProcessor {
   private static void parseMatchResultsHeader(Shepherd shepherd, MMAResult result, String text) throws ParseException {
     try (Scanner sc = new Scanner(text).useDelimiter("[\\r\\n]+")) {
       // Parse header info.
+      System.out.println("inside parseMatchResultsHeader");
       String s = sc.findInLine("(Manta Matcher version ([^,]+)),\\s+(.+)");
       MatchResult mr = sc.match();
       DateFormat df = new SimpleDateFormat("dd MMM yyyy, hh:mm:ss");
@@ -243,6 +257,7 @@ public final class MMAResultsProcessor {
       result.scoreCombination = sc.match().group(1);
 //      log.trace("Score combination: {}", result.scoreCombination);
     }
+    catch(Exception e){e.printStackTrace();}
   }
 
   /**
@@ -253,6 +268,7 @@ public final class MMAResultsProcessor {
    */
   private static void parseMatchResultsSummary(Shepherd shepherd, MMAResult result, String text) throws ParseException {
     // TODO: implement
+    System.out.println("inside parseMatchResultsSummary");
   }
 
   /**
