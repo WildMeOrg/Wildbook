@@ -1,9 +1,25 @@
+
+
 .btn-file-selector {
     font-size: 2em;
     padding: 15px;
+    /*
     margin-left: 33%;
     margin-top: 45px;
     margin-bottom: 45px;
+    */
+}
+
+.center-vertical {
+    margin: 0;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.center-horiz {
+    display: inline-block;
+    margin: auto;
 }
 
 .hidden-input {
@@ -15,11 +31,33 @@
 }
 
 .image-tile-div {
-    height: 12em;
     margin-top: 15px;
     margin-bottom: 15px;
-    overflow: hidden;
     position: relative;
+    overflow: hidden; 
+    padding-left: 10px;
+    padding-right: 10px;
+    /* 
+    text-align: center;
+    display: inline-block;
+    clear: both;
+    */
+}
+
+@media (min-width: 576px) {
+    .image-tile-div {min-height: 11em;}
+} 
+
+@media (min-width: 768px)  {
+    .image-tile-div {min-height: 15em;}
+} 
+
+@media (min-width: 992px) {
+    .image-tile-div {min-height: 19em;}
+} 
+
+@media (min-width: 1200px) {
+    .image-tile-div {min-height: 23em;}
 }
 
 .image-filename {
@@ -29,12 +67,23 @@
 
 .image-element {
     position: absolute;
+    max-width: 100%;
+    max-block-size: 100%;
+    object-fit: contain;
+    margin: 0;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    /*
+    height: auto;
+    text-align: center;
+    */
 }
 
 .img-input {
     position: absolute;
     margin-left: 3%;
-    margin-top: 3%;
+    margin-top: 25%;
     margin-right: 6%;
     width: 91%;
     background-color: rgba(0,0,0,0.55);
@@ -44,6 +93,13 @@
     font-size: 0.9em;
     padding-left: 3%;
     color: white;
+    opacity: 1.0;
+}
+
+.enc-input-label {
+    font-size: 0.9em;
+    padding-left: 3%;
+    color: black;
     opacity: 1.0;
 }
 
@@ -64,20 +120,27 @@ div .img-input {
 .img-selected {
     border-style: solid;
     border-width: 0.2em;
-    border-color: blue;
+    border-color: darkblue;
 }
 
 .encounter-tile-div {
-    background-color: darkslategrey;
+    background-color: rgba(179,219,244,1);
     margin: 5px;
-    padding-left: 10px;
+    padding-left: 2%;
+
     padding-top: 10px;
     padding-bottom: 10px;
 }
 
 .encounter-label {
-    color: white;
-    font-weight: bolder;
+    border-radius: 15px;
+    padding: 0.7em;
+    color: black;
+    /*
+    text-decoration: underline;
+    */
+    font-weight: bolder !important;
+    background-color: rgba(0,0,0,0.35)
 }
 
 .image-label {
@@ -112,3 +175,7 @@ div .img-input {
     margin-right: 3%;
 }
 */
+
+.show-metadata-btn {
+    margin: 0 !important;
+}

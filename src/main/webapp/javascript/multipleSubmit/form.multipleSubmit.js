@@ -94,31 +94,42 @@ function showSelectedMedia() {
 //}
 
 function showOverlay(index) {
-    var imgDiv = document.getElementById("img-overlay-"+index);
-    var tileDiv = document.getElementById("image-tile-div-"+index);
-    if (!$(tileDiv).hasClass('img-selected')) { 
-        // pop a label over the top that says 'click to select'
-    }
-    imgDiv.hidden = false;
+    var overlayDiv = document.getElementById("img-overlay-"+index);
+    //var tileDiv = document.getElementById("image-tile-div-"+index);
+    $(overlayDiv).addClass('img-selected');
+    $("#img-"+index).addClass('img-selected');
+    //if (!$(tileDiv).hasClass('img-selected')) { 
+        // we don't need this yet.. overlay doesn't require focus with current options        
+    //}
+    overlayDiv.hidden = false;
 }
 
 function hideOverlay(index) {
-    var imgDiv = document.getElementById("img-overlay-"+index);
-    var tileDiv = document.getElementById("image-tile-div-"+index);
+    var overlayDiv = document.getElementById("img-overlay-"+index);
+    //var tileDiv = document.getElementById("image-tile-div-"+index);
+    $(overlayDiv).removeClass('img-selected');
+    $("#img-"+index).removeClass('img-selected');
     // ignore if we have clicked this item to focus
-    if (!$(tileDiv).hasClass('img-selected')) {
-        imgDiv.hidden = true;
-    }
+    //if (!$(tileDiv).hasClass('img-selected')) {
+    //}
+    overlayDiv.hidden = true;
 }
 
 function imageTileClicked(index) {
-    var tileDiv = document.getElementById(multipleSubmitUI.getImageIdForIndex(index));
-    console.log("Clicked! id="+multipleSubmitUI.getImageIdForIndex(index));
-    if ($(tileDiv).hasClass('img-selected')) {
-        $(tileDiv).removeClass('img-selected');
-    } else {
-        $(tileDiv).addClass('img-selected');
-    }    
+
+    // gonna SIMPLIFY right now since we don't really need anything on focus
+
+    //var tileDiv = document.getElementById(multipleSubmitUI.getImageIdForIndex(index));
+    //console.log("Clicked! id="+multipleSubmitUI.getImageIdForIndex(index));
+    //if ($(tileDiv).hasClass('img-selected')) {
+    //    $(tileDiv).removeClass('img-selected');
+    //} else {
+    //    var anySelected = document.getElementsByClassName("img-selected");
+    //    Array.prototype.slice.call(anySelected).forEach(function(tile) {
+    //        $(tile).removeClass("img-selected");
+    //    });
+    //    $(tileDiv).addClass('img-selected');
+    //}    
 }
 
 function showEditMetadata(index) {

@@ -24,14 +24,14 @@ multipleSubmitUI = {
     generateMetadataTile: function(index) {
         var metadataTile = "";
         metadataTile += "<div class=\"encounter-tile-div col-xs-12 col-xl-12\">";
-        metadataTile += "   <p>";
-        metadataTile += "       <label class=\"encounter-label\">&nbspShow Encounter #"+(index+1)+"&nbsp</label>";
-        metadataTile += "       <label class=\"btn btn-default btn-sm\" onclick=\"showEditMetadata("+index+")\">Show Details</label>";
-        metadataTile += "   </p>";
+        metadataTile += "   <div>";
+        metadataTile += "       <label class=\"encounter-label\">&nbspEncounter Metadata #"+(index+1)+"&nbsp</label>";
+        metadataTile += "       <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\"Show Details\" />";
+        metadataTile += "   </div>";
         metadataTile +=	"   <div id=\"enc-metadata-inner-"+index+"\" class=\"edit-closed\">";	
         metadataTile +=         "<div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateLocationDropdown(index)+"</div>";
         metadataTile +=	"	     <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">";
-        metadataTile += "           <p class=\"img-input-label\"><small>Select Date:</small></p>";
+        metadataTile += "           <p class=\"enc-input-label\"><small>Select Date:</small></p>";
         metadataTile += "           <input id=\"enc-date-"+index+"\" name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"form-control encDate\" size=\"36\" />";
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateSpeciesDropdown(index)+"</div>";
@@ -80,7 +80,7 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getEncInputClassForIndex(index);
         var speciesDrop = "";
         var uiId = "spec-" + uiClass;
-        speciesDrop += "<p class=\"img-input-label\"><small>Select Species:</small></p>";
+        speciesDrop += "<p class=\"enc-input-label\"><small>Select Species:</small></p>";
         speciesDrop += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" name=\"species-dropdown-"+index+"\">";
         multipleSubmitAPI.getSpecies(function(result){
             var allSpecies = result.allSpecies
@@ -104,7 +104,7 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getEncInputClassForIndex(index);
         var uiId = "loc-" + uiClass;
         var dd = "";
-        dd += "<p class=\"img-input-label\"><small>Select Location:</small></p>";
+        dd += "<p class=\"enc-input-label\"><small>Select Location:</small></p>";
         dd += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
         dd += "    <option selected=\"selected\" value=\"null\" disabled>Choose Location</option>";
         multipleSubmitAPI.getLocations(function(locObj){
