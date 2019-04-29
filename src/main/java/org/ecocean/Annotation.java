@@ -612,11 +612,12 @@ System.out.println("[1] getMatchingSet params=" + params);
             System.out.println("WARNING: getMatchingSet() could not find Encounter for " + this);
             return anns;
         }
-        List<Annotation> sibAnns = myEnc.getAnnotations();
+        //List<Annotation> sibAnns = myEnc.getAnnotations();
         System.out.println("Getting matching set for annotation. Retrieved encounter = "+myEnc.getCatalogNumber());
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
+            System.out.println("MATCHING "+(myGenus+" "+mySpecificEpithet).toUpperCase()+": Filter for Annotation id="+this.id+" will use species and attempt viewpoint.");
             anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
         } else if (useClauses) {
             System.out.println("MATCHING ALL SPECIES : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
@@ -677,7 +678,7 @@ System.out.println("[1] getMatchingSet params=" + params);
 
     // If you don't specify a species, still take into account viewpoint and parts  
     public ArrayList<Annotation> getMatchingSetForAnnotationAllSpeciesUseClauses(Shepherd myShepherd) {
-        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null");
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && enc.annotations.contains(this) " + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && enc.catalogNumber != '" + this.findEncounter(myShepherd).getCatalogNumber() + "' && acmId != null  VARIABLES org.ecocean.Encounter enc");
     }
 
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
