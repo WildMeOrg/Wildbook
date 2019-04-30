@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Collection;
@@ -18,7 +19,7 @@ public class MultiValue implements java.io.Serializable {
     private int id;
     protected JSONObject values;
     protected String valuesAsString;
-    private static final String DEFAULT_KEY_VALUE = "*";
+    public static final String DEFAULT_KEY_VALUE = "*";
 
     public MultiValue() {
     }
@@ -39,6 +40,10 @@ public class MultiValue implements java.io.Serializable {
 
     public int getId() {
         return id;
+    }
+
+    public static boolean isDefault(String str) {
+        return (DEFAULT_KEY_VALUE.equals(str));
     }
 
     public JSONObject getValues() {
@@ -88,15 +93,22 @@ public class MultiValue implements java.io.Serializable {
         addValuesByKey(DEFAULT_KEY_VALUE, value);
     }
 
+    public String getValue(Object keyHint) {
+        List<String> vals = getValuesAsList(keyHint);
+        if (vals==null || vals.size()==0) return null;
+        return vals.get(0);
+    }
+
     //this could get values across multiple keys, but wont get duplicates
     public List<String> getValuesAsList(Object keyHint) {
         return getValuesByKeys(generateKeys(keyHint));
     }
     public List<String> getValuesByKeys(Set<String> keys) {
         List<String> rtn = new ArrayList<String>();
-        if (getValues() == null) return rtn;
+        if (values==null) return null;
         for (String key : keys) {
             JSONArray v = values.optJSONArray(key);
+
             if (v == null) continue;
             for (int i = 0 ; i < v.length() ; i++) {
                 String val = v.optString(i, null);
@@ -112,6 +124,16 @@ public class MultiValue implements java.io.Serializable {
     }
     public List<String> getValuesDefault() {
         return getValuesByKey(DEFAULT_KEY_VALUE);
+    }
+
+    public void removeKey(String key) {
+        System.out.println("removeKey called on "+this.toString());
+        if (key == null) return;
+        JSONObject clone = getValues();
+        if (clone == null) return;
+        clone.remove(key);
+        setValues(clone);
+        System.out.println("removeKey completed, now "+this.toString());
     }
 
     public void removeValuesByKeys(Set<String> keys, String value) {
@@ -134,9 +156,11 @@ public class MultiValue implements java.io.Serializable {
         setValues(clone);
     }
     public void removeValuesByKey(String key, String value) {  //convenience singular key
+        System.out.println("removeValuesByKey called on "+this.toString());
         Set<String> keys = new HashSet<String>();
         keys.add(key);
         removeValuesByKeys(keys, value);
+        System.out.println("removeValuesByKey completed, now "+this.toString());
     }
     public void removeValues(Object keyHint, String value) {
         removeValuesByKeys(generateKeys(keyHint), value);
@@ -165,6 +189,7 @@ public class MultiValue implements java.io.Serializable {
         return rtn;
     }
 
+
     public Set<String> getKeys() {
         if (getValues() == null) return null;
         Set<String> rtn = new HashSet<String>();
@@ -173,6 +198,13 @@ public class MultiValue implements java.io.Serializable {
             rtn.add((String)it.next());
         }
         return rtn;
+    }
+
+    // returns the alphebatized list version of Set<String> getKeys();
+    public List<String> getKeyList() {
+        Set<String> keys = getKeys();
+        if (keys==null) return new ArrayList<String>();
+        return new ArrayList<String>(new TreeSet<String>(keys));
     }
 
     public JSONObject toJSONObject(Object keyHint) {
@@ -192,7 +224,7 @@ public class MultiValue implements java.io.Serializable {
 
     //this does a bunch of magic to get a "key" that matches the "user context" (whatever that means!)
     public static Set<String> generateKeys(Object keyHint) {
-        return generateKeys(keyHint, true);  //default includes DEFAULT_KEY_VALUE -- you have been warned!
+        return generateKeys(keyHint, false);  //default includes DEFAULT_KEY_VALUE -- you have been warned!
     }
     public static Set<String> generateKeys(Object keyHint, boolean includeDefault) {
         Set<String> rtn = new HashSet();
@@ -210,7 +242,8 @@ public class MultiValue implements java.io.Serializable {
             User u = (User)keyHint;
             rtn.addAll(u.getMultiValueKeys());
         } else if (keyHint instanceof String) {  //this may(?) only be for testing purposes
-            rtn.add("_RAW_:" + (String)keyHint);
+            //rtn.add("_RAW_:" + (String)keyHint);
+            rtn.add((String)keyHint);
         }
         return rtn;
     }
@@ -220,7 +253,8 @@ public class MultiValue implements java.io.Serializable {
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
-                .append("keys", this.getKeys())
+                //.append("keys", this.getKeys())
+                .append("values", this.getValuesAsString())
                 .toString();
     }
 

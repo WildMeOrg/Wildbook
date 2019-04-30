@@ -6,7 +6,7 @@ wildbook.IA.plugins.push({
     //var h = '<hr class="task-divider" />'
     var h = '';
 	    h += '<div class="task-content task-type-' + gt + '" id="task-' + task.id + '">';
-        h += '<div class="task-title task-type-' + gt + '" onDblClick="$(\'#task-debug-' + task.id + '\').show();"><span class="task-title-id"><b>Task ' + task.id + '</b></span></div>';
+        h += '<div class="task-title accordion task-type-' + gt + '" onDblClick="$(\'#task-debug-' + task.id + '\').show();"><span class="task-title-id"><b>Task ' + task.id + '</b></span></div>';
         h += '<div class="task-summary task-type-' + gt + '"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div>';
         h += '</div>';
         return h;

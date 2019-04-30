@@ -108,15 +108,18 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	   use an *existing* indiv in those cases (but allow a new one in the other)
 	*/
 
-	MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(request.getParameter("individualID"));
+	String indID = request.getParameter("individualID");
+	if (indID!=null) indID = indID.trim();
+	MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(indID);
 	if ((indiv == null) && (enc != null) && (enc2 != null)) {
-		if (request.getParameter("individualID")!=null&&!"".equals(request.getParameter("individualID").trim())) {
+		if (Util.stringExists(indID)) {
 			try {
-				MarkedIndividual newIndiv = new MarkedIndividual(request.getParameter("individualID"), enc);
+				// TODO: is this how we should create newIndiv?
+				MarkedIndividual newIndiv = new MarkedIndividual(indID, enc);
 				myShepherd.storeNewMarkedIndividual(newIndiv);
-				enc.setIndividualID(newIndiv.getIndividualID());
-				enc2.setIndividualID(newIndiv.getIndividualID());
-				newIndiv.addEncounter(enc2, context);
+				enc.setIndividual(newIndiv);
+				enc2.setIndividual(newIndiv);
+				newIndiv.addEncounter(enc2);
 				res.put("success", true);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -141,13 +144,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	}
 
 // TODO enc.setMatchedBy() + comments + etc?????
-	enc.setIndividualID(indiv.getIndividualID());
+	enc.setIndividual(indiv);
 	enc.setState("approved");
-	indiv.addEncounter(enc, context);
+	indiv.addEncounter(enc);
 	if (enc2 != null) {
-		enc2.setIndividualID(indiv.getIndividualID());
+		enc2.setIndividual(indiv);
 		enc2.setState("approved");
-		indiv.addEncounter(enc2, context);
+		indiv.addEncounter(enc2);
 	}
 	myShepherd.getPM().makePersistent(indiv);
 	
@@ -285,7 +288,10 @@ function init2() {   //called from wildbook.init() when finished
 	// If we don't have anything but null task types after a while, lets just reload the page and get updated info. 
 	// We get to this condition when the page loads too fast and you have only __NULL__ type tasks, 
 	// and no children to traverse.
-	$('.maincontent').html("<div id=\"initial-waiter\" class=\"waiting throbbing\"><p>processing request</p></div>");
+	
+	// removed below bc it was overwriting the scoreType settings
+	//$('.maincontent').html("<div id=\"initial-waiter\" class=\"waiting throbbing\"><p>processing request</p></div>");
+	
 	var reloadTimeout = setTimeout(function(){
 		var onlyNullTaskType = true;
 		for (var i = 0 ; i < taskIds.length ; i++) {
@@ -522,7 +528,7 @@ function showTaskResult(res, taskId) {
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
 		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
-                var algoDesc = '<span title="' + algoInfo + '">pattern</span>';
+                var algoDesc = '<span title="' + algoInfo + '">pattern (HotSpotter)</span>';
                 if (algoInfo == 'CurvRankFluke') {
                     algoDesc = 'trailing edge (CurvRank)';
                 } else if (algoInfo == 'OC_WDTW') {
@@ -530,6 +536,8 @@ function showTaskResult(res, taskId) {
                 }
 console.log('algoDesc %o %s %s', res.status._response.response.json_result.query_config_dict, algoInfo, algoDesc);
 		var h = 'Matches based on <b>' + algoDesc + '</b>';
+		// I'd like to add an on-hover tooltip explaining the algorithm to users, but am unsure how to read a .properties file from here -Drew
+		// h += ' <i class="el el-info-circle"></i>';
 		if (res.timestamp) {
 			var d = new Date(res.timestamp);
 			h += '<span class="algoTimestamp">' + d.toLocaleString() + '</span>';
@@ -566,6 +574,9 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			illustUrl += "&database_annot_uuid="+database_annot_uuid;
 			illustUrl += "&version="+version;
 			console.log("ILLUSTRATION "+i+" "+illustUrl);
+
+			// no illustration for DTW
+			if (algoInfo == 'OC_WDTW') illustUrl = false;
 
 			displayAnnot(res.taskId, d[1], i, d[0] / 1000, illustUrl);
 			// ----- END Hotspotter IA Illustration-----
@@ -659,10 +670,12 @@ console.info('illustrationUrl '+illustrationUrl);
             var ft = findMyFeature(acmId, mainAsset);
             if (ft) {
                 var encId = ft.encounterId;
+                var encDisplay = encId;
+                if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
                 var indivId = ft.individualId;
                 if (encId) {
                     h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">enc ' + encId + '</a>');
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
                     
 		    if (!indivId) {
 				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
