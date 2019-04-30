@@ -55,6 +55,7 @@ public class MarkedIndividual implements java.io.Serializable {
 
     private MultiValue names;
     private static HashMap<Integer,String> NAMES_CACHE = new HashMap<Integer,String>();  //this is for searching
+    private static HashMap<Integer,String> NAMES_KEY_CACHE = new HashMap<Integer>
 
     private String alternateid;  //TODO this will go away soon
     private String legacyIndividualID;  //TODO this "could" go away "eventually"
@@ -2307,18 +2308,20 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
     //only does once (when needed)
     public static boolean initNamesCache(final Shepherd myShepherd) {
-        if ((NAMES_CACHE != null) && (NAMES_CACHE.size() > 0)) return false;
+        if ((NAMES_CACHE != null) && (NAMES_CACHE.size() > 0) && (NAMES_KEY_CACHE != null) && (NAMES_KEY_CACHE.size() > 0)) return false;
         updateNamesCache(myShepherd);
         return true;
     }
     public static Map<Integer,String> updateNamesCache(final Shepherd myShepherd) {
         NAMES_CACHE = new HashMap<Integer,String>();
+        NAMES_KEY_CACHE = new HashMap<Integer,String>();
         Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual");
         Collection c = (Collection) (query.execute());
         for (Object m : c) {
             MarkedIndividual ind = (MarkedIndividual) m;
             if (ind.names == null) continue;
             NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
+            NAMES_KEY_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.getNameKeys()).toLowerCase());
         }
         return NAMES_CACHE;
     }
