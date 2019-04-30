@@ -50,7 +50,7 @@ if (idString != null) {
 
     String flavor = tripData.optString("_tripFlavor", "__FAIL__");
     if (flavor.equals("ci")) {
-        Survey surv = SpotterConserveIO.ciToSurvey(tripData);
+        Survey surv = SpotterConserveIO.ciToSurvey(tripData, myShepherd);
         myShepherd.getPM().makePersistent(surv);
         System.out.println("spotterTest: created " + surv.toString());
         out.println("<p><a target=\"_new\" href=\"foo?" + surv.getID() + "\">" + surv + "</a></p><ul>");

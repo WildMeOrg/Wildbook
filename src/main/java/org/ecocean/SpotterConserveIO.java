@@ -7,6 +7,7 @@ import org.ecocean.servlet.ServletUtilities;
 import java.util.Properties;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.joda.time.DateTime;
 import org.ecocean.datacollection.*;
 import org.ecocean.movement.*;
@@ -26,13 +27,18 @@ import java.io.UnsupportedEncodingException;
 
 public class SpotterConserveIO {
 
-    private static int PROJECT_ID_CI = 2;
-    private static int PROJECT_ID_WA = 7;
-    private static String SYSTEMVALUE_KEY_LASTSYNC_CI = "SpotterConserveIO_lastSync_CI";
-    private static String SYSTEMVALUE_KEY_LASTSYNC_WA = "SpotterConserveIO_lastSync_WA";
+    private static final int PROJECT_ID_CI = 2;
+    private static final int PROJECT_ID_WA = 7;
+    private static final String SYSTEMVALUE_KEY_LASTSYNC_CI = "SpotterConserveIO_lastSync_CI";
+    private static final String SYSTEMVALUE_KEY_LASTSYNC_WA = "SpotterConserveIO_lastSync_WA";
+    private static final String OBS_WEATHER_NAME = "weather";
+    private static final String PROP_ORGID_CI_VOLUNTEER = "channelIslandsVolunteerOrgId";
+    private static final String PROP_ORGID_CI = "channelIslandsOrgId";
+    private static final String PROP_USERID_CI = "channelIslandsUserId";
     public static String apiUsername = null;
     public static String apiPassword = null;
     public static String apiUrlPrefix = null;
+    public static Properties props = null;  //will be set by init()
 
     public static void init(HttpServletRequest request) {
         init(ServletUtilities.getContext(request));
@@ -40,7 +46,7 @@ public class SpotterConserveIO {
 
     //should be called once -- sets up credentials for REST calls
     public static void init(String context) {
-        Properties props = ShepherdProperties.getProperties("spotter-conserve-io.properties", "", context);
+        if (props == null) props = ShepherdProperties.getProperties("spotter-conserve-io.properties", "", context);
         if (props == null) throw new RuntimeException("no spotter-conserve-io.properties");
         apiUsername = props.getProperty("apiUsername");
         apiPassword = props.getProperty("apiPassword");
@@ -62,7 +68,8 @@ public class SpotterConserveIO {
 
 
     //this is the "starting point" for JSON from the API
-    public static Survey ciToSurvey(JSONObject jin) {
+    public static Survey ciToSurvey(JSONObject jin, Shepherd myShepherd) {
+        if (jin == null) return null;
         DateTime startDate = toDateTime(jin.optString("start_date", null));
         DateTime endDate = toDateTime(jin.optString("end_date", null));
         DateTime createDate = toDateTime(jin.optString("create_date", null));
@@ -78,14 +85,32 @@ public class SpotterConserveIO {
         survey.setOrganization("conserve.io");
 
         //there will be only one SurveyTrack pulled from this data, fwiw
-        SurveyTrack st = ciToSurveyTrack(jin);
+        SurveyTrack st = ciToSurveyTrack(jin, myShepherd);
         survey.addSurveyTrack(st);
 ///TODO do we .setEffort based on survey track lengths or what???
+
+        if (jin.optJSONArray("CINMS Weather") != null) {
+            ArrayList<Observation> wths = new ArrayList<Observation>();
+            JSONArray jw = jin.getJSONArray("CINMS Weather");
+            for (int i = 0 ; i < jw.length() ; i++) {
+                Observation wth = ciToWeather(jw.optJSONObject(i), survey);
+                if (wth != null) wths.add(wth);
+            }
+            survey.addObservationArrayList(wths);
+        }
         return survey;
     }
 
+    public static Observation ciToWeather(JSONObject wj, Survey surv) {
+        if (wj == null) return null;
+        Observation obs = new Observation(OBS_WEATHER_NAME, wj.toString(), surv, surv.getID());
+        DateTime dt = toDateTime(wj.optString("create_date", null));
+        obs.setDateAddedMilli((dt == null) ? null : dt.getMillis());
+        obs.setDateLastModifiedMilli();
+        return obs;
+    }
 
-    public static SurveyTrack ciToSurveyTrack(JSONObject jin) {
+    public static SurveyTrack ciToSurveyTrack(JSONObject jin, Shepherd myShepherd) {
         SurveyTrack st = new SurveyTrack();
 
         if (jin.optJSONArray("sightings") != null) {
@@ -99,7 +124,7 @@ public class SpotterConserveIO {
             if (jocc.length() % 2 == 1) throw new RuntimeException("sightings JSONArray is odd length=" + jocc.length());
             int halfSize = (int) jocc.length() / 2;
             for (int i = 0 ; i < halfSize ; i++) {
-                Occurrence occ = ciToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize));
+                Occurrence occ = ciToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin, myShepherd);
                 if (occ != null) occs.add(occ);
             }
             st.setOccurrences(occs);
@@ -108,23 +133,12 @@ public class SpotterConserveIO {
         Path path = trackToPath(jin.optJSONObject("track"));
         if (path != null) st.setPath(path);
 
-/*
-        if (jin.optJSONArray("CINMS Weather") != null) {
-            // maybe we make our own "weather datacollectionevent" !
-            List<Observation> wths = new ArrayList<Observation>();
-            JSONArray jw = jin.getJSONArray("CINMS Weather");
-            for (int i = 0 ; i < jw.length() ; i++) {
-                //Observation wth = ciToWeather(jw.optJSONObject(i));
-                //if (wth != null) wths.add(wth);
-            }
-            //.setWeather(wths);
-        }
-*/
         return st;
     }
 
 
-    public static Occurrence ciToOccurrence(JSONObject jin, JSONObject jin2) {
+    public static Occurrence ciToOccurrence(JSONObject jin, JSONObject jin2, JSONObject allJson, Shepherd myShepherd) {
+        int tripId = allJson.optInt("_tripId", 0);
         Occurrence occ = new Occurrence();
         occ.setOccurrenceID(Util.generateUUID());
         occ.addComments(jin.optString("Comments", null));
@@ -138,6 +152,8 @@ public class SpotterConserveIO {
         occ.setNumCalves(numCalves);
         occ.setNumAdults(numAdults);
         occ.setBestGroupSizeEstimate(new Double(numTotal));
+        occ.setSightingPlatform(allJson.optString("CINMS Vessel", null));
+        occ.setSource("SpotterConserveIO:ci:" + tripId);
 
 /* also notable?
 Other Vessels On Scene: 0,
@@ -163,11 +179,14 @@ Distance Category: "B"
             ArrayList<Encounter> encs = new ArrayList<Encounter>();
             JSONArray je = jin.getJSONArray("CINMS Photo Log");
             for (int i = 0 ; i < je.length() ; i++) {
-                Encounter enc = ciToEncounter(je.optJSONObject(i), jin, occ.getOccurrenceID());
+                Encounter enc = ciToEncounter(je.optJSONObject(i), jin, occ.getOccurrenceID(), allJson, myShepherd);
                 if (enc != null) encs.add(enc);
             }
             occ.setEncounters(encs);
         }
+        occ.setSubmitter(ciToUser(allJson, myShepherd));
+        List<User> vols = ciGetVolunteerUsers(allJson, myShepherd);
+        occ.setInformOthers(vols);
         return occ;
     }
 
@@ -182,19 +201,27 @@ Distance Category: "B"
         Animals Identified: 1
 }
 */
-    public static Encounter ciToEncounter(JSONObject jin, JSONObject occJson, String occId) {  //occJson we need for species (if not more)
+    public static Encounter ciToEncounter(JSONObject jin, JSONObject occJson, String occId, JSONObject allJson, Shepherd myShepherd) {  //occJson we need for species (if not more)
         Encounter enc = new Encounter();
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(findInteger(jin, "Animals Identified"));
         enc.setDynamicProperty("CINMS PID Code", jin.optString("PID Code", null));
         enc.setDynamicProperty("CINMS Card Number", jin.optString("Card Number", null));
         enc.setOccurrenceID(occId);
+        User sub = ciToUser(allJson, myShepherd);
+        enc.addSubmitter(sub);
+        List<User> vols = ciGetVolunteerUsers(allJson, myShepherd);
+        enc.setInformOthers(vols);
 
         String dc = jin.optString("create_date", null);
+        if (dc == null) dc = occJson.optString("create_date", null); //use the Occurrence date instead
         if (dc != null) {
             enc.setDWCDateAdded(dc);
             DateTime dt = toDateTime(dc);
-            if (dt != null) enc.setDWCDateAdded(dt.getMillis());  //sets the millis version on enc.  SIGH!!!!!!!!!!!
+            if (dt != null) {
+                enc.setDWCDateAdded(dt.getMillis());
+                enc.setDateInMilliseconds(dt.getMillis());
+            }
         }
         String tax[] = ciSpeciesSplit(occJson.optString("CINMS Species", null));
         if ((tax != null) && (tax.length > 1)) {
@@ -206,6 +233,7 @@ Distance Category: "B"
         int imageStart = jin.optInt("Image Number Start", -1);
         int imageEnd = jin.optInt("Image Number End", -1);
         if ((imageStart < 0) || (imageEnd < 0) || (imageEnd < imageStart)) {
+            enc.addComments("<p class=\"error\"><b>NOTE:</b> invalid range for image start/end; ignored</p><xmp>" + jin.toString(4) + "</xmp>");
             System.out.println("WARNING: " + enc + " had no valid image range [" + imageStart + " - " + imageEnd + "]");
         } else {
             ArrayList<Annotation> anns = new ArrayList<Annotation>();
@@ -245,6 +273,31 @@ System.out.println("MADE " + enc);
         return species.split(" +");
     }
 
+/*
+    unfortunately, we get a lot of noise for the "Observer Names" field, which need to be broken up
+    into names to search on User.fullName ... examples we need to split on:
+ci_data/ci_21339.json:  "Observer Names": "Jess Morten, Sean Hastings, Brad pilot", 
+ci_data/ci_21340.json:  "Observer Names": "Emilee Hurlbert", 
+ci_data/ci_21346.json:  "Observer Names": "Maria Ornelas\n",   #trailing noise! ugh
+ci_data/ci_21367.json:  "Observer Names": "Carolyn McCleskey,Sue Miller",  #comma-no-space, oof
+ci_data/ci_21371.json:  "Observer Names": "Rosie Romo\nDave Morse (PID)\n",   #wtf, gimme a break!
+ci_data/ci_21384.json:  "Observer Names": "Sophie Busch", 
+ci_data/ci_21390.json:  "Observer Names": "Sophie Busch and Marian Jean",    #you serious here???
+ci_data/ci_21408.json:  "Observer Names": "Larry Driscoll\nAnn Camou",      #etc.
+
+*/
+    public static List<User> ciGetVolunteerUsers(JSONObject jin, Shepherd myShepherd) {
+        if (jin == null) return null;
+        String namesIn = jin.optString("Observer Names", "").replaceAll("\\n$", "").replaceAll(" \\([^\\)]+\\)", "");
+        if (namesIn.equals("")) return null;
+        namesIn = namesIn.replaceAll("\\n", ",").replaceAll("\\s+and\\s+", ",");
+System.out.println("vols namesIn=[" + namesIn + "]");
+        return ciGetVolunteerUsers(myShepherd, Arrays.asList(namesIn.split("\\s*,\\s*")));
+    }
+
+    public static User ciToUser(JSONObject jin, Shepherd myShepherd) {
+        return ciGetSubmitterUser(myShepherd);
+    }
 
 /******************************************
     Whale Alert flavor
@@ -284,7 +337,7 @@ System.out.println("MADE " + enc);
         occ.setDecimalLongitude(resolveLatLon(jin, "device_longitude", "Longitude"));
         occ.setIndividualCount(jin.optInt("Number Sighted", 0));
         //occ.setBestGroupSizeEstimate(jin.optDouble("Number Sighted", 0.0));
-        //// ????? User sub = waToUser(jin);
+        occ.setSource("SpotterConserveIO:wa:" + tripId);
 
         //  also notable???     Whale Alert Other Species: ""
 
@@ -304,6 +357,7 @@ System.out.println("MADE " + enc);
             }
             occ.setEncounters(encs);
         }
+        occ.setSubmitter(waToUser(jin));
         myShepherd.getPM().makePersistent(occ);
         return occ;
     }
@@ -312,8 +366,9 @@ System.out.println("MADE " + enc);
     public static Encounter waToEncounter(String photoUrl, JSONObject occJson, Occurrence occ, Shepherd myShepherd) {
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);
         if (urlStore == null) throw new RuntimeException("Could not find a URLAssetStore to store images");
-        //// ????? User sub = waToUser(jin);
         Encounter enc = new Encounter();
+        User sub = waToUser(occJson);
+        enc.addSubmitter(sub);
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(???)
         enc.setOccurrenceID(occ.getID());
@@ -377,6 +432,7 @@ System.out.println("MADE " + enc);
     }
 
     public static User waToUser(JSONObject jin) {
+System.out.println("waToUser -> " + jin);
         /* something-something User()  see: JH work on user-submission
         String subEmail = jin.optString("Whale Alert Submitter Email", null);
         String subName = jin.optString("Whale Alert Submitter Name", null);
@@ -385,6 +441,175 @@ System.out.println("MADE " + enc);
         return null;
     }
 
+
+/******************************************
+    Ocean Alert flavor
+******************************************/
+
+    //this is the "starting point" for JSON from the API
+    // Whale Alert has no Survey/SurveyTrack info, so we go straight to Occurrence
+    //   n.b. chose Occurrence over Encounter since there is the possibility of reporting > 1 animal in the data from api
+    public static List<Occurrence> oaToOccurrences(JSONObject jin, Shepherd myShepherd) {
+        if (jin.optJSONArray("sightings") == null) return null;   // not a lot to do!  :( 
+        List<Occurrence> occs = new ArrayList<Occurrence>();
+
+        // similar to CI, sightings list uses (i) and (i + N/2) format list as well
+        JSONArray jocc = jin.getJSONArray("sightings");
+        if (jocc.length() % 2 == 1) throw new RuntimeException("sightings JSONArray is odd length=" + jocc.length());
+        int halfSize = (int) jocc.length() / 2;
+        for (int i = 0 ; i < halfSize ; i++) {
+            Occurrence occ = oaToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin.optInt("_tripId", 0), myShepherd);
+            if (occ != null) occs.add(occ);
+        }
+        return occs;
+    }
+
+    public static Occurrence oaToOccurrence(JSONObject jin, JSONObject jin2, int tripId, Shepherd myShepherd) {
+        Occurrence occ = new Occurrence();
+        occ.setOccurrenceID(Util.generateUUID());
+        String comments = jin.optString("Comments", null);
+        if (comments == null) {
+            comments = "<p>Ocean Alert trip ID: <b>" + tripId + "</b></p>";
+        } else {
+            comments = "<p>" + comments + "</p><p>Ocean Alert trip ID: <b>" + tripId + "</b></p>";
+        }
+        occ.addComments(comments);
+        occ.setDateTimeCreated(jin.optString("create_date", null));
+        occ.setBearing(findDouble(jin, "device_bearing"));
+        occ.setDecimalLatitude(resolveLatLon(jin, "device_latitude", "Latitude"));
+        occ.setDecimalLongitude(resolveLatLon(jin, "device_longitude", "Longitude"));
+        occ.setIndividualCount(jin.optInt("Number Sighted", 0));
+        //occ.setBestGroupSizeEstimate(jin.optDouble("Number Sighted", 0.0));
+        occ.setTaxonomy(oaToTaxonomy(jin, myShepherd));
+        occ.setSource("SpotterConserveIO:oa:" + tripId);
+
+        //  also notable???     Whale Alert Other Species: ""
+        //      Animal Status: "Test",
+
+        //it actually appears the jin2 array contains WhaleAlert type sightings data, fwiw; but we only care about these 2:
+        occ.addComments("<p class=\"import-source\">conserve.io source: <a href=\"" + jin2.optString("url") + "\"><b>" + jin2.optString("id") + "</b></a></p>");
+
+        if (jin2.optJSONArray("photos") != null) {
+            ArrayList<Encounter> encs = new ArrayList<Encounter>();
+            JSONArray je = jin2.getJSONArray("photos");
+            for (int i = 0 ; i < je.length() ; i++) {
+                //basically we get one Encounter per photo here and let the Occurrence group it together
+                Encounter enc = oaToEncounter(je.optString(i, null), jin, occ, myShepherd);
+                if (enc != null) encs.add(enc);
+            }
+            occ.setEncounters(encs);
+        }
+        occ.setSubmitter(oaToUser(jin, myShepherd, occ));
+        myShepherd.getPM().makePersistent(occ);
+        return occ;
+    }
+
+
+    public static Encounter oaToEncounter(String photoUrl, JSONObject occJson, Occurrence occ, Shepherd myShepherd) {
+        URLAssetStore urlStore = URLAssetStore.find(myShepherd);
+        if (urlStore == null) throw new RuntimeException("Could not find a URLAssetStore to store images");
+        Encounter enc = new Encounter();
+        enc.setCatalogNumber(Util.generateUUID());
+        //enc.setGroupSize(???)
+        enc.setOccurrenceID(occ.getID());
+
+        User sub = oaToUser(occJson, myShepherd, occ);
+        enc.addSubmitter(sub);
+
+        //we have a start_date and end_date in *very top level* (not occJson!) but it seems (!??) to always be the
+        //  same timestamp throughout as create_date as well!!  so we are going to use this value for:
+        //  enc.DWCDateAdded as well as enc *date of encounter*.  :/   TODO figure out whats up here!
+
+        String dc = occJson.optString("create_date", null);
+        if (dc != null) {
+            enc.setDWCDateAdded(dc);
+            DateTime dt = toDateTime(dc);
+            if (dt != null) {
+                enc.setDWCDateAdded(dt.getMillis());  //sets the millis version on enc.  SIGH!!!!!!!!!!!
+                enc.setDateInMilliseconds(dt.getMillis());  //sets the real date (.month, etc)
+            }
+        }
+
+        //we also just grab the Occurrence lat/lon too
+        enc.setDecimalLatitude(occ.getDecimalLatitude());
+        enc.setDecimalLongitude(occ.getDecimalLongitude());
+        Taxonomy tax = oaToTaxonomy(occJson, myShepherd);
+        enc.setTaxonomy(tax);
+        String annotSpecies = enc.getTaxonomyString();
+        if (annotSpecies == null) annotSpecies = "unknown";  //only if no taxonomy above
+
+        if (photoUrl != null) {
+            JSONObject params = new JSONObject();
+            params.put("url", photoUrl);
+            MediaAsset ma = urlStore.create(params);
+            ma.addLabel("_original");
+            ma.addDerivationMethod("SpotterConserveIO.oaToEncounter", System.currentTimeMillis());
+            ///////ma.setAccessControl(request);  // sub User ??
+            try {
+                ma.updateMetadata();
+            } catch (IOException iox) {
+                System.out.println("WARNING: SpotterConserveIO.oaToEncounter() on updateMetadata() of " + photoUrl + " threw " + iox.toString());
+            }
+            MediaAssetFactory.save(ma, myShepherd);
+            ma.updateStandardChildren(myShepherd);
+            Annotation ann = new Annotation(annotSpecies, ma);
+            myShepherd.getPM().makePersistent(ann);
+            enc.addAnnotation(ann);
+        }
+
+        myShepherd.getPM().makePersistent(enc);
+System.out.println("MADE " + enc);
+        return enc;
+    }
+
+    //Ocean Alert seems to still use key 'Whale Alert...'
+    public static User oaToUser(JSONObject jin, Shepherd myShepherd, Occurrence occ) {
+        String subEmail = jin.optString("Whale Alert Submitter Email", null);
+        String subName = jin.optString("Whale Alert Submitter Name", null);
+        /////String subPhone = jin.optString("Whale Alert Submitter Phone", null);  //ignore!
+
+        User user = null;
+        if (Util.stringExists(subEmail)) {
+            String emhash = User.generateEmailHash(subEmail);
+            //we get by *email hash* here (and not email) in case the email has been reset (e.g. GDPR)
+            user = myShepherd.getUserByHashedEmailAddress(emhash);
+            if (user == null) {
+                user = new User(subEmail, Util.generateUUID());
+                if (Util.stringExists(subName)) user.setFullName(subName);
+                user.setNotes("<p>Created via Ocean Alert, Occurrence " + occ.getID() + ".</p>");
+            }
+
+        } else {  //no subEmail (so anonymous submission)
+            user = new User(Util.generateUUID());
+            if (Util.stringExists(subName)) user.setFullName(subName);
+            user.setNotes("<p>Created via Ocean Alert, Occurrence " + occ.getID() + ".</p>");
+        }
+System.out.println("INFO: oaToUser(" + subEmail + ", " + subName + " --> " + user);
+        return user;
+    }
+
+/*
+ITIS Species Scientific Name: "Mysticeti",
+ITIS Species Common Name: "baleen whales",
+ITIS Species TSN: "552298",
+*/
+    public static Taxonomy oaToTaxonomy(JSONObject jin, Shepherd myShepherd) {
+        int tsn = jin.optInt("ITIS Species TSN", 0);
+        String sciName = jin.optString("ITIS Species Scientific Name");
+        String comName = jin.optString("ITIS Species Common Name");
+        Taxonomy tax = null;
+        if (tsn > 0) {
+            tax = myShepherd.getTaxonomy(tsn);
+            if (tax != null) return tax;
+        }
+        if (sciName == null) return null;  //need it to fetch one or create one.  :(  so sorry
+        tax = myShepherd.getTaxonomy(sciName);
+        if (tax != null) return tax;
+        tax = new Taxonomy(sciName);
+        if (comName != null) tax.addCommonName(comName);
+        if (tsn > 0) tax.setItisTsn(tsn);
+        return tax;
+    }
 
 
 ///// more flavorless utility
@@ -550,6 +775,9 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
     public static String tripFlavor(JSONObject tripData) {
         if (tripData == null) return null;
         if ((tripData.optJSONObject("track") != null) || (tripData.optJSONArray("CINMS Weather") != null) || (tripData.optString("CINMS Vessel", null) != null)) return "ci";
+        JSONArray sarr = tripData.optJSONArray("sightings");
+        //ITIS Species TSN seems to only exist in Ocean Alert, not Whale Alert
+        if ((sarr != null) && (sarr.length() > 0) && (sarr.optJSONObject(0) != null) && (sarr.getJSONObject(0).optString("ITIS Species TSN", null) != null)) return "oa";
         return "wa";
     }
 
@@ -617,6 +845,49 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         SystemValue.set(myShepherd, SYSTEMVALUE_KEY_LASTSYNC_WA, time);
         myShepherd.commitDBTransaction();
         return time;
+    }
+
+
+    public static User ciGetSubmitterUser(Shepherd myShepherd) {
+        String uid = props.getProperty(PROP_USERID_CI);
+        if (uid == null) return null;
+        return myShepherd.getUserByUUID(uid);
+    }
+
+    // fullName is a (cleaned!) list of user fullnames
+    //  users *will be created* if they cannot be found within the main or volunteer organizations
+    public static List<User> ciGetVolunteerUsers(Shepherd myShepherd, List<String> fullNames) {
+        if (fullNames == null) return null;
+        String orgId = props.getProperty(PROP_ORGID_CI);
+        String vorgId = props.getProperty(PROP_ORGID_CI_VOLUNTEER);
+        Organization org = Organization.load(orgId, myShepherd);
+        Organization vorg = Organization.load(vorgId, myShepherd);
+        if ((org == null) || (vorg == null)) throw new RuntimeException("You must have valid " + PROP_ORGID_CI + " and " + PROP_ORGID_CI_VOLUNTEER + " set in SpotterConserverIO properties file");
+        List<User> vols = new ArrayList<User>();
+        for (String fn : fullNames) {
+            if (!Util.stringExists(fn)) continue;
+            User u = null;
+            if ((org != null) && (org.getMembers() != null)) {
+                for (User mem : org.getMembers()) {
+                    if (fn.equals(mem.getFullName())) u = mem;
+                }
+            }
+            if ((u == null) && (vorg != null) && (vorg.getMembers() != null)) {
+                for (User mem : vorg.getMembers()) {
+                    if (fn.equals(mem.getFullName())) u = mem;
+                }
+            }
+            if (u == null) {
+                u = new User(Util.generateUUID());
+                u.setFullName(fn);
+                u.setNotes("auto-created by SpotterConserveIO data import");
+                myShepherd.getPM().makePersistent(u);
+                vorg.addMember(u);
+            }
+            vols.add(u);
+        }
+        myShepherd.getPM().makePersistent(vorg);
+        return vols;
     }
 
 }
