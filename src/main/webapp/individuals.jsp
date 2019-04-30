@@ -11,6 +11,8 @@ org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManage
 
 <%
 
+System.out.println("    |=-| INDIVIDUALS.JSP starting!");
+
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -94,13 +96,15 @@ context=ServletUtilities.getContext(request);
   //System.out.println("We got occurrenceNumber = "+occurrenceNumber);
   //System.out.println("We got sex = "+sex);
 
-    String id = null;
+    //String id = null;
+  String id = request.getParameter("number");
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individuals.jsp");
 
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 
+System.out.println("    |=-| INDIVIDUALS.JSP continuing postforth!");
 
 
 %>
@@ -109,6 +113,8 @@ context=ServletUtilities.getContext(request);
 if (request.getParameter("number")!=null) {
 	String oldWorld = request.getParameter("number").trim();
         //we also check individualID (uuid) too, just in case some href in jsp is still using number=
+                          System.out.println("    |=-| INDIVIDUALS.JSP before getting individual from shepherd");
+
         Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
         List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
         String tryId = null;
@@ -116,10 +122,13 @@ if (request.getParameter("number")!=null) {
         response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
         response.setHeader("Location", "individuals.jsp?id=" + tryId);
         response.flushBuffer();
-        return;
+        // what was the below return meant to do? it breaks the page
+        // return;
+
 }
 
 if (request.getParameter("id")!=null) {
+                                  System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
 	myShepherd.beginDBTransaction();
 	try{
@@ -203,6 +212,11 @@ if (request.getParameter("id")!=null) {
 		myShepherd.rollbackDBTransaction();
 	}
 }
+
+
+System.out.println("    |=-| INDIVIDUALS.JSP done with toppage java stuff!");
+
+
 %>
 
 
@@ -259,6 +273,9 @@ if (request.getParameter("id")!=null) {
 .ptcol-numberLocations {
 	width: 100px;
 }
+input.nameKey, input.nameValue {
+  display: none;
+}
 </style>
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
@@ -273,11 +290,21 @@ if (request.getParameter("id")!=null) {
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 
 
+<style>
+  input.nameValue, input.nameKey {
+    display: none;
+  }
+
+</style>
+
 
 <script type="text/javascript">
 
 
   $(document).ready( function() {
+
+    $("input.nameKey, input.nameValue").hide();
+
   	// wildbook.init(function() { doTable(); });
     $("#familyDiagramTab").click(function (e) {
       e.preventDefault()
@@ -348,17 +375,19 @@ if (request.getParameter("id")!=null) {
         buttons.toggle();
     })
 
+    // edit button click area!!
     $("#edit").click(function() {
-      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError").hide();
-      $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID").show();
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue, .hidden").hide();
+      $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
 
     $("#closeEdit").click(function() {
-      $(".editForm").hide();
+      $(".namebutton").css("visibility", "hidden");
+      $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, input.namebutton, input.btn.deletename").hide();
       $(".clickDateText").hide();
-      $(".noEditText").show();
+      $(".noEditText, span.nameKey, span.nameValue").show();
     });
   });
 
@@ -410,6 +439,7 @@ $(document).ready(function() {
           MarkedIndividual sharky=myShepherd.getMarkedIndividual(id);
 
           boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+          System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
@@ -455,6 +485,8 @@ $(document).ready(function() {
           <%
           }
         }
+                  System.out.println("    |=-| INDIVIDUALS.JSP after nickname");
+
           %>
 
 
@@ -467,7 +499,211 @@ String allNames = null;
 if (sharky.getNames() != null) {
     List<String> names = sharky.getNamesList();
     if ((names != null) && (names.size() > 0)) allNames = String.join(", ", names);
-    if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
+
+
+
+
+    // if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
+
+
+    %>
+    <div class="namesection default">
+      <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" value="Default" placeholder="Default" >
+      <span id="defaultNameColon">:</span>
+      <span class="nameValue default"><%=sharky.getName()%></span>
+      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" value="<%=sharky.getName()%>" placeholder="<%=sharky.getName() %>" >
+      <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+      <span class="nameCheck">&check;</span>
+      <span class="nameError">X</span>
+    </div><%
+
+    // make UI for non-default names here
+    System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
+    for (String nameKey: sharky.getNames().getKeys()) {
+      if (MultiValue.isDefault(nameKey)) continue;
+      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
+      String nameLabel=nameKey;
+      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
+      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
+      String nameValue = sharky.getName(nameKey);
+
+      %>
+      <div class="namesection <%=nameKey%>">
+        <span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
+        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%=nameKey%>" placeholder="<%=nameKey %>" >
+        <span id="nameColon">:</span>
+
+        <span class="nameValue <%=nameKey%>" data-oldvalue="<%=nameValue%>"><%=nameValue%></span>
+        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=nameValue%>" placeholder="<%=nameValue %>" >
+        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+
+        <span class="nameCheck">&check;</span>
+        <span class="nameError">X</span>
+        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+      </div><%
+    }
+
+    // "add new name" Edit section
+    %>
+    <div class="newnameButton">
+      <input id="newNameButton" class="btn btn-sm editFormBtn namebutton newname" type="submit" value="Add New Name">
+    </div>
+
+    <div class="namesection newname">
+      <span class="nameKey newname" data-oldkey=""><em></em></span>
+      <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" value="" placeholder="" >
+      <span id="nameColon">:</span>
+
+      <span class="nameValue newname"></span>
+      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" value="" placeholder="" >
+      <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+      
+      <span class="nameCheck">&check;</span>
+      <span class="nameError">X</span>
+
+    </div>
+
+    <style>
+      #defaultNameColon, .nameCheck, .nameError, .nameErrorDiv, div.newname, input.namebutton, input.btn.deletename {
+        display: none;
+      }
+      span.nameKey {
+        font-style: oblique;
+      }
+      input.form-control.name {
+        width: 25%
+      }
+      input.deletename {
+        background: red;
+      }
+      input.namebutton, input.deletename {
+        width: auto;
+        margin-right:0;
+        margin-top:0;
+      }
+      input.namebutton.newname {
+        width: auto;
+        margin-right:0;
+        margin-top:0;
+      }
+      .namesection .nameCheck {
+        color: green;
+      }
+      .namesection .nameError {
+        color: red;
+      }
+
+    </style>
+
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+
+      $("#newNameButton").click(function (event) {
+        console.log("newnamebutton clicked!");
+        $(this).hide();
+        $("div.newname").show();
+      });
+
+      $(".namebutton").click(function(event) {
+        event.preventDefault();
+
+        var nameKeySpan = $(this).siblings(".nameKey");
+        var nameValueSpan = $(this).siblings(".nameValue");
+
+        var oldKey = nameKeySpan.data("oldkey");
+        var oldVal = nameValueSpan.data("oldvalue");
+
+        var newKey = $(this).siblings("input.nameKey").val();
+        var newVal = $(this).siblings("input.nameValue").val();
+
+        console.log("namebutton was clicked with vars newKey="+newKey+", newValue="+newVal+", oldKey="+oldKey+", oldVal="+oldVal);
+
+        if (newKey===oldKey && newVal===oldVal) return;
+
+        var indID = "<%=id%>";
+        var rememberMe = this;
+
+        $.post("IndividualSetName", {"individualID": indID, "oldKey": oldKey, "oldValue": oldVal, "newKey": newKey, "newValue": newVal},
+        function() {
+          console.log("SUCCESSFUL callback on individualSetName. this = "+this);
+          // show success and checkbox
+          $(rememberMe).siblings("input.name").addClass("has-success");
+          $(rememberMe).siblings(".nameCheck, nameColon").show();
+          // update the values in the name elements
+          $(rememberMe).siblings(".nameKey").html(newKey);
+          $(rememberMe).siblings(".nameKey").data("oldkey",newKey);
+          $(rememberMe).siblings(".nameValue").html(newVal);
+          $(rememberMe).siblings(".nameKey").data("oldvalue",newvalue);
+        })
+        .fail(function(response) {
+          console.log("FAILED callback on individualSetName");
+          $(this).siblings("input.name").addClass("has-error");
+          $(this).siblings(".nameError").show();
+          $(this).siblings("div.nameError").html(response.responseText);
+        });
+      });
+
+      $("input.deletename").click(function(event) {
+        event.preventDefault();
+
+        var nameKeySpan = $(this).siblings(".nameKey");
+        var nameValueSpan = $(this).siblings(".nameValue");
+
+        var oldKey = nameKeySpan.data("oldkey");
+        var oldVal = nameValueSpan.data("oldvalue");
+        var indID = "<%=id%>";
+
+        var rememberMe = this;
+
+        var confirmDelete = confirm("Are you sure you want to remove the name \""+oldVal+"\" with label \""+oldKey+"\" from this individual?");
+
+        if (confirmDelete) {
+          $.post("IndividualSetName", {"individualID": indID, "oldKey": oldKey, "oldValue": oldVal, "delete": true},
+        function() {
+          console.log("SUCCESSFUL callback on individualSetName, delete case. this = "+this);
+          // show success and checkbox
+          $(rememberMe).siblings("input.name").addClass("has-success");
+          $(rememberMe).siblings(".nameValue, .namebutton, .deletename").addClass("hidden");
+          $(rememberMe).siblings(".nameCheck").show();
+          // update the values in the name elements
+          $(rememberMe).siblings(".nameKey").html(newKey);
+          $(rememberMe).siblings(".nameValue").html(newVal);
+          $(rememberMe).siblings(".hidden").hide();
+        })
+        .fail(function(response) {
+          console.log("FAILED callback on individualSetName, delete case");
+          $(this).siblings("input.name").addClass("has-error");
+          $(this).siblings(".nameError").show();
+          $(this).siblings("div.nameError").html(response.responseText);
+        });
+
+        }
+
+
+        console.log("namebutton was clicked with vars newKey="+newKey+", newValue="+newVal+", oldKey="+oldKey+", oldVal="+oldVal);
+
+        if (newKey===oldKey && newVal===oldVal) return;
+
+        var indID = "<%=id%>";
+        var rememberMe = this;
+
+      });
+
+      $("#nickname, #namer").click(function() {
+        $("#nameError, #nameCheck, #namerCheck, #namerError, #nicknameErrorDiv").hide()
+        $("#nameDiv, #namerDiv").removeClass("has-success");
+        $("#nameDiv, #namerDiv").removeClass("has-error");
+        $("#Name").show();
+      });
+    });
+  </script>
+
+
+
+    <%
+
+
 }
             %></p>
             <%

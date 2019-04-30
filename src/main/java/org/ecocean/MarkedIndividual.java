@@ -165,6 +165,7 @@ public class MarkedIndividual implements java.io.Serializable {
         return individualID;
     }
 
+    
 
     //this is "something to show" (by default)... it falls back to the id,
     //  which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
@@ -174,7 +175,11 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     public String getDisplayName(Object keyHint) {
         List<String> names = getNamesList(keyHint);
-        if ((names == null) || (names.size() < 1)) return individualID.substring(0,8);
+        System.out.println("getDisplayName called for individual "+this+" names = "+names);
+        if ((names == null) || (names.size() < 1)) {
+          if (Util.isUUID(individualID)) return individualID.substring(0,8);
+          else return individualID;
+        }
         return names.get(0);
     }
 
@@ -186,10 +191,15 @@ public class MarkedIndividual implements java.io.Serializable {
     public MultiValue getNames() {
         return names;
     }
+    public List<String> getNameKeys() {
+      if (names==null) return new ArrayList<String>();
+      return names.getKeyList();
+    }
     public List<String> getNamesList(Object keyHint) {
         if (names == null) return null;
         return names.getValuesAsList(keyHint);
     }
+
     public List<String> getNamesList() {
         if (names == null) return null;
         return names.getValuesDefault();
@@ -217,12 +227,15 @@ public class MarkedIndividual implements java.io.Serializable {
     //   see, e.g.  appadmin/migrateMarkedIndividualNames.jsp
     public MultiValue setNamesFromLegacy() {
         if (names == null) names = new MultiValue();
+
+        // save the old individualID
+        if (Util.shouldReplace(individualID, legacyIndividualID)) setLegacyIndividualID(individualID);
+        // use old individualID as default name moving forward
         if (Util.stringExists(legacyIndividualID)) {
             names.addValuesDefault(legacyIndividualID);
-            names.addValuesByKey(NAMES_KEY_LEGACYINDIVIDUALID, legacyIndividualID);
         }
+        // add nickname and alternateID to names list (labelled), but not default list
         if (Util.stringExists(nickName)) {
-            names.addValuesDefault(nickName);
             names.addValuesByKey(NAMES_KEY_NICKNAME, nickName);
         }
         //note: alternateids seems to sometimes (looking at you flukebook) contain "keys" of their own, e.g. "IFAW:fluffy"
@@ -230,7 +243,6 @@ public class MarkedIndividual implements java.io.Serializable {
         if (Util.stringExists(alternateid)) {
             String[] part = alternateid.split("\\s*[;,]\\s*");
             for (int i = 0 ; i < part.length ; i++) {
-                names.addValuesDefault(part[i]);
                 names.addValuesByKey(NAMES_KEY_ALTERNATEID, part[i]);
             }
         }
@@ -317,11 +329,11 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
   public boolean removeEncounter(Encounter getRidOfMe) {
 
       numberEncounters--;
-
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
         Encounter tempEnc=(Encounter)encounters.get(i);
         if(tempEnc.getEncounterNumber().equals(getRidOfMe.getEncounterNumber())) {
+
           encounters.remove(i);
           i--;
           changed=true;
@@ -664,6 +676,11 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
         return getDisplayName();
     }
 
+    public String getName(Object keyHint) {
+      if (names==null) return null;
+      return names.getValue(keyHint);
+    }
+
   public String getIndividualID() {
       return individualID;
   }
@@ -702,6 +719,15 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
         this.addName(newName);
     }
 
+    public void setLegacyIndividualID(String id) {
+      legacyIndividualID = id;
+    }
+
+    public String getLegacyIndividualID() {
+      return legacyIndividualID;
+    }
+
+
     public void setIndividualID(String id) {
         individualID = id;
     }
@@ -727,7 +753,10 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     return (Encounter) unidentifiableEncounters.get(i);
   }
   */
-
+  public int numEncounters() {
+    if (encounters==null) return 0;
+    return encounters.size();
+  }
   /**
    * Returns the complete Vector of stored encounters for this MarkedIndividual.
    *
@@ -825,7 +854,8 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
    * @return a String of comments
    */
   public void addComments(String newComments) {
-    if ((comments != null) && (!(comments.equals("None")))) {
+    System.out.println("addComments called. oldComments="+comments+" and new comments = "+newComments);
+    if (Util.stringExists(comments)) {
       comments += newComments;
     } else {
       comments = newComments;
