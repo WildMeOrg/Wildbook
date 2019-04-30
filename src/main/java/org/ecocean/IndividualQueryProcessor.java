@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -895,7 +896,23 @@ public class IndividualQueryProcessor {
 
 
 
+    //alternateID and nickName are now handled here (and commented out below)
+    List<String> nameIds = new ArrayList<String>();
+    String altVal = request.getParameter("alternateIDField");
+    String nickVal = request.getParameter("nickNameField");
+    if (Util.stringExists(altVal)) nameIds.addAll(MarkedIndividual.findNameIds(".*" + altVal + ".*"));
+    if (Util.stringExists(nickVal)) nameIds.addAll(MarkedIndividual.findNameIds(".*" + nickVal + ".*"));
+    if (nameIds.size() > 0) {
+        String clause = " (names.id == " + String.join(" || names.id == ", nameIds) + ") ";
+        if (filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
+            filter += clause;
+        } else {
+            filter += " && " + clause;
+        }
+    }
+
     //filter for alternate ID------------------------------------------
+/*
     if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
       String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim().toLowerCase();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(alternateid.toLowerCase().indexOf('"+altID+"') != -1 || (encounters.contains(enc99) && enc99.otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1))";}
@@ -904,9 +921,11 @@ public class IndividualQueryProcessor {
 
       prettyPrint.append("alternateID field contains \""+altID+"\".<br />");
     }
+*/
 
 
 
+/*
     //filter for nick name------------------------------------------
     if((request.getParameter("nickNameField")!=null)&&(!request.getParameter("nickNameField").equals(""))) {
       String nickName=request.getParameter("nickNameField").replaceAll("%20", " ").trim().toLowerCase();
@@ -914,6 +933,7 @@ public class IndividualQueryProcessor {
 
       prettyPrint.append("nickName field contains \""+nickName+"\".<br />");
     }
+*/
 
 
     //------------------------------------------------------------------
