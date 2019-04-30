@@ -121,8 +121,8 @@ public class MarkedIndividual implements java.io.Serializable {
   private long timeOfDeath=0;
 
 
-    public static final String NAMES_KEY_NICKNAME = "_nickName_";
-    public static final String NAMES_KEY_ALTERNATEID = "_alternateid_";
+    public static final String NAMES_KEY_NICKNAME = "Nickname";
+    public static final String NAMES_KEY_ALTERNATEID = "Alternate ID";
     public static final String NAMES_KEY_LEGACYINDIVIDUALID = "_legacyIndividualID_";
 
   public MarkedIndividual(String name, Encounter enc) {
@@ -194,6 +194,7 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     public List<String> getNameKeys() {
       if (names==null) return new ArrayList<String>();
+      List<String> keys = names.getKeyList();
       return names.getKeyList();
     }
     public List<String> getNamesList(Object keyHint) {
