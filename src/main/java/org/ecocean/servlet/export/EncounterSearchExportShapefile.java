@@ -187,7 +187,12 @@ public class EncounterSearchExportShapefile extends HttpServlet{
         params.put("url", shapeFile.toURI().toURL());
         params.put("create spatial index", Boolean.TRUE);
         ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
-        newDataStore.createSchema(createFeatureType(context));
+        
+        SimpleFeatureType sft=createFeatureType(context);
+        if(sft==null)System.out.println("sft is null!");
+        if(newDataStore==null)System.out.println("newDataStore is null!");
+        
+        newDataStore.createSchema(sft);
         /*
          * You can comment out this line if you are using the createFeatureType
          * method (at end of class file) rather than DataUtilities.createType
@@ -333,7 +338,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
       builder.setCRS(DefaultGeographicCRS.WGS84); // <- Coordinate reference system
 
       // add attributes in order
-      builder.add("Location", Point.class);
+      builder.add("Location", org.locationtech.jts.geom.Point.class);
       builder.add("Date", java.sql.Date.class);
       builder.add("Encounter", String.class); 
       builder.add("Individual", String.class); 
@@ -343,6 +348,8 @@ public class EncounterSearchExportShapefile extends HttpServlet{
       builder.add("Latitude", Double.class);
       builder.add("Longitude", Double.class);
       builder.add("GenusSpecies", String.class); 
+      builder.setDefaultGeometry("Location");
+      
 
       // build the type
       final SimpleFeatureType LOCATION = builder.buildFeatureType();
