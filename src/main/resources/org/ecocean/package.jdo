@@ -149,7 +149,7 @@
         <column jdbc-type="LONGVARCHAR"/>
       </field>
       <field name="encounters" persistence-modifier="persistent" default-fetch-group="true" mapped-by="individual" >
-        <collection element-type="org.ecocean.Encounter" dependent-element="true" />
+        <collection element-type="org.ecocean.Encounter" />
         <join/>
       </field>
 

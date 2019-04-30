@@ -98,6 +98,7 @@
 		/GenePopExport = authc, roles[researcher]
 
 		/IndividualSetNickName = authc, roles[researcher]
+		/IndividualSetName = authc, roles[researcher]
 
     	/match.jsp = authc
 
@@ -486,6 +487,11 @@
   <servlet>
     <servlet-name>IndividualSetNickName</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualSetNickName</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>IndividualSetName</servlet-name>
+    <servlet-class>org.ecocean.servlet.IndividualSetName</servlet-class>
   </servlet>
 
   <servlet>
@@ -2262,6 +2268,11 @@
   <servlet-mapping>
     <servlet-name>IndividualSetNickName</servlet-name>
     <url-pattern>/IndividualSetNickName</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>IndividualSetName</servlet-name>
+    <url-pattern>/IndividualSetName</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
