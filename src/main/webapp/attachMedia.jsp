@@ -7,9 +7,11 @@ a.button {
     border-radius: 4px;
     padding: 0 6px;
     text-decoration: none;
+    cursor: pointer;
 }
 a.button:hover {
     background-color: #DDA;
+    text-decoration: none;
 }
 
 #occs {
@@ -68,6 +70,44 @@ a.button:hover {
     border-radius: 3px;
 }
 
+
+/* for uploader */
+
+div#file-activity {
+	font-family: sans;
+	border: solid 2px black;
+	padding: 8px;
+	margin: 20px;
+	height: 250px;
+	overflow-y: scroll;
+}
+div.file-item {
+	position: relative;
+	background-color: #DDD;
+	border-radius: 3px;
+	margin: 2px;
+}
+
+div.file-item div {
+	display: inline-block;
+	padding: 3px 7px;
+}
+.file-name {
+	width: 30%;
+}
+.file-size {
+	width: 8%;
+}
+
+.file-bar {
+	position: absolute;
+	width: 0;
+	height: 100%;
+	padding: 0 !important;
+	left: 0;
+	border-radius: 3px;
+	background-color: rgba(100,100,100,0.3);
+}
 </style>
 
 <%@ page contentType="text/html; charset=utf-8" 
@@ -161,6 +201,9 @@ boolean showUpload = false;
 <jsp:include page="header.jsp" flush="true"/>
 
 
+<script src="tools/flow.min.js"></script>
+<script src="javascript/uploader.js"></script>
+
 <script src="javascript/tablesorter/jquery.tablesorter.js"></script>
 <link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 
@@ -172,7 +215,14 @@ $(document).ready(function() {
         var occId = $(ev.currentTarget).find(':nth-child(3)').text();
         window.location.href = 'attachMedia.jsp?id=' + occId;
     });
+
+    uploaderInit(uploadFinished);
 });
+
+function uploadFinished() {
+	document.getElementById('updone').innerHTML = '<i>upload finished</i>';
+}
+
 </script>
 
 
@@ -181,6 +231,7 @@ $(document).ready(function() {
 
 <%
 String id = request.getParameter("id");
+Occurrence occ = null;
 
 if (AccessControl.isAnonymous(request)) {
     out.println("<h1>Please <a href=\"login.jsp\">login</a></h1>");
@@ -188,7 +239,7 @@ if (AccessControl.isAnonymous(request)) {
 } else if (Util.requestParameterSet(id)) {
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
-    Occurrence occ = myShepherd.getOccurrence(id);
+    occ = myShepherd.getOccurrence(id);
     if (occ == null) {  //TODO also some security check that user can access this occurrence!!
         out.println("<h2>Invalid ID " + id + "</h2>");
         return;
@@ -232,9 +283,8 @@ if (Util.requestParameterSet(request.getParameter("newEncounter"))) {
     showUpload = true;
 %>
 
-<a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>">full listing for Occ <%=occ.getOccurrenceID().substring(0,8)%></a>
-<a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="back to full listing for Occ <%=occ.getOccurrenceID().substring(0,8)%>">Cancel</a>
-<h2>Photos that will get attached to NEW ENCOUNTER</h2>
+
+<h2>New encounter</h2>
 
 <%
 
@@ -246,7 +296,6 @@ if (Util.requestParameterSet(request.getParameter("newEncounter"))) {
     showUpload = true;
 %>
 
-<a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="back to full listing for Occ <%=occ.getOccurrenceID().substring(0,8)%>">Cancel</a>
 <h2>hey lets add images to <%=addToEncounter.getCatalogNumber()%>!!</h2>
 <%=addToEncounter%>
 <p>
@@ -325,7 +374,7 @@ System.out.println(ft.getParameters());
 <%
         for (Object o : coll) {
             String row = "<tr>";
-            Occurrence occ = (Occurrence) o;
+            occ = (Occurrence) o;
             Map<String,String> tripInfo = getTripInfo(occ);
             row += "<td>" + tripInfo.get("typeLabel") + "</td>";
             row += "<td class=\"td-int\">" + tripInfo.get("id") + "</td>";
@@ -372,8 +421,16 @@ System.out.println(ft.getParameters());
 if (showUpload) {
 %>
 
-<div style="text-align: center; background-color: #FFA; padding: 80px;">
-UPLOAD FORM GOES HERE
+<div id="file-activity"></div>
+<div id="updone"></div>
+<div id="upcontrols" style="padding: 20px;">
+	<!-- webkitdirectory directory -->
+	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
+    <div class="padding: 20px 0;">
+        <a class="button" id="upload-button">begin upload</a>
+        <a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="return to listing for Occ <%=occ.getOccurrenceID().substring(0,8)%>">cancel</a>
+    </div>
+
 </div>
 
 <% } %>
