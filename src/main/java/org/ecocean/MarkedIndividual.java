@@ -2282,10 +2282,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
         if (NAMES_CACHE == null) return rtn;  //snh
         if (regex == null) return rtn;
-        List<String> nameIds = new ArrayList<String>();
-        for (Integer nid : NAMES_CACHE.keySet()) {
-            if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) nameIds.add(Integer.toString(nid));
-        }
+        List<String> nameIds = findNameIds(regex);
         if (nameIds.size() < 1) return rtn;
         String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE names.id == " + String.join(" || names.id == ", nameIds);
         Query query = myShepherd.getPM().newQuery(jdoql);
@@ -2295,6 +2292,17 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             rtn.add(ind);
         }
         return rtn;
+    }
+
+    //used above, but also used in IndividualQueryProcessor, for example
+    public static List<String> findNameIds(String regex) {
+        List<String> nameIds = new ArrayList<String>();
+        if (NAMES_CACHE == null) return nameIds;  //snh
+        if (regex == null) return nameIds;
+        for (Integer nid : NAMES_CACHE.keySet()) {
+            if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) nameIds.add(Integer.toString(nid));
+        }
+        return nameIds;
     }
 
     //only does once (when needed)
