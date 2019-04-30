@@ -189,6 +189,11 @@ java.util.Properties" %>
 		return h + "</ul>";
 	}
 
+        private String showMultiValue(MultiValue mv) {
+            if (mv == null) return "[null]";
+            return niceJson(mv.debug());
+        }
+
 	private String showMediaAssetList(ArrayList<MediaAsset> l) {
 		if ((l == null) || (l.size() < 1)) return "[none]";
 		return "";
@@ -466,6 +471,16 @@ if (type.equals("Encounter")) {
 	try {
 		MarkedIndividual ind = ((MarkedIndividual) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MarkedIndividual.class, id), true)));
 		out.println(showMarkedIndividual(ind, request));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
+		needForm = true;
+	}
+
+} else if (type.equals("MultiValue")) {
+	try {
+		MultiValue mv = ((MultiValue) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MultiValue.class, id), true)));
+		out.println(showMultiValue(mv));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		ex.printStackTrace();
