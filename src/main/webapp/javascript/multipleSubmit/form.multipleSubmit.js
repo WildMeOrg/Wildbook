@@ -2,7 +2,10 @@
 // enables submission when recaptcha is checked
 function recaptchaCallback() {
     console.log("recaptchaCallback triggered!");
-    document.getElementById("sendButton").disabled = false;
+    if (document.getElementById("file-selector-input").files.length>0) { // num files in input?
+        document.getElementById("continueButton").disabled = false;
+    } else {out("Please add image files to continue.");}
+
     document.getElementById("recaptcha-checked").value = "true";
 }
 
@@ -13,7 +16,9 @@ function updateSelected(inp) {
     var f = '';
     if (inp.files && inp.files.length) {
         if (inp.files.length > 0) {
-            document.getElementById("continueButton").disabled = false;
+            if (document.getElementById("recaptcha-checked").value=="true") {
+                document.getElementById("continueButton").disabled = false;
+            } else {out("Please check ReCaptcha to continue.");}
         }
         var all = [];
         for (var i = 0 ; i < inp.files.length ; i++) {
@@ -36,7 +41,7 @@ function continueButtonClicked() {
     $("#continueButton").hide();
     $("#backButton").show();
     $("#sendButton").show();
-    $(".recaptcha-box").show();
+    $(".recaptcha-box").hide();
     showSelectedMedia();
 }
 
@@ -46,7 +51,15 @@ function backButtonClicked() {
     $("#continueButton").show();
     $("#backButton").hide();
     $("#sendButton").hide();
-    $(".recaptcha-box").hide();
+    $(".recaptcha-box").show();
+    clearSelectedMedia();
+}
+
+function sendButtonClicked() {
+    // SHOWTIME! Send these images off to certain doom
+    multipleSubmitAPI.sendData(function(result){
+        console.log(JSON.stringify(result));
+    });
 }
 
 function showSelectedMedia() {
@@ -54,16 +67,11 @@ function showSelectedMedia() {
     var imageTiles = "";
     var metadataTiles = "";
     var numEnc = document.getElementById("number-encounters").value;
-
     for (var i=0;i<numEnc;i++) {
-        // The same every time!
         metadataTiles += multipleSubmitUI.generateMetadataTile(i);
     }
-
     for (var i=0;i<files.length;i++) {
         imageTiles += multipleSubmitUI.generateImageTile(files[i],i);
-        // we actually want to do this for the number of encs defined in the number input..
-        //console.log("Selected files #"+i+": "+files.toString());
     }
     // TODO: This, better. You shouldn't need to iterate through twice. find a better way of appending instead of .htmling those big blobs.
     $("#metadata-tiles-main").html(metadataTiles);
@@ -71,12 +79,23 @@ function showSelectedMedia() {
     for (var i=0;i<files.length;i++) {
         multipleSubmitUI.renderImageInBrowser(files[i],i);
     }
-
     $('.encDate').datepicker({
         format: 'mm/dd/yyyy',
         startDate: '-3d'
     });
+    // clear leftover errors from provious page 
+}
 
+function clearSelectedMedia() {
+    var metadata = document.getElementById("metadata-tiles-main");
+    var images = document.getElementById("image-tiles-main");
+    while (metadata.firstChild) {
+        metadata.removeChild(metadata.firstChild);
+    }
+    while (images.firstChild) {
+        images.removeChild(images.firstChild);
+    }
+    out("Please select some images to upload.");
 }
 
 //function listenForMouseoverAllImages() {
@@ -94,19 +113,23 @@ function showSelectedMedia() {
 //}
 
 function showOverlay(index) {
+    var tileDiv = document.getElementById("image-tile-div-"+index);
+    $(tileDiv).addClass("tile-selected");
     var overlayDiv = document.getElementById("img-overlay-"+index);
-    //var tileDiv = document.getElementById("image-tile-div-"+index);
     $(overlayDiv).addClass('img-selected');
     $("#img-"+index).addClass('img-selected');
+
     //if (!$(tileDiv).hasClass('img-selected')) { 
         // we don't need this yet.. overlay doesn't require focus with current options        
     //}
+
     overlayDiv.hidden = false;
 }
 
 function hideOverlay(index) {
+    var tileDiv = document.getElementById("image-tile-div-"+index);
+    $(tileDiv).removeClass("tile-selected");
     var overlayDiv = document.getElementById("img-overlay-"+index);
-    //var tileDiv = document.getElementById("image-tile-div-"+index);
     $(overlayDiv).removeClass('img-selected');
     $("#img-"+index).removeClass('img-selected');
     // ignore if we have clicked this item to focus
@@ -135,7 +158,6 @@ function imageTileClicked(index) {
 function showEditMetadata(index) {
     console.log("got the click! on element: "+index);
     var editDiv = document.getElementById("enc-metadata-inner-"+index);
-    console.log("Where it at? --> "+editDiv);
     if (editDiv.classList.contains("edit-closed")) {
         $(editDiv).slideDown();
         editDiv.classList.remove("edit-closed");
@@ -145,25 +167,13 @@ function showEditMetadata(index) {
     }
 }
 
-/*
-
-    TO DO: 
-
-    1. Append image tiles one element at a time instead of all at once. <---- !!!
-
-    2. Allow click/focus on each image edit
-
-    3. build out enc metadata form sections w/ show hide
-
-    4. make img-overlay inputs the correct type.. build dropdowns based on previous information.
-
-    5. think about result state- to a new jsp to wait? stick with single page?
-
-*/
-
-function sendButtonClicked() {
-    // SHOWTIME! Send these images off to certain doom
-    multipleSubmitAPI.sendData(function(result){
-        console.log(JSON.stringify(result));
-    });
+function out(string) {
+    let outStr = "<p class=\"out-message\"><b>"+string+"</b></p>";
+    $(".action-message").html(outStr);
+    setTimeout(function(){
+        $(".action-message").empty();
+    }, 3000)
 }
+
+
+

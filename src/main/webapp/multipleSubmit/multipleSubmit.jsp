@@ -51,24 +51,23 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 <div class="container form-file-selection">
                     <label><%= props.getProperty("specifyEncNum")%></label>
                     <input id="number-encounters" type="number" name="number-encounters" required value="1" min="1" max="48">
+                </div>
+                <div class="container form-file-selection">
                     <input class="btn btn-large btn-file-selector" type="button" onclick="document.getElementById('file-selector-input').click()" value="Select Files" />
                 </div>
                 <input id="file-selector-input" name="allFiles" class="hidden-input" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" style="display:none;" multiple size="50" onChange="updateSelected(this);" />
-                <div><p id="input-file-list"></p></div> 
+                <div class="container">
+                    <p id="input-file-list"></p>
+                    <p class="action-message"> </p>
+                </div>
+
+
                 <br>
 
                 <!-- easy place to store this -->
                 <input id="recaptcha-checked" name="recaptcha-checked" type="hidden" value="false" />
 
 
-                <div class="recaptcha-div hidden-input form-define-metadata">
-
-                    <!-- Recaptcha widget -->
-                    <div id="recaptcha-div">
-                        <%= ServletUtilities.captchaWidget(request) %>
-                    </div>
-
-                </div>
 
                 <br>
 
@@ -98,8 +97,16 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
 
                 </div>
 
-                <!-- display text for java exceptions recieved from server -->
-                <div id="server-error"></div>
+                <div class="recaptcha-div form-define-metadata">
+
+                    <!-- Recaptcha widget -->
+                    <div id="recaptcha-div">
+                        <%= ServletUtilities.captchaWidget(request) %>
+                    </div>
+                    <p class="action-message"> </p>
+
+                </div>
+
             </form>
         </div> 
         <hr>
