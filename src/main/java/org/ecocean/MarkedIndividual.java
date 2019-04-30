@@ -55,7 +55,7 @@ public class MarkedIndividual implements java.io.Serializable {
 
     private MultiValue names;
     private static HashMap<Integer,String> NAMES_CACHE = new HashMap<Integer,String>();  //this is for searching
-    private static HashMap<Integer,String> NAMES_KEY_CACHE = new HashMap<Integer>
+    private static HashMap<Integer,String> NAMES_KEY_CACHE = new HashMap<Integer,String>();
 
     private String alternateid;  //TODO this will go away soon
     private String legacyIndividualID;  //TODO this "could" go away "eventually"
