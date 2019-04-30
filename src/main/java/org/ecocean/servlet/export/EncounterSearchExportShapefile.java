@@ -128,7 +128,8 @@ public class EncounterSearchExportShapefile extends HttpServlet{
           
           if ((enc.getDecimalLongitude()!=null) && (enc.getDecimalLatitude() != null)) {
             //let's also populate the Shapefile
-            org.locationtech.jts.geom.Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble().doubleValue(), enc.getDecimalLatitudeAsDouble().doubleValue(),0.0));
+            org.locationtech.jts.geom.Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble().doubleValue(), enc.getDecimalLatitudeAsDouble().doubleValue()));
+            //System.out.println("     created point: "+point.getCoordinate().x+","+point.getCoordinate().y);
             
             SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType(context));
             featureBuilder.add(point);
@@ -176,6 +177,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
             
             
             collection.add(feature);
+            System.out.println(".....collection size is now: "+collection.size());
           }
         }
         
@@ -213,6 +215,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
                      try {
                          featureStore.addFeatures(collection);
                          transaction.commit();
+                         System.out.println("...FEATURES STORED!");
          
                      } catch (Exception problem) {
                          problem.printStackTrace();
@@ -231,7 +234,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
                 shapeFile.getAbsolutePath().replaceAll(".shp",".dbf"),
                 shapeFile.getAbsolutePath().replaceAll(".shp",".fix"),
                 shapeFile.getAbsolutePath().replaceAll(".shp",".prj"),
-                shapeFile.getAbsolutePath().replaceAll(".shp",".qix")
+                //shapeFile.getAbsolutePath().replaceAll(".shp",".qix")
                };
                
                // Create a buffer for reading the files
@@ -347,7 +350,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
       builder.add("URL", String.class);
       builder.add("Latitude", Double.class);
       builder.add("Longitude", Double.class);
-      builder.add("GenusSpecies", String.class); 
+      builder.add("Taxonomy", String.class); 
       builder.setDefaultGeometry("Location");
       
 
