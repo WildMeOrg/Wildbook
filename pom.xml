@@ -16,7 +16,7 @@
 
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
-    <geotools.version>8.3</geotools.version>
+    <geotools.version>21.1</geotools.version>
 	
 	<!--
 	 <project.http.version></project.http.version>
