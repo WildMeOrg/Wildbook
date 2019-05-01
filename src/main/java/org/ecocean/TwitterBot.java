@@ -150,132 +150,6 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
   }
 
 
-/*
-    public static void sendPhotoSpecificCourtesyTweet(String context, org.json.JSONArray emedia, String tweeterScreenName, Twitter twitterInst){
-        int photoCount = 0;
-        org.json.JSONObject jent = null;
-        String mediaType = null;
-        Long mediaEntityId = null;
-        for(int j=0; j<emedia.length(); j++){
-            try{
-                jent = emedia.getJSONObject(j);
-                mediaType = jent.getString("type");
-                mediaEntityId = Long.parseLong(jent.getString("id"));
-            } catch(Exception e){
-                System.out.println("Error with JSONObject capture");
-                e.printStackTrace();
-            }
-
-            try{
-                if(mediaType.equals("photo")){
-                    //For now, just one courtesy tweet per tweet, even if the tweet contains multiple images
-                    if(photoCount<1){
-                        sendCourtesyTweet(context, tweeterScreenName, mediaType, mediaEntityId);
-                    }
-                    photoCount += 1;
-                }
-            } catch(Exception e){
-                e.printStackTrace();
-            }
-        }
-    }
-*/
-
-/*
-    public static JSONObject makeParentTweetMediaAssetAndSave(Shepherd myShepherd, TwitterAssetStore tas, Status tweet, JSONObject tj){
-        myShepherd.beginDBTransaction();
-        try{
-            MediaAsset ma = tas.create(Long.toString(tweet.getId()));  //parent (aka tweet)
-            ma.addLabel("_original");
-            MediaAssetMetadata md = ma.updateMetadata();
-            MediaAssetFactory.save(ma, myShepherd);
-            // JSONObject test = TwitterUtil.toJSONObject(ma);
-            tj.put("maId", ma.getId());
-            tj.put("metadata", ma.getMetadata().getData());
-            System.out.println(tweet.getId() + ": created tweet asset " + ma);
-            myShepherd.commitDBTransaction();
-            return tj;
-        } catch(Exception e){
-            myShepherd.rollbackDBTransaction();
-            e.printStackTrace();
-            return tj;
-        }
-    }
-*/
-
-/*  this is deprecated, methinks
-    public static JSONObject saveEntitiesAsMediaAssetsToSheperdDatabaseAndSendEachToImageAnalysis(List<MediaAsset> mas, Long tweetID, Shepherd myShepherd, JSONObject tj, HttpServletRequest request){
-        if ((mas == null) || (mas.size() < 1)) {
-        } else {
-            JSONArray jent = new JSONArray();
-            for (MediaAsset ent : mas) {
-                myShepherd.beginDBTransaction();
-                try {
-                    JSONObject ej = new JSONObject();
-                    // MediaAssetMetadata entMd = ent.updateMetadata();
-                    MediaAssetFactory.save(ent, myShepherd);
-                    System.out.println("Ent's mediaAssetID is " + ent.toString());
-                    // MediaAssetFactory.save(ent, myShepherd);
-                    String taskId = IBEISIA.IAIntake(ent, myShepherd, request);
-                    ej.put("maId", ent.getId());
-                    ej.put("taskId", taskId);
-                    ej.put("creationDate", new LocalDateTime());
-                    String tweeterScreenName = tj.getJSONObject("tweet").getJSONObject("user").getString("screen_name");
-                    ej.put("tweeterScreenName", tweeterScreenName);
-                    jent.put(ej);
-                    // myShepherd.getPM().makePersistent(ej); //maybe?
-                    myShepherd.commitDBTransaction();
-                } catch(Exception e){
-                    myShepherd.rollbackDBTransaction();
-                    e.printStackTrace();
-                }
-            }
-            tj.put("entities", jent);
-        }
-        return tj;
-    }
-*/
-
-    public static void sendDetectionAndIdentificationTweet(String context, String screenName, String imageId, String whaleId, boolean detected, boolean identified, String info){
-        Map<String,String> vars = new HashMap<String,String>();  //%SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV, %URL_SUBMIT
-        vars.put("SOURCE_SCREENNAME", screenName);
-        vars.put("SOURCE_IMAGE_ID", imageId);
-        vars.put("INDIV_ID", whaleId);
-        if (detected && identified) {
-            sendTweet(tweetText(context, "tweetTextIABoth1", vars));
-            sendTweet(tweetText(context, "tweetTextIABoth2", vars));
-        } else if (detected) {
-            sendTweet(tweetText(context, "tweetTextIADetect1", vars));
-            sendTweet(tweetText(context, "tweetTextIADetect2", vars));
-        } else {
-            sendTweet(tweetText(context, "tweetTextIANone1", vars));
-            sendTweet(tweetText(context, "tweetTextIANone2", vars));
-        }
-    }
-
-    public static void sendTimeoutTweet(String context, String screenName, Long twitterId) {
-        Map<String,String> vars = new HashMap<String,String>();  //%SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV, %URL_SUBMIT
-        vars.put("SOURCE_SCREENNAME", screenName);
-        vars.put("SOURCE_TWEET_ID", Long.toString(twitterId));
-        sendTweet(tweetText(context, "tweetTextIATimeout1", vars));
-        sendTweet(tweetText(context, "tweetTextIATimeout2", vars));
-    }
-
-/*
-  public static JSONArray removePendingEntry(JSONArray pendingResults, int index){
-    ArrayList<JSONObject> list = new ArrayList<>();
-    for(int i = 0; i < pendingResults.length(); i++){
-      if(i == index){
-        continue;
-      } else {
-        list.add(pendingResults.getJSONObject(i));
-      }
-    }
-    return new JSONArray(list);
-  }
-
-*/
-
     public static String rateLimitationInfo() {
         return outgoingRL.toString();
     }
@@ -465,6 +339,9 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
     public static String tweetText(String context, String key, Map<String,String> vars) {
         String text = TwitterUtil.getProperty(context, key);
         if (text == null) return null;
+        String ref = Util.generateUUID().substring(0,6);
+        System.out.println("tweetText REF=" + ref + " key=" + key);
+        vars.put("REF", ref);
         //is there a "standard" java way to do this? sh/could be in Util? (template substitution)  etc.
         for (String k : vars.keySet()) {
             text = text.replaceAll("%" + k, vars.get(k));
@@ -522,7 +399,7 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
     //the only thing we need to do here is handle the case there were not annotations made
     //  since otherwise those annotations are going on for identification (and we have nothing to send)
     // NOTE: non-twitter results get passed here too!! in that case we should do nothing and return null
-    public static String processDetectionResults(Shepherd myShepherd, ArrayList<MediaAsset> mas) {
+    public static String processDetectionResults(Shepherd myShepherd, final ArrayList<MediaAsset> mas) {
 System.out.println("processDetectionResults() -> " + mas);
         if ((mas == null) || (mas.size() < 1)) return null;
         int successful = 0;
@@ -549,6 +426,44 @@ System.out.println("processDetectionResults() -> " + mas);
         //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
         sendTweet(tweetText(context, "tweetTextIANone", vars));
         return "Failed to find any Annotations; sent tweet";
+    }
+
+    //this input format is cuz this is how IBEISIA has this originally (the key in the map is the acmId)
+    public static String processIdentificationResults(Shepherd myShepherd, final HashMap<String,Annotation> annMap, final JSONObject annotPairDict, String taskId) {
+        if (annMap == null) return null;
+        return processIdentificationResults(myShepherd, new ArrayList<Annotation>(annMap.values()), annotPairDict, taskId);
+    }
+    //annotPairDict is from the IA results.  in the future we could let this be null and if so fetch it
+    public static String processIdentificationResults(Shepherd myShepherd, final List<Annotation> anns, final JSONObject annotPairDict, String taskId) {
+System.out.println("processIdentificationResults() -> " + anns + " ==> " + annotPairDict);
+        if ((anns == null) || (anns.size() < 1)) return null;
+
+        //now we have to find the source tweet (which should be the only one even if more than one annot)
+        int successful = 0;
+        MediaAsset tweetMA = null;
+        for (Annotation ann : anns) {
+            MediaAsset ma = ann.getMediaAsset();
+            tweetMA = TwitterUtil.parentTweet(myShepherd, ma);
+            if (tweetMA != null) break;
+        }
+        if (tweetMA == null) return null;  //no tweet stuff
+
+        Status originTweet = TwitterUtil.toStatus(tweetMA);
+        if (originTweet == null) return "Error finding originTweet for " + tweetMA + " (anns=" + anns + ")";
+
+        String context = myShepherd.getContext();
+        Map<String,String> vars = new HashMap<String,String>();
+        vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
+        vars.put("MATCH_URL", CommonConfiguration.getServerURL(context) + "/iaResults.jsp?taskId=" + taskId);
+
+        if ((annotPairDict == null) || (annotPairDict.optJSONArray("review_pair_list") == null) ||
+            (annotPairDict.getJSONArray("review_pair_list").length() < 1)) {
+            sendTweet(tweetText(context, "tweetTextIADetect", vars));
+            return "Got " + anns.size() + " annots, but empty ident results[" + taskId + "]; tweet sent.";
+        }
+
+        sendTweet(tweetText(context, "tweetTextIABoth", vars));
+        return "Got " + anns.size() + " annots, and some possible matches!! [" + taskId + "] tweet sent.";
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?

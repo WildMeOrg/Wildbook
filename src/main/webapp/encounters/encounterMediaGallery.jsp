@@ -128,7 +128,7 @@ function forceLink(el) {
 		      capos[0]+=encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a><br>";
 		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
 		      
-		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" "+ma.getId()+"</p>";
+		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
 */
 		      captionLinks.add(capos);
 		      //end caption render JSP side
@@ -246,6 +246,10 @@ figcaption div {
     position: relative;
 }
 
+.pswp .dup-info {   /* hides duplicate block when zoom mode */
+    display: none;
+}
+
 .dup-info {
     z-index: 100;
     position: absolute;
@@ -289,7 +293,7 @@ figcaption div {
     background-repeat: no-repeat;
     width: 50px;
     height: 80px;
-    bottom: -60px;
+    bottom: -10px;
     left: 0;
 }
 
@@ -785,6 +789,27 @@ console.log('xxx %d: %d,%d %dx%d', i, boxes[i][0], boxes[i][1], boxes[i][2], box
     }
     return num;
 }
+
+function showDuplicates() {
+    if (!assets || !assets.length || !assetDup || !Object.keys(assetDup).length) return;
+    for (var i = 0 ; i < assets.length ; i++) {
+        if (!assetDup[assets[i].acmId]) continue;
+        var h = '<div class="dup-info">';
+        h += '<div class="dup-title">duplicate</div>';
+        h += '<div class="dup-details"><i>This image is used elsewhere:</i><br />';
+            for (encId in assetDup[assets[i].acmId]) {
+                h += '<div><a onClick="event.stopPropagation()" target="_new" href="encounter.jsp?number=' + encId + '" title="MediaAsset ';
+                h += assetDup[assets[i].acmId][encId].asset + '">Enc ';
+                h += encId.substring(0,8) + '</a>';
+                if (assetDup[assets[i].acmId][encId].indiv) h += ': <b>' + assetDup[assets[i].acmId][encId].indiv + '</b>';
+                h += '</div>';
+            }
+        h += '</div></div>';
+        $('.image-enhancer-wrapper-mid-' + assets[i].id).parent().find('figcaption div').append(h);
+    }
+}
+
+
 
 function enhancerCaption(el, opt) {
 	var mid = imageEnhancer.mediaAssetIdFromElement(el.context);

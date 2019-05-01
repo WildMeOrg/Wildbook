@@ -305,6 +305,20 @@ public class User implements Serializable {
 		
 		public String getUUID() {return uuid;}
 
+    //basically mean uuid-equivalent, so deal
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof User)) return false;
+        User two = (User)u2;
+        if ((this.uuid == null) || (two == null) || (two.getUUID() == null)) return false;
+        return this.uuid.equals(two.getUUID());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (uuid == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return uuid.hashCode();
+    }
+
+
     public String toString() {
         return new ToStringBuilder(this)
                 .append("uuid", uuid)

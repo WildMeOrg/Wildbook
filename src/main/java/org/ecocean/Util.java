@@ -23,7 +23,8 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 
 
-
+import org.apache.commons.lang3.StringUtils;
+import java.util.regex.Pattern;
 
 
 //EXIF-related imports
@@ -758,19 +759,39 @@ public class Util {
 
     
     public static String basicSanitize(String input) {
-      String sanitized = null;
-      if (input!=null) {
-        sanitized = input;
-        sanitized = input.replace(":", "");
-        sanitized = input.replace(";", "");
-        sanitized = sanitized.replace("\"", "");
-        sanitized = sanitized.replace("'", "");
-        sanitized = sanitized.replace("(", "");
-        sanitized = sanitized.replace(")", "");
-        sanitized = sanitized.replace("*", "");
-        sanitized = sanitized.replace("%", "");        
+      //String sanitized = null;
+      //if (input!=null) {
+      //  sanitized = input;
+      //  sanitized = input.replace(":", "");
+      //  sanitized = input.replace(";", "");
+      //  sanitized = sanitized.replace("\"", "");
+      //  sanitized = sanitized.replace("'", "");
+      //  sanitized = sanitized.replace("(", "");
+      //  sanitized = sanitized.replace(")", "");
+      //  sanitized = sanitized.replace("*", "");
+      //  sanitized = sanitized.replace("%", "");
+      //}
+      //return sanitized;
+      return sanitizeUserInput(input);
+    }
+
+    public static String sanitizeUserInput(String input) {
+      final String[] forbidden = {
+        "'", "<%", "<s", "<i", "alert(", "prompt(", "confirm(",
+         "\"", "</", "&#38;", "&#39;", "&#40;", "&#41;", "&#60;",
+        "&#62;", "&#34;", "var ", ">var", "var+", "href=",
+        ".*", "src=", "%20", "\">", "()", ");", ")&", "$(", "${", 
+        "new+", "%3C", "%3E", "%27", "%22", "><", "=\"",
+        "document.get", "document.add", "document.cookie",
+        "document[", "javascript", ":edit", "&quot", "\\u",
+        "String.from",
+      };
+      for (String forbid : forbidden) {
+        if (StringUtils.containsIgnoreCase(input, forbid)) {
+          input = input.replaceAll("(?i)"+Pattern.quote(forbid), "");
+        }
       }
-      return sanitized;
+      return input;
     }
 
     public static String joinStrings(List<String> strings) {
