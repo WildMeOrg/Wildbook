@@ -201,7 +201,14 @@
 	
 	
 		JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
+		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
+		JSONArray jsonobj = new JSONArray();
+		System.out.println("Starting to iterate over individuals");
+		for (MarkedIndividual mark: rIndividuals) {
+			jsonobj.put(mark.uiJson(request));
+		}
+		System.out.println("Done iterating over individuals");
+
 		String indsJson = jsonobj.toString();
 	
 	%>
@@ -262,7 +269,7 @@
 			key: 'individual',
 			label: '<%=props.getProperty("markedIndividual")%>',
 			value: _colIndividual,
-			sortValue: function(o) { return o.individualID.toLowerCase(); },
+			sortValue: function(o) { return o.displayName; },
 			//sortFunction: function(a,b) {},
 		},
 	
@@ -270,7 +277,7 @@
 			key: 'nickName',
 			label: '<%=props.getProperty("nickNameCol")%>',
 			value: _colNickname,
-			sortValue: function(o) { return o.nickName.toLowerCase(); },
+			sortValue: function(o) { return o.nickname.toLowerCase(); },
 		},
 	
 		{
@@ -583,15 +590,15 @@
 	
 	
 	function _colIndividual(o) {
-		var i = '<b>' + o.individualID + '</b>';
+		var i = '<b>' + o.displayName + '</b>';
 		var fi = o.dateFirstIdentified;
 		if (fi) i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
 		return i;
 	}
 
 	function _colNickname(o) {
-		if (o.nickName == undefined) return '';
-		return o.nickName;
+		if (o.nickname == undefined) return '';
+		return o.nickname;
 	}
 	
 	

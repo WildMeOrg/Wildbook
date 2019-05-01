@@ -444,7 +444,7 @@ $(document).ready(function() {
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
               String myNickname = "";
-              myNickname = sharky.getNickName();
+              myNickname = sharky.getDisplayName();
             %>
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
@@ -505,12 +505,13 @@ if (sharky.getNames() != null) {
 
     // if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
 
+    System.out.println("displayName="+sharky.getDisplayName());
 
     %>
     <div class="namesection default">
       <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" value="Default" placeholder="Default" >
       <span id="defaultNameColon">:</span>
-      <span class="nameValue default"><%=sharky.getName()%></span>
+      <span class="nameValue default"><%=sharky.getDisplayName()%></span>
       <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" value="<%=sharky.getName()%>" placeholder="<%=sharky.getName() %>" >
       <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
       <span class="nameCheck">&check;</span>
