@@ -289,7 +289,7 @@ figcaption div {
     background-repeat: no-repeat;
     width: 50px;
     height: 80px;
-    bottom: -10px;
+    bottom: -60px;
     left: 0;
 }
 
