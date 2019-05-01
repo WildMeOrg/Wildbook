@@ -175,13 +175,13 @@ public class MarkedIndividual implements java.io.Serializable {
         return getDisplayName(null);
     }
     public String getDisplayName(Object keyHint) {
-        List<String> names = getNamesList(keyHint);
-        System.out.println("getDisplayName called for individual "+this+" names = "+names);
-        if ((names == null) || (names.size() < 1)) {
+        List<String> nameVals = getNamesList(keyHint);
+        if ((nameVals == null) || (nameVals.size() < 1)) nameVals = getNames().getValuesDefault();
+        if ((nameVals == null) || (nameVals.size() < 1)) {
           if (Util.isUUID(individualID)) return individualID.substring(0,8);
           else return individualID;
         }
-        return names.get(0);
+        return nameVals.get(0);
     }
 
     //MultiValue has some subtleties to it!
@@ -231,11 +231,15 @@ public class MarkedIndividual implements java.io.Serializable {
         if (names == null) names = new MultiValue();
 
         // save the old individualID
-        if (Util.shouldReplace(individualID, legacyIndividualID)) setLegacyIndividualID(individualID);
-        // use old individualID as default name moving forward
-        if (Util.stringExists(legacyIndividualID)) {
-            names.addValuesDefault(legacyIndividualID);
+        if (Util.shouldReplace(individualID, legacyIndividualID)) {
+          setLegacyIndividualID(individualID);
         }
+
+        if (Util.stringExists(getLegacyIndividualID())) {
+          names.addValuesDefault(getLegacyIndividualID());
+        }
+        // use old individualID as default name moving forward
+        
         // add nickname and alternateID to names list (labelled), but not default list
         if (Util.stringExists(nickName)) {
             names.addValuesByKey(NAMES_KEY_NICKNAME, nickName);
@@ -767,6 +771,10 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
    */
   public Vector getEncounters() {
     return encounters;
+  }
+  public int getNumEncounters() {
+    if (encounters==null) return 0;
+    return encounters.size();
   }
   public List<Encounter> getEncounterList() {
     List<Encounter> encs = new ArrayList<Encounter>();
@@ -2030,6 +2038,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
     jobj.put("nickname", this.nickName);
+    jobj.put("displayName", this.getDisplayName());
+    jobj.put("numberEncounters", this.getNumEncounters());
+    jobj.put("numberLocations", this.getNumberLocations());
+    jobj.put("maxYearsBetweenResightings", getMaxNumYearsBetweenSightings());
 
     Vector<String> encIDs = new Vector<String>();
     for (Encounter enc : this.encounters) {
