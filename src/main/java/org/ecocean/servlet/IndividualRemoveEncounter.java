@@ -71,12 +71,12 @@ public class IndividualRemoveEncounter extends HttpServlet {
       setDateLastModified(enc2remove);
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
-      if (enc2remove.getIndividualID()!=null) {
+      MarkedIndividual removeFromMe = enc2remove.getIndividual();
+      if (removeFromMe!=null) {
         String old_name = enc2remove.getIndividualID();
         boolean wasRemoved = false;
         String name_s = "";
         try {
-          MarkedIndividual removeFromMe = myShepherd.getMarkedIndividual(old_name);
           
           //while (myShepherd.getUnidentifiableEncountersForMarkedIndividual(old_name).contains(enc2remove)) {
           //  removeFromMe.removeEncounter(enc2remove, context);
@@ -88,11 +88,14 @@ public class IndividualRemoveEncounter extends HttpServlet {
           //enc2remove.setOccurrenceID(null);
 
           enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");
-          
+
           if(removeFromMe!=null){
             name_s = removeFromMe.getName();
+
             while (removeFromMe.getEncounters().contains(enc2remove)) {
+            System.out.println("IndividualRemoveEncounter checkpoint B.1 has enc="+enc2remove+" and ind="+removeFromMe);
               removeFromMe.removeEncounter(enc2remove);
+            System.out.println("IndividualRemoveEncounter checkpoint B.2 has enc="+enc2remove+" and ind="+removeFromMe);
             }
             removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
             if (removeFromMe.totalEncounters() == 0) {
