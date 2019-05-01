@@ -1050,11 +1050,19 @@ System.out.println("depth --> " + fv.get("depth").toString());
             if (!spamBot) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
                 enc.refreshAssetFormats(myShepherd);
-                if (indiv != null) myShepherd.getPM().makePersistent(indiv);
+                Task fakeParent = null;  //this is not persisted, its only to pass (optional, see below) params to IA task
+                if (indiv != null) {
+                    myShepherd.getPM().makePersistent(indiv);
+                    //when we have assigned a name, lets not do identification
+                    fakeParent = new Task();
+                    JSONObject tparam = new JSONObject();
+                    tparam.put("skipIdent", true);
+                    fakeParent.setParameters(tparam);
+                }
 
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
-                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
+                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), fakeParent);  //TODO are they *really* persisted for another thread (queue)
                 myShepherd.storeNewTask(task);
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
