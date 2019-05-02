@@ -108,6 +108,7 @@ public class MediaAsset implements java.io.Serializable {
     protected ArrayList<Keyword> keywords;
 
     protected String hashCode;
+    protected String contentHash;  // see Util.fileContentHash()
 
     protected String detectionStatus;
     protected String identificationStatus;
