@@ -16,7 +16,7 @@
 
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
-    <geotools.version>8.3</geotools.version>
+    <geotools.version>21.1</geotools.version>
 	
 	<!--
 	 <project.http.version></project.http.version>
@@ -144,7 +144,7 @@
     <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.0</version>
+        <version>3.8.1</version>
     </dependency>
 
 <dependency>
