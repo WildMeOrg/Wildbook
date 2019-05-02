@@ -655,9 +655,13 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
         }
         File file = ma.localPath().toFile();
         if (!file.exists()) throw new IOException(file + " does not exist");
+        ma.contentHash = Util.fileContentHash(file);
         JSONObject data = new JSONObject();
         JSONObject attr = extractMetadataAttributes(file);
-        if (attr != null) data.put("attributes", attr);
+        if (attr != null) {
+            attr.put("contentHash", ma.contentHash);
+            data.put("attributes", attr);
+        }
         if (!minimal) {
             //we swallow the exif IOException, since it can flake (non-jpegs etc) and we "dont care" -- we would rather just have MetadataAttributes than nothing
             try {
@@ -677,6 +681,7 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
     public static JSONObject extractMetadataAttributes(File file) throws IOException {  //some "generic attributes" (i.e. not from specific sources like exif)
         JSONObject j = new JSONObject();
         j.put("contentType", Files.probeContentType(file.toPath()));  //hopefully we can always/atleast get this
+        j.put("length", file.length());
 
         //we only kinda care about bimg failure -- see: non-images
         BufferedImage bimg = null;
