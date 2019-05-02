@@ -774,6 +774,15 @@ public static void doOptions(HttpServletRequest request, HttpServletResponse res
   if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
 }
 
+// origin restricted to current URL 
+public static void doOptionsSafe(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+  String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+  System.out.println("Cuurent urlLoc: "+urlLoc);
+  response.setHeader("Access-Control-Allow-Origin", urlLoc);
+  response.setHeader("Access-Control-Allow-Methods", "GET, POST");
+  if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+}
+
 
 /* see webapps/captchaExample.jsp for implementation */
 
