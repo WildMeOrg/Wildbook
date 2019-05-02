@@ -485,10 +485,6 @@
     <servlet-class>org.ecocean.servlet.importer.ImportAccess</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>StandardImport</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
-  </servlet>
-  <servlet>
     <servlet-name>FixStandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
   </servlet>
@@ -1709,10 +1705,6 @@
   <servlet-mapping>
       <servlet-name>ImportAccess</servlet-name>
       <url-pattern>/ImportAccess</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-      <servlet-name>StandardImport</servlet-name>
-      <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
       <servlet-name>WebImport</servlet-name>
