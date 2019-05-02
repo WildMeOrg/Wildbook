@@ -4,6 +4,7 @@ function recaptchaCallback() {
     console.log("recaptchaCallback triggered!");
     if (document.getElementById("file-selector-input").files.length>0) { // num files in input?
         document.getElementById("continueButton").disabled = false;
+        document.getElementById("sendButton").disabled = false;
     } else {out("Please add image files to continue.");}
 
     document.getElementById("recaptcha-checked").value = "true";
@@ -18,6 +19,7 @@ function updateSelected(inp) {
         if (inp.files.length > 0) {
             if (document.getElementById("recaptcha-checked").value=="true") {
                 document.getElementById("continueButton").disabled = false;
+                document.getElementById("sendButton").disabled = false;
             } else {out("Please check ReCaptcha to continue.");}
         }
         var all = [];
@@ -33,7 +35,7 @@ function updateSelected(inp) {
         f = inp.value;
     }
     document.getElementById('input-file-list').innerHTML = f;
-} 
+}
 
 function continueButtonClicked() {
     $(".form-file-selection").hide();
@@ -56,6 +58,7 @@ function backButtonClicked() {
 }
 
 function sendButtonClicked() {
+    console.log("Clicked!");
     // SHOWTIME! Send these images off to certain doom
     multipleSubmitAPI.sendData(function(result){
         console.log(JSON.stringify(result));
@@ -176,4 +179,18 @@ function out(string) {
 }
 
 
+// get all lang appropriate copy from properties, hold on to 
+// before we populate in big ol global thingy
+// just do this fast
+var props;
+$(document).ready(function(){
+    multipleSubmitAPI.getProperties(function(result){
+        console.log("----------------> RESULT:  "+JSON.stringify(result));
+        props = result;
+    });
+});
+//console.log(JSON.stringify(props));
+function txt(str) {
+    return props[str];
+}
 

@@ -57,41 +57,34 @@ multipleSubmitAPI = {
     },
 
     getLocations: function(callback) {
-        var errOb = {};
-        $.ajax({
-            url: '../MultipleSubmitAPI?getLocations=true',
-            type: 'GET',
-            dataType: 'json',
-            success: function(result) {
-                console.log("Success GETting location ids! ");
-                //var json = JSON.parse(result);
-                callback(result);
-            },
-            error: function(error) {
-                //console.log("Error GETting! BARF! "+JSON.stringify(error));
-                $('#server-error').html(error);
-                callback(errOb);
-            } 
-        });
+        multipleSubmitAPI.getData('getLocations=true', callback);
     },
 
     getSpecies: function(callback) {
-        var errOb = {};
+        multipleSubmitAPI.getData('getSpecies=true', callback);
+    },
+
+    getProperties: function(callback) {
+        multipleSubmitAPI.getData('getProperties=true', callback);
+    },
+
+    getData: function(getString, callback) {
         $.ajax({
-            url: '../MultipleSubmitAPI?getSpecies=true',
+            url: '../MultipleSubmitAPI?'+getString,
             type: 'GET',
             dataType: 'json',
             success: function(result) {
-                console.log("Success GETting species names! ");
+                console.log("Success GETting "+getString);
                 //var json = JSON.parse(result);
                 callback(result);
             },
             error: function(error) {
                 //console.log("Error GETting! BARF! "+JSON.stringify(error));
                 $('#server-error').html(error);
-                callback(errOb);
+                callback(error);
             } 
         });
+
     }
 }
 

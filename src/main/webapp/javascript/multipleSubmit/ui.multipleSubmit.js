@@ -25,17 +25,17 @@ multipleSubmitUI = {
         var metadataTile = "";
         metadataTile += "<div class=\"encounter-tile-div col-xs-12 col-xl-12\">";
         metadataTile += "   <div>";
-        metadataTile += "       <label class=\"encounter-label\">&nbspEncounter Metadata #"+(index+1)+"&nbsp</label>";
-        metadataTile += "       <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\"Show Details\" />";
+        metadataTile += "       <label class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
+        metadataTile += "       <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
         metadataTile += "   </div>";
         metadataTile +=	"   <div id=\"enc-metadata-inner-"+index+"\" class=\"edit-closed\">";	
         metadataTile +=         "<div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateLocationDropdown(index)+"</div>";
         metadataTile +=	"	     <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">";
         metadataTile += "           <p class=\"enc-input-label\"><small>Select Date:</small></p>";
-        metadataTile += "           <input id=\"enc-date-"+index+"\" name=\"encDate\" title=\"Sighting Date/Time\" type=\"text\" placeholder=\"Enter Date\" class=\"form-control encDate\" size=\"36\" />";
+        metadataTile += "           <input id=\"enc-date-"+index+"\" name=\"encDate\" title=\""+txt("encounterMetadata")+"\" type=\"text\" placeholder=\""+txt("enterDate")+"\" class=\"form-control encDate\" size=\"36\" />";
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateSpeciesDropdown(index)+"</div>";
-        metadataTile +=	"       <p><textarea id=\"enc-comments-"+index+"\" class=\"form-control comment-box\" placeholder=\"More Info\" rows=\"3\" cols=\"36\" /></p>";
+        metadataTile +=	"       <p><textarea id=\"enc-comments-"+index+"\" class=\"form-control comment-box\" placeholder=\""+txt("moreInfo")+"\" rows=\"3\" cols=\"36\" /></p>";
         metadataTile +=	"   </div>";
         metadataTile += "</div>";
         return metadataTile;
@@ -56,7 +56,7 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getImageUIIdForIndex(index);
         var overlay = "";
         overlay += "  <div hidden id=\"img-overlay-"+index+"\" class=\"img-overlay-"+index+" img-input "+uiClass+"\" >";
-        overlay += "      <label class=\""+uiClass+" img-input-label\">File: "+file.name+"</label>";
+        overlay += "      <label class=\""+uiClass+" img-input-label\">"+txt("file")+"  "+file.name+"</label>";
         // make a "click to focus" prompt here on hover
         overlay += multipleSubmitUI.generateEncNumDropdown(index);
         overlay += "  </div>";
@@ -66,9 +66,9 @@ multipleSubmitUI = {
     generateEncNumDropdown: function(index) { 
         var uiClass = multipleSubmitUI.getImageUIIdForIndex(index);
         var encDrop = "";
-        encDrop += "<p class=\"img-input-label\"><small>Select Encounter (Default 1)</small></p>";
+        encDrop += "<p class=\"img-input-label\"><small>"+txt("selectEncounter")+"</small></p>";
         encDrop += "<select id=\"enc-num-dropdown-"+index+"\" class=\"form-control "+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
-        encDrop += "    <option selected=\"selected\" value=\"0\">Encounter #1</option>";
+        encDrop += "    <option selected=\"selected\" value=\"0\">"+txt("encounter")+"  #1</option>";
         for (var i=1;i<multipleSubmitUI.encsDefined();i++) {
             encDrop += "<option value=\""+i+"\">Encounter #"+(i+1)+"</option>";
         }
@@ -80,7 +80,7 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getEncInputClassForIndex(index);
         var speciesDrop = "";
         var uiId = "spec-" + uiClass;
-        speciesDrop += "<p class=\"enc-input-label\"><small>Select Species:</small></p>";
+        speciesDrop += "<p class=\"enc-input-label\"><small>"+txt("selectSpecies")+":</small></p>";
         speciesDrop += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" name=\"species-dropdown-"+index+"\">";
         multipleSubmitAPI.getSpecies(function(result){
             var allSpecies = result.allSpecies
@@ -104,9 +104,9 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getEncInputClassForIndex(index);
         var uiId = "loc-" + uiClass;
         var dd = "";
-        dd += "<p class=\"enc-input-label\"><small>Select Location:</small></p>";
+        dd += "<p class=\"enc-input-label\"><small>"+txt("selectLocation")+"</small></p>";
         dd += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
-        dd += "    <option selected=\"selected\" value=\"null\" disabled>Choose Location</option>";
+        dd += "    <option selected=\"selected\" value=\"null\" disabled>"+txt("chooseLocation")+"</option>";
         multipleSubmitAPI.getLocations(function(locObj){
             var ddLocs = ""; 
             if (locObj.hasOwnProperty('locationIds')) {
