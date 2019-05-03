@@ -81,7 +81,7 @@ var getIndividualIDFromEncounterToString = function(encToString) {
   // return everything between "individualID=" and the next comma after that
 console.log('encToString = %o', encToString);
   //var id = encToString.split("individualID=")[1].split(",")[0];
-    var id = encToString.individualID;
+    var id = encToString.displayName; // since this is for display, and individualIDs are UUIDs now
     if (!id) return false;
   return id;
 }
@@ -100,6 +100,7 @@ var getData = function(individualID) {
       var jsonData = json;
       for(var i=0; i < jsonData.length; i++) {
         var thisOcc = jsonData[i];
+        console.log("JsonData["+i+"] = "+JSON.stringify(thisOcc));
         var encounterSize = thisOcc.encounters.length;
         // make encounterArray, containing the individualIDs of every encounter in thisOcc;
         for(var j=0; j < encounterSize; j++) {
