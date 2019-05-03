@@ -31,6 +31,10 @@
 		<property name="derivationMethodAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="derivationMethod" />
 		</property>
+		<field name="contentHash">
+			<column length="30"/>
+			<index name="MEDIAASSET_CONTENTHASH_INDEX" />
+		</field>
 
     <field name="occurrence"/>
 

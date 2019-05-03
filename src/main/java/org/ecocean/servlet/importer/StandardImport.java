@@ -66,6 +66,8 @@ public class StandardImport extends HttpServlet {
 	// just for lazy loading a var used on each row
 	Integer numMediaAssets;
 
+        Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
+
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
@@ -81,6 +83,7 @@ public class StandardImport extends HttpServlet {
     }
     response.setContentType("text/html; charset=UTF-8");
     String context = ServletUtilities.getContext(request);
+    myAssets = new HashMap<String,MediaAsset>();  //zero this out from previous (e.g. uncommited)
     myShepherd = new Shepherd(context);
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
@@ -94,17 +97,18 @@ public class StandardImport extends HttpServlet {
       return;
     }
 
-    //this might better be set via a different configuration variable of its own
-    //String uploadDir = CommonConfiguration.getUploadTmpDir(context);
-    //System.out.println("uploadDir is: "+uploadDir);
+    String importDir = CommonConfiguration.getImportDir(context);
+    if (importDir == null) throw new RuntimeException("You MUST have 'importDir' set in commonConfigurations to use importer");
+    System.out.println("importDir is: "+importDir);
     
-    String filename = request.getParameter("filename");
-    if (filename == null) {
+    //filename *can* contain a subdir, such as "subdir/foo.xls"
+    String filename = Util.safePath(request.getParameter("filename"));  //this will be relative to importDir now!
+    if (filename == null) {  //note: safePath() might return null if it found evil stuff in filename=
       System.out.println("Filename request parameter was not set in the URL.");
       out.println("<p>I could not find a filename parameter in the URL. Please specify the full path to the Excel import file as the ?filename= parameter on the URL.</p>");
       return;
     }
-    File dataFile = new File(filename);
+    File dataFile = new File(importDir + "/" + filename);
     if(!dataFile.exists()){
       out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+"</p>");
       return;
@@ -141,21 +145,55 @@ public class StandardImport extends HttpServlet {
     } catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException invalidFormat) {
       out.println("<err>InvalidFormatException on input file "+filename+". Only excel files supported.</err>");
       return;
+    } catch (Exception ex) {  //pokemon!
+      out.println("<err><b>" + filename + "</b> got error: <i>" + ex.toString() + "</i></err>");
+      System.out.println("=== if you see this exception, it may be something wrong with permissions ===");
+      ex.printStackTrace();
+      return;
     }
-    Sheet sheet = wb.getSheetAt(0);
-
+    int sheetNum = 0;
+    try {
+        sheetNum = Integer.parseInt(request.getParameter("sheetNumber"));
+        if (sheetNum < 0) sheetNum = 0;
+    } catch (NumberFormatException ex) {}
     int numSheets = wb.getNumberOfSheets();
-    out.println("<li>Num Sheets = "+numSheets+"</li>");
+    if (sheetNum >= numSheets) sheetNum = 0;
+
+    Sheet sheet = wb.getSheetAt(sheetNum);
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
-    out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");
+
+    List<Integer> skipRows = new ArrayList<Integer>();
+    String[] skipRowParam = request.getParameterValues("skipRow");
+    String skipDisplay = "";
+    if ((skipRowParam != null) && (skipRowParam.length > 0)) {
+        for (int i = 0 ; i < skipRowParam.length ; i++) {
+            try {
+                int p = Integer.parseInt(skipRowParam[i]);
+                if ((p >= 0) && (p < physicalNumberOfRows)) {
+                    skipRows.add(p);
+                    skipDisplay += p + " ";
+                }
+            } catch (NumberFormatException ex) {}
+        }
+    }
+
+    int printPeriod = 100;
+    try {
+        int pp = Integer.parseInt(request.getParameter("printPeriod"));
+        if (pp > 0) printPeriod = pp;
+    } catch (NumberFormatException ex) {}
+		
+    out.println("<li>Sheet number = " + sheetNum + " (of " + numSheets + ") <i>\"" + sheet.getSheetName() + "\"</i></li>");
+    out.println("<li>Num Rows = "+physicalNumberOfRows+" <i>(echo every " + printPeriod + " rows)</i></li>");
+    if (skipRows.size() > 0) out.println("<li>Skipping rows: " + skipDisplay + "</li>");
     int rows = sheet.getPhysicalNumberOfRows();; // No of rows
     Row firstRow = sheet.getRow(0);
     // below line is important for on-screen logging
     initColIndexVariables(firstRow);
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     int lastColNum = firstRow.getLastCellNum();
-		
-		out.println("<li>Num Cols = "+cols+"</li>");
+
+    out.println("<li>Num Cols = "+cols+"</li>");
     out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>committing = "+committing+"</em></li>");
     out.println("</ul>");
@@ -164,7 +202,6 @@ public class StandardImport extends HttpServlet {
     for (String heading: colIndexMap.keySet()) out.println("<li>"+colIndexMap.get(heading)+": "+heading+"</li>");
     out.println("</ul>");
 
-    int printPeriod = 100;
     LocalDateTime ldt = new LocalDateTime();
     String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
     System.out.println("===== importId " + importId + " (committing=" + committing + ")");
@@ -176,6 +213,10 @@ public class StandardImport extends HttpServlet {
     int maxRows = 50000;
     int offset = 0;
     for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
+        if (skipRows.contains(i)) {
+            System.out.println("INFO: skipping row " + i + " due to skipRow arg");
+            continue;
+        }
 
     	MarkedIndividual mark = null;
     	verbose = ((i%printPeriod)==0);
@@ -716,7 +757,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  		System.out.println("		about to create mediaAsset");
 			  ma = astore.copyIn(f, assetParams);
 	  	} catch (Exception e) {
-	  		System.out.println("IOException creating MediaAsset for file "+f.getPath());
+	  		System.out.println("IOException creating MediaAsset for file "+f.getPath() + ": " + e.toString());
 	  		missingPhotos.add(f.getPath());
 	  		continue; // skips the rest of loop for this file
 	  	}
@@ -792,6 +833,15 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
       return null;
     }
 	  File f = new File(resolvedPath);
+            MediaAsset existMA = checkExistingMediaAsset(f);
+            if (existMA != null) {
+                if (!f.getName().equals(existMA.getFilename())) {
+                    System.out.println("WARNING: got hash match, but DIFFERENT FILENAME for " + f + " with " + existMA + "; allowing new MediaAsset to be created");
+                } else {
+                    System.out.println("INFO: " + f + " got hash and filename match on " + existMA);
+                    return existMA;
+                }
+            }
 
 	  // create MediaAsset and return it
 	  JSONObject assetParams = astore.createParameters(f);
@@ -800,10 +850,12 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  try {
 	  	ma = astore.copyIn(f, assetParams);
 	  } catch (java.io.IOException ioEx) {
-	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
+	  	System.out.println("IOException creating MediaAsset for file "+resolvedPath + ": " + ioEx.toString());
 	  	missingPhotos.add(fullPath);
 	  	foundPhotos.remove(fullPath);
+                return null;
 	  }
+          myAssets.put(fileHash(f), ma);
 
 	  // keywording
 
@@ -821,6 +873,24 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  return ma;
   }
 
+    //TODO in a perfect world, we would also check db for assets with same hash!!  but then we need a shepherd.  SIGH
+    private MediaAsset checkExistingMediaAsset(File f) {
+        String fhash = fileHash(f);
+        if (fhash == null) return null;
+System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
+        return myAssets.get(fhash);
+    }
+
+    // a gentle wrapper
+    private String fileHash(File f) {
+        if (f == null) return null;
+        try {
+            return Util.fileContentHash(f);
+        } catch (IOException iox) {
+            System.out.println("StandardImport.fileHash() ignorning " + f + " threw " + iox.toString());
+        }
+        return null;
+    }
   private ArrayList<Keyword> getKeywordsForAsset(Row row, int n) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     int maxAssets = getNumAssets(row);
@@ -852,6 +922,9 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
     String candidatePath = uppercaseJpg(fullPath);
     if (Util.fileExists(candidatePath)) return candidatePath;
 
+    candidatePath = noExtension(candidatePath);
+    if (Util.fileExists(candidatePath)) return candidatePath;
+
     String candidatePath2 = uppercaseBeforeJpg(candidatePath);
     if (Util.fileExists(candidatePath2)) return candidatePath2;
 
@@ -869,6 +942,12 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
     return null;
   }
+
+    //not sure how cool this is.  but probably same can be said about all this!
+    private String noExtension(String filename) {
+        if (filename.matches(".*\\.[^\\./]+$")) return filename;
+        return filename + ".jpg";  // :(
+    }
 
   private String uppercaseBeforeJpg(String filename) {
   	// uppercases the section between final slash and .jpg
@@ -917,7 +996,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	private void setNumMediaAssets() {
 		int numAssets = 0;
 		for (String col: colIndexMap.keySet()) {
-			if (col.indexOf("mediaAsset")>-1) numAssets++;
+			if ((col != null) && (col.indexOf("mediaAsset")>-1)) numAssets++;
 		}
 		numMediaAssets=numAssets;
 	}
@@ -1215,7 +1294,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	// tho I'm not immediately sure how we'd get the url context, or determine if we want to include /encounters/ or not
 	public static String getEncounterURL(Encounter enc) {
 		if (enc==null || enc.getCatalogNumber()==null) return null;
-		return "/encounters/encounter.jsp?number="+enc.getCatalogNumber();
+		return "encounters/encounter.jsp?number="+enc.getCatalogNumber();
 	}
 
 	// gives us a nice link if we're

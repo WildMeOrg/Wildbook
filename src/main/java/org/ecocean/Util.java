@@ -22,9 +22,11 @@ import java.util.TimeZone;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 
-
 import org.apache.commons.lang3.StringUtils;
 import java.util.regex.Pattern;
+import net.jpountz.xxhash.XXHashFactory;
+import net.jpountz.xxhash.StreamingXXHash32;
+import net.jpountz.xxhash.XXHash32;
 
 
 //EXIF-related imports
@@ -835,6 +837,52 @@ public class Util {
     multimap.get(key).add(val);
   }
 
+
+    //this is a fast hash
+    //https://lz4.github.io/lz4-java/1.5.1/docs/net/jpountz/xxhash/package-summary.html
+    public static final int XXHASH_SEED = 0x2170beef;  //just needs to be consistent
+    public static int xxhash(byte[] barr) {
+        XXHashFactory factory = XXHashFactory.fastestInstance();
+        XXHash32 hash32 = factory.hash32();
+        return hash32.hash(barr, 0, barr.length, XXHASH_SEED);
+    }
+    public static int xxhash(String s) throws IOException {
+        if (s == null) throw new IOException("xxhash() passed null string");
+        return xxhash(s.getBytes("UTF-8"));
+    }
+/*
+    //note: maybe if files become too huge, this would suck?  there is a streaming version (see docs link above)
+    // turns out it did kinda suck!! see below instead.
+    public static int xxhash(File f) throws IOException {
+        if (f == null) throw new IOException("xxhash() passed null file");
+        return xxhash(Files.readAllBytes(f.toPath()));
+    }
+*/
+    public static int xxhash(File f) throws IOException {
+        if (f == null) throw new IOException("xxhash() passed null file");
+        XXHashFactory factory = XXHashFactory.fastestInstance();
+        StreamingXXHash32 hash32 = factory.newStreamingHash32(XXHASH_SEED);
+        InputStream inputStream = new FileInputStream(f);
+        byte[] buf = new byte[8192];
+        int read;
+        while ((read = inputStream.read(buf)) != -1) {
+            hash32.update(buf, 0, read);
+        }
+        return hash32.getValue();
+    }
+    public static boolean areFilesIdentical(File f1, File f2) throws IOException {
+        if ((f1 == null) || (f2 == null)) return false;
+        if (f1.length() != f2.length()) return false;  //easy!
+        int h1 = xxhash(f1);
+        int h2 = xxhash(f2);
+        return (h1 == h2);
+    }
+
+    //value is hex number... first part is length, second part (8char) xxhash; max = 24char
+    public static String fileContentHash(File f) throws IOException {
+        if (f == null) throw new IOException("fileContentHash() passed null file");
+        return Long.toHexString(f.length()) + Integer.toHexString(xxhash(f));
+    }
 }
 
 
