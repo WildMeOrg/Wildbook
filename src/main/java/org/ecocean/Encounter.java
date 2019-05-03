@@ -1380,6 +1380,10 @@ public class Encounter implements java.io.Serializable {
         return individual;
     }
 
+    public String getDisplayName() {
+      return (individual==null) ? null : individual.getDisplayName();
+    }
+
     public String getIndividualID() {
         if (individual == null) return null;
         return individual.getId();
@@ -3204,6 +3208,8 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
                 }
                 jobj.put("annotations", jarr);
             }
+
+            if (this.individual!=null) jobj.put("displayName",getDisplayName());
 
             if (fullAccess) return jobj;
 

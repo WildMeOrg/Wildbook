@@ -1396,7 +1396,7 @@ if(enc.getLocation()!=null){
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> 
                      <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
-                     <span id="displayIndividualID"><%=ServletUtilities.handleNullString(enc.getIndividualID())%></span></a></p>
+                     <span id="displayIndividualID"><%=enc.getDisplayName()%></span></a></p>
     							
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">

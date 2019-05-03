@@ -11,7 +11,6 @@ org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManage
 
 <%
 
-System.out.println("    |=-| INDIVIDUALS.JSP starting!");
 
 String blocker = "";
 String context="context0";
@@ -104,16 +103,12 @@ context=ServletUtilities.getContext(request);
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 
-System.out.println("    |=-| INDIVIDUALS.JSP continuing postforth!");
-
-
 %>
 
 <%
 if (request.getParameter("number")!=null) {
 	String oldWorld = request.getParameter("number").trim();
         //we also check individualID (uuid) too, just in case some href in jsp is still using number=
-                          System.out.println("    |=-| INDIVIDUALS.JSP before getting individual from shepherd");
 
         Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
         List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
@@ -131,7 +126,7 @@ if (request.getParameter("id")!=null) {
                                   System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
 	myShepherd.beginDBTransaction();
-	try{
+	try {
 
 		MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
 		if (indie != null) {
@@ -212,10 +207,6 @@ if (request.getParameter("id")!=null) {
 		myShepherd.rollbackDBTransaction();
 	}
 }
-
-
-System.out.println("    |=-| INDIVIDUALS.JSP done with toppage java stuff!");
-
 
 %>
 
@@ -707,90 +698,7 @@ if (sharky.getNames() != null) {
 
 }
             %></p>
-            <%
-
-            if (CommonConfiguration.allowNicknames(context)) {
-              String myNickname = "";
-              if (sharky.getNickName() != null) {
-                myNickname = sharky.getNickName();
-              }
-              String myNicknamer = "";
-              if (sharky.getNickNamer() != null) {
-                myNicknamer = sharky.getNickNamer();
-              }
-              %>
-
-              <p class="noEditText"><%=nickname %>: <span id="displayNickname"><%=myNickname%></span></p>
-
-              <script type="text/javascript">
-                $(document).ready(function() {
-
-                  $("#Name").click(function(event) {
-                    event.preventDefault();
-
-                    $("#Name").hide();
-
-                    var individual = $("input[name='individual']").val();
-                    var nickname = $("#nickname").val();
-                    var namer = $("#namer").val();
-
-                    $.post("IndividualSetNickName", {"individual": individual, "nickname": nickname, "namer": namer},
-                    function() {
-                      $("#nicknameErrorDiv").hide();
-                      $("#nameDiv, #namerDiv").addClass("has-success");
-                      $("#nameCheck, #namerCheck").show();
-
-                      $("#headerDisplayNickname, #displayNickname").html(nickname);
-                    })
-                    .fail(function(response) {
-                      $("#nameDiv, #namerDiv").addClass("has-error");
-                      $("#nameError, #namerError, #nicknameErrorDiv").show();
-                      $("#nicknameErrorDiv").html(response.responseText);
-                    });
-                  });
-
-                  $("#nickname, #namer").click(function() {
-                    $("#nameError, #nameCheck, #namerCheck, #namerError, #nicknameErrorDiv").hide()
-                    $("#nameDiv, #namerDiv").removeClass("has-success");
-                    $("#nameDiv, #namerDiv").removeClass("has-error");
-                    $("#Name").show();
-                  });
-                });
-              </script>
-
-                <%-- Edit nickname form --%>
-                <p id="checkIndividualValue"></p>
-                <div class="highlight" id="nicknameErrorDiv"></div>
-                  <form name="nameShark" class="editForm">
-                    <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
-                      <div class="form-group has-feedback row" id="nameDiv">
-                        <div class="col-sm-4">
-                          <label><%=nickname %>:</label>
-                        </div>
-                        <div class="col-sm-7 editFormInput">
-                          <input class="form-control" name="nickname" type="text" id="nickname" value="<%=myNickname%>" placeholder="<%=nickname %>">
-                          <span class="form-control-feedback" id="nameCheck">&check;</span>
-                          <span class="form-control-feedback" id="nameError">X</span>
-                        </div>
-                      </div>
-
-                      <div class="form-group has-feedback row" id="namerDiv">
-                        <div class="col-sm-4">
-                          <label><%=nicknamer %>:</label>
-                        </div>
-                        <div class="col-sm-7 editFormInput">
-                          <input class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
-                          <span class="form-control-feedback" id="namerCheck">&check;</span>
-                          <span class="form-control-feedback" id="namerError">X</span>
-                        </div>
-                        <input class="btn btn-sm editFormBtn" type="submit" name="Name" id="Name" value="<%=update %>">
-                      </div>
-                  </form>
-                  <%-- End edit nickname form --%>
-
-              <%
-            }
-            %>
+            
 
             <%
             String sexValue="";
