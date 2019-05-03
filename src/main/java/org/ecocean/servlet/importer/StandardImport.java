@@ -342,44 +342,30 @@ public class StandardImport extends HttpServlet {
   }
 
   public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
-  	
   	Occurrence occ = getCurrentOccurrence(oldOcc, row);
   	// would love to have a more concise way to write following couplets, c'est la vie
 
-  	Integer individualCount = getInteger(row, "Occurrence.individualCount");
-  	if (individualCount!=null) occ.setIndividualCount(individualCount);
+        occ.setObserver(getString(row, "Occurrence.observer"));
+        occ.setDistance(getDouble(row, "Occurrence.distance"));
+        occ.setDecimalLatitude(getDouble(row, "Occurrence.decimalLatitude"));
+        occ.setDecimalLongitude(getDouble(row, "Occurrence.decimalLongitude"));
+        occ.setBearing(getDouble(row, "Occurrence.bearing"));
+        occ.setVegetation(getString(row, "Occurrence.vegetation"));
+        occ.setTerrain(getString(row, "Occurrence.terrain"));
+        occ.setGroupSize(getInteger(row, "Occurrence.groupSize"));
+        occ.setNumAdults(getInteger(row, "Occurrence.numAdults"));
+        occ.setNumAdultFemales(getInteger(row, "Occurrence.numFemaleAdults"));
+        occ.setNumAdultMales(getInteger(row, "Occurrence.numMaleAdults"));
+        occ.setNumSubAdults(getInteger(row, "Occurrence.numSubAdults"));
+        occ.setNumSubFemales(getInteger(row, "Occurrence.numSubFemales"));
+        occ.setNumSubMales(getInteger(row, "Occurrence.numSubMales"));
+        occ.setNumCalves(getInteger(row, "Occurrence.numCalves"));
 
-  	Double decimalLatitiude = getDouble(row, "Encounter.decimalLatitiude");
-  	if (decimalLatitiude!=null) occ.setDecimalLatitude(decimalLatitiude);
-
-  	Double decimalLatitude = getDouble(row, "Encounter.decimalLatitude");
-  	Double decimalLongitude = getDouble(row, "Encounter.decimalLongitude");
-
-    if (validLatLon(decimalLatitude,decimalLongitude)) {
-      occ.setDecimalLatitude(decimalLatitude);
-      occ.setDecimalLongitude(decimalLongitude);
-    }
-
-    Double distance = getDouble(row, "Occurrence.distance");
-    if (distance!=null) occ.setDistance(distance);
-
-    Taxonomy taxy = loadTaxonomy0(row);
-    if (taxy!=null) occ.addTaxonomy(taxy);
-
-    Taxonomy taxy1 = loadTaxonomy1(row);
-    if (taxy1!=null) occ.addTaxonomy(taxy1);
-
-  	Long millis = getLong(row, "Encounter.dateInMilliseconds");
-    if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
-    if (millis==null) millis = getLong(row, "Occurrence.millis");
-  	if (millis!=null) occ.setDateTimeLong(millis);
-
-  	if (enc!=null) {
-      occ.addEncounter(enc);
-      // overwrite=false on following fromEncs methods
-      occ.setLatLonFromEncs(false);
-    }
-
+        if (enc != null) {
+            occ.addEncounter(enc);
+            occ.setLatLonFromEncs(false);
+            occ.setMillisFromEncounters();
+        }
   	return occ;
 
   }
@@ -472,6 +458,7 @@ public class StandardImport extends HttpServlet {
   	if (occurrenceID==null) occurrenceID = getString(row, "Occurrence.occurrenceID");
   	if (occurrenceID!=null) enc.setOccurrenceID(occurrenceID);
 
+        //TODO FIXME must now handle altering .submitters list of Users!!!
   	String submitterID = getString(row, "Encounter.submitterID");
   	if (submitterID!=null) enc.setSubmitterID(submitterID);
 
