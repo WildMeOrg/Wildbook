@@ -10,7 +10,10 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.Annotation;  
+import org.ecocean.Annotation;
+import org.ecocean.ia.IA;
+import org.ecocean.ia.Task;
+import org.ecocean.identity.IBEISIA;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -26,9 +29,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Properties;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.Collection;
 
 import com.google.gson.*;
@@ -176,7 +177,7 @@ public class MultipleSubmitAPI extends HttpServlet {
                                 String keyNum = arr.get(j).getAsString();
                                 Part encPart = request.getPart("image-file-"+keyNum);
                                 System.out.println("Got part for ann num="+j);
-                                Annotation ann = makeMediaAssetFromPart(encPart, astore, enc, myShepherd);
+                                Annotation ann = makeMediaAssetFromPart(encPart, astore, enc, myShepherd, request);
                                 enc.addAnnotation(ann);
                                 System.out.println("Created Annotation id="+ann.getId());
                             }
@@ -190,16 +191,14 @@ public class MultipleSubmitAPI extends HttpServlet {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                // send the created assets to intakeAnnotations? 
-            }
+            } 
         }
         out.println(rtn);
         out.close();
     }
 
     // Similar to the methods in EncounterForm
-    private Annotation makeMediaAssetFromPart(Part part, AssetStore astore, Encounter enc, Shepherd myShepherd) {
+    private Annotation makeMediaAssetFromPart(Part part, AssetStore astore, Encounter enc, Shepherd myShepherd, HttpServletRequest request) {
         JSONObject sParams = astore.createParameters(new File(enc.subdir()+File.separator+part.getSubmittedFileName()));
         sParams.put("key", Util.hashDirectories(enc.getID())+"/"+part.getName());
         MediaAsset ma = new MediaAsset(astore, sParams);
@@ -222,16 +221,35 @@ public class MultipleSubmitAPI extends HttpServlet {
                 System.out.println("SEVERE: IOException copying image file "+part.getSubmittedFileName()+" to MediaAsset with id="+ma.getId());
                 ioe.printStackTrace();
             }
-            // oh fuuukk... we need to handle species.
             MediaAssetFactory.save(ma, myShepherd);
             System.out.println("Trying to updateStandardChildren...");
             ma.updateStandardChildren(myShepherd);
             ma.updateMinimalMetadata();
-            Annotation ann = new Annotation("",ma);
+            Annotation ann = new Annotation(null, ma);
             myShepherd.storeNewAnnotation(ann); 
+
+            // try and send to IA i guess
+            try {
+                sendNewMediaAssetToIA(ma, myShepherd, request);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                myShepherd.getPM().refresh(ma);
+            }
             return ann;
         }
         return null;
+    }
+
+    private void sendNewMediaAssetToIA(MediaAsset ma, Shepherd myShepherd, HttpServletRequest request) {
+        System.out.println("Is enabled? : "+IBEISIA.iaEnabled(request));
+        if (IBEISIA.iaEnabled(request)) {
+            List<MediaAsset> mal = new ArrayList<>();
+            mal.add(ma);
+            System.out.println("[INFO] Sending MediaAsset with id="+ma.getId()+" to IA.intakMediaAssets.");
+            Task tsk = IA.intakeMediaAssets(myShepherd, mal);
+
+        }
     }
 
     private Encounter createEncounter(JsonObject json, int encIdx) {
