@@ -1068,6 +1068,16 @@ System.out.println("??? TRY COMPRESS ??");
                     e.printStackTrace();
                 }
             }
+
+            // add the individual's display name if it has one
+            if (enc.getIndividual()!=null && Util.stringExists(enc.getIndividual().getDisplayName())) {
+                try {
+                    jobj.put("displayName",enc.getIndividual().getDisplayName());
+                } catch (org.datanucleus.api.rest.orgjson.JSONException thisIsTheStupidestFuckingLibraryForMakingMeHandleThisJustToPutAFuckingStringOnAnObject) {
+                }
+
+            }
+
             return jobj;
         }
 
