@@ -397,15 +397,16 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
 
 
+  public String getThumbnailUrl() {
+    return thumbnailUrl;
+  }
 
-/*
-	public String refreshThumbnailUrl(String context) {
-		Encounter[] sorted = this.getDateSortedEncounters();
-		if (sorted.length < 1) return null;
-		this.thumbnailUrl = sorted[0].getThumbnailUrl(context);
-		return this.thumbnailUrl;
+	public String refreshThumbnailUrl(HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
+    org.datanucleus.api.rest.orgjson.JSONObject thumbJson = getExemplarThumbnail(req);
+    String thumbUrl = thumbJson.optString("url", null);
+    if (Util.stringExists(thumbUrl)) this.thumbnailUrl = thumbUrl;
+    return thumbUrl;
 	}
-*/
 
 /*
   public int totalLogEncounters() {
@@ -2042,6 +2043,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     jobj.put("numberEncounters", this.getNumEncounters());
     jobj.put("numberLocations", this.getNumberLocations());
     jobj.put("maxYearsBetweenResightings", getMaxNumYearsBetweenSightings());
+    // note this does not re-compute thumbnail url (so we can get thumbnails on searchResults in a reasonable time)
+    jobj.put("thumbnailUrl", this.thumbnailUrl);
 
     Vector<String> encIDs = new Vector<String>();
     for (Encounter enc : this.encounters) {
@@ -2076,6 +2079,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   }
 
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req, int numResults) throws JSONException {
+    return getExemplarImages(req, numResults, "_mid");
+  }
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req, int numResults, String imageSize) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
@@ -2098,7 +2105,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("MarkedIndividual.getExemplarImages");
             myShepherd.beginDBTransaction();
-            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, imageSize);
             if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
             if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
             myShepherd.rollbackDBTransaction();
@@ -2226,12 +2233,23 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
     
-    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
-    if(al.size()>0){return al.get(0);}
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req, 0);
+    if(al!=null && al.size()>0){return al.get(0);}
     return new JSONObject();
     
 
   }
+  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarThumbnail(HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
+    
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req, 0, "_thumb");
+    if(al!=null && al.size()>0){return al.get(0);}
+    return new JSONObject();
+    
+
+  }
+
+
+
   
 
   // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
