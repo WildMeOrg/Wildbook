@@ -68,9 +68,11 @@ public class Occurrence implements java.io.Serializable {
     private Integer groupSize;
     private Integer numAdultMales;
     private Integer numAdultFemales;
+    private Integer numAdults;
     private Integer numSubMales;
     private Integer numSubFemales;
-    private Integer numJuveniles;
+    private Integer numSubAdults;
+    private Integer numCalves;
     private Integer wp;  //i think this is waypoint???
 
   // Variables used in the Survey, SurveyTrack, Path, Location model
@@ -498,6 +500,13 @@ public class Occurrence implements java.io.Serializable {
 		this.numAdultFemales = s;
 	}
 
+        public Integer getNumAdults() {
+            return this.numAdults;
+        }
+        public void setNumAdults(Integer n) {
+            this.numAdults = n;
+        }
+
 	public Integer getNumSubMales() {
 		return this.numSubMales;
 	}
@@ -512,11 +521,18 @@ public class Occurrence implements java.io.Serializable {
 		this.numSubFemales = s;
         }
 
-	public Integer getNumJuveniles() {
-		return this.numJuveniles;
+	public Integer getNumSubAdults() {
+		return this.numSubAdults;
 	}
-	public void setNumJuveniles(Integer s) {
-		this.numJuveniles = s;
+	public void setNumSubAdults(Integer s) {
+		this.numSubAdults = s;
+	}
+
+	public Integer getNumCalves() {
+		return this.numCalves;
+	}
+	public void setNumCalves(Integer c) {
+		this.numCalves = c;
 	}
 
 	public Double getBearing() {
