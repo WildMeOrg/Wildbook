@@ -5,6 +5,7 @@ import org.ecocean.Util;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
+import org.ecocean.User;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
@@ -180,6 +181,7 @@ public class MultipleSubmitAPI extends HttpServlet {
                                 System.out.println("Created Annotation id="+ann.getId());
                             }
                         }
+                        enc = setUserForEncounter(enc, request, myShepherd);
                     } catch (Exception e) {
                         System.out.println("Exception creating Encounter and assets!");
                         e.printStackTrace();
@@ -257,6 +259,34 @@ public class MultipleSubmitAPI extends HttpServlet {
         System.out.println("The locationId FROM the encounter: "+enc.getLocationID());
         enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " with Multiple Submit form. </p>");
         return enc;
+    }
+
+    private Encounter setUserForEncounter(Encounter enc, HttpServletRequest request, Shepherd myShepherd) {
+        try {
+            if (request.getUserPrincipal()!=null) {
+                String name = request.getUserPrincipal().getName();
+                System.out.println("Here is the name we got: "+name);
+                User u = myShepherd.getUser(name);
+                if (u!=null) {
+                    List<User> uList = new ArrayList<>();
+                    uList.add(u);
+                    enc.setSubmitters(uList);
+                } else {
+                    System.out.println("myShepherd.getUser(username) got a null result for user: "+request.getUserPrincipal().getName());
+                }
+                enc.addComments("<p>Submitted by user <b>"+name+"</b>. </p>");
+                // this bit is for Spot A Shark USA.. They have heavily customized user UI 
+                // in the encounter page, so we need to update old fields too.
+                if (hasVal(u.getFullName())) {enc.setSubmitterName(u.getFullName());}
+                if (hasVal(u.getEmailAddress())) {enc.setSubmitterEmail(u.getEmailAddress());}
+                if (hasVal(u.getUserProject())) {enc.setSubmitterProject(u.getUserProject());}
+            } else {
+                System.out.println("request.getUserPrincipal() had a null result");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return enc; 
     }
 
     private boolean hasVal(String str) {
