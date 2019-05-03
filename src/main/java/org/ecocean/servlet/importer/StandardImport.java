@@ -124,8 +124,15 @@ public class StandardImport extends HttpServlet {
     //File dataFile = new File(uploadDir + "/" + filename);
     //boolean dataFound = dataFile.exists();
 
-    
-    
+    String rootDir = getServletContext().getRealPath("/");
+    File xlsFile = importXlsFile(rootDir);
+    if (xlsFile == null) {
+        out.println("<h2 class=\"error\">Could not determine latest Wildbook Standard Format XLS file!</h2>");
+    } else {
+        DateTime dt = new DateTime(xlsFile.lastModified());
+        out.println("<p><b>The latest <b>Wildbook Standard Format XLS</b> template is called \"<a href=\"import/" + xlsFile.getName() + "\">" + xlsFile.getName() + "</a>\" (updated " + dt.toString().substring(0,10) + ").</b><br /><i>Please make sure you are using the current version for best results.</p>");
+    }
+
     missingColumns = new HashSet<String>();
     missingPhotos = new ArrayList<String>();
 		foundPhotos = new ArrayList<String>();
@@ -1331,6 +1338,21 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     
   }
 
+
+    //returns file so you can use .getName() or .lastModified() etc
+    public static File importXlsFile(String rootDir) {
+        File dir = new File(rootDir, "import");
+        try {
+            for (final File f : dir.listFiles()) {
+                if (f.isFile() && f.getName().matches("WildbookStandardFormat.*\\.xlsx")) return f;
+            }
+        } catch (Exception ex) {
+            System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + " threw " + ex.toString());
+            return null;
+        }
+        System.out.println("WARNING: importXlsFile() could not find 'WildbookStandardFormat*.xlsx' in " + dir);
+        return null;
+    }
 
 
 }
