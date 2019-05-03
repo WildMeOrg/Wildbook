@@ -324,6 +324,12 @@ public class CommonConfiguration {
         return dir.trim();
     }
 
+    public static String getImportDir(String context) {
+        String dir = getProperty("importDir", context);
+        if (dir == null) return null;
+        return dir.trim();
+    }
+
   public static String getMaxTriangleRotation(String context) {
     return getProperty("maxTriangleRotation",context).trim();
   }
