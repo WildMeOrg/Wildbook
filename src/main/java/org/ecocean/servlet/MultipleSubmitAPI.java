@@ -9,8 +9,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.Annotation;
-import org.ecocean.ExtendedProperties;
+import org.ecocean.Annotation;  
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -28,6 +27,7 @@ import java.util.Properties;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Collection;
 
 import com.google.gson.*;
@@ -111,13 +111,17 @@ public class MultipleSubmitAPI extends HttpServlet {
     }
 
     private JSONObject getProperties(JSONObject rtn, String context, HttpServletRequest request) {
-        Properties props = new Properties();
-        String lang = ServletUtilities.getLanguageCode(request);
-        props = ShepherdProperties.getProperties("multipleSubmit.properties", lang , context);
-        Enumeration propEnum = props.propertyNames();
-        while (propEnum.hasMoreElements()) {
-            String key = (String) propEnum.nextElement();
-            rtn.put(key, props.getProperty(key));
+        try {
+            Properties props = new Properties();
+            String lang = ServletUtilities.getLanguageCode(request);
+            props = ShepherdProperties.getProperties("multipleSubmit.properties", lang , context);
+            Enumeration propEnum = props.propertyNames();
+            while (propEnum.hasMoreElements()) {
+                String key = (String) propEnum.nextElement();
+                rtn.put(key, props.getProperty(key));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         System.out.println("All the properties: "+rtn.toString());
         return rtn;
