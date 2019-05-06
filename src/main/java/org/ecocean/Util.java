@@ -2,6 +2,7 @@ package org.ecocean;
 
 //import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.Date;
@@ -543,6 +545,20 @@ public class Util {
         jsonObj.put(entry.getKey(), o);
       }
       return jsonObj;
+    }
+
+    //the non-datanucleus-y version of above (which i also needed! -jon)
+    public static JSONObject requestParametersToJSONObject(HttpServletRequest request) {
+        if (request == null) return null;
+        JSONObject j = new JSONObject();
+        Enumeration<String> allParams = request.getParameterNames();
+        while (allParams.hasMoreElements()) {
+            String key = allParams.nextElement();
+            String[] vals = request.getParameterValues(key);
+            if (vals == null) continue;
+            j.put(key, new JSONArray(Arrays.asList(vals)));
+        }
+        return j;
     }
 
     // transforms a string such as "90.1334" or "46″ N 79°" into a decimal value

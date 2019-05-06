@@ -56,6 +56,7 @@ public class StandardImport extends HttpServlet {
 	List<String> foundPhotos = new ArrayList<String>();
 	int numFolderRows = 0;
 	boolean committing = false;
+        boolean generateChildrenAssets = false;
 	PrintWriter out;
 	// verbose variable can be switched on/off throughout the import for debugging
 	boolean verbose = false;
@@ -77,7 +78,6 @@ public class StandardImport extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
-    String importId = Util.generateUUID();
     if (request.getCharacterEncoding() == null) {
       request.setCharacterEncoding("utf-8");
     }
@@ -87,7 +87,11 @@ public class StandardImport extends HttpServlet {
     myShepherd = new Shepherd(context);
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
-    
+
+    User creator = AccessControl.getUser(request, myShepherd);
+    ImportTask itask = new ImportTask(creator);
+    itask.setPassedParameters(request);
+
     if(astore!=null){
       System.out.println("astore is OK!");
     }
@@ -139,6 +143,7 @@ public class StandardImport extends HttpServlet {
 		numFolderRows = 0;
 
     committing = Util.requestParameterSet(request.getParameter("commit"));
+    generateChildrenAssets = Util.requestParameterSet(request.getParameter("generateChildrenAssets"));
 
     out.println("<h2>File Overview: </h2>");
     out.println("<ul>");
@@ -189,7 +194,12 @@ public class StandardImport extends HttpServlet {
         int pp = Integer.parseInt(request.getParameter("printPeriod"));
         if (pp > 0) printPeriod = pp;
     } catch (NumberFormatException ex) {}
-		
+
+    if (committing) {
+        out.println("<li>ImportTask id = <b><a href=\"imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+    } else {
+        out.println("<li>ImportTask id = <b>" + itask.getId() + "</b></li>");
+    }
     out.println("<li>Sheet number = " + sheetNum + " (of " + numSheets + ") <i>\"" + sheet.getSheetName() + "\"</i></li>");
     out.println("<li>Num Rows = "+physicalNumberOfRows+" <i>(echo every " + printPeriod + " rows)</i></li>");
     if (skipRows.size() > 0) out.println("<li>Skipping rows: " + skipDisplay + "</li>");
@@ -202,6 +212,7 @@ public class StandardImport extends HttpServlet {
 
     out.println("<li>Num Cols = "+cols+"</li>");
     out.println("<li>Last col num = "+lastColNum+"</li>");
+    out.println("<li>generateChildrenAsstes? = " + generateChildrenAssets + "</li>");
     out.println("<li><em>committing = "+committing+"</em></li>");
     out.println("</ul>");
     out.println("<h2>Column headings:</h2><ul>");
@@ -210,13 +221,14 @@ public class StandardImport extends HttpServlet {
     out.println("</ul>");
 
     LocalDateTime ldt = new LocalDateTime();
-    String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
-    System.out.println("===== importId " + importId + " (committing=" + committing + ")");
+    String importComment = "<p style=\"import-comment\">import <i>" + itask.getId() + "</i> at " + ldt.toString() + "</p>";
+    System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Beginning row loop:</h2>"); 
     out.println("<ul>");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
+    List<Encounter> encsCreated = new ArrayList<Encounter>();
     int maxRows = 50000;
     int offset = 0;
     for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
@@ -240,6 +252,7 @@ public class StandardImport extends HttpServlet {
         occ = loadOccurrence(row, occ, enc);
         occ.addComments(importComment);
         mark = loadIndividual(row, enc);
+        encsCreated.add(enc);
 
         if (committing) {
 
@@ -248,13 +261,13 @@ public class StandardImport extends HttpServlet {
               MediaAsset ma = ann.getMediaAsset();
               if (ma!=null) {
                 myShepherd.storeNewAnnotation(ann);
-                ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
-                if ((kids == null) || (kids.size() < 1)) {
-                    ma.setMetadata();
-                    ma.updateStandardChildren(myShepherd);
+                if (generateChildrenAssets) {
+                    ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
+                    if ((kids == null) || (kids.size() < 1)) {
+                        ma.setMetadata();
+                        ma.updateStandardChildren(myShepherd);
+                    }
                 }
-                ma.setMetadata();
-                ma.updateStandardChildren(myShepherd);
               }
             }
             catch (Exception e) {
@@ -298,6 +311,11 @@ public class StandardImport extends HttpServlet {
     out.println("</ul>");
 
 
+    if (committing) {
+        itask.setEncounters(encsCreated);
+        myShepherd.getPM().makePersistent(itask);
+    }
+
     List<String> usedColumns = new ArrayList<String>();
     for (String colName: colIndexMap.keySet()) {
       if (!unusedColumns.contains(colName)) usedColumns.add(colName);
@@ -323,7 +341,6 @@ public class StandardImport extends HttpServlet {
     out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
 
     out.println("<h2>Import completed successfully</h2>");    
-    if (committing) out.println("<p>Import reference ID <b>" + importId + "</b></p>");
     //fs.close();
   }
 
