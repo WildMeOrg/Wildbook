@@ -248,8 +248,11 @@ public class StandardImport extends HttpServlet {
               MediaAsset ma = ann.getMediaAsset();
               if (ma!=null) {
                 myShepherd.storeNewAnnotation(ann);
-                ma.setMetadata();
-                ma.updateStandardChildren(myShepherd);
+                ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
+                if ((kids == null) || (kids.size() < 1)) {
+                    ma.setMetadata();
+                    ma.updateStandardChildren(myShepherd);
+                }
               }
             }
             catch (Exception e) {
