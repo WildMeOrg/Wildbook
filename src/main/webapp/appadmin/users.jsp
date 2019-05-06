@@ -125,7 +125,8 @@ try {
 		{
 			key: 'lastLogin',
 			label: '<%=props.getProperty("lastLogin")%>',
-			value: _colLastLogin
+			value: _colLastLogin,
+			sortValue: function(o) {return o.lastLogin; }
 		},
 		{
 			key: 'roles',
@@ -407,8 +408,8 @@ try {
 	function _colLastLogin(o) {
 		if (!o.lastLogin) return '';
 		if (o.lastLogin == -1) return '';
-		var s = new Date(o.lastLogin).toISOString();
-		return s.slice(0, 10);
+		var s = new Date(o.lastLogin).toString();
+		return s;
 	}
 	
 	
