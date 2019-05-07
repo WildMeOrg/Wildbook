@@ -183,6 +183,18 @@ public class MarkedIndividual implements java.io.Serializable {
         }
         return nameVals.get(0);
     }
+    public static String getDisplayNameForEncounter(Shepherd myShepherd, String encId) {
+      Encounter enc = myShepherd.getEncounter(encId);
+      if (enc==null) return null;
+      MarkedIndividual ind = enc.getIndividual();
+      if (ind==null) return null;
+      return ind.getDisplayName();
+    }
+    public static String getDisplayNameForID(Shepherd myShepherd, String indId) {
+      MarkedIndividual ind = myShepherd.getMarkedIndividualQuiet(indId);
+      if (ind==null) return null;
+      return ind.getDisplayName();
+    }
 
     //MultiValue has some subtleties to it!
     public void setNames(MultiValue mv) {
@@ -206,6 +218,12 @@ public class MarkedIndividual implements java.io.Serializable {
         if (names == null) return null;
         return names.getValuesDefault();
     }
+
+    public int numNames() {
+      if (names==null) return 0;
+      return names.size();
+    }
+
     //this adds to the default
     public void addName(String name) {
         if (names == null) names = new MultiValue();

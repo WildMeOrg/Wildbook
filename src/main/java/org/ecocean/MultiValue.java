@@ -21,6 +21,13 @@ public class MultiValue implements java.io.Serializable {
     protected String valuesAsString;
     public static final String DEFAULT_KEY_VALUE = "*";
 
+    // sorted standard keys so we can always display them before other keys and in the desired order
+    public static final String[] SORTED_DEFAULT_KEYS = {
+        DEFAULT_KEY_VALUE,
+        MarkedIndividual.NAMES_KEY_ALTERNATEID,
+        MarkedIndividual.NAMES_KEY_NICKNAME
+    };
+
     public MultiValue() {
     }
 
@@ -98,6 +105,21 @@ public class MultiValue implements java.io.Serializable {
         List<String> vals = getValuesAsList(keyHint);
         if (vals==null || vals.size()==0) return null;
         return vals.get(0);
+    }
+
+    public int size() {
+        JSONObject vals = getValues();
+        if (vals==null) return 0;
+        int total = 0;
+        // Iterator below due to weirdness in our JSON library
+        Iterator<String> keys = vals.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            JSONArray v = values.optJSONArray(key);
+            if (v == null) continue;
+            total += v.length();
+        }
+        return total;
     }
 
     //this could get values across multiple keys, but wont get duplicates
@@ -199,6 +221,23 @@ public class MultiValue implements java.io.Serializable {
             rtn.add((String)it.next());
         }
         return rtn;
+    }
+
+    // like getKeys above, but returns in a canonical ordering so we can display all names in a consistent ordering
+    // The canonical ordering is: default, alternateId, nickname, then the rest alphebatized
+    public List<String> getSortedKeys() {
+        if (getValues()==null) return new ArrayList<String>(); // so we can iterate elsewhere without an NPE
+        Set<String> unsortedKeys = getKeys();
+        List<String> sortedKeys = new ArrayList<String>();
+        // add default keys in order to the beginning of the list
+        for (String key: SORTED_DEFAULT_KEYS) {
+            if (!unsortedKeys.contains(key)) continue;
+            sortedKeys.add(key);
+            unsortedKeys.remove(key);
+        }
+        // sort the rest of the (nondefault) keys and add them at the end
+        sortedKeys.addAll(Util.asSortedList(unsortedKeys));
+        return sortedKeys;
     }
 
     // returns the alphebatized list version of Set<String> getKeys();
