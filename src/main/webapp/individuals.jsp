@@ -1059,7 +1059,7 @@ if (sharky.getNames() != null) {
       if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       %>
       <font size="-1"><a
-      href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
+      href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=id%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
       <%
       }
       %>
