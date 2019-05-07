@@ -13,7 +13,6 @@
 Hello! This page consists mostly of anchor points that we add components to using JS. 
 The JS you want is in /javascript/multipleSubmit/
 */
-
     String langCode = ServletUtilities.getLanguageCode(request);
     String context=ServletUtilities.getContext(request);
     Properties props = new Properties();
@@ -62,28 +61,32 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 </div>
 
 
-                <br>
+                <br class="form-spacer">
 
                 <!-- easy place to store this -->
                 <input id="recaptcha-checked" name="recaptcha-checked" type="hidden" value="false" />
 
 
 
-                <br>
+                <br class="form-spacer">
 
                 <!-- Here is where we are going to put UI to define encounter metadata from JS -->
                 <div id="metadata-tiles-main" class="row">
                 
                 </div>
 
-                <br>
+                <br class="form-spacer">
 
                 <!-- Here is where we are going to dump rendered images and encounter UI from JS -->
                 <div id="image-tiles-main" class="row">
                 
                 </div>
 
-                <div class="container">
+                <div id="results-main" class="row">
+                
+                </div>
+
+                <div class="nav-buttons container">
 
                     <hr>
                     <!-- next page -->
@@ -103,11 +106,9 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                     <div id="recaptcha-div">
                         <%= ServletUtilities.captchaWidget(request) %>
                     </div>
-                    <p class="action-message"> </p>
 
                 </div>
 
-            </form>
         </div> 
         <hr>
     </div>

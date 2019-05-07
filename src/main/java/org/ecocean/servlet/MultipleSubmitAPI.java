@@ -135,8 +135,8 @@ public class MultipleSubmitAPI extends HttpServlet {
         String context = ServletUtilities.getContext(request);
         PrintWriter out = response.getWriter();
         response.setContentType("application/json");
-        JSONObject rtn = new JSONObject();
-        rtn.put("success", "false");
+        JsonObject rtn = new JsonObject();
+        rtn.addProperty("success", "false");
         System.out.println("PART NAMES:");
 
         String jsonStr = request.getParameter("json-data");
@@ -149,6 +149,7 @@ public class MultipleSubmitAPI extends HttpServlet {
         System.out.println("number-encounters: "+numEncStr);
         if (hasVal(numEncStr)) {
             numEncs = Integer.valueOf(numEncStr);
+            rtn.addProperty("numEncs", numEncs);
         }
 
         Collection<Part> partCol = request.getParts();
@@ -171,23 +172,29 @@ public class MultipleSubmitAPI extends HttpServlet {
                         Encounter enc = createEncounter(json, i);
                         myShepherd.storeNewEncounter(enc);
                         System.out.println("Created Encounter id="+enc.getID());
+                        JsonObject encOb = new JsonObject();
+                        encOb.addProperty("id", enc.getID());
                         JsonArray arr = encImgLists.getAsJsonArray(String.valueOf(i));
                         if (arr!=null) {
+                            JsonArray nameArr = new JsonArray();
                             for (int j=0;j<arr.size();j++) {
                                 String keyNum = arr.get(j).getAsString();
                                 Part encPart = request.getPart("image-file-"+keyNum);
+                                nameArr.add(encPart.getSubmittedFileName());
                                 System.out.println("Got part for ann num="+j);
                                 Annotation ann = makeMediaAssetFromPart(encPart, astore, enc, myShepherd, request);
                                 enc.addAnnotation(ann);
                                 System.out.println("Created Annotation id="+ann.getId());
                             }
+                            encOb.add("img-names", nameArr);
                         }
                         enc = setUserForEncounter(enc, request, myShepherd);
+                        rtn.add(String.valueOf(i), encOb);
                     } catch (Exception e) {
                         System.out.println("Exception creating Encounter and assets!");
                         e.printStackTrace();
                     }
-                    rtn.put("success", "true");
+                    rtn.addProperty("success", "true");
                 }
             } catch (Exception e) {
                 e.printStackTrace();

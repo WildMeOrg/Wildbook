@@ -59,9 +59,18 @@ function backButtonClicked() {
 
 function sendButtonClicked() {
     console.log("Clicked!");
-    // SHOWTIME! Send these images off to certain doom
-    multipleSubmitAPI.sendData(function(result){
-        console.log(JSON.stringify(result));
+    // SHOWTIME! Send these images off to certain doom, then show result
+    $("#metadata-tiles-main").hide();
+    $("#image-tiles-main").hide();
+    $("#results-main").html(multipleSubmitUI.generateWaitingText());
+    setInterval(function(){
+        $(".pulsing").fadeIn(350).delay(1200).fadeOut(350);
+    });
+    multipleSubmitAPI.sendData(function(result){    
+        $("#results-main").html(multipleSubmitUI.generateResultPage(result));
+        $(".nav-buttons").empty();
+        $("input-file-list").remove();
+        $(".form-spacer").remove();  
     });
 }
 
@@ -86,7 +95,6 @@ function showSelectedMedia() {
         format: 'mm/dd/yyyy',
         startDate: '-3d'
     });
-    // clear leftover errors from provious page 
 }
 
 function clearSelectedMedia() {
@@ -192,5 +200,11 @@ $(document).ready(function(){
 //console.log(JSON.stringify(props));
 function txt(str) {
     return props[str];
+}
+
+function baseURL() {
+    var urlOb = new URL(window.location.href).host.toString();
+    console.log("urlOb "+urlOb);
+    return ""+urlOb+"";
 }
 

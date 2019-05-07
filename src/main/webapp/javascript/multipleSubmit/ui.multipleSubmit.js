@@ -86,11 +86,11 @@ multipleSubmitUI = {
             var allSpecies = result.allSpecies
             for (var i=0;i<allSpecies.length;i++) {
                 var species = allSpecies[i];
-                console.log("allSpecies? --> "+JSON.stringify(result));
+                //console.log("allSpecies? --> "+JSON.stringify(result));
                 var option = document.createElement("option");
                 option.text = species; 
                 option.value = species;
-                console.log("Appending child for species="+species);
+                //console.log("Appending child for species="+species);
                 if (document.getElementById(uiId)!=null) {
                     document.getElementById(uiId).appendChild(option);
                 }
@@ -111,7 +111,7 @@ multipleSubmitUI = {
             var ddLocs = ""; 
             if (locObj.hasOwnProperty('locationIds')) {
                 var locs = locObj.locationIds;
-                console.log("Type? "+(typeof locs));
+                //console.log("Type? "+(typeof locs));
                 //console.log("----------------> locs: "+JSON.stringify(locs));
                 for (var i in locs) {
                     var option = document.createElement("option");
@@ -127,6 +127,37 @@ multipleSubmitUI = {
         });
         dd += "</select>";
         return dd;
+    },
+
+    generateWaitingText:     function() {
+        // I guess we don't necessarily need to do this in the same way because there is nothing dynamic
+        // about the HTML.. stick to patter though
+        var wait = "";
+        wait += "<div class=\"container waiting-div pulsing\">";
+        wait += "     <p class=\"results-waiting\">Please wait for results. This may take a few seconds to a few minutes depending on the size of upload.</p>";
+        wait += "</div>"; 
+        return wait;
+    },
+
+    generateResultPage: function(result) {
+        var re = "";
+        re += "<div class=\"container\">";
+        console.log("Generating result page!  :  "+JSON.stringify(result));
+        for (var i=0;i<result.numEncs; i++) {
+            re += "<p><a target=\"_blank\" href=\"//"+baseURL()+"/encounters/encounter.jsp?number="+result[i].id+"\">Encounter #"+(i+1)+": "+result[i].id+"</a></p>";
+            if (result[i]["img-names"].length>0) {
+                re += "<p><small>Image List:</small></p>";
+                re += "<ul>";
+                for (var j=0;j<result[i]["img-names"].length;j++) {
+                    re += "<li><small>"+result[i]["img-names"][j]+"</small></li>";
+                }
+                re += "</ul>";
+            }
+            re += "<br>";
+        }
+        re += "</div>";
+        console.log("here's re = "+re); 
+        return re;
     },
     
     renderImageInBrowser: function(file,id) {
@@ -147,6 +178,6 @@ multipleSubmitUI = {
 
     encsDefined() {
         return document.getElementById('number-encounters').value;
-    },
+    }
 
 };

@@ -43,6 +43,9 @@
     padding-left: 10px;
     padding-right: 10px;
     /* 
+    background-image: url("/images/loading.png");
+    background-position: center;
+    background-repeat: no-repeat;
     text-align: center;
     display: inline-block;
     clear: both;
@@ -133,6 +136,9 @@ div .img-input {
 
 .encounter-tile-div {
     background-color: rgba(179,219,244,1);
+    /*
+    background-image: url("/images/loading.png");
+    */
     margin: 5px;
     padding-left: 1%;
 
@@ -169,6 +175,7 @@ div .img-input {
 .image-overlay:hover {
     color: white;
     background-color: rgba(0,0,0,0.65);
+
 }
 
 .edit-closed {
@@ -198,4 +205,11 @@ div .img-input {
     border-width: 0.8em;
     border-color: FFF;
     */
+}
+
+.results-waiting {
+    font-weight: bolder;
+    background-color: lightblue;
+    color: darkblue;
+    padding: 1em;
 }
