@@ -454,6 +454,7 @@ var encounterNumber = '<%=num%>';
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
+            System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
             String encNum = enc.getCatalogNumber();
 						boolean visible = enc.canUserAccess(request);
 						if (!visible) visible = checkAccessKey(request, enc);
@@ -629,8 +630,8 @@ $(function() {
 								} //end while
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
-				if(enc.hasMarkedIndividual()) {
-                                    String dispName = enc.getIndividual().getDisplayName(request);
+				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
+          String dispName = enc.getIndividual().getDisplayName(request);
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
