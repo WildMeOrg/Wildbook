@@ -867,6 +867,14 @@ public class Util {
     multimap.get(key).add(val);
   }
 
+
+  // h/t StackOverflow user erickson https://stackoverflow.com/questions/740299/how-do-i-sort-a-set-to-a-list-in-java
+  public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
+    List<T> list = new ArrayList<T>(c);
+    java.util.Collections.sort(list);
+    return list;
+  }
+
 }
 
 

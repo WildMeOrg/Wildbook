@@ -23,119 +23,27 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
   // The goal of this class is to make it so we can define a column in one place
   // and each row of the export be generated automatically from the list of
   // ExportColumns
-  private static class ExportColumn {
-
-    public final String header;
-    public final Method getter;
-    public final int    colNum;
-
-    private final Class declaringClass;
-    private final Class valueType;
-
-    // since we have multiple MediaAssets and Keywords per row, these are used for those cols
-    private int maNum = -1;
-    private int kwNum = -1;
-
-    public ExportColumn(Class declaringClass, String header, Method getter, int colNum) {
-      this.declaringClass = declaringClass;
-      this.header = header;
-      this.getter = getter;
-      this.colNum = colNum;
-      this.valueType = getter.getReturnType();
-    }
-
-    // adds this to a running list of ExportColumns
-    public ExportColumn(Class declaringClass, String header, Method getter, List<ExportColumn> columns) {
-      this(declaringClass, header, getter, columns.size());
-      columns.add(this);
-    }
-
-    public String getStringValue(Object obj) throws InvocationTargetException, IllegalAccessException {
-      if (obj == null) return null;
-      Object value = null;
-      try {
-        value = getter.invoke(declaringClass.cast(obj)); // this is why we need declaringClass
-      } catch (InvocationTargetException e) {
-        System.out.println("EncounterSearchExportMetadataExcel got an InvocationTargetException on column "+header+" and object "+obj);
-        return null;
-      }
-      if (value == null) return null;
-      return value.toString();
-    }
-
-    public int getMaNum() {return maNum;}
-    public void setMaNum(int n) {this.maNum = n;}
-
-    public int getKwNum() {return kwNum;}
-    public void setKwNum(int n) {this.kwNum = n;}
-
-    public Class getDeclaringClass() {
-      return declaringClass;
-    }
-    public boolean isFor(Class c) {
-      return (declaringClass!=null && declaringClass == c);
-    }
-
-    public Label getHeaderLabel() {
-      return new Label(colNum, 0, header);
-    }
-    public void writeHeaderLabel(WritableSheet sheet) throws jxl.write.WriteException {
-      sheet.addCell(getHeaderLabel());
-    }
-
-    public Label getLabel(Object obj, int rowNum) throws InvocationTargetException, IllegalAccessException {
-      return new Label(colNum, rowNum, getStringValue(obj));
-    }
-    public void writeLabel(Object obj, int rowNum, WritableSheet sheet) throws jxl.write.WriteException, InvocationTargetException, IllegalAccessException {
-      if (obj==null) return;
-      sheet.addCell(getLabel(obj, rowNum));
-    }
-
-  }
 
   // this would be a static method of above subclass if java allowed that
   public static ExportColumn newEasyColumn(String classDotFieldNameHeader, List<ExportColumn> columns) throws ClassNotFoundException, NoSuchMethodException {
-    
-    String[] parts = classDotFieldNameHeader.split("\\.");
-
-    String className = parts[0];
-    className = Util.capitolizeFirstLetterOnly(className);
-    className = "org.ecocean."+className; // hmmm a little hacky no?
-    Class declaringClass = null;
-    try {
-      declaringClass = Class.forName(className);
-    } catch (ClassNotFoundException cnfe) {
-      System.out.println("[ERROR]: newEasyColumn failed to find the class specified by "+classDotFieldNameHeader+". Parsed className "+className);
-      return null;
-    }
-    
-    String fieldName = parts[1];
-    String getterName = "get"+Util.capitolizeFirstLetter(fieldName);
-    Method getter = null;
-
-    try {
-      getter = declaringClass.getMethod(getterName, null); // null means no arguments
-    } catch (NoSuchMethodException nsme) {
-      System.out.println("[ERROR]: newEasyColumn failed to find the method specified by "+classDotFieldNameHeader+". Parsed getter name "+getterName+"; skipping this entire column!");
-      return null;
-    }
-    
-    return new ExportColumn(declaringClass, classDotFieldNameHeader, getter, columns);
-
+    return ExportColumn.newEasyColumn(classDotFieldNameHeader, columns);
   }
-
-
 
   private static final int BYTES_DOWNLOAD = 1024;
 
   private int numMediaAssetCols = 0;
   private int numKeywords = 0;
+  private int numNameCols = 0;
+
+  int rowLimit = 100000;
 
   private void setMediaAssetCounts(Vector rEncounters) {
-    System.out.println("EncounterSearchExportMetadataExcel: setting environment vars for "+rEncounters.size()+" encs.");
+    System.out.println("EncounterSearchExportMetadataExcel: setting environment vars for "+Math.max(rEncounters.size(), rowLimit)+" encs.");
     int maxNumMedia = 0;
     int maxNumKeywords = 0;
-    for (int i=0;i<rEncounters.size();i++) {
+    int maxNumNames = 0;
+    Set<String> individualIDsChecked = new HashSet<String>();
+    for (int i=0;i<rEncounters.size() && i< rowLimit;i++) {
       Encounter enc=(Encounter)rEncounters.get(i);
       ArrayList<MediaAsset> mas = enc.getMedia();
       int numMedia = mas.size();
@@ -144,10 +52,18 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         int numKw = ma.numKeywords();
         if (numKw > maxNumKeywords) maxNumKeywords = numKw;
       }
+      String id = enc.getIndividualID();
+      if (id!=null && !individualIDsChecked.contains(id)) {
+        individualIDsChecked.add(id);
+        int numNames = enc.getIndividual().numNames();
+        //System.out.println("Individual "+enc.getIndividual()+" isnull = "+(enc.getIndividual()==null)+" and has # names: "+numNames);
+        if (numNames>maxNumNames) maxNumNames = numNames;
+      }
     }
     numMediaAssetCols = maxNumMedia;
     numKeywords = maxNumKeywords;
-    System.out.println("EncounterSearchExportMetadataExcel: environment vars numMediaAssetCols = "+numMediaAssetCols+"; maxNumKeywords = "+maxNumKeywords);
+    numNameCols = maxNumNames;
+    System.out.println("EncounterSearchExportMetadataExcel: environment vars numMediaAssetCols = "+numMediaAssetCols+"; maxNumKeywords = "+maxNumKeywords+" and maxNumNames = "+numNameCols);
 
   }
 
@@ -192,6 +108,8 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       // so we know how many MA columns we need
       setMediaAssetCounts(rEncounters);
 
+      // so we know how many name columns we need
+
 
       // business logic start here
       WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile);
@@ -199,16 +117,21 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       
       List<ExportColumn> columns = new ArrayList<ExportColumn>();
       newEasyColumn("Encounter.catalogNumber", columns); // adds Encounter.catalogNumber to columns
-      newEasyColumn("Encounter.individualID", columns);
-      newEasyColumn("Encounter.alternateID", columns);
+      //newEasyColumn("Encounter.individualID", columns);
+      //newEasyColumn("Encounter.alternateID", columns);
+      MultiValueExportColumn.addNameColumns(numNameCols, columns);
       newEasyColumn("Occurrence.occurrenceID", columns);
       newEasyColumn("Encounter.decimalLatitude", columns);
       newEasyColumn("Encounter.decimalLongitude", columns);
       newEasyColumn("Encounter.locationID", columns);
       newEasyColumn("Encounter.verbatimLocality", columns);
       newEasyColumn("Encounter.country", columns);
+
       Method encDepthGetter = Encounter.class.getMethod("getDepthAsDouble", null); // depth is special bc the getDepth getter can fail with a NPE
       ExportColumn depthIsSpecial = new ExportColumn(Encounter.class, "Encounter.depth", encDepthGetter, columns);
+
+
+      
       newEasyColumn("Encounter.dateInMilliseconds", columns);
       newEasyColumn("Encounter.year", columns);
       newEasyColumn("Encounter.month", columns);
@@ -269,67 +192,13 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
       }
 
-      // }
-
-      //
-
-        // "Encounter.mediaAsset0",
-        // "Encounter.feature0",
-        // "Encounter.quality0",
-        // "Encounter.distinctiveness0",
-        // "Encounter.keyword0.0",
-        // "Encounter.keyword0.1",
-        // "Encounter.keyword0.2",
-        // "Encounter.keyword3",
-        // "Encounter.mediaAsset4",
-        // "Encounter.feature4",
-        // "Encounter.quality4",
-        // "Encounter.distinctiveness4",
-        // "Encounter.keyword4",
-
-      // newEasyColumn("", columns);
-      // newEasyColumn("", columns);
-      // newEasyColumn("", columns);
-
-
-      
-
       for (ExportColumn exportCol: columns) {
         exportCol.writeHeaderLabel(sheet);
       }
 
-      String[] colHeaders = new String[]{
-        "Survey.vessel",
-        "Survey.id",
-        "MarkedIndividual.name0.nameType",
-        "MarkedIndividual.name0.value",
-        "MarkedIndividual.name1.nameType",
-        "MarkedIndividual.name1.value",
-        "Encounter.name0.nameType",
-        "Encounter.name0.value",
-        "Encounter.name1.nameType",
-        "Encounter.name1.value",
-        "Encounter.name2.nameType",
-        "Encounter.name2.value",
-        "Encounter.measurement.length",
-        "Encounter.measurement.weight",
-        "SatelliteTag.serialNumber",
-        "Encounter.distinguishingScar",
-        "TissueSample.sampleID",
-        "MicrosatelliteMarkersAnalysis.analysisID",
-        "SexAnalysis.processingLabTaskID",
-        "SexAnalysis.sex"
-      };
-
-      int headerOffset=10;
-      // for (int i=headerOffset; i<colHeaders.length+headerOffset; i++) {
-      //   sheet.addCell(new Label(i, 0, colHeaders[i-headerOffset]));
-      // }
-
-
       // Excel export =========================================================
       int row = 0;
-      for (int i=0;i<numMatchingEncounters;i++) {
+      for (int i=0;i<numMatchingEncounters && i<rowLimit;i++) {
 
         Encounter enc=(Encounter)rEncounters.get(i);
         // Security: skip this row if user doesn't have permission to view this encounter
@@ -339,6 +208,8 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         // get attached objects
         Occurrence occ = myShepherd.getOccurrence(enc);
         MarkedIndividual ind = myShepherd.getMarkedIndividual(enc);
+        MultiValue names = (ind!=null) ? ind.getNames() : null;
+        List<String> sortedNameKeys = (names!=null) ? names.getSortedKeys() : null;
         List<MediaAsset> mas = enc.getMedia();
 
         // use exportColumns, passing in the appropriate object for each column
@@ -347,6 +218,10 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
           if (exportCol.isFor(Encounter.class)) exportCol.writeLabel(enc, row, sheet);
           else if (exportCol.isFor(Occurrence.class)) exportCol.writeLabel(occ, row, sheet);
           else if (exportCol.isFor(MarkedIndividual.class)) exportCol.writeLabel(ind, row, sheet);
+          else if (exportCol.isFor(MultiValue.class)) {
+            MultiValueExportColumn multiValCol = (MultiValueExportColumn) exportCol;
+            multiValCol.writeLabel(sortedNameKeys, names, row, sheet);
+          }
           else if (exportCol.isFor(MediaAsset.class)) {
             int num = exportCol.getMaNum();
             if (num >= mas.size()) continue;
@@ -367,7 +242,6 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
           }
           else System.out.println("EncounterSearchExportMetadataExcel: no object found for class "+exportCol.getDeclaringClass());
         }
-
 
      	} //end for loop iterating encounters
 
