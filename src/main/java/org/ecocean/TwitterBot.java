@@ -412,7 +412,10 @@ System.out.println("processDetectionResults() -> " + mas);
             }
             //aha, we have a tweet-spawned media asset.  but did it pass detection and get annotations?
             ArrayList<Annotation> anns = ma.getAnnotations();
-            if ((anns != null) && (anns.size() > 0)) successful++;
+            if ((anns != null) && (anns.size() > 0)) {
+                updateEncounter(tweetMA, anns, myShepherd);
+                successful++;
+            }
         }
         if (tweetMA == null) return null;  //no tweet stuff
         if (successful > 0) return successful + " Annotation(s) in process; not detection-fail tweet sent.";
@@ -466,6 +469,24 @@ System.out.println("processIdentificationResults() -> " + anns + " ==> " + annot
         return "Got " + anns.size() + " annots, and some possible matches!! [" + taskId + "] tweet sent.";
     }
 
+    private static void updateEncounter(MediaAsset tweetMA, ArrayList<Annotation> anns, Shepherd myShepherd) {
+        Status originTweet = TwitterUtil.toStatus(tweetMA);
+        if ((originTweet == null) || (anns == null)) return;
+        Encounter enc = null;
+        for (Annotation ann : anns) {
+            Encounter e = ann.findEncounter(myShepherd);
+            if (e != null) enc = e;
+        }
+        if (enc == null) return;
+        String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
+        if (tx == null) return;
+        System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
+        String[] gs = Util.stringToGenusSpecificEpithet(tx);
+        if ((gs == null) || (gs.length < 1)) return;  //snh
+        enc.setGenus(gs[0]);
+        if (gs.length > 1) enc.setSpecificEpithet(gs[1]);
+    }
+
     // mostly for ContextDestroyed in StartupWildbook..... i think?
     public static void cleanup() {
 /*
@@ -488,6 +509,17 @@ System.out.println("processIdentificationResults() -> " + anns + " ==> " + annot
         }
 */
         System.out.println("================ = = = = = = ===================== TwitterBot.cleanup() finished.");
+    }
+
+    public static String taxonomyStringFromTweet(Status tweet, String context) {
+        List<String> tags = TwitterUtil.getHashtags(tweet);
+        if (tags.size() < 1) return null;
+        for (String tag : tags) {
+            if (tag == null) continue;
+            String tx = TwitterUtil.getProperty(context, "taxonomyHash_" + tag.toLowerCase());
+            if (tx != null) return tx;
+        }
+        return TwitterUtil.getProperty(context, "taxonomyDefault");
     }
 
 }
