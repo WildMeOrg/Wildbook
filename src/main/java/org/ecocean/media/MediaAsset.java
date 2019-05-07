@@ -955,7 +955,12 @@ public class MediaAsset implements java.io.Serializable {
                         Encounter enc = ann.findEncounter(myShepherd);
                         if (enc != null) {
                             jf.put("encounterId", enc.getCatalogNumber());
-                            if (enc.hasMarkedIndividual()) jf.put("individualId", enc.getIndividualID());
+                            if (enc.hasMarkedIndividual()) {
+                                jf.put("individualId", enc.getIndividualID());
+                                String displayName = enc.getDisplayName();
+                                if (!Util.stringExists(displayName)) displayName = enc.getIndividualID();
+                                jf.put("displayName", displayName);
+                            }
                         }
                     }
 

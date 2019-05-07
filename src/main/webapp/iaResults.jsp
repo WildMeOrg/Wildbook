@@ -673,6 +673,7 @@ console.info('illustrationUrl '+illustrationUrl);
                 var encDisplay = encId;
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
                 var indivId = ft.individualId;
+                var displayName = ft.displayName;
                 if (encId) {
                     h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
@@ -683,8 +684,8 @@ console.info('illustrationUrl '+illustrationUrl);
 
                 }
                 if (indivId) {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>');
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>');
                 }
 
                 if (encId || indivId) {
@@ -697,7 +698,8 @@ console.info('illustrationUrl '+illustrationUrl);
                     var qdata = {
                         annotId: mainAnnId,
                         encId: encId,
-                        indivId: indivId
+                        indivId: indivId,
+                        displayName: displayName
                     }
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
@@ -726,8 +728,9 @@ console.info('qdata[%s] = %o', taskId, qdata);
             if (ft) {
                 var encId = ft.encounterId;
                 var indivId = ft.individualId;
+                var displayName = ft.displayName;
                 if (encId) imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
-                if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + indivId + '</a>';
+                if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
             }
             imgInfo += '</li>';
         }
@@ -741,11 +744,11 @@ console.info('qdata[%s] = %o', taskId, qdata);
 function annotCheckbox(el) {
 	var jel = $(el);
 	var taskId = jel.closest('.task-content').attr('id').substring(5);
-        var task = getCachedTask(taskId);
-        var queryAnnotation = jel.closest('.task-content').data();
+  var task = getCachedTask(taskId);
+  var queryAnnotation = jel.closest('.task-content').data();
 console.info('taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAnnotation);
 	annotCheckboxReset();
-        if (!taskId || !task) return;
+  if (!taskId || !task) return;
 	if (!el.checked) return;
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
 	jel.parent().addClass('annot-summary-checked');
