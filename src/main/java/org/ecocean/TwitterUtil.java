@@ -13,6 +13,8 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import com.google.gson.Gson;
 
@@ -24,7 +26,6 @@ import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 */
@@ -129,6 +130,17 @@ public class TwitterUtil {
             return null;
         }
         return toStatus(ma.getMetadata().getData().getJSONObject("twitterRawJson"));
+    }
+
+    public static List<String> getHashtags(Status tweet) {
+        List<String> rtn = new ArrayList<String>();
+        if (tweet == null) return rtn;
+        HashtagEntity[] ht = tweet.getHashtagEntities();
+        if ((ht == null) || (ht.length < 1)) return rtn;
+        for (int i = 0 ; i < ht.length ; i++) {
+            rtn.add(ht[i].getText());
+        }
+        return rtn;
     }
 
     public static String getProperty(String context, String key) {

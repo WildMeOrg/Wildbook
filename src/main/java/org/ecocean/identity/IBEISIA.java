@@ -24,6 +24,7 @@ import org.ecocean.MarkedIndividual;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.TwitterUtil;
 import org.ecocean.TwitterBot;
 
 import java.text.SimpleDateFormat;
@@ -520,9 +521,12 @@ System.out.println("sendDetect() baseUrl = " + baseUrl);
         return null;
     }
 
-
-        //making this private cuz it is mostly "internal use" as the logic is pretty specific to above usage
     public static Taxonomy taxonomyFromMediaAsset(Shepherd myShepherd, MediaAsset ma) {
+        if (ma == null) return null;
+        if ((ma.getStore() != null) && (ma.getStore() instanceof TwitterAssetStore)) {
+            String tx = TwitterBot.taxonomyStringFromTweet(TwitterUtil.toStatus(TwitterUtil.parentTweet(myShepherd, ma)), myShepherd.getContext());
+            if (tx != null) return new Taxonomy(tx);
+        }
         ArrayList<Annotation> anns = ma.getAnnotations();
         if (anns.size() < 1) return null;
         //here we step thru all annots on this asset but likely there will be only one (trivial)
