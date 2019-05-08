@@ -20,6 +20,7 @@ The JS you want is in /javascript/multipleSubmit/
     Properties recaptchaProps = new Properties();
     recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "");
     long maxMediaSize = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
+    String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
 %>
 
 <script> 
@@ -39,11 +40,9 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
             <div class="container">
                 <h2><%= props.getProperty("pageHeader")%></h2>
                 <p><b><%= props.getProperty("headerDesc")%></b></p>
-                <p>[ We urge you to follow this link to the instructions if you have not used this feature before. ]</p>
+                <p><a href="<%=baseUrl%>/multipleSubmit/instructions.jsp"><%= props.getProperty("readInstructions")%></a></p>
             </div>
             <hr>
-
-            <form id="multipleSubmission">
 
                 <!-- specify number of encounters in two input items -->
 
@@ -82,6 +81,7 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 
                 </div>
 
+                <!-- here is where we list the created encs -->
                 <div id="results-main" class="row">
                 
                 </div>

@@ -69,10 +69,21 @@ function sendButtonClicked() {
     multipleSubmitAPI.sendData(function(result){    
         $("#results-main").html(multipleSubmitUI.generateResultPage(result));
         $(".nav-buttons").empty();
-        $("input-file-list").remove();
+        $("#input-file-list").remove();
         $(".form-spacer").remove();  
     });
 }
+
+// first 7 encs are colorblind friendly.
+var safeColors = [
+                  "#d53e4f",
+                  "#fc8d59",
+                  "#fee08b",
+                  "#ffffbf",
+                  "#e6f598",
+                  "#99d594",
+                  "#3288bd"
+                            ];
 
 function showSelectedMedia() {
     var files = document.getElementById('file-selector-input').files;
@@ -85,11 +96,21 @@ function showSelectedMedia() {
     for (var i=0;i<files.length;i++) {
         imageTiles += multipleSubmitUI.generateImageTile(files[i],i);
     }
-    // TODO: This, better. You shouldn't need to iterate through twice. find a better way of appending instead of .htmling those big blobs.
     $("#metadata-tiles-main").html(metadataTiles);
     $("#image-tiles-main").html(imageTiles);
     for (var i=0;i<files.length;i++) {
         multipleSubmitUI.renderImageInBrowser(files[i],i);
+    }
+    for (var i=0;i<numEnc;i++) {
+        var color;
+        if (i<safeColors.length) {
+            color = safeColors[i];;
+        } else {
+            let randCol = randomColor();
+            safeColors.push(randCol);
+            color = randCol
+        }
+        document.getElementById("encounter-label-"+i).style.backgroundColor = color;
     }
     $('.encDate').datepicker({
         format: 'mm/dd/yyyy',
@@ -172,9 +193,21 @@ function showEditMetadata(index) {
     if (editDiv.classList.contains("edit-closed")) {
         $(editDiv).slideDown();
         editDiv.classList.remove("edit-closed");
+        toggleImageHighlights("on");
     } else {
         $(editDiv).slideUp();
         editDiv.classList.add("edit-closed");
+        toggleImageHighlights("off");
+    }
+}
+
+function toggleImageHighlights(state) {
+    var numEncs = document.getElementById("file-selector-input").files.length;
+    for (var i=0;i<numEncs;i++) {
+        var selector = document.getElementById("enc-num-dropdown-"+i);
+        var tileBackground = document.getElementById("image-tile-div-"+i);
+        var encNum = $(selector+" :selected").val();
+        //find color index for this element and add border
     }
 }
 
@@ -193,7 +226,7 @@ function out(string) {
 var props;
 $(document).ready(function(){
     multipleSubmitAPI.getProperties(function(result){
-        console.log("----------------> RESULT:  "+JSON.stringify(result));
+        //console.log("----------------> RESULT:  "+JSON.stringify(result));
         props = result;
     });
 });
@@ -204,7 +237,16 @@ function txt(str) {
 
 function baseURL() {
     var urlOb = new URL(window.location.href).host.toString();
-    console.log("urlOb "+urlOb);
-    return ""+urlOb+"";
+    //console.log("urlOb "+urlOb);
+    return urlOb;
+}
+
+function randomColor() {
+    var hexCode = "#";
+    var chars = [0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f'];
+    while (hexCode.length<7) {
+        hexCode += chars[Math.floor(Math.random()*16)];
+    }
+    return hexCode;
 }
 

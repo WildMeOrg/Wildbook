@@ -25,7 +25,7 @@ multipleSubmitUI = {
         var metadataTile = "";
         metadataTile += "<div class=\"encounter-tile-div col-xs-12 col-xl-12\">";
         metadataTile += "   <div>";
-        metadataTile += "       <label class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
+        metadataTile += "       <label id=\"encounter-label-"+index+"\" class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
         metadataTile += "       <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
         metadataTile += "   </div>";
         metadataTile +=	"   <div id=\"enc-metadata-inner-"+index+"\" class=\"edit-closed\">";	
@@ -128,13 +128,13 @@ multipleSubmitUI = {
         dd += "</select>";
         return dd;
     },
-
+    
     generateWaitingText:     function() {
         // I guess we don't necessarily need to do this in the same way because there is nothing dynamic
         // about the HTML.. stick to patter though
         var wait = "";
         wait += "<div class=\"container waiting-div pulsing\">";
-        wait += "     <p class=\"results-waiting\">Please wait for results. This may take a few seconds to a few minutes depending on the size of upload.</p>";
+        wait += "     <p class=\"results-waiting\">Please wait for results. This may take a few seconds per image.</p>";
         wait += "</div>"; 
         return wait;
     },
@@ -142,26 +142,40 @@ multipleSubmitUI = {
     generateResultPage: function(result) {
         var re = "";
         re += "<div class=\"container\">";
+        re += "<h3>"+txt("resultsHeader")+"</h3>";
         console.log("Generating result page!  :  "+JSON.stringify(result));
         for (var i=0;i<result.numEncs; i++) {
-            re += "<p><a target=\"_blank\" href=\"//"+baseURL()+"/encounters/encounter.jsp?number="+result[i].id+"\">Encounter #"+(i+1)+": "+result[i].id+"</a></p>";
+            re += "<div class=\"row\">";
+            var genSpec = result[i].genSpec;
+            var location = result[i].location;
+            var date = result[i].date;
+            re += "<div class=\"col-xs-6 col-xl-6\">";
+            re += "<p><a target=\"_blank\" href=\"//"+baseURL()+"/encounters/encounter.jsp?number="+result[i].id+"\">"+txt("encounter")+" #"+(i+1)+": "+result[i].id+"</a></p>";
             if (result[i]["img-names"].length>0) {
-                re += "<p><small>Image List:</small></p>";
-                re += "<ul>";
+                re += "    <p><small>"+txt("imageList")+"</small></p>";
+                re += "    <ul>";
                 for (var j=0;j<result[i]["img-names"].length;j++) {
-                    re += "<li><small>"+result[i]["img-names"][j]+"</small></li>";
+                    re += "    <li><small>"+result[i]["img-names"][j]+"</small></li>";
                 }
-                re += "</ul>";
+                re += "    </ul>";
             }
+            re += "</div>";
+            re += "<div class=\"col-xs-6 col-xl-6\">";
+            re += "<br><br>"; // trust me
+            if (this.hasVal(genSpec)) {re += "<p><small>"+txt("date")+" "+date+"</small></p>";}
+            if (this.hasVal(location)) {re += "<p><small>"+txt("location")+" "+location+"</small></p>";}
+            if (this.hasVal(date)) {re += "    <p><small>"+txt("species")+" "+genSpec+"</small></p>";}
+            re += "</div>";
             re += "<br>";
+            re += "</div>";
         }
+        re += "<hr>";
         re += "</div>";
-        console.log("here's re = "+re); 
         return re;
     },
     
     renderImageInBrowser: function(file,id) {
-        if (this.notNullOrEmptyString(String(file))) {
+        if (this.hasVal(String(file))) {
             var reader = new FileReader();
             reader.onload = function(e) {
                 console.log("Target ID for image render: #"+multipleSubmitUI.getImageIdForIndex(id));
@@ -171,7 +185,7 @@ multipleSubmitUI = {
         }
     },
     
-    notNullOrEmptyString: function(entry) {
+    hasVal: function(entry) {
         if (entry==undefined||entry==""||!entry) return false;
         return true; 
     }, 

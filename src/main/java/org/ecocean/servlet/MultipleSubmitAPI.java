@@ -187,6 +187,9 @@ public class MultipleSubmitAPI extends HttpServlet {
                                 System.out.println("Created Annotation id="+ann.getId());
                             }
                             encOb.add("img-names", nameArr);
+                            if (hasVal(enc.getLocationID())) {encOb.addProperty("location", enc.getLocationID());}
+                            if (hasVal(enc.getDate())) {encOb.addProperty("date", enc.getDate());}
+                            if (hasVal(enc.getTaxonomyString())) {encOb.addProperty("genSpec", enc.getTaxonomyString());}
                         }
                         enc = setUserForEncounter(enc, request, myShepherd);
                         rtn.add(String.valueOf(i), encOb);
