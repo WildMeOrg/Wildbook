@@ -44,8 +44,8 @@ multipleSubmitUI = {
     generateImageTile: function(file, index) {
         var imageTile = "";
         imageTile += "<div id=\"image-tile-div-"+index+"\" class=\"image-tile-div col-xs-6 col-sm-4 col-md-3 col-lg-3 col-xl-3\" onclick=\"imageTileClicked("+index+")\" onmouseover=\"showOverlay("+index+")\" onmouseout=\"hideOverlay("+index+")\" >";
-        imageTile += "  <input class=\"form-control img-filename-"+index+"\" type=\"hidden\" value=\""+file.name+"\" />";
         imageTile += "  <img class=\"image-element\" id=\""+multipleSubmitUI.getImageIdForIndex(index)+"\" src=\"#\" alt=\"Displaying "+file.name+"\" />";
+        imageTile += "  <input class=\"form-control img-filename-"+index+"\" type=\"hidden\" value=\""+file.name+"\" />";
         imageTile += multipleSubmitUI.generateImageDataOverlay(file,index);                
         imageTile += "</div>";
         //console.log("image tile: "+imageTile);
@@ -67,7 +67,7 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getImageUIIdForIndex(index);
         var encDrop = "";
         encDrop += "<p class=\"img-input-label\"><small>"+txt("selectEncounter")+"</small></p>";
-        encDrop += "<select id=\"enc-num-dropdown-"+index+"\" class=\"form-control "+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
+        encDrop += "<select id=\"enc-num-dropdown-"+index+"\" class=\"form-control "+uiClass+"\" onchange=\"highlightOnEdit("+index+")\" name=\"enc-num-dropdown-"+index+"\">";
         encDrop += "    <option selected=\"selected\" value=\"0\">"+txt("encounter")+"  #1</option>";
         for (var i=1;i<multipleSubmitUI.encsDefined();i++) {
             encDrop += "<option value=\""+i+"\">Encounter #"+(i+1)+"</option>";
@@ -183,6 +183,14 @@ multipleSubmitUI = {
             }
             reader.readAsDataURL(file);
         }
+    },
+
+    removeEncounterLabel: function(imgEl, encNum) {
+        //remove label from enc top left
+    },
+
+    addEncounterLabel: function(imgEl, encNum) {
+        // add label showing chosen enc-num to top left
     },
     
     hasVal: function(entry) {

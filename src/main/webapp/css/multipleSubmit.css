@@ -75,7 +75,7 @@
 
 .image-element {
     position: absolute;
-    max-width: 100%;
+    max-width: 99%;
     max-block-size: 100%;
     object-fit: contain;
     /*
@@ -129,8 +129,9 @@ div .img-input {
 }
 
 .img-selected {
+    max-width: 99%;
     border-style: solid;
-    border-width: 0.2em;
+    border-width: 0.2em; 
     border-color: darkblue;
 }
 
