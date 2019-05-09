@@ -121,6 +121,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       //newEasyColumn("Encounter.alternateID", columns);
       MultiValueExportColumn.addNameColumns(numNameCols, columns);
       newEasyColumn("Occurrence.occurrenceID", columns);
+      newEasyColumn("Occurrence.sightingPlatform", columns);
       newEasyColumn("Encounter.decimalLatitude", columns);
       newEasyColumn("Encounter.decimalLongitude", columns);
       newEasyColumn("Encounter.locationID", columns);
@@ -129,8 +130,6 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
       Method encDepthGetter = Encounter.class.getMethod("getDepthAsDouble", null); // depth is special bc the getDepth getter can fail with a NPE
       ExportColumn depthIsSpecial = new ExportColumn(Encounter.class, "Encounter.depth", encDepthGetter, columns);
-
-
       
       newEasyColumn("Encounter.dateInMilliseconds", columns);
       newEasyColumn("Encounter.year", columns);
@@ -177,11 +176,15 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       // int numMediaAssets = 3;
       // for (int i=0; i<=numMediaAssets; i++) {
       Method maGetFilename = MediaAsset.class.getMethod("getFilename", null);
-      Method keywordGetName = Keyword.class.getMethod("getReadableName");
+      Method maLocalPath   = MediaAsset.class.getMethod("localPath", null);
+      Method keywordGetName   = Keyword.class.getMethod("getReadableName");
       for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
         String mediaAssetColName = "Encounter.mediaAsset"+maNum;
+        String fullPathName = "Encounter.mediaAsset"+maNum+".filePath";
         ExportColumn maFilenameK = new ExportColumn(MediaAsset.class, mediaAssetColName, maGetFilename, columns);
         maFilenameK.setMaNum(maNum); // important for later!
+        ExportColumn maPathK = new ExportColumn(MediaAsset.class, fullPathName, maLocalPath, columns);
+        maPathK.setMaNum(maNum);
 
         for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
           String keywordColName = "Encounter.mediaAsset"+maNum+".keyword"+kwNum;
