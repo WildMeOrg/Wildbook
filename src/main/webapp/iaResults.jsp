@@ -34,7 +34,9 @@ if (request.getParameter("acmId") != null) {
                     jann.put("acmId", ann.getAcmId());
 		    MediaAsset ma = ann.getMediaAsset();
 		    if (ma != null) {
-			jann.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
+			JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
+                        if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
+			jann.put("asset", jm);
 		    }
                     janns.put(jann);
                 }
