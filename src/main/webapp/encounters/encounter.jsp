@@ -163,6 +163,51 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <style type="text/css">
 
+.ia-match-filter-dialog {
+    z-index: 3000;
+    position: fixed;
+    top: 10%;
+    width: 80%;
+    padding: 15px;
+    border: solid 5px #888;
+    background-color: #CCC;
+}
+.ia-match-filter-dialog .option-cols {
+    -webkit-column-count: 5;
+    -moz-column-count: 5;
+    column-count: 5;
+}
+.ia-match-filter-dialog .option-cols input {
+    vertical-align: top;
+}
+.ia-match-filter-dialog .option-cols .item {
+    padding: 1px 4px;
+    border-radius: 5px;
+}
+.ia-match-filter-dialog .option-cols .item:hover {
+    background-color: #AAA;
+}
+.ia-match-filter-dialog .option-cols .item label {
+    font-size: 0.9em;
+    width: 90%;
+    margin-left: 5px;
+    line-height: 1.0em;
+}
+.ia-match-filter-dialog .option-cols .item-checked label {
+    font-weight: bold;
+}
+.ia-match-filter-section {
+    margin-top: 10px;
+    border-top: solid 3px #999;
+}
+.ia-match-filter-title {
+    margin: 20px 0 5px 0;
+    padding: 1px 0 1px 20px;
+    background-color: #AAB;
+    color: #555;
+    font-weight: bold;
+}
+
 .annot-link {
     display: none;
     position: absolute;
@@ -6176,6 +6221,65 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 
 </table>
 
+<script>
+function iaMatchFilterGo() {
+    var data = {
+        filter: {}
+    };
+    $('.ia-match-filter-dialog input').each(function(i, el) {
+        if ((el.type != 'checkbox') || !el.checked) return;
+        if (!data.filter[el.name]) data.filter[el.name] = [];
+        data.filter[el.name].push(el.defaultValue);
+    });
+alert(JSON.stringify(data, null, 4));
+}
+</script>
+
+<div class="ia-match-filter-dialog">
+<h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+<div class="ia-match-filter-title"><%=encprops.getProperty("locationID")%></div>
+    <div id="ia-match-filter-location" class="option-cols">
+<%
+
+List<String> locs = myShepherd.getAllLocationIDs();
+int c = 0;
+for (String loc : locs) {
+    if (!Util.stringExists(loc) || loc.toLowerCase().equals("none")) continue;
+    String sel = (loc.equals(enc.getLocationID()) ? "checked" : "");
+    out.println("<div class=\"item item-" + sel + "\"><input id=\"mfl-" + c + "\" name=\"match-filter-location-id\" value=\"" + loc + "\" type=\"checkbox\"" + sel + " /><label for=\"mfl-" + c + "\">" + loc + "</label></div>");
+    c++;
+}
+
+%>
+    </div>
+    <div>
+        <div style="margin-top: 10px; color: #660;" class="item">
+            <input type="checkbox" id="match-filter-location-unlabeled" name="match-filter-location-id" value="__NULL__" />
+            <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
+        </div>
+        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
+            onClick="$('#ia-match-filter-location .item input').prop('checked', true);" />
+        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
+            onClick="$('#ia-match-filter-location .item input').prop('checked', false);" />
+    </div>
+
+<div class="ia-match-filter-title"><%=encprops.getProperty("matchFilterOwnership")%></div>
+    <div class="item">
+        <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
+        <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
+    </div>
+    <div class="item">
+        <input type="checkbox" id="match-filter-owner-collab" name="match-filter-owner" value="collab" />
+        <label for="match-filter-owner-collab"><%=encprops.getProperty("matchFilterOwnershipCollab")%></label>
+    </div>
+
+<div class="ia-match-filter-section">
+    <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
+    <input style="background-color: #DDD;" type="button" value="<%=encprops.getProperty("cancel")%>"
+        onClick="$('.ia-match-filter-dialog').hide()" />
+</div>
+
+</div>
 
 <%
 
