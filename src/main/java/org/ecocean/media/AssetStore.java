@@ -312,6 +312,7 @@ public abstract class AssetStore implements java.io.Serializable {
         } catch (Exception ex) {
             throw new IOException("updateChild() error caching local file: " + ex.toString());
         }
+        if (parent.localPath() == null) throw new IOException("updateChild() found null localPath() on parent");
         File sourceFile = parent.localPath().toFile();
         File targetFile = new File(sourceFile.getParent().toString() + File.separator + Util.generateUUID() + "-" + type + ".jpg");
         boolean allowed = _updateChildLocalWork(parent, type, opts, sourceFile, targetFile);  //does the heavy lifting
