@@ -775,7 +775,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         if ((sibs == null) || (sibs.size() < 1)) {  //no sibs, we make a new Encounter!
             Encounter enc = new Encounter(this);
             //this taxonomy only works when its twitter-sourced data cuz otherwise this is just null 
-            enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd, this.getMediaAsset()));
+            enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd, TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
             return enc;
         }
         /*
