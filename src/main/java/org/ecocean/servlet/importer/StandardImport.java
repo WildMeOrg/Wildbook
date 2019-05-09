@@ -65,8 +65,8 @@ public class StandardImport extends HttpServlet {
   String individualPrefix="";
   String occurrencePrefix="";
   String sightingPlatformPrefix="";
-  String defaultSubmitterID="ESO"; // leave null to not set a default
-  String defaultCountry="Oman";
+  String defaultSubmitterID=null; // leave null to not set a default
+  String defaultCountry=null;
 
   HttpServletRequest request;
 
