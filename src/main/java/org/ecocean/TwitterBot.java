@@ -513,7 +513,6 @@ System.out.println("processIdentificationResults() -> " + anns + " ==> " + annot
 
     public static String taxonomyStringFromTweet(Status tweet, String context) {
         List<String> tags = TwitterUtil.getHashtags(tweet);
-        if (tags.size() < 1) return null;
         for (String tag : tags) {
             if (tag == null) continue;
             String tx = TwitterUtil.getProperty(context, "taxonomyHash_" + tag.toLowerCase());
