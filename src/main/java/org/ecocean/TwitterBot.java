@@ -23,6 +23,7 @@ import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
 import org.ecocean.RateLimitation;
+import org.ecocean.ia.Task;
 
 import com.google.gson.Gson;
 import java.util.List;
@@ -45,6 +46,7 @@ public class TwitterBot {
     private static Queue queueIn = null;
     private static Queue queueOut = null;
     private static long collectorStartTime = 0l;
+    private static List<String> taskTweeted = new ArrayList<String>();  //so we dont tweet about the same task more than once
 
     //this probably *should* be "universal" for twitter!  (on TwitterUtil?) or at least per-account
     private static RateLimitation outgoingRL = new RateLimitation(48 * 60 * 60 * 1000);  //only care about last 48 hrs
@@ -74,6 +76,8 @@ public class TwitterBot {
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- no TwitterAssetStore found! Probably should fix this if you are using Twitter. :)");
             return;
         }
+        Task task = new Task();
+        myShepherd.getPM().makePersistent(task);
         JSONObject p = new JSONObject();
         p.put("id", tweet.getId());
         MediaAsset tweetMA = tas.find(p, myShepherd);
@@ -112,7 +116,7 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
         }
 
         //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
-        JSONObject qj = detectionQueueJob(entities, context, baseUrl);
+        JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
         qj.put("tweetAssetId", tweetMA.getId());
         try {
             org.ecocean.servlet.IAGateway.addToQueue(context, qj.toString());
@@ -123,9 +127,9 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     }
 
     //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
-    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl) {
+    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
         JSONObject qj = new JSONObject();
-        qj.put("taskId", Util.generateUUID());
+        qj.put("taskId", taskId);
         qj.put("__context", context);
         qj.put("__baseUrl", baseUrl);
         JSONArray idArr = new JSONArray();
@@ -438,8 +442,18 @@ System.out.println("processDetectionResults() -> " + mas);
     }
     //annotPairDict is from the IA results.  in the future we could let this be null and if so fetch it
     public static String processIdentificationResults(Shepherd myShepherd, final List<Annotation> anns, final JSONObject annotPairDict, String taskId) {
-System.out.println("processIdentificationResults() -> " + anns + " ==> " + annotPairDict);
         if ((anns == null) || (anns.size() < 1)) return null;
+
+        Task task = Task.load(taskId, myShepherd);
+        Task rootTask = null;
+        if (task != null) rootTask = task.getRootTask();
+System.out.println("processIdentificationResults() [taskId=" + taskId + " > rootTaskId=" + ((rootTask == null) ? "(NULL!?!)" : rootTask.getId()) + "] -> " + anns + " ==> " + annotPairDict);
+        if (rootTask != null) taskId = rootTask.getId();  //this way we just use taskId below
+
+        if (taskTweeted.contains(taskId)) {
+            System.out.println("NOTE: already tweeted about task " + taskId + "; muting this one");
+            return "(muted duplicate tweet about taskId=" + taskId + ")";
+        }
 
         //now we have to find the source tweet (which should be the only one even if more than one annot)
         int successful = 0;
@@ -458,6 +472,7 @@ System.out.println("processIdentificationResults() -> " + anns + " ==> " + annot
         Map<String,String> vars = new HashMap<String,String>();
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         vars.put("MATCH_URL", CommonConfiguration.getServerURL(context) + "/iaResults.jsp?taskId=" + taskId);
+        taskTweeted.add(taskId);
 
         if ((annotPairDict == null) || (annotPairDict.optJSONArray("review_pair_list") == null) ||
             (annotPairDict.getJSONArray("review_pair_list").length() < 1)) {
