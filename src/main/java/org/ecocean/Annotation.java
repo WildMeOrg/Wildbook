@@ -775,7 +775,12 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
 
         //rather, we straight up find sibling Annotations, and look at them...
         List<Annotation> sibs = this.getSiblings();
-        if ((sibs == null) || (sibs.size() < 1)) return new Encounter(this);  //no sibs, we make a new Encounter!
+        if ((sibs == null) || (sibs.size() < 1)) {  //no sibs, we make a new Encounter!
+            Encounter enc = new Encounter(this);
+            //this taxonomy only works when its twitter-sourced data cuz otherwise this is just null 
+            enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd, TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
+            return enc;
+        }
         /*
             ok, we have sibling Annotations.  if one is trivial, we just go for it and replace that one.
             is this wise?   well, if it is the *only* sibling then probably the MediaAsset was attached to the
