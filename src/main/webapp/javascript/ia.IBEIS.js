@@ -198,8 +198,10 @@ console.log('xxxy mid=%o, aid=%o, ma=%o', mid, aid, ma);
         });
     },
 
+    //this is now handled by a div in encounters.jsp
     matchFilter: function(aid, ma) {
-alert('START on ' + aid + ' < ' + ma);
+        iaMatchFilterAnnotationIds.push(aid);
+        $('.ia-match-filter-dialog').show();
     },
 /*
                         var data = {

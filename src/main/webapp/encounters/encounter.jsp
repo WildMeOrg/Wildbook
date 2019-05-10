@@ -164,6 +164,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   <style type="text/css">
 
 .ia-match-filter-dialog {
+    display: none;
     z-index: 3000;
     position: fixed;
     top: 10%;
@@ -6222,16 +6223,32 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 </table>
 
 <script>
+var iaMatchFilterAnnotationIds = [];
 function iaMatchFilterGo() {
     var data = {
-        filter: {}
+        v2: true,
+        taskParameters: {
+            matchingSetFilter: {}
+        },
+        annotationIds: iaMatchFilterAnnotationIds
+    };
+    var keyMap = {
+        'match-filter-location-id': 'locationIds',
+        'match-filter-owner': 'owner'
     };
     $('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
-        if (!data.filter[el.name]) data.filter[el.name] = [];
-        data.filter[el.name].push(el.defaultValue);
+        var key = keyMap[el.name] || '_UNKNOWN_';
+        if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
+        data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
     });
-alert(JSON.stringify(data, null, 4));
+console.log('SENDING ===> %o', data);
+    wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
+console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
+        wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
+    });
+    //TODO uncheck everything????
+    $('.ia-match-filter-dialog').hide();
 }
 </script>
 
@@ -6268,10 +6285,16 @@ for (String loc : locs) {
         <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
         <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
     </div>
+<!--  not yet implemented!
     <div class="item">
         <input type="checkbox" id="match-filter-owner-collab" name="match-filter-owner" value="collab" />
         <label for="match-filter-owner-collab"><%=encprops.getProperty("matchFilterOwnershipCollab")%></label>
     </div>
+    <div class="item">
+        <input type="checkbox" id="match-filter-owner-none" name="match-filter-owner" value="__NULL__" />
+        <label for="match-filter-owner-none"><%=encprops.getProperty("matchFilterOwnershipNone")%></label>
+    </div>
+-->
 
 <div class="ia-match-filter-section">
     <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
