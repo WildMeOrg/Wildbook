@@ -707,9 +707,13 @@ System.out.println("[1] getMatchingSet params=" + params);
             List<String> locs = new ArrayList<String>();
             for (int i = 0 ; i < larr.length() ; i++) {
                 String val = Util.basicSanitize(larr.optString(i));
-                if (!val.equals("")) locs.add(val);
+                if ("__NULL__".equals(val)) {
+                    locs.add("null");
+                } else if (Util.stringExists(val)) {
+                    locs.add("'" + val + "'");
+                }
             }
-            if (locs.size() > 0) f += " && (enc.locationID == '" + String.join("' || enc.locationID == '", locs) + "') ";
+            if (locs.size() > 0) f += " && (enc.locationID == " + String.join(" || enc.locationID == ", locs) + ") ";
         }
         return f;
     }
