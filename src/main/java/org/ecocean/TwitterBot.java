@@ -494,12 +494,8 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         }
         if (enc == null) return;
         String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
-        if (tx == null) return;
         System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
-        String[] gs = Util.stringToGenusSpecificEpithet(tx);
-        if ((gs == null) || (gs.length < 1)) return;  //snh
-        enc.setGenus(gs[0]);
-        if (gs.length > 1) enc.setSpecificEpithet(gs[1]);
+        enc.setTaxonomyFromString(tx);
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
