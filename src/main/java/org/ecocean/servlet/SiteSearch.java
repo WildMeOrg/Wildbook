@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
@@ -77,7 +78,7 @@ public class SiteSearch extends HttpServlet {
 
         String regex = ".*" + term.toLowerCase() + ".*";
 
-        ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+        ArrayList<Map<String, String>> list = new ArrayList<Map<String, String>>();
         String filter;
         
 
@@ -90,15 +91,14 @@ public class SiteSearch extends HttpServlet {
         myShepherd.beginDBTransaction();
 
         List<MarkedIndividual> individuals = MarkedIndividual.findByNames(myShepherd, regex);
+
+        // this stores the hashmaps for each individual so we can sort by label later
+        Map<String,Map<String,String>> labelToHm = new HashMap<String,Map<String,String>>();
   
           for (MarkedIndividual ind : individuals) {
               HashMap<String, String> hm = new HashMap<String, String>();
-              List<String> names = ind.getNamesList(request);
-              if (Util.collectionIsEmptyOrNull(names)) {
-                  hm.put("label", ind.getIndividualID());
-              } else {
-                  hm.put("label", String.join(", ", names) + " (" + ind.getIndividualID().substring(0,8) + ")");
-              }
+              String label = ind.getDisplayName(request);
+              hm.put("label", ind.getDisplayName(request));
               hm.put("value", ind.getIndividualID());
               hm.put("type", "individual");
   
@@ -108,7 +108,16 @@ public class SiteSearch extends HttpServlet {
               if(ind.getGenusSpecies()!=null){
                 hm.put("species", ind.getGenusSpecies());
               }
-              list.add(hm);
+              labelToHm.put(label, hm);
+              //list.add(hm);
+          }
+
+          // now we sort the labels and add them in order
+          // this is a runtime hit and we should consider figuring out how to sort on labels 
+          List<String> sortedLabels = Util.asSortedList(labelToHm.keySet());
+          for (String label: sortedLabels) {
+            Map<String, String> hm = labelToHm.get(label);
+            list.add(hm);
           }
 
           myShepherd.rollbackDBTransaction();
