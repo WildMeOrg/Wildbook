@@ -193,32 +193,57 @@ function showEditMetadata(index) {
     if (editDiv.classList.contains("edit-closed")) {
         $(editDiv).slideDown();
         editDiv.classList.remove("edit-closed");
-        toggleImageHighlights("on");
+        toggleImageHighlights("on",index);
     } else {
         $(editDiv).slideUp();
         editDiv.classList.add("edit-closed");
-        toggleImageHighlights("off");
+        toggleImageHighlights("off",index);
     }
 }
 
-function toggleImageHighlights(state) {
-    var numEncs = document.getElementById("file-selector-input").files.length;
-    for (var i=0;i<numEncs;i++) {
-        var selector = document.getElementById("enc-num-dropdown-"+i);
-        var tileBackground = document.getElementById("image-tile-div-"+i);
-        var encNum = $(selector+" :selected").val();
-        //find color index for this element and add border
+// flip on all borders for imgs that have this enc selected..
+function toggleImageHighlights(state,index) {
+    var allImageTiles = document.getElementsByClassName("image-tile-div");
+    for (var i=0;i<allImageTiles.length;i++) {
+        var imgEl = allImageTiles[i].querySelector(".image-element");
+        var selectedEnc = $("#enc-num-dropdown-"+i+" :selected").val();
+        console.log("Selected enc: "+JSON.stringify(selectedEnc));
+        if (selectedEnc!=null&&selectedEnc==index) {
+            //console.log("adding borderCol: "+borderCol+"  and state: "+state);
+            if (state=="on") {
+                //add some label with enc-num
+                multipleSubmitUI.addEncounterLabel(imgEl, selectedEnc);
+            }
+            if (state=="off") {
+                //remove said label with enc-num
+                multipleSubmitUI.removeEncounterLabel(imgEl, selectedEnc);
+            }
+        }
+    }
+}
+
+// triggered by onchange img encounter select.. only add highlight if already editing
+function highlightOnEdit(index) {
+    //console.log("get enc number onchange for state="+state+" and index="+index);
+    console.log("get enc number onchange for index="+index);
+    var encSelected = document.getElementById("enc-num-dropdown-"+index);
+    var value = encSelected.options[encSelected.selectedIndex].value;
+    var editDiv = document.getElementById("enc-metadata-inner-"+value);
+    if (!editDiv.classList.contains("edit-closed")) {
+        toggleImageHighlights("on",value);
+    } else {
+        toggleImageHighlights("off",value);
     }
 }
 
 function out(string) {
     let outStr = "<p class=\"out-message\"><b>"+string+"</b></p>";
+    $(".action-message").empty();
     $(".action-message").html(outStr);
-    setTimeout(function(){
-        $(".action-message").empty();
-    }, 3000)
+    //setTimeout(function(){
+    //    $(".action-message").empty();
+    //}, 3000)
 }
-
 
 // get all lang appropriate copy from properties, hold on to 
 // before we populate in big ol global thingy
@@ -232,7 +257,8 @@ $(document).ready(function(){
 });
 //console.log(JSON.stringify(props));
 function txt(str) {
-    return props[str];
+    if (multipleSubmitUI.hasVal(props[str])) {return props[str]};
+    return null;
 }
 
 function baseURL() {
@@ -249,4 +275,21 @@ function randomColor() {
     }
     return hexCode;
 }
+
+//recalculate label position after window resize, with delay so event dont fire like crazy
+var recalcDelay;
+window.onresize = function() {
+    //let numEncs = document.getElementById("number-encounters").value;
+    clearTimeout(recalcDelay);
+    recalcDelay = setTimeout(function() {
+        let allImageTiles = document.getElementsByClassName("image-tile-div");
+        for (let i=0;i<allImageTiles.length;i++) {
+            let imgEl = allImageTiles[i].querySelector(".image-element");;
+            if (imgEl.parentNode.getElementsByClassName("chosen-enc-label")!=undefined&&imgEl.parentNode.getElementsByClassName("chosen-enc-label").length>0) {
+                let selectedEnc = $("#enc-num-dropdown-"+i+" :selected").val();
+                multipleSubmitUI.addEncounterLabel(imgEl, selectedEnc);
+            }    
+        }
+    },300);
+};
 

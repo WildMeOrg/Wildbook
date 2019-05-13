@@ -185,12 +185,57 @@ multipleSubmitUI = {
         }
     },
 
-    removeEncounterLabel: function(imgEl, encNum) {
-        //remove label from enc top left
-    },
-
     addEncounterLabel: function(imgEl, encNum) {
-        // add label showing chosen enc-num to top left
+        this.removeEncounterLabel(imgEl);
+
+        var lbl = "Encounter #"+(parseInt(encNum)+1);
+        let dv = document.createElement("DIV");
+        let txt =document.createTextNode(lbl);
+        dv.classList.add("chosen-enc-label");
+
+        // calculate dimensions without the border if present
+        let borderWidth = getComputedStyle(imgEl,null).getPropertyValue("border-width");
+        if (isNaN(borderWidth)) {borderWidth=0;}
+        let borderHeight = getComputedStyle(imgEl,null).getPropertyValue("border-height");
+        if (isNaN(borderHeight)) {borderHeight=0;}
+
+        let imgWidth = imgEl.clientWidth - borderWidth;
+        let imgHeight = imgEl.clientHeight - borderHeight;
+
+        let tileHeight = imgEl.parentNode.clientHeight;
+        let tileWidth = imgEl.parentNode.clientWidth;
+
+        console.log("IMAGE ---> clientWidth: "+imgWidth+" clientHeight: "+imgHeight);
+        console.log("Tile ---> clientWidth: "+tileWidth+" clientHeight: "+tileHeight);
+        console.log("border-width? should be 6px.. "+borderWidth);
+
+        dv.style.setProperty("background-color", safeColors[encNum], "important");
+        dv.style.setProperty("margin-top", (tileHeight-imgHeight)/2, "important");
+        dv.style.setProperty("margin-left",(((tileWidth-imgWidth)/2)+7), "important");
+        
+        dv.appendChild(txt);
+
+        imgEl.parentNode.appendChild(dv);
+
+        imgEl.style.setProperty("border",safeColors[encNum], "important");
+        imgEl.style.setProperty("border-style", "solid", "important");
+        imgEl.style.setProperty("border-width", "6px", "important" );
+        imgEl.style.setProperty("max-width", "96%", "important" );
+    },
+ 
+    removeEncounterLabel: function(imgEl) { 
+        console.log("removing label...");
+        if (imgEl.parentNode.getElementsByClassName("chosen-enc-label")!=undefined&&imgEl.parentNode.getElementsByClassName("chosen-enc-label").length>0) {
+            let lbl = imgEl.parentNode.getElementsByClassName("chosen-enc-label");
+            for (let i=0;i<lbl.length;i++) {
+                lbl[i].removeChild(lbl[i].firstChild);
+                imgEl.parentNode.removeChild(lbl[i]);
+            }
+        }
+        imgEl.style.setProperty("border", "darkblue", "important");
+        imgEl.style.setProperty("border-style", "none", "important");
+        imgEl.style.setProperty("border-width", "3px", "important");
+        imgEl.style.setProperty("max-width", "98%", "important");
     },
     
     hasVal: function(entry) {

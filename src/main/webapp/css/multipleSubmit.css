@@ -27,6 +27,15 @@
     margin: auto;
 }
 
+.chosen-enc-label {
+    position: absolute;
+    top: 1px;
+    left: -2px;
+    font-weight: bold;
+    color: black;
+}
+
+
 .hidden-input {
     display: none;
 }
@@ -82,9 +91,9 @@
     margin: 0;
     height: auto;
     text-align: center;
-    */
     margin-left: 0.5em;
     margin-right: 0.5em;
+    */
     top: 50%;
     left: 50%;
     -ms-transform: translate(-50%,-50%);
