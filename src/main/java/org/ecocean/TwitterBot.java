@@ -147,9 +147,9 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
         if ((ma == null) || !ma.isMimeTypeMajor("image")) {
-            sendTweet(tweetText(context, "tweetTextCourtesy", vars));
+            sendTweet(tweetText(context, "tweetTextCourtesy", vars), originTweet.getId());
         } else {
-            sendTweet(tweetText(context, "tweetTextCourtesyPhoto", vars));
+            sendTweet(tweetText(context, "tweetTextCourtesyPhoto", vars), originTweet.getId());
         }
   }
 
@@ -159,10 +159,12 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     }
 
     //this is *queued* sending, which is what we want (usually!) so that rate limits etc can be taken care of
-    public static void sendTweet(String tweetText) {
-        //for now, outgoing queue just takes tweet text!  maybe this will change?  see: messageOutHandler()
-        queuePush(queueOut, tweetText);
-System.out.println("SEND-TWEET:\n[" + tweetText + "]");
+    public static void sendTweet(String tweetText, Long replyToId) {
+        JSONObject jout = new JSONObject();
+        jout.put("tweetText", tweetText);
+        jout.put("replyToId", replyToId);
+        queuePush(queueOut, jout.toString());
+System.out.println("SEND-TWEET:\n[" + jout.toString() + "]");
     }
 
     private static void messageInHandler(String msg) {
@@ -192,7 +194,9 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
             lastHour = outgoingRL.numSinceHoursAgo(1);
         }
         try {
-            Status tweet = TwitterUtil.sendTweet(msg);
+            JSONObject jin = Util.stringToJSONObject(msg);
+            if (jin == null) throw new TwitterException("non-JSON queue content: " + msg);
+            Status tweet = TwitterUtil.sendTweet(jin.optString("tweetText", null), jin.optLong("replyToId", -1L));
             System.out.println("INFO: TweetBot.messageOutHandler() sent tweet id=" + tweet.getId());
         } catch (TwitterException tex) {
             System.out.println("WARNING: TweetBot.messageOutHandler(" + msg + ") threw " + tex.toString());
@@ -431,7 +435,7 @@ System.out.println("processDetectionResults() -> " + mas);
 
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
-        sendTweet(tweetText(context, "tweetTextIANone", vars));
+        sendTweet(tweetText(context, "tweetTextIANone", vars), originTweet.getId());
         return "Failed to find any Annotations; sent tweet";
     }
 
@@ -476,11 +480,11 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
 
         if ((annotPairDict == null) || (annotPairDict.optJSONArray("review_pair_list") == null) ||
             (annotPairDict.getJSONArray("review_pair_list").length() < 1)) {
-            sendTweet(tweetText(context, "tweetTextIADetect", vars));
+            sendTweet(tweetText(context, "tweetTextIADetect", vars), originTweet.getId());
             return "Got " + anns.size() + " annots, but empty ident results[" + taskId + "]; tweet sent.";
         }
 
-        sendTweet(tweetText(context, "tweetTextIABoth", vars));
+        sendTweet(tweetText(context, "tweetTextIABoth", vars), originTweet.getId());
         return "Got " + anns.size() + " annots, and some possible matches!! [" + taskId + "] tweet sent.";
     }
 
@@ -494,12 +498,8 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         }
         if (enc == null) return;
         String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
-        if (tx == null) return;
         System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
-        String[] gs = Util.stringToGenusSpecificEpithet(tx);
-        if ((gs == null) || (gs.length < 1)) return;  //snh
-        enc.setGenus(gs[0]);
-        if (gs.length > 1) enc.setSpecificEpithet(gs[1]);
+        enc.setTaxonomyFromString(tx);
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
