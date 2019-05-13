@@ -23,6 +23,7 @@ import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
 import org.ecocean.RateLimitation;
+import org.ecocean.ia.Task;
 
 import com.google.gson.Gson;
 import java.util.List;
@@ -45,6 +46,7 @@ public class TwitterBot {
     private static Queue queueIn = null;
     private static Queue queueOut = null;
     private static long collectorStartTime = 0l;
+    private static List<String> taskTweeted = new ArrayList<String>();  //so we dont tweet about the same task more than once
 
     //this probably *should* be "universal" for twitter!  (on TwitterUtil?) or at least per-account
     private static RateLimitation outgoingRL = new RateLimitation(48 * 60 * 60 * 1000);  //only care about last 48 hrs
@@ -74,6 +76,8 @@ public class TwitterBot {
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- no TwitterAssetStore found! Probably should fix this if you are using Twitter. :)");
             return;
         }
+        Task task = new Task();
+        myShepherd.getPM().makePersistent(task);
         JSONObject p = new JSONObject();
         p.put("id", tweet.getId());
         MediaAsset tweetMA = tas.find(p, myShepherd);
@@ -112,7 +116,7 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
         }
 
         //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
-        JSONObject qj = detectionQueueJob(entities, context, baseUrl);
+        JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
         qj.put("tweetAssetId", tweetMA.getId());
         try {
             org.ecocean.servlet.IAGateway.addToQueue(context, qj.toString());
@@ -123,9 +127,9 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     }
 
     //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
-    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl) {
+    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
         JSONObject qj = new JSONObject();
-        qj.put("taskId", Util.generateUUID());
+        qj.put("taskId", taskId);
         qj.put("__context", context);
         qj.put("__baseUrl", baseUrl);
         JSONArray idArr = new JSONArray();
@@ -143,9 +147,9 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
         if ((ma == null) || !ma.isMimeTypeMajor("image")) {
-            sendTweet(tweetText(context, "tweetTextCourtesy", vars));
+            sendTweet(tweetText(context, "tweetTextCourtesy", vars), originTweet.getId());
         } else {
-            sendTweet(tweetText(context, "tweetTextCourtesyPhoto", vars));
+            sendTweet(tweetText(context, "tweetTextCourtesyPhoto", vars), originTweet.getId());
         }
   }
 
@@ -155,10 +159,12 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     }
 
     //this is *queued* sending, which is what we want (usually!) so that rate limits etc can be taken care of
-    public static void sendTweet(String tweetText) {
-        //for now, outgoing queue just takes tweet text!  maybe this will change?  see: messageOutHandler()
-        queuePush(queueOut, tweetText);
-System.out.println("SEND-TWEET:\n[" + tweetText + "]");
+    public static void sendTweet(String tweetText, Long replyToId) {
+        JSONObject jout = new JSONObject();
+        jout.put("tweetText", tweetText);
+        jout.put("replyToId", replyToId);
+        queuePush(queueOut, jout.toString());
+System.out.println("SEND-TWEET:\n[" + jout.toString() + "]");
     }
 
     private static void messageInHandler(String msg) {
@@ -188,7 +194,9 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
             lastHour = outgoingRL.numSinceHoursAgo(1);
         }
         try {
-            Status tweet = TwitterUtil.sendTweet(msg);
+            JSONObject jin = Util.stringToJSONObject(msg);
+            if (jin == null) throw new TwitterException("non-JSON queue content: " + msg);
+            Status tweet = TwitterUtil.sendTweet(jin.optString("tweetText", null), jin.optLong("replyToId", -1L));
             System.out.println("INFO: TweetBot.messageOutHandler() sent tweet id=" + tweet.getId());
         } catch (TwitterException tex) {
             System.out.println("WARNING: TweetBot.messageOutHandler(" + msg + ") threw " + tex.toString());
@@ -412,7 +420,10 @@ System.out.println("processDetectionResults() -> " + mas);
             }
             //aha, we have a tweet-spawned media asset.  but did it pass detection and get annotations?
             ArrayList<Annotation> anns = ma.getAnnotations();
-            if ((anns != null) && (anns.size() > 0)) successful++;
+            if ((anns != null) && (anns.size() > 0)) {
+                updateEncounter(tweetMA, anns, myShepherd);
+                successful++;
+            }
         }
         if (tweetMA == null) return null;  //no tweet stuff
         if (successful > 0) return successful + " Annotation(s) in process; not detection-fail tweet sent.";
@@ -424,7 +435,7 @@ System.out.println("processDetectionResults() -> " + mas);
 
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
-        sendTweet(tweetText(context, "tweetTextIANone", vars));
+        sendTweet(tweetText(context, "tweetTextIANone", vars), originTweet.getId());
         return "Failed to find any Annotations; sent tweet";
     }
 
@@ -435,8 +446,18 @@ System.out.println("processDetectionResults() -> " + mas);
     }
     //annotPairDict is from the IA results.  in the future we could let this be null and if so fetch it
     public static String processIdentificationResults(Shepherd myShepherd, final List<Annotation> anns, final JSONObject annotPairDict, String taskId) {
-System.out.println("processIdentificationResults() -> " + anns + " ==> " + annotPairDict);
         if ((anns == null) || (anns.size() < 1)) return null;
+
+        Task task = Task.load(taskId, myShepherd);
+        Task rootTask = null;
+        if (task != null) rootTask = task.getRootTask();
+System.out.println("processIdentificationResults() [taskId=" + taskId + " > rootTaskId=" + ((rootTask == null) ? "(NULL!?!)" : rootTask.getId()) + "] -> " + anns + " ==> " + annotPairDict);
+        if (rootTask != null) taskId = rootTask.getId();  //this way we just use taskId below
+
+        if (taskTweeted.contains(taskId)) {
+            System.out.println("NOTE: already tweeted about task " + taskId + "; muting this one");
+            return "(muted duplicate tweet about taskId=" + taskId + ")";
+        }
 
         //now we have to find the source tweet (which should be the only one even if more than one annot)
         int successful = 0;
@@ -455,15 +476,30 @@ System.out.println("processIdentificationResults() -> " + anns + " ==> " + annot
         Map<String,String> vars = new HashMap<String,String>();
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         vars.put("MATCH_URL", CommonConfiguration.getServerURL(context) + "/iaResults.jsp?taskId=" + taskId);
+        taskTweeted.add(taskId);
 
         if ((annotPairDict == null) || (annotPairDict.optJSONArray("review_pair_list") == null) ||
             (annotPairDict.getJSONArray("review_pair_list").length() < 1)) {
-            sendTweet(tweetText(context, "tweetTextIADetect", vars));
+            sendTweet(tweetText(context, "tweetTextIADetect", vars), originTweet.getId());
             return "Got " + anns.size() + " annots, but empty ident results[" + taskId + "]; tweet sent.";
         }
 
-        sendTweet(tweetText(context, "tweetTextIABoth", vars));
+        sendTweet(tweetText(context, "tweetTextIABoth", vars), originTweet.getId());
         return "Got " + anns.size() + " annots, and some possible matches!! [" + taskId + "] tweet sent.";
+    }
+
+    private static void updateEncounter(MediaAsset tweetMA, ArrayList<Annotation> anns, Shepherd myShepherd) {
+        Status originTweet = TwitterUtil.toStatus(tweetMA);
+        if ((originTweet == null) || (anns == null)) return;
+        Encounter enc = null;
+        for (Annotation ann : anns) {
+            Encounter e = ann.findEncounter(myShepherd);
+            if (e != null) enc = e;
+        }
+        if (enc == null) return;
+        String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
+        System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
+        enc.setTaxonomyFromString(tx);
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
@@ -488,6 +524,16 @@ System.out.println("processIdentificationResults() -> " + anns + " ==> " + annot
         }
 */
         System.out.println("================ = = = = = = ===================== TwitterBot.cleanup() finished.");
+    }
+
+    public static String taxonomyStringFromTweet(Status tweet, String context) {
+        List<String> tags = TwitterUtil.getHashtags(tweet);
+        for (String tag : tags) {
+            if (tag == null) continue;
+            String tx = TwitterUtil.getProperty(context, "taxonomyHash_" + tag.toLowerCase());
+            if (tx != null) return tx;
+        }
+        return TwitterUtil.getProperty(context, "taxonomyDefault");
     }
 
 }
