@@ -71,27 +71,7 @@ wildbook.IA.plugins.push({
                         return; // no action if we're waiting for detection
                     }
                     else if (requireSpecies=="false"||ma.taxonomyString) {
-                        console.log('no detection status for ma '+JSON.stringify(ma));
-                        var data = {
-                            annotationIds: [ aid ]
-                        };
-                        imageEnhancer.popup('<h2>Starting matching....</h2>');
-                        wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
-                            if (textStatus == 'success') {
-                                if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success || !xhr.responseJSON.taskId) {
-                                    imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Invalid response</p>');
-                                    console.log(xhr);
-                                    return;
-                                }
-                                //i think we at least got a task sent off!
-                                imageEnhancer.popupClose();
-                                registerTaskId(xhr.responseJSON.taskId);
-                                wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
-                            } else {
-                                imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
-                                console.log(xhr);
-                            }
-                        });
+                        wildbook.IA.getPluginByType('IBEIS').matchFilter(aid, ma);
                     } else {
                         imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
                         return;
@@ -133,6 +113,8 @@ wildbook.IA.plugins.push({
                     var data = {
                         annotationIds: [ aid ]
                     };
+                    wildbook.IA.getPluginByType('IBEIS').matchFilter(aid, ma);
+/*
                     imageEnhancer.popup('<h2>Starting matching....</h2>');
                     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
                         if (textStatus == 'success') {
@@ -149,6 +131,7 @@ wildbook.IA.plugins.push({
                             console.log(xhr);
                         }
                     });
+*/
                 } else {
                     imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
                     return;
@@ -188,6 +171,7 @@ wildbook.IA.plugins.push({
         var rtn = {
             status: ma.detectionStatus,
             statusText: ma.detectionStatus,
+            //taskId: ma.tasks[0].id  //<-- fyi master had this fix(??)
             taskId: ma.tasks[ma.tasks.length - 1].id
         };
         if (ma.annotation && ma.annotation.identificationStatus) {
@@ -218,6 +202,12 @@ wildbook.IA.plugins.push({
             dataType: 'json',
             type: 'POST'
         });
+    },
+
+    //this is now handled by a div in encounters.jsp
+    matchFilter: function(aid, ma) {
+        iaMatchFilterAnnotationIds.push(aid);
+        $('.ia-match-filter-dialog').show();
     },
 
     //can assume task.parameters is set
