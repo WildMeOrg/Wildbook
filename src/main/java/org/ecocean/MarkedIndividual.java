@@ -176,7 +176,7 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     public String getDisplayName(Object keyHint) {
         List<String> nameVals = getNamesList(keyHint);
-        if ((nameVals == null) || (nameVals.size() < 1)) nameVals = getNames().getValuesDefault();
+        if (((nameVals == null) || (nameVals.size() < 1)) && (getNames() != null)) nameVals = getNames().getValuesDefault();
         if ((nameVals == null) || (nameVals.size() < 1)) {
           if (Util.isUUID(individualID)) return individualID.substring(0,8);
           else return individualID;
