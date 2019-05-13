@@ -544,6 +544,8 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			var d = new Date(res.timestamp);
 			h += '<span class="algoTimestamp">' + d.toLocaleString() + '</span>';
 		}
+                var dct = res.status._response.response.json_result.database_annot_uuid_list.length;
+                h += ' <span class="matchingSetSize">' + (dct ? '<i>against ' + dct + ' candidates</i>' : '') + '</span>';
 
 		h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" class="algoInstructions">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
 		$('#task-' + res.taskId + ' .task-title-id').html(h);
