@@ -2344,6 +2344,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         return rtn;
     }
 
+    // exact case-insensitive version of above func that returns 1 or 0 individuals
+    public static MarkedIndividual withName(Shepherd myShepherd, String name) {
+      String regex = "(^|.*;)"+name+"(;.*|$)";
+      List<MarkedIndividual> inds = findByNames(myShepherd, regex);
+      if (inds==null || inds.size()==0) return null;
+      if (inds.size()>1) System.out.println("WARNING! MarkedIndividual.withName called for name "+name+". THERE ARE "+inds.size()+" INDIVIDUALS WITH THIS NAME AND WE'RE RETURNING ONLY ONE.");
+      return inds.get(0);
+    }
+
     //used above, but also used in IndividualQueryProcessor, for example
     public static List<String> findNameIds(String regex) {
         List<String> nameIds = new ArrayList<String>();
