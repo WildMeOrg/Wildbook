@@ -197,6 +197,11 @@ String langCode=ServletUtilities.getLanguageCode(request);
 .ia-match-filter-dialog .option-cols .item-checked label {
     font-weight: bold;
 }
+.ia-match-filter-dialog .item-count {
+    font-size: 0.8em;
+    color: #777;
+    margin-left: 9px;
+}
 .ia-match-filter-section {
     margin-top: 10px;
     border-top: solid 3px #999;
@@ -888,6 +893,11 @@ if(enc.getLocation()!=null){
       $("#countryError, #countryCheck, #countryErrorDiv").hide()
       $("#countryFormBtn").show();
     });
+
+    $('#ia-match-filter-location input').on('change', function(ev) {
+        iaMatchFilterLocationCountUpdate()
+    });
+    iaMatchFilterLocationCountUpdate();
   });
 </script>
 
@@ -6250,20 +6260,41 @@ console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
     //TODO uncheck everything????
     $('.ia-match-filter-dialog').hide();
 }
+
+function iaMatchFilterLocationCountUpdate() {
+    var ct = 0;
+    $('#ia-match-filter-location input:checked').each(function(i,el) {
+        ct += parseInt($(el).parent().find('.item-count').text());
+    });
+    if ($('#match-filter-location-unlabeled').is(':checked')) ct += parseInt($('#match-filter-location-unlabeled').parent().find('.item-count').text());
+    $('#total-location-count').text(ct);
+    return true;
+}
 </script>
 
 <div class="ia-match-filter-dialog">
 <h2><%=encprops.getProperty("matchFilterHeader")%></h2>
-<div class="ia-match-filter-title"><%=encprops.getProperty("locationID")%></div>
+<div class="ia-match-filter-title"><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span></div>
+        
     <div id="ia-match-filter-location" class="option-cols">
 <%
 
-List<String> locs = myShepherd.getAllLocationIDs();
+String sql = "SELECT \"LOCATIONID\" AS locId, COUNT(*) AS ct FROM \"ENCOUNTER\" GROUP BY locId";
+Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+List results = (List)q.execute();
+long nullCount = 0;
 int c = 0;
-for (String loc : locs) {
-    if (!Util.stringExists(loc) || loc.toLowerCase().equals("none")) continue;
-    String sel = (loc.equals(enc.getLocationID()) ? "checked" : "");
-    out.println("<div class=\"item item-" + sel + "\"><input id=\"mfl-" + c + "\" name=\"match-filter-location-id\" value=\"" + loc + "\" type=\"checkbox\"" + sel + " /><label for=\"mfl-" + c + "\">" + loc + "</label></div>");
+Iterator it = results.iterator();
+while (it.hasNext()) {
+    Object[] row = (Object[]) it.next();
+    String locId = (String)row[0];
+    long ct = (long)row[1];
+    if (!Util.stringExists(locId) || locId.toLowerCase().equals("none")) {
+        nullCount += ct;
+        continue;
+    }
+    String sel = (locId.equals(enc.getLocationID()) ? "checked" : "");
+    out.println("<div class=\"item item-" + sel + "\"><input id=\"mfl-" + c + "\" name=\"match-filter-location-id\" value=\"" + locId + "\" type=\"checkbox\"" + sel + " /><label for=\"mfl-" + c + "\">" + locId + " <span class=\"item-count\">" + ct + "</span></label></div>");
     c++;
 }
 
@@ -6271,13 +6302,14 @@ for (String loc : locs) {
     </div>
     <div>
         <div style="margin-top: 10px; color: #660;" class="item">
-            <input type="checkbox" id="match-filter-location-unlabeled" name="match-filter-location-id" value="__NULL__" />
+            <input type="checkbox" id="match-filter-location-unlabeled" name="match-filter-location-id" value="__NULL__" onChange="iaMatchFilterLocationCountUpdate();" />
             <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
+            <span class="item-count"><%=nullCount%></span>
         </div>
         <input type="button" value="<%=encprops.getProperty("selectAll")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', true);" />
+            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
         <input type="button" value="<%=encprops.getProperty("selectNone")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', false);" />
+            onClick="$('#ia-match-filter-location .item input').prop('checked', false); iaMatchFilterLocationCountUpdate();" />
     </div>
 
 <div class="ia-match-filter-title"><%=encprops.getProperty("matchFilterOwnership")%></div>
