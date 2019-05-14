@@ -108,6 +108,31 @@ div.file-item div {
 	border-radius: 3px;
 	background-color: rgba(100,100,100,0.3);
 }
+
+.new-media-asset-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 8px;
+}
+.new-media-asset-wrapper img {
+    max-height: 200px;
+}
+
+.new-media-asset-filename {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    font-weight: bold;
+    width: 100%;
+    background-color: rgba(255,255,255,0.8);
+    text-align: center;
+    padding: 3px;
+}
+
+#updone {
+    margin-top: 20px;
+    font-size: 1.2em;
+}
 </style>
 
 <%@ page contentType="text/html; charset=utf-8" 
@@ -219,10 +244,127 @@ $(document).ready(function() {
     uploaderInit(uploadFinished);
 });
 
-function uploadFinished() {
-	document.getElementById('updone').innerHTML = '<i>upload finished</i>';
+function updateStatus(s) {
+    document.getElementById('updone').innerHTML = s;
 }
 
+function uploadFinished() {
+    updateStatus('<b>upload finished</b>, processing...');
+    var assetData = [];
+    $('#file-activity .file-item .file-name').each(function(i, el) {
+        assetData.push({ filename: el.innerText, accessKey: user.accessKey });
+    });
+    var mac = {
+        MediaAssetCreate: [
+            {
+                assets: assetData
+            }
+        ],
+        skipIA: true
+    };
+console.log("sending MediaAssetCreate: %o", mac);
+
+    $.ajax({
+        url: 'MediaAssetCreate',
+        contentType: 'application/javascript',
+        type: 'POST',
+        data: JSON.stringify(mac),
+        complete: function(x, stat) {
+            console.log('MediaAssetCreate COMPLETE status = %o; xhr=%o', stat, x);
+            if (x && x.responseJSON && x.responseJSON.success && x.responseJSON.allMediaAssetIds) {
+                updateStatus('<b>images uploaded</b>, processing...');
+                createdMediaAssets(x.responseJSON.withoutSet);
+            } else {
+                updateStatus('<b class="error">Error sending images: ' + stat + '</b>');
+            }
+        },
+        dataType: 'json'
+    });
+
+}
+
+function createdMediaAssets(assets) {
+console.warn('done!?!?!?! %o', assets);
+    var added = $('<div id="new-media-assets" />');
+    var maIds = [];
+    for (var i = 0 ; i < assets.length ; i++) {
+        var h = '<div class="new-media-asset-wrapper">';
+        h += '<img src="' + assets[i].url + '" />';
+        h += '<div title="' + assets[i].id + '" class="new-media-asset-filename">' + assets[i].filename + '</div>';
+        h += '</div>';
+        added.append(h);
+        maIds.push(assets[i].id);
+    }
+    $('#file-activity').hide().after(added);
+    if (addToEncounterId) {
+        attachMediaAssets(addToEncounterId, maIds);
+    } else {
+        createEncounter(maIds);
+    }
+}
+
+function attachMediaAssets(encId, maIds) {
+    if (!encId || !Array.isArray(maIds)) return;
+    var data = {
+        attach: true,
+        EncounterID: encId,
+        mediaAssetIds: maIds
+    };
+    $.ajax({
+        url: 'MediaAssetAttach',
+        contentType: 'application/javascript',
+        type: 'POST',
+        data: JSON.stringify(data),
+        complete: function(x, stat) {
+            console.log('attachMediaAssets() COMPLETE status = %o; xhr=%o', stat, x);
+            if (x && x.responseJSON && x.responseJSON.success && x.responseJSON.maIds) {
+                updateStatus('<b>Complete.</b> ' + x.responseJSON.maIds.length + ' image' + ((x.responseJSON.maIds.length == 1) ? '' : 's') + ' attached to <b><a target="_new" href="encounters/encounter.jsp?number=' + encId + '">Encounter ' + encId.substring(0,8) + '</a></b>.');
+            } else {
+                updateStatus('<b class="error">Error attaching images: ' + stat + '</b>');
+            }
+        },
+        dataType: 'json'
+    });
+}
+
+// TODO this (or, EncounterCreate i mean!) needs: (a) support for IA.intake() and for enc.submitters !!!!  FIXME
+//  ALSO ATTACH TO ENCOUNTER!!!! duh
+//  also -- species!?!?!
+function createEncounter(maIds) {
+    if (!Array.isArray(maIds)) return;
+    var srcs = [];
+    for (var i = 0 ; i < maIds.length ; i++) {
+        srcs.push({ mediaAssetId: maIds[i] });
+    }
+    var data = {
+        accessKey: user.accessKey,
+        occurrenceId: occurrence.id,
+        dateString: occurrence.date.toISOString(),
+        dateMilliseconds: occurrence.date.getTime(),
+        email: user.email,
+        species: 'unknown',
+        userId: user.id,
+        sources: srcs
+    };
+console.log('DATA => %o', data);
+    $.ajax({
+        url: 'EncounterCreate',
+        contentType: 'application/javascript',
+        type: 'POST',
+        data: JSON.stringify(data),
+        complete: function(x, stat) {
+            console.log('createEncounter() COMPLETE status = %o; xhr=%o', stat, x);
+            if (x && x.responseJSON && x.responseJSON.success && x.responseJSON.encounterId) {
+                updateStatus('<b>Complete.</b> Created <b><a target="_new" href="encounters/encounter.jsp?number=' + x.responseJSON.encounterId + '">new Encounter ' + x.responseJSON.encounterId.substring(0,8) + '</a></b> with ' + x.responseJSON.assets.length + ' image' + ((x.responseJSON.assets.length == 1) ? '' : 's') + '.');
+            } else {
+                var err = stat;
+                if (x.responseJSON && x.responseJSON.error) err = x.responseJSON.error;
+                updateStatus('<b class="error">Error creating encounter: ' + err + '</b>');
+            }
+        },
+        dataType: 'json'
+    });
+}
 </script>
 
 
@@ -246,10 +388,26 @@ if (AccessControl.isAnonymous(request)) {
     }
     Map<String,String> tripInfo = getTripInfo(occ);
 
+    User user = AccessControl.getUser(request, myShepherd);
+    String accessKey = Util.generateUUID();
+////// TODO also get user who owns occ!!!!!!!
 %>
+<script>
+    var user = {
+        id: '<%=user.getUUID()%>',
+        accessKey: '<%=accessKey%>',
+        email: '<%=user.getEmailAddress()%>'
+    };
+</script>
 <div style="padding: 0 20px;">
 <a class="button" href="attachMedia.jsp">back to list</a>
 <h2>Occurrence <%=occ.getOccurrenceID().substring(0,8)%></h2>
+<script>
+    var occurrence = {
+        id: '<%=occ.getOccurrenceID()%>',
+        date: new Date('<%=occ.getDateTimeCreated()%>')
+    };
+</script>
 <p>
 <%=tripInfo.get("typeLabel")%>
 <b>Trip ID = <%=tripInfo.get("id")%></b>
@@ -279,6 +437,10 @@ if (addToEncounter != null) {
     if (!occ.getEncounters().contains(addToEncounter)) addToEncounter = null;
 }
 
+%>
+<script>var addToEncounterId = <%=((addToEncounter == null) ? "false" : "'" + addToEncounter.getCatalogNumber() + "'")%>;</script>
+<%
+
 if (Util.requestParameterSet(request.getParameter("newEncounter"))) {
     showUpload = true;
 %>
@@ -296,10 +458,34 @@ if (Util.requestParameterSet(request.getParameter("newEncounter"))) {
     showUpload = true;
 %>
 
-<h2>hey lets add images to <%=addToEncounter.getCatalogNumber()%>!!</h2>
-<%=addToEncounter%>
+<h2>Adding images to Encounter <%=addToEncounter.getCatalogNumber().substring(0,8)%></h2>
 <p>
- (and show enc details here as on occ listing)
+<a target="_new" href="encounters/encounter.jsp?number=<%=addToEncounter.getCatalogNumber()%>" class="button">link</a><br />
+Date: <b><%=addToEncounter.getDate()%></b>
+<br />
+Taxonomy: <b><%=addToEncounter.getTaxonomyString()%></b>
+<br />
+<%
+    if (addToEncounter.numAnnotations() < 1) {
+        out.println("<i>Currently contains no images.</i>");
+    } else {
+        int imgCt = 0;
+        out.println("Image notes: <ul>");
+        boolean showedParam = false;
+        for (Annotation ann : addToEncounter.getAnnotations()) {
+            if (Util.collectionIsEmptyOrNull(ann.getFeatures())) continue;
+            Feature ft = ann.getFeatures().get(0);
+            if (ft.getMediaAsset() != null) {   //we do *not* check feature type in this case.  should we?
+                imgCt++;
+            } else if (ft.isType("org.ecocean.MediaAssetPlaceholder") && !showedParam) {
+                out.println("<li>" + phString(ft.getParameters()) + "</li>");
+                showedParam = true;
+            }
+        }
+        if (imgCt > 0) out.println("<li>Already includes " + imgCt + " image" + ((imgCt == 1) ? "" : "s") + "</li>");
+        out.println("</ul>");
+    }
+%>
 </p>
 
 <%
