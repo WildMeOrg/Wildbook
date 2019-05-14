@@ -6279,7 +6279,7 @@ function iaMatchFilterLocationCountUpdate() {
     <div id="ia-match-filter-location" class="option-cols">
 <%
 
-String sql = "SELECT \"LOCATIONID\" AS locId, COUNT(*) AS ct FROM \"ENCOUNTER\" GROUP BY locId";
+String sql = "SELECT \"LOCATIONID\" AS locId, COUNT(*) AS ct FROM \"ENCOUNTER\" GROUP BY locId ORDER BY locId";
 Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 List results = (List)q.execute();
 long nullCount = 0;
