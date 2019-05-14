@@ -313,9 +313,10 @@ function init2() {   //called from wildbook.init() when finished
 			location.reload(true);
 		} else {
 			clearTimeout(reloadTimeout);
+			$('#wait-message-' + tid).html('gave up trying to obtain results').removeClass('throbbing');;
 			console.log("NOT RELOADING!!!!!");
 		}
-	},4000);
+	},10000);
 }
 $(document).ready(function() { wildbook.init(function() { init2(); }); });
 function parseTaskIds() {
@@ -330,7 +331,8 @@ function tryTaskId(tid) {
             processTask(x.responseJSON.task); //this will be json task (w/children)
 	    console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
         } else {
-            alert('Error fetching task id=' + tid);
+        		// the below alert was erroneously displaying when a tid was just in the queue
+            //alert('Error fetching task id=' + tid);
             console.error('tryTaskId(%s) failed: %o', tid, x);
         }
     });
