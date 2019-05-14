@@ -37,6 +37,7 @@ java.util.*" %>
     if (IBEISIA.STATUS_PENDING.equals(ann.getIdentificationStatus())) return false;
     if (IBEISIA.STATUS_PROCESSING.equals(ann.getIdentificationStatus())) return false;
     MediaAsset ma = ann.getMediaAsset();
+    if (ma == null) return false;
     // detectionstatus null means we haven't done any IA
     if (ma!=null && ma.getDetectionStatus() == null) return false;
     System.out.println("   EMG: EVICTING cache! Ann.idStatus="+ann.getIdentificationStatus()+" and ma.detectionStatus="+ma.getDetectionStatus());
@@ -151,6 +152,7 @@ function forceLink(el) {
 		      //System.out.println("    EMG: got tasks "+tasks);
 
 		      MediaAsset ma = ann.getMediaAsset();
+                        if (ma == null) continue;
 		      String filename = ma.getFilename();
 		      System.out.println("    EMG: got ma at "+filename);
 
