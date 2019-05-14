@@ -6344,56 +6344,92 @@ console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
 </script>
 
 <div class="ia-match-filter-dialog">
-<h2><%=encprops.getProperty("matchFilterHeader")%></h2>
-<div class="ia-match-filter-title"><%=encprops.getProperty("locationID")%></div>
-<div style="width: 100%; max-height: 200px; overflow-y: scroll">
-    <div id="ia-match-filter-location" class="option-cols">
-<%
+  <h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+  <div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
+    <span class="el el-lg el-chevron-right rotate-chevron"></span><%=encprops.getProperty("locationID")%>
+  </div>
+  <div class="ia-match-filter-container" style="display: none">
+    <div  style="width: 100%; max-height: 200px; overflow-y: scroll">
+      <div id="ia-match-filter-location" class="option-cols">
+        <%
+        List<String> locs = myShepherd.getAllLocationIDs();
+        int c = 0;
+        for (String loc : locs) {
+            if (!Util.stringExists(loc) || loc.toLowerCase().equals("none")) continue;
+            //String sel = (loc.equals(enc.getLocationID()) ? "checked" : "");
+            String sel = "";
+            out.println("<div class=\"item item-" + sel + "\"><input id=\"mfl-" + c + "\" name=\"match-filter-location-id\" value=\"" + loc + "\" type=\"checkbox\"" + sel + " /><label for=\"mfl-" + c + "\">" + loc + "</label></div>");
+            c++;
+        }
+        %>
+      </div>
+    </div>
+    <div>
+      <div style="margin-top: 10px; color: #660;" class="item">
+          <input type="checkbox" id="match-filter-location-unlabeled" name="match-filter-location-id" value="__NULL__" />
+          <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
+      </div>
+      <input type="button" value="<%=encprops.getProperty("selectAll")%>"
+          onClick="$('#ia-match-filter-location .item input').prop('checked', true);" />
+      <input type="button" value="<%=encprops.getProperty("selectNone")%>"
+          onClick="$('#ia-match-filter-location .item input').prop('checked', false);" />
+    </div>
 
-List<String> locs = myShepherd.getAllLocationIDs();
-int c = 0;
-for (String loc : locs) {
-    if (!Util.stringExists(loc) || loc.toLowerCase().equals("none")) continue;
-    String sel = (loc.equals(enc.getLocationID()) ? "checked" : "");
-    out.println("<div class=\"item item-" + sel + "\"><input id=\"mfl-" + c + "\" name=\"match-filter-location-id\" value=\"" + loc + "\" type=\"checkbox\"" + sel + " /><label for=\"mfl-" + c + "\">" + loc + "</label></div>");
-    c++;
+  </div>
+
+
+  <style type="text/css">
+/* this .search-collapse-header .rotate-chevron logic doesn't work
+ because animatedcollapse.js is eating the click event (I think.).
+ It's unclear atm where/whether to modify animatedcollapse.js to
+ rotate this chevron.
+*/
+.search-collapse-header .rotate-chevron {
+    -moz-transition: transform 0.5s;
+    -webkit-transition: transform 0.5s;
+    transition: transform 0.5s;
+}
+.search-collapse-header .rotate-chevron.down {
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+.search-collapse-header:hover {
+  cursor: pointer;
 }
 
-%>
-    </div>
-</div>
-    <div>
-        <div style="margin-top: 10px; color: #660;" class="item">
-            <input type="checkbox" id="match-filter-location-unlabeled" name="match-filter-location-id" value="__NULL__" />
-            <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
-        </div>
-        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', true);" />
-        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', false);" />
-    </div>
+</style>
+<script>
+$(".search-collapse-header").click(function(){
+    console.log("LOG!: collapse-header is clicked!");
+    $(this).children(".rotate-chevron").toggleClass("down");
+    $(this).next().slideToggle();
+});
+</script>
 
-<div class="ia-match-filter-title"><%=encprops.getProperty("matchFilterOwnership")%></div>
-    <div class="item">
-        <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
-        <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
-    </div>
-<!--  not yet implemented!
-    <div class="item">
-        <input type="checkbox" id="match-filter-owner-collab" name="match-filter-owner" value="collab" />
-        <label for="match-filter-owner-collab"><%=encprops.getProperty("matchFilterOwnershipCollab")%></label>
-    </div>
-    <div class="item">
-        <input type="checkbox" id="match-filter-owner-none" name="match-filter-owner" value="__NULL__" />
-        <label for="match-filter-owner-none"><%=encprops.getProperty("matchFilterOwnershipNone")%></label>
-    </div>
--->
 
-<div class="ia-match-filter-section">
+
+  <div class="ia-match-filter-title"><%=encprops.getProperty("matchFilterOwnership")%></div>
+  <div class="item">
+      <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
+      <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
+  </div>
+  <!--  not yet implemented!
+      <div class="item">
+          <input type="checkbox" id="match-filter-owner-collab" name="match-filter-owner" value="collab" />
+          <label for="match-filter-owner-collab"><%=encprops.getProperty("matchFilterOwnershipCollab")%></label>
+      </div>
+      <div class="item">
+          <input type="checkbox" id="match-filter-owner-none" name="match-filter-owner" value="__NULL__" />
+          <label for="match-filter-owner-none"><%=encprops.getProperty("matchFilterOwnershipNone")%></label>
+      </div>
+  -->
+  <div class="ia-match-filter-section">
     <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
     <input style="background-color: #DDD;" type="button" value="<%=encprops.getProperty("cancel")%>"
-        onClick="$('.ia-match-filter-dialog').hide()" />
-</div>
+          onClick="$('.ia-match-filter-dialog').hide()" />
+  </div>
 
 </div>
 
