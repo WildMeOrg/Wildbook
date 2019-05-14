@@ -24,22 +24,40 @@ multipleSubmitUI = {
     generateMetadataTile: function(index) {
         var metadataTile = "";
         metadataTile += "<div class=\"encounter-tile-div col-xs-12 col-xl-12\">";
-        metadataTile += "   <div>";
-        metadataTile += "       <label id=\"encounter-label-"+index+"\" class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
-        metadataTile += "       <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
+        metadataTile += "   <div class=\"row\">";
+        metadataTile += "       <div class=\"col-xs-12 col-md-5 col-lg-5 col-xl-5\">";
+        metadataTile += "           <label id=\"encounter-label-"+index+"\" class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
+        metadataTile += "           <input class=\"show-metadata-btn\" type=\"button\" onclick  =\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
+        metadataTile += "       </div>";
+        metadataTile += "       <div class=\"col-xs-12 col-md-7 col-lg-7 col-xl-7\">";
+        metadataTile +=             multipleSubmitUI.generateMetadataTileSummary(index); 
+        metadataTile += "       </div>";
         metadataTile += "   </div>";
         metadataTile +=	"   <div id=\"enc-metadata-inner-"+index+"\" class=\"edit-closed\">";	
         metadataTile +=         "<div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateLocationDropdown(index)+"</div>";
         metadataTile +=	"	     <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">";
         metadataTile += "           <p class=\"enc-input-label\"><small>Select Date:</small></p>";
-        metadataTile += "           <input id=\"enc-date-"+index+"\" name=\"encDate\" title=\""+txt("encounterMetadata")+"\" type=\"text\" placeholder=\""+txt("enterDate")+"\" class=\"form-control encDate\" size=\"36\" />";
+        metadataTile += "           <input id=\"enc-date-"+index+"\" name=\"encDate\" title=\""+txt("encounterMetadata")+"\" type=\"text\" placeholder=\""+txt("enterDate")+"\" onchange=\"updateSummary("+index+")\" class=\"form-control encDate\" size=\"36\" />";
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateSpeciesDropdown(index)+"</div>";
-        metadataTile +=	"       <p><textarea id=\"enc-comments-"+index+"\" class=\"form-control comment-box\" placeholder=\""+txt("moreInfo")+"\" rows=\"3\" cols=\"36\" /></p>";
+        metadataTile +=	"       <p><textarea id=\"enc-comments-"+index+"\" class=\"form-control comment-box\" placeholder=\""+txt("moreInfo")+"\" onchange=\"updateSummary("+index+")\" rows=\"3\" cols=\"36\" /></p>";
         metadataTile +=	"   </div>";
         metadataTile += "</div>";
         return metadataTile;
     }, 
+
+    generateMetadataTileSummary: function(i) {
+        // a series of small labels on the enc data dropdown to show you what you have entered onchange
+        var summary = "";
+        summary += "<label id=\"no-details-"+i+"\">"+txt("noDetails")+"</label>";
+        summary += "<p>";
+        summary += "    <label id=\"summary-date-"+i+"\" class=\"summary-label hidden-input\"> &nbsp<b>"+txt("date")+"</b> <span class=\"it-value\"></span> &nbsp </label>";
+        summary += "    <label id=\"summary-location-"+i+"\" class=\"summary-label hidden-input\"> &nbsp<b>"+txt("location")+"</b> <span class=\"it-value\"></span> &nbsp </label>";
+        summary += "    <label id=\"summary-species-"+i+"\" class=\"summary-label hidden-input\"> &nbsp<b>"+txt("species")+"</b> <span class=\"it-value\"></span> &nbsp </label>";
+        summary += "    <label id=\"summary-comments-"+i+"\" class=\"summary-label hidden-input\"> &nbsp<b>"+txt("comments")+"</b> <span class=\"it-value\"></span> &nbsp </label>";
+        summary += "</p>";
+        return summary;
+    },
 
     generateImageTile: function(file, index) {
         var imageTile = "";
@@ -81,7 +99,7 @@ multipleSubmitUI = {
         var speciesDrop = "";
         var uiId = "spec-" + uiClass;
         speciesDrop += "<p class=\"enc-input-label\"><small>"+txt("selectSpecies")+":</small></p>";
-        speciesDrop += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" name=\"species-dropdown-"+index+"\">";
+        speciesDrop += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" onchange=\"updateSummary("+index+")\" name=\"species-dropdown-"+index+"\">";
         multipleSubmitAPI.getSpecies(function(result){
             var allSpecies = result.allSpecies
             for (var i=0;i<allSpecies.length;i++) {
@@ -105,7 +123,7 @@ multipleSubmitUI = {
         var uiId = "loc-" + uiClass;
         var dd = "";
         dd += "<p class=\"enc-input-label\"><small>"+txt("selectLocation")+"</small></p>";
-        dd += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" name=\"enc-num-dropdown-"+index+"\">";
+        dd += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" onchange=\"updateSummary("+index+")\" name=\"enc-num-dropdown-"+index+"\">";
         dd += "    <option selected=\"selected\" value=\"null\" disabled>"+txt("chooseLocation")+"</option>";
         multipleSubmitAPI.getLocations(function(locObj){
             var ddLocs = ""; 
@@ -178,7 +196,7 @@ multipleSubmitUI = {
         if (this.hasVal(String(file))) {
             var reader = new FileReader();
             reader.onload = function(e) {
-                console.log("Target ID for image render: #"+multipleSubmitUI.getImageIdForIndex(id));
+                //console.log("Target ID for image render: #"+multipleSubmitUI.getImageIdForIndex(id));
                 $('#'+multipleSubmitUI.getImageIdForIndex(id)).attr('src', e.target.result); // This is the target.. where we want the preview
             }
             reader.readAsDataURL(file);
@@ -205,9 +223,9 @@ multipleSubmitUI = {
         let tileHeight = imgEl.parentNode.clientHeight;
         let tileWidth = imgEl.parentNode.clientWidth;
 
-        console.log("IMAGE ---> clientWidth: "+imgWidth+" clientHeight: "+imgHeight);
-        console.log("Tile ---> clientWidth: "+tileWidth+" clientHeight: "+tileHeight);
-        console.log("border-width? should be 6px.. "+borderWidth);
+        //console.log("IMAGE ---> clientWidth: "+imgWidth+" clientHeight: "+imgHeight);
+        //console.log("Tile ---> clientWidth: "+tileWidth+" clientHeight: "+tileHeight);
+        //console.log("border-width? should be 6px.. "+borderWidth);
 
         dv.style.setProperty("background-color", safeColors[encNum], "important");
         dv.style.setProperty("margin-top", (tileHeight-imgHeight)/2, "important");
@@ -224,7 +242,7 @@ multipleSubmitUI = {
     },
  
     removeEncounterLabel: function(imgEl) { 
-        console.log("removing label...");
+        //console.log("removing label...");
         if (imgEl.parentNode.getElementsByClassName("chosen-enc-label")!=undefined&&imgEl.parentNode.getElementsByClassName("chosen-enc-label").length>0) {
             let lbl = imgEl.parentNode.getElementsByClassName("chosen-enc-label");
             for (let i=0;i<lbl.length;i++) {

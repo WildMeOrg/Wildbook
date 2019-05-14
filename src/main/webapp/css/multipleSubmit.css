@@ -223,3 +223,7 @@ div .img-input {
     color: darkblue;
     padding: 1em;
 }
+
+.summary-label {
+    white-space: nowrap;
+}

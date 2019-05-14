@@ -86,10 +86,11 @@ var safeColors = [
                             ];
 
 function showSelectedMedia() {
-    var files = document.getElementById('file-selector-input').files;
-    var imageTiles = "";
-    var metadataTiles = "";
-    var numEnc = document.getElementById("number-encounters").value;
+    document.getElementsByClassName("action-message")[0].innerHTML = "";
+    let files = document.getElementById('file-selector-input').files;
+    let imageTiles = "";
+    let metadataTiles = "";
+    let numEnc = document.getElementById("number-encounters").value;
     for (var i=0;i<numEnc;i++) {
         metadataTiles += multipleSubmitUI.generateMetadataTile(i);
     }
@@ -207,7 +208,7 @@ function toggleImageHighlights(state,index) {
     for (var i=0;i<allImageTiles.length;i++) {
         var imgEl = allImageTiles[i].querySelector(".image-element");
         var selectedEnc = $("#enc-num-dropdown-"+i+" :selected").val();
-        console.log("Selected enc: "+JSON.stringify(selectedEnc));
+        //console.log("Selected enc: "+JSON.stringify(selectedEnc));
         if (selectedEnc!=null&&selectedEnc==index) {
             //console.log("adding borderCol: "+borderCol+"  and state: "+state);
             if (state=="on") {
@@ -274,6 +275,44 @@ function randomColor() {
         hexCode += chars[Math.floor(Math.random()*16)];
     }
     return hexCode;
+}
+
+function updateSummary(index) {
+    document.getElementById("no-details-"+index).classList.add("hidden-input");
+    let dateField = document.getElementById("enc-date-"+index);
+    let locationField = document.getElementById("loc-enc-input-"+index);
+    let speciesField = document.getElementById("spec-enc-input-"+index);
+    let commentField = document.getElementById("enc-comments-"+index);
+
+    console.log("dateField = "+dateField.value+" locationField = "+locationField.value+" speciesField = "+speciesField.value+" commentField = "+commentField.value);
+    
+    let commentsSummary = document.getElementById("summary-comments-"+index).getElementsByClassName("it-value")[0];
+    console.log("comment innerHTML: "+commentsSummary.innerHTML);
+    if (commentField.value!=""&&commentField.value!="...") {
+        commentsSummary.innerHTML = commentField.value.substring(0, 16) + "...";
+        commentsSummary.parentElement.classList.remove("hidden-input");
+    }
+    
+    let dateSummary = document.getElementById("summary-date-"+index).getElementsByClassName("it-value")[0];
+    console.log("dateSummary.innerHTML: "+dateSummary.innerHTML+" aadnnndd dateField.value : "+dateField.value);
+    if (dateField.value!=dateSummary.innerHTML&&dateField.value!=undefined) {
+        dateSummary.innerHTML = dateField.value;
+        dateSummary.parentElement.classList.remove("hidden-input");
+    }
+    
+    let locationSummary = document.getElementById("summary-location-"+index).getElementsByClassName("it-value")[0];
+    console.log("loc innerHTML: "+locationSummary.innerHTML);
+    if (locationField.value!="None") {
+        locationSummary.innerHTML = locationField.value;
+        locationSummary.parentElement.classList.remove("hidden-input");
+    }
+    
+    let speciesSummary = document.getElementById("summary-species-"+index).getElementsByClassName("it-value")[0];
+    console.log("species innerHTML: "+speciesSummary.innerHTML);
+    if (speciesField.value!="None") {
+        speciesSummary.innerHTML = speciesField.value;
+        speciesSummary.parentElement.classList.remove("hidden-input");
+    }
 }
 
 //recalculate label position after window resize, with delay so event dont fire like crazy
