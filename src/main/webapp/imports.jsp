@@ -39,6 +39,9 @@ boolean adminMode = ("admin".equals(user.getUsername()));
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <style>
+.bootstrap-table {
+    height: min-content;
+}
 .dim, .ct0 {
     color: #AAA;
 }
@@ -48,6 +51,20 @@ boolean adminMode = ("admin".equals(user.getUsername()));
 }
 .no {
     color: #F20;
+}
+
+a.button {
+    font-weight: bold;
+    font-size: 0.9em;
+    background-color: #AAA;
+    border-radius: 4px;
+    padding: 0 6px;
+    text-decoration: none;
+    cursor: pointer;
+}
+a.button:hover {
+    background-color: #DDA;
+    text-decoration: none;
 }
 </style>
 
@@ -76,8 +93,9 @@ if (taskId != null) {
 
 
 if (itask == null) {
+    DateTime cutoff = new DateTime(System.currentTimeMillis() - (31L * 24L * 60L * 60L * 1000L));
+    out.println("<p style=\"font-size: 0.8em; color: #888;\">Since <b>" + cutoff.toString().substring(0,10) + "</b></p>");
     out.println("<table id=\"import-table\" xdata-page-size=\"6\" data-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
-    DateTime cutoff = new DateTime(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000);
     String uclause = "";
     if (!adminMode) uclause = " creator.uuid == '" + user.getUUID() + "' && ";
     jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE " + uclause + " created > cutoff_datetime PARAMETERS DateTime cutoff_datetime import org.joda.time.DateTime";
@@ -88,8 +106,8 @@ if (itask == null) {
     List<ImportTask> tasks = new ArrayList<ImportTask>(c);
     query.closeAll();
 
-    String[] headers = new String[]{"Import ID", "Date", "#Enc", "#Images", "Img Proc?", "IA?"};
-    if (adminMode) headers = new String[]{"Import ID", "User", "Date", "#Enc", "#Images", "Img Proc?", "IA?"};
+    String[] headers = new String[]{"Import ID", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?"};
+    if (adminMode) headers = new String[]{"Import ID", "User", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?"};
     for (int i = 0 ; i < headers.length ; i++) {
         out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
     }
@@ -98,17 +116,24 @@ if (itask == null) {
     for (ImportTask task : tasks) {
         List<Encounter> encs = task.getEncounters();
         List<MediaAsset> mas = task.getMediaAssets();
+        boolean foundChildren = false;
         String hasChildren = "<td class=\"dim\">-</td>";
-        String iaStatus = "<td class=\"no\">no</td>";
+        int iaStatus = 0;
         if (Util.collectionSize(mas) > 0) {
             for (MediaAsset ma : mas) {
-                if (ma.getDetectionStatus() != null) iaStatus = "<td class=\"yes\">yes</td>";
-                if (Util.collectionSize(ma.findChildren(myShepherd)) > 0) {
+                if (ma.getDetectionStatus() != null) iaStatus++;
+                if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) {
                     hasChildren = "<td class=\"yes\">yes</td>";
+                    foundChildren = true;
                     break;
                 }
-                hasChildren = "<td class=\"no\">no</td>";
             }
+            if (!foundChildren) hasChildren = "<td class=\"no\">no</td>";
+        }
+
+        int indivCount = 0;
+        if (Util.collectionSize(encs) > 0) for (Encounter enc : encs) {
+            if (enc.hasMarkedIndividual()) indivCount++;
         }
 
         out.println("<tr>");
@@ -126,9 +151,15 @@ if (itask == null) {
         }
         out.println("<td>" + task.getCreated().toString().substring(0,10) + "</td>");
         out.println("<td class=\"ct" + Util.collectionSize(encs) + "\">" + Util.collectionSize(encs) + "</td>");
+        out.println("<td class=\"ct" + indivCount + "\">" + indivCount + "</td>");
         out.println("<td class=\"ct" + Util.collectionSize(mas) + "\">" + Util.collectionSize(mas) + "</td>");
         out.println(hasChildren);
-        out.println(iaStatus);
+        if (iaStatus < 1) {
+            out.println("<td class=\"no\">no</td>");
+        } else {
+            int percent = Math.round(iaStatus / Util.collectionSize(mas) * 100);
+            out.println("<td class=\"yes\" title=\"" + iaStatus + " of " + Util.collectionSize(mas) + " (" + percent + "%)\">yes</td>");
+        }
         out.println("</tr>");
     }
 
@@ -138,8 +169,89 @@ if (itask == null) {
 
 <%
 } else { //end listing
-    out.println("<h1>TODO " + itask + "</h1>");
-}
+
+    out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
+    out.println("<table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
+    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
+    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
+    for (int i = 0 ; i < headers.length ; i++) {
+        out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
+    }
+
+    out.println("</tr></thead><tbody>");
+
+    List<MediaAsset> allAssets = new ArrayList<MediaAsset>();
+    int numIA = 0;
+    boolean foundChildren = false;
+
+    if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
+        out.println("<tr>");
+        out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
+        out.println("<td>" + enc.getDate() + "</td>");
+        if (adminMode) {
+            List<User> subs = enc.getSubmitters();
+            if (Util.collectionSize(subs) < 1) {
+                out.println("<td class=\"dim\">-</td>");
+            } else {
+                List<String> names = new ArrayList<String>();
+                for (User u : subs) {
+                    names.add(u.getDisplayName());
+                }
+                out.println("<td>" + String.join(", ", names) + "</td>");
+            }
+        }
+        if (enc.getOccurrenceID() == null) {
+            out.println("<td class=\"dim\">-</td>");
+        } else {
+            out.println("<td><a title=\"" + enc.getOccurrenceID() + "\" href=\"occurrence.jsp?number=" + enc.getOccurrenceID() + "\">" + (Util.isUUID(enc.getOccurrenceID()) ? enc.getOccurrenceID().substring(0,8) : enc.getOccurrenceID()) + "</a></td>");
+        }
+        if (enc.hasMarkedIndividual()) {
+            out.println("<td><a title=\"" + enc.getIndividualID() + "\" href=\"individuals.jsp?number=" + enc.getIndividualID() + "\">" + enc.getIndividualID() + "</a></td>");
+        } else {
+            out.println("<td class=\"dim\">-</td>");
+        }
+
+        ArrayList<MediaAsset> mas = enc.getMedia();
+        if (Util.collectionSize(mas) < 1) {
+            out.println("<td class=\"dim\">0</td>");
+        } else {
+            out.println("<td>" + Util.collectionSize(mas) + "</td>");
+            for (MediaAsset ma : mas) {
+                if (!allAssets.contains(ma)) {
+                    allAssets.add(ma);
+                    if (ma.getDetectionStatus() != null) numIA++;
+                }
+                if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
+            }
+        }
+
+        out.println("</tr>");
+    }
+    int percent = -1;
+    if (allAssets.size() > 1) percent = Math.round(numIA / allAssets.size() * 100);
+%>
+</tbody></table>
+<p>
+Total images: <b><%=allAssets.size()%></b>
+</p>
+
+<p>
+Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
+<% if ((numIA < 1) && (allAssets.size() > 0)) { %>
+    <a style="margin-left: 20px;" class="button">send to IA (detection only)</a>
+    <a class="button">send to IA (with ID)</a>
+<% } %>
+</p>
+
+<p>
+Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b class=\"no\">no</b>")%>
+<% if (!foundChildren && (allAssets.size() > 0)) { %>
+    <a style="margin-left: 20px;" class="button">generate children image formats</a>
+<% } %>
+</p>
+
+<%
+}   //end final else
 %>
 
 </div>
