@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.concurrent.ThreadPoolExecutor;
+import org.joda.time.DateTime;
 
 import java.io.*;
 
@@ -120,6 +121,16 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         myShepherd.setAction("EncounterCreate.class");
         myShepherd.beginDBTransaction();
 
+        User reqUser = AccessControl.getUser(request, myShepherd);
+
+        String occId = jin.optString("occurrenceId", null);
+        Occurrence occ = null;
+        if (occId != null) occ = myShepherd.getOccurrence(occId);
+
+        String uid = jin.optString("userId", null);
+        User subUser = null;
+        if (uid != null) subUser = myShepherd.getUserByUUID(uid);
+
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);  //only needed for url-sourced images really
 
         JSONArray jmas = new JSONArray();
@@ -203,6 +214,16 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         }
         enc.setAccessControl(request);
 
+        enc.addComments("<p>created on " + new DateTime() + ((reqUser == null) ? "" : " by " + reqUser.getDisplayName()) + "</p>");
+
+        if ((subUser == null) && (reqUser != null)) {
+            enc.addSubmitter(reqUser);
+        } else if ((subUser != null) && (("admin".equals(reqUser.getUsername())) || subUser.equals(reqUser))) {
+            enc.addSubmitter(subUser);  //only set as subUser if it is the user hitting this servlet or admin
+        }
+
+        if (occ != null) occ.addEncounterAndUpdateIt(enc);
+
         if (dateMilliseconds > 0) {
             enc.setDateInMilliseconds(dateMilliseconds);
         } else {
@@ -227,7 +248,7 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         //this might be better toggled by a boolean passed in, but for now lets run it by default
         //  (since this only acts under match.jsp which intentionally disables IA when creating the assets)
         // TODO we also could look at .detectionStatus on assets maybe???
-        if (maIds.size() > 0) {
+        if ((maIds.size() > 0) && !jin.optBoolean("skipIA", false)) {
             //must be done after commit above, to ensure assets are persisted (for queue thread)
             myShepherd = new Shepherd(context);
             myShepherd.setAction("EncounterCreate.class_IA.intake");
