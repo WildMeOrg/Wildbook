@@ -12,6 +12,7 @@ import org.ecocean.media.MediaAsset;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ImportTask implements java.io.Serializable {
 
@@ -59,7 +60,10 @@ public class ImportTask implements java.io.Serializable {
         if (encounters == null) return null;
         List<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (Encounter enc : encounters) {
-            mas.addAll(enc.getMedia());
+            ArrayList<MediaAsset> encMAs = enc.getMedia();
+            if (Util.collectionSize(encMAs) > 0) for (MediaAsset ma : encMAs) {
+                if (!mas.contains(ma)) mas.add(ma);  //dont want duplicates
+            }
         }
         return mas;
     }
@@ -99,5 +103,15 @@ public class ImportTask implements java.io.Serializable {
         p.put("_passedParameters", Util.requestParametersToJSONObject(request));
         parameters = p.toString();
     }
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("created", created)
+                .append("creator", (creator == null) ? (String)null : creator.getDisplayName())
+                .append("numEncs", Util.collectionSize(encounters))
+                .toString();
+    }
+
 
 }
