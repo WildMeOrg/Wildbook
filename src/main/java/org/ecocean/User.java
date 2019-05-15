@@ -124,6 +124,12 @@ public class User implements Serializable {
     RefreshDate();
   }
 
+    public String getDisplayName() {
+        if (fullName != null) return fullName;
+        if (username != null) return username;
+        return uuid.substring(0,8);
+    }
+
   public String getEmailAddress ()
   {
     return this.emailAddress;
