@@ -350,3 +350,9 @@ window.onresize = function() {
     },300);
 };
 
+//switch on bootstrap   tooltips
+window.onload(function(){
+    //var ttoptions = {};
+    $(function() {$('[data-toggle="tooltip"]').tooltip()})
+})
+

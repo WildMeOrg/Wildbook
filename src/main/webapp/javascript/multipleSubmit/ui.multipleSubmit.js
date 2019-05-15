@@ -28,8 +28,10 @@ multipleSubmitUI = {
         metadataTile += "       <div class=\"col-xs-12 col-md-5 col-lg-5 col-xl-5\">";
         metadataTile += "           <label id=\"encounter-label-"+index+"\" class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
         metadataTile += "           <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
-        metadataTile += "           <input id=\"hide-enc-images-btn-"+index+"\" class=\"show-metadata-btn\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+txt("hideImages")+"\" />";
-        metadataTile += "           <input id=\"show-enc-images-btn-"+index+"\" class=\"show-metadata-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+txt("showImages")+"\" />";
+
+        metadataTile += "           <input id=\"hide-enc-images-btn-"+index+"\" class=\"show-metadata-btn\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+txt("hideImages")+"\"  data-toggle=\"tooltip\" title=\""+txt("ttHideImages")+"\" />";
+        metadataTile += "           <input id=\"show-enc-images-btn-"+index+"\" class=\"show-metadata-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+txt("showImages")+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowImages")+"\" />";
+        
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-7 col-lg-7 col-xl-7\">";
         metadataTile +=             multipleSubmitUI.generateMetadataTileSummary(index); 
