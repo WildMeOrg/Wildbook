@@ -327,9 +327,7 @@ function attachMediaAssets(encId, maIds) {
     });
 }
 
-// TODO this (or, EncounterCreate i mean!) needs: (a) support for IA.intake() and for enc.submitters !!!!  FIXME
-//  ALSO ATTACH TO ENCOUNTER!!!! duh
-//  also -- species!?!?!
+//  TODO need a way to properly set species!!
 function createEncounter(maIds) {
     if (!Array.isArray(maIds)) return;
     var srcs = [];
