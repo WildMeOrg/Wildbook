@@ -91,7 +91,7 @@ public class MultiValue implements java.io.Serializable {
         if (clone == null) clone = new JSONObject();
         if (clone.optJSONArray(key) == null) clone.put(key, new JSONArray());
         List<String> vals = getValuesByKey(key);  //getValuesByKey is fine working on orig values
-        if ((vals != null) && !vals.contains(value)) clone.getJSONArray(key).put(value);
+        if ((vals == null) || !vals.contains(value)) clone.getJSONArray(key).put(value);
         setValues(clone);
     }
     public void addValues(Object keyHint, String value) {
