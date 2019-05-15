@@ -241,6 +241,10 @@ public class MarkedIndividual implements java.io.Serializable {
         refreshNamesCache();
     }
 
+    public boolean hasName(String value) {
+      return (names!=null && names.hasValue(value));
+    }
+
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
 
     //this should be run once, as it will set (default key) values based on old field values
@@ -2396,6 +2400,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         return new ToStringBuilder(this)
                 .append("individualID", individualID)
                 .append("species", getGenusSpecies())
+                .append("names", getNames())
                 .append("sex", getSex())
                 .append("numEncounters", numberEncounters)
                 .append("numLocations", numberLocations)
