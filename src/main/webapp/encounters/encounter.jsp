@@ -6261,21 +6261,25 @@ console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
     $('.ia-match-filter-dialog').hide();
 }
 
+var encText = '<%=encprops.getProperty("encounter")%>';
 function iaMatchFilterLocationCountUpdate() {
     var ct = 0;
     $('#ia-match-filter-location input:checked').each(function(i,el) {
         ct += parseInt($(el).parent().find('.item-count').text());
     });
     if ($('#match-filter-location-unlabeled').is(':checked')) ct += parseInt($('#match-filter-location-unlabeled').parent().find('.item-count').text());
-    $('#total-location-count').text(ct);
+    $('#total-location-count').text(ct + ' ' + encText + ((ct == 1) ? '' : 's'));
     return true;
 }
 </script>
 
 <div class="ia-match-filter-dialog">
 <h2><%=encprops.getProperty("matchFilterHeader")%></h2>
-<div class="ia-match-filter-title"><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span></div>
-        
+  <div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
+    <span class="el el-lg el-chevron-right rotate-chevron" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
+  </div>
+  <div class="ia-match-filter-container" style="display: none">
+    <div  style="width: 100%; max-height: 200px; overflow-y: scroll">
     <div id="ia-match-filter-location" class="option-cols">
 <%
 
@@ -6312,6 +6316,42 @@ while (it.hasNext()) {
             onClick="$('#ia-match-filter-location .item input').prop('checked', false); iaMatchFilterLocationCountUpdate();" />
     </div>
 
+  </div>
+
+
+  <style type="text/css">
+/* this .search-collapse-header .rotate-chevron logic doesn't work
+ because animatedcollapse.js is eating the click event (I think.).
+ It's unclear atm where/whether to modify animatedcollapse.js to
+ rotate this chevron.
+*/
+.search-collapse-header .rotate-chevron {
+    -moz-transition: transform 0.5s;
+    -webkit-transition: transform 0.5s;
+    transition: transform 0.5s;
+}
+.search-collapse-header .rotate-chevron.down {
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+.search-collapse-header:hover {
+  cursor: pointer;
+}
+
+</style>
+<script>
+$(".search-collapse-header").click(function(){
+    console.log("LOG!: collapse-header is clicked!");
+    $(this).children(".rotate-chevron").toggleClass("down");
+    $(this).next().slideToggle();
+});
+</script>
+
+</div>
+
+
 <div class="ia-match-filter-title"><%=encprops.getProperty("matchFilterOwnership")%></div>
     <div class="item">
         <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
@@ -6334,7 +6374,6 @@ while (it.hasNext()) {
         onClick="$('.ia-match-filter-dialog').hide()" />
 </div>
 
-</div>
 
 <%
 
