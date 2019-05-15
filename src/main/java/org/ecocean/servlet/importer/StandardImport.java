@@ -212,7 +212,7 @@ public class StandardImport extends HttpServlet {
 
     out.println("<li>Num Cols = "+cols+"</li>");
     out.println("<li>Last col num = "+lastColNum+"</li>");
-    out.println("<li>generateChildrenAsstes? = " + generateChildrenAssets + "</li>");
+    out.println("<li>generateChildrenAssets? = " + generateChildrenAssets + "</li>");
     out.println("<li><em>committing = "+committing+"</em></li>");
     out.println("</ul>");
     out.println("<h2>Column headings:</h2><ul>");
