@@ -222,7 +222,10 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
             enc.addSubmitter(subUser);  //only set as subUser if it is the user hitting this servlet or admin
         }
 
-        if (occ != null) occ.addEncounterAndUpdateIt(enc);
+        if (occ != null) {
+            occ.addEncounter(enc);
+            enc.setOccurrenceID(occ.getOccurrenceID());
+        }
 
         if (dateMilliseconds > 0) {
             enc.setDateInMilliseconds(dateMilliseconds);
