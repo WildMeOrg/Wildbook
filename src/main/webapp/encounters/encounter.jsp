@@ -6262,13 +6262,21 @@ console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
 }
 
 var encText = '<%=encprops.getProperty("encounter")%>';
+var noneText = '<%=encprops.getProperty("none")%>';
+var selectedText = '<%=encprops.getProperty("selected")%>';
 function iaMatchFilterLocationCountUpdate() {
     var ct = 0;
+    var vals = [];
     $('#ia-match-filter-location input:checked').each(function(i,el) {
+        vals.push(el.nextElementSibling.firstChild.nodeValue);
         ct += parseInt($(el).parent().find('.item-count').text());
     });
     if ($('#match-filter-location-unlabeled').is(':checked')) ct += parseInt($('#match-filter-location-unlabeled').parent().find('.item-count').text());
-    $('#total-location-count').text(ct + ' ' + encText + ((ct == 1) ? '' : 's'));
+    if (ct < 1) {
+        $('#total-location-count').text(noneText + ' ' + selectedText);
+    } else {
+        $('#total-location-count').text(ct + ' ' + encText + ((ct == 1) ? '' : 's') + ' (' + vals.length + ' ' + selectedText + ')');
+    }
     return true;
 }
 </script>
