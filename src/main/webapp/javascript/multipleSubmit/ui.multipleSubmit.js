@@ -27,7 +27,9 @@ multipleSubmitUI = {
         metadataTile += "   <div class=\"row\">";
         metadataTile += "       <div class=\"col-xs-12 col-md-5 col-lg-5 col-xl-5\">";
         metadataTile += "           <label id=\"encounter-label-"+index+"\" class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
-        metadataTile += "           <input class=\"show-metadata-btn\" type=\"button\" onclick  =\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
+        metadataTile += "           <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
+        metadataTile += "           <input id=\"hide-enc-images-btn-"+index+"\" class=\"show-metadata-btn\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+txt("hideImages")+"\" />";
+        metadataTile += "           <input id=\"show-enc-images-btn-"+index+"\" class=\"show-metadata-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+txt("showImages")+"\" />";
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-7 col-lg-7 col-xl-7\">";
         metadataTile +=             multipleSubmitUI.generateMetadataTileSummary(index); 
@@ -85,7 +87,7 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getImageUIIdForIndex(index);
         var encDrop = "";
         encDrop += "<p class=\"img-input-label\"><small>"+txt("selectEncounter")+"</small></p>";
-        encDrop += "<select id=\"enc-num-dropdown-"+index+"\" class=\"form-control "+uiClass+"\" onchange=\"highlightOnEdit("+index+")\" name=\"enc-num-dropdown-"+index+"\">";
+        encDrop += "<select id=\"enc-num-dropdown-"+index+"\" class=\"form-control "+uiClass+" enc-num-dropdown\" onchange=\"highlightOnEdit("+index+")\" name=\"enc-num-dropdown-"+index+"\">";
         encDrop += "    <option selected=\"selected\" value=\"0\">"+txt("encounter")+"  #1</option>";
         for (var i=1;i<multipleSubmitUI.encsDefined();i++) {
             encDrop += "<option value=\""+i+"\">Encounter #"+(i+1)+"</option>";

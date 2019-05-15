@@ -41,7 +41,7 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 <h2><%= props.getProperty("pageHeader")%></h2>
                 <p><b><%= props.getProperty("headerDesc")%></b></p>
                 <p><a href="<%=baseUrl%>/multipleSubmit/instructions.jsp"><%= props.getProperty("readInstructions")%></a></p>
-            </div>
+            </div>  
             <hr>
 
                 <!-- specify number of encounters in two input items -->

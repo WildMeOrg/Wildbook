@@ -202,6 +202,25 @@ function showEditMetadata(index) {
     }
 }
 
+function toggleEncImages(index) {
+    let allImageTiles = document.getElementsByClassName("image-tile-div");
+    for (let i=0;i<allImageTiles.length;i++) {
+        var selectEl = allImageTiles[i].querySelector(".enc-num-dropdown");
+        if (selectEl.options[selectEl.selectedIndex].value==index) {
+            let disp = allImageTiles[i].style.display;
+            if (disp!=="none") {
+                document.getElementById("hide-enc-images-btn-"+index).classList.add("hidden-input");
+                document.getElementById("show-enc-images-btn-"+index).classList.remove("hidden-input");
+                $(allImageTiles[i]).fadeOut();
+            } else {
+                document.getElementById("show-enc-images-btn-"+index).classList.add("hidden-input");
+                document.getElementById("hide-enc-images-btn-"+index).classList.remove("hidden-input");
+                $(allImageTiles[i]).fadeIn();
+            }
+        } 
+    }
+}
+
 // flip on all borders for imgs that have this enc selected..
 function toggleImageHighlights(state,index) {
     var allImageTiles = document.getElementsByClassName("image-tile-div");
@@ -212,11 +231,9 @@ function toggleImageHighlights(state,index) {
         if (selectedEnc!=null&&selectedEnc==index) {
             //console.log("adding borderCol: "+borderCol+"  and state: "+state);
             if (state=="on") {
-                //add some label with enc-num
                 multipleSubmitUI.addEncounterLabel(imgEl, selectedEnc);
             }
             if (state=="off") {
-                //remove said label with enc-num
                 multipleSubmitUI.removeEncounterLabel(imgEl, selectedEnc);
             }
         }
@@ -289,7 +306,7 @@ function updateSummary(index) {
     let commentsSummary = document.getElementById("summary-comments-"+index).getElementsByClassName("it-value")[0];
     console.log("comment innerHTML: "+commentsSummary.innerHTML);
     if (commentField.value!=""&&commentField.value!="...") {
-        commentsSummary.innerHTML = commentField.value.substring(0, 16) + "...";
+        commentsSummary.innerHTML = commentField.value.substring(0, 18) + "...";
         commentsSummary.parentElement.classList.remove("hidden-input");
     }
     
@@ -302,14 +319,15 @@ function updateSummary(index) {
     
     let locationSummary = document.getElementById("summary-location-"+index).getElementsByClassName("it-value")[0];
     console.log("loc innerHTML: "+locationSummary.innerHTML);
-    if (locationField.value!="None") {
+    console.log("loc field typeof : "+(typeof locationField.value));
+    if (locationField.value!="null"&&locationField.value!=null) {
         locationSummary.innerHTML = locationField.value;
         locationSummary.parentElement.classList.remove("hidden-input");
     }
     
     let speciesSummary = document.getElementById("summary-species-"+index).getElementsByClassName("it-value")[0];
     console.log("species innerHTML: "+speciesSummary.innerHTML);
-    if (speciesField.value!="None") {
+    if (speciesField.value!="null") {
         speciesSummary.innerHTML = speciesField.value;
         speciesSummary.parentElement.classList.remove("hidden-input");
     }
