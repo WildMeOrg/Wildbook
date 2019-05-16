@@ -72,6 +72,21 @@ public class SurveyTrack implements java.io.Serializable{
     dateTimeModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
   }
   
+    //getStartTime() and getEndTime() and getComputedDuration() are based on our path!
+    public Long getStartTime() {
+        if (path == null) return null;
+        return path.getStartTimeMillis();
+    }
+    public Long getEndTime() {
+        if (path == null) return null;
+        return path.getEndTimeMillis();
+    }
+
+    public Long getComputedDuration() {
+        if (path == null) return null;
+        return path.getComputedDuration();
+    }
+
     public String getID(){
         return surveyTrackID;
     }
@@ -201,10 +216,7 @@ public class SurveyTrack implements java.io.Serializable{
 */
   
   public Measurement getDistance() {
-    if (distance != null) {
-      return distance;
-    }
-    return null;
+        return distance;
   }
   
   public void setDistance(Measurement dist) {

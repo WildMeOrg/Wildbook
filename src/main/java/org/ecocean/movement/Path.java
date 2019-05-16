@@ -139,6 +139,18 @@ public class Path implements java.io.Serializable {
     }
     return null;
   }
+
+    public Long getComputedDuration() {
+        Long s = getStartTimeMillis();
+        Long e = getEndTimeMillis();
+        if ((s == null) || (e == null)) return null;
+        if (s > e) {
+            System.out.println("ERROR!  getComputedDuration() invalid (" + s + " > " + e + ") for " + this);
+            return null;
+        }
+        return e - s;
+    }
+
   
   public void addPointLocation(PointLocation p) {
     if (this.getPointLocation(p.getID()) == null) {

@@ -1,11 +1,22 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
+org.joda.time.DateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.movement.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.util.Date, java.text.SimpleDateFormat, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%!
+    private String niceDuration(Long ms) {
+        if (ms == null) return "";
+        if (ms < 8000) return ms + "ms";
+        if (ms < 120 * 1000) return Math.round(ms / 1000) + "s";
+        if (ms < 60 * 60 * 1000) return Math.round(ms / (60*1000)) + "m";
+        if (ms < 24 * 60 * 60 * 1000) return Math.round(ms / (60*60*1000)) + "h" + Math.round((ms % (60*60*1000)) / 60000) + "m";
+        return (Math.round(ms / (24 * 60 * 60 * 1000 * 10)) / 10) + "d";
+    }
+%>
 <%
 String context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
@@ -59,14 +70,28 @@ if (sv!=null) {
 		surveyAttributes += "<p>Organization: "+sv.getOrganization()+"</p>";
 	}
 	surveyStart = sv.getStartDateTime();
-	surveyEnd = sv.getStartDateTime();
-	//System.out.println("Survey Start? "+surveyStart+" SurveyEnd? "+surveyEnd);
+	surveyEnd = sv.getEndDateTime();
+
 	if (surveyStart!=null) {
 		surveyAttributes +=  "<p>Start: "+surveyStart+"</p>";
 	}
 	if (surveyEnd!=null) {
 		surveyAttributes += "<p>End: "+surveyEnd+"</p>";
 	}
+
+        Long tstart = sv.getStartTimeTracks();
+        Long tend = sv.getEndTimeTracks();
+
+        if (tstart != null) surveyAttributes += "<p>Start (of first track): " + new DateTime(tstart).toString().substring(0,16) + "</p>";
+        if (tend != null) surveyAttributes += "<p>End (of last track): " + new DateTime(tend).toString().substring(0,16) + "</p>";
+
+        Long sdur = sv.getComputedDuration();
+        if (sdur != null) effortData += "<p>Computed duration: " + niceDuration(sdur) + "</p>";
+        Long sdurT = sv.getComputedDurationTracks();
+        if (sdurT != null) effortData += "<p>Computed duration (tracks, start-to-end): " + niceDuration(sdurT) + "</p>";
+        Long sdurSum = sv.getComputedDurationTrackSum();
+        if (sdurSum != null) effortData += "<p>Computed duration (sum of track durations): " + niceDuration(sdurSum) + "</p>";
+
 	if (sv.getEffort()!=null) {
 		Measurement effortMeasurement = sv.getEffort();
 		String value = String.valueOf(effortMeasurement.getValue());
@@ -145,6 +170,7 @@ if (sv!=null) {
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numPoints") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("start") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("end") %></strong></td>				
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("duration") %></strong></td>				
 				</tr>	
 			<%
 			for (SurveyTrack trk : trks) {
@@ -228,6 +254,7 @@ if (sv!=null) {
 					<td class="lineitem"><%=numOccs%></td>	
 					<td class="lineitem">
 						<% 
+                                                Long trkDur = trk.getComputedDuration();
 						int numPoints = 0;
 						if (pth!=null&&pth.getAllPointLocations()!=null) {
 							numPoints = pth.getAllPointLocations().size();
@@ -250,6 +277,7 @@ if (sv!=null) {
 					</td>
 					<td class="lineitem"><%=trkStart%></td>
 					<td class="lineitem"><%=trkEnd%></td>	
+					<td class="lineitem"><%=((trkDur == null) ? "-" : niceDuration(trkDur))%></td>	
 				</tr>
 			<%	
 			}
