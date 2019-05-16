@@ -55,7 +55,7 @@ public class OBISSeamap extends Share {
         for (Occurrence occ : occs) {
             if (!isShareable(occ)) continue;
             String row = tabRow(occ, myShepherd);
-            if (row != null) writer.write(row + "\n");
+            if (row != null) writer.write(row);
         }
 
         // cant figure out how to do this via jdoql.  :/
@@ -68,7 +68,7 @@ public class OBISSeamap extends Share {
         for (Encounter enc : encs) {
             if (!isShareable(enc)) continue;
             String row = tabRow(enc, myShepherd);
-            if (row != null) writer.write(row + "\n");
+            if (row != null) writer.write(row);
         }
 
         writer.close();
@@ -107,7 +107,7 @@ public class OBISSeamap extends Share {
 
     //these are the row (record) for tab-delim output; assuming OBISSeamap flat-file Darwin Core
     //  NOTE: these do not include trailing newline
-    public String tabRow(Occurrence occ, Shepherd myShepherd) {
+    public String tabRowOLD(Occurrence occ, Shepherd myShepherd) {
         if (occ == null) return null;
         List<String> fields = new ArrayList<String>();
         fields.add(getGUID("O-" + occ.getOccurrenceID()));
@@ -160,6 +160,16 @@ public class OBISSeamap extends Share {
         return String.join("\t", fields);
     }
 
+    public String tabRow(Occurrence occ, Shepherd myShepherd) {
+        if ((occ == null) || Util.collectionIsEmptyOrNull(occ.getEncounters())) return null;
+        String rtn = "";
+        for (Encounter enc : occ.getEncounters()) {
+            String e = tabRow(enc, myShepherd);
+            if (e != null) rtn += e;
+        }
+        return rtn;
+    }
+
     public String tabRow(Encounter enc, Shepherd myShepherd) {
         if (enc == null) return null;
         List<String> fields = new ArrayList<String>();
@@ -170,6 +180,7 @@ public class OBISSeamap extends Share {
             return null;
         }
         fields.add(d);
+        fields.add(forceString(enc.getOccurrenceID()));
         Double dlat = enc.getLatitudeAsDouble();
         Double dlon = enc.getLongitudeAsDouble();
         if ((dlat == null) || (dlon == null)) {
@@ -183,12 +194,15 @@ public class OBISSeamap extends Share {
             return null;
         }
         fields.add(enc.getTaxonomyString());
-        fields.add("1");  //for encounter, always just one individual
+        fields.add(forceString(enc.getIndividualID()));
+        fields.add(forceString(enc.getSex()));
+        fields.add(forceString(enc.getLifeStage()));
+        //////fields.add("1");  //for encounter, always just one individual
         ArrayList<MediaAsset> mas = enc.getMedia();
         if ((mas == null) || (mas.size() < 1)) {
             fields.add("");
         } else {
-            ArrayList<MediaAsset> kids = mas.get(0).findChildrenByLabel(myShepherd, "_watermark");
+            ArrayList<MediaAsset> kids = mas.get(0).findChildrenByLabel(myShepherd, "_thumb");
             if ((kids == null) || (kids.size() < 1)) {
                 fields.add("");
             } else {
@@ -200,7 +214,22 @@ public class OBISSeamap extends Share {
                 }
             }
         }
-        return String.join("\t", fields);
+        if (Util.collectionIsEmptyOrNull(enc.getSubmitters())) {
+            fields.add("");
+        } else {
+            List<String> names = new ArrayList<String>();
+            for (User u : enc.getSubmitters()) {
+                if (u.getFullName() != null) names.add(u.getFullName());
+            }
+            fields.add(String.join(", ", names));
+        }
+        fields.add("[flukebook copyright?]");
+        return String.join("\t", fields) + "\n";
     }
 
+
+    private static String forceString(String txt) {
+        if (!Util.stringExists(txt)) return "";  //this checks for "unknown", "none", etc...
+        return txt;
+    }
 }
