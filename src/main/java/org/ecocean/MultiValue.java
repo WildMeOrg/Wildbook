@@ -195,7 +195,7 @@ public class MultiValue implements java.io.Serializable {
     ////// do we needs something like  removeKey()  ??
 
 
-    //this is made contain only one of each (in the event of duplicates)
+    //this is made to contain only one of each (in the event of duplicates)
     public Set<String> getAllValues() {
         Set<String> rtn = new HashSet<String>();
         if (getValues() == null) return rtn;
@@ -211,6 +211,18 @@ public class MultiValue implements java.io.Serializable {
         }
         return rtn;
     }
+    
+    public boolean hasValue(String val) {
+        return (getAllValues().contains(val));
+    }
+
+    public boolean hasValueSubstring(String val) {
+        for (String nameVal: getAllValues()) {
+            if (nameVal.contains(val)) return true;
+        }
+        return false;
+    }
+
 
 
     public Set<String> getKeys() {
