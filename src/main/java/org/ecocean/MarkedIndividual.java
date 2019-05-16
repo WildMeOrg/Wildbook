@@ -22,6 +22,7 @@ package org.ecocean;
 import java.io.IOException;
 import java.util.*;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
@@ -235,6 +236,24 @@ public class MarkedIndividual implements java.io.Serializable {
         names.addValues(keyHint, name);
         refreshNamesCache();
     }
+
+    // adds a name and inserts a comment describing who, when, and (optionally) why that was done
+    public void addNameAndComment(Object keyHint, String name, User user, String message) {
+      String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date());
+      String nameStr = "("+keyHint.toString()+": "+name+")";
+      String commentPrefix = "On "+timeStamp+" "+user.getDisplayName()+" added name "+nameStr;
+      // empty message means we just have the timestamp, name, and user
+      String fullComment = (message!=null) ? (commentPrefix+": "+message) : commentPrefix;
+      fullComment+="<br>"; // formatting
+      this.addName(keyHint, name);
+      this.addComments(fullComment);
+    }
+    public void addNameAndComment(Object keyHint, String name, User user) {
+      addNameAndComment(keyHint, name, user, null);
+    }
+
+
+
     public void addNameByKey(String key, String value) {
         if (names == null) names = new MultiValue();
         names.addValuesByKey(key, value);
@@ -243,6 +262,9 @@ public class MarkedIndividual implements java.io.Serializable {
 
     public boolean hasName(String value) {
       return (names!=null && names.hasValue(value));
+    }
+    public boolean hasNameSubstring(String value) {
+      return (names!=null && names.hasValueSubstring(value));
     }
 
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
@@ -348,6 +370,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
       return isNew;
 
   }
+
 
    /**Removes an encounter from this MarkedIndividual.
    *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
@@ -847,6 +870,12 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
   public String getWebUrl(HttpServletRequest req) {
     return getWebUrl(this.getIndividualID(), req);
   }
+
+  public String getHyperlink(HttpServletRequest req) {
+    return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName()+ "</a>";
+  }
+
+
   
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters() {return getDateSortedEncounters(false);}
