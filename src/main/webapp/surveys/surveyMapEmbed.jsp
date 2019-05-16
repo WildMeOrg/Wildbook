@@ -65,9 +65,11 @@ for (SurveyTrack trk : trks ) {
 			String startTime = null;
 			String endTime = null;
 			try {
-				Encounter firstEnc = trackOcc.getEncounters().get(0);
-				startTime = firstEnc.getStartDateTime();
-				endTime = firstEnc.getEndDateTime();
+                                if ((trackOcc != null) && !Util.collectionIsEmptyOrNull(trackOcc.getEncounters())) {
+				    Encounter firstEnc = trackOcc.getEncounters().get(0);
+				    startTime = firstEnc.getStartDateTime();
+				    endTime = firstEnc.getEndDateTime();
+                                }
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

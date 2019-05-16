@@ -163,15 +163,9 @@ if (sv!=null) {
 				}
 				String trkStart = "Unavailable";
 				String trkEnd = "Unavailable";
-				Path pth = null;
+				Path pth = trk.getPath();
 				int numOccs = 0;
 				ArrayList<Occurrence> occs = null;
-				if (trk.getPathID()!=null) {
-					String pthID = trk.getPathID();			
-					pth = myShepherd.getPath(pthID);
-				} else {
-					System.out.println("SurveyTrack "+trkID+" did not have an associated Path.");						
-				}
 				if (trk.getAllOccurrences()!=null) {
 					occs = trk.getAllOccurrences();
 					numOccs = trk.getAllOccurrences().size();
