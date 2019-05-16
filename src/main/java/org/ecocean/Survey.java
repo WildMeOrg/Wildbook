@@ -158,6 +158,7 @@ public class Survey implements java.io.Serializable{
         return surveyTracks.size();
     }
 
+    //TODO what does this method do (differently than getSurveyTracks()) ???    -jon
   public ArrayList<SurveyTrack> getAllSurveyTracks() {
     if (surveyTracks == null) return null;
     if (!surveyTracks.isEmpty()) {
@@ -357,7 +358,63 @@ public class Survey implements java.io.Serializable{
     }
     return null;
   }
-  
+
+
+    //see also getComputedDurationTrackSum() below
+    public Long getComputedDuration() {
+        if ((startTime == null) || (endTime == null)) return null;
+        if (startTime > endTime) {
+            System.out.println("ERROR!  getComputedDuration() invalid (" + startTime + " > " + endTime + ") for " + this);
+            return null;
+        }
+        return endTime - startTime;
+    }
+    //adds up each track duration
+    public Long getComputedDurationTrackSum() {
+        if (Util.collectionIsEmptyOrNull(surveyTracks)) return null;
+        Long sum = 0L;
+        for (SurveyTrack st : surveyTracks) {
+            if (st == null) continue;  //TODO or return null ????
+            Long dur = st.getComputedDuration();
+            if (dur == null) return null;  //TODO or continue ???  argument for null: we have a track but it has unknown duration but cant assume 0
+            sum += dur;
+        }
+        return sum;
+    }
+    //from start of tracks to end of tracks
+    public Long getComputedDurationTracks() {
+        Long s = getStartTimeTracks();
+        Long e = getEndTimeTracks();
+        if ((s == null) || (e == null)) return null;
+        if (s > e) {
+            System.out.println("ERROR!  getComputedDurationTracks() invalid (" + s + " > " + e + ") for " + this);
+            return null;
+        }
+        return e - s;
+    }
+    public Long getStartTimeTracks() {
+        if (Util.collectionIsEmptyOrNull(surveyTracks)) return null;
+        Long start = null;
+        for (SurveyTrack st : surveyTracks) {
+            if (st == null) continue;
+            Long t = st.getStartTime();
+            if (t == null) continue;
+            if ((start == null) || (start > t)) start = t;
+        }
+        return start;
+    }
+    public Long getEndTimeTracks() {
+        if (Util.collectionIsEmptyOrNull(surveyTracks)) return null;
+        Long end = null;
+        for (SurveyTrack st : surveyTracks) {
+            if (st == null) continue;
+            Long t = st.getEndTime();
+            if (t == null) continue;
+            if ((end == null) || (t > end)) end = t;
+        }
+        return end;
+    }
+
   public ArrayList<Observation> getObservationArrayList() {
     return observations;
   }
