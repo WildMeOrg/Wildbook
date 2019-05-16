@@ -34,7 +34,6 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
 
 <jsp:include page="../header.jsp" flush="true"/>
 <div id="root-div" class="container-fluid maincontent">
-
     <div class="row">
         <div class="col-xs-12 col-lg-12">
             <div class="container">
@@ -43,9 +42,7 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 <p><a href="<%=baseUrl%>/multipleSubmit/instructions.jsp"><%= props.getProperty("readInstructions")%></a></p>
             </div>  
             <hr>
-
                 <!-- specify number of encounters in two input items -->
-
                 <div class="container form-file-selection">
                     <label><%= props.getProperty("specifyEncNum")%></label>
                     <input id="number-encounters" type="number" name="number-encounters" required value="1" min="1" max="48">
@@ -59,56 +56,40 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                     <p class="action-message"> </p>
                 </div>
 
-
                 <br class="form-spacer">
 
                 <!-- easy place to store this -->
                 <input id="recaptcha-checked" name="recaptcha-checked" type="hidden" value="false" />
 
-
-
                 <br class="form-spacer">
 
                 <!-- Here is where we are going to put UI to define encounter metadata from JS -->
-                <div id="metadata-tiles-main" class="row">
-                
-                </div>
+                <div id="metadata-tiles-main" class="row"></div>
 
                 <br class="form-spacer">
 
                 <!-- Here is where we are going to dump rendered images and encounter UI from JS -->
-                <div id="image-tiles-main" class="row">
-                
-                </div>
+                <div id="image-tiles-main" class="row"></div>
 
                 <!-- here is where we list the created encs -->
-                <div id="results-main" class="row">
-                
-                </div>
+                <div id="results-main" class="row"></div>
 
                 <div class="nav-buttons container">
-
                     <hr>
                     <!-- next page -->
                     <button class="" id="continueButton" type="button" disabled onclick="continueButtonClicked();"><%= props.getProperty("continue")%></button>
-
                     <!-- back to file selection -->
                     <button class="hidden-input" id="backButton" type="button" onclick="backButtonClicked();"><%= props.getProperty("back")%></button>
-
                     <!-- actually done now, send it off -->
                     <button class="hidden-input" id="sendButton" type="button" disabled onclick="sendButtonClicked();"><%= props.getProperty("complete")%></button>
-
                 </div>
 
                 <div class="recaptcha-div form-define-metadata">
-
                     <!-- Recaptcha widget -->
                     <div id="recaptcha-div">
                         <%= ServletUtilities.captchaWidget(request) %>
                     </div>
-
                 </div>
-
         </div> 
         <hr>
     </div>

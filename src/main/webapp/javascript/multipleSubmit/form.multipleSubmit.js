@@ -43,7 +43,7 @@ function continueButtonClicked() {
     $("#continueButton").hide();
     $("#backButton").show();
     $("#sendButton").show();
-    $(".recaptcha-box").hide();
+    $("#recaptcha-div").hide();
     showSelectedMedia();
 }
 
@@ -53,7 +53,7 @@ function backButtonClicked() {
     $("#continueButton").show();
     $("#backButton").hide();
     $("#sendButton").hide();
-    $(".recaptcha-box").show();
+    $("#recaptcha-div").show();
     clearSelectedMedia();
 }
 
@@ -113,6 +113,9 @@ function showSelectedMedia() {
         }
         document.getElementById("encounter-label-"+i).style.backgroundColor = color;
     }
+
+    multipleSubmitUI.updateFileCounters();
+
     $('.encDate').datepicker({
         format: 'mm/dd/yyyy',
         startDate: '-3d'
@@ -252,6 +255,8 @@ function highlightOnEdit(index) {
     } else {
         toggleImageHighlights("off",value);
     }
+    // the counter on the show/hide buttons
+    multipleSubmitUI.updateFileCounters(value);
 }
 
 function out(string) {
@@ -324,13 +329,26 @@ function updateSummary(index) {
         locationSummary.innerHTML = locationField.value;
         locationSummary.parentElement.classList.remove("hidden-input");
     }
-    
+
     let speciesSummary = document.getElementById("summary-species-"+index).getElementsByClassName("it-value")[0];
     console.log("species innerHTML: "+speciesSummary.innerHTML);
     if (speciesField.value!="null") {
         speciesSummary.innerHTML = speciesField.value;
         speciesSummary.parentElement.classList.remove("hidden-input");
     }
+}
+
+function numImagesForEnc(encNum) {
+    let allImageTiles = document.getElementsByClassName("image-tile-div");
+    //let numEnc = document.getElementById("number-encounters").value;
+    let numImgs = 0;
+    for (let i=0;i<allImageTiles.length;i++) {
+        var selectedEnc = $("#enc-num-dropdown-"+i+" :selected").val();
+        if (encNum==selectedEnc) {
+            numImgs++;
+        }
+    }
+    return numImgs; 
 }
 
 //recalculate label position after window resize, with delay so event dont fire like crazy
@@ -351,8 +369,8 @@ window.onresize = function() {
 };
 
 //switch on bootstrap   tooltips
-window.onload(function(){
-    //var ttoptions = {};
-    $(function() {$('[data-toggle="tooltip"]').tooltip()})
+//var ttoptions = {};
+window.onload = $(function() {
+    $('[data-toggle="tooltip"]').tooltip();
 })
 

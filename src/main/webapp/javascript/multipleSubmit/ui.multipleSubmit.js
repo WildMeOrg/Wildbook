@@ -22,16 +22,18 @@ multipleSubmitUI = {
     },
 
     generateMetadataTile: function(index) {
+
+        let hideText = txt("hideImages");
+        let showText = txt("showImages");
+        
         var metadataTile = "";
         metadataTile += "<div class=\"encounter-tile-div col-xs-12 col-xl-12\">";
         metadataTile += "   <div class=\"row\">";
         metadataTile += "       <div class=\"col-xs-12 col-md-5 col-lg-5 col-xl-5\">";
         metadataTile += "           <label id=\"encounter-label-"+index+"\" class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
         metadataTile += "           <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
-
-        metadataTile += "           <input id=\"hide-enc-images-btn-"+index+"\" class=\"show-metadata-btn\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+txt("hideImages")+"\"  data-toggle=\"tooltip\" title=\""+txt("ttHideImages")+"\" />";
-        metadataTile += "           <input id=\"show-enc-images-btn-"+index+"\" class=\"show-metadata-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+txt("showImages")+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowImages")+"\" />";
-        
+        metadataTile += "           <input id=\"hide-enc-images-btn-"+index+"\" class=\"show-metadata-btn\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+hideText+"\"  data-toggle=\"tooltip\" title=\""+txt("ttHideImages")+"\" />";
+        metadataTile += "           <input id=\"show-enc-images-btn-"+index+"\" class=\"show-metadata-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+showText+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowImages")+"\" />";
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-7 col-lg-7 col-xl-7\">";
         metadataTile +=             multipleSubmitUI.generateMetadataTileSummary(index); 
@@ -92,8 +94,9 @@ multipleSubmitUI = {
         encDrop += "<select id=\"enc-num-dropdown-"+index+"\" class=\"form-control "+uiClass+" enc-num-dropdown\" onchange=\"highlightOnEdit("+index+")\" name=\"enc-num-dropdown-"+index+"\">";
         encDrop += "    <option selected=\"selected\" value=\"0\">"+txt("encounter")+"  #1</option>";
         for (var i=1;i<multipleSubmitUI.encsDefined();i++) {
-            encDrop += "<option value=\""+i+"\">Encounter #"+(i+1)+"</option>";
+            encDrop += "<option value=\""+i+"\">"+txt("encounter")+" #"+(i+1)+"</option>";
         }
+        encDrop += "<option value=\"-1\">"+txt("ignoreImage")+"</option>";
         encDrop += "</select>";
         return encDrop;
     },
@@ -184,9 +187,9 @@ multipleSubmitUI = {
             re += "</div>";
             re += "<div class=\"col-xs-6 col-xl-6\">";
             re += "<br><br>"; // trust me
-            if (this.hasVal(genSpec)) {re += "<p><small>"+txt("date")+" "+date+"</small></p>";}
+            if (this.hasVal(date)) {re += "<p><small>"+txt("date")+" "+date+"</small></p>";}
             if (this.hasVal(location)) {re += "<p><small>"+txt("location")+" "+location+"</small></p>";}
-            if (this.hasVal(date)) {re += "    <p><small>"+txt("species")+" "+genSpec+"</small></p>";}
+            if (this.hasVal(genSpec)) {re += "    <p><small>"+txt("species")+" "+genSpec+"</small></p>";}
             re += "</div>";
             re += "<br>";
             re += "</div>";
@@ -194,6 +197,28 @@ multipleSubmitUI = {
         re += "<hr>";
         re += "</div>";
         return re;
+    },
+
+    updateFileCounters: function() {
+        for (let i=0;i<=this.encsDefined();i++) {
+            let numImages = numImagesForEnc(i);
+            let showBtn = document.getElementById("show-enc-images-btn-"+i);
+            let hideBtn = document.getElementById("hide-enc-images-btn-"+i);
+            console.log("Enc Num: "+i);
+            console.log("ShowBtn: "+showBtn);
+            console.log("HideBtn: "+hideBtn);
+            if (numImages>0) {
+                let imgs = txt("images");
+                if (numImages==1) {
+                    imgs = imgs.substring(0,4);
+                }
+                showBtn.value = (txt("show")+" "+numImages+" "+imgs);
+                hideBtn.value = (txt("hide")+" "+numImages+" "+imgs);
+            } else {
+                showBtn.value = txt("showImages");
+                hideBtn.value = txt("hideImages");
+            }
+        }
     },
     
     renderImageInBrowser: function(file,id) {
