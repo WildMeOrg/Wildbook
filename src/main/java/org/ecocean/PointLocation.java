@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.json.JSONObject;
 
 import org.ecocean.*;
 import org.joda.time.DateTime;
@@ -190,6 +191,25 @@ public class PointLocation implements java.io.Serializable {
   private boolean latLonCheck(Double lat, Double lon) {
     return Util.isValidDecimalLatitude(lat) && Util.isValidDecimalLongitude(lon);
   }
+
+    //distance squared
+    //  TODO maybe also take into account time? elev? etc?
+    public Double diff2(PointLocation p2) {
+        if (p2 == null) return null;
+        if ((this.longitude == null) || (this.latitude == null) || (p2.longitude == null) || (p2.latitude == null)) return null;
+        return (this.longitude - p2.longitude)*(this.longitude - p2.longitude) + (this.latitude - p2.latitude)*(this.latitude - p2.latitude);
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject rtn = new JSONObject();
+        rtn.put("id", getID());
+        rtn.put("latitude", latitude);
+        rtn.put("longitude", longitude);
+        rtn.put("bearing", bearing);
+        if (dateTime != null) rtn.put("dateTime", new DateTime(dateTime));
+        if (elevation != null) rtn.put("elevation", elevation.toJSONObject());
+        return rtn;
+    }
 
     public String toString() {
         return new ToStringBuilder(this)
