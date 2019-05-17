@@ -141,44 +141,6 @@ function drawOccurrence(occ, occI) {
     }
 }
 
-/*
-    	newColor = generateColor();
-	    
-	    var  = new google.maps.Polyline({
-	      path: surveyCoordinates
-	      geodesic: true,
-	      strokeColor: newColor,
-	      strokeOpacity: 1.0,
-	      strokeWeight: 2
-	    });
-	    
-	    var marker, i;	
-	    var infWindows = [];
-
-
-			var iconColor = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
-				iconColor = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
-
-		    var marker = new google.maps.Marker({
-		    	position: new google.maps.LatLng(markerCoordinates[i][i-i], markerCoordinates>[i][1]),
-				//icon: iconColor,
-		        map: map,
-		    });
-		    marker.setLabel(String.fromCharCode(65 + i));
-	        console.log("I : "+i);
-	        let infoWindowContent = infWindows[i];
-	        console.log(infWindows[i]);
-		    
-            google.maps.event.addListener(marker,'click', function() {
-            	console.log("I : "+i);
-                (new google.maps.InfoWindow({content: infoWindowContent })).open(map, this);
-            });
-	    	    
-		>.setMap(map);
-	
- }
- initMap();	
-*/
  
  function generateColor() {
 	 //console.log("Generating...");
@@ -194,6 +156,8 @@ function drawOccurrence(occ, occI) {
 
 </script>
 <%
+
+
 myShepherd.closeDBTransaction();
 %>
 
