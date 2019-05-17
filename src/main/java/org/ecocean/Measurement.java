@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.json.JSONObject;
 
 public class Measurement extends DataCollectionEvent {
 
@@ -37,6 +38,14 @@ public class Measurement extends DataCollectionEvent {
     if(u==null){this.units=null;}
     else{this.units = u;}
   }
+
+    public JSONObject toJSONObject() {
+        JSONObject rtn = new JSONObject();
+        rtn.put("value", value);
+        rtn.put("units", units);
+        rtn.put("samplingProtocol", getSamplingProtocol());
+        return rtn;
+    }
 
     public String toString() {
         return new ToStringBuilder(this)
