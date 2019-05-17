@@ -173,6 +173,7 @@ if (sv!=null) {
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("duration") %></strong></td>				
 				</tr>	
 			<%
+                        int occKey = 0;
 			for (SurveyTrack trk : trks) {
 				String trkID  = trk.getID();
 				String trkLocationID = "Unavailable";
@@ -214,9 +215,10 @@ if (sv!=null) {
 										String link = occLocation + thisOccID;
 									%>
 									<p>
-										<small><a href="<%=link%>"><%=thisOccID%></a></small>
+										<small>(<%=Character.toString((char)(occKey+65))%>) <a href="<%=link%>"><%=thisOccID%></a></small>
 									</p>
 									<%
+                                                                            occKey++;
 									}
 								} else {
 								%>	
