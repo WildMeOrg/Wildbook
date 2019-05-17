@@ -514,24 +514,27 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         //use NLP to also try to get date and locationID
         //use NLP to get Date/Location if available in Tweet
         String newDetectedDate=ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
-        DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
-        DateTime dt=parser3.parseDateTime(newDetectedDate);
-        if(newDetectedDate.length()==10){
-          enc.setYear(dt.getYear());
-          enc.setMonth(dt.getMonthOfYear());
-          enc.setDay(dt.getDayOfMonth());
-          enc.setHour(-1);
-        }
-        else if(newDetectedDate.length()==7){
-          enc.setYear(dt.getYear());
-          enc.setMonth(dt.getMonthOfYear());
-          enc.setDay(-1);
-          
-        }
-        else if(newDetectedDate.length()==4){
-          enc.setYear(dt.getYear());
-          enc.setMonth(-1);
-          
+        
+        if(newDetectedDate!=null){
+          DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
+          DateTime dt=parser3.parseDateTime(newDetectedDate);
+          if(newDetectedDate.length()==10){
+            enc.setYear(dt.getYear());
+            enc.setMonth(dt.getMonthOfYear());
+            enc.setDay(dt.getDayOfMonth());
+            enc.setHour(-1);
+          }
+          else if(newDetectedDate.length()==7){
+            enc.setYear(dt.getYear());
+            enc.setMonth(dt.getMonthOfYear());
+            enc.setDay(-1);
+            
+          }
+          else if(newDetectedDate.length()==4){
+            enc.setYear(dt.getYear());
+            enc.setMonth(-1);
+            
+          }
         }
     }
 
