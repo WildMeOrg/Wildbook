@@ -22,6 +22,7 @@ import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import java.io.UnsupportedEncodingException;
+import org.apache.shiro.crypto.hash.Sha256Hash;
 
 // general note: "CI" refers to Channel Island (project) and "WA" to WhaleAlert
 
@@ -35,6 +36,7 @@ public class SpotterConserveIO {
     private static final String PROP_ORGID_CI_VOLUNTEER = "channelIslandsVolunteerOrgId";
     private static final String PROP_ORGID_CI = "channelIslandsOrgId";
     private static final String PROP_USERID_CI = "channelIslandsUserId";
+    private static final String PROP_ORGID_NEWUSER = "newUserOrgId";
     public static String apiUsername = null;
     public static String apiPassword = null;
     public static String apiUrlPrefix = null;
@@ -357,7 +359,7 @@ System.out.println("vols namesIn=[" + namesIn + "]");
             }
             occ.setEncounters(encs);
         }
-        occ.setSubmitter(waToUser(jin));
+        occ.setSubmitter(waToUser(jin, myShepherd));
         myShepherd.getPM().makePersistent(occ);
         return occ;
     }
@@ -367,7 +369,7 @@ System.out.println("vols namesIn=[" + namesIn + "]");
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);
         if (urlStore == null) throw new RuntimeException("Could not find a URLAssetStore to store images");
         Encounter enc = new Encounter();
-        User sub = waToUser(occJson);
+        User sub = waToUser(occJson, myShepherd);
         enc.addSubmitter(sub);
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(???)
@@ -431,14 +433,43 @@ System.out.println("MADE " + enc);
         return enc;
     }
 
-    public static User waToUser(JSONObject jin) {
+    public static User waToUser(JSONObject jin, Shepherd myShepherd) {
 System.out.println("waToUser -> " + jin);
-        /* something-something User()  see: JH work on user-submission
-        String subEmail = jin.optString("Whale Alert Submitter Email", null);
-        String subName = jin.optString("Whale Alert Submitter Name", null);
-        String subPhone = jin.optString("Whale Alert Submitter Phone", null);  //prob ignore!
-        */
-        return null;
+        //String name = jin.optString("Whale Alert Submitter Name", null);
+        return findOrMakeUser(
+            jin.optString("Whale Alert Submitter Email", null),
+            jin.optString("Whale Alert Submitter Phone", null),
+            myShepherd
+        );
+    }
+
+    public static User findOrMakeUser(String email, String phone, Shepherd myShepherd) {
+        User user = null;
+        if (email != null) user = myShepherd.getUserByEmailAddress(email);  //"real" user by email
+        if (user != null) return user;
+
+        //now we look for hash-based usernames (first email, then phone)
+        String unameEmail = hashFromEmail(email);
+        if (unameEmail != null) user = myShepherd.getUser(unameEmail);
+        if (user != null) return user;
+        String unamePhone = hashFromPhone(phone);
+        if (unamePhone != null) user = myShepherd.getUser(unamePhone);
+        if (user != null) return user;
+
+        //no existing user, lets see if we can make one
+        if ((unameEmail == null) && (unamePhone == null)) return null;  //cant make one.  :(
+        String uname = unameEmail;
+        if (uname == null) uname = unamePhone;
+        user = new User(uname, Util.generateUUID(), Util.generateUUID());
+        System.out.println("findOrMakeUser() ==> " + user);
+        if (user == null) return null;
+
+        user.setFullName("Conserve.IO User " + uname.substring(0,8));
+        user.setNotes("Created by SpotterConserveIO.findOrMakeUser() " + new DateTime());
+        String orgId = props.getProperty(PROP_ORGID_NEWUSER);
+        Organization org = Organization.load(orgId, myShepherd);
+        if (org != null) user.addOrganization(org);
+        return user;
     }
 
 
@@ -890,5 +921,18 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         return vols;
     }
 
+
+    public static String hashFromPhone(String phone) {
+        if (phone == null) return null;
+        phone = phone.replaceAll("\\D", "");
+        if (phone.equals("")) return null;
+        return phone.substring(0,1) + (new Sha256Hash(phone).toHex());
+    }
+    public static String hashFromEmail(String email) {
+        if (email == null) return null;
+        email = email.replaceAll("\\s", "");
+        if (email.equals("")) return null;
+        return email.substring(0,1) + (new Sha256Hash(email).toHex());
+    }
 }
 
