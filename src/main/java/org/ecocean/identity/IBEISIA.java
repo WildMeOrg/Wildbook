@@ -1701,7 +1701,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     jlog.put("collatedOccurrence", occ.getOccurrenceID());
                 }
 
-                jlog.put("twitterBot", TwitterBot.processDetectionResults(myShepherd, mas));  //will do nothing if not twitter-sourced
+                jlog.put("twitterBot", TwitterBot.processDetectionResults(myShepherd, mas, rootDir));  //will do nothing if not twitter-sourced
                 jlog.put("_action", "processedCallbackDetect");
                 if (amap.length() > 0) jlog.put("annotations", amap);
                 if (needReview.length() > 0) jlog.put("needReview", needReview);
