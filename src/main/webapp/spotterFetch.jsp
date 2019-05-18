@@ -47,6 +47,7 @@ private static Occurrence loadByTripId(Shepherd myShepherd, int tripId) {
 }
 
 
+//  here j => {"end_date":"2019-05-10 16:51:00+00:00","creator":"whaleWebAK","id":22120,"create_date":"2019-05-10 16:51:00+00:00","start_date":"2019-05-10 16:51:00+00:00"}
 private static String tryTrip(Shepherd myShepherd, JSONObject j, String flavor) {
     if (j == null) return "<li>tryTrip NULL input</li>";
     int id = j.optInt("id", -1);
@@ -55,8 +56,14 @@ private static String tryTrip(Shepherd myShepherd, JSONObject j, String flavor) 
     if (occ != null) {
         return "<li class=\"exists\"><b>" + id + "</b> (" + j.optString("start_date") + ") exists: <a href=\"occurrence.jsp?number=" + occ.getOccurrenceID() + "\">Occ " + occ.getOccurrenceID() + "</a></li>";
     } else {
-        j.put("_tripFlavor", flavor);
-        Object res = doImport(myShepherd, j);
+        JSONObject tripData = null;
+        try {
+            tripData = SpotterConserveIO.getTrip(id);
+        } catch (Exception ex) {
+            fetchLog("getTrip(" + id + ") threw " + ex.toString());
+            return "<li>exception getting trip id=" + id + " (flavor " + flavor + "): " + ex.toString() + "</li>";
+        }
+        Object res = doImport(myShepherd, tripData);
         if (res == null) return "<li><i>null for trip id=" + id + " (flavor " + flavor + ")</i></li>";
         return "<li>trip id=<b>" + id + "</b> (" + flavor + ") -> " + res + "</li>";
     }
@@ -119,6 +126,7 @@ private static Object doImport(Shepherd myShepherd, JSONObject tripData) {
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.beginDBTransaction();
+FeatureType.initAll(myShepherd);
 
 try {
     SpotterConserveIO.init(context);
@@ -206,6 +214,7 @@ SpotterConserveIO.waSetLastSync(context, resetTime);
 SpotterConserveIO.ciSetLastSync(context, resetTime);
 */
 
+fetchLog("*** finished");
 
 myShepherd.commitDBTransaction();
 
