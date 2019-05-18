@@ -567,8 +567,10 @@ String text=TwitterUtil.getText(tweet);
   System.out.println("Entering nlpDateParse twitter version with text " + text);
 //create my pipeline with the help of the annotators I added.
 
-  Date tweetDate=tweet.getCreatedAt();
+  //Date tweetDate=tweet.getCreatedAt();
+  Date tweetDate=Calendar.getInstance().getTime();
   String referenceDate="";
+ 
   if(tweetDate!=null){
     try{
       DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
@@ -579,6 +581,7 @@ String text=TwitterUtil.getText(tweet);
       e.printStackTrace();
     }
   }
+
   String selectedDate=parseDateStringForBestDate(rootDir, text, referenceDate);
   System.out.println("Best guess for referenced Tweet date from NLP: " +selectedDate);
   return selectedDate;
