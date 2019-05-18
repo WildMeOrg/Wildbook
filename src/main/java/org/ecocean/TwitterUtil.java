@@ -6,12 +6,16 @@
 package org.ecocean;
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.Properties;
+
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -29,6 +33,7 @@ import org.ecocean.identity.IBEISIA;
 import java.util.ArrayList;
 import java.util.Arrays;
 */
+
 
 /*
 import java.net.URL;
@@ -204,6 +209,18 @@ public class TwitterUtil {
         if (parentMA.getStore() instanceof TwitterAssetStore) return parentMA;
         return null;
     }
+    
+    public static String getText(Status tweet) {
+      if (tweet == null) return null;
+      String text = tweet.getText();
+      return text;
+  }
+   
+    public static Date getPostingDate(Status tweet) {
+      if (tweet == null) return null;
+      java.util.Date date = tweet.getCreatedAt();
+      return date;
+  }
 
 
 }
