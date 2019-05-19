@@ -347,7 +347,20 @@ context=ServletUtilities.getContext(request);
 				<%=occ.getLocationID() %>
 			<%}%>
 		</p>
-		
+
+<%
+if (!Util.collectionIsEmptyOrNull(occ.getSubmitters())) {
+    out.println("<p>Submitted by: ");
+    List<String> subs = new ArrayList<String>();
+    for (User sub : occ.getSubmitters()) {
+        subs.add(sub.getDisplayName());
+    }
+    out.println(String.join(", ", subs) + "</p>");
+}
+%>
+<div style="margin-left: 10px; padding: 3px; border: solid #AAA 2px;">Comments: <%=occ.getComments()%></div>
+
+                </p>
 		<table id="encounter_report" style="width:100%;">
 			<tr>
 			
@@ -514,7 +527,7 @@ context=ServletUtilities.getContext(request);
 						if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 						%>
 							<h2>
-								<img src="../images/lightning_dynamic_props.gif" />
+								<img src="images/lightning_dynamic_props.gif" />
 								<%=props.getProperty("dynamicProperties")%>
 								<button class="btn btn-md" type="button" name="button"
 									id="editDynamic">Edit</button>
@@ -526,7 +539,7 @@ context=ServletUtilities.getContext(request);
 						} else {
 						%>
 						<h2>
-							<img src="../images/lightning_dynamic_props.gif" />
+							<img src="images/lightning_dynamic_props.gif" />
 							<%=props.getProperty("dynamicProperties")%>
 						</h2>
 						<br/>
