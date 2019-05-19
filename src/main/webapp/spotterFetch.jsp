@@ -175,8 +175,6 @@ try {
     return;
 }
 
-        /////int last = ciSetLastSync(context);
-
 
 /*
 out.println("<p><b>Whale Alert raw trip data:</b> <xmp style=\"font-size: 0.8em; color: #888;\">" + waTripList.toString(1) + "</xmp></p>");
@@ -189,7 +187,7 @@ out.println("CI: <b>" + tripListSummary(ciTripList) + "</b></p>");
 fetchLog("fetched: " + tripListSummary(waTripList));
 fetchLog("fetched: " + tripListSummary(ciTripList));
 
-out.println("<p><b>Whale Alert trips</b> (click to import)<ul>");
+out.println("<p><b>Whale Alert trips</b><ul>");
 JSONArray trips = waTripList.optJSONArray("trips");
 for (int i = 0 ; i < trips.length() ; i++) {
     String msg = tryTrip(myShepherd, trips.optJSONObject(i), "wa");
@@ -197,7 +195,7 @@ for (int i = 0 ; i < trips.length() ; i++) {
 }
 out.println("</ul>");
 
-out.println("<p><b>Channel Island trips</b> (click to import)<ul>");
+out.println("<p><b>Channel Island trips</b><ul>");
 trips = ciTripList.optJSONArray("trips");
 for (int i = 0 ; i < trips.length() ; i++) {
     String msg = tryTrip(myShepherd, trips.optJSONObject(i), "ci");
@@ -206,19 +204,12 @@ for (int i = 0 ; i < trips.length() ; i++) {
 out.println("</ul>");
 
 
-
-
-/*
-int resetTime = 1529107200;  //2018-06-16
-SpotterConserveIO.waSetLastSync(context, resetTime);
-SpotterConserveIO.ciSetLastSync(context, resetTime);
-*/
-
 fetchLog("*** finished");
-
 myShepherd.commitDBTransaction();
 
-
+//set "last sync" time to now....
+SpotterConserveIO.waSetLastSync(context);
+SpotterConserveIO.ciSetLastSync(context);
 
 
 
