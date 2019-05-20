@@ -513,7 +513,6 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         enc.setTaxonomyFromString(tx);
         enc.setState("unapproved");        
         
-        //use NLP to also try to get date and locationID
         //use NLP to get Date/Location if available in Tweet
         String newDetectedDate=ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
         
@@ -538,6 +537,14 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
             
           }
         }
+        
+        //location?
+        setLocationIDFromTweet(enc, originTweet, myShepherd.getContext());
+        
+        //get Tweet comments for faster review on Encounter page
+        enc.setOccurrenceRemarks(originTweet.getText());
+        
+        
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
