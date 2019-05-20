@@ -47,12 +47,12 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                     <label><%= props.getProperty("specifyEncNum")%></label>
                     <input id="number-encounters" type="number" name="number-encounters" required value="1" min="1" max="48">
                 </div>
-                <div class="container form-file-selection">
+                <div id="file-drop-area" class="container form-file-selection">
                     <input class="btn btn-large btn-file-selector" type="button" onclick="document.getElementById('file-selector-input').click()" value="Select Files" />
                 </div>
                 <input id="file-selector-input" name="allFiles" class="hidden-input" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" style="display:none;" multiple size="50" onChange="updateSelected(this);" />
                 <div class="container">
-                    <p id="input-file-list"></p>
+                    <p id="input-file-list"></p>    
                     <p class="action-message"> </p>
                 </div>
 

@@ -368,9 +368,29 @@ window.onresize = function() {
     },300);
 };
 
-//switch on bootstrap   tooltips
-//var ttoptions = {};
 window.onload = $(function() {
     $('[data-toggle="tooltip"]').tooltip();
+    // this is all for drag and drop file addition
+    let fileDropArea = document.getElementById("file-drop-area");
+    fileDropArea.addEventListener("dragenter",preventDefaultAndPropagation, false);
+    fileDropArea.addEventListener("dragleave",preventDefaultAndPropagation, false);
+    fileDropArea.addEventListener("dragover",preventDefaultAndPropagation, false);
+    fileDropArea.addEventListener("drop",preventDefaultAndPropagation, false);
+    fileDropArea.addEventListener("drop",addFilesFromDragAndDrop, false);
 })
+
+var preventDefaultAndPropagation = function(e){
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+var addFilesFromDragAndDrop = function(e) {
+    let data = e.dataTransfer;
+    if (data.files!=null&&data.files.length>0) {
+        let fileInput = document.getElementById("file-selector-input");
+        fileInput.files = data.files;
+        updateSelected(fileInput);
+        console.log("drag n drop got "+fileInput.files.length+" files");
+    }
+}
 
