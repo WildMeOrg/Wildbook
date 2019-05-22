@@ -568,21 +568,10 @@ String text=TwitterUtil.getText(tweet);
 //create my pipeline with the help of the annotators I added.
 
   //Date tweetDate=tweet.getCreatedAt();
-  Date tweetDate=Calendar.getInstance().getTime();
-  String referenceDate="";
+  String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
  
-  if(tweetDate!=null){
-    try{
-      DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
-      referenceDate = dateFormat.format(tweetDate);
-      System.out.println("Tweet creating/reference date is: "+referenceDate);
-    }
-    catch(Exception e){
-      e.printStackTrace();
-    }
-  }
 
-  String selectedDate=parseDateStringForBestDate(rootDir, text, referenceDate);
+  String selectedDate=parseDateStringForBestDate(rootDir, text, relativeDate);
   System.out.println("Best guess for referenced Tweet date from NLP: " +selectedDate);
   return selectedDate;
 
