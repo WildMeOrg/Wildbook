@@ -590,7 +590,12 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
       String locationID="";
       String location="";
       List<String> tags = TwitterUtil.getHashtags(tweet);
-      List<String> locIDs=(List<String>)CommonConfiguration.getIndexedPropertyValues("locationID", context);  
+      Shepherd myShepherd=new Shepherd(context);
+      myShepherd.setAction("TwitterBot.setLocationIDFromTweet");
+      myShepherd.beginDBTransaction();
+      List<String> locIDs=myShepherd.getAllLocationIDs();
+      myShepherd.closeDBTransaction();
+      myShepherd.closeDBTransaction();
       for (String tag : tags) {
         try{
           for(String l : locIDs){
