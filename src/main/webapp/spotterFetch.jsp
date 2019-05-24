@@ -73,7 +73,8 @@ private static String tryTrip(Shepherd myShepherd, JSONObject j, String flavor) 
 private static Object doImport(Shepherd myShepherd, JSONObject tripData) {
     if (tripData == null) return null;
     String flavor = tripData.optString("_tripFlavor", "__FAIL__");
-    fetchLog("doImport() trip.id=" + tripData.optString("id", "(unknown id)") + " (flavor=" + flavor + ")");
+    String tripId = tripData.optString("_tripId", "(unknown id)");  //note: this could safely be an int, i suppose
+    fetchLog("doImport() trip.id=" + tripId + " (flavor=" + flavor + ")");
     if (flavor.equals("ci")) {
         
         Survey surv = SpotterConserveIO.ciToSurvey(tripData, myShepherd);
