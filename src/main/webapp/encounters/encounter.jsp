@@ -131,12 +131,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   //Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-
-	Properties collabProps = new Properties();
- 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-
-
+  //Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context, "indocet");
 
   pageContext.setAttribute("num", num);
 
@@ -149,8 +144,14 @@ String langCode=ServletUtilities.getLanguageCode(request);
   boolean proceed = true;
   boolean haveRendered = false;
 
-  pageContext.setAttribute("set", encprops.getProperty("set"));
   
+  Properties encprops = ShepherdProperties.getOrgProperties("encounter.properties", langCode, context, request);
+  pageContext.setAttribute("set", encprops.getProperty("set"));
+
+  Properties collabProps = new Properties();
+  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+
+
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
@@ -290,10 +291,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
       background-color: #ccc;
       padding: 8px;
     }
-
-
-
-
 
 th.measurement{
 	 font-size: 0.9em;

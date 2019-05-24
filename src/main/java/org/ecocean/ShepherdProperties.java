@@ -7,6 +7,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Properties; 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
+import javax.servlet.http.HttpServletRequest;
+
 
 public class ShepherdProperties {
 
@@ -19,31 +24,72 @@ public class ShepherdProperties {
   }
 
   public static Properties getProperties(String fileName, String langCode, String context){
-    LinkedProperties props=new LinkedProperties();
+    return getProperties(fileName, langCode, context, null);
+  }
+
+  // derives the overridePrefix from the user (derived from the request)
+  public static Properties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request) {
+    System.out.println("getOrgProperties called");
+    if (request == null || request.getUserPrincipal() == null) return getProperties(fileName, langCode, context, null);
+    Shepherd myShepherd = new Shepherd(request);
+    User user = myShepherd.getUser(request);
+    System.out.println("getOrgProperties has user "+user);
+    if (user == null) return getProperties(fileName, langCode, context, null);
+    System.out.println("getOrgProperties going to use override string "+getOverrideStringForUser(user));
+    return getProperties(fileName, langCode, context, getOverrideStringForUser(user));
+  }
+
+  public static String getOverrideStringForUser(User user) {
+    if (user.getOrganizations()==null) return null;
+    for (Organization org: user.getOrganizations()) {
+      String name = org.getName();
+      if (name==null) return null;
+      name = name.toLowerCase();
+      if (overrideOrgs.contains(name)) return name;
+    }
+    return null;
+  }
+
+  public static final String[] overrideOrgsArr = {"indocet"};
+  public static final Set<String> overrideOrgs = new HashSet<>(Arrays.asList(overrideOrgsArr));
+
+  public static Properties getProperties(String fileName, String langCode, String context, String overridePrefix){
+    // initialize props as empty (no override provided) or the default values (if override provided)
+    // initializing
+    boolean verbose = (Util.stringExists(overridePrefix));
+
     String shepherdDataDir="wildbook_data_dir";
+    Properties contextsProps=getContextsProperties();
+    if(contextsProps.getProperty(context+"DataDir")!=null) {
+      shepherdDataDir=contextsProps.getProperty(context+"DataDir"); 
+    }
+    Properties props = (overridePrefix==null) 
+      ? new Properties(loadOverrideProps(shepherdDataDir, fileName, langCode)) // load override properties as defaults
+      : new Properties(getProperties(fileName, langCode, context, null)); // Java's Properties-with-another-Properties-as-default constructor, using this method to make the default.
     if(!langCode.equals("")){
       langCode=langCode+"/";
     }
-    Properties contextsProps=getContextsProperties();
-    if(contextsProps.getProperty(context+"DataDir")!=null){
-      shepherdDataDir=contextsProps.getProperty(context+"DataDir"); 
+    String overrideStr = (overridePrefix==null) ? "" : overridePrefix+"/";
+    String pathStr = "webapps/wildbook_data_dir/WEB-INF/classes/bundles/"+langCode+overrideStr+fileName;
+
+    try {
+
+      File propertiesFile = new File(pathStr);
+      InputStream inputStream = new FileInputStream(propertiesFile);
+      if (inputStream!=null) props.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
+      else System.out.println("getProperties inputStream is null for path "+pathStr);
+      //if (verbose) System.out.printf("\tDone loading the input stream. Props size is now "+props.size()+"\n");
+      //System.out.printf("\tDone loading the input stream. Props size is now "+props.size()+"\n");
+      if (inputStream!=null) inputStream.close();
+    } catch (IOException ioe) {
+      if (Util.stringExists(langCode) && !langCode.equals("en") && !langCode.equals("en/")) {
+        System.out.printf("\t Weird Shepherd.properties non-english case reached with langCode %s\n",langCode);
+        props=(LinkedProperties)getProperties(fileName, "en", context);
+      } else {
+        ioe.printStackTrace();
+      }   
     }
-    LinkedProperties overrideProps=loadOverrideProps(shepherdDataDir, fileName, langCode);
-    if(overrideProps.size()>0){
-      props=overrideProps;
-    } else {
-      try {
-        InputStream inputStream=ShepherdProperties.class.getResourceAsStream("/bundles/"+langCode+fileName);
-        props.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
-        inputStream.close();
-      } catch (IOException ioe) {
-        if (!langCode.equals("en")) {
-          props=(LinkedProperties)getProperties(fileName, "en", context);
-        } else {
-          ioe.printStackTrace();
-        }   
-      }
-    }
+    
     return props;
   }
   
@@ -88,7 +134,7 @@ public class ShepherdProperties {
           }
         }
       }
-    } 
+    }
     return myProps;
   }
 
