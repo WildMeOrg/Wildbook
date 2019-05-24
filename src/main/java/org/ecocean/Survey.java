@@ -117,8 +117,6 @@ public class Survey implements java.io.Serializable{
   }
   
   public void addComments(String newComments) {
-    System.out.println("Old comments: "+comments);
-    System.out.println("New comments: "+newComments);
     try {
       if (comments != null && !comments.equals("None")) {
         comments += newComments;
@@ -283,7 +281,6 @@ public class Survey implements java.io.Serializable{
   
   public void setEndTimeWithDate(String date) {
     String milli =  monthDayYearToMilli(date);
-    System.out.println("End Milli : "+milli);
     try {
       Long m = Long.valueOf(milli); 
       endTime = Math.abs(m);      
@@ -295,7 +292,6 @@ public class Survey implements java.io.Serializable{
   
   public void setStartTimeWithDate(String date) {
     String milli =  monthDayYearToMilli(date);
-    System.out.println("Start Milli : "+milli);
     try {
       Long m = Long.valueOf(milli);  
       startTime = Math.abs(m);  
@@ -329,12 +325,10 @@ public class Survey implements java.io.Serializable{
   }
   
   private String milliToMonthDayYear(Long millis) {
-    System.out.println("Millis from Survey Object? "+millis.toString());
     if (millis!=null) {
       try {
         DateTime dt = new DateTime(millis);
         DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
-        //System.out.print("What the formatter makes: "+dtf.print(dt));
         return dtf.print(dt);       
       } catch (Exception e) {
         e.printStackTrace();
@@ -344,7 +338,6 @@ public class Survey implements java.io.Serializable{
   }
   
   public String getStartDateTime() {
-    System.out.println("Start Time in Millis for SV: "+startTime);
     if (startTime!=null) {
       return milliToMonthDayYear(startTime);
     }
@@ -352,7 +345,6 @@ public class Survey implements java.io.Serializable{
   }
   
   public String getEndDateTime() {
-    System.out.println("End Time in Millis for SV: "+endTime);
     if (endTime!=null) {
       return milliToMonthDayYear(endTime);      
     }
@@ -454,7 +446,6 @@ public class Survey implements java.io.Serializable{
   public void removeObservation(String name) {
     int counter = 0;
     if (observations != null && observations.size() > 0) {
-      System.out.println("Looking for the Observation to delete...");
       for (Observation ob : observations) {
         if (ob.getName() != null) {
           if (ob.getName().toLowerCase().trim().equals(name.toLowerCase().trim())) {

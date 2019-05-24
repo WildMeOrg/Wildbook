@@ -5,6 +5,7 @@ package org.ecocean;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.ai.nlp.SUTime;
+import org.ecocean.ai.nmt.azure.DetectTranslate;
 import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
@@ -511,28 +513,38 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         enc.setTaxonomyFromString(tx);
         enc.setState("unapproved");        
         
-        //use NLP to also try to get date and locationID
         //use NLP to get Date/Location if available in Tweet
         String newDetectedDate=ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
-        DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
-        DateTime dt=parser3.parseDateTime(newDetectedDate);
-        if(newDetectedDate.length()==10){
-          enc.setYear(dt.getYear());
-          enc.setMonth(dt.getMonthOfYear());
-          enc.setDay(dt.getDayOfMonth());
-          enc.setHour(-1);
+        
+        if(newDetectedDate!=null){
+          DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
+          DateTime dt=parser3.parseDateTime(newDetectedDate);
+          if(newDetectedDate.length()==10){
+            enc.setYear(dt.getYear());
+            enc.setMonth(dt.getMonthOfYear());
+            enc.setDay(dt.getDayOfMonth());
+            enc.setHour(-1);
+          }
+          else if(newDetectedDate.length()==7){
+            enc.setYear(dt.getYear());
+            enc.setMonth(dt.getMonthOfYear());
+            enc.setDay(-1);
+            
+          }
+          else if(newDetectedDate.length()==4){
+            enc.setYear(dt.getYear());
+            enc.setMonth(-1);
+            
+          }
         }
-        else if(newDetectedDate.length()==7){
-          enc.setYear(dt.getYear());
-          enc.setMonth(dt.getMonthOfYear());
-          enc.setDay(-1);
-          
-        }
-        else if(newDetectedDate.length()==4){
-          enc.setYear(dt.getYear());
-          enc.setMonth(-1);
-          
-        }
+        
+        //location?
+        setLocationIDFromTweet(enc, originTweet, myShepherd.getContext());
+        
+        //get Tweet comments for faster review on Encounter page
+        enc.setOccurrenceRemarks(originTweet.getText());
+        
+        
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
@@ -567,6 +579,65 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
             if (tx != null) return tx;
         }
         return TwitterUtil.getProperty(context, "taxonomyDefault");
+    }
+    
+    public static void setLocationIDFromTweet(Encounter enc, Status tweet, String context) {
+      
+      /*
+       * Step 1. Support explicit hashtagging Encounter.locationID
+       * 
+       */
+      String locationID="";
+      String location="";
+      List<String> tags = TwitterUtil.getHashtags(tweet);
+      Shepherd myShepherd=new Shepherd(context);
+      myShepherd.setAction("TwitterBot.setLocationIDFromTweet");
+      myShepherd.beginDBTransaction();
+      List<String> locIDs=myShepherd.getAllLocationIDs();
+      myShepherd.closeDBTransaction();
+      myShepherd.closeDBTransaction();
+      for (String tag : tags) {
+        try{
+          for(String l : locIDs){
+            if(tag.toLowerCase().equals(l.toLowerCase().replaceAll("-", "").replaceAll(" ", ""))){
+              enc.setLocationID(l);
+              enc.setLocation(l);
+              return;
+            }
+          }
+
+        }
+        catch(Exception e){
+          e.printStackTrace();
+        }
+      }
+      
+      /*
+       * Step 2. If not explicitly set from a hashtag, let's try to get Encounter.locationID from the text
+       * 
+       */
+      try {
+
+        LinkedProperties props=(LinkedProperties)ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+          String lowercaseRemarks=DetectTranslate.translateIfNotEnglish(tweet.getText()).toLowerCase();
+          Iterator m_enum = props.orderedKeys().iterator();
+          while (m_enum.hasNext()) {
+            String aLocationSnippet = ((String) m_enum.next()).replaceFirst("\\s++$", "");
+            //System.out.println("     Looking for: "+aLocationSnippet);
+            if (lowercaseRemarks.indexOf(aLocationSnippet) != -1) {
+              locationID = props.getProperty(aLocationSnippet);
+              location+=" "+ aLocationSnippet;
+              //System.out.println(".....Building an idea of location: "+location);
+            }
+          }
+          if(!locationID.equals("")){
+            enc.setLocationID(locationID);
+            enc.setLocation(location);
+          }
+        }
+        catch(Exception e){
+          e.printStackTrace();
+        }
     }
 
 
