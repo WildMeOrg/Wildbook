@@ -47,6 +47,8 @@ multipleSubmitUI = {
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateSpeciesDropdown(index)+"</div>";
         metadataTile +=	"       <p><textarea id=\"enc-comments-"+index+"\" class=\"form-control comment-box\" placeholder=\""+txt("moreInfo")+"\" onchange=\"updateSummary("+index+")\" rows=\"3\" cols=\"36\" /></p>";
+        metadataTile +=             "<div id=\"image-list-target-"+index+"\" onmouseout=\"multipleSubmitUI.clearImageThumbnail("+index+")\">";
+        metadataTile +=	"           </div>";
         metadataTile +=	"   </div>";
         metadataTile += "</div>";
         return metadataTile;
@@ -65,18 +67,67 @@ multipleSubmitUI = {
         return summary;
     },
 
+    generateAssociatedImageList: function() {
+        for (let i=0;i<this.encsDefined();i++) {
+            let numImgs = numImagesForEnc(i);
+            let imgNames = getEncImageList(i);
+            let lst = "";
+            if (numImgs>0) {
+                lst += "<div class=\"row\">";
+                lst += "    <div class=\"filename-scroll-list col-xs-12 col-md-6 col-lg-6 col-xl-6\">";
+                lst += "        <p><small>"+txt("hoverPreview")+"</small></p>";
+                lst += "        <ul id=\"enc-image-list="+i+"\" class=\"enc-image-list\">";
+                for (let j=0;j<numImgs;j++) {
+                    let name = imgNames[j];
+                    lst += "        <li onmouseover=\"multipleSubmitUI.generateImageThumbnail('"+name+"',"+i+")\">"+name+"</li>";
+                }
+                lst += "        </ul>";
+                lst += "    </div>"; 
+                lst += "    <div id=\"image-preview-div-"+i+"\" class=\"image-preview-div col-xs-12 col-md-6 col-lg-6 col-xl-6\">";
+                lst += "        <img id=\"image-preview-"+i+"\" class=\"image-preview\" />";
+                lst += "    </div>"; 
+                lst += "</div>"; // end row
+            }
+            document.getElementById("image-list-target-"+i).innerHTML = lst;
+        }
+    },
+
+    generateImageThumbnail: function(fileName, index) {
+        let file = getFileFromFilename(fileName);
+        if (this.hasVal(String(file))) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $("#image-preview-"+index).attr('src', e.target.result);
+                //let img = document.getElementById("image-preview-div-"+index);
+            }
+            reader.readAsDataURL(file);
+            //document.getElementById("image-preview-div-"+index).style.height = img.height;
+        }
+    },
+
+    clearImageThumbnail: function(index) {
+        document.getElementById("image-preview-"+index).setAttribute("src", "");
+    },
+
+    refreshAssociatedImageList: function() {
+        for (let i=0;i<this.encsDefined();i++) {
+            let encList = document.getElementById("image-list-target-"+i);
+            encList.innerHTML = "";
+        }
+        this.generateAssociatedImageList();
+    },
+
     generateImageTile: function(file, index) {
         var imageTile = "";
         imageTile += "<div id=\"image-tile-div-"+index+"\" class=\"image-tile-div col-xs-6 col-sm-4 col-md-3 col-lg-3 col-xl-3\" onclick=\"imageTileClicked("+index+")\" onmouseover=\"showOverlay("+index+")\" onmouseout=\"hideOverlay("+index+")\" >";
-        imageTile += "  <img class=\"image-element\" id=\""+multipleSubmitUI.getImageIdForIndex(index)+"\" src=\"#\" alt=\"Displaying "+file.name+"\" />";
-        imageTile += "  <input class=\"form-control img-filename-"+index+"\" type=\"hidden\" value=\""+file.name+"\" />";
         imageTile += "  <img class=\"image-element\" id=\""+multipleSubmitUI.getImageIdForIndex(index)+"\" src=\"../../images/loading.png\" alt=\"Displaying "+file.name+"\" />";
+        imageTile += "  <input class=\"form-control img-filename img-filename-"+index+"\" type=\"hidden\" value=\""+file.name+"\" />";
         imageTile += multipleSubmitUI.generateImageDataOverlay(file,index);                
         imageTile += "</div>";
         //console.log("image tile: "+imageTile);
         return imageTile;
     },
-                    
+
     generateImageDataOverlay: function(file,index) {
         var uiClass = multipleSubmitUI.getImageUIIdForIndex(index);
         var overlay = "";
@@ -201,7 +252,7 @@ multipleSubmitUI = {
     },
 
     updateFileCounters: function() {
-        for (let i=0;i<=this.encsDefined();i++) {
+        for (let i=0;i<this.encsDefined();i++) {
             let numImages = numImagesForEnc(i);
             let showBtn = document.getElementById("show-enc-images-btn-"+i);
             let hideBtn = document.getElementById("hide-enc-images-btn-"+i);
@@ -211,7 +262,7 @@ multipleSubmitUI = {
             if (numImages>0) {
                 let imgs = txt("images");
                 if (numImages==1) {
-                    imgs = imgs.substring(0,4);
+                    imgs = txt("image");
                 }
                 showBtn.value = (txt("show")+" "+numImages+" "+imgs);
                 hideBtn.value = (txt("hide")+" "+numImages+" "+imgs);
@@ -287,7 +338,7 @@ multipleSubmitUI = {
     },
     
     hasVal: function(entry) {
-        if (entry==undefined||entry==""||!entry) return false;
+        if (entry==undefined||entry==""||!entry||entry==null||entry=="null") return false;
         return true; 
     }, 
 

@@ -27,7 +27,7 @@ function updateSelected(inp) {
             if (inp.files[i].size > maxBytes) {
                 all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, 100MB max upload size.)</span>');
             } else {
-                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)&nbsp');
             }
         }
         f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
@@ -57,21 +57,57 @@ function backButtonClicked() {
     clearSelectedMedia();
 }
 
+var shouldProceed = false;
 function sendButtonClicked() {
     console.log("Clicked!");
+    if (hasRequiredFields()||document.getElementById("sendButton").classList.contains("missing-fields-confirmed")) {
+        document.getElementById("missing-data-message").innerHTML = ""; // y no work?
+        document.getElementById("sendButton").classList.remove("missing-fields-confirmed");
+        shouldProceed = true; 
+    } else {
+        document.getElementById("sendButton").classList.add("missing-fields-confirmed");
+    }
     // SHOWTIME! Send these images off to certain doom, then show result
-    $("#metadata-tiles-main").hide();
-    $("#image-tiles-main").hide();
-    $("#results-main").html(multipleSubmitUI.generateWaitingText());
-    setInterval(function(){
-        $(".pulsing").fadeIn(350).delay(1200).fadeOut(350);
-    });
-    multipleSubmitAPI.sendData(function(result){    
-        $("#results-main").html(multipleSubmitUI.generateResultPage(result));
-        $(".nav-buttons").empty();
-        $("#input-file-list").remove();
-        $(".form-spacer").remove();  
-    });
+    if (shouldProceed==true) {
+        $("#metadata-tiles-main").hide();
+        $("#image-tiles-main").hide();
+        $("#results-main").html(multipleSubmitUI.generateWaitingText());
+        setInterval(function(){
+            $(".pulsing").fadeIn(350).delay(1200).fadeOut(350);
+        });
+        multipleSubmitAPI.sendData(function(result){    
+            $("#results-main").html(multipleSubmitUI.generateResultPage(result));
+            $(".nav-buttons").empty();
+            $("#input-file-list").remove();
+            $(".form-spacer").remove();  
+        });
+    }
+}
+
+function hasRequiredFields() {
+    let msg = "";
+    let numEncs = multipleSubmitUI.encsDefined();
+    for (let i=0;i<numEncs;i++) {   
+        let date = document.getElementById("enc-date-"+i).value;
+        let location = document.getElementById("loc-enc-input-"+i).value;
+        console.log("Date: "+date+" Location: "+location);
+        if (!multipleSubmitUI.hasVal(date)||!multipleSubmitUI.hasVal(location)) {
+            msg += "<p class=\"missing-info\">"+txt("encounter")+" "+i+" "+txt("missingInformation")+"</p>";
+            if (!multipleSubmitUI.hasVal(date)) {
+                msg += "<p>"+txt("dateField")+"</p>";
+            }
+            if (!multipleSubmitUI.hasVal(location)) {
+                msg += "<p>"+txt("locationField")+"</p>";
+            }
+        }
+    }
+    if (multipleSubmitUI.hasVal(msg)) {
+        msg += "<p class=\"missing-info\">"+txt("askContinue")+"</p>";
+        msg += "<p class=\"missing-info\">"+txt("continueAgain")+"</p>";
+        document.getElementById("missing-data-message").innerHTML = msg;
+        return false;
+    }
+    return true;
 }
 
 // first 7 encs are colorblind friendly.
@@ -86,6 +122,7 @@ var safeColors = [
                             ];
 
 function showSelectedMedia() {
+    document.getElementById('input-file-list').innerHTML = "";
     document.getElementsByClassName("action-message")[0].innerHTML = "";
     let files = document.getElementById('file-selector-input').files;
     let imageTiles = "";
@@ -114,12 +151,22 @@ function showSelectedMedia() {
         document.getElementById("encounter-label-"+i).style.backgroundColor = color;
     }
 
-    multipleSubmitUI.updateFileCounters();
-
-    $('.encDate').datepicker({
+    $(".encDate").datepicker({
         format: 'mm/dd/yyyy',
         startDate: '-3d'
     });
+
+    multipleSubmitUI.updateFileCounters();
+    multipleSubmitUI.generateAssociatedImageList();
+}
+
+function getFileFromFilename(fileName) {
+    let files = document.getElementById('file-selector-input').files;
+    for (let i=0;i<files.length;i++) {
+        if (files[i].name==fileName) {
+            return files[i];
+        }
+    }
 }
 
 function clearSelectedMedia() {
@@ -257,6 +304,7 @@ function highlightOnEdit(index) {
     }
     // the counter on the show/hide buttons
     multipleSubmitUI.updateFileCounters(value);
+    multipleSubmitUI.refreshAssociatedImageList();
 }
 
 function out(string) {
@@ -349,6 +397,27 @@ function numImagesForEnc(encNum) {
         }
     }
     return numImgs; 
+}
+
+function getEncImageList(index) {
+    console.log("getting image list for encNum = "+index);
+    let arr = [];
+    let imgs = document.getElementsByClassName("image-tile-div");
+    console.log("got "+imgs.length+" image elements");
+    for (let i=0;i<imgs.length;i++) {
+        //console.log("got image..");
+        //console.log("inna HTML of dis img: "+imgs[i].innerHTML);
+        let dropdown = imgs[i].querySelector(".img-input").querySelector(".enc-num-dropdown"); // blech
+        if (dropdown.options[dropdown.selectedIndex].value==index) {
+            console.log("adding filename : "+imgs[i].querySelector(".img-filename").value);
+            arr.push(imgs[i].querySelector(".img-filename").value);
+        }
+    }
+    return arr;     
+}
+
+function generateImageThumbnail(fileName, index) {
+    multipleSubmitUI.generateImageThumbnail(fileName, index);
 }
 
 //recalculate label position after window resize, with delay so event dont fire like crazy

@@ -84,6 +84,10 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                     <button class="hidden-input" id="sendButton" type="button" disabled onclick="sendButtonClicked();"><%= props.getProperty("complete")%></button>
                 </div>
 
+                <br>
+
+                <div id="missing-data-message" class="container"></div>                
+
                 <div class="recaptcha-div form-define-metadata">
                     <!-- Recaptcha widget -->
                     <div id="recaptcha-div">
