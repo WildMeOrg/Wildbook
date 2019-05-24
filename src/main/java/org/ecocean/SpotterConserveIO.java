@@ -156,6 +156,8 @@ public class SpotterConserveIO {
         occ.setBestGroupSizeEstimate(new Double(numTotal));
         occ.setSightingPlatform(allJson.optString("CINMS Vessel", null));
         occ.setSource("SpotterConserveIO:ci:" + tripId);
+        String taxString = jin.optString("CINMS Species", null);
+        if (taxString != null) occ.addSpecies(taxString, myShepherd);
 
 /* also notable?
 Other Vessels On Scene: 0,
@@ -407,6 +409,7 @@ System.out.println("vols namesIn=[" + namesIn + "]");
         if (waSpecies != null) {
             annotSpecies = waSpecies;
             enc.setSpecificEpithet(waSpecies);
+            occ.addSpecies(waSpecies, myShepherd);
         }
 
         if (photoUrl != null) {

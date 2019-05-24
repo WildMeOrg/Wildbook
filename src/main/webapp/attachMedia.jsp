@@ -32,6 +32,12 @@ a.button:hover {
     font-size: 1.2em !important;
 }
 
+#occs td.td-occid {
+    width: 4em;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 .td-int {
     text-align: right;
     padding-right: 30px !important;
@@ -138,6 +144,7 @@ div.file-item div {
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
+org.ecocean.datacollection.Instant,
 org.ecocean.media.MediaAsset,
 org.ecocean.media.Feature,
 org.json.JSONObject,
@@ -156,6 +163,16 @@ private static String submittersTd(Occurrence occ) {
     if (occ == null) return "<td class=\"dull\">X</td>";
     if (Util.collectionIsEmptyOrNull(occ.getSubmitters())) return "<td class=\"dull\">-</td>";
     return "<td title=\"number of submitters: " + occ.getSubmitters().size() + "\">" + occ.getSubmitters().get(0).getDisplayName() + "</td>";
+}
+
+private static String niceLL(final Double ll) {
+    if (ll == null) return "-";
+    return new Double(Math.floor(ll * 1000) / 1000).toString();
+}
+
+private static String niceDouble(final Double d) {
+    if (d == null) return "-";
+    return new Double(Math.floor(d * 100) / 100).toString();
 }
 
 private static Map<String,String> getTripInfo(Occurrence occ) {
@@ -411,21 +428,43 @@ if (AccessControl.isAnonymous(request)) {
 <b>Trip ID = <%=tripInfo.get("id")%></b>
 <i><%=occ.getDateTimeCreated()%></i>
 </p>
+
+<%
+if (!Util.collectionIsEmptyOrNull(occ.getTaxonomies())) {
+    out.println("<p><b>Species: <i>");
+    List<String> tname = new ArrayList<String>();
+    for (Taxonomy tax : occ.getTaxonomies()) {
+        if (!tname.contains(tax.getScientificName())) tname.add(tax.getScientificName());
+    }
+    out.println(String.join(", ", tname) + "</i></b></p>");
+}
+
+if (occ.getSightingPlatform() != null) {
+    out.println("<p>Vessel: <i>" + occ.getSightingPlatform() + "</i></p>");
+}
+%>
+
 <p>
 <%
 String survId = occ.getCorrespondingSurveyID();
 if (survId == null) {
     out.println("<i>No survey associated</i>");
 } else {
-    out.println("Survey: <a href=\"surveys/survey.jsp?surveyID.jsp=" + survId + "\"><b>" + survId.substring(0,8) + "</b></a>");
+    out.println("Survey: <a href=\"surveys/survey.jsp?surveyID=" + survId + "\"><b>" + survId.substring(0,8) + "</b></a>");
 }
 %>
 </p>
-<p><%=occ.getComments()%></p>
-
-
+<p><i>Comments:</i> <%=occ.getComments()%></p>
 
 <%
+
+if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
+    out.println("<p><i>Behaviors:</i><ul>");
+    for (Instant behav : occ.getBehaviors()) {
+        out.println("<li>" + behav.getValue().toString().substring(0,19) + " <b>" + behav.getName() + "</b></li>");
+    }
+    out.println("</ul></p>");
+}
 
 String toEncId = request.getParameter("toEncounter");
 Encounter addToEncounter = null;
@@ -534,7 +573,7 @@ System.out.println(ft.getParameters());
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
     User user = AccessControl.getUser(request, myShepherd);
-    boolean admin = request.isUserInRole("admin");
+    boolean admin = (user != null) && "admin".equals(user.getUsername());
     //String filter = "SELECT FROM org.ecocean.Occurrence WHERE source != null";
     String filter = "SELECT FROM org.ecocean.Occurrence WHERE source.matches('SpotterConserveIO:.*')";
     if (!admin) filter += " && submitters.contains(u) && u.uuid == '" + user.getUUID() + "'";
@@ -545,9 +584,10 @@ System.out.println(ft.getParameters());
         out.println("<h2>None available</h2>");
     } else {
 %>
+<h2>Listing of imported Ocean Alert data</h2>
 <table class="tablesorter" id="occs"><thead><tr>
 <%
-        List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Occ ID", "Date/Time", "# Encs", "Photos", "Placeholder"}));
+        List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Occ ID", "Date/Time", "Species", "#Adult,Calv", "Lat", "Lon", "Bearing", "# Encs", "Photos", "Placeholder", "# Behav"}));
         if (admin) heads.add("User(s)");
         for (String h : heads) {
             out.println("<th>" + h + "</th>");
@@ -562,8 +602,24 @@ System.out.println(ft.getParameters());
             Map<String,String> tripInfo = getTripInfo(occ);
             row += "<td>" + tripInfo.get("typeLabel") + "</td>";
             row += "<td class=\"td-int\">" + tripInfo.get("id") + "</td>";
-            row += "<td>" + occ.getOccurrenceID() + "</td>";
-            row += "<td>" + occ.getDateTimeCreated() + "</td>";
+            row += "<td class=\"td-occid\">" + occ.getOccurrenceID() + "</td>";
+            row += "<td>" + occ.getDateTimeCreated().substring(0,16) + "</td>";
+            List<Taxonomy> tax = occ.getTaxonomies(); //TODO also check encs???
+            if (Util.collectionIsEmptyOrNull(tax)) {
+                row += "<td class=\"dull\">-</td>";
+            } else {
+                List<String> tnames = new ArrayList<String>();
+                for (Taxonomy t : tax) {
+                    tnames.add(t.getScientificName());
+                }
+                row += "<td>" + String.join(", ", tnames) + "</td>";
+            }
+            int numAdults = (occ.getNumAdults() == null) ? 0 : occ.getNumAdults();
+            int numCalves = (occ.getNumCalves() == null) ? 0 : occ.getNumCalves();
+            row += "<td class=\"td-intx td-num-" + (numAdults + numCalves) + "\">" + numAdults + ", " + numCalves + "</td>";
+            row += "<td>" + niceLL(occ.getDecimalLatitude()) + "</td>";
+            row += "<td>" + niceLL(occ.getDecimalLongitude()) + "</td>";
+            row += "<td>" + niceDouble(occ.getBearing()) + "</td>";
             row += "<td class=\"td-int td-num-" + occ.getNumberEncounters() + "\">" + occ.getNumberEncounters() + "</td>";
             int numPhotos = 0;
             int numPlaceholders = 0;
@@ -593,6 +649,8 @@ System.out.println(ft.getParameters());
             }
             row += "<td class=\"td-int td-num-" + numPhotos + "\">" + numPhotos + "</td>";
             row += "<td " + phnote + " class=\"td-int td-num-" + numPlaceholders + "\">" + numPlaceholders + "</td>";
+            int numBehav = Util.collectionSize(occ.getBehaviors());
+            row += "<td class=\"td-int td-num-" + numBehav + "\">" + numBehav + "</td>";
             if (admin) row += submittersTd(occ);
             out.println(row + "</tr>");
         }
