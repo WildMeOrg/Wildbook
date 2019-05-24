@@ -135,7 +135,8 @@ function drawOccurrence(occ, occI) {
         });
         marker.setLabel(String.fromCharCode(65 + occI));
         google.maps.event.addListener(marker, 'click', function() {
-            var content = 'hello solveig!';
+            var content = '<p><b><a href="../occurrence.jsp?number=' + occ.id + '">' + occ.id + '</a></b></p>';
+            content += '<p>Lat: <b>' + occ.lat + '</b><br />Lon: <b>' + occ.lon + '</b></p>';
             (new google.maps.InfoWindow({content: content })).open(map, this);
         });
     }
