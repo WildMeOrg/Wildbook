@@ -309,7 +309,7 @@ public class SUTime {
           catch(Exception e){
             e.printStackTrace();
           }
-          if(selectedDate == null | selectedDate.equals("")){
+          if(selectedDate == null || selectedDate.equals("")){
             return null;
           } 
           else{
@@ -377,7 +377,7 @@ public static String selectBestDateFromCandidates(ArrayList<String> candidates) 
 
 
     //Now select the longest one?
-    if(validDatesFilteredByYesterday == null | validDatesFilteredByYesterday.size()<1){
+    if(validDatesFilteredByYesterday == null || validDatesFilteredByYesterday.size()<1){
       throw new Exception("validDatesFilteredByYesterday is null or empty before selecting the longest string");
     }
     if(validDatesFilteredByYesterday.size()>1){
@@ -397,7 +397,7 @@ public static String selectBestDateFromCandidates(ArrayList<String> candidates) 
     }
   }
 
-  if(selectedDate == null | selectedDate.equals("")){
+  if(selectedDate == null || selectedDate.equals("")){
     throw new Exception("selectedDate either null or empty after selecting for longest one");
   } else {
     return selectedDate;
@@ -567,33 +567,13 @@ String text=TwitterUtil.getText(tweet);
   System.out.println("Entering nlpDateParse twitter version with text " + text);
 //create my pipeline with the help of the annotators I added.
 
-  Date tweetDate=tweet.getCreatedAt();
-  String referenceDate="";
-  if(tweetDate!=null){
-    try{
-      DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
-      referenceDate = dateFormat.format(tweetDate);
-    }
-    catch(Exception e){
-      e.printStackTrace();
-    }
-  }
-  String selectedDate=parseDateStringForBestDate(rootDir, text, referenceDate);
+  //Date tweetDate=tweet.getCreatedAt();
+  String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+ 
 
-  if(selectedDate == null | selectedDate.equals("")){
-    try{
-      DateFormat dfTweetStamp = new SimpleDateFormat("yyyy-MM-dd");
-      selectedDate = dfTweetStamp.format(tweetDate);
-      System.out.println("Date of tweet when all other candidates were eliminated is: " + selectedDate);
-      return selectedDate;
-    } 
-    catch(Exception e){
-      e.printStackTrace();
-      throw new Exception("Couldn't fetch a timeStamp for the tweet to use as a last-resort date after all other candidates were eliminated");
-    }
-  } else{
-    return null;
-  }
+  String selectedDate=parseDateStringForBestDate(rootDir, text, relativeDate);
+  System.out.println("Best guess for referenced Tweet date from NLP: " +selectedDate);
+  return selectedDate;
 
 }
 
