@@ -599,7 +599,7 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
       for (String tag : tags) {
         try{
           for(String l : locIDs){
-            if(tag.toLowerCase().equals(l.toLowerCase().replaceAll("-", "_"))){
+            if(tag.toLowerCase().equals(l.toLowerCase().replaceAll("-", "_").replaceAll(" ", ""))){
               enc.setLocationID(l);
               enc.setLocation(l);
               return;
