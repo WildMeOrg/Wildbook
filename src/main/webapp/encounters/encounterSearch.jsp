@@ -3,8 +3,47 @@
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
-<%@ page import="java.util.Properties" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ page import="java.util.Properties, java.io.IOException" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%!
+// here I'll define some methods that will end up in classEditTemplate
+
+public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+  out.println("<tr id=\""+fieldName+"Row\">");
+  out.println("  <td id=\""+fieldName+"Title\"><br /><strong>"+displayName+"</strong>");
+  out.println("  <input name=\""+fieldName+"\" type=\"text\" size=\"60\"/> <br> </td>");
+  out.println("</tr>");
+
+}
+public static void printStringFieldSearchRow(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+  out.println("<tr id=\""+fieldName+"Row\">");
+  out.println("  <td id=\""+fieldName+"Title\">"+displayName+"</td>");
+  out.println("  <td> <select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
+  out.println("    <option value=\"None\" selected=\"selected\"></option>");
+  for (String val: valueOptions) {
+    out.println("    <option value=\""+val+"\">"+val+"</option>");
+  }
+  out.println("  </select></td>");
+  out.println("</tr>");
+
+}
+
+public static String getDisplayName(String fieldName, Properties nameLookup) throws IOException, IllegalAccessException {
+  // Tries to lookup a translation and defaults to some string manipulation
+  String defaultName = ClassEditTemplate.prettyFieldName(fieldName);
+  String ans = nameLookup.getProperty(fieldName, ClassEditTemplate.capitalizedPrettyFieldName(fieldName));
+  if (Util.stringExists(ans)) return ans;
+  System.out.println("getDisplayName found no property for "+fieldName+" in "+nameLookup+". Falling back on fieldName");
+  return fieldName;
+}
+%>
+
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -1331,13 +1370,15 @@ else {
 		</td>
         </tr>
 		
-		<tr>
-  <td><br /><strong><%=encprops.getProperty("submitterName")%></strong>
+<tr>
+  <td><br /><strong><%=encprops.getProperty("submitterName")%></strong><br />
     <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
     </em>
   </td>
 </tr>
 
+<% printStringFieldSearchRow("submitterProject", out, encprops); %>
+<% printStringFieldSearchRow("submitterOrganization", out, encprops); %>
 
 
 <tr>
