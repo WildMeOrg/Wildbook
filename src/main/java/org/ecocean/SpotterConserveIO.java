@@ -142,6 +142,7 @@ public class SpotterConserveIO {
     public static Occurrence ciToOccurrence(JSONObject jin, JSONObject jin2, JSONObject allJson, Shepherd myShepherd) {
         int tripId = allJson.optInt("_tripId", 0);
         Occurrence occ = new Occurrence();
+        occ.setDWCDateLastModified();
         occ.setOccurrenceID(Util.generateUUID());
         occ.addComments(jin.optString("Comments", null));
         occ.setDateTimeCreated(jin.optString("create_date", null));
@@ -156,8 +157,13 @@ public class SpotterConserveIO {
         occ.setBestGroupSizeEstimate(new Double(numTotal));
         occ.setSightingPlatform(allJson.optString("CINMS Vessel", null));
         occ.setSource("SpotterConserveIO:ci:" + tripId);
+/*
         String taxString = jin.optString("CINMS Species", null);
         if (taxString != null) occ.addSpecies(taxString, myShepherd);
+*/
+        Taxonomy tax = ciToTaxonomy(jin.optString("CINMS Species", null), myShepherd);
+System.out.println("ciToTaxonomy => " + tax);
+        if (tax != null) occ.addTaxonomy(tax);
 
 /* also notable?
 Other Vessels On Scene: 0,
@@ -194,6 +200,11 @@ Distance Category: "B"
         return occ;
     }
 
+    public static Taxonomy ciToTaxonomy(String taxString, Shepherd myShepherd) {
+        if (taxString == null) return null;
+        //for now, lets punt and assume taxString is sciname. boo!
+        return myShepherd.getOrCreateTaxonomy(taxString, true);
+    }
 
 /*
     {
@@ -327,6 +338,7 @@ System.out.println("vols namesIn=[" + namesIn + "]");
 
     public static Occurrence waToOccurrence(JSONObject jin, JSONObject jin2, int tripId, Shepherd myShepherd) {
         Occurrence occ = new Occurrence();
+        occ.setDWCDateLastModified();
         occ.setOccurrenceID(Util.generateUUID());
         String comments = jin.optString("Comments", null);
         if (comments == null) {
@@ -344,9 +356,9 @@ System.out.println("vols namesIn=[" + namesIn + "]");
         occ.setSource("SpotterConserveIO:wa:" + tripId);
 
         //  also notable???     Whale Alert Other Species: ""
-
-//Whale Alert Species: "Orca",
-
+        Taxonomy tax = waToTaxonomy(jin.optString("Whale Alert Species", null), myShepherd);
+System.out.println("wa.tax => " + tax);
+        if (tax != null) occ.addTaxonomy(tax);
 
         //it actually appears the jin2 array contains WhaleAlert type sightings data, fwiw; but we only care about these 2:
         occ.addComments("<p class=\"import-source\">conserve.io source: <a href=\"" + jin2.optString("url") + "\"><b>" + jin2.optString("id") + "</b></a></p>");
@@ -366,6 +378,11 @@ System.out.println("vols namesIn=[" + namesIn + "]");
         return occ;
     }
 
+    public static Taxonomy waToTaxonomy(String taxString, Shepherd myShepherd) {
+        if (taxString == null) return null;
+        //for now, lets punt and assume taxString is sciname. boo!
+        return myShepherd.getOrCreateTaxonomy(taxString, true);
+    }
 
     public static Encounter waToEncounter(String photoUrl, JSONObject occJson, Occurrence occ, Shepherd myShepherd) {
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);
@@ -500,6 +517,7 @@ System.out.println("waToUser -> " + jin);
 
     public static Occurrence oaToOccurrence(JSONObject jin, JSONObject jin2, int tripId, Shepherd myShepherd) {
         Occurrence occ = new Occurrence();
+        occ.setDWCDateLastModified();
         occ.setOccurrenceID(Util.generateUUID());
         String comments = jin.optString("Comments", null);
         if (comments == null) {
@@ -514,7 +532,7 @@ System.out.println("waToUser -> " + jin);
         occ.setDecimalLongitude(resolveLatLon(jin, "device_longitude", "Longitude"));
         occ.setIndividualCount(jin.optInt("Number Sighted", 0));
         //occ.setBestGroupSizeEstimate(jin.optDouble("Number Sighted", 0.0));
-        occ.setTaxonomy(oaToTaxonomy(jin, myShepherd));
+        occ.addTaxonomy(oaToTaxonomy(jin, myShepherd));
         occ.setSource("SpotterConserveIO:oa:" + tripId);
 
         //  also notable???     Whale Alert Other Species: ""

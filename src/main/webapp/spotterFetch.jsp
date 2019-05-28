@@ -1,31 +1,31 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-     import="org.ecocean.*,
-java.util.ArrayList,
-java.util.List,
-java.io.BufferedReader,
-java.io.IOException,
-java.io.InputStream,
-java.io.InputStreamReader,
-org.joda.time.DateTime,
-java.io.File,
-java.util.Collection,
-java.nio.file.Files,
-org.json.JSONObject,
-org.json.JSONArray,
-javax.jdo.Query,
-org.apache.commons.lang3.StringUtils,
-org.ecocean.movement.SurveyTrack,
-org.ecocean.servlet.ServletUtilities,
+import="org.ecocean.*,
+    java.util.ArrayList,
+    java.util.List,
+    java.io.BufferedReader,
+    java.io.IOException,
+    java.io.InputStream,
+    java.io.InputStreamReader,
+    org.joda.time.DateTime,
+    java.io.File,
+    java.util.Collection,
+    java.nio.file.Files,
+    org.json.JSONObject,
+    org.json.JSONArray,
+    javax.jdo.Query,
+    org.apache.commons.lang3.StringUtils,
+    org.ecocean.movement.SurveyTrack,
+    org.ecocean.servlet.ServletUtilities,
 
-org.ecocean.media.*
-              "
-%>
+    org.ecocean.media.*
+    "
+    %>
 
-<%!
+    <%!
 
-private static void fetchLog(String msg) {
-    System.out.println("[spotterFetch " + (new DateTime()).toString().substring(0,19) + "] " + msg);
-}
+    private static void fetchLog(String msg) {
+        System.out.println("[spotterFetch " + (new DateTime()).toString().substring(0,19) + "] " + msg);
+    }
 
 private static String niceDate(int t) {
     return (new DateTime((long)t * 1000L)).toString().substring(0,19);
@@ -46,102 +46,150 @@ private static Occurrence loadByTripId(Shepherd myShepherd, int tripId) {
     return (Occurrence)results.iterator().next();
 }
 
+private static String justSomeTrips(String[] tripIds, Shepherd myShepherd) {
+    if ((tripIds == null) || (tripIds.length < 1)) return "<p>no tripIds passed to justSomeTrips()</p>";
+    String rtn = "<p>specific trip IDs: <b>" + String.join(", ", tripIds) + "</b></p>";
+    rtn += "<p>Do trips already exist?<ul>";
+    List<Integer> intIds = new ArrayList<Integer>();
+    for (int i = 0 ; i < tripIds.length ; i++) {
+        int id = -1;
+        try {
+            id = Integer.parseInt(tripIds[i]);
+        } catch (NumberFormatException ex) {}
+        intIds.add(id);
+        Occurrence occ = loadByTripId(myShepherd, id);
+        if (occ != null) {
+            rtn += "<li class=\"exists\"><b>" + id + "</b> exists: <a href=\"occurrence.jsp?number=" + occ.getOccurrenceID() + "\">Occ " + occ.getOccurrenceID() + "</a></li>";
+        } else {
+            rtn += "<li><b>" + id + "</b> does not exist</li>";
+        }
+    }
+    rtn += "</ul></p><p><b>Creation results:</b><ul>";
 
-//  here j => {"end_date":"2019-05-10 16:51:00+00:00","creator":"whaleWebAK","id":22120,"create_date":"2019-05-10 16:51:00+00:00","start_date":"2019-05-10 16:51:00+00:00"}
-private static String tryTrip(Shepherd myShepherd, JSONObject j, String flavor) {
-    if (j == null) return "<li>tryTrip NULL input</li>";
-    int id = j.optInt("id", -1);
-    if (id < 0) return "<li>tryTrip invalid id=" + id + "</li>";
-    Occurrence occ = loadByTripId(myShepherd, id);
-    if (occ != null) {
-        return "<li class=\"exists\"><b>" + id + "</b> (" + j.optString("start_date") + ") exists: <a href=\"occurrence.jsp?number=" + occ.getOccurrenceID() + "\">Occ " + occ.getOccurrenceID() + "</a></li>";
-    } else {
+    for (Integer id : intIds) {
         JSONObject tripData = null;
         try {
             tripData = SpotterConserveIO.getTrip(id);
         } catch (Exception ex) {
             fetchLog("getTrip(" + id + ") threw " + ex.toString());
-            return "<li>exception getting trip id=" + id + " (flavor " + flavor + "): " + ex.toString() + "</li>";
+            rtn += "<li>exception getting trip id=" + id + ": " + ex.toString() + "</li>";
+            continue;
         }
         Object res = doImport(myShepherd, tripData);
-        if (res == null) return "<li><i>null for trip id=" + id + " (flavor " + flavor + ")</i></li>";
-        return "<li>trip id=<b>" + id + "</b> (" + flavor + ") -> " + res + "</li>";
-    }
-}
-
-
-private static Object doImport(Shepherd myShepherd, JSONObject tripData) {
-    if (tripData == null) return null;
-    String flavor = tripData.optString("_tripFlavor", "__FAIL__");
-    String tripId = tripData.optString("_tripId", "(unknown id)");  //note: this could safely be an int, i suppose
-    fetchLog("doImport() trip.id=" + tripId + " (flavor=" + flavor + ")");
-    if (flavor.equals("ci")) {
-        
-        Survey surv = SpotterConserveIO.ciToSurvey(tripData, myShepherd);
-        myShepherd.getPM().makePersistent(surv);
-        fetchLog("spotterTest: created " + surv.toString());
-        ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
-        if (tracks != null) {
-            for (SurveyTrack trk : tracks) {
-                fetchLog("- " + trk);
-                ArrayList<Occurrence> occs = trk.getOccurrences();
-                if (occs == null) {
-                    fetchLog("- no Occurrences");
-                } else {
-                    for (Occurrence occ : occs) {
-                        myShepherd.getPM().makePersistent(occ);
-                        fetchLog("- " + occ);
-                    }
-                }
-                fetchLog("- " + ((trk.getPath() == null) ? "no path" : trk.getPath()));
-            }
+        if (res == null) {
+            rtn += "<li><i>null for trip id=" + id + "</i></li>";
         } else {
-            fetchLog("- no tracks");
+            String flavor = tripData.optString("_tripFlavor", "UNKNOWN");
+            rtn += "<li>trip id=<b>" + id + "</b> (flavor=" + flavor + ") -> " + res + "</li>";
         }
-        myShepherd.getPM().makePersistent(surv);
-        return surv;
-
-    } else if (flavor.equals("wa")) {
-        List<Occurrence> occs = SpotterConserveIO.waToOccurrences(tripData, myShepherd);
-        if (occs == null) {
-            fetchLog("- no Occurrences");
-            return null;
-        }
-        for (Occurrence occ : occs) {
-            myShepherd.getPM().makePersistent(occ);
-            fetchLog("- " + occ);
-        }
-        return occs;
-
-    } else {
-        fetchLog("ERROR: unknown flavor " + flavor);
     }
-    return null;
+    rtn += "</ul></p>";
+
+    return rtn;
 }
 
-%>
+    //  here j => {"end_date":"2019-05-10 16:51:00+00:00","creator":"whaleWebAK","id":22120,"create_date":"2019-05-10 16:51:00+00:00","start_date":"2019-05-10 16:51:00+00:00"}
+    private static String tryTrip(Shepherd myShepherd, JSONObject j, String flavor) {
+        if (j == null) return "<li>tryTrip NULL input</li>";
+        int id = j.optInt("id", -1);
+        if (id < 0) return "<li>tryTrip invalid id=" + id + "</li>";
+        Occurrence occ = loadByTripId(myShepherd, id);
+        if (occ != null) {
+            return "<li class=\"exists\"><b>" + id + "</b> (" + j.optString("start_date") + ") exists: <a href=\"occurrence.jsp?number=" + occ.getOccurrenceID() + "\">Occ " + occ.getOccurrenceID() + "</a></li>";
+        } else {
+            JSONObject tripData = null;
+            try {
+                tripData = SpotterConserveIO.getTrip(id);
+            } catch (Exception ex) {
+                fetchLog("getTrip(" + id + ") threw " + ex.toString());
+                return "<li>exception getting trip id=" + id + " (flavor " + flavor + "): " + ex.toString() + "</li>";
+            }
+            Object res = doImport(myShepherd, tripData);
+            if (res == null) return "<li><i>null for trip id=" + id + " (flavor " + flavor + ")</i></li>";
+            return "<li>trip id=<b>" + id + "</b> (" + flavor + ") -> " + res + "</li>";
+        }
+    }
 
 
-<%
+    private static Object doImport(Shepherd myShepherd, JSONObject tripData) {
+        if (tripData == null) return null;
+        String flavor = tripData.optString("_tripFlavor", "__FAIL__");
+        String tripId = tripData.optString("_tripId", "(unknown id)");  //note: this could safely be an int, i suppose
+        fetchLog("doImport() trip.id=" + tripId + " (flavor=" + flavor + ")");
+        if (flavor.equals("ci")) {
 
-String context = ServletUtilities.getContext(request);
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.beginDBTransaction();
-FeatureType.initAll(myShepherd);
+            Survey surv = SpotterConserveIO.ciToSurvey(tripData, myShepherd);
+            myShepherd.getPM().makePersistent(surv);
+            fetchLog("spotterTest: created " + surv.toString());
+            ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
+            if (tracks != null) {
+                for (SurveyTrack trk : tracks) {
+                    fetchLog("- " + trk);
+                    ArrayList<Occurrence> occs = trk.getOccurrences();
+                    if (occs == null) {
+                        fetchLog("- no Occurrences");
+                    } else {
+                        for (Occurrence occ : occs) {
+                            myShepherd.getPM().makePersistent(occ);
+                            fetchLog("- " + occ);
+                        }
+                    }
+                    fetchLog("- " + ((trk.getPath() == null) ? "no path" : trk.getPath()));
+                }
+            } else {
+                fetchLog("- no tracks");
+            }
+            myShepherd.getPM().makePersistent(surv);
+            return surv;
 
-try {
-    SpotterConserveIO.init(context);
-} catch (Exception ex) {
-    out.println("<p class=\"error\">Warning: SpotterConserveIO.init() threw <b>" + ex.toString() + "</b></p>");
+        } else if (flavor.equals("wa")) {
+            List<Occurrence> occs = SpotterConserveIO.waToOccurrences(tripData, myShepherd);
+            if (occs == null) {
+                fetchLog("- no Occurrences");
+                return null;
+            }
+            for (Occurrence occ : occs) {
+                myShepherd.getPM().makePersistent(occ);
+                fetchLog("- " + occ);
+            }
+            return occs;
+
+        } else {
+            fetchLog("ERROR: unknown flavor " + flavor);
+        }
+        return null;
+    }
+
+    %>
+
+
+        <%
+
+        String context = ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.beginDBTransaction();
+    FeatureType.initAll(myShepherd);
+
+    try {
+        SpotterConserveIO.init(context);
+    } catch (Exception ex) {
+        out.println("<p class=\"error\">Warning: SpotterConserveIO.init() threw <b>" + ex.toString() + "</b></p>");
+        return;
+    }
+
+    if (!SpotterConserveIO.hasBeenInitialized()) {
+        out.println("<p class=\"error\">Warning: SpotterConserveIO appears to not have been initialized; failing</p>");
+        return;
+    }
+
+    out.println("<p><i>Successful init.</i> Using: <b>" + SpotterConserveIO.apiUrlPrefix + "</b></p>");
+
+    //this is a little short-circuit to do just specific trip(s)
+    String[] tripIds = request.getParameterValues("tripId");
+    if ((tripIds != null) && (tripIds.length > 0)) {
+        out.println(justSomeTrips(tripIds, myShepherd));
     return;
 }
-
-if (!SpotterConserveIO.hasBeenInitialized()) {
-    out.println("<p class=\"error\">Warning: SpotterConserveIO appears to not have been initialized; failing</p>");
-    return;
-}
-
-out.println("<p><i>Successful init.</i> Using: <b>" + SpotterConserveIO.apiUrlPrefix + "</b></p>");
 
 Integer since = null;
 try {

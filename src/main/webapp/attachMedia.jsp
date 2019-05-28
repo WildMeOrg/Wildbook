@@ -159,9 +159,13 @@ java.util.Properties" %>
 
 <%!
 
+private static String emptyTd() {
+    return "<td class=\"dull\">&#x2014;</td>";
+}
+
 private static String submittersTd(Occurrence occ) {
-    if (occ == null) return "<td class=\"dull\">X</td>";
-    if (Util.collectionIsEmptyOrNull(occ.getSubmitters())) return "<td class=\"dull\">-</td>";
+    if (occ == null) return emptyTd();
+    if (Util.collectionIsEmptyOrNull(occ.getSubmitters())) return emptyTd();
     return "<td title=\"number of submitters: " + occ.getSubmitters().size() + "\">" + occ.getSubmitters().get(0).getDisplayName() + "</td>";
 }
 
@@ -587,7 +591,7 @@ System.out.println(ft.getParameters());
 <h2>Listing of imported Ocean Alert data</h2>
 <table class="tablesorter" id="occs"><thead><tr>
 <%
-        List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Occ ID", "Date/Time", "Species", "#Adult,Calv", "Lat", "Lon", "Bearing", "# Encs", "Photos", "Placeholder", "# Behav"}));
+        List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Occ ID", "Date/Time", "Species", "#Adult,Calv", "Lat", "Lon", "Bearing", "# Encs", "Photos", "Placeholder", "# Behav", "Modified"}));
         if (admin) heads.add("User(s)");
         for (String h : heads) {
             out.println("<th>" + h + "</th>");
@@ -606,7 +610,7 @@ System.out.println(ft.getParameters());
             row += "<td>" + occ.getDateTimeCreated().substring(0,16) + "</td>";
             List<Taxonomy> tax = occ.getTaxonomies(); //TODO also check encs???
             if (Util.collectionIsEmptyOrNull(tax)) {
-                row += "<td class=\"dull\">-</td>";
+                row += emptyTd();
             } else {
                 List<String> tnames = new ArrayList<String>();
                 for (Taxonomy t : tax) {
@@ -651,6 +655,7 @@ System.out.println(ft.getParameters());
             row += "<td " + phnote + " class=\"td-int td-num-" + numPlaceholders + "\">" + numPlaceholders + "</td>";
             int numBehav = Util.collectionSize(occ.getBehaviors());
             row += "<td class=\"td-int td-num-" + numBehav + "\">" + numBehav + "</td>";
+            row += (Util.stringExists(occ.getDWCDateLastModified()) ? "<td>" + occ.getDWCDateLastModified() + "</td>" : emptyTd());
             if (admin) row += submittersTd(occ);
             out.println(row + "</tr>");
         }
