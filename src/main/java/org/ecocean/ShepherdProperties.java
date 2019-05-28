@@ -75,6 +75,10 @@ public class ShepherdProperties {
     try {
 
       File propertiesFile = new File(pathStr);
+      if (!propertiesFile.exists()) { // here we fall back to the not-override directory if the override dir file doesn't exist
+        pathStr = "webapps/wildbook/WEB-INF/classes/bundles/"+langCode+overrideStr+fileName;
+        propertiesFile = new File(pathStr);
+      }
       InputStream inputStream = new FileInputStream(propertiesFile);
       if (inputStream!=null) props.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
       else System.out.println("getProperties inputStream is null for path "+pathStr);
@@ -86,6 +90,7 @@ public class ShepherdProperties {
         System.out.printf("\t Weird Shepherd.properties non-english case reached with langCode %s\n",langCode);
         props=(LinkedProperties)getProperties(fileName, "en", context);
       } else {
+        System.out.printf("Exception met while finding/reading file in ShepherdProperties.getProps(%s, %s, %s, %s).\n",fileName, langCode, context, overridePrefix);
         ioe.printStackTrace();
       }   
     }
