@@ -349,6 +349,8 @@ pre.json {
     border-radius: 3px;
     background-color: #EEE;
     display: inline-flex;
+    max-width: 60%;
+    overflow-x: scroll;
 }
 
 </style>
