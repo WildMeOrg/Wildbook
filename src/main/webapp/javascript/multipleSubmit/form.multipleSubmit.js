@@ -12,9 +12,11 @@ function recaptchaCallback() {
 
 // file selection and form switching
 var maxBytes = 104857600; // This is 100mb but can be overridden in properties through the jsp
+var maxUploadBytes = 250 * (1024*1024);
 function updateSelected(inp) {
     // if there are no files, disable continue. If there is, enable.
     var f = '';
+    let totalBytes = 0;
     if (inp.files && inp.files.length) {
         if (inp.files.length > 0) {
             if (document.getElementById("recaptcha-checked").value=="true") {
@@ -25,17 +27,27 @@ function updateSelected(inp) {
         var all = [];
         for (var i = 0 ; i < inp.files.length ; i++) {
             if (inp.files[i].size > maxBytes) {
-                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, 100MB max upload size.)</span>');
+                all.push('<span class="file-list-name">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, 100MB max file size.)</span>');
             } else {
-                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)&nbsp');
+                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)&nbsp&nbsp');
+                totalBytes += inp.files[i].size;
             }
         }
         f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
+        f += '<br><b>'+txt('totalSize')+" "+(totalBytes/(1024*1024)).toFixed(2)+' MB</b>';
+        if (totalBytes>maxUploadBytes) {
+            f += '<br><b class=\"total-size-exceeded\">'+txt('totalSizeExceeded')+'</b>';
+            f += '<br><b class=\"total-size-exceeded\">'+txt('recommendedMaxSize')+" "+(maxUploadBytes/(1024*1024)).toFixed(2)+' MB</b>';
+        }
     } else {
         f = inp.value;
     }
     document.getElementById('input-file-list').innerHTML = f;
 }
+// add a sum of all file size here, it will help with cutoffs!
+// more emphasis on each file name
+
+
 
 function continueButtonClicked() {
     $(".form-file-selection").hide();

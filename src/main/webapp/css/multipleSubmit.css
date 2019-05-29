@@ -191,6 +191,12 @@ div .img-input {
     background-color: rgba(0,0,0,0.30)
 }
 
+.file-list-name {
+    color: #333 !important;
+    padding: 9px !important;
+    font-size: 0.9em !important;
+}
+
 .image-label {
     background-color: slategray;
     color: white;
@@ -233,8 +239,19 @@ div .img-input {
     color: darkred;
 }
 
+.results-waiting {
+    font-weight: bolder;
+    background-color: lightblue;
+    color: darkblue;
+    padding: 1em;
+}
+
 .show-metadata-btn {
     margin: 0 !important;
+}
+
+.summary-label {
+    white-space: nowrap;
 }
 
 .tile-selected {
@@ -246,13 +263,8 @@ div .img-input {
     */
 }
 
-.results-waiting {
-    font-weight: bolder;
-    background-color: lightblue;
-    color: darkblue;
-    padding: 1em;
+.total-size-exceeded {
+    font-weight: bold;
+    color: darkred;
 }
 
-.summary-label {
-    white-space: nowrap;
-}
