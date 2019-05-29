@@ -62,7 +62,7 @@ public class ImportIA extends HttpServlet {
     //  mostly cuz this makes "co-occurring" Encounters where we probably dont want them
     boolean createOccurrences = Util.requestParameterSet(request.getParameter("createOccurrences"));
 
-    out.println("<h1>Starting ImportIA servlet | import task=" + itask.getId() + "</h1>");
+    out.println("<h1>Starting ImportIA servlet | import task=<a href=\"obrowse.jsp?type=ImportTask&id=" + itask.getId() + "\">" + itask.getId() + "</a></h1>");
     myShepherd.beginDBTransaction();
 
     String urlSuffix = "/api/imageset/json/";
@@ -282,11 +282,12 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
         myShepherd.commitDBTransaction();
     }
 
-    //myShepherd.closeDBTransaction();
 
     log(itask, "completed");
     out.println("<p><i>completed</i></p>");
     myShepherd.getPM().makePersistent(itask);
+    myShepherd.commitDBTransaction();
+    myShepherd.closeDBTransaction();
   }
 
   // I always swallow errors in the interest of clean code!
