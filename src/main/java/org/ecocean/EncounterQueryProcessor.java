@@ -32,7 +32,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
   private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
 
-  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"lifeStage","groupRole"};
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"lifeStage","groupRole","submitterOrganization",};
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
@@ -1279,8 +1279,8 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       }
     }
 
-
-
+    // I choose to put this on one line out of pride alone -db
+    for (String fieldName : SIMPLE_STRING_FIELDS) filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
 
     filter = filterWithGpsBox("decimalLatitude","decimalLongitude", filter, request);
 
