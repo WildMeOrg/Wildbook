@@ -20,6 +20,8 @@
 
       <field name="parameters" persistence-modifier="persistent" />
 
+      <field name="log" persistence-modifier="persistent" serialized-element="true" />
+
     </class> 
   
   </package>

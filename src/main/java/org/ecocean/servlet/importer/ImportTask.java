@@ -11,6 +11,7 @@ import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -21,6 +22,7 @@ public class ImportTask implements java.io.Serializable {
     private DateTime created;
     private List<Encounter> encounters;
     private String parameters;
+    private List<String> log;
 
     public ImportTask() {
         this((User)null);
@@ -46,6 +48,11 @@ public class ImportTask implements java.io.Serializable {
     }
     public void setEncounters(List<Encounter> encs) {
         encounters = encs;
+    }
+    public void addEncounter(Encounter enc) {
+        if (enc == null) return;
+        if (encounters == null) encounters = new ArrayList<Encounter>();
+        if (!encounters.contains(enc)) encounters.add(enc);
     }
 
     public void setCreator(User u) {
@@ -102,6 +109,36 @@ public class ImportTask implements java.io.Serializable {
         if (p == null) p = new JSONObject();
         p.put("_passedParameters", Util.requestParametersToJSONObject(request));
         parameters = p.toString();
+    }
+
+    //note: this auto-timestamps
+    public void addLog(String l) {
+        if (l == null) return;
+        if (log == null) log = new ArrayList<String>();
+        log.add(Long.toString(System.currentTimeMillis()) + " " + l);
+    }
+    public List<String> getLog() {
+        return log;
+    }
+    public JSONArray getLogJSONArray() {
+        JSONArray larr = new JSONArray();
+        if (Util.collectionIsEmptyOrNull(log)) return larr;
+        for (String l : log) {
+            JSONObject jl = new JSONObject();
+            if (l.matches("^\\d{13} .*$")) {  //has timestamp
+                String ts = l.substring(0,13);
+                try {
+                    jl.put("t", Long.parseLong(ts));
+                } catch (NumberFormatException ex) {
+                    jl.put("t", ts);  //meh?
+                }
+                jl.put("l", l.substring(14));
+            } else {
+                jl.put("l", l);
+            }
+            larr.put(jl);
+        }
+        return larr;
     }
 
     public String toString() {
