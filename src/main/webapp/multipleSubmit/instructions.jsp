@@ -6,8 +6,8 @@
 	String context = ServletUtilities.getContext(request);
 	String lang = ServletUtilities.getLanguageCode(request);
 	Properties props = new Properties();
-  	props = ShepherdProperties.getProperties("instructionsMultiSubmit.properties", lang, context);
-
+  	props = ShepherdProperties.getProperties("multipleSubmit.properties", lang, context);
+	String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
 %>
 
 
@@ -23,7 +23,8 @@
 
 		<div class="col-xs-12 col-sm-6 col-lg-6 col-xl-6">
 
-			<p>Instructions part one.. what encounters are, necessary data.</p> 
+			<h3><%=props.getProperty("headerOne")%></h3>
+			<p><%=props.getProperty("instructionsOne")%></p> 
 	
 		</div>
 
@@ -43,13 +44,14 @@
 
 		<div class="col-xs-12 col-sm-6 col-lg-6 col-xl-6"> 
 
-			<img src="/cust/mantamatcher/img/hero_manta.jpg" />
+			<img src="/cust/mantamatcher/img/instructionsImage2.png" />
 	
 		</div>
 
 		<div class="col-xs-12 col-sm-6 col-lg-6 col-xl-6"> 
 
-			<p>Instructions part two.. Entering data for encounter.</p> 
+			<h3><%=props.getProperty("headerTwo")%></h3>
+			<p><%=props.getProperty("instructionsTwo")%></p> 
 	
 		</div>
 	
@@ -63,17 +65,30 @@
 
 		<div class="col-xs-12 col-sm-6 col-lg-6 col-xl-6"> 
 
-			<p>Instructions part three.. Hiding images and sending data.</p>
+			<h3><%=props.getProperty("headerThree")%></h3>
+			<p><%=props.getProperty("instructionsThree")%></p>
 
 		</div>
 
 		<div class="col-xs-12 col-sm-6 col-lg-6 col-xl-6"> 
 
-			<img src="/cust/mantamatcher/img/hero_manta.jpg" />
+			<img src="/cust/mantamatcher/img/instructionsImage3.png" />
 	
 		</div>
 	
 	</div>
+
+	<div class="row">
+
+		<div class="col-xs-12 col-sm-12 col-lg-12 col-xl-12"> 
+
+			<h4><a href="<%=baseUrl%>/multipleSubmit/multipleSubmit.jsp"><%= props.getProperty("returnToMultipleSubmit")%></a></h4>
+
+		</div>
+	
+	</div>
+
+
 
 </div>
 	
