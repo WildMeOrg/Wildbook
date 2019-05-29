@@ -177,13 +177,24 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     public String getDisplayName(Object keyHint) {
         List<String> nameVals = getNamesList(keyHint);
-        if (((nameVals == null) || (nameVals.size() < 1)) && (getNames() != null)) nameVals = getNames().getValuesDefault();
-        if ((nameVals == null) || (nameVals.size() < 1)) {
-          if (Util.isUUID(individualID)) return individualID.substring(0,8);
-          else return individualID;
+        // default case: just return the first name for the keyhint.
+        if (!Util.isEmpty(nameVals)) return nameVals.get(0);
+        // fallback case: try using the default keyhint
+        nameVals = getNames().getValuesDefault();
+        if (!Util.isEmpty(nameVals)) return nameVals.get(0);
+        // second fallback: try using another nameKey
+        List<String> keys = names.getSortedKeys();
+        if (!Util.isEmpty(keys) && !keys.get(0).equals(keyHint)) { // need second check to disable infinite recursion
+          return (keys.get(0)+": "+getDisplayName(keys.get(0)));
         }
-        return nameVals.get(0);
+        return displayIndividualID();
     }
+
+    public String displayIndividualID() {
+      if (Util.isUUID(individualID)) return individualID.substring(0,8);
+      else return individualID;
+    }
+
     public static String getDisplayNameForEncounter(Shepherd myShepherd, String encId) {
       Encounter enc = myShepherd.getEncounter(encId);
       if (enc==null) return null;
@@ -998,18 +1009,14 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
     //similar to above
     public String setSexFromEncounters(boolean force) {
-        System.out.println("beginning setSexFromEncounters for indiv "+individualID
-        );
         if (!force && (sex != null) && !sex.equals("unknown")) return getSex();
         if ((encounters == null) || (encounters.size() < 1)) return getSex();
         for (Encounter enc : encounters) {
             if (enc.getSex() != null && !enc.getSex().equals("unknown")) {
                 sex = enc.getSex();
-                System.out.println("   about to return "+sex+"!");
                 return getSex();
             }
         }
-        System.out.println("    about to return "+getSex());
         return getSex();
     }
     public String setSexFromEncounters() {
