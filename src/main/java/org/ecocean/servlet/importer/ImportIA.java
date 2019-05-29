@@ -97,7 +97,6 @@ public class ImportIA extends HttpServlet {
     log(itask, "IA source = " + IBEISIA.iaURL(context, ""));
 
     for (int i = 0; i < fancyImageSetUUIDS.length(); i++) {
-        if ((testingLimit > 0) && (i >= testingLimit)) continue;
         JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
         Occurrence occ = null;
         String occID = IBEISIA.fromFancyUUID(fancyID);
