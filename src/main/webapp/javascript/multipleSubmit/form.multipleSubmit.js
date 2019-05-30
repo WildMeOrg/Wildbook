@@ -449,16 +449,19 @@ window.onresize = function() {
     },300);
 };
 
-window.onload = $(function() {
-    $('[data-toggle="tooltip"]').tooltip();
-    // this is all for drag and drop file addition
-    let fileDropArea = document.getElementById("file-drop-area");
-    fileDropArea.addEventListener("dragenter",preventDefaultAndPropagation, false);
-    fileDropArea.addEventListener("dragleave",preventDefaultAndPropagation, false);
-    fileDropArea.addEventListener("dragover",preventDefaultAndPropagation, false);
-    fileDropArea.addEventListener("drop",preventDefaultAndPropagation, false);
-    fileDropArea.addEventListener("drop",addFilesFromDragAndDrop, false);
-})
+if (window.location.href.endsWith("multipleSubmit.jsp")) {
+    console.log("---> Current location is multipleSubmit.jsp");
+    window.onload = $(function() {
+        $('[data-toggle="tooltip"]').tooltip();
+        // this is all for drag and drop file addition
+        let fileDropArea = document.getElementById("file-drop-area");
+        fileDropArea.addEventListener("dragenter",preventDefaultAndPropagation, false);
+        fileDropArea.addEventListener("dragleave",preventDefaultAndPropagation, false);
+        fileDropArea.addEventListener("dragover",preventDefaultAndPropagation, false);
+        fileDropArea.addEventListener("drop",preventDefaultAndPropagation, false);
+        fileDropArea.addEventListener("drop",addFilesFromDragAndDrop, false);
+    })
+}
 
 var preventDefaultAndPropagation = function(e){
     e.preventDefault();

@@ -293,15 +293,18 @@ public class MultipleSubmitAPI extends HttpServlet {
         try {
             if (request.getUserPrincipal()!=null) {
                 String name = request.getUserPrincipal().getName();
+                enc.setState("approved");
                 System.out.println("Here is the name we got: "+name);
                 User u = myShepherd.getUser(name);
                 if (u!=null) {
                     List<User> uList = new ArrayList<>();
                     uList.add(u);
                     enc.setSubmitters(uList);
+                    // We'll borrow this method to set encounter state. No user, unapproved.
                 } else {
                     System.out.println("myShepherd.getUser(username) got a null result for user: "+request.getUserPrincipal().getName());
                 }
+                System.out.println("Set new encounter state as "+enc.getState());
                 enc.addComments("<p>Submitted by user <b>"+name+"</b>. </p>");
                 // this bit is for Spot A Shark USA.. They have heavily customized user UI 
                 // in the encounter page, so we need to update old fields too.
@@ -309,6 +312,7 @@ public class MultipleSubmitAPI extends HttpServlet {
                 if (hasVal(u.getEmailAddress())) {enc.setSubmitterEmail(u.getEmailAddress());}
                 if (hasVal(u.getUserProject())) {enc.setSubmitterProject(u.getUserProject());}
             } else {
+                enc.setState("unapproved");
                 System.out.println("request.getUserPrincipal() had a null result");
             }
         } catch (Exception e) {
