@@ -123,7 +123,7 @@ java.util.Properties" %>
             if (Util.collectionIsEmptyOrNull(itask.getLog())) {
                 h += "<p><i>empty log</i></p>";
             } else {
-                h += "<p><b>log:</b> <ul>";
+                h += "<p><b>log:</b> <ul style=\"font-size: 0.8em;\">";
                 JSONArray larr = itask.getLogJSONArray();
                 for (int i = 0 ; i < larr.length() ; i++) {
                     JSONObject jl = larr.optJSONObject(i);
