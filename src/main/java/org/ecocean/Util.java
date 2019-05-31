@@ -598,6 +598,37 @@ public class Util {
         return ll.toString();
     }
 
+    //see postgis/README.md for full details on these!  (including setup)
+    public static JSONArray overlappingWaterGeometries(Shepherd myShepherd, Double lat, Double lon, Double radius) {
+        if (!Util.isValidDecimalLatitude(lat) || !Util.isValidDecimalLongitude(lon)) return null;
+        if ((radius == null) || (radius < 0)) radius = 200.0D;   //this seems "close enough"... might be in meters?
+        String sql = "SELECT ST_AsGeoJSON(ST_Transform(geom, 4326)) FROM overlappingWaterGeometries(" + lat.toString() + ", " + lon.toString() + ", " + radius.toString() + ")";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        JSONArray rtn = new JSONArray();
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        while (it.hasNext()) {
+            String js = (String)it.next();
+            JSONObject geom = Util.stringToJSONObject(js);
+            if (geom != null) rtn.put(geom);
+        }
+        q.closeAll();
+        return rtn;
+    }
+
+    public static boolean nearWater(Shepherd myShepherd, Double lat, Double lon, Double radius) {
+        if (!Util.isValidDecimalLatitude(lat) || !Util.isValidDecimalLongitude(lon)) return false;
+        if ((radius == null) || (radius < 0)) radius = 200.0D;
+        String sql = "SELECT nearWater(" + lat.toString() + ", " + lon.toString() + ", " + radius.toString() + ")";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        if (!it.hasNext()) return false;
+        Boolean rtn = (Boolean)it.next();
+        q.closeAll();
+        return rtn;
+    }
+
     // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
     public static int getNumSections(int collectionSize, int itemsPerSection) {
       return (collectionSize - 1)/itemsPerSection + 1;

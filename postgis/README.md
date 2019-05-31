@@ -32,6 +32,8 @@ These are intended to be used with the *simplified_water_polygons* dataset below
 * `nearWater(decimalLatitude, decimalLongitude, radius)` - returns _boolean_ true if (lat,lon) are is near any ocean water;
   that is, it has one or more overlapping Geometries
 
+These are exposed in java via the **Util.java** class as `overlappingWaterGeometries()` and `nearWater()`.
+
 
 ## Datasets
 
