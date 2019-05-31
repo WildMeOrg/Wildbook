@@ -7,7 +7,9 @@ import org.ecocean.servlet.ServletUtilities;
 import java.util.Properties;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Arrays;
+import java.util.Random;
 import org.joda.time.DateTime;
 import org.ecocean.datacollection.*;
 import org.ecocean.movement.*;
@@ -37,6 +39,8 @@ public class SpotterConserveIO {
     private static final String PROP_ORGID_CI = "channelIslandsOrgId";
     private static final String PROP_USERID_CI = "channelIslandsUserId";
     private static final String PROP_ORGID_NEWUSER = "newUserOrgId";
+    public static final String ENCOUNTER_STATE_REVIEW = "spotter_review";
+    private static Double WATER_DISTANCE_RADIUS = 300.0D;
     public static String apiUsername = null;
     public static String apiPassword = null;
     public static String apiUrlPrefix = null;
@@ -88,7 +92,10 @@ public class SpotterConserveIO {
 
         //there will be only one SurveyTrack pulled from this data, fwiw
         SurveyTrack st = ciToSurveyTrack(jin, myShepherd);
+        String integ = checkIntegrity(st);
         survey.addSurveyTrack(st);
+        if (integ != null) survey.addComments("<p>Note: SurveyTrack failed integrity check</p>");
+
 ///TODO do we .setEffort based on survey track lengths or what???
 
         if (jin.optJSONArray("CINMS Weather") != null) {
@@ -333,6 +340,7 @@ System.out.println("vols namesIn=[" + namesIn + "]");
             Occurrence occ = waToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin.optInt("_tripId", 0), myShepherd);
             if (occ != null) occs.add(occ);
         }
+        checkIntegrity(occs, false);
         return occs;
     }
 
@@ -512,6 +520,7 @@ System.out.println("waToUser -> " + jin);
             Occurrence occ = oaToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin.optInt("_tripId", 0), myShepherd);
             if (occ != null) occs.add(occ);
         }
+        checkIntegrity(occs, false);
         return occs;
     }
 
@@ -940,6 +949,131 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         }
         myShepherd.getPM().makePersistent(vorg);
         return vols;
+    }
+
+    //these do a series of sanity checks and sets .state based on if data "passes"
+    //  returning null means all is ok, otherwise it returns a string with the reason
+
+    public static String checkIntegrity(SurveyTrack st) {  //this will just recurse thru occs
+        if (st == null) return null;  //i guess???
+        String reason = "";
+
+        boolean overrideOccurrences = !reason.equals("");  //means fail everything below due to our badness
+        String c = checkIntegrity(st.getOccurrences(), overrideOccurrences);
+        if (Util.stringExists(c)) reason += c;
+        c = checkIntegrity(st.getPath());
+        if (c != null) reason += c;
+        if (reason.equals("")) return null;
+        System.out.println("WARNING: checkIntegrity() on " + st + " failed due to: " + reason);
+        return reason;
+    }
+
+    public static String checkIntegrity(Path path) {
+        if (path == null) return null;
+        if (Util.collectionIsEmptyOrNull(path.getPointLocations())) return "empty .path on SurveyTrack; ";
+        String reason = "";
+        Random rnd = new Random();
+        //here we test a random subset of points for validity.  then decide if the path is good????   #magick
+        int invalidPts = 0;
+        for (PointLocation pt : path.getPointLocations()) {
+            if (rnd.nextDouble() > 0.05D) continue;  //we skip 95% of points -- cuz there are usually many!
+            String c = checkIntegrity(pt.getLatitude(), pt.getLongitude());
+            if (c != null) invalidPts++;
+            //NOTE: also could check .getDateTimeMilli();
+        }
+        if (invalidPts > 5) reason += "found " + invalidPts + " invalid lat/lon points in SurveyTrack path; ";
+        if (reason.equals("")) return null;
+        return reason;
+    }
+
+    public static String checkIntegrity(List<Occurrence> occs, boolean override) {
+        if (Util.collectionIsEmptyOrNull(occs)) return null;
+        String reason = "";
+        for (Occurrence occ : occs) {
+            String c = checkIntegrity(occ, override);
+            if (Util.stringExists(c)) reason += "occ " + occ.getOccurrenceID() + " failed integrity: [" + c + "]";
+        }
+        if (!override && reason.equals("")) return null;
+        return reason; //nothing else to really do to the set of occs here (no comments etc)
+    }
+
+    public static String checkIntegrity(Occurrence occ, boolean override) {
+        if (occ == null) return null;
+        String reason = "";
+        Long ms = occ.getDateTimeLong();
+        if (occ.getDateTimeCreated() != null) {
+            DateTime dt = toDateTime(occ.getDateTimeCreated());
+            ms = dt.getMillis();
+        }
+        String c = checkIntegrity(ms);
+        if (c != null) reason += c;
+        //the HashSet makes it unique
+        if (!Util.collectionIsEmptyOrNull(occ.getTaxonomies())) for (Taxonomy tx : new HashSet<Taxonomy>(occ.getTaxonomies())) {
+            c = checkIntegrity(tx);
+            if (c != null) reason += c;
+        }
+        c = checkIntegrity(occ.getDecimalLatitude(), occ.getDecimalLongitude());
+        if (c != null) reason += c;
+
+        boolean overrideEncounter = override || !reason.equals("");  //means fail the encounter due to our badness
+        if (occ.getEncounters() != null) for (Encounter enc : occ.getEncounters()) {
+            c = checkIntegrity(enc, overrideEncounter);
+            if (Util.stringExists(c)) reason += "enc[" + c + "]; ";  //null *or* "" can mean enc passed in the override case!
+        }
+
+        if (!override && reason.equals("")) return null;
+        occ.addComments("<p class=\"spotter-review\">pending approval: <i>" + reason + (override ? "overridden (likely bad integrity in sibling Occurrences or SurveyTrack); " : "") +  "</i></p>");
+        System.out.println("WARNING: checkIntegrity() on " + occ + " failed due to: " + reason + " override=" + override);
+        return reason;
+    }
+
+    public static String checkIntegrity(Encounter enc, boolean override) {
+        if (enc == null) return null;
+        String reason = "";
+        String c = checkIntegrity(enc.getDateInMilliseconds());
+        if (c != null) reason += c;
+        c = checkIntegrity(enc.getDecimalLatitudeAsDouble(), enc.getDecimalLongitudeAsDouble());
+        if (c != null) reason += c;
+        if (enc.getTaxonomyString() != null) {
+            c = checkIntegrity(new Taxonomy(enc.getTaxonomyString()));
+            if (c != null) reason += c;
+        }
+
+        if (!override && reason.equals("")) {
+            enc.setState("approved");
+            return null;
+        }
+        enc.addComments("<p class=\"spotter-review\">pending approval: <i>" + reason + (override ? "overridden (likely bad integrity in Occurrence); " : "") +  "</i></p>");
+        enc.setState(ENCOUNTER_STATE_REVIEW);
+        System.out.println("WARNING: checkIntegrity() on " + enc + " failed due to: " + reason + " override=" + override);
+        return reason;
+    }
+
+    public static String checkIntegrity(Long ms) {
+        String reason = "";
+        if (ms == null) {
+            reason += "no date/time set; ";
+        } else if (ms > (System.currentTimeMillis() + 3L * 24L * 60L * 60L * 1000L)) {
+            reason += "date/time too far in future; ";
+        } else if (ms < (System.currentTimeMillis() - 3L * 24L * 60L * 60L * 1000L)) {
+            reason += "date/time too old; ";
+        }
+        if (reason.equals("")) return null;
+        return reason;
+    }
+
+    public static String checkIntegrity(Double lat, Double lon) {
+        Shepherd myShepherd = new Shepherd("context0"); //uhoh?
+        String reason = "";
+        if (!Util.isValidDecimalLatitude(lat)) reason += "invalid latitude; ";
+        if (!Util.isValidDecimalLongitude(lon)) reason += "invalid longitude; ";
+        if (Util.isValidDecimalLatitude(lat) && Util.isValidDecimalLongitude(lon) && !Util.nearWater(myShepherd, lat, lon, WATER_DISTANCE_RADIUS)) reason += "lat/lon is not near water; ";
+        if (reason.equals("")) return null;
+        return reason;
+    }
+
+    public static String checkIntegrity(Taxonomy tx) {
+        return null;  //punting on this for now!
     }
 
 
