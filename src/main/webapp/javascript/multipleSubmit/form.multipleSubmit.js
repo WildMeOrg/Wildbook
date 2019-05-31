@@ -55,7 +55,7 @@ function continueButtonClicked() {
     $("#continueButton").hide();
     $("#backButton").show();
     $("#sendButton").show();
-    $("#recaptcha-div").hide();
+    $(".recaptcha-div").hide();
     showSelectedMedia();
 }
 
@@ -65,7 +65,7 @@ function backButtonClicked() {
     $("#continueButton").show();
     $("#backButton").hide();
     $("#sendButton").hide();
-    $("#recaptcha-div").show();
+    $(".recaptcha-div").show();
     clearSelectedMedia();
 }
 

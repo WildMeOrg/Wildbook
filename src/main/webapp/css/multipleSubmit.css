@@ -40,9 +40,11 @@
     display: none;
 }
 
+/*
 .recaptcha-div {
     margin-left: 40%;
 }
+*/
 
 .image-tile-div, .image-preview-div {
     margin-top: 15px;
@@ -237,6 +239,10 @@ div .img-input {
 
 .missing-info {
     color: darkred;
+}
+
+.pad-bottom {
+    padding-bottom: 10px;
 }
 
 .results-waiting {

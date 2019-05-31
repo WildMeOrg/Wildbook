@@ -161,16 +161,20 @@ multipleSubmitUI = {
         speciesDrop += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" onchange=\"updateSummary("+index+")\" name=\"species-dropdown-"+index+"\">";
         multipleSubmitAPI.getSpecies(function(result){
             var allSpecies = result.allSpecies
-            for (var i=0;i<allSpecies.length;i++) {
-                var species = allSpecies[i];
-                //console.log("allSpecies? --> "+JSON.stringify(result));
-                var option = document.createElement("option");
-                option.text = species; 
-                option.value = species;
-                //console.log("Appending child for species="+species);
-                if (document.getElementById(uiId)!=null) {
-                    document.getElementById(uiId).appendChild(option);
+            if (allSpecies.length>0) {
+                for (var i=0;i<allSpecies.length;i++) {
+                    var species = allSpecies[i];
+                    //console.log("allSpecies? --> "+JSON.stringify(result));
+                    var option = document.createElement("option");
+                    option.text = species; 
+                    option.value = species;
+                    //console.log("Appending child for species="+species);
+                    if (document.getElementById(uiId)!=null) {
+                        document.getElementById(uiId).appendChild(option);
+                    }
                 }
+            } else {
+                return "";
             }
         });
         speciesDrop += "</select>";

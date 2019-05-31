@@ -38,18 +38,44 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
         <div class="col-xs-12 col-lg-12">
             <div class="container">
                 <h2><%= props.getProperty("pageHeader")%></h2>
-                <p><b><%= props.getProperty("headerDesc")%></b></p>
-                <p><a href="<%=baseUrl%>/multipleSubmit/instructions.jsp"><%= props.getProperty("readInstructions")%></a></p>
+                <h4><b><%= props.getProperty("headerDesc")%></b></h4>
+                <p><%= props.getProperty("instructionsBody")%></p>
+                <p><a href="<%=baseUrl%>/multipleSubmit/instructions.jsp"><%= props.getProperty("instructionsLink")%></a></p>
             </div>  
             <hr>
                 <!-- specify number of encounters in two input items -->
+
                 <div class="container form-file-selection">
-                    <label><%= props.getProperty("specifyEncNum")%></label>
-                    <input id="number-encounters" type="number" name="number-encounters" required value="1" min="1" max="48">
+
+                    <div id="file-drop-area" class="pad-bottom col-xs-12 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                        <input class="btn btn-large btn-file-selector" type="button" onclick="document.getElementById('file-selector-input').click()" value="Select Files" />
+                    </div>
+                    
+
+                    <div class="form-file-selection pad-bottom  col-xs-12 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                        <label><%= props.getProperty("specifyEncNum")%></label>
+                        <div class="input-group">
+                            <input id="number-encounters" class="form-control" type="number" name="number-encounters" required value="1" min="1" max="48">
+                        </div>
+                    </div>
+
+                    <div class="recaptcha-div form-define-metadata pad-bottom col-xs-12 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                        <!-- Recaptcha widget -->
+                        <div id="recaptcha-div">
+                            <%= ServletUtilities.captchaWidget(request) %>
+                        </div>
+                    </div>
+
+                    <br>
+                    <hr>
+
+                    <div class="nav-buttons col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                        <!-- next page -->
+                        <button class="" id="continueButton" type="button" disabled onclick="continueButtonClicked();"><%= props.getProperty("continue")%></button>
+                    </div>
+
                 </div>
-                <div id="file-drop-area" class="container form-file-selection">
-                    <input class="btn btn-large btn-file-selector" type="button" onclick="document.getElementById('file-selector-input').click()" value="Select Files" />
-                </div>
+
                 <input id="file-selector-input" name="allFiles" class="hidden-input" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" style="display:none;" multiple size="50" onChange="updateSelected(this);" />
                 <div class="container">
                     <p id="input-file-list"></p>    
@@ -76,8 +102,9 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
 
                 <div class="nav-buttons container">
                     <hr>
-                    <!-- next page -->
+                    <!-- next page
                     <button class="" id="continueButton" type="button" disabled onclick="continueButtonClicked();"><%= props.getProperty("continue")%></button>
+                    -->
                     <!-- back to file selection -->
                     <button class="hidden-input" id="backButton" type="button" onclick="backButtonClicked();"><%= props.getProperty("back")%></button>
                     <!-- actually done now, send it off -->
@@ -87,13 +114,6 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 <br>
 
                 <div id="missing-data-message" class="container"></div>                
-
-                <div class="recaptcha-div form-define-metadata">
-                    <!-- Recaptcha widget -->
-                    <div id="recaptcha-div">
-                        <%= ServletUtilities.captchaWidget(request) %>
-                    </div>
-                </div>
         </div> 
         <hr>
     </div>
