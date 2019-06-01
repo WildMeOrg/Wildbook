@@ -685,7 +685,7 @@ public class Util {
     }
 
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown") && !str.equals(""));
+      return (str!=null && !str.equals("") && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown"));
     }
     public static boolean isEmpty(Collection c) {
       return (c==null || c.size()==0);
@@ -717,6 +717,14 @@ public class Util {
     public static boolean shouldReplace(String val1, String val2) {
       return (stringExists(val1) && !stringExists(val2));
     }
+
+    // only if one of the Strings should replace the other, return that string
+    public static String betterValue(String val1, String val2) {
+      if (shouldReplace(val1, val2)) return val1;
+      if (shouldReplace(val2, val1)) return val2;
+      return null;
+    }
+
     public static boolean doubleExists(Double val) {
       return (val!=null && val!=0.0);
     }
