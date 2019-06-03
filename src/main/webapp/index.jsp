@@ -118,7 +118,7 @@ margin-bottom: 8px !important;
       function initialize() {
     	// Create an array of styles for our Google Map.
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
-    	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+    	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=5;}
 		
     	if (center == null) {
 	    	center = new google.maps.LatLng(1.270203, 37.382723);
