@@ -826,7 +826,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
    * @return a Vector of encounters
    * @see java.util.Vector
    */
-  public Vector getEncounters() {
+  public Vector<Encounter> getEncounters() {
     return encounters;
   }
   public int getNumEncounters() {
@@ -934,6 +934,9 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
       comments = newComments;
     }
   }
+  public void setComments(String comments) {
+    this.comments = comments;
+  }
 
   /**
    * Returns the complete Vector of stored satellite tag data files for this MarkedIndividual.
@@ -982,6 +985,17 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
     public void setSpecificEpithet(String newEpithet) {
         specificEpithet = newEpithet;
+    }
+
+    public void setTaxonomyString(String tax) {
+      if (tax == null) return;
+      String[] parts = tax.split(" ");
+      if (parts.length < 2) {
+        setSpecificEpithet(tax);
+      } else {
+        setGenus(parts[0]);
+        setSpecificEpithet(parts[1]);
+      }
     }
 
     public String getTaxonomyString() {
@@ -2431,6 +2445,41 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         NAMES_CACHE.put(names.getId(), this.getId() + ";" + String.join(";", names.getAllValues()).toLowerCase());
     }
 
+    // Need request to record which user did it
+    public void mergeIndividual(MarkedIndividual other, HttpServletRequest request) {
+      for (Encounter enc: other.getEncounters()) {
+        other.removeEncounter(enc);
+        enc.setIndividual(this);
+      }
+      this.names.merge(other.getNames());
+      this.setComments(getMergedComments(other, request));
+      refreshDependentProperties();
+    }
+
+    public String getMergedComments(MarkedIndividual other, HttpServletRequest request) {
+      User user = new Shepherd(request).getUser(request);
+      String mergedComments = Util.stringExists(getComments()) ? getComments() : "";
+    
+      mergedComments += "<p>This individual merged with individual "+other.getIndividualID()+" (\""+other.getDisplayName()+"\")";
+
+      mergedComments += " at "+Util.prettyTimeStamp();
+      
+      if (user!=null) mergedComments += " by "+ user.getDisplayName();
+      else mergedComments += " No user was logged in.";
+      
+      if (Util.stringExists(other.getComments())) {
+        mergedComments += "</p><p>Merged comments:";
+        mergedComments += other.getComments();
+      }
+
+      mergedComments += "</p>";
+      return mergedComments;
+    }
+
+    public void mergeAndThrowawayIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+      mergeIndividual(other, request);
+      myShepherd.throwAwayMarkedIndividual(other);
+    }
 
     public String toString() {
         return new ToStringBuilder(this)
