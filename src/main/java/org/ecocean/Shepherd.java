@@ -869,8 +869,22 @@ public class Shepherd {
     query.closeAll();
     return users;
   }
-  
 
+  // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
+  public List<User> getNativeUsers() {
+    return getNativeUsers("username ascending");
+  }
+  public List<User> getNativeUsers(String ordering) {
+    List<User> users=null;
+    String filter="SELECT FROM org.ecocean.User WHERE username != null ";
+    filter += "&& !fullName.startsWith('Conserve.IO User ')";   
+    Query query=getPM().newQuery(filter);
+    query.setOrdering(ordering);
+    Collection c = (Collection) (query.execute());
+    users=new ArrayList<User>(c);
+    query.closeAll();
+    return users;
+  }
   
   public User getUserByUUID(String uuid) {
     User user= null;
