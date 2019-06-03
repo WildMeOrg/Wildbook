@@ -244,6 +244,7 @@ for (int i=0; i<captionLinks.size(); i++) {
 
 figcaption div {
     position: relative;
+    display: none !important;
 }
 
 .pswp .dup-info {   /* hides duplicate block when zoom mode */
