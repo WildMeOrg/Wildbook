@@ -756,27 +756,6 @@ console.log('xxxx (%d) offset=%d ==> num=%d', i, tryOffset[i], num);
     });
 }
 
-
-function showDuplicates() {
-    if (!assets || !assets.length || !assetDup || !Object.keys(assetDup).length) return;
-    for (var i = 0 ; i < assets.length ; i++) {
-        if (!assetDup[assets[i].acmId]) continue;
-        var h = '<div class="dup-info">';
-        h += '<div class="dup-title">duplicate</div>';
-        h += '<div class="dup-details"><i>This image is used elsewhere:</i><br />';
-            for (encId in assetDup[assets[i].acmId]) {
-                h += '<div><a onClick="event.stopPropagation()" target="_new" href="encounter.jsp?number=' + encId + '" title="MediaAsset ';
-                h += assetDup[assets[i].acmId][encId].asset + '">Enc ';
-                h += encId.substring(0,8) + '</a>';
-                if (assetDup[assets[i].acmId][encId].indiv) h += ': <b>' + assetDup[assets[i].acmId][encId].indiv + '</b>';
-                h += '</div>';
-            }
-        h += '</div></div>';
-        $('.image-enhancer-wrapper-mid-' + assets[i].id).parent().find('figcaption div').append(h);
-    }
-}
-
-
 function numTouching(offset, el, arrow, boxes) {
     if (!boxes || (boxes.length < 1)) return 0;
     //var ctrX = offset + el.position().left + el.width() / 2;
