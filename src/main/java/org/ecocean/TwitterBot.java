@@ -4,14 +4,21 @@
 package org.ecocean;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map;
 import java.util.HashMap;
+
 import org.ecocean.servlet.ServletUtilities;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+
 import java.io.IOException;
 
 import org.ecocean.TwitterUtil;
@@ -20,12 +27,16 @@ import org.ecocean.media.TwitterAssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.ai.nlp.SUTime;
+import org.ecocean.ai.nmt.azure.DetectTranslate;
+import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
 import org.ecocean.RateLimitation;
 import org.ecocean.ia.Task;
 
 import com.google.gson.Gson;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -407,7 +418,7 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
     //the only thing we need to do here is handle the case there were not annotations made
     //  since otherwise those annotations are going on for identification (and we have nothing to send)
     // NOTE: non-twitter results get passed here too!! in that case we should do nothing and return null
-    public static String processDetectionResults(Shepherd myShepherd, final ArrayList<MediaAsset> mas) {
+    public static String processDetectionResults(Shepherd myShepherd, final ArrayList<MediaAsset> mas, String rootDir) {
 System.out.println("processDetectionResults() -> " + mas);
         if ((mas == null) || (mas.size() < 1)) return null;
         int successful = 0;
@@ -421,7 +432,7 @@ System.out.println("processDetectionResults() -> " + mas);
             //aha, we have a tweet-spawned media asset.  but did it pass detection and get annotations?
             ArrayList<Annotation> anns = ma.getAnnotations();
             if ((anns != null) && (anns.size() > 0)) {
-                updateEncounter(tweetMA, anns, myShepherd);
+                updateEncounter(tweetMA, anns, myShepherd, rootDir);
                 successful++;
             }
         }
@@ -488,7 +499,7 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         return "Got " + anns.size() + " annots, and some possible matches!! [" + taskId + "] tweet sent.";
     }
 
-    private static void updateEncounter(MediaAsset tweetMA, ArrayList<Annotation> anns, Shepherd myShepherd) {
+    private static void updateEncounter(MediaAsset tweetMA, ArrayList<Annotation> anns, Shepherd myShepherd, String rootDir) {
         Status originTweet = TwitterUtil.toStatus(tweetMA);
         if ((originTweet == null) || (anns == null)) return;
         Encounter enc = null;
@@ -500,6 +511,40 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
         System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
         enc.setTaxonomyFromString(tx);
+        enc.setState("unapproved");        
+        
+        //use NLP to get Date/Location if available in Tweet
+        String newDetectedDate=ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
+        
+        if(newDetectedDate!=null){
+          DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
+          DateTime dt=parser3.parseDateTime(newDetectedDate);
+          if(newDetectedDate.length()==10){
+            enc.setYear(dt.getYear());
+            enc.setMonth(dt.getMonthOfYear());
+            enc.setDay(dt.getDayOfMonth());
+            enc.setHour(-1);
+          }
+          else if(newDetectedDate.length()==7){
+            enc.setYear(dt.getYear());
+            enc.setMonth(dt.getMonthOfYear());
+            enc.setDay(-1);
+            
+          }
+          else if(newDetectedDate.length()==4){
+            enc.setYear(dt.getYear());
+            enc.setMonth(-1);
+            
+          }
+        }
+        
+        //location?
+        setLocationIDFromTweet(enc, originTweet, myShepherd.getContext());
+        
+        //get Tweet comments for faster review on Encounter page
+        enc.setOccurrenceRemarks(originTweet.getText());
+        
+        
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
@@ -535,5 +580,65 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         }
         return TwitterUtil.getProperty(context, "taxonomyDefault");
     }
+    
+    public static void setLocationIDFromTweet(Encounter enc, Status tweet, String context) {
+      
+      /*
+       * Step 1. Support explicit hashtagging Encounter.locationID
+       * 
+       */
+      String locationID="";
+      String location="";
+      List<String> tags = TwitterUtil.getHashtags(tweet);
+      Shepherd myShepherd=new Shepherd(context);
+      myShepherd.setAction("TwitterBot.setLocationIDFromTweet");
+      myShepherd.beginDBTransaction();
+      List<String> locIDs=myShepherd.getAllLocationIDs();
+      myShepherd.closeDBTransaction();
+      myShepherd.closeDBTransaction();
+      for (String tag : tags) {
+        try{
+          for(String l : locIDs){
+            if(tag.toLowerCase().equals(l.toLowerCase().replaceAll("-", "").replaceAll(" ", ""))){
+              enc.setLocationID(l);
+              enc.setLocation(l);
+              return;
+            }
+          }
+
+        }
+        catch(Exception e){
+          e.printStackTrace();
+        }
+      }
+      
+      /*
+       * Step 2. If not explicitly set from a hashtag, let's try to get Encounter.locationID from the text
+       * 
+       */
+      try {
+
+        LinkedProperties props=(LinkedProperties)ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+          String lowercaseRemarks=DetectTranslate.translateIfNotEnglish(tweet.getText()).toLowerCase();
+          Iterator m_enum = props.orderedKeys().iterator();
+          while (m_enum.hasNext()) {
+            String aLocationSnippet = ((String) m_enum.next()).replaceFirst("\\s++$", "");
+            //System.out.println("     Looking for: "+aLocationSnippet);
+            if (lowercaseRemarks.indexOf(aLocationSnippet) != -1) {
+              locationID = props.getProperty(aLocationSnippet);
+              location+=" "+ aLocationSnippet;
+              //System.out.println(".....Building an idea of location: "+location);
+            }
+          }
+          if(!locationID.equals("")){
+            enc.setLocationID(locationID);
+            enc.setLocation(location);
+          }
+        }
+        catch(Exception e){
+          e.printStackTrace();
+        }
+    }
+
 
 }

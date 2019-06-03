@@ -1690,7 +1690,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     jlog.put("collatedOccurrence", occ.getOccurrenceID());
                 }
 
-                jlog.put("twitterBot", TwitterBot.processDetectionResults(myShepherd, mas));  //will do nothing if not twitter-sourced
+                jlog.put("twitterBot", TwitterBot.processDetectionResults(myShepherd, mas, rootDir));  //will do nothing if not twitter-sourced
                 jlog.put("_action", "processedCallbackDetect");
                 if (amap.length() > 0) jlog.put("annotations", amap);
                 if (needReview.length() > 0) jlog.put("needReview", needReview);
@@ -2038,6 +2038,7 @@ System.out.println("identification most recent action found is " + action);
             Boolean aoi = iaIsOfInterestFromAnnotUUID(acmId, context);
             ann.setIsOfInterest(aoi);
             ann.setMatchAgainst(true);  //kosher?
+            ann.setViewpointFromIA(context);  //note: can block ... but wygd
             System.out.println("INFO: " + ann + " pulled from IA");
             return ann;
 
