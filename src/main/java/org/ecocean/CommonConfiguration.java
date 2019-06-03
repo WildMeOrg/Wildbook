@@ -48,11 +48,13 @@ public class CommonConfiguration {
   //private static String currentContext;
 
 
+  private static Map<String, Properties> contextToPropsCache = new HashMap<String,Properties>();
+
   private static Properties initialize(String context) {
-    //set up the file input stream
-    //if ((currentContext==null)||(!currentContext.equals(context))||(propsSize == 0)) {
-      return loadProps(context);
-    //}
+    if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
+    Properties props = loadProps(context);
+    contextToPropsCache.put(context, props);
+    return props;
   }
 
 
