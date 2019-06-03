@@ -256,11 +256,11 @@ function showEditMetadata(index) {
     if (editDiv.classList.contains("edit-closed")) {
         $(editDiv).slideDown();
         editDiv.classList.remove("edit-closed");
-        toggleImageHighlights("on",index);
+        //toggleImageHighlights("on",index);
     } else {
         $(editDiv).slideUp();
         editDiv.classList.add("edit-closed");
-        toggleImageHighlights("off",index);
+        //toggleImageHighlights("off",index);
     }
 }
 
@@ -290,30 +290,37 @@ function toggleImageHighlights(state,index) {
         var imgEl = allImageTiles[i].querySelector(".image-element");
         var selectedEnc = $("#enc-num-dropdown-"+i+" :selected").val();
         //console.log("Selected enc: "+JSON.stringify(selectedEnc));
-        if (selectedEnc!=null&&selectedEnc==index) {
+        if (selectedEnc!=null&&(selectedEnc==index||selectedEnc=="ignored")) {
             //console.log("adding borderCol: "+borderCol+"  and state: "+state);
             if (state=="on") {
                 multipleSubmitUI.addEncounterLabel(imgEl, selectedEnc);
             }
-            if (state=="off") {
-                multipleSubmitUI.removeEncounterLabel(imgEl, selectedEnc);
-            }
+        }
+        if (state=="off"||selectedEnc=="unassigned") {
+            multipleSubmitUI.removeEncounterLabel(imgEl); 
         }
     }
 }
 
-// triggered by onchange img encounter select.. only add highlight if already editing
+
+
+// !! NEW CHANGE !! 
+// highlight AS SOON AS ASSIGNED, only remove if changed to unassigned or ignore
+
 function highlightOnEdit(index) {
     //console.log("get enc number onchange for state="+state+" and index="+index);
     console.log("get enc number onchange for index="+index);
     var encSelected = document.getElementById("enc-num-dropdown-"+index);
-    var value = encSelected.options[encSelected.selectedIndex].value;
-    var editDiv = document.getElementById("enc-metadata-inner-"+value);
-    if (!editDiv.classList.contains("edit-closed")) {
-        toggleImageHighlights("on",value);
-    } else {
-        toggleImageHighlights("off",value);
-    }
+    var value = encSelected.options[encSelected.    selectedIndex].value;
+    //var editDiv = document.getElementById("enc-metadata-inner-"+value);
+
+    toggleImageHighlights("on",value);
+
+    // if (!editDiv.classList.contains("edit-closed")) {
+    //     toggleImageHighlights("on",value);
+    // } else {
+    //     toggleImageHighlights("off",value);
+    // }
     // the counter on the show/hide buttons
     multipleSubmitUI.updateFileCounters(value);
     multipleSubmitUI.refreshAssociatedImageList();
@@ -412,16 +419,16 @@ function numImagesForEnc(encNum) {
 }
 
 function getEncImageList(index) {
-    console.log("getting image list for encNum = "+index);
+    //console.log("getting image list for encNum = "+index);
     let arr = [];
     let imgs = document.getElementsByClassName("image-tile-div");
-    console.log("got "+imgs.length+" image elements");
+    //console.log("got "+imgs.length+" image elements");
     for (let i=0;i<imgs.length;i++) {
         //console.log("got image..");
         //console.log("inna HTML of dis img: "+imgs[i].innerHTML);
         let dropdown = imgs[i].querySelector(".img-input").querySelector(".enc-num-dropdown"); // blech
         if (dropdown.options[dropdown.selectedIndex].value==index) {
-            console.log("adding filename : "+imgs[i].querySelector(".img-filename").value);
+            //console.log("adding filename : "+imgs[i].querySelector(".img-filename").value);
             arr.push(imgs[i].querySelector(".img-filename").value);
         }
     }

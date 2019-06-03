@@ -143,12 +143,13 @@ multipleSubmitUI = {
         var uiClass = multipleSubmitUI.getImageUIIdForIndex(index);
         var encDrop = "";
         encDrop += "<p class=\"img-input-label\"><small>"+txt("selectEncounter")+"</small></p>";
-        encDrop += "<select id=\"enc-num-dropdown-"+index+"\" class=\"form-control "+uiClass+" enc-num-dropdown\" onchange=\"highlightOnEdit("+index+")\" name=\"enc-num-dropdown-"+index+"\">";
-        encDrop += "    <option selected=\"selected\" value=\"0\">"+txt("encounter")+"  #1</option>";
+        encDrop += "<select id=\"enc-num-dropdown-"+index+"\" class=\"form-control "+uiClass+" enc-num-dropdown\" onclick=\"preventDefaultAndPropagation(event)\" onchange=\"highlightOnEdit("+index+")\" name=\"enc-num-dropdown-"+index+"\">";
+        encDrop += "    <option selected=\"selected\" value=\"unassigned\">"+txt("unassigned")+"</option>";
+        encDrop += "    <option value=\"0\">"+txt("encounter")+"  #1</option>";
         for (var i=1;i<multipleSubmitUI.encsDefined();i++) {
             encDrop += "<option value=\""+i+"\">"+txt("encounter")+" #"+(i+1)+"</option>";
         }
-        encDrop += "<option value=\"-1\">"+txt("ignoreImage")+"</option>";
+        encDrop += "<option value=\"ignored\">"+txt("ignoreImage")+"</option>";
         encDrop += "</select>";
         return encDrop;
     },
@@ -161,7 +162,7 @@ multipleSubmitUI = {
         speciesDrop += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" onchange=\"updateSummary("+index+")\" name=\"species-dropdown-"+index+"\">";
         multipleSubmitAPI.getSpecies(function(result){
             var allSpecies = result.allSpecies
-            if (allSpecies.length>0) {
+            if (allSpecies=null&&allSpecies.length>0) {
                 for (var i=0;i<allSpecies.length;i++) {
                     var species = allSpecies[i];
                     //console.log("allSpecies? --> "+JSON.stringify(result));
@@ -288,12 +289,21 @@ multipleSubmitUI = {
         }
     },
 
-    addEncounterLabel: function(imgEl, encNum) {
+    addEncounterLabel: function(imgEl, selectedEnc) {
         this.removeEncounterLabel(imgEl);
 
-        var lbl = "Encounter #"+(parseInt(encNum)+1);
+        let lbl;
+        let labelColor;
+        if (selectedEnc=="ignored") {
+            lbl = "Ignored";
+            labelColor = "#B2B2B2"; // a noice medium grey
+        } else {
+            lbl = "Encounter #"+(parseInt(selectedEnc)+1);
+            labelColor = safeColors[selectedEnc];
+        }
+        
         let dv = document.createElement("DIV");
-        let txt =document.createTextNode(lbl);
+        let txt = document.createTextNode(lbl);
         dv.classList.add("chosen-enc-label");
 
         // calculate dimensions without the border if present
@@ -308,19 +318,15 @@ multipleSubmitUI = {
         let tileHeight = imgEl.parentNode.clientHeight;
         let tileWidth = imgEl.parentNode.clientWidth;
 
-        //console.log("IMAGE ---> clientWidth: "+imgWidth+" clientHeight: "+imgHeight);
-        //console.log("Tile ---> clientWidth: "+tileWidth+" clientHeight: "+tileHeight);
-        //console.log("border-width? should be 6px.. "+borderWidth);
-
-        dv.style.setProperty("background-color", safeColors[encNum], "important");
+        dv.style.setProperty("background-color", labelColor, "important");
         dv.style.setProperty("margin-top", (tileHeight-imgHeight)/2, "important");
         dv.style.setProperty("margin-left",(((tileWidth-imgWidth)/2)+7), "important");
         
         dv.appendChild(txt);
 
         imgEl.parentNode.appendChild(dv);
-
-        imgEl.style.setProperty("border",safeColors[encNum], "important");
+   
+        imgEl.style.setProperty("border", labelColor, "important");
         imgEl.style.setProperty("border-style", "solid", "important");
         imgEl.style.setProperty("border-width", "6px", "important" );
         imgEl.style.setProperty("max-width", "96%", "important" );
