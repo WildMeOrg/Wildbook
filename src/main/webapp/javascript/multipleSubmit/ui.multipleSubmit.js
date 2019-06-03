@@ -22,9 +22,6 @@ multipleSubmitUI = {
     },
 
     generateMetadataTile: function(index) {
-
-        let hideText = txt("hideImages");
-        let showText = txt("showImages");
         
         var metadataTile = "";
         metadataTile += "<div class=\"encounter-tile-div col-xs-12 col-xl-12\">";
@@ -32,8 +29,6 @@ multipleSubmitUI = {
         metadataTile += "       <div class=\"col-xs-12 col-md-5 col-lg-5 col-xl-5\">";
         metadataTile += "           <label id=\"encounter-label-"+index+"\" class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
         metadataTile += "           <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
-        metadataTile += "           <input id=\"hide-enc-images-btn-"+index+"\" class=\"show-metadata-btn\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+hideText+"\"  data-toggle=\"tooltip\" title=\""+txt("ttHideImages")+"\" />";
-        metadataTile += "           <input id=\"show-enc-images-btn-"+index+"\" class=\"show-metadata-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+index+")\" value=\""+showText+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowImages")+"\" />";
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-7 col-lg-7 col-xl-7\">";
         metadataTile +=             multipleSubmitUI.generateMetadataTileSummary(index); 
@@ -70,11 +65,15 @@ multipleSubmitUI = {
     generateAssociatedImageList: function() {
         for (let i=0;i<this.encsDefined();i++) {
             let numImgs = numImagesForEnc(i);
-            let imgNames = getEncImageList(i);
+            let imgNames = getEncImageList(i);        
+            let hideText = txt("hideImages");
+            let showText = txt("showImages");
             let lst = "";
             if (numImgs>0) {
                 lst += "<div class=\"row\">";
                 lst += "    <div class=\"filename-scroll-list col-xs-12 col-md-6 col-lg-6 col-xl-6\">";
+                lst += "           <input id=\"hide-enc-images-btn-"+i+"\" class=\"show-selected-images-btn\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+hideText+"\"  data-toggle=\"tooltip\" title=\""+txt("ttHideImages")+"\" />";
+                lst += "           <input id=\"show-enc-images-btn-"+i+"\" class=\"show-selected-images-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+showText+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowImages")+"\" />";
                 lst += "        <p><small>"+txt("hoverPreview")+"</small></p>";
                 lst += "        <ul id=\"enc-image-list="+i+"\" class=\"enc-image-list\">";
                 for (let j=0;j<numImgs;j++) {
@@ -119,7 +118,7 @@ multipleSubmitUI = {
 
     generateImageTile: function(file, index) {
         var imageTile = "";
-        imageTile += "<div id=\"image-tile-div-"+index+"\" class=\"image-tile-div col-xs-6 col-sm-4 col-md-3 col-lg-3 col-xl-3\" onclick=\"imageTileClicked("+index+")\" onmouseover=\"showOverlay("+index+")\" onmouseout=\"hideOverlay("+index+")\" >";
+        imageTile += "<div id=\"image-tile-div-"+index+"\" class=\"image-tile-div col-xs-6 col-sm-4 col-md-3 col-lg-3 col-xl-3\" onmouseover=\"showOverlay("+index+")\" onmouseout=\"hideOverlay("+index+")\" >";
         imageTile += "  <img class=\"image-element\" id=\""+multipleSubmitUI.getImageIdForIndex(index)+"\" src=\"../../images/loading.png\" alt=\"Displaying "+file.name+"\" />";
         imageTile += "  <input class=\"form-control img-filename img-filename-"+index+"\" type=\"hidden\" value=\""+file.name+"\" />";
         imageTile += multipleSubmitUI.generateImageDataOverlay(file,index);                
@@ -133,7 +132,6 @@ multipleSubmitUI = {
         var overlay = "";
         overlay += "  <div hidden id=\"img-overlay-"+index+"\" class=\"img-overlay-"+index+" img-input "+uiClass+"\" >";
         overlay += "      <label class=\""+uiClass+" img-input-label\">"+txt("file")+"  "+file.name+"</label>";
-        // make a "click to focus" prompt here on hover
         overlay += multipleSubmitUI.generateEncNumDropdown(index);
         overlay += "  </div>";
         return overlay;                   
@@ -212,8 +210,6 @@ multipleSubmitUI = {
     },
     
     generateWaitingText:     function() {
-        // I guess we don't necessarily need to do this in the same way because there is nothing dynamic
-        // about the HTML.. stick to patter though
         var wait = "";
         wait += "<div class=\"container waiting-div pulsing\">";
         wait += "     <p class=\"results-waiting\">Please wait for results. This may take a few seconds per image.</p>";
@@ -259,21 +255,23 @@ multipleSubmitUI = {
     updateFileCounters: function() {
         for (let i=0;i<this.encsDefined();i++) {
             let numImages = numImagesForEnc(i);
-            let showBtn = document.getElementById("show-enc-images-btn-"+i);
-            let hideBtn = document.getElementById("hide-enc-images-btn-"+i);
-            console.log("Enc Num: "+i);
-            console.log("ShowBtn: "+showBtn);
-            console.log("HideBtn: "+hideBtn);
-            if (numImages>0) {
-                let imgs = txt("images");
-                if (numImages==1) {
-                    imgs = txt("image");
+            let showBtn = document.getElementById("show-selected-images-btn-"+i);
+            let hideBtn = document.getElementById("hide-selected-images-btn-"+i);
+            if (showBtn!=null&&hideBtn!=null) {
+                console.log("Enc Num: "+i);
+                console.log("ShowBtn: "+showBtn);
+                console.log("HideBtn: "+hideBtn);
+                if (numImages>0) {
+                    let imgs = txt("images");
+                    if (numImages==1) {
+                        imgs = txt("image");
+                    }
+                    showBtn.value = (txt("show")+" "+numImages+" "+imgs);
+                    hideBtn.value = (txt("hide")+" "+numImages+" "+imgs);
+                } else {
+                    showBtn.value = txt("showImages");
+                    hideBtn.value = txt("hideImages");
                 }
-                showBtn.value = (txt("show")+" "+numImages+" "+imgs);
-                hideBtn.value = (txt("hide")+" "+numImages+" "+imgs);
-            } else {
-                showBtn.value = txt("showImages");
-                hideBtn.value = txt("hideImages");
             }
         }
     },
@@ -282,7 +280,6 @@ multipleSubmitUI = {
         if (this.hasVal(String(file))) {
             var reader = new FileReader();
             reader.onload = function(e) {
-                //console.log("Target ID for image render: #"+multipleSubmitUI.getImageIdForIndex(id));
                 $('#'+multipleSubmitUI.getImageIdForIndex(id)).attr('src', e.target.result); // This is the target.. where we want the preview
             }
             reader.readAsDataURL(file);
@@ -296,12 +293,12 @@ multipleSubmitUI = {
         let labelColor;
         if (selectedEnc=="ignored") {
             lbl = "Ignored";
-            labelColor = "#B2B2B2"; // a noice medium grey
+            labelColor = "#B6B6B6"; // a noice medium grey
         } else {
             lbl = "Encounter #"+(parseInt(selectedEnc)+1);
             labelColor = safeColors[selectedEnc];
         }
-        
+
         let dv = document.createElement("DIV");
         let txt = document.createTextNode(lbl);
         dv.classList.add("chosen-enc-label");

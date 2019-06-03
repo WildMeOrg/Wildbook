@@ -168,8 +168,8 @@ function showSelectedMedia() {
         startDate: '-3d'
     });
 
-    multipleSubmitUI.updateFileCounters();
     multipleSubmitUI.generateAssociatedImageList();
+    multipleSubmitUI.updateFileCounters();
 }
 
 function getFileFromFilename(fileName) {
@@ -233,23 +233,6 @@ function hideOverlay(index) {
     overlayDiv.hidden = true;
 }
 
-function imageTileClicked(index) {
-
-    // gonna SIMPLIFY right now since we don't really need anything on focus
-
-    //var tileDiv = document.getElementById(multipleSubmitUI.getImageIdForIndex(index));
-    //console.log("Clicked! id="+multipleSubmitUI.getImageIdForIndex(index));
-    //if ($(tileDiv).hasClass('img-selected')) {
-    //    $(tileDiv).removeClass('img-selected');
-    //} else {
-    //    var anySelected = document.getElementsByClassName("img-selected");
-    //    Array.prototype.slice.call(anySelected).forEach(function(tile) {
-    //        $(tile).removeClass("img-selected");
-    //    });
-    //    $(tileDiv).addClass('img-selected');
-    //}    
-}
-
 function showEditMetadata(index) {
     console.log("got the click! on element: "+index);
     var editDiv = document.getElementById("enc-metadata-inner-"+index);
@@ -302,11 +285,6 @@ function toggleImageHighlights(state,index) {
     }
 }
 
-
-
-// !! NEW CHANGE !! 
-// highlight AS SOON AS ASSIGNED, only remove if changed to unassigned or ignore
-
 function highlightOnEdit(index) {
     //console.log("get enc number onchange for state="+state+" and index="+index);
     console.log("get enc number onchange for index="+index);
@@ -316,12 +294,6 @@ function highlightOnEdit(index) {
 
     toggleImageHighlights("on",value);
 
-    // if (!editDiv.classList.contains("edit-closed")) {
-    //     toggleImageHighlights("on",value);
-    // } else {
-    //     toggleImageHighlights("off",value);
-    // }
-    // the counter on the show/hide buttons
     multipleSubmitUI.updateFileCounters(value);
     multipleSubmitUI.refreshAssociatedImageList();
 }
@@ -345,7 +317,7 @@ $(document).ready(function(){
         props = result;
     });
 });
-//console.log(JSON.stringify(props));
+
 function txt(str) {
     if (multipleSubmitUI.hasVal(props[str])) {return props[str]};
     return null;
@@ -353,7 +325,6 @@ function txt(str) {
 
 function baseURL() {
     var urlOb = new URL(window.location.href).host.toString();
-    //console.log("urlOb "+urlOb);
     return urlOb;
 }
 
