@@ -144,6 +144,11 @@ public class Util {
 		return UUID.randomUUID().toString();
 	}
 
+  public static String prettyUUID(String uuid) {
+    if (!isUUID(uuid)) return uuid;
+    return(uuid.substring(0,8)+"...");
+  }
+
 	public static boolean isUUID(String s) {
                 if (s == null) return false;
 		boolean ok = true;
@@ -643,6 +648,11 @@ public class Util {
       return (currentToString);
     }
 
+    public static String prettyTimeStamp() {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+      return sdf.format(new Date());
+    }
+
     public static boolean dateTimeIsOnlyDate(DateTime dt) {
       try {
         return (dt.millisOfDay().get()==0);
@@ -751,8 +761,13 @@ public class Util {
 
     // only if one of the Strings should replace the other, return that string
     public static String betterValue(String val1, String val2) {
-      if (shouldReplace(val1, val2)) return val1;
-      if (shouldReplace(val2, val1)) return val2;
+      if (val1!=null && val2!=null && val1.trim().equals(val2.trim())) {
+        // return shorter string (less whitespace)
+        if (val1.length()<val2.length()) return val1;
+        else return val2;
+      }
+      if (!stringExists(val2)) return val1;
+      if (!stringExists(val1)) return val2;
       return null;
     }
 

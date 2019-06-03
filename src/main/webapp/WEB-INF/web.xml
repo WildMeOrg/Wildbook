@@ -632,9 +632,14 @@
   </servlet>
 
 
-    <servlet>
+   <servlet>
     <servlet-name>EncounterForm</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterForm</servlet-class>
+  </servlet>
+
+   <servlet>
+    <servlet-name>MergeIndividual</servlet-name>
+    <servlet-class>org.ecocean.servlet.MergeIndividual</servlet-class>
   </servlet>
 
     <servlet>
@@ -1775,6 +1780,11 @@
   <servlet-mapping>
     <servlet-name>EncounterForm</servlet-name>
     <url-pattern>/EncounterForm</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>MergeIndividual</servlet-name>
+    <url-pattern>/MergeIndividual</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
