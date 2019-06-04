@@ -300,7 +300,19 @@ context=ServletUtilities.getContext(request);
 	
 		<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 		
-		<p>
+                <p>
+			<%=props.getProperty("groupSizeLabel") %>: 
+                        <%=occ.getGroupSize()%><br />
+			&nbsp; <%=props.getProperty("numAdults") %>: 
+                        <%=occ.getNumAdults()%><br />
+			&nbsp; <%=props.getProperty("numSubAdults") %>: 
+                        <%=occ.getNumSubAdults()%><br />
+			&nbsp; <%=props.getProperty("numCalves") %>: 
+                        <%=occ.getNumCalves()%>
+
+                </p>
+
+		<p style="display: none;">
 			<%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
 			<%if(occ.getIndividualCount()!=null){%>
 				<%=occ.getIndividualCount() %>
@@ -348,6 +360,11 @@ context=ServletUtilities.getContext(request);
 			<%}%>
 		</p>
 		
+<% if (occ.getObserver() != null) { %>
+		<p><%=props.getProperty("observer") %>: 
+                <%=occ.getObserver()%></p>
+<% } %>
+    
 		<table id="encounter_report" style="width:100%;">
 			<tr>
 			
