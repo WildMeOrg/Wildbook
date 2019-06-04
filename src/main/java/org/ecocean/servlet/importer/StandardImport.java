@@ -1006,7 +1006,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 
 	private int getNumMediaAssets() {
-		if (numMediaAssets==null) setNumMediaAssets();
+		setNumMediaAssets();  //we set this every time so it is not "cached" on static variable if things change next import!
 		return numMediaAssets.intValue();
 	}
 	private void setNumMediaAssets() {
