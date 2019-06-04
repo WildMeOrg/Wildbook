@@ -56,7 +56,7 @@ public class Collaborate extends HttpServlet {
 	String langCode = ServletUtilities.getLanguageCode(request);
 	props = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
-    String username = request.getParameter("username");
+  String username = request.getParameter("username");
 	String approve = request.getParameter("approve");
 	String optionalMessage = request.getParameter("message");
 	String currentUsername = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
@@ -109,24 +109,24 @@ public class Collaborate extends HttpServlet {
 
 	} else if ((username == null) || username.equals("")) {
 		rtn.put("message", props.getProperty("inviteResponseMessageNoUsername"));
-	} else if ((approve != null) && !approve.equals("")) {
+	} else if ((approve != null) && !approve.equals("")) { // this block contains all the approve/unapprove logic
 		myShepherd.beginDBTransaction();
 		Collaboration collab = Collaboration.collaborationBetweenUsers(myShepherd, currentUsername, username);
 		System.out.println("/Collaborate: inside approve: approve = "+approve+" and collab = "+collab);
-		if ((collab == null) || !collab.getState().equals(Collaboration.STATE_INITIALIZED)) {
+		if (collab == null) {
 			rtn.put("message", props.getProperty("approvalResponseMessageBad"));
-		} else if (approve.equals("yes")) {
-			collab.setState(Collaboration.STATE_APPROVED);
-			System.out.println("/Collaborate: collab has been set to approved!");
+		} else {
+			if (approve.equals("yes")) {
+				collab.setState(Collaboration.STATE_APPROVED);
+			}	else if (approve.equals("edit")){
+				collab.setState(Collaboration.STATE_EDIT_PRIV);
+			} else {
+				collab.setState(Collaboration.STATE_REJECTED);
+			}
 			System.out.println("/Collaborate: new .getState() = "+collab.getState()+" for collab "+collab);
+			rtn.put("success", true);
 			myShepherd.updateDBTransaction();
 			myShepherd.commitDBTransaction();
-			rtn.put("success", true);
-		} else {
-			myShepherd.beginDBTransaction();
-			collab.setState(Collaboration.STATE_REJECTED);
-			myShepherd.commitDBTransaction();
-			rtn.put("success", true);
 		}
 	//plain old invite!
 	} else {

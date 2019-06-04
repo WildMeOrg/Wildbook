@@ -100,7 +100,32 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	    
 	    
 	    %>
-    		    
+    	<script>
+    		function clickEditPermissions(ev) {
+					var which = ev.target.getAttribute('class'); //
+					var jel = $(ev.target);
+					var p = jel.parent();
+					var uname = p.data('username');
+					p.html('&nbsp;').addClass('throbbing');
+					$.ajax({
+						url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which,
+						dataType: 'json',
+						success: function(d) {
+							if (d.success) {
+								p.remove();
+								updateNotificationsWidget();
+							} else {
+								p.removeClass('throbbing').html(d.message);
+							}
+						},
+						error: function(a,x,b) {
+							p.removeClass('throbbing').html('error');
+						},
+						type: 'GET'
+					});
+				}
+
+    		    </script>
 		    <tr>
 		    	<td>
 		    		<table border="0">
@@ -210,6 +235,54 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	%>
 	</div>
 
+
+	<style>
+		div.state-edit span.state {
+    	background-color: green;
+		}
+		html body div.collab-list input[type="button"] {
+			/*
+			margin-top: 0;
+			margin-left: 4em;
+			*/
+			margin-top: 0;
+			float: right;
+		}
+		html body div.collab-list input[type="button"].no {
+			margin-left:0;
+		}
+		html body div.collab-list input[type="button"].no {
+			margin-left:0;
+		}
+
+		html body div.collab-list span.collab-button {
+			text-align:right;
+		}
+div div div.clear {
+	clear: both;
+	margin: 0;
+	padding: 0;
+}
+div.collab-list div.collabRow {
+	display: table;
+}
+div.collab-list div.collabRow span {
+	display: table-cell;
+	vertical-align: middle;
+}
+div.collab-list div.collabRow span {
+	display: table-cell;
+	vertical-align: middle;
+}
+div.collab-list div.collabRow span.state {
+	width: 5em;
+	height: 2em;
+	text-align: center;
+}
+
+
+	</style>
+
 <%
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 
@@ -218,21 +291,33 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String me = request.getUserPrincipal().getName();
 		String h = "";
+		// for developing the edit button without having to update a properties file
 		for (Collaboration c : collabs) {
+			String state = c.getState();
 			String cls = "state-" + c.getState();
 			String msg = "state_" + c.getState();
 			String click = "";
 
 			if (c.getUsername1().equals(me)) {
-				h += "<div class=\"mine " + cls + "\"><span class=\"who\">to <b>" + c.getUsername2() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span></div>";
-			} else {
+				h += "<div class=\"collabRow mine " + cls + "\"><span class=\"who\">to <b>" + c.getUsername2() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span></div>";
+			} else if (state!=null) {
 				if (msg.equals("state_initialized")) {
 					msg = "state_initialized_me";
-					click = " <span class=\"invite-response-buttons\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+					click = " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
 					click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
 					click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
+				} else if (state.equals(Collaboration.STATE_APPROVED)) {
+					// add button to grant edit access, attached to servlet
+					click = " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
+					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
+				} else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
+					// add button to revoke edit access, attached to servlet
+					// this button should behave just like the approve button (downgrading user from edit to view permission)
+					click = " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+					click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
+					System.out.println("EDITABLE State msg = "+msg);
 				}
-				h += "<div class=\"notmine " + cls + "\"><span class=\"who\">from <b>" + c.getUsername1() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
+				h += "<div class=\"collabRow notmine " + cls + "\"><span class=\"who\">from <b>" + c.getUsername1() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span>" + click + "<div class=\"clear\"></div></div>";
 			}
 		}
 		if (h.equals("")) h = "<p>none</p>";
@@ -280,6 +365,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
     
 
 <%
+
 String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+thisUser.getUsername()+"'";
 %>
     <jsp:include page="encounters/encounterSearchResultsAnalysisEmbed.jsp" flush="true">
@@ -293,6 +379,7 @@ String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+th
     
 
 <%
+
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 %>

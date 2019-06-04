@@ -64,6 +64,7 @@ import java.util.Calendar;
 
 
 import org.ecocean.*;
+import org.ecocean.security.Collaboration;
 import org.apache.shiro.crypto.hash.*;
 import org.apache.shiro.util.*;
 import org.apache.shiro.crypto.*;
@@ -390,8 +391,8 @@ public class ServletUtilities {
       }
 
       //whaleshark.org custom
-      if((request.getRemoteUser().equals("rgrampus"))&&(enc.getLocationCode().startsWith("2h"))){isOwner=false;}
 
+      else if (Collaboration.canEditEncounter(enc, request)) return true;
 
     }
     return isOwner;
