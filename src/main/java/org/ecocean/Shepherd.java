@@ -350,7 +350,24 @@ public class Shepherd {
     }
   }
   
-  
+  public List getAllCollaborations() {
+    Collection c;
+    try {
+      Extent allCollabs = pm.getExtent(Collaboration.class, true);
+      Query acceptedCollabs = pm.newQuery(allCollabs);
+      c = (Collection) (acceptedCollabs.execute());
+      List list = new ArrayList(c);
+      System.out.println("getAllCollaborations got "+list.size()+" collabs");
+      //Collections.reverse(list);
+      return list;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllCollaborations(). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+
 
 
   /**
@@ -1566,6 +1583,7 @@ public class Shepherd {
       return null;
     }
   }
+
 
   public Iterator<Taxonomy> getAllTaxonomies() {
     try {
