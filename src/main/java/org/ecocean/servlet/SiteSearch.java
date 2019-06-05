@@ -108,6 +108,9 @@ public class SiteSearch extends HttpServlet {
               if(ind.getGenusSpecies()!=null){
                 hm.put("species", ind.getGenusSpecies());
               }
+              if(ind.getNickName()!=null){
+                hm.put("nickname", ind.getNickName());
+              }
               labelToHm.put(label, hm);
               //list.add(hm);
           }

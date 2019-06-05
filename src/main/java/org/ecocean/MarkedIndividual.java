@@ -127,7 +127,7 @@ public class MarkedIndividual implements java.io.Serializable {
     public static final String NAMES_KEY_LEGACYINDIVIDUALID = "_legacyIndividualID_";
 
   public MarkedIndividual(String name, Encounter enc) {
-
+    this();
     //this.individualID = individualID;
     this.addName(name);
     encounters.add(enc);
