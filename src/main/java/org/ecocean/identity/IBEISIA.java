@@ -2682,7 +2682,14 @@ System.out.println(map);
         JSONObject rtn = RestClient.get(iaURL(context, "/api/image/gps/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from image uuid=" + uuid);
         JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
-        return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
+        Double lat = ll.optDouble(0, -1.0D);
+        Double lon = ll.optDouble(1, -1.0D);
+        // see also:  https://en.wikipedia.org/wiki/Null_Island
+        if ((lat == -1.0D) || (lon == -1.0D)) {  //these are the values IA uses for unset as well!
+            lat = null;
+            lon = null;
+        }
+        return new Double[]{ lat, lon };
     }
 //http://52.37.240.178:5000/api/image/unixtime/json/?image_uuid_list=[{%22__UUID__%22:%22cb2e67a4-7094-d971-c5c6-3b5bed251fec%22}]
     public static DateTime iaDateTimeFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
