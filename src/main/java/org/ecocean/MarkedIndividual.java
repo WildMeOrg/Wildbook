@@ -422,7 +422,8 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
 
 	public int refreshNumberEncounters() {
-		this.numberEncounters = encounters.size();
+		this.numberEncounters = 0;
+		if(encounters!=null)this.numberEncounters = encounters.size();
 		return this.numberEncounters;
 	}
 
@@ -844,9 +845,11 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     //you can choose the order of the EncounterDateComparator
     public Encounter[] getDateSortedEncounters(boolean reverse) {
     Vector final_encs = new Vector();
-    for (int c = 0; c < encounters.size(); c++) {
-      Encounter temp = (Encounter) encounters.get(c);
-      final_encs.add(temp);
+    if(encounters!=null){
+      for (int c = 0; c < encounters.size(); c++) {
+        Encounter temp = (Encounter) encounters.get(c);
+        final_encs.add(temp);
+      }
     }
 
     int finalNum = final_encs.size();
@@ -1642,15 +1645,17 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     int maxYears=0;
     int lowestYear=3000;
     int highestYear=0;
-    for(int c=0;c<encounters.size();c++) {
-      Encounter temp=(Encounter)encounters.get(c);
-      if((temp.getYear()<lowestYear)&&(temp.getYear()>0)) lowestYear=temp.getYear();
-      if(temp.getYear()>highestYear) highestYear=temp.getYear();
-      maxYears=highestYear-lowestYear;
-      if(maxYears<0){maxYears=0;}
-      }
-    maxYearsBetweenResightings=maxYears;
+    if(encounters!=null){
+      for(int c=0;c<encounters.size();c++) {
+        Encounter temp=(Encounter)encounters.get(c);
+        if((temp.getYear()<lowestYear)&&(temp.getYear()>0)) lowestYear=temp.getYear();
+        if(temp.getYear()>highestYear) highestYear=temp.getYear();
+        maxYears=highestYear-lowestYear;
+        if(maxYears<0){maxYears=0;}
+       }
     }
+    maxYearsBetweenResightings=maxYears;
+  }
   
 
 
@@ -2383,12 +2388,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
     // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
+        System.out.println("findByNames regex: "+regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
         if (NAMES_CACHE == null) return rtn;  //snh
         if (regex == null) return rtn;
         List<String> nameIds = findNameIds(regex);
+        System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
         String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE names.id == " + String.join(" || names.id == ", nameIds);
+        System.out.println("findByNames jdoql: "+jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
         Collection c = (Collection) (query.execute());
         for (Object m : c) {
