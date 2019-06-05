@@ -99,11 +99,38 @@ public class StandardImport extends HttpServlet {
     myShepherd = new Shepherd(context);
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
+    
+    if(astore!=null){
+      System.out.println("astore is OK!");
+    }
+    else{
+      System.out.println("astore is null...BOO!!");
+      out.println("<p>I could not find a default AssetStore. Please create one.</p>");
+      return;
+    }
 
     //this might better be set via a different configuration variable of its own
-    String filename = Util.safePath(request.getParameter("filename"));
+    //String filename = Util.safePath(request.getParameter("filename"));
     //if (filename == null) filename = "upload.xlsx";  //meh?
+    
+    //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
+    String filename = request.getParameter("filename");
+    
+    
     File dataFile = new File(filename);
+    
+    if (filename == null) {
+      System.out.println("Filename request parameter was not set in the URL.");
+      out.println("<p>I could not find a filename parameter in the URL. Please specify the full path on the server file system to the Excel import file as the ?filename= parameter on the URL.</p><p>Please note: the importer assumes that all image files exist in the same folder as the Excel file or are relatively referenced in the Excel file within a subdirectory.</p><p>Example value: ?filename=/import/MyNewData/importMe.xlsx</p>");
+      return;
+    }
+    if(!dataFile.exists()){
+      out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+"</p>");
+      return;
+    }
+    
+    
+    
     String uploadDir = dataFile.getParentFile().getAbsolutePath();
 
     //String subdir = Util.safePath(request.getParameter("subdir"));
@@ -182,7 +209,7 @@ public class StandardImport extends HttpServlet {
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
         numAnnots+=annotations.size();
-        Encounter enc = loadEncounter(row, annotations);
+        Encounter enc = loadEncounter(row, annotations, context);
         enc.addComments(importComment);
         occ = loadOccurrence(row, occ, enc);
         occ.addComments(importComment);
@@ -424,7 +451,7 @@ public class StandardImport extends HttpServlet {
 
   }
 
-  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations) {
+  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context) {
 
     // try to load encounter by indID and occID, make a new one if it doesn't exist.
     String individualID = getIndividualID(row);
@@ -554,24 +581,116 @@ public class StandardImport extends HttpServlet {
     String alternateID = getString(row, "Encounter.alternateID");
     if (alternateID!=null) enc.setAlternateID(alternateID);
 
-  	Double length = getDouble(row, "Encounter.measurement.length");
-  	if (length!=null) {
-  		Measurement lengthMeas = new Measurement(encID, "length", length, "m", "");
-  		if (committing) enc.setMeasurement(lengthMeas, myShepherd);
-  	}
+    /*
+     * Start measurements import
+     */
+    List<String> measureVals=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurement", context);
+    List<String> measureUnits=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurementUnits", context);
+    int numMeasureVals=measureVals.size();
+    for(int bg=0;bg<numMeasureVals;bg++){
+      String colName="Encounter.measurement"+bg;
+      Double val = getDouble(row, colName);
+      if (val!=null) {
+        Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.get(bg), "");
+        if (committing) enc.setMeasurement(valMeas, myShepherd);
+        if (unusedColumns!=null) unusedColumns.remove(colName);
+      }
 
-  	Double weight = getDouble(row, "Encounter.measurement.weight");
-  	if (weight!=null) {
-  		Measurement weightMeas = new Measurement(encID, "weight", weight, "kg", "");
-  		if (committing) enc.setMeasurement(weightMeas, myShepherd);
-  	}
+    }
+    /*
+     * End measurements import
+     */
 
-  	Double depth = getDouble(row, "Encounter.depth");
-  	if (depth!=null) enc.setDepth(depth);
 
-  	String scar = getIntAsString(row, "Encounter.distinguishingScar");
-  	if (scar!=null) enc.setDistinguishingScar(scar);
+    /*
+     * Start Submitter imports
+     */
+     boolean hasSubmitters=true;
+     int startIter=0;
+     while(hasSubmitters){
+       String colEmail="Encounter.submitter"+startIter+".emailAddress";
+       String val=getString(row,colEmail);
+       if(val!=null){
+         if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+           User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
+           if((enc.getSubmitters()==null) || !enc.getSubmitters().contains(thisPerson)){
+             if (committing) enc.addSubmitter(thisPerson);
+             if (unusedColumns!=null) unusedColumns.remove(colEmail);
+           }
+         }
+         else{
+           //create a new User
+           User thisPerson=new User(val.trim(),Util.generateUUID());
+           if (committing) enc.addSubmitter(thisPerson);
+           if (unusedColumns!=null) unusedColumns.remove(colEmail);
 
+           String colFullName="Encounter.submitter"+startIter+".fullName";
+           String val2=getString(row,colFullName);
+           if(val2!=null) thisPerson.setFullName(val2.trim());
+           if (unusedColumns!=null) unusedColumns.remove(colFullName);
+
+           String colAffiliation="Encounter.submitter"+startIter+".affiliation";
+           String val3=getString(row,colAffiliation);
+           if(val3!=null) thisPerson.setAffiliation(val3.trim()); 
+           if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
+
+         }
+         startIter++;
+       }
+       else{
+         hasSubmitters=false;
+       }
+     }
+
+    /*
+     * End Submitter imports
+     */
+
+
+     /*
+      * Start Photographer imports
+      */
+      boolean hasPhotographers=true;
+      startIter=0;
+      while(hasPhotographers){
+        String colEmail="Encounter.photographer"+startIter+".emailAddress";
+        String val=getString(row,colEmail);
+        if(val!=null){
+          if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+            User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
+            if((enc.getPhotographers()==null) ||!enc.getPhotographers().contains(thisPerson)){
+              if (committing) enc.addPhotographer(thisPerson);
+              if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            }
+          }
+          else{
+            //create a new User
+            User thisPerson=new User(val.trim(),Util.generateUUID());
+            if (committing) enc.addPhotographer(thisPerson);
+            if (unusedColumns!=null) unusedColumns.remove(colEmail);
+
+            String colFullName="Encounter.photographer"+startIter+".fullName";
+            String val2=getString(row,colFullName);
+            if(val2!=null) thisPerson.setFullName(val2.trim()); 
+            if (unusedColumns!=null) unusedColumns.remove(colFullName);
+
+            String colAffiliation="Encounter.photographer"+startIter+".affiliation";
+            String val3=getString(row,colAffiliation);
+            if(val3!=null) thisPerson.setAffiliation(val3.trim());
+            if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
+
+
+          }
+          startIter++;
+        }
+        else{
+          hasPhotographers=false;
+        }
+      }
+
+     /*
+      * End Photographer imports
+      */
 
   	// SAMPLES
     TissueSample sample = null;
@@ -1285,8 +1404,8 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
-    //return AssetStore.getDefault(myShepherd);
-    return AssetStore.get(myShepherd, 1);
+    return AssetStore.getDefault(myShepherd);
+    //return AssetStore.get(myShepherd, 1);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook
