@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.HashMap;
 import org.joda.time.DateTime;
 
@@ -46,12 +47,18 @@ public class ImportIA extends HttpServlet {
 
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("ImportIA");
+    myShepherd.beginDBTransaction();
+
     FeatureType.initAll(myShepherd);
     PrintWriter out = response.getWriter();
 
     User creator = AccessControl.getUser(request, myShepherd);
     ImportTask itask = new ImportTask(creator);
     itask.setPassedParameters(request);
+
+    String uid = request.getParameter("uid");
+    User submitter = null;
+    if (uid != null) submitter = myShepherd.getUserByUUID(uid);
 
     int offset = 0;
     if (request.getParameter("offset")!=null) {
@@ -62,8 +69,12 @@ public class ImportIA extends HttpServlet {
     //  mostly cuz this makes "co-occurring" Encounters where we probably dont want them
     boolean createOccurrences = Util.requestParameterSet(request.getParameter("createOccurrences"));
 
-    out.println("<h1>Starting ImportIA servlet | import task=" + itask.getId() + "</h1>");
-    myShepherd.beginDBTransaction();
+    out.println("<h1>Starting ImportIA servlet | import task=<a href=\"obrowse.jsp?type=ImportTask&id=" + itask.getId() + "\">" + itask.getId() + "</a></h1>");
+    if (uid != null) {
+        out.println("<p>submitter uid = <b>" + uid + "</b> (user => " + ((submitter == null) ? "<i>invalid ID</i>" : submitter.getDisplayName()) + ")</p>");
+    } else {
+        out.println("<p><i>no submitter uid= passed</i></p>");
+    }
 
     String urlSuffix = "/api/imageset/json/";
     if (!Util.requestParameterSet(request.getParameter("includeSpecial"))) urlSuffix += "?is_special=False";
@@ -95,6 +106,10 @@ public class ImportIA extends HttpServlet {
 //TODO add taxonomy=
     log(itask, "starting; urlSuffix=" + urlSuffix + "; testingLimit=" + testingLimit + "; doOnly=" + onlyOcc);
     log(itask, "IA source = " + IBEISIA.iaURL(context, ""));
+
+    // it should be noted this hasEncounter is relative to *this import only* -- the enc might exist previously.
+    //   this is done for expediency
+    Map<String,String> hasEncounter = new HashMap<String,String>();
 
     for (int i = 0; i < fancyImageSetUUIDS.length(); i++) {
         JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
@@ -169,13 +184,20 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
       for (String name : uniqueNames) {
         if (IBEISIA.unknownName(name)) {   // we need one encounter per annot for unknown!
             for (Annotation ann : annotGroups.get(name)) {
+                if (hasEncounter.get(ann.getAcmId()) != null) {
+                    log(itask, "!! ann.acmId=" + ann.getAcmId() + " already has enc.id=" + hasEncounter.get(ann.getAcmId()) + "; skipping");
+                    continue;
+                }
                 Encounter enc = new Encounter(ann);
+                enc.setTaxonomy(IBEISIA.iaClassToTaxonomy(ann.getIAClass(), myShepherd));
                 enc.setMatchedBy("IBEIS IA");
                 enc.setState("approved");
+                enc.addSubmitter(submitter);
                 myShepherd.beginDBTransaction();
                 myShepherd.storeNewEncounter(enc, Util.generateUUID());
                 myShepherd.storeNewAnnotation(ann);
                 myShepherd.commitDBTransaction();
+                hasEncounter.put(ann.getAcmId(), enc.getCatalogNumber());
                 log(itask, "created " + enc + " from " + ann);
                 out.println("<p>Enc " + enc.getCatalogNumber() + " from <a href=\"obrowse.jsp?type=Annotation&id=" + ann.getId() + "\">Annot " + ann.getId() + "</a>");
 
@@ -196,9 +218,20 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
             }
 
         } else {
-            Encounter enc = new Encounter(annotGroups.get(name));
+            //we only use annots which havent already been used
+            ArrayList<Annotation> usable = new ArrayList<Annotation>();
+            for (Annotation ann : annotGroups.get(name)) {
+                if (hasEncounter.get(ann.getAcmId()) == null) usable.add(ann);
+            }
+            if (usable.size() < 1) continue;  //nothing to do!
+            Encounter enc = new Encounter(usable);
+            for (Annotation ann : usable) {
+                hasEncounter.put(ann.getAcmId(), enc.getCatalogNumber());
+            }
+            enc.setTaxonomy(IBEISIA.iaClassToTaxonomy(usable.get(0).getIAClass(), myShepherd));
             enc.setMatchedBy("IBEIS IA");
             enc.setState("approved");
+            enc.addSubmitter(submitter);
 
             // here we have to check if this encounter has been added already
 
@@ -282,11 +315,12 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
         myShepherd.commitDBTransaction();
     }
 
-    //myShepherd.closeDBTransaction();
 
     log(itask, "completed");
     out.println("<p><i>completed</i></p>");
     myShepherd.getPM().makePersistent(itask);
+    myShepherd.commitDBTransaction();
+    myShepherd.closeDBTransaction();
   }
 
   // I always swallow errors in the interest of clean code!
