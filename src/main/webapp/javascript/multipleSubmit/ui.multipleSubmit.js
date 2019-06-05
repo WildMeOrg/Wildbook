@@ -66,14 +66,10 @@ multipleSubmitUI = {
         for (let i=0;i<this.encsDefined();i++) {
             let numImgs = numImagesForEnc(i);
             let imgNames = getEncImageList(i);        
-            let hideText = txt("hideImages");
-            let showText = txt("showImages");
             let lst = "";
             if (numImgs>0) {
                 lst += "<div class=\"row\">";
                 lst += "    <div class=\"filename-scroll-list col-xs-12 col-md-6 col-lg-6 col-xl-6\">";
-                lst += "           <input id=\"hide-enc-images-btn-"+i+"\" class=\"show-selected-images-btn\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+hideText+"\"  data-toggle=\"tooltip\" title=\""+txt("ttHideImages")+"\" />";
-                lst += "           <input id=\"show-enc-images-btn-"+i+"\" class=\"show-selected-images-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+showText+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowImages")+"\" />";
                 lst += "        <p><small>"+txt("hoverPreview")+"</small></p>";
                 lst += "        <ul id=\"enc-image-list="+i+"\" class=\"enc-image-list\">";
                 for (let j=0;j<numImgs;j++) {
@@ -118,10 +114,10 @@ multipleSubmitUI = {
 
     generateImageTile: function(file, index) {
         var imageTile = "";
-        imageTile += "<div id=\"image-tile-div-"+index+"\" class=\"image-tile-div col-xs-6 col-sm-4 col-md-3 col-lg-3 col-xl-3\" onmouseover=\"showOverlay("+index+")\" onmouseout=\"hideOverlay("+index+")\" >";
+        imageTile += "<div id=\"image-tile-div-"+index+"\" class=\"image-tile-div col-xs-12 col-sm-6 col-md-3 col-lg-3 col-xl-3\" onmouseover=\"showOverlay("+index+")\" onmouseout=\"hideOverlay("+index+")\" >";
         imageTile += "  <img class=\"image-element\" id=\""+multipleSubmitUI.getImageIdForIndex(index)+"\" src=\"../../images/loading.png\" alt=\"Displaying "+file.name+"\" />";
         imageTile += "  <input class=\"form-control img-filename img-filename-"+index+"\" type=\"hidden\" value=\""+file.name+"\" />";
-        imageTile += multipleSubmitUI.generateImageDataOverlay(file,index);                
+        imageTile +=    multipleSubmitUI.generateImageDataOverlay(file,index);                
         imageTile += "</div>";
         //console.log("image tile: "+imageTile);
         return imageTile;
@@ -172,12 +168,11 @@ multipleSubmitUI = {
                         document.getElementById(uiId).appendChild(option);
                     }
                 }
-            } else {
-                return "";
-            }
+                speciesDrop += "</select>";
+                return speciesDrop;
+            } 
+            return "";
         });
-        speciesDrop += "</select>";
-        return speciesDrop;
     },
 
     generateLocationDropdown: function(index) {
@@ -209,7 +204,7 @@ multipleSubmitUI = {
         return dd;
     },
     
-    generateWaitingText:     function() {
+    generateWaitingText: function() {
         var wait = "";
         wait += "<div class=\"container waiting-div pulsing\">";
         wait += "     <p class=\"results-waiting\">Please wait for results. This may take a few seconds per image.</p>";
@@ -252,26 +247,58 @@ multipleSubmitUI = {
         return re;
     },
 
+    generateGalleryComponent: function(numEncs) {
+        var hdr = "";
+        hdr += "<div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12\">";
+        hdr += "    <h3 class=\"gallery-text\">"+txt("galleryHeader")+"</h3>";
+        hdr += "    <p class=\"gallery-text\">"+txt("galleryLabel")+"</p>";
+        hdr += "</div>";
+        hdr += "<div class=\"gallery-text col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12\">";
+        for (let i=0;i<numEncs;i++) {
+            let hideText = txt("dismiss")+" "+numImagesForEnc(i)+" "+txt("imgForEnc")+" #"+(i+1);
+            let showText = txt("show")+" "+numImagesForEnc(i)+" "+txt("imgForEnc")+" #"+(i+1);
+            hdr += "    <input id=\"hide-enc-images-btn-"+i+"\" class=\"show-selected-images-btn\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+hideText+"\"  data-toggle=\"tooltip\" title=\""+txt("ttHideImages")+"\" />";
+            hdr += "    <input id=\"show-enc-images-btn-"+i+"\" class=\"show-selected-images-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+showText+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowImages")+"\" />";  
+        }
+        hdr += "</div>";
+        return hdr;
+    },
+
     updateFileCounters: function() {
+        console.log("ENCS DEFINED?  "+this.encsDefined());
         for (let i=0;i<this.encsDefined();i++) {
             let numImages = numImagesForEnc(i);
-            let showBtn = document.getElementById("show-selected-images-btn-"+i);
-            let hideBtn = document.getElementById("hide-selected-images-btn-"+i);
-            if (showBtn!=null&&hideBtn!=null) {
-                console.log("Enc Num: "+i);
-                console.log("ShowBtn: "+showBtn);
-                console.log("HideBtn: "+hideBtn);
-                if (numImages>0) {
-                    let imgs = txt("images");
-                    if (numImages==1) {
-                        imgs = txt("image");
-                    }
-                    showBtn.value = (txt("show")+" "+numImages+" "+imgs);
-                    hideBtn.value = (txt("hide")+" "+numImages+" "+imgs);
-                } else {
-                    showBtn.value = txt("showImages");
-                    hideBtn.value = txt("hideImages");
+            let imgOrImages = txt("imgForEnc");
+            let showBtn = document.getElementById("show-enc-images-btn-"+i);
+            let hideBtn = document.getElementById("hide-enc-images-btn-"+i);
+            // inherit color from the enc metadata elements
+            let bgColor = document.getElementById("encounter-label-"+String(i)).style.backgroundColor;
+            showBtn.style.backgroundColor = bgColor;
+            hideBtn.style.backgroundColor = bgColor;
+
+            if (numImages>=1) {
+                console.log("numImages is >1 !");
+                showBtn.style.setProperty("color", "black", "important");
+                hideBtn.style.setProperty("color", "black", "important");
+                showBtn.disabled = "";
+                hideBtn.disabled = "";
+                if (numImages>1) {
+                    imgOrImages = txt("imgsForEnc");
                 }
+            } else {
+                imgOrImages = txt("addImages");
+                console.log("numImages is 0.. still disabled.");
+                //showBtn.style.backgroundColor = "darkgrey";
+                //hideBtn.style.backgroundColor = "darkgrey";
+                showBtn.style.setProperty("color", "grey", "important");
+                hideBtn.style.setProperty("color", "grey", "important");
+                showBtn.disabled = "true";
+                hideBtn.disabled = "true";
+            }
+            
+            if (showBtn!=null&&hideBtn!=null) {
+                showBtn.value = txt("show")+" "+numImages+" "+imgOrImages+" #"+(i+1);
+                hideBtn.value = txt("hide")+" "+numImages+" "+imgOrImages+" #"+(i+1);
             }
         }
     },

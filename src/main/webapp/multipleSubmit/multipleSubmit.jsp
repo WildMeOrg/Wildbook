@@ -77,7 +77,7 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 </div>
 
                 <input id="file-selector-input" name="allFiles" class="hidden-input" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" style="display:none;" multiple size="50" onChange="updateSelected(this);" />
-                <div class="container">
+                <div id="file-list-container" class="container">
                     <p id="input-file-list"></p>    
                     <p class="action-message"> </p>
                 </div>
@@ -93,6 +93,8 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
                 <div id="metadata-tiles-main" class="row"></div>
 
                 <br class="form-spacer">
+
+                <div id="gallery-header" class="row"></div>
 
                 <!-- Here is where we are going to dump rendered images and encounter UI from JS -->
                 <div id="image-tiles-main" class="row"></div>

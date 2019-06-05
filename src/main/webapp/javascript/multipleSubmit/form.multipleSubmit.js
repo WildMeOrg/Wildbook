@@ -47,8 +47,6 @@ function updateSelected(inp) {
 // add a sum of all file size here, it will help with cutoffs!
 // more emphasis on each file name
 
-
-
 function continueButtonClicked() {
     $(".form-file-selection").hide();
     $(".form-define-metadata").show();
@@ -90,7 +88,6 @@ function sendButtonClicked() {
         multipleSubmitAPI.sendData(function(result){    
             $("#results-main").html(multipleSubmitUI.generateResultPage(result));
             $(".nav-buttons").empty();
-            $("#input-file-list").remove();
             $(".form-spacer").remove();  
         });
     }
@@ -134,24 +131,30 @@ var safeColors = [
                             ];
 
 function showSelectedMedia() {
-    document.getElementById('input-file-list').innerHTML = "";
-    document.getElementsByClassName("action-message")[0].innerHTML = "";
+    let fileList = document.getElementById('file-list-container');
+    fileList.innerHTML = "";
+    fileList.outerHTML = "";
+    //document.getElementsByClassName("action-message")[0].innerHTML = "";
     let files = document.getElementById('file-selector-input').files;
     let imageTiles = "";
     let metadataTiles = "";
-    let numEnc = document.getElementById("number-encounters").value;
-    for (var i=0;i<numEnc;i++) {
+    let numEncs = document.getElementById("number-encounters").value;
+    let gallery = multipleSubmitUI.generateGalleryComponent(numEncs);
+    for (let i=0;i<numEncs;i++) {
         metadataTiles += multipleSubmitUI.generateMetadataTile(i);
     }
-    for (var i=0;i<files.length;i++) {
+    for (let i=0;i<files.length;i++) {
         imageTiles += multipleSubmitUI.generateImageTile(files[i],i);
     }
+
     $("#metadata-tiles-main").html(metadataTiles);
+    $("#gallery-header").html(gallery);
     $("#image-tiles-main").html(imageTiles);
+    
     for (var i=0;i<files.length;i++) {
         multipleSubmitUI.renderImageInBrowser(files[i],i);
     }
-    for (var i=0;i<numEnc;i++) {
+    for (var i=0;i<numEncs;i++) {
         var color;
         if (i<safeColors.length) {
             color = safeColors[i];;
@@ -192,20 +195,6 @@ function clearSelectedMedia() {
     }
     out("Please select some images to upload.");
 }
-
-//function listenForMouseoverAllImages() {
-//    for (var i=0;i<imageNumber;i++) {
-//        var elements = document.getElementsByClassName('img-input');
-//        for (var j=0;j<elements.length;j++) {
-//            document.getElementById(multipleSubmitUI.getImageIdForIndex(i)).onmouseover = function() {
-//                this.style.visibility = "visible";
-//            } 
-//            elements[j].onmouseover = function() {
-//                this.style.visibility = "visible";
-//            }
-//        }
-//    }
-//}
 
 function showOverlay(index) {
     var tileDiv = document.getElementById("image-tile-div-"+index);
@@ -294,7 +283,8 @@ function highlightOnEdit(index) {
 
     toggleImageHighlights("on",value);
 
-    multipleSubmitUI.updateFileCounters(value);
+    console.log("UPDATEING FILE COUNTERS");
+    multipleSubmitUI.updateFileCounters();
     multipleSubmitUI.refreshAssociatedImageList();
 }
 

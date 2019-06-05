@@ -35,6 +35,10 @@
     color: black;
 }
 
+.gallery-text {
+    text-align: center;
+}
+
 
 .hidden-input {
     display: none;
@@ -47,8 +51,6 @@
 */
 
 .image-tile-div, .image-preview-div {
-    margin-top: 15px;
-    margin-bottom: 15px;
     position: relative;
     overflow: hidden; 
     padding-left: 10px;
@@ -63,21 +65,57 @@
     */
 }
 
-@media (min-width: 576px) {
-    .image-tile-div {min-height: 11em;}
+@media (max-width: 610px) {
+    .image-tile-div {
+        margin-top: -31%;
+        margin-bottom: -31%;    
+    }
+ }
+
+@media (max-width: 768px) {
+    .image-tile-div {
+        min-height: -webkit-fill-available;
+        margin-top: -17%;
+        margin-bottom: -17%;
+        top: auto !important;
+        left: auto !important;
+        transform: unset !important;
+    }
 } 
+
+/* portal goes to one img per row so we can make taller again
+@media (min-width: 576px)  {
+    .image-tile-div {min-height: 16em;}
+} 
+*/
+
 
 @media (min-width: 768px)  {
-    .image-tile-div {min-height: 15em;}
+    .image-tile-div {min-height: 17em;}
 } 
 
+
 @media (min-width: 992px) {
-    .image-tile-div {min-height: 19em;}
+    .image-tile-div {min-height: 14em;}
 } 
 
 @media (min-width: 1200px) {
+    .image-tile-div {
+        min-height: 15em;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+}
+
+@media (min-width: 1550px) {
+    .image-tile-div {min-height: 19em;}
+}
+
+@media (min-width: 1900px) {
     .image-tile-div {min-height: 23em;}
 }
+
+
 
 .image-filename {
     color: white;
@@ -120,11 +158,18 @@
 
 .img-input {
     position: absolute;
+    /*
     margin-left: 3%;
     margin-top: 25%;
     margin-right: 6%;
+    */
     width: 91%;
     background-color: rgba(0,0,0,0.55);
+
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
 }
 
 .img-input-label {
@@ -257,9 +302,14 @@ div .img-input {
 }
 
 .show-selected-images-btn {
+    /*
     margin: 0 !important;
-    font-size: 0.8em;
-    padding: 3px;
+    */
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+    padding: 5px !important;
+    color: black !important;
 }
 
 .summary-label {
