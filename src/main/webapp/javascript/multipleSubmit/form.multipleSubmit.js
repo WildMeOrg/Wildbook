@@ -14,7 +14,6 @@ function recaptchaCallback() {
 var maxBytes = 104857600; // This is 100mb but can be overridden in properties through the jsp
 var maxUploadBytes = 250 * (1024*1024);
 function updateSelected(inp) {
-    // if there are no files, disable continue. If there is, enable.
     var f = '';
     let totalBytes = 0;
     if (inp.files && inp.files.length) {
@@ -44,8 +43,6 @@ function updateSelected(inp) {
     }
     document.getElementById('input-file-list').innerHTML = f;
 }
-// add a sum of all file size here, it will help with cutoffs!
-// more emphasis on each file name
 
 function continueButtonClicked() {
     $(".form-file-selection").hide();
@@ -64,11 +61,12 @@ function backButtonClicked() {
     $("#backButton").hide();
     $("#sendButton").hide();
     $(".recaptcha-div").show();
+    $("#gallery-header").show();
     clearSelectedMedia();
 }
 
-var shouldProceed = false;
 function sendButtonClicked() {
+    let shouldProceed = false;
     console.log("Clicked!");
     if (hasRequiredFields()||document.getElementById("sendButton").classList.contains("missing-fields-confirmed")) {
         document.getElementById("missing-data-message").innerHTML = ""; // y no work?
@@ -81,6 +79,7 @@ function sendButtonClicked() {
     if (shouldProceed==true) {
         $("#metadata-tiles-main").hide();
         $("#image-tiles-main").hide();
+        $("#gallery-header").hide();
         $("#results-main").html(multipleSubmitUI.generateWaitingText());
         setInterval(function(){
             $(".pulsing").fadeIn(350).delay(1200).fadeOut(350);
@@ -203,10 +202,6 @@ function showOverlay(index) {
     $(overlayDiv).addClass('img-selected');
     $("#img-"+index).addClass('img-selected');
 
-    //if (!$(tileDiv).hasClass('img-selected')) { 
-        // we don't need this yet.. overlay doesn't require focus with current options        
-    //}
-
     overlayDiv.hidden = false;
 }
 
@@ -216,14 +211,11 @@ function hideOverlay(index) {
     var overlayDiv = document.getElementById("img-overlay-"+index);
     $(overlayDiv).removeClass('img-selected');
     $("#img-"+index).removeClass('img-selected');
-    // ignore if we have clicked this item to focus
-    //if (!$(tileDiv).hasClass('img-selected')) {
-    //}
     overlayDiv.hidden = true;
 }
 
 function showEditMetadata(index) {
-    console.log("got the click! on element: "+index);
+    //console.log("got the click! on element: "+index);
     var editDiv = document.getElementById("enc-metadata-inner-"+index);
     if (editDiv.classList.contains("edit-closed")) {
         $(editDiv).slideDown();
@@ -255,6 +247,27 @@ function toggleEncImages(index) {
     }
 }
 
+function toggleAllCuratedEncImages(showHide) {
+    console.log("toggling curated... showHide== "+showHide);
+    let allImageTiles = document.getElementsByClassName("image-tile-div"); 
+    let numEncs = multipleSubmitUI.encsDefined();
+    for (let i=0;i<allImageTiles.length;i++) { 
+        let selectEl = allImageTiles[i].querySelector(".enc-num-dropdown");
+        let selectEnc = selectEl.options[selectEl.selectedIndex].value;
+        let isNum = new RegExp('^\\d+$');
+        console.log("selectEnc is ="+selectEnc);
+        if (isNum.test(selectEnc)||selectEnc=="ignored") {
+            let disp = allImageTiles[i].style.display;
+            if (disp=="none"&&showHide==true) {
+                $(allImageTiles[i]).fadeIn();
+            }
+            if (disp!="none"&&showHide==false) {
+                $(allImageTiles[i]).fadeOut();
+            }
+        }
+    }
+}
+
 // flip on all borders for imgs that have this enc selected..
 function toggleImageHighlights(state,index) {
     var allImageTiles = document.getElementsByClassName("image-tile-div");
@@ -275,15 +288,12 @@ function toggleImageHighlights(state,index) {
 }
 
 function highlightOnEdit(index) {
-    //console.log("get enc number onchange for state="+state+" and index="+index);
-    console.log("get enc number onchange for index="+index);
     var encSelected = document.getElementById("enc-num-dropdown-"+index);
     var value = encSelected.options[encSelected.    selectedIndex].value;
     //var editDiv = document.getElementById("enc-metadata-inner-"+value);
 
     toggleImageHighlights("on",value);
 
-    console.log("UPDATEING FILE COUNTERS");
     multipleSubmitUI.updateFileCounters();
     multipleSubmitUI.refreshAssociatedImageList();
 }
@@ -383,10 +393,7 @@ function getEncImageList(index) {
     //console.log("getting image list for encNum = "+index);
     let arr = [];
     let imgs = document.getElementsByClassName("image-tile-div");
-    //console.log("got "+imgs.length+" image elements");
     for (let i=0;i<imgs.length;i++) {
-        //console.log("got image..");
-        //console.log("inna HTML of dis img: "+imgs[i].innerHTML);
         let dropdown = imgs[i].querySelector(".img-input").querySelector(".enc-num-dropdown"); // blech
         if (dropdown.options[dropdown.selectedIndex].value==index) {
             //console.log("adding filename : "+imgs[i].querySelector(".img-filename").value);

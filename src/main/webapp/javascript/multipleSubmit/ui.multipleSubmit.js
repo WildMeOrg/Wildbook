@@ -42,7 +42,7 @@ multipleSubmitUI = {
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-4 col-lg-4 col-xl-4 enc-top-input\">"+multipleSubmitUI.generateSpeciesDropdown(index)+"</div>";
         metadataTile +=	"       <p><textarea id=\"enc-comments-"+index+"\" class=\"form-control comment-box\" placeholder=\""+txt("moreInfo")+"\" onchange=\"updateSummary("+index+")\" rows=\"3\" cols=\"36\" /></p>";
-        metadataTile +=             "<div id=\"image-list-target-"+index+"\" onmouseout=\"multipleSubmitUI.clearImageThumbnail("+index+")\">";
+        metadataTile +=             "<div id=\"image-list-target-"+index+"\">";
         metadataTile +=	"           </div>";
         metadataTile +=	"   </div>";
         metadataTile += "</div>";
@@ -74,35 +74,45 @@ multipleSubmitUI = {
                 lst += "        <ul id=\"enc-image-list="+i+"\" class=\"enc-image-list\">";
                 for (let j=0;j<numImgs;j++) {
                     let name = imgNames[j];
-                    lst += "        <li onmouseover=\"multipleSubmitUI.generateImageThumbnail('"+name+"',"+i+")\">"+name+"</li>";
+                    lst += "        <li class=\"hover-grey\" onmouseover=\"multipleSubmitUI.generateImageThumbnail('"+name+"',"+i+")\">"+name+"</li>";
                 }
                 lst += "        </ul>";
                 lst += "    </div>"; 
                 lst += "    <div id=\"image-preview-div-"+i+"\" class=\"image-preview-div col-xs-12 col-md-6 col-lg-6 col-xl-6\">";
                 lst += "        <img id=\"image-preview-"+i+"\" class=\"image-preview\" />";
+                // ADDING THE LABEL FOR THE IMAGE!!!!!!!!!!!!!
+                lst += "        <label id=\"image-preview-label-"+i+"\" class=\"image-preview-label gallery-text\"></label>";
                 lst += "    </div>"; 
                 lst += "</div>"; // end row
             }
             document.getElementById("image-list-target-"+i).innerHTML = lst;
+
+            // start with first one highlighted, bail if another is
+            if (numImgs>0&&!document.getElementById("image-preview-"+i).classList.contains("user-selected")) {
+                generateImageThumbnail(imgNames[0],i);
+            }
         }
     },
 
     generateImageThumbnail: function(fileName, index) {
         let file = getFileFromFilename(fileName);
         if (this.hasVal(String(file))) {
+            document.getElementById("image-preview-label-"+index).innerText = fileName;
             var reader = new FileReader();
             reader.onload = function(e) {
                 $("#image-preview-"+index).attr('src', e.target.result);
-                //let img = document.getElementById("image-preview-div-"+index);
+                console.log("Here's what i'm trying to get: image-preview-"+index);
+                if (document.getElementById("image-preview-"+index).classList.contains("user-selected")) {
+                    document.getElementById("image-preview-"+index).classList.add("user-selected");    
+                }
             }
             reader.readAsDataURL(file);
-            //document.getElementById("image-preview-div-"+index).style.height = img.height;
         }
     },
 
-    clearImageThumbnail: function(index) {
-        document.getElementById("image-preview-"+index).setAttribute("src", "");
-    },
+    //clearImageThumbnail: function(index) {
+    //    document.getElementById("image-preview-"+index).setAttribute("src", "");
+    //},
 
     refreshAssociatedImageList: function() {
         for (let i=0;i<this.encsDefined();i++) {
@@ -156,23 +166,20 @@ multipleSubmitUI = {
         speciesDrop += "<select id=\""+uiId+"\" class=\"form-control "+uiClass+"\" onchange=\"updateSummary("+index+")\" name=\"species-dropdown-"+index+"\">";
         multipleSubmitAPI.getSpecies(function(result){
             var allSpecies = result.allSpecies
-            if (allSpecies=null&&allSpecies.length>0) {
-                for (var i=0;i<allSpecies.length;i++) {
-                    var species = allSpecies[i];
-                    //console.log("allSpecies? --> "+JSON.stringify(result));
-                    var option = document.createElement("option");
-                    option.text = species; 
-                    option.value = species;
-                    //console.log("Appending child for species="+species);
-                    if (document.getElementById(uiId)!=null) {
-                        document.getElementById(uiId).appendChild(option);
-                    }
+            for (var i=0;i<allSpecies.length;i++) {
+                var species = allSpecies[i];
+                //console.log("allSpecies? --> "+JSON.stringify(result));
+                var option = document.createElement("option");
+                option.text = species; 
+                option.value = species;
+                //console.log("Appending child for species="+species);
+                if (document.getElementById(uiId)!=null) {
+                    document.getElementById(uiId).appendChild(option);
                 }
-                speciesDrop += "</select>";
-                return speciesDrop;
-            } 
-            return "";
+            }
         });
+        speciesDrop += "</select>";
+        return speciesDrop;
     },
 
     generateLocationDropdown: function(index) {
@@ -242,7 +249,14 @@ multipleSubmitUI = {
             re += "<br>";
             re += "</div>";
         }
-        re += "<hr>";
+        re += "    <hr>";
+        re +=      "<div class=\"row\">";
+        re +=      "    <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12\">";
+        re +=      "    <a target=\"_blank\" href=\"//"+baseURL()+"\"><h4>"+txt("goHome")+"</h4></a>";
+        re +=      "    <a target=\"_blank\" href=\"//"+baseURL()+"/multipleSubmit/multipleSubmit.jsp\"><h4>"+txt("submitAgain")+"</h4></a>";
+        re +=      "    </div>";
+        re +=      "</div>";
+        re += "    </div>";
         re += "</div>";
         return re;
     },
@@ -254,6 +268,9 @@ multipleSubmitUI = {
         hdr += "    <p class=\"gallery-text\">"+txt("galleryLabel")+"</p>";
         hdr += "</div>";
         hdr += "<div class=\"gallery-text col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12\">";
+        hdr += "    <input id=\"hide-all-enc-images-btn\" class=\"show-selected-images-btn\" type=\"button\" onclick=\"toggleAllCuratedEncImages(false)\" value=\""+txt("hideAllCurated")+"\" data-toggle=\"tooltip\" title=\""+txt("ttHideAllImages")+"\" />"; 
+        hdr += "    <input id=\"show-all-enc-images-btn\" class=\"show-selected-images-btn\" type=\"button\" onclick=\"toggleAllCuratedEncImages(true)\" value=\""+txt("showAllCurated")+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowAllImages")+"\" />"; 
+
         for (let i=0;i<numEncs;i++) {
             let hideText = txt("dismiss")+" "+numImagesForEnc(i)+" "+txt("imgForEnc")+" #"+(i+1);
             let showText = txt("show")+" "+numImagesForEnc(i)+" "+txt("imgForEnc")+" #"+(i+1);

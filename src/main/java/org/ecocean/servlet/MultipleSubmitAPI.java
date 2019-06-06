@@ -125,7 +125,6 @@ public class MultipleSubmitAPI extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("All the properties: "+rtn.toString());
         return rtn;
     }
 
@@ -137,7 +136,7 @@ public class MultipleSubmitAPI extends HttpServlet {
         response.setContentType("application/json");
         JsonObject rtn = new JsonObject();
         rtn.addProperty("success", "false");
-        System.out.println("PART NAMES:");
+        //System.out.println("PART NAMES:");
 
         String jsonStr = request.getParameter("json-data");
         System.out.println("Sent JSON (as string) : "+jsonStr);
@@ -158,7 +157,7 @@ public class MultipleSubmitAPI extends HttpServlet {
         for (Part param : params) {
             String filename = "";
             if (param.getSubmittedFileName()!=null) filename = param.getSubmittedFileName();
-            System.out.println("Param- Name:"+param.getName()+" Type: "+param.getContentType()+"  Filename: "+filename);
+            //System.out.println("Param- Name:"+param.getName()+" Type: "+param.getContentType()+"  Filename: "+filename);
         }
 
         if ("true".equals(json.get("recaptcha-checked").getAsString())) {

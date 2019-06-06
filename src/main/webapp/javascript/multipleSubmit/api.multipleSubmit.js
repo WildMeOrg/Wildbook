@@ -1,5 +1,3 @@
-
-// Add function to retrieve all metadata and images and send to servlet.
 multipleSubmitAPI = {
 
     sendData: function(callback) {

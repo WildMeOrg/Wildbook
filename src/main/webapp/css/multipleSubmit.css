@@ -50,6 +50,10 @@
 }
 */
 
+.hover-grey:hover {
+    background-color: lightgray;
+}
+
 .image-tile-div, .image-preview-div {
     position: relative;
     overflow: hidden; 
@@ -154,6 +158,19 @@
     left: 50%;
     -ms-transform: translate(-50%,-50%);
     transform: translate(-50%,-50%);
+}
+
+.image-preview-label {
+    position: absolute;
+    max-width: 100%;
+    /*max-height: 30vh;*/
+    max-block-size: 100%;
+    object-fit: contain;
+    top: 90%;
+    left: 50%;
+    -ms-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
+    background-color: whitesmoke;
 }
 
 .img-input {
