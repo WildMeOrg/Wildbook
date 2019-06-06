@@ -274,8 +274,8 @@ multipleSubmitUI = {
         for (let i=0;i<numEncs;i++) {
             let hideText = txt("dismiss")+" "+numImagesForEnc(i)+" "+txt("imgForEnc")+" #"+(i+1);
             let showText = txt("show")+" "+numImagesForEnc(i)+" "+txt("imgForEnc")+" #"+(i+1);
-            hdr += "    <input id=\"hide-enc-images-btn-"+i+"\" class=\"show-selected-images-btn\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+hideText+"\"  data-toggle=\"tooltip\" title=\""+txt("ttHideImages")+"\" />";
-            hdr += "    <input id=\"show-enc-images-btn-"+i+"\" class=\"show-selected-images-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+showText+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowImages")+"\" />";  
+            hdr += "    <input id=\"hide-enc-images-btn-"+i+"\" class=\"hover-light-text show-selected-images-btn\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+hideText+"\"  data-toggle=\"tooltip\" title=\""+txt("ttHideImages")+"\" />";
+            hdr += "    <input id=\"show-enc-images-btn-"+i+"\" class=\"hover-light-text show-selected-images-btn hidden-input\" type=\"button\" onclick=\"toggleEncImages("+i+")\" value=\""+showText+"\" data-toggle=\"tooltip\" title=\""+txt("ttShowImages")+"\" />";  
         }
         hdr += "</div>";
         return hdr;
@@ -295,8 +295,8 @@ multipleSubmitUI = {
 
             if (numImages>=1) {
                 console.log("numImages is >1 !");
-                showBtn.style.setProperty("color", "black", "important");
-                hideBtn.style.setProperty("color", "black", "important");
+                showBtn.style.setProperty("color", "black");
+                hideBtn.style.setProperty("color", "black");
                 showBtn.disabled = "";
                 hideBtn.disabled = "";
                 if (numImages>1) {
@@ -305,10 +305,8 @@ multipleSubmitUI = {
             } else {
                 imgOrImages = txt("addImages");
                 console.log("numImages is 0.. still disabled.");
-                //showBtn.style.backgroundColor = "darkgrey";
-                //hideBtn.style.backgroundColor = "darkgrey";
-                showBtn.style.setProperty("color", "grey", "important");
-                hideBtn.style.setProperty("color", "grey", "important");
+                showBtn.style.setProperty("color", "grey");
+                hideBtn.style.setProperty("color", "grey");
                 showBtn.disabled = "true";
                 hideBtn.disabled = "true";
             }
