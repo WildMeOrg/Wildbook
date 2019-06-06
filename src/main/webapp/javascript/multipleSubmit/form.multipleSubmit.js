@@ -100,7 +100,7 @@ function hasRequiredFields() {
         let location = document.getElementById("loc-enc-input-"+i).value;
         console.log("Date: "+date+" Location: "+location);
         if (!multipleSubmitUI.hasVal(date)||!multipleSubmitUI.hasVal(location)) {
-            msg += "<p class=\"missing-info\">"+txt("encounter")+" "+i+" "+txt("missingInformation")+"</p>";
+            msg += "<p class=\"missing-info\">"+txt("encounter")+" "+(i+1)+" "+txt("missingInformation")+"</p>";
             if (!multipleSubmitUI.hasVal(date)) {
                 msg += "<p>"+txt("dateField")+"</p>";
             }

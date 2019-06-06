@@ -326,7 +326,11 @@ div .img-input {
     margin-bottom: 8px;
     font-size: 1.1em;
     padding: 5px !important;
-    color: black !important;
+    color: black;
+}
+
+.hover-light-text:hover {
+    color: #CCC !important;
 }
 
 .summary-label {
