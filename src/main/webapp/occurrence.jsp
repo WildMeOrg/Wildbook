@@ -5,6 +5,16 @@
          org.ecocean.tag.*,
          org.datanucleus.api.rest.orgjson.JSONObject
          " %>
+<%!
+private static String niceNull(Double val) {
+    if (val == null) return "-";
+    return val.toString();
+}
+private static String niceNull(Integer val) {
+    if (val == null) return "-";
+    return val.toString();
+}
+%>
 
 <%
 
@@ -302,14 +312,21 @@ context=ServletUtilities.getContext(request);
 		
                 <p>
 			<%=props.getProperty("groupSizeLabel") %>: 
-                        <%=occ.getGroupSize()%><br />
+                        <%=niceNull(occ.getGroupSize())%><br />
 			&nbsp; <%=props.getProperty("numAdults") %>: 
-                        <%=occ.getNumAdults()%><br />
+                        <%=niceNull(occ.getNumAdults())%><br />
 			&nbsp; <%=props.getProperty("numSubAdults") %>: 
-                        <%=occ.getNumSubAdults()%><br />
+                        <%=niceNull(occ.getNumSubAdults())%><br />
 			&nbsp; <%=props.getProperty("numCalves") %>: 
-                        <%=occ.getNumCalves()%>
+                        <%=niceNull(occ.getNumCalves())%>
 
+                </p>
+
+                <p>
+			<%=props.getProperty("bearing") %>: 
+                        <%=niceNull(occ.getBearing())%><br />
+			<%=props.getProperty("distance") %>: 
+                        <%=niceNull(occ.getDistance())%>
                 </p>
 
 		<p style="display: none;">
