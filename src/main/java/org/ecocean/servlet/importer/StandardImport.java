@@ -467,6 +467,9 @@ public class StandardImport extends HttpServlet {
   	String specificEpithet = getString(row, "Encounter.specificEpithet");
   	if (specificEpithet!=null) enc.setSpecificEpithet(specificEpithet);
 
+        String repr = getString(row, "Encounter.reproductiveStage");
+        if (repr!=null) enc.setReproductiveStage(repr);
+
   	String submitterOrganization = getString(row, "Encounter.submitterOrganization");
   	if (submitterOrganization!=null) enc.setSubmitterOrganization(submitterOrganization);
 
