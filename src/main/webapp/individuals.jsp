@@ -1396,9 +1396,9 @@ if (sharky.getNames() != null) {
             setTimeout(function() {
               var deletedMarkedIndividualName2 = "";
               var deletedType = "";
-              $(document).on('click', '.editRelationshipBtn', function () {
+              $(document).on('click', '.editRelationshipBtn', function (event) {
                 $("#setRelationshipResultDiv").hide();
-                var relationshipID = $(".editRelationshipBtn").val();
+                var relationshipID = event.target.value;
                 getRelationshipData(relationshipID);
 		$("#inputPersistenceID").val(relationshipID);
 		$("#individual1").val("<%=individualID%>");
