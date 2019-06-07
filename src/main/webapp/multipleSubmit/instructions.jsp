@@ -30,7 +30,7 @@
 
 		<div class="col-xs-12 col-sm-6 col-lg-6 col-xl-6"> 
 
-			<img src="/cust/mantamatcher/img/hero_manta.jpg" />
+			<img src="/cust/mantamatcher/img/selectFiles.png" />
 	
 		</div>
 	
