@@ -149,7 +149,7 @@ div table.tablesorter thead tr .headerSortDown, div table.tablesorter thead tr .
 }
 
 /* button */
-button, html input[type="button"], input[type="reset"], input[type="submit"] {
+button, html input[type="button"], input[type="reset"], input[type="submit"], a.button {
 	background-color: #0F6F8A;
   color: #ffffff;
   -webkit-text-fill-color: #ffffff;
@@ -157,7 +157,7 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
 }
 
 /* hovered button */
-button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover {
+button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover, a.button:hover {
 	background-color: #127D98;
 	font-weight: 500;
 }

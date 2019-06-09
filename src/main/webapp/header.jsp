@@ -77,6 +77,7 @@ finally{
       </title>
       <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+      <meta charset="UTF-8">
       <meta name="Description"
             content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
       <meta name="Keywords"
@@ -527,6 +528,7 @@ finally{
 
         <script>
         $('#search-site').autocomplete({
+            // sortResults: true, // they're already sorted
             appendTo: $('#navbar-top'),
             response: function(ev, ui) {
                 if (ui.content.length < 1) {
@@ -564,6 +566,7 @@ finally{
                     success: function( data ) {
                         var res = $.map(data, function(item) {
                             var label="";
+                            var nickname="";
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
                             }
@@ -572,9 +575,15 @@ finally{
                             } else {
                                 label = "";
                             }
-                            return {label: label + item.label,
+                            
+                            if(item.nickname != null){
+                            	nickname = " ("+item.nickname+")";
+                            }
+                            
+                            return {label: label + item.label+nickname,
                                     value: item.value,
-                                    type: item.type};
+                                    type: item.type,
+                                    nickname: nickname};
                             });
 
                         response(res);

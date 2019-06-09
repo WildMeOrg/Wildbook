@@ -180,7 +180,8 @@ public class TwitterUtil {
     .setOAuthConsumerSecret(consumerSecret)
     .setOAuthAccessToken(accessToken)
     .setJSONStoreEnabled(true)
-    .setOAuthAccessTokenSecret(accessTokenSecret);
+    .setOAuthAccessTokenSecret(accessTokenSecret)
+    .setTweetModeExtended(true);
     return new TwitterFactory(cb.build());
   }
 
