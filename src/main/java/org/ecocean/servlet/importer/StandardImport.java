@@ -921,7 +921,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  // keywording
 
     ArrayList<Keyword> kws = getKeywordForAsset(row, i);
-    ma.setKeywords(kws);
+    if(kws!=null)ma.setKeywords(kws);
 
 	  // Keyword keyword = null;
 	  // String keywordI = getString(row, "Encounter.keyword"+i);

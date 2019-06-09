@@ -1167,7 +1167,7 @@ public class Shepherd {
     Iterator<Keyword> keywords = getAllKeywords();
 	while (keywords.hasNext()) {
       Keyword kw = keywords.next();
-      if((kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
+      if((kw.getReadableName() !=null && kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
   	}
   return null;
 
@@ -3608,20 +3608,22 @@ public class Shepherd {
     List<String> propKeywordNames = CommonConfiguration.getIndexedPropertyValues("keyword",getContext());
     List<Keyword> propKeywords = new ArrayList<Keyword>();
 
-    System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
-
-    for (String propKwName: propKeywordNames) {
-      for (Keyword kw: allKeywords) {
-        if (kw.getReadableName().equals(propKwName)) {
-          propKeywords.add(kw);
-          break;
+    if((allKeywords!=null)&&(propKeywordNames!=null)) {
+      System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
+  
+      for (String propKwName: propKeywordNames) {
+        for (Keyword kw: allKeywords) {
+          if ((kw.getReadableName()!=null) && kw.getReadableName().equals(propKwName)) {
+            propKeywords.add(kw);
+            break;
+          }
         }
       }
+      System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
+      allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
+      propKeywords.addAll(allKeywords);
+      // propKeywords contains all keywords, but those defined in properties are first.
     }
-    System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
-    allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
-    propKeywords.addAll(allKeywords);
-    // propKeywords contains all keywords, but those defined in properties are first.
     return propKeywords;
 
   }
@@ -3629,12 +3631,13 @@ public class Shepherd {
   public List<Keyword> getAllKeywordsList(Query acceptedKeywords) {
     // we find all keywords in the database and note which ones
     // are also listed in the properties file
-    ArrayList<Keyword> al = null;
+    ArrayList<Keyword> al = new ArrayList<Keyword>();
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
-      al=new ArrayList<Keyword>(c);
-    } catch (javax.jdo.JDOException x) {
+      if(c!=null) al=new ArrayList<Keyword>(c);
+    } 
+    catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
     }
