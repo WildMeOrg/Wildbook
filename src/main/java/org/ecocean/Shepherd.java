@@ -4094,7 +4094,7 @@ public class Shepherd {
     return null;
   }
   public List<Encounter> getEncountersByIndividualAndOccurrence(String indID, String occID) {
-    String filter = "this.individualID == \""+indID+"\" && this.occurrenceID == \""+occID+"\"";
+    String filter = "this.individual.individualID == \""+indID+"\" && this.occurrenceID == \""+occID+"\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (acceptedEncounters.execute());
