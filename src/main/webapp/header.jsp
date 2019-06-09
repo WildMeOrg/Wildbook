@@ -566,6 +566,7 @@ finally{
                     success: function( data ) {
                         var res = $.map(data, function(item) {
                             var label="";
+                            var nickname="";
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
                             }
@@ -574,9 +575,15 @@ finally{
                             } else {
                                 label = "";
                             }
-                            return {label: label + item.label,
+                            
+                            if(item.nickname != null){
+                            	nickname = " ("+item.nickname+")";
+                            }
+                            
+                            return {label: label + item.label+nickname,
                                     value: item.value,
-                                    type: item.type};
+                                    type: item.type,
+                                    nickname: nickname};
                             });
 
                         response(res);
