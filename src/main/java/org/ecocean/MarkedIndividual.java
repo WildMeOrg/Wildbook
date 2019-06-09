@@ -127,7 +127,7 @@ public class MarkedIndividual implements java.io.Serializable {
     public static final String NAMES_KEY_LEGACYINDIVIDUALID = "_legacyIndividualID_";
 
   public MarkedIndividual(String name, Encounter enc) {
-
+    this();
     //this.individualID = individualID;
     this.addName(name);
     encounters.add(enc);
@@ -177,13 +177,24 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     public String getDisplayName(Object keyHint) {
         List<String> nameVals = getNamesList(keyHint);
-        if (((nameVals == null) || (nameVals.size() < 1)) && (getNames() != null)) nameVals = getNames().getValuesDefault();
-        if ((nameVals == null) || (nameVals.size() < 1)) {
-          if (Util.isUUID(individualID)) return individualID.substring(0,8);
-          else return individualID;
+        // default case: just return the first name for the keyhint.
+        if (!Util.isEmpty(nameVals)) return nameVals.get(0);
+        // fallback case: try using the default keyhint
+        nameVals = getNames().getValuesDefault();
+        if (!Util.isEmpty(nameVals)) return nameVals.get(0);
+        // second fallback: try using another nameKey
+        List<String> keys = names.getSortedKeys();
+        if (!Util.isEmpty(keys) && !keys.get(0).equals(keyHint)) { // need second check to disable infinite recursion
+          return (keys.get(0)+": "+getDisplayName(keys.get(0)));
         }
-        return nameVals.get(0);
+        return displayIndividualID();
     }
+
+    public String displayIndividualID() {
+      if (Util.isUUID(individualID)) return individualID.substring(0,8);
+      else return individualID;
+    }
+
     public static String getDisplayNameForEncounter(Shepherd myShepherd, String encId) {
       Encounter enc = myShepherd.getEncounter(encId);
       if (enc==null) return null;
@@ -411,7 +422,8 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
 
 	public int refreshNumberEncounters() {
-		this.numberEncounters = encounters.size();
+		this.numberEncounters = 0;
+		if(encounters!=null)this.numberEncounters = encounters.size();
 		return this.numberEncounters;
 	}
 
@@ -815,7 +827,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
    * @return a Vector of encounters
    * @see java.util.Vector
    */
-  public Vector getEncounters() {
+  public Vector<Encounter> getEncounters() {
     return encounters;
   }
   public int getNumEncounters() {
@@ -833,9 +845,11 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     //you can choose the order of the EncounterDateComparator
     public Encounter[] getDateSortedEncounters(boolean reverse) {
     Vector final_encs = new Vector();
-    for (int c = 0; c < encounters.size(); c++) {
-      Encounter temp = (Encounter) encounters.get(c);
-      final_encs.add(temp);
+    if(encounters!=null){
+      for (int c = 0; c < encounters.size(); c++) {
+        Encounter temp = (Encounter) encounters.get(c);
+        final_encs.add(temp);
+      }
     }
 
     int finalNum = final_encs.size();
@@ -923,6 +937,9 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
       comments = newComments;
     }
   }
+  public void setComments(String comments) {
+    this.comments = comments;
+  }
 
   /**
    * Returns the complete Vector of stored satellite tag data files for this MarkedIndividual.
@@ -973,6 +990,17 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
         specificEpithet = newEpithet;
     }
 
+    public void setTaxonomyString(String tax) {
+      if (tax == null) return;
+      String[] parts = tax.split(" ");
+      if (parts.length < 2) {
+        setSpecificEpithet(tax);
+      } else {
+        setGenus(parts[0]);
+        setSpecificEpithet(parts[1]);
+      }
+    }
+
     public String getTaxonomyString() {
         return Util.taxonomyString(getGenus(), getSpecificEpithet());
     }
@@ -998,18 +1026,14 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
     //similar to above
     public String setSexFromEncounters(boolean force) {
-        System.out.println("beginning setSexFromEncounters for indiv "+individualID
-        );
         if (!force && (sex != null) && !sex.equals("unknown")) return getSex();
         if ((encounters == null) || (encounters.size() < 1)) return getSex();
         for (Encounter enc : encounters) {
             if (enc.getSex() != null && !enc.getSex().equals("unknown")) {
                 sex = enc.getSex();
-                System.out.println("   about to return "+sex+"!");
                 return getSex();
             }
         }
-        System.out.println("    about to return "+getSex());
         return getSex();
     }
     public String setSexFromEncounters() {
@@ -1621,15 +1645,17 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     int maxYears=0;
     int lowestYear=3000;
     int highestYear=0;
-    for(int c=0;c<encounters.size();c++) {
-      Encounter temp=(Encounter)encounters.get(c);
-      if((temp.getYear()<lowestYear)&&(temp.getYear()>0)) lowestYear=temp.getYear();
-      if(temp.getYear()>highestYear) highestYear=temp.getYear();
-      maxYears=highestYear-lowestYear;
-      if(maxYears<0){maxYears=0;}
-      }
-    maxYearsBetweenResightings=maxYears;
+    if(encounters!=null){
+      for(int c=0;c<encounters.size();c++) {
+        Encounter temp=(Encounter)encounters.get(c);
+        if((temp.getYear()<lowestYear)&&(temp.getYear()>0)) lowestYear=temp.getYear();
+        if(temp.getYear()>highestYear) highestYear=temp.getYear();
+        maxYears=highestYear-lowestYear;
+        if(maxYears<0){maxYears=0;}
+       }
     }
+    maxYearsBetweenResightings=maxYears;
+  }
   
 
 
@@ -2362,12 +2388,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
     // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
+        System.out.println("findByNames regex: "+regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
         if (NAMES_CACHE == null) return rtn;  //snh
         if (regex == null) return rtn;
         List<String> nameIds = findNameIds(regex);
+        System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
         String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE names.id == " + String.join(" || names.id == ", nameIds);
+        System.out.println("findByNames jdoql: "+jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
         Collection c = (Collection) (query.execute());
         for (Object m : c) {
@@ -2424,6 +2453,46 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         NAMES_CACHE.put(names.getId(), this.getId() + ";" + String.join(";", names.getAllValues()).toLowerCase());
     }
 
+    // Need request to record which user did it
+    public void mergeIndividual(MarkedIndividual other, HttpServletRequest request) {
+      for (Encounter enc: other.getEncounters()) {
+        other.removeEncounter(enc);
+        enc.setIndividual(this);
+      }
+      this.names.merge(other.getNames());
+      this.setComments(getMergedComments(other, request));
+      refreshDependentProperties();
+    }
+
+    public String getMergedComments(MarkedIndividual other, HttpServletRequest request) {
+      User user = new Shepherd(request).getUser(request);
+      String mergedComments = Util.stringExists(getComments()) ? getComments() : "";
+    
+      mergedComments += "<p>This individual merged with individual "+other.getIndividualID()+" (\""+other.getDisplayName()+"\")";
+      mergedComments += ", which had encounters: [<ul>";
+      for (Encounter enc: other.getEncounters()) {
+        mergedComments += "<li>"+enc.getCatalogNumber()+"</li>";
+      }
+      mergedComments += "</ul>]";
+
+      mergedComments += "Merged on "+Util.prettyTimeStamp();
+      
+      if (user!=null) mergedComments += " by "+ user.getDisplayName();
+      else mergedComments += " No user was logged in.";
+      
+      if (Util.stringExists(other.getComments())) {
+        mergedComments += "</p><p>Merged comments:";
+        mergedComments += other.getComments();
+      }
+
+      mergedComments += "</p>";
+      return mergedComments;
+    }
+
+    public void mergeAndThrowawayIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+      mergeIndividual(other, request);
+      myShepherd.throwAwayMarkedIndividual(other);
+    }
 
     public String toString() {
         return new ToStringBuilder(this)

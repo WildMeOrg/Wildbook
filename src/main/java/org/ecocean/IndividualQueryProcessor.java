@@ -900,6 +900,7 @@ public class IndividualQueryProcessor {
     List<String> nameIds = new ArrayList<String>();
     String altVal = request.getParameter("alternateIDField");
     String nickVal = request.getParameter("nickNameField");
+    // adding the stars means we're looking for a substring not exact match
     if (Util.stringExists(altVal)) nameIds.addAll(MarkedIndividual.findNameIds(".*" + altVal + ".*"));
     if (Util.stringExists(nickVal)) nameIds.addAll(MarkedIndividual.findNameIds(".*" + nickVal + ".*"));
     if (nameIds.size() > 0) {

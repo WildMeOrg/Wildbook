@@ -144,6 +144,11 @@ public class Util {
 		return UUID.randomUUID().toString();
 	}
 
+  public static String prettyUUID(String uuid) {
+    if (!isUUID(uuid)) return uuid;
+    return(uuid.substring(0,8)+"...");
+  }
+
 	public static boolean isUUID(String s) {
                 if (s == null) return false;
 		boolean ok = true;
@@ -598,6 +603,37 @@ public class Util {
         return ll.toString();
     }
 
+    //see postgis/README.md for full details on these!  (including setup)
+    public static JSONArray overlappingWaterGeometries(Shepherd myShepherd, Double lat, Double lon, Double radius) {
+        if (!Util.isValidDecimalLatitude(lat) || !Util.isValidDecimalLongitude(lon)) return null;
+        if ((radius == null) || (radius < 0)) radius = 200.0D;   //this seems "close enough"... might be in meters?
+        String sql = "SELECT ST_AsGeoJSON(ST_Transform(geom, 4326)) FROM overlappingWaterGeometries(" + lat.toString() + ", " + lon.toString() + ", " + radius.toString() + ")";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        JSONArray rtn = new JSONArray();
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        while (it.hasNext()) {
+            String js = (String)it.next();
+            JSONObject geom = Util.stringToJSONObject(js);
+            if (geom != null) rtn.put(geom);
+        }
+        q.closeAll();
+        return rtn;
+    }
+
+    public static boolean nearWater(Shepherd myShepherd, Double lat, Double lon, Double radius) {
+        if (!Util.isValidDecimalLatitude(lat) || !Util.isValidDecimalLongitude(lon)) return false;
+        if ((radius == null) || (radius < 0)) radius = 200.0D;
+        String sql = "SELECT nearWater(" + lat.toString() + ", " + lon.toString() + ", " + radius.toString() + ")";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        if (!it.hasNext()) return false;
+        Boolean rtn = (Boolean)it.next();
+        q.closeAll();
+        return rtn;
+    }
+
     // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
     public static int getNumSections(int collectionSize, int itemsPerSection) {
       return (collectionSize - 1)/itemsPerSection + 1;
@@ -610,6 +646,11 @@ public class Util {
         currentToString = currentToString.split("T")[0];
       }
       return (currentToString);
+    }
+
+    public static String prettyTimeStamp() {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+      return sdf.format(new Date());
     }
 
     public static boolean dateTimeIsOnlyDate(DateTime dt) {
@@ -685,7 +726,10 @@ public class Util {
     }
 
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown") && !str.equals(""));
+      return (str!=null && !str.equals("") && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown"));
+    }
+    public static boolean isEmpty(Collection c) {
+      return (c==null || c.size()==0);
     }
     
     //these two utility functions handle the case where the argument (Collection, and subclasses like Lists) is null!
@@ -714,6 +758,19 @@ public class Util {
     public static boolean shouldReplace(String val1, String val2) {
       return (stringExists(val1) && !stringExists(val2));
     }
+
+    // only if one of the Strings should replace the other, return that string
+    public static String betterValue(String val1, String val2) {
+      if (val1!=null && val2!=null && val1.trim().equals(val2.trim())) {
+        // return shorter string (less whitespace)
+        if (val1.length()<val2.length()) return val1;
+        else return val2;
+      }
+      if (!stringExists(val2)) return val1;
+      if (!stringExists(val1)) return val2;
+      return null;
+    }
+
     public static boolean doubleExists(Double val) {
       return (val!=null && val!=0.0);
     }

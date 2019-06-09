@@ -98,7 +98,7 @@ public class SiteSearch extends HttpServlet {
           for (MarkedIndividual ind : individuals) {
               HashMap<String, String> hm = new HashMap<String, String>();
               String label = ind.getDisplayName(request);
-              hm.put("label", ind.getDisplayName(request));
+              hm.put("label", label);
               hm.put("value", ind.getIndividualID());
               hm.put("type", "individual");
   
@@ -107,6 +107,9 @@ public class SiteSearch extends HttpServlet {
               //
               if(ind.getGenusSpecies()!=null){
                 hm.put("species", ind.getGenusSpecies());
+              }
+              if(ind.getNickName()!=null){
+                hm.put("nickname", ind.getNickName());
               }
               labelToHm.put(label, hm);
               //list.add(hm);

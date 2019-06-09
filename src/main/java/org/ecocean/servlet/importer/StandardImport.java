@@ -3,14 +3,19 @@ package org.ecocean.servlet.importer;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+
 import java.net.*;
+
 import org.ecocean.grid.*;
+
 import java.io.*;
 import java.util.*;
 import java.io.FileInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+
 import javax.jdo.*;
+
 import java.lang.StringBuffer;
 import java.util.Vector;
 import java.util.Iterator;
@@ -21,7 +26,6 @@ import org.ecocean.servlet.*;
 import org.ecocean.media.*;
 import org.ecocean.genetics.*;
 import org.ecocean.tag.SatelliteTag;
-
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.hssf.usermodel.*;
@@ -32,7 +36,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -68,6 +71,8 @@ public class StandardImport extends HttpServlet {
   String defaultSubmitterID=null; // leave null to not set a default
   String defaultCountry=null;
 
+  Map<String,MarkedIndividual> individualCache = new HashMap<String,MarkedIndividual>();
+
   HttpServletRequest request;
 
 	private AssetStore astore;
@@ -94,16 +99,45 @@ public class StandardImport extends HttpServlet {
     myShepherd = new Shepherd(context);
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
+    
+    if(astore!=null){
+      System.out.println("astore is OK!");
+    }
+    else{
+      System.out.println("astore is null...BOO!!");
+      out.println("<p>I could not find a default AssetStore. Please create one.</p>");
+      return;
+    }
 
     //this might better be set via a different configuration variable of its own
-    String uploadDir = CommonConfiguration.getUploadTmpDir(context);
+    //String filename = Util.safePath(request.getParameter("filename"));
+    //if (filename == null) filename = "upload.xlsx";  //meh?
+    
+    //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
+    String filename = request.getParameter("filename");
+    
+    
+    File dataFile = new File(filename);
+    
+    if (filename == null) {
+      System.out.println("Filename request parameter was not set in the URL.");
+      out.println("<p>I could not find a filename parameter in the URL. Please specify the full path on the server file system to the Excel import file as the ?filename= parameter on the URL.</p><p>Please note: the importer assumes that all image files exist in the same folder as the Excel file or are relatively referenced in the Excel file within a subdirectory.</p><p>Example value: ?filename=/import/MyNewData/importMe.xlsx</p>");
+      return;
+    }
+    if(!dataFile.exists()){
+      out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+"</p>");
+      return;
+    }
+    
+    
+    
+    String uploadDir = dataFile.getParentFile().getAbsolutePath();
 
-    String subdir = Util.safePath(request.getParameter("subdir"));
-    if (subdir != null) uploadDir += subdir;
-    photoDirectory = uploadDir;
-    String filename = Util.safePath(request.getParameter("filename"));
-    if (filename == null) filename = "upload.xlsx";  //meh?
-    File dataFile = new File(uploadDir + "/" + filename);
+    //String subdir = Util.safePath(request.getParameter("subdir"));
+    //if (subdir != null) uploadDir += subdir;
+    photoDirectory = uploadDir+"/";
+    
+    
     boolean dataFound = dataFile.exists();
 
     missingColumns = new HashSet<String>();
@@ -175,11 +209,13 @@ public class StandardImport extends HttpServlet {
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
         numAnnots+=annotations.size();
-        Encounter enc = loadEncounter(row, annotations);
+        Encounter enc = loadEncounter(row, annotations, context);
         enc.addComments(importComment);
         occ = loadOccurrence(row, occ, enc);
         occ.addComments(importComment);
         mark = loadIndividual(row, enc);
+
+        if (mark!=null) individualCache.put(mark.getName(), mark);
 
         if (committing) {
 
@@ -201,11 +237,15 @@ public class StandardImport extends HttpServlet {
 
           myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
         	if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
-        	if (!myShepherd.isMarkedIndividual(mark)) {
+        	if ((mark!=null)&&!myShepherd.isMarkedIndividual(mark)) {
             mark.refreshDependentProperties();
             myShepherd.storeNewMarkedIndividual(mark);
           }
+
+        	enc.setIndividual(mark);
+
         	myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
         }
 
         if (verbose) {
@@ -411,7 +451,7 @@ public class StandardImport extends HttpServlet {
 
   }
 
-  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations) {
+  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context) {
 
     // try to load encounter by indID and occID, make a new one if it doesn't exist.
     String individualID = getIndividualID(row);
@@ -541,24 +581,116 @@ public class StandardImport extends HttpServlet {
     String alternateID = getString(row, "Encounter.alternateID");
     if (alternateID!=null) enc.setAlternateID(alternateID);
 
-  	Double length = getDouble(row, "Encounter.measurement.length");
-  	if (length!=null) {
-  		Measurement lengthMeas = new Measurement(encID, "length", length, "m", "");
-  		if (committing) enc.setMeasurement(lengthMeas, myShepherd);
-  	}
+    /*
+     * Start measurements import
+     */
+    List<String> measureVals=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurement", context);
+    List<String> measureUnits=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurementUnits", context);
+    int numMeasureVals=measureVals.size();
+    for(int bg=0;bg<numMeasureVals;bg++){
+      String colName="Encounter.measurement"+bg;
+      Double val = getDouble(row, colName);
+      if (val!=null) {
+        Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.get(bg), "");
+        if (committing) enc.setMeasurement(valMeas, myShepherd);
+        if (unusedColumns!=null) unusedColumns.remove(colName);
+      }
 
-  	Double weight = getDouble(row, "Encounter.measurement.weight");
-  	if (weight!=null) {
-  		Measurement weightMeas = new Measurement(encID, "weight", weight, "kg", "");
-  		if (committing) enc.setMeasurement(weightMeas, myShepherd);
-  	}
+    }
+    /*
+     * End measurements import
+     */
 
-  	Double depth = getDouble(row, "Encounter.depth");
-  	if (depth!=null) enc.setDepth(depth);
 
-  	String scar = getIntAsString(row, "Encounter.distinguishingScar");
-  	if (scar!=null) enc.setDistinguishingScar(scar);
+    /*
+     * Start Submitter imports
+     */
+     boolean hasSubmitters=true;
+     int startIter=0;
+     while(hasSubmitters){
+       String colEmail="Encounter.submitter"+startIter+".emailAddress";
+       String val=getString(row,colEmail);
+       if(val!=null){
+         if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+           User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
+           if((enc.getSubmitters()==null) || !enc.getSubmitters().contains(thisPerson)){
+             if (committing) enc.addSubmitter(thisPerson);
+             if (unusedColumns!=null) unusedColumns.remove(colEmail);
+           }
+         }
+         else{
+           //create a new User
+           User thisPerson=new User(val.trim(),Util.generateUUID());
+           if (committing) enc.addSubmitter(thisPerson);
+           if (unusedColumns!=null) unusedColumns.remove(colEmail);
 
+           String colFullName="Encounter.submitter"+startIter+".fullName";
+           String val2=getString(row,colFullName);
+           if(val2!=null) thisPerson.setFullName(val2.trim());
+           if (unusedColumns!=null) unusedColumns.remove(colFullName);
+
+           String colAffiliation="Encounter.submitter"+startIter+".affiliation";
+           String val3=getString(row,colAffiliation);
+           if(val3!=null) thisPerson.setAffiliation(val3.trim()); 
+           if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
+
+         }
+         startIter++;
+       }
+       else{
+         hasSubmitters=false;
+       }
+     }
+
+    /*
+     * End Submitter imports
+     */
+
+
+     /*
+      * Start Photographer imports
+      */
+      boolean hasPhotographers=true;
+      startIter=0;
+      while(hasPhotographers){
+        String colEmail="Encounter.photographer"+startIter+".emailAddress";
+        String val=getString(row,colEmail);
+        if(val!=null){
+          if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+            User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
+            if((enc.getPhotographers()==null) ||!enc.getPhotographers().contains(thisPerson)){
+              if (committing) enc.addPhotographer(thisPerson);
+              if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            }
+          }
+          else{
+            //create a new User
+            User thisPerson=new User(val.trim(),Util.generateUUID());
+            if (committing) enc.addPhotographer(thisPerson);
+            if (unusedColumns!=null) unusedColumns.remove(colEmail);
+
+            String colFullName="Encounter.photographer"+startIter+".fullName";
+            String val2=getString(row,colFullName);
+            if(val2!=null) thisPerson.setFullName(val2.trim()); 
+            if (unusedColumns!=null) unusedColumns.remove(colFullName);
+
+            String colAffiliation="Encounter.photographer"+startIter+".affiliation";
+            String val3=getString(row,colAffiliation);
+            if(val3!=null) thisPerson.setAffiliation(val3.trim());
+            if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
+
+
+          }
+          startIter++;
+        }
+        else{
+          hasPhotographers=false;
+        }
+      }
+
+     /*
+      * End Photographer imports
+      */
 
   	// SAMPLES
     TissueSample sample = null;
@@ -789,7 +921,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  // keywording
 
     ArrayList<Keyword> kws = getKeywordForAsset(row, i);
-    ma.setKeywords(kws);
+    if(kws!=null)ma.setKeywords(kws);
 
 	  // Keyword keyword = null;
 	  // String keywordI = getString(row, "Encounter.keyword"+i);
@@ -932,23 +1064,34 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	String individualID = getIndividualID(row);
   	if (individualID==null) return null;
 
-    MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(individualID);
-    if (mark==null) { // new individual
+    //MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(individualID);
+    
+  	MarkedIndividual mark = individualCache.get(individualID);
+    if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID);
+    else {
+      System.out.println("StandardImport got individual "+mark+" from individualCache");
+    }
+  	if (mark==null) { // new individual
 	    mark = new MarkedIndividual(enc);
+	    System.out.println("Creating new marked individual");
 	    newIndividual = true;
 	  }
 
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
     Organization org = getOrganization(row);
     if (org!=null) mark.addName(org, individualID);
-    else mark.addName(request, individualID);
+    //else mark.addName(request, individualID);
+    else mark.addName(individualID);
 
 	  if (mark==null) {
       System.out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
       return mark;
     }
 
-	  if (!newIndividual) mark.addEncounterNoCommit(enc);
+	  if (!newIndividual) {
+	    mark.addEncounterNoCommit(enc);
+	    System.out.println("loadIndividual notnew individual: "+mark.getDisplayName());
+	  }
 
     String alternateID = getString(row, "Encounter.alternateID");
     //if (alternateID!=null) mark.setAlternateID(alternateID);
@@ -1261,8 +1404,8 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
-    //return AssetStore.getDefault(myShepherd);
-    return AssetStore.get(myShepherd, 1);
+    return AssetStore.getDefault(myShepherd);
+    //return AssetStore.get(myShepherd, 1);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook

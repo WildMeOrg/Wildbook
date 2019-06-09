@@ -33,7 +33,8 @@ public class Collaboration implements java.io.Serializable {
 	public static final String STATE_INITIALIZED = "initialized";
 	public static final String STATE_REJECTED = "rejected";
 	public static final String STATE_APPROVED = "approved";
-
+	// one step higher than approved is having edit privileges
+	public static final String STATE_EDIT_PRIV = "edit";
 
 	//JDOQL required empty instantiator
 	public Collaboration() {}
@@ -226,7 +227,7 @@ public class Collaboration implements java.io.Serializable {
 		if (u1.equals(u2)) return true;
 		Collaboration c = collaborationBetweenUsers(u1, u2, context);
 		if (c == null) return false;
-		if (c.getState().equals(STATE_APPROVED)) return true;
+		if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV)) return true;
 		return false;
 	}
 	public static boolean canCollaborate(String context, String u1, String u2) {
@@ -234,9 +235,36 @@ public class Collaboration implements java.io.Serializable {
 		if (u1.equals(u2)) return true;
 		Collaboration c = collaborationBetweenUsers(u1, u2, context);
 		if (c == null) return false;
-		if (c.getState().equals(STATE_APPROVED)) return true;
+		if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV)) return true;
 		return false;
 	}
+
+	public static boolean canEditEncounter(Encounter enc, HttpServletRequest request) {
+		try {
+			String name1 = request.getUserPrincipal().getName();
+			String name2 = enc.getSubmitterID();
+			return canEdit(ServletUtilities.getContext(request), name1, name2);
+		} catch (Exception missingUser) {
+			System.out.println("Collaboration.canEditEncounter hit exception on request="+request+" and enc="+enc+"; returning false.");
+		}
+		return false;
+	}
+	public static boolean canEdit(String context, String u1, String u2) {
+		if (u1.equals(u2)) return true;
+		Collaboration c = collaborationBetweenUsers(u1, u2, context);
+		if (c == null) return false;
+		if (c.getState().equals(STATE_EDIT_PRIV)) return true;
+		return false;
+	}
+	public static boolean canEdit(String context, User u1, User u2) {
+		if (u1.equals(u2)) return true;
+		Collaboration c = collaborationBetweenUsers(u1, u2, context);
+		if (c == null) return false;
+		if (c.getState().equals(STATE_EDIT_PRIV)) return true;
+		return false;
+	}
+
+
 
 	public static Collaboration findCollaborationWithUser(String username, List<Collaboration> all) {
 		if (all == null) return null;
@@ -281,6 +309,7 @@ public class Collaboration implements java.io.Serializable {
 	// here "View" is a weaker action than "Access". 
 	// "View" means "you can see that the data exists but may not necessarily access the data"
 	public static boolean canUserViewOwnedObject(String ownerName, HttpServletRequest request, Shepherd myShepherd) {
+		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
 		if (ownerName == null || request.isUserInRole("admin")) return true;
 		User viewer = myShepherd.getUser(request);
 		User owner = myShepherd.getUser(ownerName);
@@ -288,12 +317,14 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	public static boolean canUserViewOwnedObject(User viewer, User owner, HttpServletRequest request) {
+		// if they own it
 		if (viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
-		return ((viewer!=null && 
+		// if viewer and owner have sharing turned on
+		if (((viewer!=null && 
 				viewer.hasSharing() && 
-				(owner==null || owner.hasSharing())) );
-				// had to comment out below line to compile. Where did it come from? 
-				//|| canUserAccessOwnedObject(owner.getUsername(),request));
+				(owner==null || owner.hasSharing())) )) return true; // just based on sharing
+		// if they have a collaboration
+		return canCollaborate(viewer, owner, ServletUtilities.getContext(request));
 	}
 
 	public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {

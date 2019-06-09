@@ -350,7 +350,24 @@ public class Shepherd {
     }
   }
   
-  
+  public List getAllCollaborations() {
+    Collection c;
+    try {
+      Extent allCollabs = pm.getExtent(Collaboration.class, true);
+      Query acceptedCollabs = pm.newQuery(allCollabs);
+      c = (Collection) (acceptedCollabs.execute());
+      List list = new ArrayList(c);
+      System.out.println("getAllCollaborations got "+list.size()+" collabs");
+      //Collections.reverse(list);
+      return list;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllCollaborations(). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+
 
 
   /**
@@ -869,8 +886,22 @@ public class Shepherd {
     query.closeAll();
     return users;
   }
-  
 
+  // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
+  public List<User> getNativeUsers() {
+    return getNativeUsers("username ascending");
+  }
+  public List<User> getNativeUsers(String ordering) {
+    List<User> users=null;
+    String filter="SELECT FROM org.ecocean.User WHERE username != null ";
+    filter += "&& !fullName.startsWith('Conserve.IO User ')";   
+    Query query=getPM().newQuery(filter);
+    query.setOrdering(ordering);
+    Collection c = (Collection) (query.execute());
+    users=new ArrayList<User>(c);
+    query.closeAll();
+    return users;
+  }
   
   public User getUserByUUID(String uuid) {
     User user= null;
@@ -1136,7 +1167,7 @@ public class Shepherd {
     Iterator<Keyword> keywords = getAllKeywords();
 	while (keywords.hasNext()) {
       Keyword kw = keywords.next();
-      if((kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
+      if((kw.getReadableName() !=null && kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
   	}
   return null;
 
@@ -1552,6 +1583,7 @@ public class Shepherd {
       return null;
     }
   }
+
 
   public Iterator<Taxonomy> getAllTaxonomies() {
     try {
@@ -3576,20 +3608,22 @@ public class Shepherd {
     List<String> propKeywordNames = CommonConfiguration.getIndexedPropertyValues("keyword",getContext());
     List<Keyword> propKeywords = new ArrayList<Keyword>();
 
-    System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
-
-    for (String propKwName: propKeywordNames) {
-      for (Keyword kw: allKeywords) {
-        if (kw.getReadableName().equals(propKwName)) {
-          propKeywords.add(kw);
-          break;
+    if((allKeywords!=null)&&(propKeywordNames!=null)) {
+      System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
+  
+      for (String propKwName: propKeywordNames) {
+        for (Keyword kw: allKeywords) {
+          if ((kw.getReadableName()!=null) && kw.getReadableName().equals(propKwName)) {
+            propKeywords.add(kw);
+            break;
+          }
         }
       }
+      System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
+      allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
+      propKeywords.addAll(allKeywords);
+      // propKeywords contains all keywords, but those defined in properties are first.
     }
-    System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
-    allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
-    propKeywords.addAll(allKeywords);
-    // propKeywords contains all keywords, but those defined in properties are first.
     return propKeywords;
 
   }
@@ -3597,12 +3631,13 @@ public class Shepherd {
   public List<Keyword> getAllKeywordsList(Query acceptedKeywords) {
     // we find all keywords in the database and note which ones
     // are also listed in the properties file
-    ArrayList<Keyword> al = null;
+    ArrayList<Keyword> al = new ArrayList<Keyword>();
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
-      al=new ArrayList<Keyword>(c);
-    } catch (javax.jdo.JDOException x) {
+      if(c!=null) al=new ArrayList<Keyword>(c);
+    } 
+    catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
     }
@@ -4062,7 +4097,7 @@ public class Shepherd {
     return null;
   }
   public List<Encounter> getEncountersByIndividualAndOccurrence(String indID, String occID) {
-    String filter = "this.individualID == \""+indID+"\" && this.occurrenceID == \""+occID+"\"";
+    String filter = "this.individual.individualID == \""+indID+"\" && this.occurrenceID == \""+occID+"\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (acceptedEncounters.execute());

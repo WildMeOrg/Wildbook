@@ -72,6 +72,21 @@ public class MultiValue implements java.io.Serializable {
         return valuesAsString;
     }
 
+    public void merge(MultiValue other) {
+        for (String key: other.getKeys()) {
+            for (String val: other.getValuesByKey(key)) {
+                addValues(key, val);
+            }
+        }
+    }
+
+    public static MultiValue merge(MultiValue a, MultiValue b) {
+        MultiValue c = new MultiValue();
+        c.merge(a);
+        c.merge(b);
+        return c;
+    }
+
     public void setValuesAsString(String s) {
         valuesAsString = s;
         values = Util.stringToJSONObject(s);
