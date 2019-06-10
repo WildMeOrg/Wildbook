@@ -24,6 +24,7 @@ import org.ecocean.MarkedIndividual;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.TwitterUtil;
 import org.ecocean.TwitterBot;
 
 import java.text.SimpleDateFormat;
@@ -506,8 +507,12 @@ myShepherd.closeDBTransaction();
         return null;
     }
 
-    //making this private cuz it is mostly "internal use" as the logic is pretty specific to above usage
     public static Taxonomy taxonomyFromMediaAsset(Shepherd myShepherd, MediaAsset ma) {
+        if (ma == null) return null;
+        if ((ma.getStore() != null) && (ma.getStore() instanceof TwitterAssetStore)) {
+            String tx = TwitterBot.taxonomyStringFromTweet(TwitterUtil.toStatus(TwitterUtil.parentTweet(myShepherd, ma)), myShepherd.getContext());
+            if (tx != null) return new Taxonomy(tx);
+        }
         ArrayList<Annotation> anns = ma.getAnnotations();
         if (anns.size() < 1) return null;
         //here we step thru all annots on this asset but likely there will be only one (trivial)
@@ -1685,7 +1690,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     jlog.put("collatedOccurrence", occ.getOccurrenceID());
                 }
 
-                jlog.put("twitterBot", TwitterBot.processDetectionResults(myShepherd, mas));  //will do nothing if not twitter-sourced
+                jlog.put("twitterBot", TwitterBot.processDetectionResults(myShepherd, mas, rootDir));  //will do nothing if not twitter-sourced
                 jlog.put("_action", "processedCallbackDetect");
                 if (amap.length() > 0) jlog.put("annotations", amap);
                 if (needReview.length() > 0) jlog.put("needReview", needReview);
@@ -2033,6 +2038,7 @@ System.out.println("identification most recent action found is " + action);
             Boolean aoi = iaIsOfInterestFromAnnotUUID(acmId, context);
             ann.setIsOfInterest(aoi);
             ann.setMatchAgainst(true);  //kosher?
+            ann.setViewpointFromIA(context);  //note: can block ... but wygd
             System.out.println("INFO: " + ann + " pulled from IA");
             return ann;
 
@@ -2676,7 +2682,14 @@ System.out.println(map);
         JSONObject rtn = RestClient.get(iaURL(context, "/api/image/gps/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from image uuid=" + uuid);
         JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
-        return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
+        Double lat = ll.optDouble(0, -1.0D);
+        Double lon = ll.optDouble(1, -1.0D);
+        // see also:  https://en.wikipedia.org/wiki/Null_Island
+        if ((lat == -1.0D) || (lon == -1.0D)) {  //these are the values IA uses for unset as well!
+            lat = null;
+            lon = null;
+        }
+        return new Double[]{ lat, lon };
     }
 //http://52.37.240.178:5000/api/image/unixtime/json/?image_uuid_list=[{%22__UUID__%22:%22cb2e67a4-7094-d971-c5c6-3b5bed251fec%22}]
     public static DateTime iaDateTimeFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {

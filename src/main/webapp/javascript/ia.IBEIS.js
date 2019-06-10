@@ -62,27 +62,10 @@ wildbook.IA.plugins.push({
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
+console.log('xxxx mid=%o, aid=%o, ma=%o', mid, aid, ma);
                     var requireSpecies = wildbook.IA.requireSpeciesForId();
                     if (requireSpecies=="false"||ma.taxonomyString) {
-                        var data = {
-                            annotationIds: [ aid ]
-                        };
-                        imageEnhancer.popup('<h2>Starting matching....</h2>');
-                        wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
-                            if (textStatus == 'success') {
-                                if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success || !xhr.responseJSON.taskId) {
-                                    imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Invalid response</p>');
-                                    console.log(xhr);
-                                    return;
-                                }
-                                //i think we at least got a task sent off!
-                                imageEnhancer.popupClose();
-                                wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
-                            } else {
-                                imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
-                                console.log(xhr);
-                            }
-                        });
+                        wildbook.IA.getPluginByType('IBEIS').matchFilter(aid, ma);
                     } else {
                         imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
                         return;
@@ -119,11 +102,14 @@ wildbook.IA.plugins.push({
                 var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
+console.log('xxxy mid=%o, aid=%o, ma=%o', mid, aid, ma);
                 var requireSpecies = wildbook.IA.requireSpeciesForId();
                 if (requireSpecies=="false"||ma.taxonomyString) {
                     var data = {
                         annotationIds: [ aid ]
                     };
+                    wildbook.IA.getPluginByType('IBEIS').matchFilter(aid, ma);
+/*
                     imageEnhancer.popup('<h2>Starting matching....</h2>');
                     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
                         if (textStatus == 'success') {
@@ -140,6 +126,7 @@ wildbook.IA.plugins.push({
                             console.log(xhr);
                         }
                     });
+*/
                 } else {
                     imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
                     return;
@@ -210,6 +197,33 @@ wildbook.IA.plugins.push({
             type: 'POST'
         });
     },
+
+    //this is now handled by a div in encounters.jsp
+    matchFilter: function(aid, ma) {
+        iaMatchFilterAnnotationIds.push(aid);
+        $('.ia-match-filter-dialog').show();
+    },
+/*
+                        var data = {
+                            annotationIds: [ aid ]
+                        };
+                        imageEnhancer.popup('<h2>Starting matching....</h2>');
+                        wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
+                            if (textStatus == 'success') {
+                                if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success || !xhr.responseJSON.taskId) {
+                                    imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Invalid response</p>');
+                                    console.log(xhr);
+                                    return;
+                                }
+                                //i think we at least got a task sent off!
+                                imageEnhancer.popupClose();
+                                wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
+                            } else {
+                                imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
+                                console.log(xhr);
+                            }
+                        });
+*/
 
     //can assume task.parameters is set
     isMyTask: function(task) {

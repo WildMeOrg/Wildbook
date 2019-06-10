@@ -163,6 +163,57 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <style type="text/css">
 
+.ia-match-filter-dialog {
+    display: none;
+    z-index: 3000;
+    position: fixed;
+    top: 10%;
+    width: 80%;
+    padding: 15px;
+    border: solid 5px #888;
+    background-color: #CCC;
+}
+.ia-match-filter-dialog .option-cols {
+    -webkit-column-count: 5;
+    -moz-column-count: 5;
+    column-count: 5;
+}
+.ia-match-filter-dialog .option-cols input {
+    vertical-align: top;
+}
+.ia-match-filter-dialog .option-cols .item {
+    padding: 1px 4px;
+    border-radius: 5px;
+}
+.ia-match-filter-dialog .option-cols .item:hover {
+    background-color: #AAA;
+}
+.ia-match-filter-dialog .option-cols .item label {
+    font-size: 0.9em;
+    width: 90%;
+    margin-left: 5px;
+    line-height: 1.0em;
+}
+.ia-match-filter-dialog .option-cols .item-checked label {
+    font-weight: bold;
+}
+.ia-match-filter-dialog .item-count {
+    font-size: 0.8em;
+    color: #777;
+    margin-left: 9px;
+}
+.ia-match-filter-section {
+    margin-top: 10px;
+    border-top: solid 3px #999;
+}
+.ia-match-filter-title {
+    margin: 20px 0 5px 0;
+    padding: 1px 0 1px 20px;
+    background-color: #AAB;
+    color: #555;
+    font-weight: bold;
+}
+
 .annot-link {
     display: none;
     position: absolute;
@@ -842,6 +893,11 @@ if(enc.getLocation()!=null){
       $("#countryError, #countryCheck, #countryErrorDiv").hide()
       $("#countryFormBtn").show();
     });
+
+    $('#ia-match-filter-location input').on('change', function(ev) {
+        iaMatchFilterLocationCountUpdate()
+    });
+    iaMatchFilterLocationCountUpdate();
   });
 </script>
 
@@ -6175,6 +6231,156 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 </tr>
 
 </table>
+
+<script>
+var iaMatchFilterAnnotationIds = [];
+function iaMatchFilterGo() {
+    var data = {
+        v2: true,
+        taskParameters: {
+            matchingSetFilter: {}
+        },
+        annotationIds: iaMatchFilterAnnotationIds
+    };
+    var keyMap = {
+        'match-filter-location-id': 'locationIds',
+        'match-filter-owner': 'owner'
+    };
+    $('.ia-match-filter-dialog input').each(function(i, el) {
+        if ((el.type != 'checkbox') || !el.checked) return;
+        var key = keyMap[el.name] || '_UNKNOWN_';
+        if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
+        data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
+    });
+console.log('SENDING ===> %o', data);
+    wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
+console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
+        wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
+    });
+    //TODO uncheck everything????
+    $('.ia-match-filter-dialog').hide();
+}
+
+var encText = '<%=encprops.getProperty("encounter")%>';
+var noneText = '<%=encprops.getProperty("none")%>';
+var selectedText = '<%=encprops.getProperty("selected")%>';
+function iaMatchFilterLocationCountUpdate() {
+    var ct = 0;
+    var vals = [];
+    $('#ia-match-filter-location input:checked').each(function(i,el) {
+        vals.push(el.nextElementSibling.firstChild.nodeValue);
+        ct += parseInt($(el).parent().find('.item-count').text());
+    });
+    if ($('#match-filter-location-unlabeled').is(':checked')) ct += parseInt($('#match-filter-location-unlabeled').parent().find('.item-count').text());
+    if (ct < 1) {
+        $('#total-location-count').text(noneText + ' ' + selectedText);
+    } else {
+        $('#total-location-count').text(ct + ' ' + encText + ((ct == 1) ? '' : 's') + ' (' + vals.length + ' ' + selectedText + ')');
+    }
+    return true;
+}
+</script>
+
+<div class="ia-match-filter-dialog">
+<h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+  <div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
+    <span class="el el-lg el-chevron-right rotate-chevron" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
+  </div>
+  <div class="ia-match-filter-container" style="display: none">
+    <div  style="width: 100%; max-height: 200px; overflow-y: scroll">
+    <div id="ia-match-filter-location" class="option-cols">
+<%
+
+String sql = "SELECT \"LOCATIONID\" AS locId, COUNT(*) AS ct FROM \"ENCOUNTER\" GROUP BY locId ORDER BY locId";
+Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+List results = (List)q.execute();
+long nullCount = 0;
+int c = 0;
+Iterator it = results.iterator();
+while (it.hasNext()) {
+    Object[] row = (Object[]) it.next();
+    String locId = (String)row[0];
+    long ct = (long)row[1];
+    if (!Util.stringExists(locId) || locId.toLowerCase().equals("none")) {
+        nullCount += ct;
+        continue;
+    }
+    String sel = (locId.equals(enc.getLocationID()) ? "checked" : "");
+    out.println("<div class=\"item item-" + sel + "\"><input id=\"mfl-" + c + "\" name=\"match-filter-location-id\" value=\"" + locId + "\" type=\"checkbox\"" + sel + " /><label for=\"mfl-" + c + "\">" + locId + " <span class=\"item-count\">" + ct + "</span></label></div>");
+    c++;
+}
+
+%>
+    </div>
+    <div>
+        <div style="margin-top: 10px; color: #660;" class="item">
+            <input type="checkbox" id="match-filter-location-unlabeled" name="match-filter-location-id" value="__NULL__" onChange="iaMatchFilterLocationCountUpdate();" />
+            <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
+            <span class="item-count"><%=nullCount%></span>
+        </div>
+        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
+            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
+        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
+            onClick="$('#ia-match-filter-location .item input').prop('checked', false); iaMatchFilterLocationCountUpdate();" />
+    </div>
+
+  </div>
+
+
+  <style type="text/css">
+/* this .search-collapse-header .rotate-chevron logic doesn't work
+ because animatedcollapse.js is eating the click event (I think.).
+ It's unclear atm where/whether to modify animatedcollapse.js to
+ rotate this chevron.
+*/
+.search-collapse-header .rotate-chevron {
+    -moz-transition: transform 0.5s;
+    -webkit-transition: transform 0.5s;
+    transition: transform 0.5s;
+}
+.search-collapse-header .rotate-chevron.down {
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+.search-collapse-header:hover {
+  cursor: pointer;
+}
+
+</style>
+<script>
+$(".search-collapse-header").click(function(){
+    console.log("LOG!: collapse-header is clicked!");
+    $(this).children(".rotate-chevron").toggleClass("down");
+    $(this).next().slideToggle();
+});
+</script>
+
+</div>
+
+
+<div class="ia-match-filter-title"><%=encprops.getProperty("matchFilterOwnership")%></div>
+    <div class="item">
+        <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
+        <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
+    </div>
+<!--  not yet implemented!
+    <div class="item">
+        <input type="checkbox" id="match-filter-owner-collab" name="match-filter-owner" value="collab" />
+        <label for="match-filter-owner-collab"><%=encprops.getProperty("matchFilterOwnershipCollab")%></label>
+    </div>
+    <div class="item">
+        <input type="checkbox" id="match-filter-owner-none" name="match-filter-owner" value="__NULL__" />
+        <label for="match-filter-owner-none"><%=encprops.getProperty("matchFilterOwnershipNone")%></label>
+    </div>
+-->
+
+<div class="ia-match-filter-section">
+    <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
+    <input style="background-color: #DDD;" type="button" value="<%=encprops.getProperty("cancel")%>"
+        onClick="$('.ia-match-filter-dialog').hide()" />
+</div>
 
 
 <%

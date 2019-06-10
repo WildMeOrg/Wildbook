@@ -351,7 +351,10 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         var catalogNumber = jsonData.encounters[i].catalogNumber;
         console.log("Here's what we are working with : "+jsonData.encounters[i]);
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
-          if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
+          if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
+                var dataTypes = "both"
+              } 
+          else if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
             var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
           } 
           else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
@@ -365,9 +368,6 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         	  }
         	  
           }
-          else if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
-            var dataTypes = "both"
-          } 
           else {
             var dataTypes = "";
           }
