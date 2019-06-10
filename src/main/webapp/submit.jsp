@@ -886,7 +886,29 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
+            <%
+            List<String> behaviors = CommonConfiguration.getSequentialPropertyValues("behavior", context);
+            if (behaviors.size()>0) {
+            %>
+              <select class="form-control" name="lifeStage" id="lifeStage"> 
+                <option value="" selected="selected"></option>
+            <%
+            for (int i=0;i<behaviors.size();i++) {
+              String thisBehavior = behaviors.get(i);
+            %>
+                <option value="<%=thisBehavior%>"><%=thisBehavior%></option>
+            <%
+            }
+            %>
+              </select> 
+            <%
+            } else {
+            //if nothing is defined just give regualr string input
+            %>
+              <input class="form-control" name="behavior" type="text" id="behavior" size="75">
+            <%
+            }
+            %>
           </div>
         </div>
 
@@ -911,7 +933,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             <label class="control-label"><%=props.getProperty("lifeStage") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-  <select name="lifeStage" id="lifeStage">
+  <select class="form-control" name="lifeStage" id="lifeStage">
       <option value="" selected="selected"></option>
   <%
                      boolean hasMoreStages=true;
