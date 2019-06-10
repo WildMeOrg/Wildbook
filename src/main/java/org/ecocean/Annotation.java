@@ -620,6 +620,7 @@ System.out.println("[1] getMatchingSet params=" + params);
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
         //do we need to worry about our annot living in another encounter?  i hope not!
         String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";  //need another VARIABLE declaration
         return getMatchingSetForFilter(myShepherd, filter);
     }
 
@@ -698,19 +699,38 @@ System.out.println("[1] getMatchingSet params=" + params);
     //note, we are give *full* task.parameters; by convention, we only act on task.parameters.matchingSetFilter
     private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
         if (taskParams == null) return "";
+        String userId = taskParams.optString("userId", null);
         JSONObject j = taskParams.optJSONObject("matchingSetFilter");
         if (j == null) return "";
         String f = "";
+
+        // locationId=FOO and locationIds=[FOO,BAR]
         if (j.optString("locationId", null) != null) f += " && enc.locationID == '" + Util.basicSanitize(j.getString("locationId")) + "' ";
         JSONArray larr = j.optJSONArray("locationIds");
         if (larr != null) {
             List<String> locs = new ArrayList<String>();
             for (int i = 0 ; i < larr.length() ; i++) {
                 String val = Util.basicSanitize(larr.optString(i));
-                if (!val.equals("")) locs.add(val);
+                if ("__NULL__".equals(val)) {
+                    locs.add("null");
+                } else if (Util.stringExists(val)) {
+                    locs.add("'" + val + "'");
+                }
             }
-            if (locs.size() > 0) f += " && (enc.locationID == '" + String.join("' || enc.locationID == '", locs) + "') ";
+            if (locs.size() > 0) f += " && (enc.locationID == " + String.join(" || enc.locationID == ", locs) + ") ";
         }
+
+        // "owner" ... which requires we have userId in the taskParams
+        JSONArray owner = j.optJSONArray("owner");
+        if ((owner != null) && (userId != null)) {
+            for (int i = 0 ; i < owner.length() ; i++) {
+                String opt = owner.optString(i, null);
+                if (!Util.stringExists(opt)) continue;
+                if (opt.equals("me")) f += " && enc.submitters.contains(user) && user.uuid == '" + userId + "' ";
+                ///TODO also handle "collab" (users you collab with)   :/
+            }
+        }
+
         return f;
     }
 
@@ -755,7 +775,12 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
 
         //rather, we straight up find sibling Annotations, and look at them...
         List<Annotation> sibs = this.getSiblings();
-        if ((sibs == null) || (sibs.size() < 1)) return new Encounter(this);  //no sibs, we make a new Encounter!
+        if ((sibs == null) || (sibs.size() < 1)) {  //no sibs, we make a new Encounter!
+            Encounter enc = new Encounter(this);
+            //this taxonomy only works when its twitter-sourced data cuz otherwise this is just null 
+            enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd, TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
+            return enc;
+        }
         /*
             ok, we have sibling Annotations.  if one is trivial, we just go for it and replace that one.
             is this wise?   well, if it is the *only* sibling then probably the MediaAsset was attached to the

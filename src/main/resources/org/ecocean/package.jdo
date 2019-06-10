@@ -473,6 +473,10 @@
 	    	<index name="ITISTSN_idx" unique="true" />
     	</field>
 
+	<field name="nonSpecific" allows-null="false">
+        	<column default-value="false" />
+	</field>
+
       <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
     </class>
 

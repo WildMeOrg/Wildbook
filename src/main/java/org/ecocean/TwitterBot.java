@@ -4,14 +4,21 @@
 package org.ecocean;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map;
 import java.util.HashMap;
+
 import org.ecocean.servlet.ServletUtilities;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+
 import java.io.IOException;
 
 import org.ecocean.TwitterUtil;
@@ -20,11 +27,16 @@ import org.ecocean.media.TwitterAssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.ai.nlp.SUTime;
+import org.ecocean.ai.nmt.azure.DetectTranslate;
+import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
 import org.ecocean.RateLimitation;
+import org.ecocean.ia.Task;
 
 import com.google.gson.Gson;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +57,7 @@ public class TwitterBot {
     private static Queue queueIn = null;
     private static Queue queueOut = null;
     private static long collectorStartTime = 0l;
+    private static List<String> taskTweeted = new ArrayList<String>();  //so we dont tweet about the same task more than once
 
     //this probably *should* be "universal" for twitter!  (on TwitterUtil?) or at least per-account
     private static RateLimitation outgoingRL = new RateLimitation(48 * 60 * 60 * 1000);  //only care about last 48 hrs
@@ -74,6 +87,8 @@ public class TwitterBot {
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- no TwitterAssetStore found! Probably should fix this if you are using Twitter. :)");
             return;
         }
+        Task task = new Task();
+        myShepherd.getPM().makePersistent(task);
         JSONObject p = new JSONObject();
         p.put("id", tweet.getId());
         MediaAsset tweetMA = tas.find(p, myShepherd);
@@ -112,7 +127,7 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
         }
 
         //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
-        JSONObject qj = detectionQueueJob(entities, context, baseUrl);
+        JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
         qj.put("tweetAssetId", tweetMA.getId());
         try {
             org.ecocean.servlet.IAGateway.addToQueue(context, qj.toString());
@@ -123,9 +138,9 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     }
 
     //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
-    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl) {
+    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
         JSONObject qj = new JSONObject();
-        qj.put("taskId", Util.generateUUID());
+        qj.put("taskId", taskId);
         qj.put("__context", context);
         qj.put("__baseUrl", baseUrl);
         JSONArray idArr = new JSONArray();
@@ -143,9 +158,9 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
         if ((ma == null) || !ma.isMimeTypeMajor("image")) {
-            sendTweet(tweetText(context, "tweetTextCourtesy", vars));
+            sendTweet(tweetText(context, "tweetTextCourtesy", vars), originTweet.getId());
         } else {
-            sendTweet(tweetText(context, "tweetTextCourtesyPhoto", vars));
+            sendTweet(tweetText(context, "tweetTextCourtesyPhoto", vars), originTweet.getId());
         }
   }
 
@@ -155,10 +170,12 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     }
 
     //this is *queued* sending, which is what we want (usually!) so that rate limits etc can be taken care of
-    public static void sendTweet(String tweetText) {
-        //for now, outgoing queue just takes tweet text!  maybe this will change?  see: messageOutHandler()
-        queuePush(queueOut, tweetText);
-System.out.println("SEND-TWEET:\n[" + tweetText + "]");
+    public static void sendTweet(String tweetText, Long replyToId) {
+        JSONObject jout = new JSONObject();
+        jout.put("tweetText", tweetText);
+        jout.put("replyToId", replyToId);
+        queuePush(queueOut, jout.toString());
+System.out.println("SEND-TWEET:\n[" + jout.toString() + "]");
     }
 
     private static void messageInHandler(String msg) {
@@ -188,7 +205,9 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
             lastHour = outgoingRL.numSinceHoursAgo(1);
         }
         try {
-            Status tweet = TwitterUtil.sendTweet(msg);
+            JSONObject jin = Util.stringToJSONObject(msg);
+            if (jin == null) throw new TwitterException("non-JSON queue content: " + msg);
+            Status tweet = TwitterUtil.sendTweet(jin.optString("tweetText", null), jin.optLong("replyToId", -1L));
             System.out.println("INFO: TweetBot.messageOutHandler() sent tweet id=" + tweet.getId());
         } catch (TwitterException tex) {
             System.out.println("WARNING: TweetBot.messageOutHandler(" + msg + ") threw " + tex.toString());
@@ -399,7 +418,7 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
     //the only thing we need to do here is handle the case there were not annotations made
     //  since otherwise those annotations are going on for identification (and we have nothing to send)
     // NOTE: non-twitter results get passed here too!! in that case we should do nothing and return null
-    public static String processDetectionResults(Shepherd myShepherd, final ArrayList<MediaAsset> mas) {
+    public static String processDetectionResults(Shepherd myShepherd, final ArrayList<MediaAsset> mas, String rootDir) {
 System.out.println("processDetectionResults() -> " + mas);
         if ((mas == null) || (mas.size() < 1)) return null;
         int successful = 0;
@@ -412,7 +431,10 @@ System.out.println("processDetectionResults() -> " + mas);
             }
             //aha, we have a tweet-spawned media asset.  but did it pass detection and get annotations?
             ArrayList<Annotation> anns = ma.getAnnotations();
-            if ((anns != null) && (anns.size() > 0)) successful++;
+            if ((anns != null) && (anns.size() > 0)) {
+                updateEncounter(tweetMA, anns, myShepherd, rootDir);
+                successful++;
+            }
         }
         if (tweetMA == null) return null;  //no tweet stuff
         if (successful > 0) return successful + " Annotation(s) in process; not detection-fail tweet sent.";
@@ -424,7 +446,7 @@ System.out.println("processDetectionResults() -> " + mas);
 
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
-        sendTweet(tweetText(context, "tweetTextIANone", vars));
+        sendTweet(tweetText(context, "tweetTextIANone", vars), originTweet.getId());
         return "Failed to find any Annotations; sent tweet";
     }
 
@@ -435,8 +457,18 @@ System.out.println("processDetectionResults() -> " + mas);
     }
     //annotPairDict is from the IA results.  in the future we could let this be null and if so fetch it
     public static String processIdentificationResults(Shepherd myShepherd, final List<Annotation> anns, final JSONObject annotPairDict, String taskId) {
-System.out.println("processIdentificationResults() -> " + anns + " ==> " + annotPairDict);
         if ((anns == null) || (anns.size() < 1)) return null;
+
+        Task task = Task.load(taskId, myShepherd);
+        Task rootTask = null;
+        if (task != null) rootTask = task.getRootTask();
+System.out.println("processIdentificationResults() [taskId=" + taskId + " > rootTaskId=" + ((rootTask == null) ? "(NULL!?!)" : rootTask.getId()) + "] -> " + anns + " ==> " + annotPairDict);
+        if (rootTask != null) taskId = rootTask.getId();  //this way we just use taskId below
+
+        if (taskTweeted.contains(taskId)) {
+            System.out.println("NOTE: already tweeted about task " + taskId + "; muting this one");
+            return "(muted duplicate tweet about taskId=" + taskId + ")";
+        }
 
         //now we have to find the source tweet (which should be the only one even if more than one annot)
         int successful = 0;
@@ -455,15 +487,64 @@ System.out.println("processIdentificationResults() -> " + anns + " ==> " + annot
         Map<String,String> vars = new HashMap<String,String>();
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         vars.put("MATCH_URL", CommonConfiguration.getServerURL(context) + "/iaResults.jsp?taskId=" + taskId);
+        taskTweeted.add(taskId);
 
         if ((annotPairDict == null) || (annotPairDict.optJSONArray("review_pair_list") == null) ||
             (annotPairDict.getJSONArray("review_pair_list").length() < 1)) {
-            sendTweet(tweetText(context, "tweetTextIADetect", vars));
+            sendTweet(tweetText(context, "tweetTextIADetect", vars), originTweet.getId());
             return "Got " + anns.size() + " annots, but empty ident results[" + taskId + "]; tweet sent.";
         }
 
-        sendTweet(tweetText(context, "tweetTextIABoth", vars));
+        sendTweet(tweetText(context, "tweetTextIABoth", vars), originTweet.getId());
         return "Got " + anns.size() + " annots, and some possible matches!! [" + taskId + "] tweet sent.";
+    }
+
+    private static void updateEncounter(MediaAsset tweetMA, ArrayList<Annotation> anns, Shepherd myShepherd, String rootDir) {
+        Status originTweet = TwitterUtil.toStatus(tweetMA);
+        if ((originTweet == null) || (anns == null)) return;
+        Encounter enc = null;
+        for (Annotation ann : anns) {
+            Encounter e = ann.findEncounter(myShepherd);
+            if (e != null) enc = e;
+        }
+        if (enc == null) return;
+        String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
+        System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
+        enc.setTaxonomyFromString(tx);
+        enc.setState("unapproved");        
+        
+        //use NLP to get Date/Location if available in Tweet
+        String newDetectedDate=ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
+        
+        if(newDetectedDate!=null){
+          DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
+          DateTime dt=parser3.parseDateTime(newDetectedDate);
+          if(newDetectedDate.length()==10){
+            enc.setYear(dt.getYear());
+            enc.setMonth(dt.getMonthOfYear());
+            enc.setDay(dt.getDayOfMonth());
+            enc.setHour(-1);
+          }
+          else if(newDetectedDate.length()==7){
+            enc.setYear(dt.getYear());
+            enc.setMonth(dt.getMonthOfYear());
+            enc.setDay(-1);
+            
+          }
+          else if(newDetectedDate.length()==4){
+            enc.setYear(dt.getYear());
+            enc.setMonth(-1);
+            
+          }
+        }
+        
+        //location?
+        setLocationIDFromTweet(enc, originTweet, myShepherd.getContext());
+        
+        //get Tweet comments for faster review on Encounter page
+        enc.setOccurrenceRemarks(originTweet.getText());
+        
+        
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
@@ -489,5 +570,75 @@ System.out.println("processIdentificationResults() -> " + anns + " ==> " + annot
 */
         System.out.println("================ = = = = = = ===================== TwitterBot.cleanup() finished.");
     }
+
+    public static String taxonomyStringFromTweet(Status tweet, String context) {
+        List<String> tags = TwitterUtil.getHashtags(tweet);
+        for (String tag : tags) {
+            if (tag == null) continue;
+            String tx = TwitterUtil.getProperty(context, "taxonomyHash_" + tag.toLowerCase());
+            if (tx != null) return tx;
+        }
+        return TwitterUtil.getProperty(context, "taxonomyDefault");
+    }
+    
+    public static void setLocationIDFromTweet(Encounter enc, Status tweet, String context) {
+      
+      /*
+       * Step 1. Support explicit hashtagging Encounter.locationID
+       * 
+       */
+      String locationID="";
+      String location="";
+      List<String> tags = TwitterUtil.getHashtags(tweet);
+      Shepherd myShepherd=new Shepherd(context);
+      myShepherd.setAction("TwitterBot.setLocationIDFromTweet");
+      myShepherd.beginDBTransaction();
+      List<String> locIDs=myShepherd.getAllLocationIDs();
+      myShepherd.closeDBTransaction();
+      myShepherd.closeDBTransaction();
+      for (String tag : tags) {
+        try{
+          for(String l : locIDs){
+            if(tag.toLowerCase().equals(l.toLowerCase().replaceAll("-", "").replaceAll(" ", ""))){
+              enc.setLocationID(l);
+              enc.setLocation(l);
+              return;
+            }
+          }
+
+        }
+        catch(Exception e){
+          e.printStackTrace();
+        }
+      }
+      
+      /*
+       * Step 2. If not explicitly set from a hashtag, let's try to get Encounter.locationID from the text
+       * 
+       */
+      try {
+
+        LinkedProperties props=(LinkedProperties)ShepherdProperties.getProperties("submitActionClass.properties", "",context);
+          String lowercaseRemarks=DetectTranslate.translateIfNotEnglish(tweet.getText()).toLowerCase();
+          Iterator m_enum = props.orderedKeys().iterator();
+          while (m_enum.hasNext()) {
+            String aLocationSnippet = ((String) m_enum.next()).replaceFirst("\\s++$", "");
+            //System.out.println("     Looking for: "+aLocationSnippet);
+            if (lowercaseRemarks.indexOf(aLocationSnippet) != -1) {
+              locationID = props.getProperty(aLocationSnippet);
+              location+=" "+ aLocationSnippet;
+              //System.out.println(".....Building an idea of location: "+location);
+            }
+          }
+          if(!locationID.equals("")){
+            enc.setLocationID(locationID);
+            enc.setLocation(location);
+          }
+        }
+        catch(Exception e){
+          e.printStackTrace();
+        }
+    }
+
 
 }
