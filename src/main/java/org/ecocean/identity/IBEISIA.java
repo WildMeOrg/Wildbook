@@ -203,12 +203,12 @@ System.out.println("sendMediaAssets(): sending " + ct);
         map.put("annot_bbox_list", new ArrayList<int[]>());
         map.put("annot_name_list", new ArrayList<String>());
 
-        Shepherd myShepherd = new Shepherd("context0");
+        Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.class_sendAnnotations");
         myShepherd.beginDBTransaction();
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
-            if (!validForIdentification(ann)) {
+            if (!validForIdentification(ann,context)) {
                 System.out.println("WARNING: IBEISIA.sendAnnotations() skipping invalid " + ann);
                 continue;
             }
@@ -278,7 +278,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         //String species = null;
         String iaClass = null;
         for (Annotation ann : qanns) {
-            if (!validForIdentification(ann)) {
+            if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
                 continue;
             }
@@ -316,7 +316,7 @@ System.out.println("     gotta compute :(");
         }
 
         if (tanns != null) for (Annotation ann : tanns) {
-            if (!validForIdentification(ann)) {
+            if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
                 continue;
             }
@@ -963,7 +963,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         
         try {
             for (Annotation ann : qanns) {
-                if (validForIdentification(ann)) {
+                if (validForIdentification(ann, myShepherd.getContext())) {
                     allAnns.add(ann);
                     MediaAsset ma = ann.getDerivedMediaAsset();
                     if (ma == null) ma = ann.getMediaAsset();
@@ -1410,7 +1410,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         String vp = iaResult.optString("viewpoint", null);  //not always supported by IA
         if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
         ann.setViewpoint(vp);
-        if (validForIdentification(ann)) {
+        if (validForIdentification(ann, context)) {
             ann.setMatchAgainst(true); 
         }
         return ann;
@@ -1540,7 +1540,7 @@ System.out.println("     ---> " + annIds);
                         String aid = annIds.optString(i, null);
                         if (aid == null) continue;
                         Annotation ann = ((Annotation) (myShepherd2.getPM().getObjectById(myShepherd2.getPM().newObjectIdInstance(Annotation.class, aid), true)));
-                        if (ann != null&&IBEISIA.validForIdentification(ann)) {
+                        if (ann != null&&IBEISIA.validForIdentification(ann, myShepherd2.getContext())) {
                             needIdentifying.add(ann);
                         }
                     }
@@ -3574,18 +3574,27 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
 
     public static boolean validIAClassForIdentification(Annotation ann, String context) {
         ArrayList<String> idClasses = getAllIdentificationClasses(context);
-        if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty())) {
+        if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty()||idClasses==null)) {
             return true;
         }
         return false; 
     }
 
 
-    public static boolean validForIdentification(Annotation ann)  {
+    public static boolean validForIdentification(Annotation ann)  { 
+        return validForIdentification(ann, null);
+    }
+
+
+    public static boolean validForIdentification(Annotation ann, String context)  {
         if (ann == null) return false;
         int[] bbox = ann.getBbox();
         if (bbox == null) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
+            return false;
+        }
+        if (context!=null&&!validIAClassForIdentification(ann, context)) {
+            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - annotation does not have valid Identification class.");
             return false;
         }
         return true;
