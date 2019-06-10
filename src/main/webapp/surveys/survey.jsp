@@ -73,7 +73,7 @@ if (sv!=null) {
 	surveyEnd = sv.getEndDateTime();
 
 	if (surveyStart!=null) {
-		surveyAttributes +=  "<p>Start: "+surveyStart+"</p>";
+		surveyAttributes +=  "<p>Date: "+surveyStart+"</p>";
 	}
 	if (surveyEnd!=null) {
 		surveyAttributes += "<p>End: "+surveyEnd+"</p>";
