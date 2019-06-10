@@ -23,6 +23,7 @@ try {
 int RESMAX_DEFAULT = 12;
 int RESMAX = (nResults!=null) ? nResults : RESMAX_DEFAULT;
 
+String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to keep waiting.";
 
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
@@ -176,7 +177,6 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 <!-- overwrites ia.IBEIS.js for testing -->
 
-
 <div class="container maincontent">
 
 	<div id="result_settings">
@@ -254,9 +254,21 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 <style>
 
-div.mainContent {
-	padding-top: 50px;
-}
+	div.mainContent {
+		padding-top: 50px;
+	}
+
+	a.button, a.btn {
+		background: #005589;
+		border: 0;
+		color: #fff;
+		line-height: 2em;
+		padding: 7px 13px;
+		font-weight: 300;
+		vertical-align: middle;
+		margin-right: 10px;
+		margin-top: 15px;
+	}
 
 </style>
 
@@ -286,6 +298,9 @@ function init2() {   //called from wildbook.init() when finished
 		var tid = taskIds[i];
 		tryTaskId(tid);
 	}
+
+
+
 	// If we don't have any ID task elements, it's reasonable to assume we are waiting for something.
 	// If we don't have anything but null task types after a while, lets just reload the page and get updated info. 
 	// We get to this condition when the page loads too fast and you have only __NULL__ type tasks, 
@@ -313,10 +328,10 @@ function init2() {   //called from wildbook.init() when finished
 			location.reload(true);
 		} else {
 			clearTimeout(reloadTimeout);
-			$('#wait-message-' + tid).html('gave up trying to obtain results').removeClass('throbbing');;
+			$('#wait-message-' + tid).html('<%=gaveUpWaitingMsg%>').removeClass('throbbing');;
 			console.log("NOT RELOADING!!!!!");
 		}
-	},10000);
+	},100000);
 }
 $(document).ready(function() { wildbook.init(function() { init2(); }); });
 function parseTaskIds() {
@@ -430,7 +445,7 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 						if (!timers[tid]) timers[tid] = { attempts: 0 };
 						if (timers[tid].attempts > 1000) {
 							if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
-							$('#wait-message-' + tid).html('gave up trying to obtain results').removeClass('throbbing');;
+							$('#wait-message-' + tid).html('gave up trying to obtain results').removeClass('throbbing');
 						} else {
 							timers[tid].attempts++;
 							timers[tid].timeout = setTimeout(function() { console.info('ANOTHER %s!', tid); grabTaskResult(tid); }, 1700);
@@ -765,7 +780,9 @@ console.info('taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAn
 	} else if (jel.data('individ')==queryAnnotation.indivId) {
 		h = 'The target and candidate are already assigned to the <b>same individual ID</b>. No further action is needed to confirm this match.'
 	} else if (jel.data('individ') && queryAnnotation.indivId) {
-		h = 'The two encounters have <b>different individuals</b> already assigned and must be handled manually.';
+		// construct link to merge page
+		var link = "merge.jsp?individualA="+jel.data('individ')+"&individualB="+queryAnnotation.indivId;
+		h = 'These encounters are already assigned to two <b>different individuals</b>.  <a href="'+link+'" class="button" > Merge Individuals</a>';
 	} else if (jel.data('individ')) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\');" type="button" value="Set to individual ' + jel.data('individ') + '" />';
 	} else if (queryAnnotation.indivId) {

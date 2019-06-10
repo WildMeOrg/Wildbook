@@ -2469,8 +2469,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       String mergedComments = Util.stringExists(getComments()) ? getComments() : "";
     
       mergedComments += "<p>This individual merged with individual "+other.getIndividualID()+" (\""+other.getDisplayName()+"\")";
+      mergedComments += ", which had encounters: [<ul>";
+      for (Encounter enc: other.getEncounters()) {
+        mergedComments += "<li>"+enc.getCatalogNumber()+"</li>";
+      }
+      mergedComments += "</ul>]";
 
-      mergedComments += " at "+Util.prettyTimeStamp();
+      mergedComments += "Merged on "+Util.prettyTimeStamp();
       
       if (user!=null) mergedComments += " by "+ user.getDisplayName();
       else mergedComments += " No user was logged in.";
