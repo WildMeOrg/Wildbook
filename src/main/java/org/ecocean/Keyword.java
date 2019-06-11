@@ -25,10 +25,10 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 public class Keyword {
 
   //the primary key of the keyword
-  private String indexname;
+  protected String indexname;
 
   //the visible descriptor of the keyword
-  private String readableName;
+  protected String readableName;
 
   //a Vector of String relative paths to the photo file that the keyword applies to
   public Vector photos;
@@ -67,6 +67,11 @@ public class Keyword {
 
   public String getReadableName() {
     return readableName;
+  }
+
+  // This method is overwritten by inheriting classes like LabeledKeyword
+  public String getDisplayName() {
+    return getReadableName();
   }
 
   public void setReadableName(String name) {
