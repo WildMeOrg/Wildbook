@@ -92,7 +92,7 @@ public class SpotterConserveIO {
 
         //there will be only one SurveyTrack pulled from this data, fwiw
         SurveyTrack st = ciToSurveyTrack(jin, myShepherd);
-        String integ = checkIntegrity(st);
+        String integ = checkIntegrity(st, myShepherd);
         survey.addSurveyTrack(st);
         if (integ != null) survey.addComments("<p>Note: SurveyTrack failed integrity check</p>");
 
@@ -209,8 +209,13 @@ Distance Category: "B"
 
     public static Taxonomy ciToTaxonomy(String taxString, Shepherd myShepherd) {
         if (taxString == null) return null;
-        //for now, lets punt and assume taxString is sciname. boo!
-        return myShepherd.getOrCreateTaxonomy(taxString, true);
+        Taxonomy tax = findTaxonomy(myShepherd, taxString);
+        if (tax != null) return tax;
+        //we make a new one, but assume it is non-specific (cuz what do we know?)
+        tax = new Taxonomy(taxString);
+        tax.setNonSpecific(true);
+        myShepherd.storeNewTaxonomy(tax);
+        return tax;
     }
 
 /*
@@ -340,7 +345,7 @@ System.out.println("vols namesIn=[" + namesIn + "]");
             Occurrence occ = waToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin.optInt("_tripId", 0), myShepherd);
             if (occ != null) occs.add(occ);
         }
-        checkIntegrity(occs, false);
+        checkIntegrity(occs, false, myShepherd);
         return occs;
     }
 
@@ -388,8 +393,13 @@ System.out.println("wa.tax => " + tax);
 
     public static Taxonomy waToTaxonomy(String taxString, Shepherd myShepherd) {
         if (taxString == null) return null;
-        //for now, lets punt and assume taxString is sciname. boo!
-        return myShepherd.getOrCreateTaxonomy(taxString, true);
+        Taxonomy tax = findTaxonomy(myShepherd, taxString);
+        if (tax != null) return tax;
+        //we make a new one, but assume it is non-specific (cuz what do we know?)
+        tax = new Taxonomy(taxString);
+        tax.setNonSpecific(true);
+        myShepherd.storeNewTaxonomy(tax);
+        return tax;
     }
 
     public static Encounter waToEncounter(String photoUrl, JSONObject occJson, Occurrence occ, Shepherd myShepherd) {
@@ -520,7 +530,7 @@ System.out.println("waToUser -> " + jin);
             Occurrence occ = oaToOccurrence(jocc.optJSONObject(i), jocc.optJSONObject(i + halfSize), jin.optInt("_tripId", 0), myShepherd);
             if (occ != null) occs.add(occ);
         }
-        checkIntegrity(occs, false);
+        checkIntegrity(occs, false, myShepherd);
         return occs;
     }
 
@@ -659,13 +669,19 @@ ITIS Species TSN: "552298",
         String sciName = jin.optString("ITIS Species Scientific Name");
         String comName = jin.optString("ITIS Species Common Name");
         Taxonomy tax = null;
-        if (tsn > 0) {
+        if (tsn > 0) {  //easiest match
             tax = myShepherd.getTaxonomy(tsn);
             if (tax != null) return tax;
         }
+        tax = findTaxonomy(myShepherd, sciName);
+        if (tax != null) return tax;
+        tax = findTaxonomy(myShepherd, comName);
+        if (tax != null) return tax;
         if (sciName == null) return null;  //need it to fetch one or create one.  :(  so sorry
+/*  this should be redundant now
         tax = myShepherd.getTaxonomy(sciName);
         if (tax != null) return tax;
+*/
         tax = new Taxonomy(sciName);
         if (comName != null) tax.addCommonName(comName);
         if (tsn > 0) tax.setItisTsn(tsn);
@@ -675,6 +691,13 @@ ITIS Species TSN: "552298",
 
 ///// more flavorless utility
 
+
+    public static Taxonomy findTaxonomy(Shepherd myShepherd, String tstring) {
+        if (tstring == null) return null;
+        List<Taxonomy> found = Taxonomy.findMatch(myShepherd, "(?i)" + tstring);  //exact match (but case-insensitive)
+        if (found.size() > 0) return found.get(0);
+        return null;
+    }
 
     /*
        note: seems gpx has a trk made up of trkseg, which are made of trkpts...
@@ -954,21 +977,21 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
     //these do a series of sanity checks and sets .state based on if data "passes"
     //  returning null means all is ok, otherwise it returns a string with the reason
 
-    public static String checkIntegrity(SurveyTrack st) {  //this will just recurse thru occs
+    public static String checkIntegrity(SurveyTrack st, Shepherd myShepherd) {  //this will just recurse thru occs
         if (st == null) return null;  //i guess???
         String reason = "";
 
         boolean overrideOccurrences = !reason.equals("");  //means fail everything below due to our badness
-        String c = checkIntegrity(st.getOccurrences(), overrideOccurrences);
+        String c = checkIntegrity(st.getOccurrences(), overrideOccurrences, myShepherd);
         if (Util.stringExists(c)) reason += c;
-        c = checkIntegrity(st.getPath());
+        c = checkIntegrity(st.getPath(), myShepherd);
         if (c != null) reason += c;
         if (reason.equals("")) return null;
         System.out.println("WARNING: checkIntegrity() on " + st + " failed due to: " + reason);
         return reason;
     }
 
-    public static String checkIntegrity(Path path) {
+    public static String checkIntegrity(Path path, Shepherd myShepherd) {
         if (path == null) return null;
         if (Util.collectionIsEmptyOrNull(path.getPointLocations())) return "empty .path on SurveyTrack; ";
         String reason = "";
@@ -977,7 +1000,7 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         int invalidPts = 0;
         for (PointLocation pt : path.getPointLocations()) {
             if (rnd.nextDouble() > 0.05D) continue;  //we skip 95% of points -- cuz there are usually many!
-            String c = checkIntegrity(pt.getLatitude(), pt.getLongitude());
+            String c = checkIntegrity(pt.getLatitude(), pt.getLongitude(), myShepherd);
             if (c != null) invalidPts++;
             //NOTE: also could check .getDateTimeMilli();
         }
@@ -986,18 +1009,18 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         return reason;
     }
 
-    public static String checkIntegrity(List<Occurrence> occs, boolean override) {
+    public static String checkIntegrity(List<Occurrence> occs, boolean override, Shepherd myShepherd) {
         if (Util.collectionIsEmptyOrNull(occs)) return null;
         String reason = "";
         for (Occurrence occ : occs) {
-            String c = checkIntegrity(occ, override);
+            String c = checkIntegrity(occ, override, myShepherd);
             if (Util.stringExists(c)) reason += "occ " + occ.getOccurrenceID() + " failed integrity: [" + c + "]";
         }
         if (!override && reason.equals("")) return null;
         return reason; //nothing else to really do to the set of occs here (no comments etc)
     }
 
-    public static String checkIntegrity(Occurrence occ, boolean override) {
+    public static String checkIntegrity(Occurrence occ, boolean override, Shepherd myShepherd) {
         if (occ == null) return null;
         String reason = "";
         Long ms = occ.getDateTimeLong();
@@ -1005,19 +1028,19 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
             DateTime dt = toDateTime(occ.getDateTimeCreated());
             ms = dt.getMillis();
         }
-        String c = checkIntegrity(ms);
+        String c = checkIntegrity(ms, myShepherd);
         if (c != null) reason += c;
         //the HashSet makes it unique
         if (!Util.collectionIsEmptyOrNull(occ.getTaxonomies())) for (Taxonomy tx : new HashSet<Taxonomy>(occ.getTaxonomies())) {
-            c = checkIntegrity(tx);
+            c = checkIntegrity(tx, myShepherd);
             if (c != null) reason += c;
         }
-        c = checkIntegrity(occ.getDecimalLatitude(), occ.getDecimalLongitude());
+        c = checkIntegrity(occ.getDecimalLatitude(), occ.getDecimalLongitude(), myShepherd);
         if (c != null) reason += c;
 
         boolean overrideEncounter = override || !reason.equals("");  //means fail the encounter due to our badness
         if (occ.getEncounters() != null) for (Encounter enc : occ.getEncounters()) {
-            c = checkIntegrity(enc, overrideEncounter);
+            c = checkIntegrity(enc, overrideEncounter, myShepherd);
             if (Util.stringExists(c)) reason += "enc[" + c + "]; ";  //null *or* "" can mean enc passed in the override case!
         }
 
@@ -1027,15 +1050,15 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         return reason;
     }
 
-    public static String checkIntegrity(Encounter enc, boolean override) {
+    public static String checkIntegrity(Encounter enc, boolean override, Shepherd myShepherd) {
         if (enc == null) return null;
         String reason = "";
-        String c = checkIntegrity(enc.getDateInMilliseconds());
+        String c = checkIntegrity(enc.getDateInMilliseconds(), myShepherd);
         if (c != null) reason += c;
-        c = checkIntegrity(enc.getDecimalLatitudeAsDouble(), enc.getDecimalLongitudeAsDouble());
+        c = checkIntegrity(enc.getDecimalLatitudeAsDouble(), enc.getDecimalLongitudeAsDouble(), myShepherd);
         if (c != null) reason += c;
         if (enc.getTaxonomyString() != null) {
-            c = checkIntegrity(new Taxonomy(enc.getTaxonomyString()));
+            c = checkIntegrity(myShepherd.getTaxonomy(enc.getTaxonomyString()), myShepherd);
             if (c != null) reason += c;
         }
 
@@ -1049,7 +1072,7 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         return reason;
     }
 
-    public static String checkIntegrity(Long ms) {
+    public static String checkIntegrity(Long ms, Shepherd myShepherd) {
         String reason = "";
         if (ms == null) {
             reason += "no date/time set; ";
@@ -1062,8 +1085,7 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         return reason;
     }
 
-    public static String checkIntegrity(Double lat, Double lon) {
-        Shepherd myShepherd = new Shepherd("context0"); //uhoh?
+    public static String checkIntegrity(Double lat, Double lon, Shepherd myShepherd) {
         String reason = "";
         if (!Util.isValidDecimalLatitude(lat)) reason += "invalid latitude; ";
         if (!Util.isValidDecimalLongitude(lon)) reason += "invalid longitude; ";
@@ -1072,8 +1094,10 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         return reason;
     }
 
-    public static String checkIntegrity(Taxonomy tx) {
-        return null;  //punting on this for now!
+    public static String checkIntegrity(Taxonomy tx, Shepherd myShepherd) {
+        if (tx == null) return "invalid (null) Taxonomy";
+        if (tx.getNonSpecific()) return "Taxonomy is non-specific: " + tx.getScientificName();
+        return null;  //specific = good
     }
 
 

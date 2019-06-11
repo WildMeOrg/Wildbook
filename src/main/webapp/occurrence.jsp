@@ -238,6 +238,26 @@ context=ServletUtilities.getContext(request);
 	<div class="row">	
 		<div class="col-xs-12">
 		<br/>
+		<p><%=props.getProperty("species") %>: 
+<%
+    if (Util.collectionIsEmptyOrNull(occ.getTaxonomies())) {
+        out.println("-");
+    } else {
+        String wait = "";
+        out.println("<ul>");
+        for (Taxonomy tx : occ.getTaxonomies()) {
+            if (tx.getNonSpecific()) {
+                wait += "<li style=\"color: #888;\">" + tx.getScientificName() + "</li>";
+            } else {
+                out.println("<li><i>" + tx.getScientificName() + "</i></li>");
+            }
+        }
+        out.println(wait);
+        out.println("</ul>");
+    }
+%>
+</p>
+
 		<p><%=props.getProperty("groupBehavior") %>: 
 			<%if(occ.getGroupBehavior()!=null){%>
 				<%=occ.getGroupBehavior() %>

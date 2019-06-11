@@ -118,7 +118,7 @@ function drawPath(pathPoints) {
     var line = new google.maps.Polyline({
         path: gpath,
         geodesic: true,
-        strokeColor: generateColor(),
+        strokeColor: '#55A',
         strokeOpacity: 1.0,
         strokeWeight: 2
     });
