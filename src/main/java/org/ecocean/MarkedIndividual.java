@@ -236,6 +236,15 @@ public class MarkedIndividual implements java.io.Serializable {
       return names.size();
     }
 
+    // mostly for data cleaning purposes
+    // ignores legacyIndividualID bc we might wanna keep that
+    public void unsetNames() {
+      String legacy = getName(NAMES_KEY_LEGACYINDIVIDUALID);
+      this.names = new MultiValue();
+      if (Util.stringExists(legacy)) addName(NAMES_KEY_LEGACYINDIVIDUALID, legacy);
+
+    }
+
     //this adds to the default
     public void addName(String name) {
         if (names == null) names = new MultiValue();

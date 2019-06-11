@@ -177,7 +177,8 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       // for (int i=0; i<=numMediaAssets; i++) {
       Method maGetFilename = MediaAsset.class.getMethod("getFilename", null);
       Method maLocalPath   = MediaAsset.class.getMethod("localPath", null);
-      Method keywordGetName   = Keyword.class.getMethod("getReadableName");
+      // This will include labels in a labeledKeyword value
+      Method keywordGetName   = Keyword.class.getMethod("getDisplayName");
       for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
         String mediaAssetColName = "Encounter.mediaAsset"+maNum;
         String fullPathName = "Encounter.mediaAsset"+maNum+".filePath";

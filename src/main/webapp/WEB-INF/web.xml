@@ -617,6 +617,10 @@
     <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>UpdateStandard</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.UpdateStandard</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>FixStandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
   </servlet>
@@ -1863,6 +1867,10 @@
   <servlet-mapping>
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+      <servlet-name>UpdateStandard</servlet-name>
+      <url-pattern>/UpdateStandard</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
       <servlet-name>WebImport</servlet-name>
