@@ -3650,18 +3650,22 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
     }
 
     public static boolean validForIdentification(Annotation ann) {
-        if (!validToSendToIA(ann)) return false;
-        String acmId = ann.getAcmId();
-        if (!Util.stringExists(acmId)) {
-            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - no acm ID");
-            return false;
-        }
-        JSONObject uuid = toFancyUUID(ann.getAcmId());
-        if (uuid==null) {
-            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - could not form uuid from acmId of "+acmId);
-            return false;
-        }
-        return true;
+        return validToSendToIA(ann);
+        // TODO: The logic below makes sense for decoupling our overloaded validForIdentification method.
+        //       however, we need to go through every time validForIdentification is called and figure out if we're asking
+        //       validForIdentification, or validToSendToIA.
+        // if (!validToSendToIA(ann)) return false;
+        // String acmId = ann.getAcmId();
+        // if (!Util.stringExists(acmId)) {
+        //     System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - no acm ID");
+        //     return false;
+        // }
+        // JSONObject uuid = toFancyUUID(ann.getAcmId());
+        // if (uuid==null) {
+        //     System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - could not form uuid from acmId of "+acmId);
+        //     return false;
+        // }
+        // return true;
     }
 
     public static ArrayList<String> getAllIdentificationClasses(String context) {
