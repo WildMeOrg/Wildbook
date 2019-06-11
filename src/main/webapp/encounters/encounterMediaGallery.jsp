@@ -104,9 +104,11 @@ List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
 	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
+  System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
   	int numEncs=encs.size();
+  System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
   %><script>
 
@@ -1005,7 +1007,9 @@ function refreshKeywordsForMediaAsset(mid, data) {
         for (var id in data.results[mid]) {
             assets[i].keywords.push({
                 indexname: id,
-                readableName: data.results[mid][id]
+                readableName: data.results[mid][id],
+                displayName: data.results[mid][displayName],
+                label: data.results[mid][label]
             });
         }
     }
@@ -1043,7 +1047,7 @@ console.info("############## mid=%s -> %o", mid, ma);
 	for (var i = 0 ; i < ma.keywords.length ; i++) {
 		thisHas.push(ma.keywords[i].indexname);
 //console.info('keyword = %o', ma.keywords[i]);
-		h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+		h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
 	}
 
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
@@ -1268,5 +1272,15 @@ function populateTaskResults(task, asset) {
 		display: block;
 	}
 </style>
+<%
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String pswipedir = urlLoc+"/photoswipe";
+%>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
+<!--  <p>Looking for photoswipe in <%=pswipedir%></p>-->
+<jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
+<script src='<%=pswipedir%>/photoswipe.js'></script>
+<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
 
 <jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>

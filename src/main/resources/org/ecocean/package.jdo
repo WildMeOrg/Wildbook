@@ -495,6 +495,12 @@
       <fetch-group name="count"/>
     </class>
 
+    <class name="LabeledKeyword" identity-type="application">
+      <inheritance strategy="new-table"/>
+    </class>
+
+
+
     <class name="Taxonomy" identity-type="application">
       <field name="id" primary-key="true">
       </field>

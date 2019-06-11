@@ -1165,13 +1165,35 @@ public class Shepherd {
   public Keyword getKeyword(String readableName) {
 
     Iterator<Keyword> keywords = getAllKeywords();
-	while (keywords.hasNext()) {
+    while (keywords.hasNext()) {
       Keyword kw = keywords.next();
-      if((kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
+      if((kw.getReadableName() !=null && kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
   	}
   return null;
 
   }
+  public LabeledKeyword getLabeledKeyword(String label, String readableName) {
+    try {
+      String filter = "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \""+readableName+"\" && this.label == \""+label+"\"";
+      Query query = pm.newQuery(filter);
+      List<Keyword> ans = (List) query.execute();
+      if (ans!=null && ans.size()>0) return (LabeledKeyword) ans.get(0);
+      query.closeAll();
+    }
+    catch (Exception e) {
+      System.out.println("Exception on getLabeledKeyword("+label+", "+readableName+")!");
+      e.printStackTrace();
+    }
+    return null;
+  }
+  public LabeledKeyword getOrCreateLabeledKeyword(String label, String readableName, boolean commit) {
+    LabeledKeyword lkw = getLabeledKeyword(label, readableName);
+    if (lkw!=null) return lkw;
+    lkw = new LabeledKeyword(label, readableName);
+    if (commit) storeNewKeyword(lkw);
+    return lkw;
+  }
+
   public Keyword getOrCreateKeyword(String name) {
     Keyword kw = getKeyword(name);
     if (kw==null) {
@@ -3608,20 +3630,22 @@ public class Shepherd {
     List<String> propKeywordNames = CommonConfiguration.getIndexedPropertyValues("keyword",getContext());
     List<Keyword> propKeywords = new ArrayList<Keyword>();
 
-    System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
-
-    for (String propKwName: propKeywordNames) {
-      for (Keyword kw: allKeywords) {
-        if (kw.getReadableName().equals(propKwName)) {
-          propKeywords.add(kw);
-          break;
+    if((allKeywords!=null)&&(propKeywordNames!=null)) {
+      System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
+  
+      for (String propKwName: propKeywordNames) {
+        for (Keyword kw: allKeywords) {
+          if ((kw.getReadableName()!=null) && kw.getReadableName().equals(propKwName)) {
+            propKeywords.add(kw);
+            break;
+          }
         }
       }
+      System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
+      allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
+      propKeywords.addAll(allKeywords);
+      // propKeywords contains all keywords, but those defined in properties are first.
     }
-    System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
-    allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
-    propKeywords.addAll(allKeywords);
-    // propKeywords contains all keywords, but those defined in properties are first.
     return propKeywords;
 
   }
@@ -3629,12 +3653,13 @@ public class Shepherd {
   public List<Keyword> getAllKeywordsList(Query acceptedKeywords) {
     // we find all keywords in the database and note which ones
     // are also listed in the properties file
-    ArrayList<Keyword> al = null;
+    ArrayList<Keyword> al = new ArrayList<Keyword>();
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
-      al=new ArrayList<Keyword>(c);
-    } catch (javax.jdo.JDOException x) {
+      if(c!=null) al=new ArrayList<Keyword>(c);
+    } 
+    catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
     }

@@ -22,6 +22,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
+import org.ecocean.LabeledKeyword;
 import org.ecocean.Annotation;
 import org.ecocean.AccessControl;
 import org.ecocean.Shepherd;
@@ -1007,6 +1008,11 @@ public class MediaAsset implements java.io.Serializable {
                     JSONObject kj = new JSONObject();
                     kj.put("indexname", kw.getIndexname());
                     kj.put("readableName", kw.getReadableName());
+                    kj.put("displayName", kw.getDisplayName());
+                    if (kw instanceof LabeledKeyword) {
+                        LabeledKeyword lkw = (LabeledKeyword) kw;
+                        kj.put("label", lkw.getLabel());
+                    }
                     ka.put(kj);
                 }
                 jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
@@ -1178,7 +1184,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         List<String> names = new ArrayList<String>();
         if (getKeywords()==null) return names;
         for (Keyword kw: getKeywords()) {
-            names.add(kw.getReadableName());
+            names.add(kw.getDisplayName());
         }
         return names;
     }
@@ -1191,7 +1197,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         for(int i=0;i<numKeywords;i++){
           Keyword kw=keywords.get(i);
           if (kw==null) return false;
-          if((keywordName.equals(kw.getIndexname())||keywordName.equals(kw.getReadableName()))) return true; 
+          if((keywordName.equals(kw.getIndexname())||keywordName.equals(kw.getDisplayName()))) return true; 
         }
       }
       
