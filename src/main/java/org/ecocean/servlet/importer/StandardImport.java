@@ -97,6 +97,8 @@ public class StandardImport extends HttpServlet {
     response.setContentType("text/html; charset=UTF-8");
     String context = ServletUtilities.getContext(request);
     myShepherd = new Shepherd(context);
+    myShepherd.setAction("StandardImport.java");
+    myShepherd.beginDBTransaction();
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
     
@@ -507,6 +509,11 @@ public class StandardImport extends HttpServlet {
       if (hasTimeCategories) enc.setDateInMillisOnly(millis); // does not overwrite day/month/etc
       else enc.setDateInMilliseconds(millis);
     } 
+    
+    //depth
+    Double depth = getDouble(row,"Encounter.depth");
+    if(depth!=null) enc.setDepth(depth);
+    
 
 
   	// Location
@@ -546,8 +553,8 @@ public class StandardImport extends HttpServlet {
   	String submitterName = getString(row, "Encounter.submitterName");
   	if (submitterName!=null) enc.setSubmitterName(submitterName);
 
-  	Integer patterningCode = getInteger(row, "Encounter.patterningCode");
-  	if (patterningCode!=null) enc.setFlukeType(patterningCode);
+  	String patterningCode = getString(row, "Encounter.patterningCode");
+  	if (patterningCode!=null) enc.setPatterningCode(patterningCode);
 
   	String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
   	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
@@ -913,15 +920,17 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  MediaAsset ma = null;
 	  try {
 	  	ma = astore.copyIn(f, assetParams);
-	  } catch (java.io.IOException ioEx) {
+	    // keywording
+
+	    ArrayList<Keyword> kws = getKeywordForAsset(row, i);
+	    if(kws!=null)ma.setKeywords(kws);
+	  } 
+	  catch (java.io.IOException ioEx) {
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
 	  	missingPhotos.add(fullPath);
 	  }
 
-	  // keywording
 
-    ArrayList<Keyword> kws = getKeywordForAsset(row, i);
-    if(kws!=null)ma.setKeywords(kws);
 
 	  // Keyword keyword = null;
 	  // String keywordI = getString(row, "Encounter.keyword"+i);
@@ -1079,7 +1088,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
     Organization org = getOrganization(row);
-    if (org!=null) mark.addName(org, individualID);
+    if (org!=null) mark.addName(individualID);
     //else mark.addName(request, individualID);
     else mark.addName(individualID);
 
