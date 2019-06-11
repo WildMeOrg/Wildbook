@@ -2956,6 +2956,15 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
         return m;
     }
 
+    public MediaAsset getMediaAssetByFilename(String filename) {
+      if (!Util.stringExists(filename)) return null;
+      for (MediaAsset ma: getMedia()) {
+        if (Util.stringsEqualish(filename, ma.getFilename())) return ma;
+      }
+      return null;
+    }
+
+
     // only checks top-level MediaAssets, not children or resized images
     public boolean hasTopLevelMediaAsset(int id) {
       return (indexOfMediaAsset(id)>=0);

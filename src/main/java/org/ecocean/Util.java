@@ -728,6 +728,17 @@ public class Util {
     public static boolean stringExists(String str) {
       return (str!=null && !str.equals("") && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown"));
     }
+    public static boolean stringsEqualish(String s1, String s2) {
+      if (!stringExists(s1)) {
+        if (!stringExists(s2)) return true;
+        return false;
+      }
+      if (stringExists(s2)) {
+        return s1.toLowerCase().trim().equals(s2.toLowerCase().trim());
+      }
+      return false;
+
+    }
     public static boolean isEmpty(Collection c) {
       return (c==null || c.size()==0);
     }
