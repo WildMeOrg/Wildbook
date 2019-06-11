@@ -3574,9 +3574,7 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
 
     public static boolean validIAClassForIdentification(Annotation ann, String context) {
         ArrayList<String> idClasses = getAllIdentificationClasses(context);
-        //might be trying to id a trivial.. pass it i guess
         if (ann.getIAClass()==null&&(idClasses.isEmpty()||idClasses==null)) return true; 
-
         if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty()||idClasses==null)) {
             return true;
         }
@@ -3596,7 +3594,7 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - invalid bbox");
             return false;
         }
-        if (context!=null&&!validIAClassForIdentification(ann, context)) {
+        if (context!=null&&!validIAClassForIdentification(ann, context)&&!ann.isTrivial()) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - annotation does not have valid Identification class.");
             return false;
         }
