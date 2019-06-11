@@ -1044,7 +1044,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   }
 
 	private int getNumMediaAssets() {
-		if (numMediaAssets==null) setNumMediaAssets();
+		setNumMediaAssets();
 		return numMediaAssets.intValue();
 	}
 	private void setNumMediaAssets() {
