@@ -161,9 +161,11 @@ public class Shepherd {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
+      beginDBTransaction();
       //System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
+      beginDBTransaction();
       System.out.println("I failed to create a new Annotation in Shepherd.storeNewAnnotation().");
       e.printStackTrace();
       return "fail";
@@ -854,8 +856,8 @@ public class Shepherd {
 
   public String storeNewOrganization(Organization org) {
     //enc.setOccurrenceID(uniqueID);
-    boolean transactionWasActive = isDBTransactionActive();
-    beginDBTransaction();
+    //boolean transactionWasActive = isDBTransactionActive();
+    //beginDBTransaction();
     try {
       pm.makePersistent(org);
       commitDBTransaction();
@@ -865,10 +867,11 @@ public class Shepherd {
       System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
       e.printStackTrace();
       return "fail";
-    } finally {
-      closeDBTransaction();
-    }
-    if (transactionWasActive) beginDBTransaction();
+    } 
+    //finally {
+      //closeDBTransaction();
+    //}
+    //if (transactionWasActive) beginDBTransaction();
     return (org.getId());
   }
   
@@ -3185,6 +3188,21 @@ public class Shepherd {
   public int getNumAdoptions() {
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Adoption.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass);
+    try {
+      Collection c = (Collection) (acceptedEncounters.execute());
+      int num = c.size();
+      acceptedEncounters.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedEncounters.closeAll();
+      return 0;
+    }
+  }
+  
+  public int getNumAssetStores() {
+    Extent encClass = pm.getExtent(AssetStore.class, true);
     Query acceptedEncounters = pm.newQuery(encClass);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());

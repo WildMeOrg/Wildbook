@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 public class StandardImport extends HttpServlet {
 
 	// variables shared by any single import instance
-	Shepherd myShepherd;
+
 	Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
 	Set<String> unusedColumns;
 	Set<String> missingColumns; // columns we look for but don't find
@@ -71,11 +71,9 @@ public class StandardImport extends HttpServlet {
   String defaultSubmitterID=null; // leave null to not set a default
   String defaultCountry=null;
 
-  Map<String,MarkedIndividual> individualCache = new HashMap<String,MarkedIndividual>();
+
 
   HttpServletRequest request;
-
-	private AssetStore astore;
 
 	// just for lazy loading a var used on each row
 	Integer numMediaAssets;
@@ -89,6 +87,8 @@ public class StandardImport extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
+    Map<String,MarkedIndividual> individualCache = new HashMap<String,MarkedIndividual>();
+    
     this.request = request; // so we can access this elsewhere without passing it around
     String importId = Util.generateUUID();
     if (request.getCharacterEncoding() == null) {
@@ -96,18 +96,21 @@ public class StandardImport extends HttpServlet {
     }
     response.setContentType("text/html; charset=UTF-8");
     String context = ServletUtilities.getContext(request);
-    myShepherd = new Shepherd(context);
+    Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("StandardImport.java");
     myShepherd.beginDBTransaction();
     out = response.getWriter();
-    astore = getAssetStore(myShepherd);
+    AssetStore astore = getAssetStore(myShepherd);
     
     if(astore!=null){
       System.out.println("astore is OK!");
+      out.println("Using AssetStore: "+astore.getId()+" of total "+myShepherd.getNumAssetStores());
     }
     else{
       System.out.println("astore is null...BOO!!");
       out.println("<p>I could not find a default AssetStore. Please create one.</p>");
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
       return;
     }
 
@@ -128,6 +131,8 @@ public class StandardImport extends HttpServlet {
     }
     if(!dataFile.exists()){
       out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+"</p>");
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
       return;
     }
     
@@ -185,11 +190,11 @@ public class StandardImport extends HttpServlet {
     for (String heading: colIndexMap.keySet()) out.println("<li>"+colIndexMap.get(heading)+": "+heading+"</li>");
     out.println("</ul>");
 
-    int printPeriod = 100;
+    int printPeriod = 1;
     LocalDateTime ldt = new LocalDateTime();
     String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
     System.out.println("===== importId " + importId + " (committing=" + committing + ")");
-    if (committing) myShepherd.beginDBTransaction();
+    //if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Beginning row loop:</h2>"); 
     out.println("<ul>");
     // one encounter per-row. We keep these running.
@@ -202,54 +207,78 @@ public class StandardImport extends HttpServlet {
     	verbose = ((i%printPeriod) == 0);
       try {
 
-        if (committing) myShepherd.beginDBTransaction();
+        //if (committing) myShepherd.beginDBTransaction();
         Row row = sheet.getRow(i);
         if (isRowEmpty(row)) continue;
 
-        System.out.println("STANDARD IMPORT: processing row "+i);
+        System.out.println("STANDARD IMPORT: processing row "+i+" with num asset stores: "+myShepherd.getNumAssetStores());
 
         // here's the central logic
-        ArrayList<Annotation> annotations = loadAnnotations(row);
+        ArrayList<Annotation> annotations = loadAnnotations(row, astore, myShepherd);
         numAnnots+=annotations.size();
-        Encounter enc = loadEncounter(row, annotations, context);
+        Encounter enc = loadEncounter(row, annotations, context, myShepherd);
         enc.addComments(importComment);
-        occ = loadOccurrence(row, occ, enc);
+        occ = loadOccurrence(row, occ, enc, myShepherd);
         occ.addComments(importComment);
-        mark = loadIndividual(row, enc);
-
+        mark = loadIndividual(row, enc, myShepherd,committing,individualCache);
         if (mark!=null) individualCache.put(mark.getName(), mark);
-
         if (committing) {
 
           for (Annotation ann: annotations) {
             try {
               MediaAsset ma = ann.getMediaAsset();
               if (ma!=null) {
-                myShepherd.storeNewAnnotation(ann);
+                
                 ma.setMetadata();
+                if(committing) {
+                  myShepherd.getPM().makePersistent(ann);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                }
                 // may want to skip below for runtime and fix later w script
                 // ma.updateStandardChildren(myShepherd);
               }
             }
             catch (Exception e) {
               System.out.println("EXCEPTION on annot/ma persisting!");
+              out.println("EXCEPTION on annot/ma persisting!");
               e.printStackTrace();
             }
           }
-
-          myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
-        	if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
+          
+          
+          enc.setCatalogNumber(Util.generateUUID());
+          if(committing) {
+            myShepherd.getPM().makePersistent(enc);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
+        	if (!myShepherd.isOccurrence(occ))       { 
+        	  
+        	  if(committing) {
+        	    myShepherd.getPM().makePersistent(occ);
+        	    myShepherd.commitDBTransaction();
+        	    myShepherd.beginDBTransaction();
+        	  }
+        	}
+        	
+        	/*
         	if ((mark!=null)&&!myShepherd.isMarkedIndividual(mark)) {
             mark.refreshDependentProperties();
-            myShepherd.storeNewMarkedIndividual(mark);
+            myShepherd.getPM().makePersistent(mark);
+            if(committing) {
+              myShepherd.commitDBTransaction();
+              myShepherd.beginDBTransaction();
+            }
           }
-
-        	enc.setIndividual(mark);
-
-        	myShepherd.commitDBTransaction();
-          myShepherd.beginDBTransaction();
+          */
+        	
+          if(committing) {
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
         }
-
+        
         if (verbose) {
           out.println("<li>Parsed row ("+i+")<ul>"
           +"<li> Enc "+getEncounterDisplayString(enc)+" <ul>");
@@ -270,11 +299,13 @@ public class StandardImport extends HttpServlet {
       catch (Exception e) {
         out.println("Encountered an error while importing the file.");
         e.printStackTrace(out);
-        myShepherd.rollbackDBTransaction();
+        //myShepherd.rollbackDBTransaction();
+        //myShepherd.beginDBTransaction();
       }
     }
     out.println("</ul>");
-
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
 
     out.println("<h2><em>UNUSED</em> Column headings ("+unusedColumns.size()+"):</h2><ul>");
     for (String heading: unusedColumns) {
@@ -313,7 +344,7 @@ public class StandardImport extends HttpServlet {
     //fs.close();
   }
 
-  public Taxonomy loadTaxonomy0(Row row) {
+  public Taxonomy loadTaxonomy0(Row row, Shepherd myShepherd) {
     String sciName = getString(row, "Taxonomy.scientificName");
     if (sciName==null) return null;
     Taxonomy taxy = myShepherd.getOrCreateTaxonomy(sciName);
@@ -322,7 +353,7 @@ public class StandardImport extends HttpServlet {
     return taxy;
   }
 
-  public Taxonomy loadTaxonomy1(Row row) {
+  public Taxonomy loadTaxonomy1(Row row, Shepherd myShepherd) {
     String sciName = getString(row, "Occurrence.taxonomy1");
     if (sciName==null) return null;
     return myShepherd.getOrCreateTaxonomy(sciName);
@@ -331,9 +362,9 @@ public class StandardImport extends HttpServlet {
     return (latOrLon!=null && latOrLon!=0.0);
   }
 
-  public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
+  public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc, Shepherd myShepherd) {
   	
-  	Occurrence occ = getCurrentOccurrence(oldOcc, row);
+  	Occurrence occ = getCurrentOccurrence(oldOcc, row, myShepherd);
   	// would love to have a more concise way to write following couplets, c'est la vie
 
   	Double seaSurfaceTemp = getDouble (row, "Occurrence.seaSurfaceTemperature");
@@ -425,10 +456,10 @@ public class StandardImport extends HttpServlet {
     Double effortCode = getDouble(row, "Occurrence.effortCode");
     if (effortCode!=null) occ.setEffortCode(effortCode);
 
-    Taxonomy taxy = loadTaxonomy0(row);
+    Taxonomy taxy = loadTaxonomy0(row, myShepherd);
     if (taxy!=null) occ.addTaxonomy(taxy);
 
-    Taxonomy taxy1 = loadTaxonomy1(row);
+    Taxonomy taxy1 = loadTaxonomy1(row, myShepherd);
     if (taxy1!=null) occ.addTaxonomy(taxy1);
 
   	String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
@@ -453,7 +484,7 @@ public class StandardImport extends HttpServlet {
 
   }
 
-  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context) {
+  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context, Shepherd myShepherd) {
 
     // try to load encounter by indID and occID, make a new one if it doesn't exist.
     String individualID = getIndividualID(row);
@@ -773,12 +804,12 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	return fieldNames;
   }
 
-  public ArrayList<Annotation> loadAnnotations(Row row) {
+  public ArrayList<Annotation> loadAnnotations(Row row, AssetStore astore, Shepherd myShepherd) {
 
   	//if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
-  	ArrayList<Annotation> annots = new ArrayList<Annotation>();
+    ArrayList<Annotation> annots = new ArrayList<Annotation>();
   	for (int i=0; i<getNumMediaAssets(); i++) {
-  		MediaAsset ma = getMediaAsset(row, i);
+  		MediaAsset ma = getMediaAsset(row, i, astore, myShepherd);
   		if (ma==null) continue;
 
   		String species = getSpeciesString(row);
@@ -799,11 +830,11 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
         if (localPath!=null) foundPhotos.add(photoDirectory+localPath);
       }
   	}
-  	return annots;
+    return annots;
   }
 
   // for when the provided image filename is actually a folder of images
-  private ArrayList<Annotation> loadAnnotationsFolderRow(Row row) {
+  private ArrayList<Annotation> loadAnnotationsFolderRow(Row row, AssetStore astore, Shepherd myShepherd) {
   	ArrayList<Annotation> annots = new ArrayList<Annotation>();
   	String localPath = getString(row, "Encounter.mediaAsset0");
   	if (localPath==null) return annots;
@@ -902,8 +933,8 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
     return individualPrefix+indID;
   }
 
-  public MediaAsset getMediaAsset(Row row, int i) {
-  	String localPath = getString(row, "Encounter.mediaAsset"+i);
+  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd) {
+    String localPath = getString(row, "Encounter.mediaAsset"+i);
   	if (localPath==null) return null;
   	localPath = Util.windowsFileStringToLinux(localPath);
   	String fullPath = photoDirectory+localPath;
@@ -922,7 +953,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  	ma = astore.copyIn(f, assetParams);
 	    // keywording
 
-	    ArrayList<Keyword> kws = getKeywordForAsset(row, i);
+	    ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
 	    if(kws!=null)ma.setKeywords(kws);
 	  } 
 	  catch (java.io.IOException ioEx) {
@@ -939,11 +970,10 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  // String keywordOI = getString(row, keywordOIKey);
 	  // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
 	  // if (keyword!=null) ma.addKeyword(keyword);
-
 	  return ma;
   }
 
-  private ArrayList<Keyword> getKeywordsForAsset(Row row, int n) {
+  private ArrayList<Keyword> getKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     int maxAssets = getNumAssets(row);
     int maxKeywords=4;
@@ -963,7 +993,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
     return ans;
   }
 
-  private ArrayList<Keyword> getKeywordForAsset(Row row, int n) {
+  private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
 
     String kwColName = "Encounter.keyword"+n;
@@ -1067,7 +1097,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
 
 
-  public MarkedIndividual loadIndividual(Row row, Encounter enc) {
+  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,MarkedIndividual> individualCache) {
 
   	boolean newIndividual = false;
   	String individualID = getIndividualID(row);
@@ -1077,29 +1107,38 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
     
   	MarkedIndividual mark = individualCache.get(individualID);
     if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID);
-    else {
-      System.out.println("StandardImport got individual "+mark+" from individualCache");
-    }
+    //else {
+      //out.println("StandardImport got individual "+mark+" from individualCache");
+    //}
   	if (mark==null) { // new individual
 	    mark = new MarkedIndividual(enc);
-	    System.out.println("Creating new marked individual");
+	    
+	    if(committing) {
+	      myShepherd.getPM().makePersistent(mark);
+	       myShepherd.commitDBTransaction();
+	       myShepherd.beginDBTransaction();
+	       out.println("persisting new individual");
+	   }
 	    newIndividual = true;
 	  }
+  	else {
+  	  out.println("Found a pre-existing Individual: "+mark.toString());
+  	}
 
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
-    Organization org = getOrganization(row);
+    Organization org = getOrganization(row, myShepherd);
     if (org!=null) mark.addName(individualID);
     //else mark.addName(request, individualID);
     else mark.addName(individualID);
 
 	  if (mark==null) {
-      System.out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
+      out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
       return mark;
     }
 
 	  if (!newIndividual) {
-	    mark.addEncounterNoCommit(enc);
-	    System.out.println("loadIndividual notnew individual: "+mark.getDisplayName());
+	    mark.addEncounter(enc);
+	    out.println("loadIndividual notnew individual: "+mark.getDisplayName());
 	  }
 
     String alternateID = getString(row, "Encounter.alternateID");
@@ -1116,7 +1155,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
   // check if oldOcc is the same occurrence as the occurrence on this row
   // if so, return oldOcc. If not, return parseOccurrence(row)
-  public Occurrence getCurrentOccurrence(Occurrence oldOcc, Row row) {
+  public Occurrence getCurrentOccurrence(Occurrence oldOcc, Row row, Shepherd myShepherd) {
   	String occID = getOccurrenceID(row);
   	if (oldOcc!=null && oldOcc.getOccurrenceID()!=null && oldOcc.getOccurrenceID().equals(occID)) return oldOcc;
   	Occurrence occ = myShepherd.getOrCreateOccurrence(occID);
@@ -1327,7 +1366,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
     return ans;
   }
 
-  public Organization getOrganization(Row row) {
+  public Organization getOrganization(Row row, Shepherd myShepherd) {
     String orgID = getString(row, "Encounter.submitterOrganization");
     if (orgID==null) return null;
     Organization org = myShepherd.getOrCreateOrganizationByName(orgID, committing);
