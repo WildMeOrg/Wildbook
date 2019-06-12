@@ -69,21 +69,32 @@
     */
 }
 
+/*
 @media (max-width: 610px) {
     .image-tile-div {
         margin-top: -31%;
         margin-bottom: -31%;    
     }
- }
+}
+*/
 
 @media (max-width: 768px) {
     .image-tile-div {
-        min-height: -webkit-fill-available;
-        margin-top: -17%;
-        margin-bottom: -17%;
+        min-height: inherit;
         top: auto !important;
         left: auto !important;
         transform: unset !important;
+        height: 18em;
+        margin-top: 7px; 
+    }
+    .img-selected {
+        width: 100%;
+    }
+    .show-selected-images-btn {
+        font-size: 0.9em !important;
+    }
+    .form-spacer {
+        display: none;
     }
 } 
 
