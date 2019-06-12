@@ -33,7 +33,7 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd = new Shepherd("context0");
 
-String id = request.getParameter("id");
+String id = request.getParameter("idxxx");  //we let taxonomy.jsp be our editor now
 if (id != null) {
 %><html><head><title>Taxonomy Tool: edit <%=id%></title>
 <script>
@@ -155,7 +155,37 @@ var txMap = <%=txMap.toString(4)%>;
 
 $(document).ready(function() {
     $('#all-tax').tablesorter();
+    $('.cb').on('change', function(ev) { checkbox(ev); });
 });
+
+function uncheckAll() {
+    $('.cb:checked').prop('checked', false);
+    checkbox();
+}
+
+function checkbox(ev) {
+    $('.checked-row').removeClass('checked-row');
+    var ct = 0;
+    var opts = '';
+    $('.cb:checked').each(function(i, el) {
+        ct++;
+        el.parentElement.parentElement.classList.add('checked-row');
+        var tid = el.id.substr(3);
+        var sn = $('#tr-' + tid + ' td')[3].innerText;
+        opts += '<option value="' + tid + '">' + sn + '</option>';
+    });
+    $('#num-checked').text(ct);
+    if (ct > 0) {
+        $('#controls .command').css('display', 'inline-block');
+    } else {
+        $('#controls .command').hide();
+    }
+    if (ct < 2) {
+        $('#command-merge').hide();
+    } else {
+        $('#merge-target').html(opts);
+    }
+}
 
 </script>
 <style>
@@ -166,6 +196,10 @@ body {
     color: #BBB !important;
 }
 
+.checked-row td {
+    background-color: #CFC !important;
+}
+
 tr:hover td {
     background-color: #BFF !important;
 }
@@ -174,10 +208,45 @@ tr.non-specific td {
     /* background-color: #FFA !important; */
     color: #999 !important;
 }
+#all-tax {
+    margin-top: 60px;
+}
+#controls {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 11px;
+    background-color: #DDD;
+}
+
+#controls .command {
+    display: none;
+    padding: 0 15px;
+}
+
 </style>
 </head>
 
-<body><%
+<body>
+<div id="controls">
+    <b><span id="num-checked">0</span> checked</b>
+
+    <div class="command">
+        <input type="button" value="delete Taxonomy(s)" />
+    </div>
+
+    <div class="command" id="command-merge">
+        <input type="button" value="Merge Taxonomies, into:" />
+        <select id="merge-target"></select>
+    </div>
+
+    <div class="command">
+        <input type="button" value="Uncheck all" onClick="return uncheckAll();" />
+    </div>
+
+</div>
+<%
 
     String sql = "select \"ID_EID\" as id, count(*) as ct from \"OCCURRENCE_TAXONOMIES\" group by id order by ct desc;";
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
@@ -192,12 +261,14 @@ tr.non-specific td {
     }
 
     List<Taxonomy> txs = getAllTaxonomies(myShepherd);
-    out.println("<table id=\"all-tax\" class=\"tablesorter\"><thead><tr><th>ID</th><th>&#x2248;</th><th>Scientific name</th><th># occs</th><th># names</th></tr></thead><tbody>");
+    out.println("<table id=\"all-tax\" class=\"tablesorter\"><thead><tr><th data-sorter=\"false\">&#x2713;</th><th>ID</th><th>&#x2248;</th><th>Scientific name</th><th>ITIS</th><th># occs</th><th># names</th></tr></thead><tbody>");
     for (Taxonomy tx : txs) {
-        out.println("<tr class=\"" + (tx.getNonSpecific() ? "non-specific" : "specific") + "\">");
-        out.println("<td><a href=\"taxonomyTool.jsp?id=" + tx.getId() + "\">" + tx.getId().substring(0,8) + "</a></td>");
+        out.println("<tr id=\"tr-" + tx.getId() + "\" class=\"" + (tx.getNonSpecific() ? "non-specific" : "specific") + "\">");
+        out.println("<td><input class=\"cb\" type=\"checkbox\" id=\"cb-" + tx.getId() + "\" /></td>");
+        out.println("<td><a href=\"taxonomy.jsp?id=" + tx.getId() + "\">" + tx.getId().substring(0,8) + "</a></td>");
         out.println("<td>" + (tx.getNonSpecific() ? "&#x2713;" : "") + "</td>");
         out.println("<td>" + tx.getScientificName() + "</td>");
+        out.println("<td>" + ((tx.getItisTsn() == null) ? "" : tx.getItisTsn()) + "</td>");
         long tc = ((tcount.get(tx.getId()) == null) ? 0L : tcount.get(tx.getId()));
         out.println("<td class=\"td-num-" + tc + "\">" + tc + "</td>");
         int nm = Util.collectionSize(tx.getCommonNames());
