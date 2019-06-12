@@ -600,17 +600,26 @@ finally{
         <hr/>
 
         <main class="container">
+        
             <article class="text-center">
                 <div class="row">
-                    <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
-                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
-                        <p class="lead"><%=props.getProperty("contributors") %></p>
-                        <a href="#" title=""><%=props.getProperty("contributors") %></a>
+                    
+                    <div>
+                       
+                        <p class="lead"><img src="cust/mantamatcher/img/turtleWhy.png" alt="" class="pull-left" width="50%" height="50%" /> <h1><%=props.getProperty("whyWeDoThis") %></h1>
+                        <p class="lead">"The 'gold standard' for sea turtle population monitoring programs are long-term capture-mark-recapture (CMR) studies on nesting
+beaches as well as foraging areas for populations. Comprehensive CMR studies facilitate
+robust abundance assessments and diagnoses of population trends, which, in turn, inform
+effective conservation management efforts."
+<br>
+-<a href="https://static1.squarespace.com/static/5b80290bee1759a50e3a86b3/t/5baba504104c7bbff39ac4ad/1537975557038/SWOT_MinimumDataStandards_TechReport.pdf" target=""_blank>State of the World's Sea Turtles(SWOT) Minimum Data Standards for Nesting Beach Monitoring Technical Report</a>
+</p>
+                        
                     </div>
                 </div>
             </article>
-        <main>
+
+        </main>
 
     </section>
 </div>
@@ -621,7 +630,27 @@ finally{
       <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
 
 </div>
-
+<div class="container-fluid">
+    <section class="container main-section">
+					<article class="text-center">
+                <div class="row">
+                    
+                    <div>
+                       
+						<h1>Created with Support From</h1>
+						<p><img src="cust/mantamatcher/img/Nouv_logoABF-web.png" height="50%" width="*"  />
+						<img width="25%" height="*"  src="cust/mantamatcher/img/cedtm--20180418-124741.png" />
+						<img width="25%" height="*"  src="cust/mantamatcher/img/ms_logo.png" />
+						<img width="10%" height="*"  src="cust/mantamatcher/img/1200px-WWF_logo.svg.png" />
+						<img width="20%" height="*"  src="cust/mantamatcher/img/awi_logo.svg" />
+						</p>
+						
+                        
+                    </div>
+                </div>
+            </article>
+			</section>
+			</div>
 <% 
 if (CommonConfiguration.allowAdoptions(context)) {
 %>
@@ -672,13 +701,20 @@ if (CommonConfiguration.allowAdoptions(context)) {
             %>
 
 
+
+			
         </section>
 
 
         <hr/>
         <%= props.getProperty("donationText") %>
+		
+
+		
+		
     </section>
 </div>
+
 
 <%
 }
