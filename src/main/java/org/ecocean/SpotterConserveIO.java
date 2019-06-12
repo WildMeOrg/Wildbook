@@ -473,7 +473,6 @@ System.out.println("MADE " + enc);
 
     public static User waToUser(JSONObject jin, Shepherd myShepherd) {
 System.out.println("waToUser -> " + jin);
-        //String name = jin.optString("Whale Alert Submitter Name", null);
         return findOrMakeUser(
             jin.optString("Whale Alert Submitter Email", null),
             jin.optString("Whale Alert Submitter Phone", null),
@@ -635,6 +634,15 @@ System.out.println("MADE " + enc);
 
     //Ocean Alert seems to still use key 'Whale Alert...'
     public static User oaToUser(JSONObject jin, Shepherd myShepherd, Occurrence occ) {
+        return findOrMakeUser(
+            jin.optString("Whale Alert Submitter Email", null),
+            jin.optString("Whale Alert Submitter Phone", null),
+            myShepherd
+        );
+    }
+
+/* saved for prosperity?
+    public static User PREVIOUS____oaToUser(JSONObject jin, Shepherd myShepherd, Occurrence occ) {
         String subEmail = jin.optString("Whale Alert Submitter Email", null);
         String subName = jin.optString("Whale Alert Submitter Name", null);
         /////String subPhone = jin.optString("Whale Alert Submitter Phone", null);  //ignore!
@@ -658,6 +666,8 @@ System.out.println("MADE " + enc);
 System.out.println("INFO: oaToUser(" + subEmail + ", " + subName + " --> " + user);
         return user;
     }
+*/
+
 
 /*
 ITIS Species Scientific Name: "Mysticeti",
