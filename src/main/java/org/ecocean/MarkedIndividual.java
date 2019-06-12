@@ -2412,6 +2412,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             MarkedIndividual ind = (MarkedIndividual)m;
             rtn.add(ind);
         }
+        query.closeAll();
         return rtn;
     }
 
