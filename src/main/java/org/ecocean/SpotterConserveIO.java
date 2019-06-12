@@ -497,7 +497,9 @@ System.out.println("waToUser -> " + jin);
         if ((unameEmail == null) && (unamePhone == null)) return null;  //cant make one.  :(
         String uname = unameEmail;
         if (uname == null) uname = unamePhone;
-        user = new User(uname, Util.generateUUID(), Util.generateUUID());
+        String salt = ServletUtilities.getSalt().toHex();
+        String hashedPassword = ServletUtilities.hashAndSaltPassword(Util.generateUUID(), salt);
+        user = new User(uname, hashedPassword, salt);
         System.out.println("findOrMakeUser() ==> " + user);
         if (user == null) return null;
 
