@@ -674,7 +674,7 @@ $(function() {
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
 				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
-          String dispName = enc.getIndividual().getDisplayName(request);
+          	String dispName = enc.getIndividual().getDisplayName(request);
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
@@ -1439,8 +1439,16 @@ if(enc.getLocation()!=null){
     							<div>
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> 
-                     <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
-                     <span id="displayIndividualID"><%=enc.getDisplayName()%></span></a></p>
+    								 <%
+    								 if(enc.hasMarkedIndividual()){
+    								 %>
+                     					<a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
+                     						<span id="displayIndividualID"><%=enc.getDisplayName()%></span>
+                     					</a>
+                     				<%
+    								}	
+                     				%>
+                     			</p>
     							
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
