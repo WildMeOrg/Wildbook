@@ -1373,7 +1373,8 @@ public class Encounter implements java.io.Serializable {
     }
 
     public void setIndividual(MarkedIndividual indiv) {
-        individual = indiv;
+        if(indiv==null) {this.individual=null;}
+        else{this.individual = indiv;}
     }
 
     public MarkedIndividual getIndividual() {
