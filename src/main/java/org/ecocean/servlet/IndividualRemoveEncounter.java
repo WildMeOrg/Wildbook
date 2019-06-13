@@ -68,9 +68,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter enc2remove = myShepherd.getEncounter(request.getParameter("number"));
     
-      setDateLastModified(enc2remove);
-      myShepherd.commitDBTransaction();
-      myShepherd.beginDBTransaction();
+
       MarkedIndividual removeFromMe = enc2remove.getIndividual();
       if (removeFromMe!=null) {
         String old_name = enc2remove.getIndividualID();
@@ -81,13 +79,14 @@ public class IndividualRemoveEncounter extends HttpServlet {
           //while (myShepherd.getUnidentifiableEncountersForMarkedIndividual(old_name).contains(enc2remove)) {
           //  removeFromMe.removeEncounter(enc2remove, context);
           //}
-          //enc2remove.setIndividualID(null);
+          enc2remove.setIndividual(null);
           
 
           // Why were we ever nulling the OccurrenceID on IndividualRemoveEncounter????
           //enc2remove.setOccurrenceID(null);
 
           enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");
+          setDateLastModified(enc2remove);
 
           if(removeFromMe!=null){
             name_s = removeFromMe.getName();
@@ -148,12 +147,13 @@ public class IndividualRemoveEncounter extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        out.println("<strong>Error:</strong> You can't remove this encounter from a marked individual because it is not assigned to one.");
+        out.println("<strong>Error:</strong> You can't remove this encounter from a marked individual because that individual does not exist.");
         out.println(ServletUtilities.getFooter(context));
       }
 
 
-    } else {
+    } 
+    else {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("I did not receive enough data to remove this encounter from a marked individual.");
     }
