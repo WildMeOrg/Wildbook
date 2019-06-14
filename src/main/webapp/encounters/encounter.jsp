@@ -1440,14 +1440,17 @@ if(enc.getLocation()!=null){
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> 
     								 <%
+    								 String hrefVal="";
+    								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
-    								 %>
-                     					<a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
-                     						<span id="displayIndividualID"><%=enc.getDisplayName()%></span>
-                     					</a>
-                     				<%
-    								}	
+    									hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
+    									indyDisplayName=enc.getDisplayName();
+    								 }
                      				%>
+                     					<a href="<%=hrefVal %>">
+                     						<span id="displayIndividualID"><%=indyDisplayName %></span>
+                     					</a>
+                     				
                      			</p>
     							
                   <p>
