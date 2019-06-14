@@ -2396,7 +2396,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
     // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
-    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
+    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex, String genus, String specificEpithet) {
         System.out.println("findByNames regex: "+regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
         if (NAMES_CACHE == null) return rtn;  //snh
@@ -2404,7 +2404,12 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         List<String> nameIds = findNameIds(regex);
         System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
-        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE names.id == " + String.join(" || names.id == ", nameIds);
+        System.out.println("findByNames: "+genus+" "+specificEpithet);
+        String taxonomyStringFilter="";
+        if((genus!=null)&&(specificEpithet!=null)) {
+          taxonomyStringFilter=" && enc.genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc";
+        }
+        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE (names.id == " + String.join(" || names.id == ", nameIds)+")"+taxonomyStringFilter;
         System.out.println("findByNames jdoql: "+jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
         Collection c = (Collection) (query.execute());
@@ -2415,11 +2420,21 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         query.closeAll();
         return rtn;
     }
+    
+    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
+      return findByNames(myShepherd, regex, null, null);
+    }
 
-    // exact case-insensitive version of above func that returns 1 or 0 individuals
     public static MarkedIndividual withName(Shepherd myShepherd, String name) {
+      return withName(myShepherd, name, null, null);
+    }
+    
+    
+    // exact case-insensitive version of above func that returns 1 or 0 individuals
+    public static MarkedIndividual withName(Shepherd myShepherd, String name, String genus, String specificEpithet) {
       String regex = "(^|.*;)"+name+"(;.*|$)";
-      List<MarkedIndividual> inds = findByNames(myShepherd, regex);
+      System.out.println("withName: "+genus+" "+specificEpithet);
+      List<MarkedIndividual> inds = findByNames(myShepherd, regex, genus, specificEpithet);
       if (inds==null || inds.size()==0) return null;
       if (inds.size()>1) System.out.println("WARNING! MarkedIndividual.withName called for name "+name+". THERE ARE "+inds.size()+" INDIVIDUALS WITH THIS NAME AND WE'RE RETURNING ONLY ONE.");
       return inds.get(0);
