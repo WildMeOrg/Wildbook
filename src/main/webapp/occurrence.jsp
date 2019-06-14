@@ -318,6 +318,8 @@ context=ServletUtilities.getContext(request);
 		});
 	</script>  
 	
+		<p><%=props.getProperty("numAdults") %>: <%=occ.getNumAdults() %></p>
+
 		<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 		
 		<p>
@@ -368,11 +370,29 @@ context=ServletUtilities.getContext(request);
 			<%}%>
 		</p>
 
+<p>
+    <%=props.getProperty("latitude")%> /
+    <%=props.getProperty("longitude")%> /
+    <%=props.getProperty("bearing")%> :
+    <%=occ.getDecimalLatitude()%>,
+    <%=occ.getDecimalLongitude()%>
+    <%=occ.getBearing()%>m
+</p>
+
 <%
 if (!Util.collectionIsEmptyOrNull(occ.getSubmitters())) {
-    out.println("<p>Submitted by: ");
+    out.println("<p>" + props.getProperty("submittedBy") + ": ");
     List<String> subs = new ArrayList<String>();
     for (User sub : occ.getSubmitters()) {
+        subs.add(sub.getDisplayName());
+    }
+    out.println(String.join(", ", subs) + "</p>");
+}
+
+if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
+    out.println("<p>" + props.getProperty("contribBy") + ": ");
+    List<String> subs = new ArrayList<String>();
+    for (User sub : occ.getInformOthers()) {
         subs.add(sub.getDisplayName());
     }
     out.println(String.join(", ", subs) + "</p>");

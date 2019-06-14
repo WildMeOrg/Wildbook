@@ -674,7 +674,7 @@ $(function() {
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
 				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
-          String dispName = enc.getIndividual().getDisplayName(request);
+          		String dispName = enc.getIndividual().getDisplayName(request);
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
@@ -1439,8 +1439,19 @@ if(enc.getLocation()!=null){
     							<div>
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> 
-                     <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
-                     <span id="displayIndividualID"><%=enc.getDisplayName()%></span></a></p>
+    								 <%
+    								 String hrefVal="";
+    								 String indyDisplayName="";
+    								 if(enc.hasMarkedIndividual()){
+    									hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
+    									indyDisplayName=enc.getDisplayName();
+    								 }
+                     				%>
+                     					<a href="<%=hrefVal %>">
+                     						<span id="displayIndividualID"><%=indyDisplayName %></span>
+                     					</a>
+                     				
+                     			</p>
     							
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
@@ -1532,14 +1543,16 @@ if(enc.getLocation()!=null){
                         var action = $("#individualAddEncounterAction").val();
 
                         $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
-                        function() {
+                        function(data) {
+                        	
+                         
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
-                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
                           
-                          $('#topid').prop('href', '../individuals.jsp?number=' + individual);
+                          $('#topid').prop('href', '../individuals.jsp?number=' + data.individualID);
                           $("#topid").html(individual);
           				  $(".add2shark").hide();               
         				  $(".removeFromShark").show();      

@@ -160,9 +160,11 @@ public class Shepherd {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
+      beginDBTransaction();
       //System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
+      beginDBTransaction();
       System.out.println("I failed to create a new Annotation in Shepherd.storeNewAnnotation().");
       e.printStackTrace();
       return "fail";
@@ -853,8 +855,8 @@ public class Shepherd {
 
   public String storeNewOrganization(Organization org) {
     //enc.setOccurrenceID(uniqueID);
-    boolean transactionWasActive = isDBTransactionActive();
-    beginDBTransaction();
+    //boolean transactionWasActive = isDBTransactionActive();
+    //beginDBTransaction();
     try {
       pm.makePersistent(org);
       commitDBTransaction();
@@ -864,10 +866,11 @@ public class Shepherd {
       System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
       e.printStackTrace();
       return "fail";
-    } finally {
-      closeDBTransaction();
-    }
-    if (transactionWasActive) beginDBTransaction();
+    } 
+    //finally {
+      //closeDBTransaction();
+    //}
+    //if (transactionWasActive) beginDBTransaction();
     return (org.getId());
   }
   
@@ -1118,6 +1121,13 @@ public class Shepherd {
     return taxy;
   }
   public Taxonomy getTaxonomy(String scientificName) {
+    if (scientificName == null) return null;
+    //lookout!  hactacular uuid-ahead!
+    if (scientificName.matches("^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")) {
+        System.out.println("WARNING: Shepherd.getTaxonomy() assuming passed '" + scientificName + "' is UUID; hack is passing to getTaxonomyById()");
+        return getTaxonomyById(scientificName);
+    }
+
     List al = new ArrayList();
     try{
       String filter = "this.scientificName.toLowerCase() == \"" + scientificName.toLowerCase() + "\"";
@@ -1141,6 +1151,15 @@ public class Shepherd {
         } catch (Exception ex) {}
         return null;
     }
+    //sadly, getTaxonomy(string) signatured already used above. :( so we have to go non-standard name here:
+    //  however, checkout the hack to look for a uuid above!
+    public Taxonomy getTaxonomyById(String id) {
+        try {
+            return (Taxonomy)(pm.getObjectById(pm.newObjectIdInstance(Taxonomy.class, id), true));
+        } catch (Exception ex) {}
+        return null;
+    }
+
   public String storeNewTaxonomy(Taxonomy enc) {
     //enc.setOccurrenceID(uniqueID);
     boolean transactionWasActive = isDBTransactionActive();
@@ -3168,6 +3187,21 @@ public class Shepherd {
   public int getNumAdoptions() {
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Adoption.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass);
+    try {
+      Collection c = (Collection) (acceptedEncounters.execute());
+      int num = c.size();
+      acceptedEncounters.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedEncounters.closeAll();
+      return 0;
+    }
+  }
+  
+  public int getNumAssetStores() {
+    Extent encClass = pm.getExtent(AssetStore.class, true);
     Query acceptedEncounters = pm.newQuery(encClass);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
