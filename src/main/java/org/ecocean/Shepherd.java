@@ -126,7 +126,6 @@ public class Shepherd {
   //  return pmf;
   //}
 
-
   /**
    * Stores a new, unassigned encounter in the database for later retrieval and analysis.
    * Each new encounter is assigned a unique number which is also its unique retrievable ID in the database.
@@ -3616,6 +3615,27 @@ public class Shepherd {
     Extent allKeywords = pm.getExtent(Keyword.class, true);
     Query acceptedKeywords = pm.newQuery(allKeywords);
     return getAllKeywords(acceptedKeywords);
+  }
+
+  public List<String> getAllKeywordLabels() {
+    Set<String> labels = new HashSet<String>();
+    for (LabeledKeyword lkw: getAllLabeledKeywords()) {
+      labels.add(lkw.getLabel());
+    }
+    return Util.asSortedList(labels);
+  }
+
+  public List<LabeledKeyword> getAllLabeledKeywords() {
+    try {
+      Extent extent = pm.getExtent(LabeledKeyword.class);
+      Query query = pm.newQuery(extent);
+      List<LabeledKeyword> ans = (List) query.execute();
+      return ans;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
   }
 
   public Iterator<Keyword> getAllKeywords(Query acceptedKeywords) {

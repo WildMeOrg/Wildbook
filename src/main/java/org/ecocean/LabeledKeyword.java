@@ -62,6 +62,13 @@ public class LabeledKeyword extends Keyword{
     return this.label;
   }
 
+  public void setValue(String value) {
+    setReadableName(value);
+  }
+  public String getValue() {
+    return getReadableName();
+  }
+
 
   public String toString() {
     return new ToStringBuilder(this)
