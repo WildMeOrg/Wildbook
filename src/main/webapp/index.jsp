@@ -543,8 +543,6 @@ finally{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                             long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
 
-	                    System.out.println("  I think my startTime is: "+startTime);
-
 	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
