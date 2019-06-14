@@ -189,6 +189,7 @@ function init2() {   //called from wildbook.init() when finished
 		var tid = taskIds[i];
 		tryTaskId(tid);
 	}
+
 	// If we don't have any ID task elements, it's reasonable to assume we are waiting for something.
 	// If we don't have anything but null task types after a while, lets just reload the page and get updated info. 
 	// We get to this condition when the page loads too fast and you have only __NULL__ type tasks, 
@@ -201,7 +202,7 @@ function init2() {   //called from wildbook.init() when finished
 			console.log("Processed Task: "+JSON.stringify(processedTask));
 			var type = wildbook.IA.getPluginType(processedTask);
 			console.log("TYPE : "+type);
-			if (type!="__NULL__"||processedTask.children) {
+			if ((type!="__NULL__"&&type!=false)||processedTask.children) {
 				onlyNullTaskType = false;
 				$('#initial-waiter').remove();
 			}
