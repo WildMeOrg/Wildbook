@@ -218,6 +218,12 @@ public class StandardImport extends HttpServlet {
         numAnnots+=annotations.size();
         Encounter enc = loadEncounter(row, annotations, context, myShepherd);
         enc.addComments(importComment);
+        enc.setCatalogNumber(Util.generateUUID());
+        if(committing) {
+          myShepherd.getPM().makePersistent(enc);
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
         occ = loadOccurrence(row, occ, enc, myShepherd);
         occ.addComments(importComment);
         mark = loadIndividual(row, enc, myShepherd,committing,individualCache);
@@ -247,12 +253,7 @@ public class StandardImport extends HttpServlet {
           }
           
           
-          enc.setCatalogNumber(Util.generateUUID());
-          if(committing) {
-            myShepherd.getPM().makePersistent(enc);
-            myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-          }
+
         	if (!myShepherd.isOccurrence(occ))       { 
         	  
         	  if(committing) {
@@ -495,7 +496,6 @@ public class StandardImport extends HttpServlet {
     if (enc!=null) enc.addAnnotations(annotations);
     else enc = new Encounter (annotations);
 
-    //if (individualID!=null) enc.setIndividualID(individualID);
     if (occurrenceID!=null) enc.setOccurrenceID(occurrenceID);
 
   	// since we need access to the encounter ID
@@ -1103,10 +1103,9 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	String individualID = getIndividualID(row);
   	if (individualID==null) return null;
 
-    //MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(individualID);
     
   	MarkedIndividual mark = individualCache.get(individualID);
-    if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID);
+    if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
     //else {
       //out.println("StandardImport got individual "+mark+" from individualCache");
     //}
@@ -1138,7 +1137,15 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
 	  if (!newIndividual) {
 	    mark.addEncounter(enc);
+	    enc.setIndividual(mark);
 	    out.println("loadIndividual notnew individual: "+mark.getDisplayName());
+	  }
+	  else {
+	    enc.setIndividual(mark);
+	  }
+	  if(committing) {
+	    myShepherd.commitDBTransaction();
+	    myShepherd.beginDBTransaction();
 	  }
 
     String alternateID = getString(row, "Encounter.alternateID");
