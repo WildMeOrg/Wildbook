@@ -3,9 +3,12 @@
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
 org.ecocean.ia.Task,
+org.joda.time.DateTime,
+org.ecocean.servlet.importer.ImportTask,
 java.net.URL,
 java.util.ArrayList,
 org.json.JSONObject,
+org.json.JSONArray,
 java.util.Properties" %>
 <%!
 	public Shepherd myShepherd = null;
@@ -28,6 +31,19 @@ java.util.Properties" %>
         } else {
             out += "<span " + alt + "class=\"format-value\">" + value + "</span>";
         }
+        return out;
+    }
+    private String format(String label, User user) {
+        if (user == null) return format(label, (String)null);
+        return format(label, user.getDisplayName());
+    }
+    private String format(String label, DateTime dt) {
+        if (dt == null) return format(label, (String)null);
+        String out = "";
+        if (label != null) out += "<span class=\"format-label\">" + label + ": </span>";
+        String dts = dt.toString();
+        out += "<span class=\"format-dt-date\">" + dts.substring(0,10) + "</span> ";
+        out += "<span class=\"format-dt-time\">" + dts.substring(11,19) + "</span>";
         return out;
     }
     private String format(String label, Boolean value) {
@@ -59,7 +75,9 @@ java.util.Properties" %>
 		if (f == null) return format(null, "none");
 		if (shown.contains(f)) return "<div class=\"feature shown\">" + format("Feature", f.getId(), f.toString()) + "</div>";
 		shown.add(f);
-		String h = "<div class=\"feature\">Feature <b>" + f.getId() + "</b><ul>";
+		String h = "<div class=\"feature\">Feature <b>" + f.getId() + "</b>";
+                h += "<input type=\"button\" onClick=\"toggleZoom('" + f.getId() + "')\" value=\"toggle zoom\" style=\"margin-left: 10px;\" />";
+                h += "<ul>";
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
 		h += "<li>" + showMediaAsset(f.getMediaAsset()) + "</li>";
 		h += "<li>" + showAnnotation(f.getAnnotation()) + "</li>";
@@ -97,6 +115,44 @@ java.util.Properties" %>
 		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset()) + "</li>";
 		return h + "</ul></div>";
 	}
+
+        private String showImportTask(ImportTask itask) {
+            String h = "<div><b>" + itask.getId() + "</b> " + itask.toString() + "<ul>";
+            h += "<li>" + format("creator", itask.getCreator()) + "</li>";
+            h += "<li>" + format("created", itask.getCreated()) + "</li>";
+            h += "</ul>";
+            if (Util.collectionIsEmptyOrNull(itask.getEncounters())) {
+                h += "<p><i>no Encounters</i></p>";
+            } else {
+                h += "<p><b>Encounters:</b> <ul>";
+                for (Encounter enc : itask.getEncounters()) {
+                    h += "<li><a href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a></li>";
+                }
+                h += "</ul></p>";
+            }
+            h += "<p><b>parameters:</b> " + niceJson(itask.getParameters()) + "</p>";
+            if (Util.collectionIsEmptyOrNull(itask.getLog())) {
+                h += "<p><i>empty log</i></p>";
+            } else {
+                h += "<p><b>log:</b> <ul style=\"font-size: 0.8em;\">";
+                JSONArray larr = itask.getLogJSONArray();
+                for (int i = 0 ; i < larr.length() ; i++) {
+                    JSONObject jl = larr.optJSONObject(i);
+                    if (jl == null) continue;
+                    long d = jl.optLong("t", -1);
+                    String l = jl.optString("l", "{empty}");
+                    if (d > 0) {
+                        DateTime dt = new DateTime(d);
+                        h += "<li>" + format(null, dt) + " - " + l + "</li>";
+                    } else {
+                        h += "<li>" + l + "</li>";
+                    }
+                }
+                h += "</ul></p>";
+            }
+            h += "</div>";
+            return h;
+        }
 
         private String showTask(Task task) {
             String h = "<div><b>" + task.getId() + "</b> " + task.toString() + "<ul>";
@@ -224,6 +280,7 @@ if (!rawOutput(type)) {
 %>
 <html><head><title>obrowse</title>
 <script src="tools/jquery/js/jquery.min.js"></script>
+<script src="javascript/annot.js"></script>
 <style>
 
 body {
@@ -233,6 +290,7 @@ body {
 .img-margin {
     float: right;
     display: inline-block;
+    oveflow-hidden;
 }
 
 .format-label {
@@ -249,6 +307,12 @@ body {
     border-radius: 3px;
     padding: 2px 4px;
 }
+.format-dt-date, .format-dt-time {
+    font-size: 0.85em;
+}
+.format-dt-time {
+    color: #777;
+}
 .format-true {
     text-transform: uppercase;
     color: #FFF;
@@ -262,6 +326,9 @@ body {
 
 #img-wrapper {
     position: relative;
+    width: 400px;
+    height: 700px;
+    overflow: hidden;
 }
 .featurebox {
     position: absolute;
@@ -276,9 +343,7 @@ body {
 	position: relative;
 }
 .mediaasset img {
-	xposition: absolute;
-	top: 0;
-	xright: 20px;
+	position: absolute;
 	max-width: 350px;
 }
 
@@ -298,6 +363,8 @@ pre.json {
     border-radius: 3px;
     background-color: #EEE;
     display: inline-flex;
+    max-width: 60%;
+    overflow-x: scroll;
 }
 
 </style>
@@ -305,6 +372,22 @@ pre.json {
 <script>
 var features = {};
 
+var zoomedId = false;
+function toggleZoom(featId) {
+console.log('featId=%o', featId);
+    var imgEl = $('img')[0];
+    if (zoomedId == featId) {
+        zoomedId = false;
+        unzoomFeature(imgEl);
+        $('.featurebox').show();
+        return;
+    }
+console.log('feature=%o', features[featId]);
+    if (!features || !features[featId]) return;
+    $('.featurebox').hide();
+    zoomToFeature(imgEl, { parameters: features[featId] });
+    zoomedId = featId;
+}
 function addFeature(id, bbox) {
     features[id] = bbox;
 }
@@ -421,6 +504,15 @@ if (type.equals("Encounter")) {
 	try {
 		Task task = ((Task) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Task.class, id), true)));
 		out.println(showTask(task));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		needForm = true;
+	}
+
+} else if (type.equals("ImportTask")) {
+	try {
+		ImportTask task = ((ImportTask) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(ImportTask.class, id), true)));
+		out.println(showImportTask(task));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		needForm = true;

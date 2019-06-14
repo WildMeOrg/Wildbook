@@ -95,19 +95,23 @@ function forceLink(el) {
 
   </script>
   <%
+    List<String> maAcms = new ArrayList<String>();
+    List<String> maIds = new ArrayList<String>();
+
   for(int f=0;f<numEncs;f++){
 		  Encounter enc = encs.get(f);
 		  ArrayList<Annotation> anns = enc.getAnnotations();
 		JSONObject iaTasks = new JSONObject();
 
 		  if ((anns == null) || (anns.size() < 1)) {
-		    %> <script>console.log('no annnotations found for encounter <%=encNum %>'); </script> <%
+		    %> <script>console.log('no annotations found for encounter <%=encNum %>'); </script> <%
 		  }
 		  else {
 		  	for (Annotation ann: anns) {
 		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
 		      MediaAsset ma = ann.getMediaAsset();
-			  ma.refreshIfLoggedIn(imageShepherd, isUserLoggedIn);
+                        if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
+                        maIds.add(Integer.toString(ma.getId()));
 		      String filename = ma.getFilename();
 		      
 		      String individualID="";
@@ -123,7 +127,7 @@ function forceLink(el) {
 		      capos[0]+=encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a><br>";
 		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
 		      
-		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" "+ma.getId()+"</p>";
+		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
 		      captionLinks.add(capos);
 		      //end caption render JSP side
 		      
@@ -186,6 +190,30 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 		}
 			out.println("<script> var iaTasks = " + iaTasks.toString() + ";</script>");
 	}
+
+    JSONObject dups = new JSONObject();
+    //this is kinda hacky cuz it is sql-specific
+    if (maAcms.size() > 0) {
+        String sql = "select \"MEDIAASSET\".\"ID\" as assetId, \"MEDIAASSET\".\"ACMID\" as assetAcmId, \"ENCOUNTER\".\"CATALOGNUMBER\" as encId, \"ENCOUNTER\".\"INDIVIDUALID\" as indivId from \"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"ID\" = \"ID_OID\") join \"ANNOTATION_FEATURES\" using (\"ID_EID\") join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") where \"MEDIAASSET\".\"ACMID\" in ('" + String.join("', '", maAcms) + "') AND \"MEDIAASSET\".\"ID\" not in (" + String.join(", ", maIds) + ");";
+// assetid |              assetacmid              |                encid                 | individ 
+        Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        while (it.hasNext()) {
+            Object[] row = (Object[]) it.next();
+            int aid = (int)row[0];
+            String acm = (String)row[1];
+            String eid = (String)row[2];
+            String iid = (String)row[3];
+            if (acm == null) continue;
+            if (dups.optJSONObject(acm) == null) dups.put(acm, new JSONObject());
+            if (dups.optJSONObject(acm).optJSONObject(eid) == null) dups.getJSONObject(acm).put(eid, new JSONObject());
+            dups.getJSONObject(acm).getJSONObject(eid).put("asset", aid);
+            dups.getJSONObject(acm).getJSONObject(eid).put("indiv", iid);
+        }
+    }
+    out.println("<script> var assetDup = " + dups.toString() + ";</script>");
+
 }
 catch(Exception e){e.printStackTrace();}
 finally{
@@ -198,7 +226,6 @@ finally{
 // here we just transform captionLinks into the actual captions we want to pass
 JSONArray captions = new JSONArray();
 for (int i=0; i<captionLinks.size(); i++) {
-  //String cappy = "<div class=\"match-tools\">";
   String cappy = "<div>";
   for (String subCaption : captionLinks.get(i)) {
     cappy = cappy+subCaption+"</br>";
@@ -212,9 +239,64 @@ for (int i=0; i<captionLinks.size(); i++) {
 
 
 <style>
+
+figcaption div {
+    position: relative;
+}
+
+.pswp .dup-info {   /* hides duplicate block when zoom mode */
+    display: none;
+}
+
+.dup-info {
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    right: 0;
+    max-width: 50%;
+    font-style: normal;
+}
+
+.dup-title {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.75em;
+    color: #DD8;
+    background-color: #D32;
+    padding: 1px 10px;
+    border-radius: 6px;
+}
+
+.dup-details {
+    padding: 2px 5px;
+    font-size: 0.9em;
+    background-color: #FFF;
+    display: none;
+}
+.dup-info:hover .dup-details {
+    outline: solid 3px #AAA;
+    display: inline-block;
+}
+
+
 .image-enhancer-wrapper {
 	cursor: -webkit-zoom-in;
 	cursor: -moz-zoom-in;
+}
+
+.pointer-arrow {
+    background-image: url(../images/pointer-arrow.svg);
+    position: absolute;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    width: 50px;
+    height: 80px;
+    bottom: -10px;
+    left: 0;
+}
+
+.image-enhancer-wrapper:hover .pointer-arrow {
+    display: none;
 }
 
 .caption-youtube {
@@ -299,6 +381,25 @@ for (int i=0; i<captionLinks.size(); i++) {
   input[type="file"] {
     display:inline;
   }
+
+div.gallery-download {
+    text-align: center;
+    font-size: 0.8em;
+    margin-top: -2.5em;
+}
+
+.gallery-download a {
+    display: inline-block;
+    background-color: #DDD;
+    margin: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+.gallery-download a:hover {
+    background-color: #CCA;
+}
+
 
 </style>
 <%
@@ -463,6 +564,7 @@ console.log(ma);
     }
     h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><input style="background-color: #F30;" type="button" value="remove Feat ' + niceId(myFeat.id) + ' / Ann ' + niceId(myFeat.annotationId) + ' / Enc ' + niceId(myFeat.encounterId) + '" onClick="return removeFeatAnnEnc(\'' + myFeat.id + '\', \'' + myFeat.annotationId + '\', \'' + myFeat.encounterId + '\');" /></div>';
     h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><i>or,</i> assign <b>Enc ' + niceId(myFeat.encounterId) + '</b> to <input id="edit-assign-individ" /> <input type="button" value="accept" onClick="return assignIndiv(\'' + myFeat.annotationId + '\');" /></div>';
+    h += '<a style="float:right; padding: 1px 5px; background-color: #BBB;" target="_new" href="../appadmin/manualAnnotation.jsp?assetId=' + mid + '&encounterId=' + myFeat.encounterId + '&cloneEncounter=true">ADD annot</a>';
     imageEnhancer.popup(h);
     $('.image-enhancer-popup').draggable();
 
@@ -510,6 +612,7 @@ jQuery(document).ready(function() {
         $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
     });
 
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownloadLink", context))) { %>
     if (wildbookGlobals.username) {
         $('.image-enhancer-wrapper').each(function(i, el) {
             var mid = imageEnhancer.mediaAssetIdFromElement($(el));
@@ -519,6 +622,7 @@ jQuery(document).ready(function() {
             //$(el).closest('.my-gallery').after(h);
         });
     }
+<% } //end encounterGalleryDownloadLink %>
 });
 
 function doImageEnhancer(sel) {
@@ -597,9 +701,31 @@ console.info(' ===========>   %o %o', el, enh);
 
 	opt.callback = function() {
 		$('.image-enhancer-keyword-wrapper').on('click', function(ev) { ev.stopPropagation(); });
+                if (!wildbook.user.isAnonymous()) showDuplicates();
 	};
     imageEnhancer.applyTo(sel, opt);
 }
+
+function showDuplicates() {
+    if (!assets || !assets.length || !assetDup || !Object.keys(assetDup).length) return;
+    for (var i = 0 ; i < assets.length ; i++) {
+        if (!assetDup[assets[i].acmId]) continue;
+        var h = '<div class="dup-info">';
+        h += '<div class="dup-title">duplicate</div>';
+        h += '<div class="dup-details"><i>This image is used elsewhere:</i><br />';
+            for (encId in assetDup[assets[i].acmId]) {
+                h += '<div><a onClick="event.stopPropagation()" target="_new" href="encounter.jsp?number=' + encId + '" title="MediaAsset ';
+                h += assetDup[assets[i].acmId][encId].asset + '">Enc ';
+                h += encId.substring(0,8) + '</a>';
+                if (assetDup[assets[i].acmId][encId].indiv) h += ': <b>' + assetDup[assets[i].acmId][encId].indiv + '</b>';
+                h += '</div>';
+            }
+        h += '</div></div>';
+        $('.image-enhancer-wrapper-mid-' + assets[i].id).parent().find('figcaption div').append(h);
+    }
+}
+
+
 
 function enhancerCaption(el, opt) {
 	var mid = imageEnhancer.mediaAssetIdFromElement(el.context);

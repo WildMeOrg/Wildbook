@@ -364,63 +364,80 @@ finally{
 
 	<h2 class="section-header"><%=props.getProperty("howItWorksH") %></h2>
 
-  <!-- All carousel text can be modified in the index properties files -->
+  <!-- carousel is gone now, forever? -->
 
-	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
-		<ol class="list-inline carousel-indicators slide-nav">
-	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph an animal<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Automatic identificatione<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Researcher verification<span class="caret"></span></li>
-	    </ol>
-		<div class="carousel-inner text-left">
-			<div class="item active">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3><%=props.getProperty("innerPhotoH3") %></h3>
-					<p class="lead">
-						<%=props.getProperty("innerPhotoP") %>
-					</p>
+<div class="carousel-inner text-left">
 
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img style="border-radius: 50%;" class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3><%=props.getProperty("innerSubmitH3") %></h3>
-          <p class="lead">
-            <%=props.getProperty("innerSubmitP") %>
-          </p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
-				</div>
-			</div>
-      <div class="item">
-        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <h3>Matching Results</h3>
-          <p class="lead">
-            Wildbook uses computer vision to compare new photos to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile.
-          </p>
-        </div>
-        <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-          <img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
-        </div>
-      </div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Researcher verification</h3>
-					<p class="lead">
-						When the automatic matching process is completed, a researcher double-checks any matches made by the system. Once confirmed, these new sightings are stored permanently in Wildbook.
-					</p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
-				</div>
-			</div>
+	<div class="row"> 
+		<div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
+			<h3><%=props.getProperty("innerPhotoH3") %></h3>
+			<p class="lead">
+				<%=props.getProperty("innerPhotoP") %>
+			</p>
+		</div>
+		<div class="hidden-xs col-sm-5  col-md-5  col-lg-5">
+			<img  src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
 		</div>
 	</div>
+
+	<hr>
+
+	<div class="row"> 
+		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
+			<img  src="images/how_it_works_submit.jpg" alt=""  />
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			<h3><%=props.getProperty("innerSubmitH3") %></h3>
+			<p class="lead">
+				<%=props.getProperty("innerSubmitP") %>
+			</p>
+		</div>
+	</div>
+
+	<hr>
+
+	<div class="row"> 
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			<h3><%=props.getProperty("innerVerifyH3") %></h3>
+			<p class="lead">
+				<%=props.getProperty("innerVerifyP") %>
+			</p>
+		</div>
+		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
+			<img  src="images/how_it_works_researcher_verification.jpg" alt=""/>
+		</div>
+	</div>
+
+	<hr>
+
+	<div class="row"> 
+		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
+			<img  src="images/how_it_works_matching_process.jpg" alt=""  />
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			<h3><%=props.getProperty("innerMatchingH3") %></h3>
+			<p class="lead">
+				<%=props.getProperty("innerMatchingP") %>
+			</p>
+		</div>
+	</div>
+
+	<hr>
+
+	<div class="row"> 
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			<h3><%=props.getProperty("innerResultH3") %></h3>
+			<p class="lead">
+				<%=props.getProperty("innerResultP") %>
+			</p>
+		</div>
+		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
+			<img  src="images/how_it_works_match_result.jpg" alt=""  />
+		</div>
+	</div>
+
+</div>
+
 </section>
 
 <div class="container-fluid relative data-section">

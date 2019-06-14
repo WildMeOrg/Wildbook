@@ -3,14 +3,19 @@ package org.ecocean.servlet.importer;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+
 import java.net.*;
+
 import org.ecocean.grid.*;
+
 import java.io.*;
 import java.util.*;
 import java.io.FileInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+
 import javax.jdo.*;
+
 import java.lang.StringBuffer;
 import java.util.Vector;
 import java.util.Iterator;
@@ -21,7 +26,6 @@ import org.ecocean.servlet.*;
 import org.ecocean.media.*;
 import org.ecocean.genetics.*;
 import org.ecocean.tag.SatelliteTag;
-
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.hssf.usermodel.*;
@@ -32,7 +36,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -53,6 +56,7 @@ public class StandardImport extends HttpServlet {
 	List<String> foundPhotos = new ArrayList<String>();
 	int numFolderRows = 0;
 	boolean committing = false;
+        boolean generateChildrenAssets = false;
 	PrintWriter out;
 	// verbose variable can be switched on/off throughout the import for debugging
 	boolean verbose = false;
@@ -63,6 +67,8 @@ public class StandardImport extends HttpServlet {
 	// just for lazy loading a var used on each row
 	Integer numMediaAssets;
 
+        Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
+
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
@@ -72,26 +78,64 @@ public class StandardImport extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
-    String importId = Util.generateUUID();
     if (request.getCharacterEncoding() == null) {
       request.setCharacterEncoding("utf-8");
     }
     response.setContentType("text/html; charset=UTF-8");
     String context = ServletUtilities.getContext(request);
+    myAssets = new HashMap<String,MediaAsset>();  //zero this out from previous (e.g. uncommited)
     myShepherd = new Shepherd(context);
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
 
-    //this might better be set via a different configuration variable of its own
-    String uploadDir = CommonConfiguration.getUploadTmpDir(context);
+    User creator = AccessControl.getUser(request, myShepherd);
+    ImportTask itask = new ImportTask(creator);
+    itask.setPassedParameters(request);
 
-    String subdir = Util.safePath(request.getParameter("subdir"));
-    if (subdir != null) uploadDir += subdir;
-    photoDirectory = uploadDir;
-    String filename = Util.safePath(request.getParameter("filename"));
-    if (filename == null) filename = "upload.xlsx";  //meh?
-    File dataFile = new File(uploadDir + "/" + filename);
-    boolean dataFound = dataFile.exists();
+    if(astore!=null){
+      System.out.println("astore is OK!");
+    }
+    else{
+      System.out.println("astore is null...BOO!!");
+      out.println("<p>I could not find a default AssetStore. Please create one.</p>");
+      return;
+    }
+
+    String importDir = CommonConfiguration.getImportDir(context);
+    if (importDir == null) throw new RuntimeException("You MUST have 'importDir' set in commonConfigurations to use importer");
+    System.out.println("importDir is: "+importDir);
+    
+    //filename *can* contain a subdir, such as "subdir/foo.xls"
+    String filename = Util.safePath(request.getParameter("filename"));  //this will be relative to importDir now!
+    if (filename == null) {  //note: safePath() might return null if it found evil stuff in filename=
+      System.out.println("Filename request parameter was not set in the URL.");
+      out.println("<p>I could not find a filename parameter in the URL. Please specify the full path to the Excel import file as the ?filename= parameter on the URL.</p>");
+      return;
+    }
+    File dataFile = new File(importDir + "/" + filename);
+    if(!dataFile.exists()){
+      out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+"</p>");
+      return;
+    }
+    
+    //String uploadDir = importFile.getParentFile().getAbsolutePath();
+    //if (subdir != null) uploadDir = subdir;
+    //System.out.println("uploadDir is: "+uploadDir);
+    photoDirectory = dataFile.getParentFile().getAbsolutePath();
+    System.out.println("photoDirectory is: "+photoDirectory);
+
+    
+    //File dataFile = new File(uploadDir + "/" + filename);
+    //boolean dataFound = dataFile.exists();
+
+    String rootDir = getServletContext().getRealPath("/");
+    File xlsFile = importXlsFile(rootDir);
+    if (xlsFile == null) {
+        out.println("<h2 class=\"error\">Could not determine latest Wildbook Standard Format XLS file!</h2>");
+    } else {
+        DateTime dt = new DateTime(xlsFile.lastModified());
+        out.println("<p><b>The latest <b>Wildbook Standard Format XLS</b> template is called \"<a href=\"import/" + xlsFile.getName() + "\">" + xlsFile.getName() + "</a>\" (updated " + dt.toString().substring(0,10) + ").</b><br /><i>Please make sure you are using the current version for best results.</p>");
+    }
 
     missingColumns = new HashSet<String>();
     missingPhotos = new ArrayList<String>();
@@ -99,12 +143,13 @@ public class StandardImport extends HttpServlet {
 		numFolderRows = 0;
 
     committing = Util.requestParameterSet(request.getParameter("commit"));
+    generateChildrenAssets = Util.requestParameterSet(request.getParameter("generateChildrenAssets"));
 
     out.println("<h2>File Overview: </h2>");
     out.println("<ul>");
-    out.println("<li>Directory: "+uploadDir+"</li>");
+    out.println("<li>Directory: "+photoDirectory+"</li>");
     out.println("<li>Filename: "+filename+"</li>");
-    out.println("<li>File found = "+dataFound+"</li>");
+    //out.println("<li>File found = "+dataFound+"</li>");
 
     Workbook wb = null;
     try {
@@ -112,22 +157,62 @@ public class StandardImport extends HttpServlet {
     } catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException invalidFormat) {
       out.println("<err>InvalidFormatException on input file "+filename+". Only excel files supported.</err>");
       return;
+    } catch (Exception ex) {  //pokemon!
+      out.println("<err><b>" + filename + "</b> got error: <i>" + ex.toString() + "</i></err>");
+      System.out.println("=== if you see this exception, it may be something wrong with permissions ===");
+      ex.printStackTrace();
+      return;
     }
-    Sheet sheet = wb.getSheetAt(0);
-
+    int sheetNum = 0;
+    try {
+        sheetNum = Integer.parseInt(request.getParameter("sheetNumber"));
+        if (sheetNum < 0) sheetNum = 0;
+    } catch (NumberFormatException ex) {}
     int numSheets = wb.getNumberOfSheets();
-    out.println("<li>Num Sheets = "+numSheets+"</li>");
+    if (sheetNum >= numSheets) sheetNum = 0;
+
+    Sheet sheet = wb.getSheetAt(sheetNum);
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
-    out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");
+
+    List<Integer> skipRows = new ArrayList<Integer>();
+    String[] skipRowParam = request.getParameterValues("skipRow");
+    String skipDisplay = "";
+    if ((skipRowParam != null) && (skipRowParam.length > 0)) {
+        for (int i = 0 ; i < skipRowParam.length ; i++) {
+            try {
+                int p = Integer.parseInt(skipRowParam[i]);
+                if ((p >= 0) && (p < physicalNumberOfRows)) {
+                    skipRows.add(p);
+                    skipDisplay += p + " ";
+                }
+            } catch (NumberFormatException ex) {}
+        }
+    }
+
+    int printPeriod = 100;
+    try {
+        int pp = Integer.parseInt(request.getParameter("printPeriod"));
+        if (pp > 0) printPeriod = pp;
+    } catch (NumberFormatException ex) {}
+
+    if (committing) {
+        out.println("<li>ImportTask id = <b><a href=\"imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+    } else {
+        out.println("<li>ImportTask id = <b>" + itask.getId() + "</b></li>");
+    }
+    out.println("<li>Sheet number = " + sheetNum + " (of " + numSheets + ") <i>\"" + sheet.getSheetName() + "\"</i></li>");
+    out.println("<li>Num Rows = "+physicalNumberOfRows+" <i>(echo every " + printPeriod + " rows)</i></li>");
+    if (skipRows.size() > 0) out.println("<li>Skipping rows: " + skipDisplay + "</li>");
     int rows = sheet.getPhysicalNumberOfRows();; // No of rows
     Row firstRow = sheet.getRow(0);
     // below line is important for on-screen logging
     initColIndexVariables(firstRow);
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     int lastColNum = firstRow.getLastCellNum();
-		
-		out.println("<li>Num Cols = "+cols+"</li>");
+
+    out.println("<li>Num Cols = "+cols+"</li>");
     out.println("<li>Last col num = "+lastColNum+"</li>");
+    out.println("<li>generateChildrenAssets? = " + generateChildrenAssets + "</li>");
     out.println("<li><em>committing = "+committing+"</em></li>");
     out.println("</ul>");
     out.println("<h2>Column headings:</h2><ul>");
@@ -135,18 +220,22 @@ public class StandardImport extends HttpServlet {
     for (String heading: colIndexMap.keySet()) out.println("<li>"+colIndexMap.get(heading)+": "+heading+"</li>");
     out.println("</ul>");
 
-    int printPeriod = 100;
     LocalDateTime ldt = new LocalDateTime();
-    String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
-    System.out.println("===== importId " + importId + " (committing=" + committing + ")");
+    String importComment = "<p style=\"import-comment\">import <i>" + itask.getId() + "</i> at " + ldt.toString() + "</p>";
+    System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Beginning row loop:</h2>"); 
     out.println("<ul>");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
+    List<Encounter> encsCreated = new ArrayList<Encounter>();
     int maxRows = 50000;
     int offset = 0;
     for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
+        if (skipRows.contains(i)) {
+            System.out.println("INFO: skipping row " + i + " due to skipRow arg");
+            continue;
+        }
 
     	MarkedIndividual mark = null;
     	verbose = ((i%printPeriod)==0);
@@ -158,11 +247,12 @@ public class StandardImport extends HttpServlet {
 
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
-        Encounter enc = loadEncounter(row, annotations);
+        Encounter enc = loadEncounter(row, annotations, context);
         enc.addComments(importComment);
         occ = loadOccurrence(row, occ, enc);
         occ.addComments(importComment);
         mark = loadIndividual(row, enc);
+        encsCreated.add(enc);
 
         if (committing) {
 
@@ -171,8 +261,13 @@ public class StandardImport extends HttpServlet {
               MediaAsset ma = ann.getMediaAsset();
               if (ma!=null) {
                 myShepherd.storeNewAnnotation(ann);
-                ma.setMetadata();
-                ma.updateStandardChildren(myShepherd);
+                if (generateChildrenAssets) {
+                    ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
+                    if ((kids == null) || (kids.size() < 1)) {
+                        ma.setMetadata();
+                        ma.updateStandardChildren(myShepherd);
+                    }
+                }
               }
             }
             catch (Exception e) {
@@ -216,6 +311,11 @@ public class StandardImport extends HttpServlet {
     out.println("</ul>");
 
 
+    if (committing) {
+        itask.setEncounters(encsCreated);
+        myShepherd.getPM().makePersistent(itask);
+    }
+
     List<String> usedColumns = new ArrayList<String>();
     for (String colName: colIndexMap.keySet()) {
       if (!unusedColumns.contains(colName)) usedColumns.add(colName);
@@ -241,7 +341,6 @@ public class StandardImport extends HttpServlet {
     out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
 
     out.println("<h2>Import completed successfully</h2>");    
-    if (committing) out.println("<p>Import reference ID <b>" + importId + "</b></p>");
     //fs.close();
   }
 
@@ -307,7 +406,7 @@ public class StandardImport extends HttpServlet {
 
   }
 
-  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations) {
+  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context) {
   	Encounter enc = new Encounter (annotations);
 
   	// since we need access to the encounter ID
@@ -413,7 +512,12 @@ public class StandardImport extends HttpServlet {
 
   	String verbatimLocality = getString(row, "Encounter.verbatimLocality");
   	if (verbatimLocality!=null) enc.setVerbatimLocality(verbatimLocality);
-
+  	
+    String patterningCode = getString(row, "Encounter.patterningCode");
+    if (patterningCode!=null) enc.setPatterningCode(patterningCode);
+    
+  	
+  	
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
   	if (nickname!=null) enc.setAlternateID(nickname);
@@ -421,18 +525,120 @@ public class StandardImport extends HttpServlet {
     String alternateID = getString(row, "Encounter.alternateID");
     if (alternateID!=null) enc.setAlternateID(alternateID);
 
-  	Double length = getDouble(row, "Encounter.measurement.length");
-  	if (length!=null) {
-  		Measurement lengthMeas = new Measurement(encID, "length", length, "m", "");
-  		if (committing) enc.setMeasurement(lengthMeas, myShepherd);
-  	}
-
-  	Double weight = getDouble(row, "Encounter.measurement.weight");
-  	if (weight!=null) {
-  		Measurement weightMeas = new Measurement(encID, "weight", weight, "kg", "");
-  		if (committing) enc.setMeasurement(weightMeas, myShepherd);
-  	}
-
+    
+    
+    /*
+     * Start measurements import
+     */
+    List<String> measureVals=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurement", context);
+    List<String> measureUnits=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurementUnits", context);
+    int numMeasureVals=measureVals.size();
+    for(int bg=0;bg<numMeasureVals;bg++){
+      String colName="Encounter.measurement"+bg;
+      Double val = getDouble(row, colName);
+    	if (val!=null) {
+    		Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.get(bg), "");
+    		if (committing) enc.setMeasurement(valMeas, myShepherd);
+    		if (unusedColumns!=null) unusedColumns.remove(colName);
+    	}
+    	
+    }
+  	/*
+  	 * End measurements import
+  	 */
+    
+    
+    /*
+     * Start Submitter imports
+     */
+     boolean hasSubmitters=true;
+     int startIter=0;
+     while(hasSubmitters){
+       String colEmail="Encounter.submitter"+startIter+".emailAddress";
+       String val=getString(row,colEmail);
+       if(val!=null){
+         if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+           User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
+           if((enc.getSubmitters()==null) || !enc.getSubmitters().contains(thisPerson)){
+             if (committing) enc.addSubmitter(thisPerson);
+             if (unusedColumns!=null) unusedColumns.remove(colEmail);
+           }
+         }
+         else{
+           //create a new User
+           User thisPerson=new User(val.trim(),Util.generateUUID());
+           if (committing) enc.addSubmitter(thisPerson);
+           if (unusedColumns!=null) unusedColumns.remove(colEmail);
+           
+           String colFullName="Encounter.submitter"+startIter+".fullName";
+           String val2=getString(row,colFullName);
+           if(val2!=null) thisPerson.setFullName(val2.trim());
+           if (unusedColumns!=null) unusedColumns.remove(colFullName);
+           
+           String colAffiliation="Encounter.submitter"+startIter+".affiliation";
+           String val3=getString(row,colAffiliation);
+           if(val3!=null) thisPerson.setAffiliation(val3.trim()); 
+           if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
+           
+         }
+         startIter++;
+       }
+       else{
+         hasSubmitters=false;
+       }
+     }
+  	
+    /*
+     * End Submitter imports
+     */
+     
+     
+     /*
+      * Start Photographer imports
+      */
+      boolean hasPhotographers=true;
+      startIter=0;
+      while(hasPhotographers){
+        String colEmail="Encounter.photographer"+startIter+".emailAddress";
+        String val=getString(row,colEmail);
+        if(val!=null){
+          if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+            User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
+            if((enc.getPhotographers()==null) ||!enc.getPhotographers().contains(thisPerson)){
+              if (committing) enc.addPhotographer(thisPerson);
+              if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            }
+          }
+          else{
+            //create a new User
+            User thisPerson=new User(val.trim(),Util.generateUUID());
+            if (committing) enc.addPhotographer(thisPerson);
+            if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            
+            String colFullName="Encounter.photographer"+startIter+".fullName";
+            String val2=getString(row,colFullName);
+            if(val2!=null) thisPerson.setFullName(val2.trim()); 
+            if (unusedColumns!=null) unusedColumns.remove(colFullName);
+            
+            String colAffiliation="Encounter.photographer"+startIter+".affiliation";
+            String val3=getString(row,colAffiliation);
+            if(val3!=null) thisPerson.setAffiliation(val3.trim());
+            if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
+            
+            
+          }
+          startIter++;
+        }
+        else{
+          hasPhotographers=false;
+        }
+      }
+     
+     /*
+      * End Photographer imports
+      */
+     
+    
   	Double depth = getDouble(row, "Encounter.depth");
   	if (depth!=null) enc.setDepth(depth);
 
@@ -532,7 +738,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
       for (int i=0; i<annots.size(); i++) {
         String maName = "Encounter.mediaAsset"+i;
         String localPath = getString(row, maName);
-        if (localPath!=null) foundPhotos.add(photoDirectory+localPath);
+        if (localPath!=null) foundPhotos.add(photoDirectory+"/"+localPath);
       }
   	}
   	return annots;
@@ -544,9 +750,10 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	String localPath = getString(row, "Encounter.mediaAsset0");
   	if (localPath==null) return annots;
   	localPath = localPath.substring(0,localPath.length()-1); // removes trailing asterisk
-  	localPath = fixGlobiceFullPath(localPath)+"/";
+//  	localPath = fixGlobiceFullPath(localPath)+"/";
 //  	localPath = localPath.replace(" ","\\ ");
   	String fullPath = photoDirectory+localPath;
+  	System.out.println(fullPath);
   	// Globice fix!
   	// now fix spaces
   	File photoDir = new File(fullPath);
@@ -579,9 +786,8 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  		System.out.println("		about to create mediaAsset");
 			  ma = astore.copyIn(f, assetParams);
 	  	} catch (Exception e) {
-	  		System.out.println("IOException while setting asset params and creating MediaAsset for file "+f.getPath());
-        missingPhotos.add(f.getPath());
-        e.printStackTrace();
+	  		System.out.println("IOException creating MediaAsset for file "+f.getPath() + ": " + e.toString());
+	  		missingPhotos.add(f.getPath());
 	  		continue; // skips the rest of loop for this file
 	  	}
 	  	if (ma==null) continue;
@@ -636,12 +842,36 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	String indID = getString(row, "Encounter.individualID");
     if (indID==null) indID = getString(row, "MarkedIndividual.individualID");
   	// Cetamada uses single letter names like A
-  	if (indID!=null && indID.length()==1) return "Cetamada-"+indID;
+  	//if (indID!=null && indID.length()==1) return "Cetamada-"+indID;
   	return indID;
   }
 
 
   public MediaAsset getMediaAsset(Row row, int i) {
+    System.out.println("getMediaAsset row is "+row.getRowNum()+" and Encounter.mediaAsset"+i);
+  	String localPath = getString(row, "Encounter.mediaAsset"+i);
+  	if (localPath==null) return null;
+  	localPath = Util.windowsFileStringToLinux(localPath);
+  	System.out.println("...localPath is: "+localPath);
+  	String fullPath = photoDirectory+"/"+localPath;
+  	System.out.println("...fullPath is: "+fullPath);
+    String resolvedPath = resolveHumanEnteredFilename(fullPath);
+    System.out.println("getMediaAsset resolvedPath is: "+resolvedPath);
+    if (resolvedPath==null) {
+      missingPhotos.add(fullPath);
+      foundPhotos.remove(fullPath);
+      return null;
+    }
+	  File f = new File(resolvedPath);
+            MediaAsset existMA = checkExistingMediaAsset(f);
+            if (existMA != null) {
+                if (!f.getName().equals(existMA.getFilename())) {
+                    System.out.println("WARNING: got hash match, but DIFFERENT FILENAME for " + f + " with " + existMA + "; allowing new MediaAsset to be created");
+                } else {
+                    System.out.println("INFO: " + f + " got hash and filename match on " + existMA);
+                    return existMA;
+                }
+            }
 
     MediaAsset ma = null;
     String fullPath = null;
@@ -663,10 +893,12 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
       assetParams.put("_localDirect", f.toString());
 	  	ma = astore.copyIn(f, assetParams);
 	  } catch (java.io.IOException ioEx) {
-      ioEx.printStackTrace();
-	  	System.out.println("IOException copying in file while creating MediaAsset for file "+fullPath);
+	  	System.out.println("IOException creating MediaAsset for file "+resolvedPath + ": " + ioEx.toString());
 	  	missingPhotos.add(fullPath);
+	  	foundPhotos.remove(fullPath);
+                return null;
 	  }
+          myAssets.put(fileHash(f), ma);
 
 	  // keywording
 
@@ -686,6 +918,24 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  return ma;
   }
 
+    //TODO in a perfect world, we would also check db for assets with same hash!!  but then we need a shepherd.  SIGH
+    private MediaAsset checkExistingMediaAsset(File f) {
+        String fhash = fileHash(f);
+        if (fhash == null) return null;
+System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
+        return myAssets.get(fhash);
+    }
+
+    // a gentle wrapper
+    private String fileHash(File f) {
+        if (f == null) return null;
+        try {
+            return Util.fileContentHash(f);
+        } catch (IOException iox) {
+            System.out.println("StandardImport.fileHash() ignorning " + f + " threw " + iox.toString());
+        }
+        return null;
+    }
   private ArrayList<Keyword> getKeywordsForAsset(Row row, int n) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     int maxAssets = getNumAssets(row);
@@ -717,6 +967,9 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
     String candidatePath = uppercaseJpg(fullPath);
     if (Util.fileExists(candidatePath)) return candidatePath;
 
+    candidatePath = noExtension(candidatePath);
+    if (Util.fileExists(candidatePath)) return candidatePath;
+
     String candidatePath2 = uppercaseBeforeJpg(candidatePath);
     if (Util.fileExists(candidatePath2)) return candidatePath2;
 
@@ -734,6 +987,12 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
     return null;
   }
+
+    //not sure how cool this is.  but probably same can be said about all this!
+    private String noExtension(String filename) {
+        if (filename.matches(".*\\.[^\\./]+$")) return filename;
+        return filename + ".jpg";  // :(
+    }
 
   private String uppercaseBeforeJpg(String filename) {
   	// uppercases the section between final slash and .jpg
@@ -782,7 +1041,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	private void setNumMediaAssets() {
 		int numAssets = 0;
 		for (String col: colIndexMap.keySet()) {
-			if (col.indexOf("mediaAsset")>-1) numAssets++;
+			if ((col != null) && (col.indexOf("mediaAsset")>-1)) numAssets++;
 		}
 		numMediaAssets=numAssets;
 	}
@@ -1080,7 +1339,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	// tho I'm not immediately sure how we'd get the url context, or determine if we want to include /encounters/ or not
 	public static String getEncounterURL(Encounter enc) {
 		if (enc==null || enc.getCatalogNumber()==null) return null;
-		return "/encounters/encounter.jsp?number="+enc.getCatalogNumber();
+		return "encounters/encounter.jsp?number="+enc.getCatalogNumber();
 	}
 
 	// gives us a nice link if we're
@@ -1096,7 +1355,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
     //return AssetStore.getDefault(myShepherd);
-    return AssetStore.get(myShepherd, 1);
+    return AssetStore.getDefault(myShepherd);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook
@@ -1117,6 +1376,21 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
     
   }
 
+
+    //returns file so you can use .getName() or .lastModified() etc
+    public static File importXlsFile(String rootDir) {
+        File dir = new File(rootDir, "import");
+        try {
+            for (final File f : dir.listFiles()) {
+                if (f.isFile() && f.getName().matches("WildbookStandardFormat.*\\.xlsx")) return f;
+            }
+        } catch (Exception ex) {
+            System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + " threw " + ex.toString());
+            return null;
+        }
+        System.out.println("WARNING: importXlsFile() could not find 'WildbookStandardFormat*.xlsx' in " + dir);
+        return null;
+    }
 
 
 }

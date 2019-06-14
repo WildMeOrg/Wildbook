@@ -477,6 +477,14 @@
     	<field name="scientificName" allows-null="false">
 	    	<index name="TAXONOMY_SCIENTIFICNAME_INDEX" unique="true" />
     	</field>
+    	<field name="itisTsn" allows-null="true">
+	    	<index name="ITISTSN_idx" unique="true" />
+    	</field>
+
+	<field name="nonSpecific" allows-null="false">
+        	<column default-value="false" />
+	</field>
+
       <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
     </class>
 

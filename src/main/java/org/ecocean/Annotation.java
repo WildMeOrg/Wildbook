@@ -231,6 +231,12 @@ public class Annotation implements java.io.Serializable {
         return transformMatrix;
     }
 
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+        Encounter enc = findEncounter(myShepherd);
+        if (enc == null) return null;
+        return enc.getTaxonomy(myShepherd);
+    }
+
     //TODO this needs to be fixed to mean "has the unity feature"... i think(!?) -- but migrating to features needs a legacy-compatible version!  ouch
     //       good luck on that one, jon
     public boolean isTrivial() {
@@ -296,11 +302,14 @@ public class Annotation implements java.io.Serializable {
                         for (int h=-1;h<2;h++) {
                             for (int w=-1;w<2;w++) {
                                 // gettin trixy.. wrap indexes around 
-                                int horizontal = j;
-                                if (w+i==-1) {horizontal=VALID_VIEWPOINTS[i].length-1;}
-                                if (w+i==VALID_VIEWPOINTS[i].length) {horizontal=0;}
-                                if (!rtn.contains(VALID_VIEWPOINTS[i+h][horizontal+w])) {
-                                    rtn.add(VALID_VIEWPOINTS[i+h][horizontal+w]);
+                                int horizontal = j+w;
+                                if (horizontal==-1) {
+                                    horizontal=VALID_VIEWPOINTS[1].length-1;
+                                } else if (horizontal==8) {
+                                    horizontal=0;
+                                }
+                                if (!rtn.contains(VALID_VIEWPOINTS[i+h][horizontal])) {
+                                    rtn.add(VALID_VIEWPOINTS[i+h][horizontal]);
                                 }
                             }
                         }
@@ -621,7 +630,8 @@ System.out.println("[1] getMatchingSet params=" + params);
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params) {
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
         //do we need to worry about our annot living in another encounter?  i hope not!
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";  //need another VARIABLE declaration
         return getMatchingSetForFilter(myShepherd, filter);
     }
 
@@ -700,19 +710,38 @@ System.out.println("[1] getMatchingSet params=" + params);
     //note, we are give *full* task.parameters; by convention, we only act on task.parameters.matchingSetFilter
     private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
         if (taskParams == null) return "";
+        String userId = taskParams.optString("userId", null);
         JSONObject j = taskParams.optJSONObject("matchingSetFilter");
         if (j == null) return "";
         String f = "";
+
+        // locationId=FOO and locationIds=[FOO,BAR]
         if (j.optString("locationId", null) != null) f += " && enc.locationID == '" + Util.basicSanitize(j.getString("locationId")) + "' ";
         JSONArray larr = j.optJSONArray("locationIds");
         if (larr != null) {
             List<String> locs = new ArrayList<String>();
             for (int i = 0 ; i < larr.length() ; i++) {
                 String val = Util.basicSanitize(larr.optString(i));
-                if (!val.equals("")) locs.add(val);
+                if ("__NULL__".equals(val)) {
+                    locs.add("null");
+                } else if (Util.stringExists(val)) {
+                    locs.add("'" + val + "'");
+                }
             }
-            if (locs.size() > 0) f += " && (enc.locationID == '" + String.join("' || enc.locationID == '", locs) + "') ";
+            if (locs.size() > 0) f += " && (enc.locationID == " + String.join(" || enc.locationID == ", locs) + ") ";
         }
+
+        // "owner" ... which requires we have userId in the taskParams
+        JSONArray owner = j.optJSONArray("owner");
+        if ((owner != null) && (userId != null)) {
+            for (int i = 0 ; i < owner.length() ; i++) {
+                String opt = owner.optString(i, null);
+                if (!Util.stringExists(opt)) continue;
+                if (opt.equals("me")) f += " && enc.submitters.contains(user) && user.uuid == '" + userId + "' ";
+                ///TODO also handle "collab" (users you collab with)   :/
+            }
+        }
+
         return f;
     }
 
@@ -763,7 +792,12 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
 
         //rather, we straight up find sibling Annotations, and look at them...
         List<Annotation> sibs = this.getSiblings();
-        if ((sibs == null) || (sibs.size() < 1)) return new Encounter(this);  //no sibs, we make a new Encounter!
+        if ((sibs == null) || (sibs.size() < 1)) {  //no sibs, we make a new Encounter!
+            Encounter enc = new Encounter(this);
+            //this taxonomy only works when its twitter-sourced data cuz otherwise this is just null 
+            enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd, TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
+            return enc;
+        }
         /*
             ok, we have sibling Annotations.  if one is trivial, we just go for it and replace that one.
             is this wise?   well, if it is the *only* sibling then probably the MediaAsset was attached to the
@@ -774,8 +808,10 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             want a new detection to replace a *non-trivial* Annotation.  but we arent considering that just now!
         */
 
-        //so now we look for a trivial annot to replace.  *in theory* we "shouldnt have" a trivial annot *along with* some
-        //  non-trivial siblings (since it should have been replaced on the first iteration); but we allow for that anyway!
+        //so now we look for a trivial annot to replace.
+        //  we currently now allow (via import!) there to be *more than one trivial annotation* on a media asset!
+        //  as such, this will find the first trivial available and use that.  since we have no way to know which annot
+        //  from detection lines up with which encounter (via the trivial annot), we just randomly replace basically.  alas!
         Encounter someEnc = null;  //this is in case we fall thru (no trivial annot), we can clone some of this for new one
         for (Annotation ann : sibs) {
             Encounter enc = ann.findEncounter(myShepherd);
@@ -788,7 +824,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
                     enc.replaceAnnotation(ann, this);
                     return enc;  //our work is done here
                 }
-                break;  //found trivial, done  TODO: what if there was (bug, weirdness, etc) more than one trivial. gasp!
+                break;
             }
             if (someEnc == null) someEnc = enc;  //use the first one we find to base new one (below) off of, if necessary
         }

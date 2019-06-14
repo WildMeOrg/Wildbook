@@ -1883,7 +1883,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   public void setLocationID(String newLocationID) {
-    this.locationID = newLocationID.trim();
+    if (newLocationID!=null) {
+      this.locationID = newLocationID.trim();
+    }
   }
 
   public Double getMaximumDepthInMeters() {
@@ -2234,6 +2236,13 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if ((sp == null) || (sp.length != 2)) return;
         this.setGenus(sp[0]);
         this.setSpecificEpithet(sp[1]);
+    }
+
+
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+      String sciname = this.getTaxonomyString();
+      if (sciname == null) return null;
+      return myShepherd.getOrCreateTaxonomy(sciname, false); // false means don't commit the taxonomy
     }
 
     //find the first one(s) we can
@@ -3573,6 +3582,14 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }
       
     }
+    
+    public void addPhotographer(User user) {
+      if (user == null) return;
+      if (photographers == null) photographers = new ArrayList<User>();
+      if (!photographers.contains(user)) photographers.add(user);
+    }
+    
+    
     public void setPhotographers(List<User> photographers) {
       if(photographers==null){this.photographers=null;}
       else{

@@ -279,7 +279,11 @@
 				/EncounterAddUser = authc, roles[researcher]
 				
 				/AnnotationEdit = authc, roles[admin]
-
+				
+				/obrowse.jsp = authc, roles[admin]
+				
+				/StandardImport = authc, roles[admin]
+				
             </param-value>
         </init-param>
     </filter>
@@ -2328,6 +2332,16 @@
   <servlet-mapping>
     <servlet-name>AddOccToTrack</servlet-name>
     <url-pattern>/AddOccToTrack</url-pattern>
+  </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>StandardImport</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+      <servlet-name>StandardImport</servlet-name>
+      <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
 
 </web-app>

@@ -26,6 +26,7 @@ console.log(' . . . . getPluginType[%d] trying %s | %s', i, wildbook.IA.plugins[
             var found = wildbook.IA.plugins[i].isMyTask(task);
             if (found) return wildbook.IA.plugins[i].code;
         }
+        if (wildbook.IA.hasChildren(task)) return '__NULL__';  //if there are children, lets recurse down into it
         return false;
     },
 
