@@ -1413,9 +1413,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
         ann.setViewpoint(iaResult.optString("viewpoint", null));  //not always supported by IA
         System.out.println("Verifying that new Ann can be matched against with iaClass...");
-        if (validForIdentification(ann, context)) {
 
-            ann.setMatchAgainst(true);
         String vp = iaResult.optString("viewpoint", null);  //not always supported by IA
         if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
         ann.setViewpoint(vp);

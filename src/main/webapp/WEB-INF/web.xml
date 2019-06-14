@@ -282,7 +282,6 @@
 				
 				/obrowse.jsp = authc, roles[admin]
 				
-				/StandardImport = authc, roles[admin]
 				
             </param-value>
         </init-param>
@@ -623,11 +622,6 @@
     <servlet-mapping>
     <servlet-name>IAGateway</servlet-name>
     <url-pattern>/ia</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>StandardImport</servlet-name>
-    <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
 
     <servlet>

@@ -846,7 +846,6 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	return indID;
   }
 
-
   public MediaAsset getMediaAsset(Row row, int i) {
     System.out.println("getMediaAsset row is "+row.getRowNum()+" and Encounter.mediaAsset"+i);
   	String localPath = getString(row, "Encounter.mediaAsset"+i);
@@ -873,24 +872,11 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
                 }
             }
 
-    MediaAsset ma = null;
-    String fullPath = null;
-    try {
-      String localPath = getString(row, "Encounter.mediaAsset"+i);
-      if (localPath==null) return null;
-      localPath = Util.windowsFileStringToLinux(localPath);
-      System.out.println("LOCAL PATH? : "+localPath);
-      fullPath = photoDirectory+localPath;
-      String resolvedPath = resolveHumanEnteredFilename(fullPath);
-      if (resolvedPath==null) {
-        missingPhotos.add(fullPath);
-        return null;
-      }
-      File f = new File(resolvedPath);
-
-      // create MediaAsset and return it
-      JSONObject assetParams = astore.createParameters(f);
-      assetParams.put("_localDirect", f.toString());
+	  // create MediaAsset and return it
+	  JSONObject assetParams = astore.createParameters(f);
+	  assetParams.put("_localDirect", f.toString());
+	  MediaAsset ma = null;
+	  try {
 	  	ma = astore.copyIn(f, assetParams);
 	  } catch (java.io.IOException ioEx) {
 	  	System.out.println("IOException creating MediaAsset for file "+resolvedPath + ": " + ioEx.toString());
@@ -903,9 +889,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  // keywording
 
     ArrayList<Keyword> kws = getKeywordsForAsset(row, i);
-    if (kws!=null&&ma!=null) {
-      ma.setKeywords(kws);
-    }
+    ma.setKeywords(kws);
 
 	  // Keyword keyword = null;
 	  // String keywordI = getString(row, "Encounter.keyword"+i);
@@ -1394,4 +1378,3 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
 
 }
-

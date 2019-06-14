@@ -751,12 +751,6 @@ System.out.println("[1] getMatchingSet params=" + params);
         return enc.getIndividualID();  //is this one of those things that can be "None" ?
     }
 
-    public Taxonomy getTaxonomy(Shepherd myShepherd) {
-        Encounter enc = findEncounter(myShepherd);
-        if (enc == null) return null;
-        return enc.getTaxonomy(myShepherd);
-    }
-
     //convenience!
     public Encounter findEncounter(Shepherd myShepherd) {
         return Encounter.findByAnnotation(this, myShepherd);
