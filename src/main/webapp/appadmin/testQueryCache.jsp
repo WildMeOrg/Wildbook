@@ -96,6 +96,7 @@ try{
 		qc.loadQueries(context);
 	}
 	*/
+	/*
 	if(qc.getQueryByName("numUsers", context)==null){
 		StoredQuery sq=new StoredQuery("numUsers", "SELECT FROM org.ecocean.User WHERE uuid != null");
 		sq.setExpirationTimeoutDuration(600000);
@@ -104,6 +105,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries(context);
 	}
+	*/
 	if(qc.getQueryByName("top3Encounters", context)==null){
 		StoredQuery sq=new StoredQuery("top3Encounters", "SELECT FROM org.ecocean.Encounter WHERE individualID != null ORDER BY dwcDateAddedLong descending RANGE 1,4");
 		sq.setExpirationTimeoutDuration(600000);
