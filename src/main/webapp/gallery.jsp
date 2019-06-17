@@ -370,6 +370,7 @@ int numDataContributors=0;
         <div class="row gunit-row">
         <%
         MarkedIndividual[] pair = new MarkedIndividual[2];
+        ArrayList<JSONObject>[] exemps = new ArrayList[2];
         if((i*2)<numVisible && rIndividuals.get(i*2)!=null){
         	pair[0]=rIndividuals.get(i*2);
         }
@@ -404,6 +405,7 @@ for (Object obJ : indie.getEncounters()) {
 */
 
           ArrayList<JSONObject> al = getExemplarImages(myShepherd, indie,request,5, qc);
+			exemps[j]=al;
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
@@ -456,7 +458,8 @@ for (Object obJ : indie.getEncounters()) {
               </div>
               <%
               // display=none copies of the above for each additional image
-              ArrayList<JSONObject> al = getExemplarImages(myShepherd,pair[j],request,5,qc);
+              //ArrayList<JSONObject> al = getExemplarImages(myShepherd,pair[j],request,5,qc);
+            	ArrayList<JSONObject> al =exemps[j];
               for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);
