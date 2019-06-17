@@ -15,92 +15,93 @@
               javax.jdo.Query,
               java.util.Collection,java.util.HashMap,
               org.datanucleus.api.rest.orgjson.JSONException,
-              java.net.URL
+              java.net.URL,
+              org.ecocean.cache.*
               "
 %>
 
 <%!
-public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd, MarkedIndividual indy,HttpServletRequest req, int numResults) throws JSONException {
+public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd, MarkedIndividual indy,HttpServletRequest req, int numResults, QueryCache qc) throws JSONException {
     //System.out.println("here!");
     long time1=System.currentTimeMillis();
 	ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
-    String jdoql="SELECT FROM org.ecocean.Encounter WHERE individualID == \""+indy.getIndividualID()+"\" && (dynamicProperties == null || dynamicProperties.toLowerCase().indexOf(\"publicview=no\") == -1) && annotations.contains(annot) VARIABLES org.ecocean.Annotation annot";
-    String order ="dwcDateAddedLong DESC";
-    Query query=myShepherd.getPM().newQuery(jdoql);
-    query.setOrdering(order);
-    query.setRange(0, (numResults));
-    Collection c2 = (Collection) (query.execute());
-    Vector<Encounter> encs=new Vector<Encounter>(c2);
-    query.closeAll();
-    int numEncs=encs.size();
-    ArrayList<MediaAsset> assets=new ArrayList<MediaAsset>();
-    for(int z=0;z<numEncs;z++){
-    	Encounter enc=encs.get(z);
+    String jdoql="SELECT FROM org.ecocean.media.MediaAsset WHERE enc.individualID == \""+indy.getIndividualID()+"\" && (enc.dynamicProperties == null || enc.dynamicProperties.toLowerCase().indexOf(\"publicview=no\") == -1) && enc.annotations.contains(annot) && annot.mediaAsset == this VARIABLES org.ecocean.Annotation annot;org.ecocean.Encounter enc ORDER BY enc.dwcDateAddedLong DESC RANGE 0, "+numResults;
 
-    		assets.addAll(enc.getMedia());
+    Vector<MediaAsset> assets=new Vector<MediaAsset>();
 
-    }
+
+	    Query query=myShepherd.getPM().newQuery(jdoql);
+	    //query.setOrdering(order);
+	    //query.setRange(0, (numResults));
+	    Collection c2 = (Collection) (query.execute());
+	    assets=new Vector<MediaAsset>(c2);
+	    query.closeAll();
+
+	    
+	    //System.out.println("here2 with assets="+assets.size()+" after query: "+jdoql);
+	    
+		//String photographerName="Bob";
+	    
+	    
+	        for (MediaAsset ma: assets) {
+	          //if (!ann.isTrivial()) continue;
+	          //System.out.println("Here3!");
+	
+	          //if (ma != null) {
+	            //JSONObject j = new JSONObject();
+	            JSONObject j = ma.sanitizeJson(req, new JSONObject(),myShepherd);
+	
+	            String context = ServletUtilities.getContext(req);
+	
+	            URL u = ma.safeURL(myShepherd, req, "halfpage");
+	
+	            ////////// hacky temporary until all converted to have halfpage /////////////
+	            if ((u == null) || (u.toString().indexOf("halfpage") < 0)) u = ma.webURL();
+	
+	            j.put("urlDisplay", ((u == null) ? "" : u.toString()));
+	
+	            //now we need a mid (if we have it)
+	            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+	            if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) {
+	                j.put("urlMid", kids.get(0).webURL().toString());
+	            } else {
+	                j.put("urlMid", ((u == null) ? "" : u.toString()));  //we reuse urlDisplay value :/
+	            }
+	
+				/*
+	            if ((j!=null) && (photographerName!=null) && (!photographerName.equals(""))) {
+	              j.put("photographer",photographerName);
+	            }
+				*/
+	
+	            if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+	
+	
+	              //ok, we have a viable candidate
+	
+	              //put ProfilePhotos at the beginning
+	              if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
+	              //do nothing and don't include it if it has NoProfilePhoto keyword
+	              else if(ma.hasKeyword("NoProfilePhoto")){}
+	              //otherwise, just add it to the bottom of the stack
+	              else{
+	                al.add(j);
+	              }
+	
+	            }
+	
+	
+	          //}
+	          if(al.size()==numResults){return al;}
+	        }
+	        long time2=System.currentTimeMillis();
+	        System.out.println("getExemplar time: "+(time2-time1));
+	    return al;
+
     
-    //System.out.println("here2 with assets="+assets.size()+" after query: "+jdoql);
-    
-	//String photographerName="Bob";
     
     
-        for (MediaAsset ma: assets) {
-          //if (!ann.isTrivial()) continue;
-          //System.out.println("Here3!");
-
-          //if (ma != null) {
-            //JSONObject j = new JSONObject();
-            JSONObject j = ma.sanitizeJson(req, new JSONObject());
-
-            String context = ServletUtilities.getContext(req);
-
-            URL u = ma.safeURL(myShepherd, req, "halfpage");
-
-            ////////// hacky temporary until all converted to have halfpage /////////////
-            if ((u == null) || (u.toString().indexOf("halfpage") < 0)) u = ma.webURL();
-
-            j.put("urlDisplay", ((u == null) ? "" : u.toString()));
-
-            //now we need a mid (if we have it)
-            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
-            if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) {
-                j.put("urlMid", kids.get(0).webURL().toString());
-            } else {
-                j.put("urlMid", ((u == null) ? "" : u.toString()));  //we reuse urlDisplay value :/
-            }
-
-			/*
-            if ((j!=null) && (photographerName!=null) && (!photographerName.equals(""))) {
-              j.put("photographer",photographerName);
-            }
-			*/
-
-            if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
-
-
-              //ok, we have a viable candidate
-
-              //put ProfilePhotos at the beginning
-              if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
-              //do nothing and don't include it if it has NoProfilePhoto keyword
-              else if(ma.hasKeyword("NoProfilePhoto")){}
-              //otherwise, just add it to the bottom of the stack
-              else{
-                al.add(j);
-              }
-
-            }
-
-
-          //}
-          if(al.size()==numResults){return al;}
-        }
-        long time2=System.currentTimeMillis();
-        System.out.println("getExemplar time: "+(time2-time1));
-    return al;
 
   }
 %>
@@ -176,6 +177,9 @@ try {
   year2 = (new Integer(request.getParameter("year2"))).intValue();
 } catch (Exception nfe) {
 }
+
+
+QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
 Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
@@ -399,7 +403,7 @@ for (Object obJ : indie.getEncounters()) {
 }
 */
 
-          ArrayList<JSONObject> al = getExemplarImages(myShepherd, indie,request,5);
+          ArrayList<JSONObject> al = getExemplarImages(myShepherd, indie,request,5, qc);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
@@ -452,7 +456,7 @@ for (Object obJ : indie.getEncounters()) {
               </div>
               <%
               // display=none copies of the above for each additional image
-              ArrayList<JSONObject> al = getExemplarImages(myShepherd,pair[j],request,5);
+              ArrayList<JSONObject> al = getExemplarImages(myShepherd,pair[j],request,5,qc);
               for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);
