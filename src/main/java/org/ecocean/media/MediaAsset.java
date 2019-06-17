@@ -889,7 +889,7 @@ public class MediaAsset implements java.io.Serializable {
 
             ArrayList<MediaAsset> kids = null;
             if (!jobj.optBoolean("_skipChildren", false)) kids = this.findChildren(myShepherd);
-            myShepherd.rollbackDBTransaction();
+            //myShepherd.rollbackDBTransaction();
             if ((kids != null) && (kids.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray k = new org.datanucleus.api.rest.orgjson.JSONArray();
                 for (MediaAsset kid : kids) {
