@@ -21,7 +21,8 @@
 
 <%!
 public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd, MarkedIndividual indy,HttpServletRequest req, int numResults) throws JSONException {
-    System.out.println("here!");
+    //System.out.println("here!");
+    long time1=System.currentTimeMillis();
 	ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     String jdoql="SELECT FROM org.ecocean.Encounter WHERE individualID == \""+indy.getIndividualID()+"\" && (dynamicProperties == null || dynamicProperties.toLowerCase().indexOf(\"publicview=no\") == -1) && annotations.contains(annot) VARIABLES org.ecocean.Annotation annot";
@@ -41,14 +42,14 @@ public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(
 
     }
     
-    System.out.println("here2 with assets="+assets.size()+" after query: "+jdoql);
+    //System.out.println("here2 with assets="+assets.size()+" after query: "+jdoql);
     
 	//String photographerName="Bob";
     
     
         for (MediaAsset ma: assets) {
           //if (!ann.isTrivial()) continue;
-          System.out.println("Here3!");
+          //System.out.println("Here3!");
 
           //if (ma != null) {
             //JSONObject j = new JSONObject();
@@ -97,7 +98,8 @@ public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(
           //}
           if(al.size()==numResults){return al;}
         }
-
+        long time2=System.currentTimeMillis();
+        System.out.println("getExemplar time: "+(time2-time1));
     return al;
 
   }
