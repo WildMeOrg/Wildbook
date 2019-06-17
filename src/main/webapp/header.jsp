@@ -117,6 +117,8 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 
   	    	<%
   	    	}
+  		myShepherd.rollbackDBTransaction();
+  		myShepherd.closeDBTransaction();
   	}
 		else if(request.getRequestURL().toString().indexOf("gallery.jsp")!=-1){
   			//http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg
