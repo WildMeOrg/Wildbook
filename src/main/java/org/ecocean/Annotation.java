@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -865,6 +866,47 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return mediaAsset.toHtmlElement(request, myShepherd, this);
     }
 */
+
+    public static double intersection(Annotation ann1, Annotation ann2) {
+
+        double intersection = -1;
+
+        ArrayList<Feature> feats1 = ann1.getFeatures();
+        ArrayList<Feature> feats2 = ann2.getFeatures();
+        try {
+            for (Feature feat1 : feats1) {
+                JSONObject ft1Params = feat1.getParameters();
+                // made it this far.. if the bboxes of the features OVERLAP we can (well, we will) assume it is the same animal.
+                int x1 = ft1Params.getInt("x");
+                int y1 = ft1Params.getInt("y");
+                int width1 = ft1Params.getInt("width");
+                int height1 = ft1Params.getInt("height");
+                Rectangle rect1 = new Rectangle(x1,y1,width1,height1);
+                for (Feature feat2 : feats2) {
+                    JSONObject ft2Params = feat2.getParameters();
+                    int myx = ft2Params.getInt("x");
+                    int myy = ft2Params.getInt("y");
+                    int myWidth = ft2Params.getInt("width");
+                    int myHeight = ft2Params.getInt("height");
+                    Rectangle rect2 = new Rectangle(myx,myy,myWidth,myHeight);
+
+                    // MOMENT OF TRUTH AHHHHHH
+                    if (rect1.intersects(rect2)||rect1.contains(rect2)||rect2.contains(rect1)) {
+                        Rectangle overlap = rect1.intersection(rect2);
+                        double overlapArea = overlap.getWidth() * overlap.getHeight();
+                        double area1 = rect1.getWidth() * rect1.getHeight();
+                        double area2 = rect2.getWidth() * rect2.getHeight();
+                        double avgOverlap = (overlapArea/((area1+area2)/2));
+                        return avgOverlap;
+                    }
+                }
+            }
+        } catch (NumberFormatException nfe) {
+            nfe.printStackTrace();
+        }
+        return -1; 
+    }
+
 
     public Annotation revertToTrivial(Shepherd myShepherd) throws IOException {
         if (this.isTrivial()) throw new IOException("Already a trivial Annotation: " + this);
