@@ -2116,6 +2116,16 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             jobj.put("_sanitized", true);
             return jobj;
         }
+	
+
+  
+  public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+    jobj.put("displayName", this.getDisplayName());
+    jobj.remove("nickName");
+    jobj.put("nickName", this.getNickName());
+    //System.out.println("Put displayName in sanitizeJSON: "+jobj.get("displayName"));
+    return jobj;
+  }
 
   // Returns a somewhat rest-like JSON object containing the metadata
   public JSONObject uiJson(HttpServletRequest request) throws JSONException {
@@ -2125,7 +2135,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
     jobj.put("nickname", this.nickName);
-    jobj.put("displayName", this.getDisplayName());
     jobj.put("numberEncounters", this.getNumEncounters());
     jobj.put("numberLocations", this.getNumberLocations());
     jobj.put("maxYearsBetweenResightings", getMaxNumYearsBetweenSightings());
