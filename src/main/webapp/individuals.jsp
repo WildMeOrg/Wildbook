@@ -182,7 +182,7 @@ if (request.getParameter("id")!=null) {
 					if ((c == null) || (c.getState() == null)) {
 						User user = myShepherd.getUser(u);
 						String fullName = u;
-						if (user.getFullName()!=null) fullName = user.getFullName();
+						if (user!=null && user.getFullName()!=null) fullName = user.getFullName();
 						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
 					}
 				}
