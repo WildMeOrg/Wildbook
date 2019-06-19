@@ -23,6 +23,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
+import org.ecocean.MultiValue;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -71,6 +72,8 @@ public class IndividualSetName extends HttpServlet {
     String oldKey = request.getParameter("oldKey");
     String oldValue = request.getParameter("oldValue");
     String deleteStr = request.getParameter("delete");
+    if ("Default".equals(newKey)) newKey = MultiValue.DEFAULT_KEY_VALUE;
+    if ("Default".equals(oldKey)) oldKey = MultiValue.DEFAULT_KEY_VALUE;
 
     // new name if we have a new value (key optional) and no old value or key
     boolean delete = (Util.stringExists(deleteStr) && Util.stringExists(oldKey));
@@ -78,6 +81,14 @@ public class IndividualSetName extends HttpServlet {
     boolean changeValueOnly = (newValue!=null && !newValue.equals(oldValue));
     boolean changeKeyOnly = (!changeValueOnly && newKey!=null && !newKey.equals(oldKey));
     boolean noChange = (Util.stringExists(newValue) && newValue.equals(oldValue) && Util.stringExists(newKey) && newKey.equals(oldKey));
+
+    //this is because we have decided that (via UI) "editing" the *default key* actually means replacing it (not adding another)
+    if (MultiValue.DEFAULT_KEY_VALUE.equals(newKey)) {
+        oldKey = MultiValue.DEFAULT_KEY_VALUE;
+        newName = false;
+        changeValueOnly = false;
+        changeKeyOnly = true;
+    }
 
     System.out.println("SERVLET IndividualSetName has indID="+indID+" newKey="+newKey+", newValue="+newValue+", oldKey="+oldKey+", oldValue="+oldValue+", newName="+newName+", changeValueOnly="+changeValueOnly+", changeKeyOnly="+changeKeyOnly+", delete="+delete+" nochange="+noChange);
     System.out.println("myShepherd.isMarkedIndividual(indID) = "+myShepherd.isMarkedIndividual(indID));
