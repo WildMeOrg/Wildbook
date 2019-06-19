@@ -65,9 +65,11 @@ context=ServletUtilities.getContext(request);
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
   // Properties occProps = new Properties();
   // occProps = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
-  Properties occProps = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
+  Properties occProps = ShepherdProperties.getOrgProperties("occurrence.properties", langCode, request);
 
-  props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
+  props = ShepherdProperties.getOrgProperties("individualSearch.properties", langCode, request);
+
+  boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
 %>
 
@@ -552,7 +554,18 @@ function FSControl(controlDiv, map) {
               categoricalFields.add("humanActivityNearby");
 
               for (String fieldName: categoricalFields) {
-                ClassEditTemplate.printStringFieldSearchRowFullCategories(fieldName, out, occProps, myShepherd, Occurrence.class);
+                boolean customCategories = false;
+                if (useCustomProperties) {
+                  List<String> values = CommonConfiguration.getIndexedPropertyValues(fieldName, request);
+                  if (!Util.isEmpty(values)) {
+                    String displayName = ClassEditTemplate.getDisplayName(fieldName, occProps);
+                    ClassEditTemplate.printStringFieldSearchRowCategories(fieldName, displayName, out, values);
+                    customCategories = true;
+                  } // if values is empty we use default values below
+                }
+                if (!customCategories) {
+                  ClassEditTemplate.printStringFieldSearchRowFullCategories(fieldName, out, occProps, myShepherd, Occurrence.class);
+                }
               }
 
 
@@ -564,7 +577,11 @@ function FSControl(controlDiv, map) {
               listVals.add("seaState");
 
               for (String fieldName : listVals) {
-                List<String> posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
+                List<String> posVals = (useCustomProperties)
+                  ? CommonConfiguration.getIndexedPropertyValues(fieldName, request)
+                  : myShepherd.getAllStrVals(Occurrence.class, fieldName);
+                // in case we tried and failed to find custom values:
+                if (Util.isEmpty(posVals)) posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
                 printStringFieldSearchRow(fieldName,posVals,out, occProps);
               }
 
