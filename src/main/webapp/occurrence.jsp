@@ -275,28 +275,20 @@ context=ServletUtilities.getContext(request);
 			            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
 			            <%=props.getProperty("groupBehavior") %>:
 			        
-				        <%if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){%>
-				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
-				        <%} else { %>
+				        <%
+				        List<String> groupBehaviors = CommonConfiguration.getIndexedPropertyValues("groupBehavior",request);
+				        System.out.println("We have groupBehaviors "+groupBehaviors);
+				        if (!Util.isEmpty(groupBehaviors)) {%>
 				        	<select name="behaviorComment" id="behaviorComment">
 				        		<option value=""></option>
-				   
-				   				<%
-				   				boolean hasMoreStages=true;
-				   				int taxNum=0;
-				   				while(hasMoreStages){
-				   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
-				   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-					   	  		%>
-					   	  	 
-					   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-					   	  		<%
-					   					taxNum++;
-				      				} else {
-				         				hasMoreStages=false;
-				      				}
-				   				}%>
-				  			</select>
+					   				<%
+					   					for (String groupBehavior: groupBehaviors) {
+					   					  String selected = (occ.getGroupBehavior()!=null && occ.getGroupBehavior().equals(groupBehavior)) ? "selected=\"selected\"" : "";
+              					%><option <%=selected %> value="<%=groupBehavior%>"><%=groupBehavior%></option>
+					   					<%}%>
+				  				</select>
+					   		<%} else {%>
+				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
 				        <%}%>
 			        	<input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
 			        </form>
@@ -351,7 +343,6 @@ context=ServletUtilities.getContext(request);
 			</table>
 		</div>
 		
-		
 	<script>
 		var dlgIndies = $("#dialogIndies").dialog({
 		  autoOpen: false,
@@ -398,7 +389,6 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
     out.println(String.join(", ", subs) + "</p>");
 }
 %>
-<div style="margin-left: 10px; padding: 3px; border: solid #AAA 2px;">Comments: <%=occ.getComments()%></div>
 
                 </p>
 		<table id="encounter_report" style="width:100%;">
@@ -659,9 +649,16 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 						</div>
 					</form>
 				</div>		
-			</div>				
+			</div>		
+
 			<br/><br/>
-			
+		</div>
+		
+			<div>
+				<div style="margin-left: 10px; padding: 3px; border: solid #AAA 2px;" class="comments">Comments: <%=occ.getComments()%></div>
+
+			</div>
+
 			<%
 	  		}
 	  		else{
@@ -682,7 +679,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
   }
 	  
 		%>
-		
+
 </div> <!-- End Maincontent Div --> 
 
 <jsp:include page="footer.jsp" flush="true"/>
