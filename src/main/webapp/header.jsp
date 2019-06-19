@@ -42,6 +42,28 @@ props = ShepherdProperties.getProperties("header.properties", langCode, context)
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+
+// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+boolean usaUser = false;
+//String linkURLBase = CommonConfiguration.getURLLocation(request);
+try {
+  if (request.getUserPrincipal()!=null) {	
+    String userName = request.getUserPrincipal().getName();
+    List<Role> roles = myShepherd.getAllRolesForUser(userName);
+    for (Role role : roles) {
+      if (role.getRolename().equals("spotasharkusa")) {
+        usaUser = true;
+      }
+    }
+  }
+  if (usaUser) {
+    urlLoc = "ncaquariums.wildbook.org";
+  }
+} catch (Exception e) {
+  e.printStackTrace();
+}
+
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -478,7 +500,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
                                  <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                                 <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp">Shark Grid</a></li>
+
+                                 <!-- grid is the one link we don't want to send NC users back to their Wildbook for  -->
+                                 <li><a href="//spotashark.com/appadmin/scanTaskAdmin.jsp">Shark Grid</a></li>
+
                                 <% } %>
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
                                 <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>

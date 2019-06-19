@@ -40,7 +40,24 @@ myShepherd.beginDBTransaction();
 int imageID = Integer.parseInt(request.getParameter("imageID"));
 String imgSrc="";
 String encNum="";
+boolean usaUser = false;
+String linkURLBase = CommonConfiguration.getURLLocation(request);
 try{
+
+
+	// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+	if (request.getUserPrincipal()!=null) {	
+		String userName = request.getUserPrincipal().getName();
+		List<Role> roles = myShepherd.getAllRolesForUser(userName);
+		for (Role role : roles) {
+			if (role.getRolename().equals("spotasharkusa")) {
+				usaUser = true;
+			}
+		}
+	}
+  if (usaUser) {
+    linkURLBase = "ncaquariums.wildbook.org";
+  }
 
 	
 	MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
@@ -66,6 +83,7 @@ try{
 	
 	imgSrc = ma.webURL().toString();
 	
+
 	
 	//handle some cache-related security
 	  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -479,7 +497,7 @@ function updateSpotCounts() {
 }
 
 function spotsCancel() {
-	document.location = 'encounter.jsp?number=' + encounterNumber;
+	window.location = '//<%=linkURLBase%>/encounter.jsp?number=' + encounterNumber;
 	return;
 	$('#imageTools-wrapper').hide();
 	itool.wCanvas.removeEventListener('click', itool._myClick);

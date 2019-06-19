@@ -33,19 +33,25 @@ File webappsDir = new File(rootWebappPath).getParentFile();
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
-
-
   //session.setMaxInactiveInterval(6000);
+  boolean usaUser = false;
   String num="";
+  String userName = "";
   if(request.getParameter("number")!=null){
-	Shepherd myShepherd=new Shepherd(context);
-	myShepherd.setAction("scanEndApplet.jsp");
-	myShepherd.beginDBTransaction();
-	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
-  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
-	}
-	myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
+    Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("scanEndApplet.jsp");
+    if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
+        num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+    }
+    if (request.getUserPrincipal()!=null) {
+      userName = request.getUserPrincipal().getName();
+      List<Role> roles = myShepherd.getAllRolesForUser(userName);
+      for (Role role : roles) {
+        if (role.getRolename().equals("spotasharkusa")) {
+          usaUser = true;
+        }
+      }
+    }
   }	
   String encSubdir = Encounter.subdir(num);
 
@@ -70,21 +76,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String side2 = "";
 
   // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-  boolean usaUser = false;
-  String userName = "";
-  Shepherd userShepherd = new Shepherd(context);
-  if (request.getUserPrincipal()!=null) {
-    userName = request.getUserPrincipal().getName();
-    userShepherd.beginDBTransaction();
-    List<Role> roles = userShepherd.getAllRolesForUser(userName);
-    for (Role role : roles) {
-      if (role.getRolename().equals("spotasharkusa")) {
-        usaUser = true;
-      }
-    }
-    userShepherd.rollbackDBTransaction();
-    userShepherd.closeDBTransaction();
-  }
+
 
   // Part Two hackety hack to switch URLs for US users
   String linkURLBase = CommonConfiguration.getURLLocation(request);

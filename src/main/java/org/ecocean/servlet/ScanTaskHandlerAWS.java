@@ -2,7 +2,7 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-//import java.util.Vector;
+import java.util.List;
 
 import javax.jdo.FetchPlan;
 import javax.servlet.ServletConfig;
@@ -51,14 +51,36 @@ public class ScanTaskHandlerAWS extends HttpServlet {
     context=ServletUtilities.getContext(request);
     
 	  
-	  Shepherd myShepherd=new Shepherd(context);
-	  myShepherd.setAction("ScanTaskHandlerAWS.class");
+		Shepherd myShepherd=new Shepherd(context);
+		myShepherd.setAction("ScanTaskHandlerAWS.class");
 		GridManager gm=GridManagerFactory.getGridManager();
 		//set up for response
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		String action=request.getParameter("action");
 		System.out.println("scanTaskHandler action is: "+action);
+
+		boolean usaUser = false;
+		String linkURLBase = CommonConfiguration.getURLLocation(request);
+
+
+		try {
+			// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+			if (request.getUserPrincipal()!=null) {	
+				String userName = request.getUserPrincipal().getName();
+				List<Role> roles = myShepherd.getAllRolesForUser(userName);
+				for (Role role : roles) {
+					if (role.getRolename().equals("spotasharkusa")) {
+						usaUser = true;
+					}
+				}
+			}
+			if (usaUser) {
+				linkURLBase = "ncaquariums.wildbook.org";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	
 
@@ -140,7 +162,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 				if(request.getParameter("writeThis")==null) {
 					writeThis=false;
 				}
-				if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
+					if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
 					rightScan="true";
 					isRightScan=true;
 				}
@@ -346,7 +368,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						//confirm success
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Success:</strong> Your scan was successfully added to the sharkGrid!");
-						out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("encounterNumber")+"\">Return to encounter "+request.getParameter("encounterNumber")+".</a></p>\n");
+						out.println("<p><a href=\""+request.getScheme()+"://"+linkURLBase+"/encounters/encounter.jsp?number="+request.getParameter("encounterNumber")+"\">Return to encounter "+request.getParameter("encounterNumber")+".</a></p>\n");
 						out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier+ "#"+taskIdentifier+"\">Go to sharkGrid administration to monitor for completion.</a></p>\n");
 						out.println(ServletUtilities.getFooter(context));
 					}
