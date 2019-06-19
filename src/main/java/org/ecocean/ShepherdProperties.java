@@ -19,6 +19,10 @@ import javax.servlet.http.HttpServletRequest;
 
 public class ShepherdProperties {
 
+  public static final String[] overrideOrgsArr = {"indocet"};
+  // set for easy .contains() checking
+  public static final Set<String> overrideOrgs = new HashSet<>(Arrays.asList(overrideOrgsArr));
+
   public static Properties getProperties(String fileName){
     return getProperties(fileName, "en");
   }
@@ -52,9 +56,17 @@ public class ShepherdProperties {
   }
 
   public static String getOverwriteStringForUser(HttpServletRequest request) {
-    if (request == null || request.getUserPrincipal() == null) return null;
+    if (request == null) return null;
+    String manualOrgName = request.getParameter("organization");
+    // manual request params
+    if (Util.stringExists(manualOrgName)) {
+      String overwrite = getOverwriteStringForOrgName(manualOrgName);
+      if (Util.stringExists(overwrite)) return overwrite;
+    }
+    // now try based on the user's organizations
     Shepherd myShepherd = new Shepherd(request);
     User user = myShepherd.getUser(request);
+    if (user==null) return null;
     return getOverwriteStringForUser(user);
   }
   public static String getOverwriteStringForUser(User user) {
@@ -68,16 +80,22 @@ public class ShepherdProperties {
     return null;
   }
 
+  public static String getOverwriteStringForOrgName(String orgName) {
+    if (overrideOrgs.contains(orgName)) return orgName+".properties";
+    return null;
+  }
+
+  public static boolean orgHasOverwrite(String orgName) {
+    return (getOverwriteStringForOrgName(orgName) !=null);
+  }
+
+
   public static boolean userHasOverrideString(User user) {
     return (getOverwriteStringForUser(user)!=null);
   }
   public static boolean userHasOverrideString(HttpServletRequest request) {
     return (getOverwriteStringForUser(request)!=null);
   }
-
-
-  public static final String[] overrideOrgsArr = {"indocet"};
-  public static final Set<String> overrideOrgs = new HashSet<>(Arrays.asList(overrideOrgsArr));
 
   public static Properties getProperties(String fileName, String langCode, String context, String overridePrefix){
     // initialize props as empty (no override provided) or the default values (if override provided)
