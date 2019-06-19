@@ -407,12 +407,14 @@
       return function (node) {
         var fn = original.apply(this, arguments);
         $.each(options.centralFormat, function (i, f) {
-          var tNode = d3.select(node.selectAll("text")[0][i]);
-          tNode.transition().duration(self.getOptions().transitDuration)
-            .style(f.style)
-            .attr(f.attr);
-          f.classed !== undefined && tNode.classed(f.classed);
-          f.textField !== undefined && tNode.text(function (d) {return d.item[f.textField];});
+	        if((node!=null)&&(node.selectAll("text")[0]!=null)){
+	          var tNode = d3.select(node.selectAll("text")[0][i]);
+	          tNode.transition().duration(self.getOptions().transitDuration)
+	            .style(f.style)
+	            .attr(f.attr);
+	          f.classed !== undefined && tNode.classed(f.classed);
+	          f.textField !== undefined && tNode.text(function (d) {return d.item[f.textField];});
+	        }
         });
         return fn;
       };
