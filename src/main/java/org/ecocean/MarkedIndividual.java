@@ -1713,6 +1713,17 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
         return getTaxonomyString();
     }
 
+    //if not set on this, then drill down into encounters until we find one
+    public String getGenusSpeciesDeep() {
+        if (getTaxonomyString() != null) return getTaxonomyString();
+        if (Util.collectionIsEmptyOrNull(encounters)) return null;
+        for (Encounter enc : encounters) {
+            String s = Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet());
+            if (s != null) return s;  //return first one we hit
+        }
+        return null;
+    }
+
 
 /**
 Returns the first haplotype found in the Encounter objects for this MarkedIndividual.
