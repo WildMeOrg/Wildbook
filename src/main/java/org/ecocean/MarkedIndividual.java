@@ -2491,6 +2491,21 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         NAMES_CACHE.put(names.getId(), this.getId() + ";" + String.join(";", names.getAllValues()).toLowerCase());
     }
 
+
+    //multiple ways to remove from cache
+    public static void removeFromNamesCache(MarkedIndividual indiv) {
+        if ((indiv == null) || (indiv.names == null) || (NAMES_CACHE == null)) return;
+        removeFromNamesCache(indiv.names.getId());
+    }
+    public static void removeFromNamesCache(int namesId) {
+        if (NAMES_CACHE == null) return;
+        NAMES_CACHE.remove(namesId);
+    }
+    public void removeFromNamesCache() {
+        if (this.names == null) return;
+        removeFromNamesCache(this.names.getId());
+    }
+
     // Need request to record which user did it
     public void mergeIndividual(MarkedIndividual other, HttpServletRequest request) {
       for (Encounter enc: other.getEncounters()) {
