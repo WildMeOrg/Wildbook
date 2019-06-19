@@ -9,7 +9,9 @@ import java.util.TreeSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Collection;
+import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
+import javax.jdo.Query;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -331,5 +333,58 @@ public class MultiValue implements java.io.Serializable {
         j.put("id", id);
         return j;
     }
+
+    public static List<MultiValue> withNameLike(String regex, Shepherd myShepherd) {
+
+        String filter = "SELECT FROM org.ecocean.MultiValue WHERE valuesAsString.matches(\""+regex+"\")";
+        System.out.println("have filter "+filter);
+        Query query=myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection) (query.execute());
+        List<MultiValue> names = new ArrayList<MultiValue>();
+        for (Object m : c) {
+                // have to do this weird iteration bc even loading a List doesn't unpack the query
+            names.add((MultiValue) m);
+        }
+        query.closeAll();
+        return names;
+
+    }
+
+    // "Secret name" returns "Secret name":["
+    public static String searchRegexForNameKey(String nameKey) {
+        String substring = nameKey+"\\\":[";
+        return ".*"+substring+".*";
+      }
+
+    // Gets a sorted list of all name values with a given key
+    public static List<String> valuesForKey(String nameKey, Shepherd myShepherd) {
+        String regex = searchRegexForNameKey(nameKey);
+        List<MultiValue> multis = withNameLike(regex, myShepherd);
+        List<String> values = new ArrayList<String>();
+        for (MultiValue mult: multis) values.addAll(mult.getValuesAsList(nameKey));
+        Collections.sort(values);
+        return values;
+    }
+
+    // returns N, where N is the lowest number that is NOT a value in a name w/ nameKey.
+    // valuePrefix comes before N for weird double-labeled values like indocet-
+    public static String nextUnusedValueForKey(String nameKey, String valuePrefix, Shepherd myShepherd) {
+        // set so we can compute .contains() super fast
+        Set<String> oldVals = new HashSet(valuesForKey(nameKey, myShepherd));
+        if (oldVals==null || oldVals.size()==0) return valuePrefix+0;
+        int maxVal = Math.min(10000000, oldVals.size());
+        // I don't think biologists want their lists starting at 0, but instead at 1 like the godless heathens they are
+        for (int i=1;i<maxVal;i++) {
+            String candidate = valuePrefix+i;
+            if (!oldVals.contains(candidate)) return candidate;
+        }
+        return valuePrefix+1; // default
+    }
+    public static String nextUnusedValueForKey(String nameKey, Shepherd myShepherd) {
+        return nextUnusedValueForKey(nameKey, "", myShepherd);
+    }
+
+
+
 }
 
