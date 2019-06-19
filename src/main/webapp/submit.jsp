@@ -675,7 +675,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     //let's pre-populate important info for logged in users
     String submitterName="";
     String submitterEmail="";
-    String affiliation="";
+    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
     String project="";
     if(request.getRemoteUser()!=null){
         submitterName=request.getRemoteUser();
