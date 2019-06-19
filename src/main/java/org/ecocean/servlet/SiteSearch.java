@@ -71,7 +71,7 @@ public class SiteSearch extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         String term = request.getParameter("term");
-        if ((term == null) || term.equals("")) {
+        if (!Util.stringExists(term) || (term.length() < 2)) {
             out.println("[]");
             return;
         }
@@ -105,8 +105,9 @@ public class SiteSearch extends HttpServlet {
               //
               // TODO: Read species from db. See SimpleIndividual
               //
-              if(ind.getGenusSpecies()!=null){
-                hm.put("species", ind.getGenusSpecies());
+                String gs = ind.getGenusSpeciesDeep();
+              if (gs != null) {
+                hm.put("species", gs);
               }
               if(ind.getNickName()!=null){
                 hm.put("nickname", ind.getNickName());
