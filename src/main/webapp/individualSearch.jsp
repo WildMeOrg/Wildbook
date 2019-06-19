@@ -36,6 +36,9 @@ context=ServletUtilities.getContext(request);
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
 
+  boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
+
+
 %>
 
 
@@ -460,7 +463,10 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
-        List<String> locIDs = myShepherd.getAllLocationIDs();
+        List<String> locIDs = (useCustomProperties)
+          ? CommonConfiguration.getIndexedPropertyValues("locationID", request)
+          : myShepherd.getAllLocationIDs();
+        if (Util.isEmpty(locIDs)) locIDs = myShepherd.getAllLocationIDs(); // in case not custom-defined
         int totalLocIDs = locIDs.size();
 
 
@@ -952,7 +958,10 @@ function FSControl(controlDiv, map) {
 							</span>
             </em><br/>
               <%
-				List<String> behavs = myShepherd.getAllBehaviors();
+        List<String> behavs = (useCustomProperties)
+          ? CommonConfiguration.getIndexedPropertyValues("behavior", request)
+          : myShepherd.getAllBehaviors();
+        if (Util.isEmpty(behavs)) behavs = myShepherd.getAllLocationIDs(); // in case not custom-defined
 				int totalBehavs=behavs.size();
 
 

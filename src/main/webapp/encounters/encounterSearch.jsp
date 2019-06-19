@@ -51,6 +51,8 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
+boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
+
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -522,9 +524,10 @@ function useData(doc){
         </em>)</p>
 
       <%
-        List<String> locIDs = myShepherd.getAllLocationIDs();
+        List<String> locIDs = useCustomProperties
+        	? CommonConfiguration.getIndexedPropertyValues("locationID", request)
+        	: myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
-
         if (totalLocIDs >= 1) {
       %>
 
@@ -565,31 +568,16 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   
   <select name="country" id="country" multiple="multiple" size="5">
   	<option value="None" selected="selected"></option>
-  <%
-  			       boolean hasMoreCountries=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreCountries){
-  			       	  String currentCountry = "country"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreCountries=false;
-  			          }
-  			          
-			       }
-			       if(stageNum==0){%>
-			    	   <em><%=encprops.getProperty("noCountries")%></em>
-			       <% 
-			       }
-			       %>
-			       
-
+  		<%
+  		List<String> countries = (useCustomProperties)
+  			? CommonConfiguration.getIndexedPropertyValues("country", request)
+  			: CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
+  		for (String country: countries) {
+  			%><option value="<%=country%>"><%=country%></option><%
+	  	}
+      if(Util.isEmpty(countries)){%>
+    	  <em><%=encprops.getProperty("noCountries")%></em>
+      <%}%>
   </select>
   </td></tr></table>
 <%
@@ -818,7 +806,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 							</span>
             </em><br/>
               <%
-				List<String> behavs = myShepherd.getAllBehaviors();
+				List<String> behavs = (useCustomProperties)
+					? CommonConfiguration.getIndexedPropertyValues("behavior", request)
+					: myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
 				
