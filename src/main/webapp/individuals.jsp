@@ -182,7 +182,7 @@ if (request.getParameter("id")!=null) {
 					if ((c == null) || (c.getState() == null)) {
 						User user = myShepherd.getUser(u);
 						String fullName = u;
-						if (user.getFullName()!=null) fullName = user.getFullName();
+						if (user!=null && user.getFullName()!=null) fullName = user.getFullName();
 						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
 					}
 				}
@@ -255,6 +255,24 @@ if (request.getParameter("id")!=null) {
 
       $(".slider").show();
     });
+</script>
+
+<script>
+function setIndivAutocomplete(el) {
+    if (!el || !el.length) return;
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(el[0], args);
+}
 </script>
 
 <style>
@@ -1343,6 +1361,18 @@ if (sharky.getNames() != null) {
             <input class="btn btn-md" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
             <input class="btn btn-md" type="button" id="closeRelationshipForm" value="Cancel">
           </form>
+          
+          		<script type="text/javascript">
+	                    $(document).ready(function() {
+	                    	
+	                    	//set autocomplete on #individualAddEncounterInput above
+	                    	setIndivAutocomplete($('#individual2'));
+	                    	
+	                    	
+	                    	
+	                    });
+                </script>
+          
         </div>
 
         <%
