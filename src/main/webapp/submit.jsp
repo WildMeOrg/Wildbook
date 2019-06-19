@@ -47,6 +47,10 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+
+    boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
+
+
 %>
 
 <style type="text/css">
@@ -561,28 +565,16 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="locationID" id="locationID" class="form-control">
-            <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreLocationsIDs=true;
-                         int locNum=0;
-
-                         while(hasMoreLocationsIDs){
-                               String currentLocationID = "locationID"+locNum;
-                               if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-                                   %>
-
-                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
-                                   <%
-                                 locNum++;
-                            }
-                            else{
-                               hasMoreLocationsIDs=false;
-                            }
-
-                       }
-
-     %>
-      </select>
+          <option value="" selected="selected"></option>
+          <%
+          List<String> locationIDs = (useCustomProperties)
+            ? CommonConfiguration.getIndexedPropertyValues("locationID", request)
+            : CommonConfiguration.getIndexedPropertyValues("locationID", context); //passing context doesn't check for custom props
+          for (String locationID: locationIDs) {
+            %><option value="locationID"><%=locationID%></option><%
+          }
+          %>
+        </select>
       </div>
     </div>
 <%
@@ -598,18 +590,24 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="country" id="country" class="form-control">
-            <option value="" selected="selected"></option>
-            <%
-            String[] locales = Locale.getISOCountries();
-			for (String countryCode : locales) {
-				Locale obj = new Locale("", countryCode);
-				String currentCountry = obj.getDisplayCountry();
-                %>
-			<option value="<%=currentCountry %>"><%=currentCountry%></option>
-            <%
+          <option value="" selected="selected"></option>
+          <% if (useCustomProperties) {
+            List<String> countries = (useCustomProperties)
+            ? CommonConfiguration.getIndexedPropertyValues("country", request)
+            : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
+            for (String country: countries) {
+              %><option value="<%=country%>"><%=country%></option><%
             }
-			%>
-   		</select>
+          }
+          else {
+            String[] locales = Locale.getISOCountries();
+            for (String countryCode : locales) {
+              Locale obj = new Locale("", countryCode);
+              String currentCountry = obj.getDisplayCountry();
+              %><option value="<%=currentCountry %>"><%=currentCountry%></option><%
+            }      
+          }%>
+        </select>
       </div>
     </div>
 

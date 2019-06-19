@@ -4045,15 +4045,29 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
       <div class="form-group row">
         <div class="col-sm-5">
-          <textarea name="behaviorComment" class="form-control" id="behaviorInput">
+          <%
+          List<String> behaviors = CommonConfiguration.getIndexedPropertyValues("behavior", request);
+          System.out.println("got behaviors list "+behaviors);
+          if (!Util.isEmpty(behaviors)) {
+          %>
+          <select name="behaviorComment" id="behaviorInput" class="form-control" size="1">
+            <option value=""></option>
             <%
-           if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
-           %>
-              <%=enc.getBehavior().trim()%>
+            for (String behavior: behaviors) {
+              String selected = (enc.getBehavior()!=null && enc.getBehavior().equals(behavior)) ? "selected=\"selected\"" : "";
+              %><option <%=selected %> value="<%=behavior%>"><%=behavior%></option><%
+            }
+            %>
+          </select>
+          <%} else {%>
+            <textarea name="behaviorComment" class="form-control" id="behaviorInput">
+              <% if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){ %>
+                <%=enc.getBehavior().trim()%>
+              <%}%>
+            </textarea>
           <%
           }
           %>
-          </textarea>
         </div>
         <div class="col-sm-3">
           <input name="EditBeh" type="submit" id="editBehavior" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
@@ -4122,20 +4136,32 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
     <div class="form-group row">
       <div class="col-sm-5">
-        <textarea name="groupRoleComment" class="form-control" id="groupRoleInput">
-          <%
-         if(oldGroupRole!=null){
-         %>
-            <%=oldGroupRole%>
         <%
-        }
+        List<String> groupRoles = CommonConfiguration.getIndexedPropertyValues("groupRole", request);
+        System.out.println("got groupRoles list "+groupRoles);
+        if (!Util.isEmpty(groupRoles)) {
         %>
-        </textarea>
+        <select name="groupRoleComment" id="groupRoleInput" class="form-control" size="1">
+          <option value=""></option>
+          <%
+          for (String groupRole: groupRoles) {
+            String selected = (enc.getGroupRole()!=null && enc.getGroupRole().equals(groupRole)) ? "selected=\"selected\"" : "";
+            %><option <%=selected %> value="<%=groupRole%>"><%=groupRole%></option><%
+          }
+          %>
+        </select>
+        <%} else {%>
+          <textarea name="groupRoleComment" class="form-control" id="groupRoleInput">
+            <%if(oldGroupRole!=null){%>
+              <%=oldGroupRole%>
+            <%}%>
+          </textarea>
+        <%}%>
       </div>
       <div class="col-sm-3">
         <input name="EditGroupRole" type="submit" id="editGroupRole" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
-        <span class="form-control-feedback" id="groupRoleCheck">&check;</span>
-        <span class="form-control-feedback" id="groupRoleError">X</span>
+        <span class="form-control-feedback" style="display:none;" id="groupRoleCheck">&check;</span>
+        <span class="form-control-feedback" style="display:none;" id="groupRoleError">X</span>
       </div>
     </div>
     </form>
