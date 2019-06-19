@@ -99,7 +99,7 @@ public class ShepherdProperties {
     // bc we fall-back to the defaultProps
     String overridePathStr = "webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode+fileName;
 
-    System.out.printf("getProperties has build strings %s and %s.\n",defaultPathStr, overridePathStr);
+    //System.out.printf("getProperties has built strings %s and %s.\n",defaultPathStr, overridePathStr);
 
     Properties defaultProps = loadProperties(defaultPathStr);
     if (defaultProps==null) {
@@ -122,7 +122,7 @@ public class ShepherdProperties {
   }
 
   public static Properties loadProperties(String pathStr, Properties defaults) {
-    System.out.println("loadProperties called for path "+pathStr);
+    //System.out.println("loadProperties called for path "+pathStr);
     File propertiesFile = new File(pathStr);
     if (propertiesFile == null || !propertiesFile.exists()) return defaults;
     try {
