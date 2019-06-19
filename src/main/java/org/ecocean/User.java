@@ -12,6 +12,8 @@ import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * <code>User</code> stores information about a contact/user.
  * Examples: photographer, submitter
@@ -140,6 +142,19 @@ public class User implements Serializable {
         if (username != null) return username;
         return uuid;
     }
+
+  // this is handy for UI: does this user (belong to an organization that) use a custom .properties file?
+  public boolean hasCustomProperties() {
+    return ShepherdProperties.userHasOverrideString(this);
+  }
+  public static boolean hasCustomProperties(HttpServletRequest request) {
+    if (request == null || request.getUserPrincipal() == null) return false;
+    Shepherd myShepherd = new Shepherd(request);
+    User user = myShepherd.getUser(request);
+    if (user == null) return false;
+    return user.hasCustomProperties();
+  }
+
 
   public String getEmailAddress ()
   {
