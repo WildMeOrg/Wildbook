@@ -413,9 +413,9 @@ public class Util {
     //got sick of having to concat these strings with a space in the middle.
     // TODO: someday make a Taxonomy class for storing/processing this stuff right! (or find the wheel someone already invented!!)
     public static String taxonomyString(String genus, String species) {
-        if ((genus != null) && (species != null)) return genus + " " + species;
-        if (genus != null) return genus;
-        if (species != null) return species;
+        if (stringExists(genus) && stringExists(species)) return genus + " " + species;
+        if (stringExists(genus)) return genus;
+        if (stringExists(species)) return species;
         return null;
     }
 
@@ -726,7 +726,7 @@ public class Util {
     }
 
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals("") && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown"));
+      return (str!=null && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown"));
     }
     public static boolean stringsEqualish(String s1, String s2) {
       if (!stringExists(s1)) {
