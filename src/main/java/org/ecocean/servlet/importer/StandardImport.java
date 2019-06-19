@@ -560,7 +560,7 @@ public class StandardImport extends HttpServlet {
     if (validCoord(longitude)) enc.setDecimalLongitude(longitude);
 
   	String locationID = getString(row, "Encounter.locationID");
-  	if (locationID!=null) enc.setLocationID(locationID);
+  	if (Util.stringExists(locationID)) enc.setLocationID(locationID);
 
     String country = getString(row, "Encounter.country");
     if (country!=null) enc.setCountry(country);
