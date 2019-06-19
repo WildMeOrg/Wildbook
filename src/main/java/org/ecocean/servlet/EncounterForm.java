@@ -638,7 +638,9 @@ System.out.println("enc ?= " + enc.toString());
             String subN=getVal(fv, "submitterName");
             String subE=getVal(fv, "submitterEmail");
             String subO=getVal(fv, "submitterOrganization");
+            if (Util.stringExists(subO)) enc.setSubmitterOrganization(subO);
             String subP=getVal(fv, "submitterProject");
+            if (Util.stringExists(subP)) enc.setSubmitterOrganization(subP);
             //User user=null;
             List<User> submitters=new ArrayList<User>();
             if((subE!=null)&&(!subE.trim().equals(""))) {
