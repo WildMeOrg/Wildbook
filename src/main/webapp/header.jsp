@@ -47,11 +47,16 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
 String username = null;
 User user = null;
-boolean indocetUser = false;
 
+
+boolean indocetUser = false;
+String organization = request.getParameter("organization");
+if (organization!=null && organization.toLowerCase().equals("indocet"))  {
+  indocetUser = true;
+}
 myShepherd.beginDBTransaction();
 try {
-  if(request.getUserPrincipal()!=null){
+  if(!indocetUser && request.getUserPrincipal()!=null){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
     indocetUser = (user!=null && user.hasAffiliation("indocet"));

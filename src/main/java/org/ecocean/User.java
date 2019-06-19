@@ -148,7 +148,11 @@ public class User implements Serializable {
     return ShepherdProperties.userHasOverrideString(this);
   }
   public static boolean hasCustomProperties(HttpServletRequest request) {
-    if (request == null || request.getUserPrincipal() == null) return false;
+    if (request == null) return false;
+    String manualOrg = request.getParameter("organization");
+    if (Util.stringExists(manualOrg)) {
+      if (ShepherdProperties.orgHasOverwrite(manualOrg)) return true;
+    }
     Shepherd myShepherd = new Shepherd(request);
     User user = myShepherd.getUser(request);
     if (user == null) return false;
