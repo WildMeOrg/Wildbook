@@ -125,6 +125,7 @@ File encounterDir = new File(encountersDir, num);
 String langCode=ServletUtilities.getLanguageCode(request);
 
 
+boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
 
 //let's load encounters.properties
@@ -6382,7 +6383,9 @@ console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
     <div  style="width: 100%; max-height: 200px; overflow-y: scroll">
       <div id="ia-match-filter-location" class="option-cols">
         <%
-        List<String> locs = myShepherd.getAllLocationIDs();
+        List<String> locs = (useCustomProperties)
+          ? CommonConfiguration.getIndexedPropertyValues("locationID", request)
+          : myShepherd.getAllLocationIDs(); //passing context doesn't check for custom props
         int c = 0;
         for (String loc : locs) {
             if (!Util.stringExists(loc) || loc.toLowerCase().equals("none")) continue;
