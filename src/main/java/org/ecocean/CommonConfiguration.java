@@ -56,7 +56,7 @@ public class CommonConfiguration {
     return props;
   }
 
-  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser  
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
   private static Properties initialize(HttpServletRequest request) {
     //if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
     Properties props = loadProps(request);
@@ -442,7 +442,7 @@ public class CommonConfiguration {
     return initialize(context).getProperty(name);
   }
 
-  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser  
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
   public static String getProperty(String name, HttpServletRequest request) {
     return initialize(request).getProperty(name);
   }
@@ -709,7 +709,7 @@ public class CommonConfiguration {
     return list;
   }
   
-  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
   // Unlike standard getProperties, here we need to separate our overwrite .properties file from CommonConfiguration.properties
   // (i.e. have separate Properties objects as opposed to a single Properties loaded from our custom file *with CommonConfig as the default/fallback*
   // This is because, e.g. if custom.properties has 3 locationIDs and CommonConfig has 10 locIDs, naive getIndexedPropertyValues will be 10 items long with the first 3 from our custom file
@@ -718,6 +718,7 @@ public class CommonConfiguration {
     boolean hasMore = true;
     int index = 0;
 
+    // if the customProps contain the indexedPropertyValues, we return those
     Properties customProps = ShepherdProperties.getOverwriteProps(request);
     if (customProps!=null) {
       list = ShepherdProperties.getIndexedPropertyValues(customProps, baseKey);
