@@ -98,6 +98,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
             }
             removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
             if (removeFromMe.totalEncounters() == 0) {
+                removeFromMe.removeFromNamesCache();  //so name no longer appears in auto-complete
               myShepherd.throwAwayMarkedIndividual(removeFromMe);
               wasRemoved = true;
             }
