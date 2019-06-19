@@ -803,6 +803,7 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
                 ind = new MarkedIndividual(enc);
                 ind.addName(request, indID); // we don't just create the individual using the encounter+indID bc this request might key the name off of the logged-in user
                 myShepherd.storeNewMarkedIndividual(ind);
+                ind.refreshNamesCache();
                 System.out.println("        ENCOUNTERFORM: created new individual "+indID);
             } else {
                 ind.addEncounter(enc);
