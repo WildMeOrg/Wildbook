@@ -490,6 +490,7 @@ String allNames = null;
 if (sharky.getNames() != null) {
     List<String> names = sharky.getNamesList();
     if ((names != null) && (names.size() > 0)) allNames = String.join(", ", names);
+    String defaultName = sharky.getDefaultName();
 
 
 
@@ -500,10 +501,10 @@ if (sharky.getNames() != null) {
 
     %>
     <div class="namesection default">
-      <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" value="Default" placeholder="Default" >
+      <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" data-oldkey="Default" value="Default" placeholder="Default" >
       <span id="defaultNameColon">:</span>
-      <span class="nameValue default"><%=sharky.getDisplayName()%></span>
-      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" value="<%=sharky.getName()%>" placeholder="<%=sharky.getName() %>" >
+      <span class="nameValue default"><%=defaultName%></span>
+      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue"data-oldvalue="<%=defaultName%>" value="<%=defaultName%>" placeholder="<%=defaultName %>" >
       <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
       <span class="nameCheck">&check;</span>
       <span class="nameError">X</span>
