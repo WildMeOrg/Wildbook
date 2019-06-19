@@ -1116,6 +1116,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	      myShepherd.getPM().makePersistent(mark);
 	       myShepherd.commitDBTransaction();
 	       myShepherd.beginDBTransaction();
+                mark.refreshNamesCache();
 	       out.println("persisting new individual");
 	   }
 	    newIndividual = true;
