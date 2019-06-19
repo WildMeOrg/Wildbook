@@ -17,6 +17,19 @@ boolean individualScores = (scoreType==null || !"image".equals(scoreType));
 
 Integer nResults = null;
 String nResultsStr = request.getParameter("nResults");
+
+// some logic related to generating names for individuals 
+Shepherd myShepherd = new Shepherd(request);
+myShepherd.setAction("matchResults nameKey getter");
+myShepherd.beginDBTransaction();
+User user = myShepherd.getUser(request);
+String nextNameKey = (user!=null) ? user.getIndividualNameKey() : null;
+boolean usesAutoNames = Util.stringExists(nextNameKey);
+String nextName = (usesAutoNames) ? MultiValue.nextUnusedValueForKey(nextNameKey, myShepherd) : null;
+myShepherd.closeDBTransaction();
+System.out.println("IARESULTS: New nameKey block got key, value "+nextNameKey+", "+nextName+" for user "+user);
+
+
 try {
 	nResults = Integer.parseInt(nResultsStr);
 } catch (Exception e) {}
@@ -28,7 +41,7 @@ String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to kee
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
 	String acmId = request.getParameter("acmId");
-	Shepherd myShepherd = new Shepherd(context);
+	myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
     ArrayList<Annotation> anns = null;
@@ -80,7 +93,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	res.put("individualId", request.getParameter("individualID"));
 	//note: short circuiting for now!  needs more testing
 
-	Shepherd myShepherd = new Shepherd(context);
+	myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
 
@@ -164,20 +177,108 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	return;
 }
 
+// confirm no match and set next automatic name
+if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null) {
+	String encId = request.getParameter("encId");
+	myShepherd = new Shepherd(request);
+	myShepherd.setAction("iaResults.jsp - no match case");
+	JSONObject rtn = new JSONObject("{\"success\": false}");
+	Encounter enc = myShepherd.getEncounter(encId);
+	if (enc==null) {
+		rtn.put("error", "could not find Encounter "+encId+" in the database.");
+		out.println(rtn.toString());
+		return;
+	}
+	if (!Util.stringExists(nextName) || !Util.stringExists(nextNameKey)) {
+		rtn.put("error", "Was unable to decide on the next automatic name. Got key="+nextNameKey+" and val="+nextName);
+		out.println(rtn.toString());
+		return;
+	}
+	MarkedIndividual mark = enc.getIndividual();
+
+	if (mark==null) mark = new MarkedIndividual(enc);
+
+	mark.addName(nextNameKey, nextName);
+
+	rtn.put("success",true);
+	out.println(rtn.toString());
+	myShepherd.commitDBTransaction();
+	myShepherd.closeDBTransaction();
+	return;
+
+}
+
 
 
   //session.setMaxInactiveInterval(6000);
-  //String taskId = request.getParameter("taskId");
+  //String taskId =srequest.getParameter("taskId");
 
 %>
 
 <script type="text/javascript" src="javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
+<script type="text/javascript" src="javascript/animatedcollapse.js"></script>
 
 <jsp:include page="header.jsp" flush="true" />
 
+<div id="encid" style="">
+
 <!-- overwrites ia.IBEIS.js for testing -->
 
+<%
+%>
+
+
 <div class="container maincontent">
+
+	<div class="instructions-container">
+    <h4 class="intro accordion" style="margin-bottom:0"><a
+       href="javascript:animatedcollapse.toggle('instructions')" style="text-decoration:none"><span class="el el-chevron-right rotate-chevron"></span> Instructions</a></h4>
+    <div class="instructions" id="instructions" style="display:none;">
+			<p class="algoInstructions"><ul>
+				<li>Hover mouse over results below to <b>compare candidates</b> to target.</li>
+				<li>Links to <b>encounters</b> and <b>individuals</b> are next to each match score.</li>
+				<li>Select <b>correct match</b> by hovering over the correct result and checking the checkbox</li>
+				<li>Use the buttons below to switch between result types:<ul>
+					<li><b>Image Scores:</b> computes the match score for every <em>image</em> in the database when compared to the query image</li>
+					<li><b>Individual Scores:</b> computes one match score for every <em>individual</em> in the database. This is the aggregate of each image score for that individual.</li>
+				</ul></li>
+				<%
+				if (usesAutoNames) {
+					%><li><strong>Auto-naming: </strong>Your account has auto-naming set up with the name label <strong><%=nextNameKey%></strong>. Depending on the checkbox below, the next auto-generated name <strong><%=nextNameKey%>: <%=nextName%></strong> will be added to your match results.</li><%
+				}
+				%>
+			</ul></p>
+		</div>
+	</div>
+<style type="text/css">
+/* this .search-collapse-header .rotate-chevron logic doesn't work
+ because animatedcollapse.js is eating the click event (I think.).
+ It's unclear atm where/whether to modify animatedcollapse.js to
+ rotate this chevron.
+*/
+h4.intro.accordion .rotate-chevron {
+    -moz-transition: transform 0.5s;
+    -webkit-transition: transform 0.5s;
+    transition: transform 0.5s;
+}
+h4.intro.accordion .rotate-chevron.down {
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+</style>
+
+<script>
+	animatedcollapse.addDiv('instructions', 'fade=1');
+	animatedcollapse.init();
+	$("h4.accordion a").click(function() {
+		$(this).children(".rotate-chevron").toggleClass("down");
+	});
+</script>
+
+
+
 
 	<div id="result_settings">
 
@@ -208,6 +309,37 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 		</span>
 
+		<style>
+			span#nextNameArea {
+				position: relative;
+				top: 28px; /* sum of the adjacent buttons' top margin and top padding to align text*/
+		}
+		div#result_settings {
+			text-align: center;
+		}
+		div#result_settings button:last-child {
+			margin-right: 0;
+		}
+		div#result_settings span#scoreTypeSettings {
+			float: left;
+		}
+		.enc-title .enc-link, .enc-title .indiv-link {
+			margin-left: 0;
+		}
+		</style>
+
+		<%
+		// a centered button to use the next autogenerated name upon matching
+		if (usesAutoNames) {
+			%>
+			<span id='nextNameArea'>
+				<strong>Auto-naming:</strong>
+				Use next name <strong><%=nextNameKey%>: <%=nextName%></strong>?
+				<input type='checkbox' name='useNextName' value='nextName' checked>
+			</span>
+			<%
+		}
+		%>
 
 		<script>
 			var nResultsClicker = function() {
@@ -233,8 +365,15 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 	</div>
 
+
+
 	<div id="initial-waiter" class="waiting throbbing">
 		<p>waiting for results</p>
+	</div>
+
+
+	<div id = "confirm-negative-dialog" style="display: none" title = "Confirm no match?" >
+		Why the fuck is this
 	</div>
 
 
@@ -270,6 +409,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		margin-top: 15px;
 	}
 
+	div div#enc-action {
+		float: right;
+		position: relative;
+		top: 5px;
+		margin-right: 40px;
+	}
+
 </style>
 
 
@@ -289,10 +435,11 @@ function toggleScoreType() {
 	init2();
 }
 
+var headerDefault = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
+// we use the same space as 
 
-var matchInstructions = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
 function init2() {   //called from wildbook.init() when finished
-	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div>');
+	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div></div>');
 	parseTaskIds();
 	for (var i = 0 ; i < taskIds.length ; i++) {
 		var tid = taskIds[i];
@@ -543,6 +690,7 @@ function showTaskResult(res, taskId) {
 		var algoInfo = (res.status._response.response.json_result.query_config_dict &&
 			res.status._response.response.json_result.query_config_dict.pipeline_root);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
+		
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
@@ -564,7 +712,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
                 var dct = res.status._response.response.json_result.database_annot_uuid_list.length;
                 h += ' <span class="matchingSetSize">' + (dct ? '<i>against ' + dct + ' candidates</i>' : '') + '</span>';
 
-		h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" class="algoInstructions">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
+		//h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" class="algoInstructions">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
 		$('#task-' + res.taskId + ' .task-title-id').html(h);
 		displayAnnot(res.taskId, qannotId, -1, -1, -1);
 
@@ -594,7 +742,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			illustUrl += "&query_annot_uuid="+query_annot_uuid;
 			illustUrl += "&database_annot_uuid="+database_annot_uuid;
 			illustUrl += "&version="+version;
-			console.log("ILLUSTRATION "+i+" "+illustUrl);
+			//console.log("ILLUSTRATION "+i+" "+illustUrl);
 
 			// no illustration for DTW
 			if (algoInfo == 'OC_WDTW') illustUrl = false;
@@ -672,8 +820,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
         }
         if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
         if (mainAsset) {
-console.info('mainAsset -> %o', mainAsset);
-console.info('illustrationUrl '+illustrationUrl);
+//console.info('mainAsset -> %o', mainAsset);
+//console.info('illustrationUrl '+illustrationUrl);
             if (mainAsset.url) {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="' + mainAsset.url + '" />');
             } else {
@@ -691,12 +839,15 @@ console.info('illustrationUrl '+illustrationUrl);
             var ft = findMyFeature(acmId, mainAsset);
             if (ft) {
                 var encId = ft.encounterId;
+
                 var encDisplay = encId;
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
                 var indivId = ft.individualId;
                 var displayName = ft.displayName;
+                if (isQueryAnnot) addNegativeButton(encId, displayName);
                 if (encId) {
-                    h += ' for <a style="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
+                		console.log("Main asset encId = "+encId);
+                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
                     
 		    if (!indivId) {
@@ -712,7 +863,7 @@ console.info('illustrationUrl '+illustrationUrl);
                 if (encId || indivId) {
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
-                h += '<div id="enc-action">' + matchInstructions + '</div>';
+                h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
                     if (h) $('#encounter-info .enc-title').html(h);
                     if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
@@ -734,8 +885,8 @@ console.info('qdata[%s] = %o', taskId, qdata);
             	// TODO: generify
             	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
             	illustrationUrl = iaBase+illustrationUrl
-            	var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect match</a></span>';
-            	console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
+            	var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
+            	//console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
             	$(selector).append(illustrationHtml);
             }
 
@@ -750,7 +901,10 @@ console.info('qdata[%s] = %o', taskId, qdata);
                 var encId = ft.encounterId;
                 var indivId = ft.individualId;
                 var displayName = ft.displayName;
-                if (encId) imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter ' + encId.substring(0,6) + '</a>';
+                if (encId) {
+                	imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
+                	console.log("another encId = "+encId);
+                }
                 if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
             }
             imgInfo += '</li>';
@@ -767,7 +921,7 @@ function annotCheckbox(el) {
 	var taskId = jel.closest('.task-content').attr('id').substring(5);
   var task = getCachedTask(taskId);
   var queryAnnotation = jel.closest('.task-content').data();
-console.info('taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAnnotation);
+console.info('annotCheckbox taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAnnotation);
 	annotCheckboxReset();
   if (!taskId || !task) return;
 	if (!el.checked) return;
@@ -818,7 +972,7 @@ function setIndivAutocomplete(el) {
 function annotCheckboxReset() {
 	$('.annot-action-checkbox-active').removeClass('annot-action-checkbox-active').addClass('annot-action-checkbox-inactive').prop('checked', false);
 	$('.annot-summary-checked').removeClass('annot-summary-checked');
-	$('#enc-action').html(matchInstructions);
+	$('#enc-action').html(headerDefault);
 }
 
 function annotClick(ev) {
@@ -867,7 +1021,7 @@ console.warn('score_sort() cm_dict %o', cm_dict);
 }
 
 function findMyFeature(annotAcmId, asset) {
-console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
+//console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
     if (!asset || !Array.isArray(asset.features) || (asset.features.length < 1)) return;
     for (var i = 0 ; i < asset.features.length ; i++) {
         if (asset.features[i].annotationAcmId == annotAcmId) return asset.features[i];
@@ -1034,6 +1188,94 @@ function approveNewIndividual(el) {
 	console.info('name=%s; qe=%s, me=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'));
 	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'));
 }
+
+function encDisplayString(encId) {
+	if (encId.trim().length == 36) return encId.substring(0,6)+"...";
+	return encId;
+}
+
+
+function negativeButtonClick(encId, oldDisplayName) {
+	console.log("NEGATIVE button CLICK GODDAMNIT");
+	var confirmMsg = 'Confirm no match?\n\n';
+	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
+	if (oldDisplayName != ("")) {
+		confirmMsg+= 'The next <%=nextNameKey%> name will be added to individual '+oldDisplayName;
+	} else {
+		confirmMsg+= 'A new individual will be created with the next <%=nextNameKey%> name and applied to encounter '+encDisplayString(encId);
+	}
+	confirmMsg+= ' to record your decision.';
+	console.log("NEGATIVE button CLICK GODDAMNIT the SECOND TIME");
+
+	// $('#confirm-negative-dialog').show();
+	// $('#confirm-negative-dialog').dialog({
+ //  buttons: [
+ //    {
+ //      text: "OK",
+ //      click: function() {
+	// 			$.ajax({
+	// 				url: 'iaResults.jsp?encId=' + encId+'&noMatch=true',  //hacktacular!
+	// 				type: 'GET',
+	// 				dataType: 'json',
+	// 				complete: function(d) { noMatchConfirmationCallback(); }
+	// 			});
+	// 		}
+	// 	},
+	// 	{
+	// 		text: "close",
+	// 		click: function() {$(this).dialog("close")}
+	// 	}    
+ //  ],
+ //  modal: true,
+
+	// 	// buttons: {
+	// 	// 	OK: function() {
+	// 	// 		$.ajax({
+	// 	// 			url: 'iaResults.jsp?encId=' + encId+'&noMatch=true',  //hacktacular!
+	// 	// 			type: 'GET',
+	// 	// 			dataType: 'json',
+	// 	// 			complete: function(d) { noMatchConfirmationCallback(); }
+	// 	// 		});
+	// 	// 	},
+	// 	// 	close: function() {$(this).dialog("close");}
+	// 	// },
+	// 	// modal: true
+	// });
+	// $('#confirm-negative-dialog').show();
+
+
+	console.log("NEGATIVE button CLICK GODDAMNIT the THIRD TIME");
+
+	if (confirm(confirmMsg)) {
+		$.ajax({
+			url: 'iaResults.jsp?encId=' + encId+'&noMatch=true',  //hacktacular!
+			type: 'GET',
+			dataType: 'json',
+			complete: function(d) { updateNameCallback(d, oldDisplayName); }
+		})
+	}
+
+}
+
+function  updateNameCallback(d, oldDisplayName) {
+	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
+	console.alert("Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName);
+}
+
+function addNegativeButton(encId, oldDisplayName) {
+	if (<%=usesAutoNames%>) {
+		console.log("Adding auto name/confirm negative button!");
+		var negativeButton = '<input onclick=\'negativeButtonClick(\"'+encId+'\", \"'+oldDisplayName+'\");\' type="button" value="Confirm No Match" />';
+		console.log("negativeButton = "+negativeButton);
+		//var negativeButton = '<input onclick="negativeButtonClick();" type="button" value="Confirm No Match" />';
+		headerDefault = negativeButton;
+		//console.log("NEGATIVE BUTTON: About to attach "+negativeButton+" to "+JSON.stringify($('div#enc-action')));
+		$('div#enc-action').html(negativeButton);
+	} else {
+		console.log("No name scheme, baby!");
+	}
+}
+
 
 
 </script>

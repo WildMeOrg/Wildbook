@@ -360,6 +360,13 @@ public class User implements Serializable {
     public List<Organization> getOrganizations() {
         return organizations;
     }
+    // Use this method to find out what organization-wide nameKey a user would want, to use to generate new individual names.
+    public String getIndividualNameKey() {
+        for (Organization org: organizations) {
+          if (Util.stringExists(org.getIndividualNameKey())) return org.getIndividualNameKey();
+        }
+        return null;
+    }
     public void setOrganizations(List<Organization> orgs) {
         organizations = orgs;
         this.organizationsReciprocate(orgs);

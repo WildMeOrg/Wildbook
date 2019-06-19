@@ -34,6 +34,10 @@ public class Organization implements java.io.Serializable {
     private List<User> members = null;
     private Organization parent = null;
     private List<Organization> children = null;
+
+    // if individualNameKey != null, this organization has a special nameKey that is used to create an org-wide catalog
+    // e.g. IndoCet wants to generate IndoCet names;
+    private String individualNameKey = null;
     
     public Organization() {
         this((String)null);
@@ -147,6 +151,13 @@ public class Organization implements java.io.Serializable {
     }
     public boolean hasMembers() {
         return (numMembers() > 0);
+    }
+
+    public String getIndividualNameKey() {
+        return individualNameKey;
+    }
+    public void setIndividualNameKey(String nameKey) {
+        individualNameKey = nameKey;
     }
 
     public List<Organization> getChildren() {
