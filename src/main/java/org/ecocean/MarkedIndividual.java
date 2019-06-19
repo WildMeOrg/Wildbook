@@ -190,6 +190,10 @@ public class MarkedIndividual implements java.io.Serializable {
         return displayIndividualID();
     }
 
+    public String getDefaultName() {
+      return getName(MultiValue.DEFAULT_KEY_VALUE);
+    }
+
     public String displayIndividualID() {
       if (Util.isUUID(individualID)) return individualID.substring(0,8);
       else return individualID;
