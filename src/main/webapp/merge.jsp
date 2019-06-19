@@ -41,6 +41,10 @@ table td,th {
 #mergeBtn {
 	float: right;
 }
+
+table.compareZone tr th {
+	background: inherit;
+}
 </style>
 
 <script>
@@ -79,7 +83,17 @@ table td,th {
 <h1>Marked Individual Merge Tool</h1>
 <p class="instructions">Confirm the merged values for each of the fields below.</p>
 <p class="instructions"><span class="text-danger bg-danger">Fields in red</span> have conflicting values and require attention.</p>
+
 <%
+// build query for EncounterMediaGallery here
+//String queryString = "SELECT FROM org.ecocean.Encounter WHERE individual.individualID == '"+indIdA+"' || individual.individualID == '"+indIdB+"'";
+//System.out.println("Merge.jsp has queryString "+queryString);
+
+// consider including an enc media gallery below?
+%>
+<%
+
+
 try {
 
 
