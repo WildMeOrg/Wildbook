@@ -521,11 +521,19 @@ if (sharky.getNames() != null) {
     <div class="namesection default">
       <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" data-oldkey="Default" value="Default" placeholder="Default" >
       <span id="defaultNameColon">:</span>
-      <span class="nameValue default"><%=defaultName%></span>
-      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue"data-oldvalue="<%=defaultName%>" value="<%=defaultName%>" placeholder="<%=defaultName %>" >
+      <%
+      if(defaultName!=null){
+      %>
+      	<span class="nameValue default"><%=defaultName%></span>
+      <%
+      }
+      else{defaultName="";}
+      %>
+      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" data-oldvalue="<%=defaultName%>" value="<%=defaultName%>" placeholder="<%=defaultName %>" >
       <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
       <span class="nameCheck">&check;</span>
       <span class="nameError">X</span>
+      <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
     </div><%
 
     // make UI for non-default names here
