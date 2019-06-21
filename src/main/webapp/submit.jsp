@@ -445,8 +445,73 @@ function updateList(inp) {
     document.getElementById('input-file-list').innerHTML = f;
 }
 
+
+var dtList = [];
+var llList = [];
 function gotExif(file) {
-    //e.g.  file.exifdata ....
+    exifFindDateTimes(file.exifdata);
+console.log('dtList => %o', dtList);
+    var dtDiv = $('#dt-div');
+    if (!dtDiv.length) {
+        dtDiv = $('<div id="dt-div" />');
+        $('#datepicker').parent().append(dtDiv);
+    }
+    if (dtList.length > 0) {
+        dtList.sort();
+        var h = '<select>';
+        for (var i = 0 ; i < dtList.length ; i ++) {
+            h += '<option>' + dtList[i] + '</option>';
+        }
+        h += '</select>';
+        dtDiv.html(h);
+    }
+
+    exifFindLatLon(file.exifdata);
+console.log('dtList => %o', dtList);
+    var dtDiv = $('#dt-div');
+    if (!dtDiv.length) {
+        dtDiv = $('<div id="dt-div" />');
+        $('#datepicker').parent().append(dtDiv);
+    }
+    if (dtList.length > 0) {
+        dtList.sort();
+        var h = '<select>';
+        for (var i = 0 ; i < dtList.length ; i ++) {
+            h += '<option>' + dtList[i] + '</option>';
+        }
+        h += '</select>';
+        dtDiv.html(h);
+    }
+
+}
+
+
+function exifFindDateTimes(exif) {
+    for (var key in exif) {
+        if (key.toLowerCase().indexOf('date') < 0) continue;
+        var clean = cleanupDateTime(exif[key]);
+        if (clean && (dtList.indexOf(clean) < 0)) dtList.push(clean);
+    }
+}
+
+function exifFindLatLon(exif) {
+    for (var key in exif) {
+        if (key.toLowerCase().indexOf('gps') < 0) continue;
+console.log('%s => %o', key, exif[key]);
+        var clean = cleanupLatLon(exif[key]);
+        if (clean && (llList.indexOf(clean) < 0)) llList.push(clean);
+    }
+}
+
+function cleanupDateTime(dt) {
+    var f = dt.split(/\D+/);
+    if (f.length == 3) return f.join('-');
+    if ((f.length == 5) || (f.length == 6)) return f.slice(0,3).join('-') + ' ' + f.slice(3,6).join(':');
+    return null;
+}
+
+function cleanupLatLon(ll) {
+return null;
 }
 
 
