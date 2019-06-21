@@ -22,7 +22,7 @@ package org.ecocean.servlet;
 import org.datanucleus.api.jdo.JDOPersistenceManager;
 import org.datanucleus.api.rest.RESTUtils;
 import org.ecocean.*;
-import org.ecocean.ai.nmt.google.DetectTranslate;
+import org.ecocean.ai.nmt.azure.DetectTranslate;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -96,6 +96,7 @@ public class IndividualAddEncounter extends HttpServlet {
         //if we dont already have this individual, we now make it  TODO this may fail because of security (in the future) so we need to take that into consideration
         if (!myShepherd.isMarkedIndividual(indivID)) {
             try {
+                System.out.println("Creating a new individual");
                 addToMe = new MarkedIndividual(indivID, enc2add);
                 myShepherd.storeNewMarkedIndividual(addToMe);
                 myShepherd.updateDBTransaction();
@@ -108,6 +109,7 @@ public class IndividualAddEncounter extends HttpServlet {
                 throw new RuntimeException("unable to create new MarkedIndividual " + indivID);
             }
         } else {
+           System.out.println("Retrieving an existing individual");
             addToMe = myShepherd.getMarkedIndividual(indivID);
         }
 
@@ -116,12 +118,13 @@ public class IndividualAddEncounter extends HttpServlet {
 
           boolean sexMismatch = false;
           //myShepherd.beginDBTransaction();
-          if ((addToMe.getNickName() != null) && (!addToMe.getNickName().equals(""))) {
-            nickname = " ("+addToMe.getNickName() + ")";
-          }
+          //if ((addToMe.getNickName() != null) && (!addToMe.getNickName().equals(""))) {
+          //  nickname = " ("+addToMe.getNickName() + ")";
+          //}
           try {
             if (!addToMe.getEncounters().contains(enc2add)) {
               addToMe.addEncounter(enc2add);
+              System.out.println("Now adding the Encounter to the individual");
             }
             enc2add.setMatchedBy(request.getParameter("matchType"));
             enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + request.getParameter("individual") + ".</p>");
