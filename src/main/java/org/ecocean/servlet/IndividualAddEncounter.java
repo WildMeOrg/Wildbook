@@ -91,16 +91,18 @@ public class IndividualAddEncounter extends HttpServlet {
         if (enc2add == null) throw new RuntimeException("invalid encounter id=" + request.getParameter("number"));
       setDateLastModified(enc2add);
      
-      if (enc2add.getIndividualID()==null) {
+      if (enc2add.getIndividual()==null) {
         MarkedIndividual addToMe = null;
         //if we dont already have this individual, we now make it  TODO this may fail because of security (in the future) so we need to take that into consideration
         if (!myShepherd.isMarkedIndividual(indivID)) {
             try {
                 addToMe = new MarkedIndividual(indivID, enc2add);
                 myShepherd.storeNewMarkedIndividual(addToMe);
+                myShepherd.updateDBTransaction();
                 addToMe.refreshNamesCache();
                 //enc2add.setIndividualID(indivID);
-            } catch (Exception ex) {
+            } 
+            catch (Exception ex) {
                 ex.printStackTrace();
                 myShepherd.rollbackDBTransaction();
                 throw new RuntimeException("unable to create new MarkedIndividual " + indivID);
