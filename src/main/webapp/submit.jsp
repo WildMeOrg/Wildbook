@@ -22,6 +22,7 @@
 
 <!-- add recaptcha -->
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
+<script src="javascript/exif.js"></script>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -434,6 +435,7 @@ function updateList(inp) {
                 all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
             } else {
                 all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                EXIF.getData(inp.files[i], function() { gotExif(this); });
             }
         }
         f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
@@ -442,6 +444,11 @@ function updateList(inp) {
     }
     document.getElementById('input-file-list').innerHTML = f;
 }
+
+function gotExif(file) {
+    //e.g.  file.exifdata ....
+}
+
 
 function showUploadBox() {
     $("#submitsocialmedia").addClass("hidden");
