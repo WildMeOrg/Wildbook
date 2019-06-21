@@ -1744,7 +1744,7 @@ else {
       <%
       	Shepherd inShepherd=new Shepherd("context0");
       inShepherd.setAction("individualSearch.jsp2");
-        List<User> users = inShepherd.getUsersWithUsername("username ascending");
+        List<User> users = inShepherd.getNativeUsers("username ascending");
         int numUsers = users.size();
 
       %>
