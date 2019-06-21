@@ -137,9 +137,11 @@ public class IndividualSetName extends HttpServlet {
         if (newName) {
           if (Util.stringExists(newKey)) {
             mark.addName(newKey, newValue);
+            mark.refreshNamesCache();
             out.println("<strong>Success!</strong> Added a name with label \""+newKey+"\" and value \""+newValue+"\" on Marked Individual "+indID+".</p>");
           } else {
             mark.addName(newValue);
+            mark.refreshNamesCache();
             out.println("<strong>Success!</strong> Added \""+newValue+"\" to the default names for Marked Individual "+indID+".</p>");
           }
           return;
@@ -147,12 +149,14 @@ public class IndividualSetName extends HttpServlet {
         else if (changeValueOnly) {
           mark.getNames().removeValuesByKey(newKey, oldValue);
           mark.addName(newKey, newValue);
+          mark.refreshNamesCache();
           out.println("<strong>Success!</strong> I have successfully changed the name labeled \""+newKey+"\" from \""+oldValue+"\" to \""+newValue+"\" on Marked Individual "+indID+".</p>");
           return;
         }
         else if (changeKeyOnly) {
           mark.getNames().removeKey(oldKey);
           mark.addName(newKey, newValue);
+          mark.refreshNamesCache();
           out.println("<strong>Success!</strong> I have successfully changed the label for name \""+newValue+"\" from \""+oldValue+"\" to \""+newValue+"\" on Marked Individual "+indID+".</p>");
           return;
         }
