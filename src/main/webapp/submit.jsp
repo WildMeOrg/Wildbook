@@ -448,17 +448,18 @@ function updateList(inp) {
 
 var dtList = [];
 var llList = [];
+//TODO Bearing, Altitude
 function gotExif(file) {
     exifFindDateTimes(file.exifdata);
 console.log('dtList => %o', dtList);
     var dtDiv = $('#dt-div');
     if (!dtDiv.length) {
-        dtDiv = $('<div id="dt-div" />');
+        dtDiv = $('<div class="exif-derived" id="dt-div" />');
         $('#datepicker').parent().append(dtDiv);
     }
     if (dtList.length > 0) {
         dtList.sort();
-        var h = '<select>';
+        var h = 'From image metadata: <select onChange="return exifDTSet(this);"><option value="">Select date/time</option>';
         for (var i = 0 ; i < dtList.length ; i ++) {
             h += '<option>' + dtList[i] + '</option>';
         }
@@ -467,20 +468,20 @@ console.log('dtList => %o', dtList);
     }
 
     exifFindLatLon(file.exifdata);
-console.log('dtList => %o', dtList);
-    var dtDiv = $('#dt-div');
-    if (!dtDiv.length) {
-        dtDiv = $('<div id="dt-div" />');
-        $('#datepicker').parent().append(dtDiv);
+console.log('llList => %o', llList);
+    var llDiv = $('#ll-div');
+    if (!llDiv.length) {
+        llDiv = $('<div class="exif-derived" id="ll-div" />');
+        $('#longitude').parent().parent().append(llDiv);
     }
-    if (dtList.length > 0) {
-        dtList.sort();
-        var h = '<select>';
-        for (var i = 0 ; i < dtList.length ; i ++) {
-            h += '<option>' + dtList[i] + '</option>';
+    if (llList.length > 0) {
+        llList.sort();
+        var h = 'From image metadata: <select onChange="return exifLLSet(this);"><option value="">Select lat/lon</option>';
+        for (var i = 0 ; i < llList.length ; i ++) {
+            h += '<option>' + llList[i] + '</option>';
         }
         h += '</select>';
-        dtDiv.html(h);
+        llDiv.html(h);
     }
 
 }
@@ -495,12 +496,12 @@ function exifFindDateTimes(exif) {
 }
 
 function exifFindLatLon(exif) {
-    for (var key in exif) {
-        if (key.toLowerCase().indexOf('gps') < 0) continue;
-console.log('%s => %o', key, exif[key]);
-        var clean = cleanupLatLon(exif[key]);
-        if (clean && (llList.indexOf(clean) < 0)) llList.push(clean);
-    }
+    //unknown if these keys are "standard".  :(  doubt it.
+    var lat = cleanupLatLon(exif.GPSLatitudeRef, exif.GPSLatitude);
+    var lon = cleanupLatLon(exif.GPSLongitudeRef, exif.GPSLongitude);
+    if (!lat || !lon) return;
+    var clean = lat + ', ' + lon;
+    if (clean && (llList.indexOf(clean) < 0)) llList.push(clean);
 }
 
 function cleanupDateTime(dt) {
@@ -510,10 +511,26 @@ function cleanupDateTime(dt) {
     return null;
 }
 
-function cleanupLatLon(ll) {
-return null;
+function cleanupLatLon(llDir, ll) {
+    var sign = ((llDir == 'W' || llDir == 'S') ? -1 : 1);
+    if (!ll || (ll.length != 3)) return null;
+    return Math.round(sign * dms2dd(ll[0], ll[1], ll[2]) * 1000000) / 1000000;
 }
 
+function dms2dd(d, m, s) {
+    return d + (m / 60) + (s / 3600);
+}
+
+function exifDTSet(el) {
+    $('#datepicker').val(el.value);
+}
+
+function exifLLSet(el) {
+    var ll = [ '', '' ];
+    if (el.value.indexOf(', ') >= 0) ll = el.value.split(', ');
+    $('#lat').val(ll[0]);
+    $('#longitude').val(ll[1]);
+}
 
 function showUploadBox() {
     $("#submitsocialmedia").addClass("hidden");
