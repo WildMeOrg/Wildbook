@@ -450,6 +450,7 @@ function updateList(inp) {
 
 var dtList = [];
 var llList = [];
+var commentJson = {};
 //TODO Bearing, Altitude
 function gotExif(file) {
     exifFindDateTimes(file.exifdata);
@@ -486,6 +487,21 @@ console.log('llList => %o', llList);
         llDiv.html(h);
     }
 
+    var fj = {};
+    if (file.exifdata) for (var key in file.exifdata) {
+        if (!key.toLowerCase().match('^(artist|copyright|imagedescription)$')) continue;
+        fj[key] = file.exifdata[key];
+    }
+    if (Object.keys(fj).length) commentJson[file.name] = fj;
+    var h = '';
+    for (var fname in commentJson) {
+        h += '<p class="exif-comment" id="exif-' + fname + '">';
+        for (var k in commentJson[fname]) {
+            h += k + ': <b>' + commentJson[fname][k] + '</b><br />';
+        }
+        h += '</p>';
+    }
+    $('#comments').val(h);
 }
 
 
