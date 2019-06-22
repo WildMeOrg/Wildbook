@@ -22,6 +22,8 @@
 
 <!-- add recaptcha -->
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
+
+<!-- https://github.com/exif-js/exif-js -->
 <script src="javascript/exif.js"></script>
 
 <%
