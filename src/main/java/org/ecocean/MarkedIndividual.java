@@ -180,7 +180,9 @@ public class MarkedIndividual implements java.io.Serializable {
         // default case: just return the first name for the keyhint.
         if (!Util.isEmpty(nameVals)) return nameVals.get(0);
         // fallback case: try using the default keyhint
-        nameVals = getNames().getValuesDefault();
+        if(getNames()!=null) {
+          nameVals = getNames().getValuesDefault();
+        }
         if (!Util.isEmpty(nameVals)) return nameVals.get(0);
         // second fallback: try using another nameKey
         List<String> keys = names.getSortedKeys();
@@ -2161,7 +2163,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       encIDs.add(enc.getCatalogNumber());
     }
     jobj.put("encounterIDs", encIDs.toArray());
-    return sanitizeJson(request, jobj);
+    return sanitizeJson(request,decorateJson(request, jobj));
   }
 
   public String getUrl(HttpServletRequest request) {
