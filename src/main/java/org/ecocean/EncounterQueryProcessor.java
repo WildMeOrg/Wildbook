@@ -28,9 +28,11 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-public class EncounterQueryProcessor {
+public class EncounterQueryProcessor extends QueryProcessor {
 
   private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
+
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"lifeStage","groupRole","submitterOrganization","submitterProject"};
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
@@ -1054,9 +1056,7 @@ public class EncounterQueryProcessor {
     //filter gpsOnly - return only Encounters with a defined location. This is mostly used for mapping JSP pages
     if(request.getAttribute("gpsOnly")!=null){
 
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
-      else{filter+=" && decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
-      prettyPrint.append("Has GPS coordinates.<br />");
+      filter = filterWithGpsBox("decimalLatitude", "decimalLongitude", filter, request);
 
     }
     //end filter gpsOnly
@@ -1222,32 +1222,23 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     //filter for sex------------------------------------------
     if((request.getParameter("male")!=null)||(request.getParameter("female")!=null)||(request.getParameter("unknown")!=null)){
+      System.out.println("Filter at beginning of sex filtering: "+filter);
       if(request.getParameter("male")==null) {
-        if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
-          filter+="  !sex.startsWith('male')";
-        } else {
-          filter+=" && !sex.startsWith('male')";
-        }
+        filter = filterWithCondition(filter, "!sex.startsWith('male')");
         prettyPrint.append("Sex is not male.<br />");
       }
 
       if(request.getParameter("female")==null) {
-        if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
-          filter+="  !sex.startsWith('female')";
-        } else {
-          filter+=" && !sex.startsWith('female')";
-        }
+        filter = filterWithCondition(filter, "!sex.startsWith('female')");
         prettyPrint.append("Sex is not female.<br />");
       }
 
       if(request.getParameter("unknown")==null) {
-        if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
-          filter+=" !sex.startsWith('unknown') && sex != null";
-        } else {
-          filter+=" && !sex.startsWith('unknown') && sex != null";
-        }
+        filter = filterWithCondition(filter, "!sex.startsWith('unknown') && sex != null");
         prettyPrint.append("Sex is not unknown.<br />");
       }
+      System.out.println("Filter at end of sex filtering: "+filter);
+
     }
 
     //filter by sex--------------------------------------------------------------------------------------
@@ -1288,97 +1279,10 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       }
     }
 
+    // I choose to put this on one line out of pride alone -db
+    for (String fieldName : SIMPLE_STRING_FIELDS) filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
 
-
-
-    //end date filter ----------------------------------------
-
-    //------------------------------------------------------------------
-    //GPS filters-------------------------------------------------
-
-    if((request.getParameter("ne_lat")!=null)&&(!request.getParameter("ne_lat").equals(""))) {
-      if((request.getParameter("ne_long")!=null)&&(!request.getParameter("ne_long").equals(""))) {
-        if((request.getParameter("sw_lat")!=null)&&(!request.getParameter("sw_lat").equals(""))) {
-          if((request.getParameter("sw_long")!=null)&&(!request.getParameter("sw_long").equals(""))) {
-
-
-
-
-                try{
-
-                  String thisLocalFilter="(";
-
-                  double ne_lat=(new Double(request.getParameter("ne_lat"))).doubleValue();
-                  double ne_long = (new Double(request.getParameter("ne_long"))).doubleValue();
-                  double sw_lat = (new Double(request.getParameter("sw_lat"))).doubleValue();
-                  double sw_long=(new Double(request.getParameter("sw_long"))).doubleValue();
-
-                  //The latitude must be a number between -90 and 90 and the longitude between -180 and 180.
-                  
-                  
-                  if((sw_long>0)&&(ne_long<0)){
-                    //if(!((encLat<=ne_lat)&&(encLat>=sw_lat)&&((encLong<=ne_long)||(encLong>=sw_long)))){
-
-                      //process lats
-                      thisLocalFilter+="(decimalLatitude <= "+request.getParameter("ne_lat")+") && (decimalLatitude >= "+request.getParameter("sw_lat")+")";
-
-                      //process longs
-                      thisLocalFilter+=" && ((decimalLongitude <= "+request.getParameter("ne_long")+") || (decimalLongitude >= "+request.getParameter("sw_long")+"))";
-
-
-
-                    //}
-                  }
-                  else{
-                    //if(!((encLat<=ne_lat)&&(encLat>=sw_lat)&&(encLong<=ne_long)&&(encLong>=sw_long))){
-
-                    //process lats
-                    thisLocalFilter+="(decimalLatitude <= "+request.getParameter("ne_lat")+") && (decimalLatitude >= "+request.getParameter("sw_lat")+")";
-
-                    //process longs
-                    thisLocalFilter+=" && (decimalLongitude <= "+request.getParameter("ne_long")+") && (decimalLongitude >= "+request.getParameter("sw_long")+")";
-
-
-
-                    //}
-                  }
-
-                  thisLocalFilter+=" )";
-                  
-                  if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
-                    filter += " && ";
-                  }
-                  filter+=thisLocalFilter;
-                  //if(filter.equals("")){filter=thisLocalFilter;}
-                  //else if(){filter+=" && "+thisLocalFilter;}
-                  //else{filter+=" && "+thisLocalFilter;}
-
-                  prettyPrint.append("GPS Boundary NE: \""+request.getParameter("ne_lat")+", "+request.getParameter("ne_long")+"\".<br />");
-                  prettyPrint.append("GPS Boundary SW: \""+request.getParameter("sw_lat")+", "+request.getParameter("sw_long")+"\".<br />");
-
-
-
-                }
-
-                catch(Exception ee){
-
-                  System.out.println("Exception when trying to process lat and long data in EncounterQueryProcessor!");
-                  ee.printStackTrace();
-
-                }
-
-
-
-
-
-
-
-
-          }
-        }
-      }
-    }
-
+    filter = filterWithGpsBox("decimalLatitude","decimalLongitude", filter, request);
 
     //end GPS filters-----------------------------------------------
     
@@ -1627,35 +1531,5 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     }
     return tagFilter.toString();
   }
-
-  private static String updateJdoqlVariableDeclaration(String jdoqlVariableDeclaration, String typeAndVariable) {
-    StringBuilder sb = new StringBuilder(jdoqlVariableDeclaration);
-    if (jdoqlVariableDeclaration.length() == 0) {
-      sb.append(" VARIABLES ");
-      sb.append(typeAndVariable);
-    }
-    else {
-      if (!jdoqlVariableDeclaration.contains(typeAndVariable)) {
-        sb.append("; ");
-        sb.append(typeAndVariable);
-      }
-    }
-    return sb.toString();
-  }
-
-  private static String updateParametersDeclaration(
-      String parameterDeclaration, String typeAndVariable) {
-    StringBuilder sb = new StringBuilder(parameterDeclaration);
-    if (parameterDeclaration.length() == 0) {
-      sb.append(" PARAMETERS ");
-    }
-    else {
-      sb.append(", ");
-    }
-    sb.append(typeAndVariable);
-    return sb.toString();
-  }
-
-
 
 }

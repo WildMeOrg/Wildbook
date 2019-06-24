@@ -10,6 +10,7 @@ import java.util.HashMap;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenOccReporter;
 
 import javax.jdo.*;
 
@@ -132,6 +133,8 @@ public class OccurrenceSearchExportGtm extends HttpServlet {
 
         OccurrenceQueryResult queryResult = OccurrenceQueryProcessor.processQuery(myShepherd, request, "");
         rOccurrences = queryResult.getResult();
+        HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request);
+        rOccurrences = hiddenData.securityScrubbedResults(rOccurrences);
 
         boolean removedDateless = rOccurrences.removeAll(getDatelessOccurrences(rOccurrences));
         int numMatchingOccurrences=rOccurrences.size();

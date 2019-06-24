@@ -236,6 +236,7 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
                 MarkedIndividual ind = new MarkedIndividual(name, enc);
                 if (sex != null) ind.setSex(sex);
                 myShepherd.storeNewMarkedIndividual(ind);
+                ind.refreshNamesCache();
                 log(importId, "created new " + ind);
             }
 

@@ -3,6 +3,7 @@ package org.ecocean.movement;
 import org.ecocean.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /** 
 *
@@ -23,38 +24,27 @@ public class SurveyTrack implements java.io.Serializable{
   private ArrayList<Occurrence> occurrences = new ArrayList<Occurrence>();
 
   private String surveyTrackID;
-  private String parentSurveyID;
   
   private String vesselID;
   private String locationID;
-  private String pathID;
   // Line transect, ect.
   private String type;
+    private Path path;
   
   private Measurement distance;
   
   private String dateTimeCreated;
   private String dateTimeModified;
   
-  public SurveyTrack(){};
-  
-  public SurveyTrack(String surveyID){
-    if (surveyID != null) {
-      this.parentSurveyID = surveyID; 
-      generateUUID();
-      setDateTimeCreated();
+    public SurveyTrack() {
+        generateUUID();
+        setDateTimeCreated();
     }
-  }
-  
-  public SurveyTrack(Survey survey){
-    if (survey != null) {
-      this.parentSurveyID = survey.getID();
-      generateUUID();
-      setDateTimeCreated();
-      setDateTimeCreated();
+    public SurveyTrack(Path p) {
+        this();
+        this.setPath(p);
     }
-  }
-  
+
   public String getDateTimeCreated() {
     if (dateTimeCreated != null) {
       return dateTimeCreated;
@@ -82,12 +72,24 @@ public class SurveyTrack implements java.io.Serializable{
     dateTimeModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
   }
   
-  public String getID(){
-    if (surveyTrackID != null && !surveyTrackID.equals("")) {
-      return surveyTrackID;      
+    //getStartTime() and getEndTime() and getComputedDuration() are based on our path!
+    public Long getStartTime() {
+        if (path == null) return null;
+        return path.getStartTimeMillis();
     }
-    return null;
-  }
+    public Long getEndTime() {
+        if (path == null) return null;
+        return path.getEndTimeMillis();
+    }
+
+    public Long getComputedDuration() {
+        if (path == null) return null;
+        return path.getComputedDuration();
+    }
+
+    public String getID(){
+        return surveyTrackID;
+    }
 
   public String getPrimaryKeyID(){
     return getID();
@@ -104,6 +106,7 @@ public class SurveyTrack implements java.io.Serializable{
     setID(id);
   }
   
+/*
   public String getParentSurveyID() {
     if (parentSurveyID != null) {
       return parentSurveyID;
@@ -111,35 +114,32 @@ public class SurveyTrack implements java.io.Serializable{
       return null;
     }
   }
-  
-  public void setPathID(String pid) {
-    if (pid != null && !pid.equals("") ) {
-      pathID = pid;
-      setDWCDateLastModified();
+*/
+
+    public void setPath(Path p) {
+        path = p;
+        setDWCDateLastModified();
     }
-  }
-  
-  public String getPathID() {
-    if (pathID != null) {
-      return pathID;
-    } else {
-      return null;
+
+    public Path getPath() {
+        return path;
     }
-  }
-  
-  public void setParentSurveyID(String id) {
-    if (id != null && !id.equals("") ) {
-      parentSurveyID = id;
-      setDWCDateLastModified();
+
+    public ArrayList<Occurrence> getOccurrences() {
+        return getAllOccurrences();
     }
-  }
-  
+
   public ArrayList<Occurrence> getAllOccurrences() {
     if (!occurrences.isEmpty()) {
       return occurrences; 
     }
     return null;
   }
+
+    public int numOccurrences() {
+        if (occurrences == null) return 0;
+        return occurrences.size();
+    }
   
   public Occurrence getOccurenceByID(String id) {
     for (int i=0; i<occurrences.size(); i++) {
@@ -161,6 +161,7 @@ public class SurveyTrack implements java.io.Serializable{
   public void addOccurrence(Occurrence occ) {
     try {
       if (occ != null&&!occurrences.contains(occ)) {
+        occ.setCorrespondingSurveyTrackID(this.getID()); //see FK rant, -jon
         occurrences.add(occ);
         setDWCDateLastModified();
       }
@@ -170,6 +171,10 @@ public class SurveyTrack implements java.io.Serializable{
     } 
   }
   
+    public void setOccurrences(ArrayList<Occurrence> occs) {
+        occurrences = occs;
+    }
+
   public void addMultipleOccurrences(ArrayList<Occurrence> occArray, Shepherd myShepherd) {
     if (occArray.size() >= 1) {
       for (Occurrence occ : occArray) {
@@ -181,17 +186,16 @@ public class SurveyTrack implements java.io.Serializable{
     }
   }
 
-  private void createPointLocationForPath(double lat, double lon, Long milliDate, Shepherd myShepherd) {
-    PointLocation pt = new PointLocation(lat,lon,milliDate);
-    Path pth = getOrCreatePath(pathID,myShepherd);
-    if (pth!=null) {
-      myShepherd.beginDBTransaction();
-      myShepherd.getPM().makePersistent(pt);
-      myShepherd.commitDBTransaction();
-      pth.addPointLocation(pt);
+    private void createPointLocationForPath(double lat, double lon, Long milliDate) {
+        PointLocation pt = new PointLocation(lat,lon,milliDate);
+        if (path == null) {
+            path = new Path(pt); //this seems a better constructor, so lets go with it
+            return;
+        }
+        path.addPointLocation(pt);
     }
-  }
-  
+
+/*
   private Path getOrCreatePath(String pathID, Shepherd myShepherd) {
     Path pth = null;
     myShepherd.beginDBTransaction();
@@ -209,12 +213,10 @@ public class SurveyTrack implements java.io.Serializable{
     }
     return pth;
   }
+*/
   
   public Measurement getDistance() {
-    if (distance != null) {
-      return distance;
-    }
-    return null;
+        return distance;
   }
   
   public void setDistance(Measurement dist) {
@@ -272,7 +274,14 @@ public class SurveyTrack implements java.io.Serializable{
   private void generateUUID() {
     this.surveyTrackID = Util.generateUUID();
   }
-  
+
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("id", getID())
+            .append("occs", this.numOccurrences())
+            .append("path", path)
+            .toString();
+    }
 }
 
 

@@ -33,6 +33,8 @@ import org.ecocean.identity.*;
 import org.ecocean.queue.*;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
+import org.ecocean.User;
+import org.ecocean.AccessControl;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -537,7 +539,17 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
             }
             Task task = Task.load(taskId, myShepherd);
             if (task == null) task = new Task(taskId);
-            task.setParameters(j.optJSONObject("taskParameters")); //optional
+            JSONObject tparams = j.optJSONObject("taskParameters"); //optional
+            if (tparams == null) tparams = new JSONObject();  //but we want it, to set user:
+            User tuser = AccessControl.getUser(request, myShepherd);
+            if (tuser == null) {  //"anonymous" but we want to make sure we zero these out to prevent them from being passed in
+                tparams.remove("userId");
+                tparams.remove("username");
+            } else {
+                tparams.put("userId", tuser.getUUID());
+                tparams.put("username", tuser.getUsername());
+            }
+            task.setParameters(tparams);
             myShepherd.storeNewTask(task);
             myShepherd.commitDBTransaction();  //hack
             //myShepherd.closeDBTransaction();
