@@ -36,7 +36,7 @@ wildbook.IA.plugins.push({
             function(enh) {  //the menu text for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 var menuText = '';
-                if (iaStatus && iaStatus.status && iaStatus.status != 'initiated') {
+                if (wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus)) {
                     menuText += 'matching in progress, status: <span title="task ' + iaStatus.taskId;
                     menuText += '" class="image-enhancer-menu-item-iastatus-';
                     menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
@@ -85,7 +85,7 @@ wildbook.IA.plugins.push({
             function(enh) {
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 var menuText = '';
-                if (iaStatus && iaStatus.status) { // corresponds to "matching already initiated" above
+                if (wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus)) {
 
                     var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
@@ -171,6 +171,7 @@ wildbook.IA.plugins.push({
         var rtn = {
             status: ma.detectionStatus,
             statusText: ma.detectionStatus,
+            task: ma.tasks[0],
             //taskId: ma.tasks[0].id  //<-- fyi master had this fix(??)
             taskId: ma.tasks[ma.tasks.length - 1].id
         };
@@ -183,6 +184,13 @@ wildbook.IA.plugins.push({
             rtn.statusText = 'active (see results)';
         }
         return rtn;
+    },
+
+    iaStatusIdentActive: function(ias) {
+        if (!ias || !ias.task) return false;
+        if (ias.task.parameters && ias.task.parameters.skipIdent) return false;  //detection-only job; not good enough
+console.warn('ias => %o', ias);
+        return true;
     },
 
     restCall: function(data, callback) {
