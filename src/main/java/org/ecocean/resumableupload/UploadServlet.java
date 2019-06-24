@@ -38,7 +38,6 @@ public class UploadServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
-
 	/*
 	 * In ORDER to allow CORS  to multiple domains you can set a list of valid domains here
 	 */
@@ -48,9 +47,9 @@ public class UploadServlet extends HttpServlet {
 	// For user-facing web bulk upload.
 	public static String getSubdirForUpload(Shepherd myShepherd, HttpServletRequest request) {
 		String subdir = ServletUtilities.getParameterOrAttribute("subdir",request);
-		if (subdir == null) {
-			System.out.println("No subdir is set for upload; setting subdir to username");
-			subdir = AccessControl.simpleUserString(request);
+		if (subdir==null) {
+			System.out.println("No subidr is set for upload; setting subdir to username");
+			subdir = myShepherd.getUsername(request);
 		}
 		return subdir;
 	}
@@ -254,7 +253,7 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
     private static void ensureDirectoryExists(String fullPath) {
     	File directory = new File(fullPath);
     	if (!directory.isDirectory()) directory.mkdirs();
-        }
+    }
 
 	private FlowInfo getFlowInfo(List<FileItem> parts, HttpServletRequest request) throws ServletException {
             int FlowChunkSize = -1;

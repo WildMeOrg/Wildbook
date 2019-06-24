@@ -157,10 +157,6 @@ public class WebImport extends HttpServlet {
 
 
     int printPeriod = 1;
-    String importId = Util.generateUUID();
-    LocalDateTime ldt = new LocalDateTime();
-    String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
-    System.out.println("===== importId " + importId + " (committing=" + committing + ")");
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Parsed Import Table</h2>"); 
     System.out.println("debug0");
@@ -186,9 +182,7 @@ public class WebImport extends HttpServlet {
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
         Encounter enc = loadEncounter(row, annotations);
-        enc.addComments(importComment);
         occ = loadOccurrence(row, occ, enc);
-        occ.addComments(importComment);
         mark = loadIndividual(row, enc);
 
         if (committing) {
@@ -272,8 +266,7 @@ public class WebImport extends HttpServlet {
 
     out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
 
-    out.println("<h2>Import completed successfully</h2>");
-    if (committing) out.println("<p>Import reference ID <b>" + importId + "</b></p>");
+    out.println("<h2>Import completed successfully</h2>");    
     //fs.close();
 
 
@@ -303,6 +296,9 @@ public class WebImport extends HttpServlet {
   	Occurrence occ = getCurrentOccurrence(oldOcc, row);
   	// would love to have a more concise way to write following couplets, c'est la vie
 
+  	Double seaSurfaceTemp = getDouble (row, "Occurrence.seaSurfaceTemperature");
+  	if (seaSurfaceTemp != null) occ.setSeaSurfaceTemp(seaSurfaceTemp);
+
   	Integer individualCount = getInteger(row, "Occurrence.individualCount");
   	if (individualCount!=null) occ.setIndividualCount(individualCount);
 
@@ -317,10 +313,60 @@ public class WebImport extends HttpServlet {
       occ.setDecimalLongitude(decimalLongitude);
     }
 
+  	String fieldStudySite = getString(row, "Occurrence.fieldStudySite");
+  	if (fieldStudySite!=null) occ.setFieldStudySite(fieldStudySite);
+
+  	String groupComposition = getString(row, "Occurrence.groupComposition");
+  	if (groupComposition!=null) occ.setGroupComposition(groupComposition);
+
+  	String fieldSurveyCode = getString(row, "Survey.id");
+    if (fieldSurveyCode==null) fieldSurveyCode = getString(row, "Occurrence.fieldSurveyCode");
+  	if (fieldSurveyCode!=null) occ.setFieldSurveyCode(fieldSurveyCode);
+
+  	String sightingPlatform = getString(row, "Survey.vessel");
+    if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation");
+  	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatform);
     String surveyComments = getString(row, "Survey.comments");
     if (surveyComments!=null) occ.addComments(surveyComments);
 
+    Integer numAdults = getInteger(row, "Occurrence.numAdults");
+    if (numAdults!=null) occ.setNumAdults(numAdults);
+
+    Integer minGroupSize = getInteger(row, "Occurrence.minGroupSizeEstimate");
+    if (minGroupSize!=null) occ.setMinGroupSizeEstimate(minGroupSize);
+    Integer maxGroupSize = getInteger(row, "Occurrence.maxGroupSizeEstimate");
+    if (maxGroupSize!=null) occ.setMaxGroupSizeEstimate(maxGroupSize);
+    Double bestGroupSize = getDouble(row, "Occurrence.bestGroupSizeEstimate");
+    if (bestGroupSize!=null) occ.setBestGroupSizeEstimate(bestGroupSize);
+
+    Integer numCalves = getInteger(row, "Occurrence.numCalves");
+    if (numCalves!=null) occ.setNumCalves(numCalves);
+    Integer numJuveniles = getInteger(row, "Occurrence.numJuveniles");
+    if (numJuveniles!=null) occ.setNumJuveniles(numJuveniles);
+
+
+    Double bearing = getDouble(row, "Occurrence.bearing");
+    if (bearing!=null) occ.setBearing(bearing);
+    Double distance = getDouble(row, "Occurrence.distance");
+    if (distance!=null) occ.setDistance(distance);
+
+    Double swellHeight = getDouble(row, "Occurrence.swellHeight");
+    if (swellHeight!=null) occ.setSwellHeight(swellHeight);
+    String seaState = getString(row, "Occurrence.seaState");
+    if (seaState!=null) occ.setSeaState(seaState);
+    Double visibilityIndex = getDouble(row, "Occurrence.visibilityIndex");
+    if (visibilityIndex!=null) occ.setVisibilityIndex(visibilityIndex);
+
+    Double transectBearing = getDouble(row, "Occurrence.transectBearing");
+    if (transectBearing!=null) occ.setTransectBearing(transectBearing);
+    String transectName = getString(row, "Occurrence.transectName");
+    if (transectName!=null) occ.setTransectName(transectName);
+
     String initialCue = getString(row, "Occurrence.initialCue");
+    String humanActivity = getString(row, "Occurrence.humanActivityNearby");
+    if (humanActivity!=null) occ.setHumanActivityNearby(humanActivity);
+    Double effortCode = getDouble(row, "Occurrence.effortCode");
+    if (effortCode!=null) occ.setEffortCode(effortCode);
 
     Taxonomy taxy = loadTaxonomy0(row);
     if (taxy!=null) occ.addTaxonomy(taxy);
@@ -329,6 +375,7 @@ public class WebImport extends HttpServlet {
     if (taxy1!=null) occ.addTaxonomy(taxy1);
 
   	String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
+  	if (surveyTrackVessel!=null) occ.setSightingPlatform(surveyTrackVessel);
 
   	Long millis = getLong(row, "Encounter.dateInMilliseconds");
     if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
@@ -339,7 +386,7 @@ public class WebImport extends HttpServlet {
       occ.addEncounter(enc);
       // overwrite=false on following fromEncs methods
       occ.setLatLonFromEncs(false);
-      //occ.setSubmitterIDFromEncs(false);
+      occ.setSubmitterIDFromEncs(false);
     }
 
   	return occ;
@@ -428,6 +475,7 @@ public class WebImport extends HttpServlet {
   	if (submitterName!=null) enc.setSubmitterName(submitterName);
 
   	Integer patterningCode = getInteger(row, "Encounter.patterningCode");
+  	if (patterningCode!=null) enc.setFlukeType(patterningCode);
 
   	String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
   	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
@@ -451,6 +499,7 @@ public class WebImport extends HttpServlet {
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);
 
     String groupRole = getString(row, "Encounter.groupRole");
+    if (groupRole!=null) enc.setGroupRole(groupRole);
 
     String researcherComments = getString(row, "Encounter.researcherComments");
     if (researcherComments!=null) enc.addComments(researcherComments);
@@ -1143,7 +1192,6 @@ public class WebImport extends HttpServlet {
   // Apache POI, shame on you for making me write this. Shame! Shame! Shame! SHAME!
   // (as if I actually wrote this. thanks stackoverflow!)
   public static boolean isRowEmpty(Row row) {
-    if (row == null) return true;
     for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
         Cell cell = row.getCell(c);
         if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)

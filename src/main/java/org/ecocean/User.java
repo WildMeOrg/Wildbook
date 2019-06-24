@@ -12,6 +12,8 @@ import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * <code>User</code> stores information about a contact/user.
  * Examples: photographer, submitter
@@ -46,10 +48,12 @@ public class User implements Serializable {
 
   private long lastLogin=-1;
   
-  	private String username;
-  	private String password ;
-  	private String salt;
-  	private String uuid;
+	private String username;
+	private String password ;
+	private String salt;
+	private String uuid;
+	
+	//String currentContext;
   	
   	//String currentContext;
   	
@@ -59,6 +63,9 @@ public class User implements Serializable {
   	private boolean acceptedUserAgreement=false;
   
   private boolean receiveEmails=true; 
+
+  // turning this off means the user is greedy and mean: they never share data and nobody ever shares with them
+  private Boolean sharing=true;
 
 	private HashMap<String,String> social;
   	
@@ -130,6 +137,29 @@ public class User implements Serializable {
     RefreshDate();
   }
 
+    public String getDisplayName() {
+        if (fullName != null) return fullName;
+        if (username != null) return username;
+        return uuid;
+    }
+
+  // this is handy for UI: does this user (belong to an organization that) use a custom .properties file?
+  public boolean hasCustomProperties() {
+    return ShepherdProperties.userHasOverrideString(this);
+  }
+  public static boolean hasCustomProperties(HttpServletRequest request) {
+    if (request == null) return false;
+    String manualOrg = request.getParameter("organization");
+    if (Util.stringExists(manualOrg)) {
+      if (ShepherdProperties.orgHasOverwrite(manualOrg)) return true;
+    }
+    Shepherd myShepherd = new Shepherd(request);
+    User user = myShepherd.getUser(request);
+    if (user == null) return false;
+    return user.hasCustomProperties();
+  }
+
+
   public String getEmailAddress ()
   {
     return this.emailAddress;
@@ -190,6 +220,9 @@ public class User implements Serializable {
     else{this.affiliation=null;}
     RefreshDate();
   }
+  public boolean hasAffiliation (String affiliation) {
+    return (this.affiliation!=null && affiliation!=null && this.affiliation.toLowerCase().indexOf(affiliation.toLowerCase())>=0);
+  }
 
   public String getNotes ()
   {
@@ -206,7 +239,14 @@ public class User implements Serializable {
     return this.dateInMilliseconds;
   }
 
-
+  public boolean hasSharing() {
+    // if you haven't specified a sharing policy YOU'RE SHARING
+    if (sharing==null) return true;
+    return sharing;
+  }
+  public void setSharing(boolean sharing) {
+    this.sharing = sharing;
+  }
 
 
   	public long getUserID() {
@@ -339,6 +379,13 @@ public class User implements Serializable {
     public List<Organization> getOrganizations() {
         return organizations;
     }
+    // Use this method to find out what organization-wide nameKey a user would want, to use to generate new individual names.
+    public String getIndividualNameKey() {
+        for (Organization org: organizations) {
+          if (Util.stringExists(org.getIndividualNameKey())) return org.getIndividualNameKey();
+        }
+        return null;
+    }
     public void setOrganizations(List<Organization> orgs) {
         organizations = orgs;
         this.organizationsReciprocate(orgs);
@@ -378,6 +425,19 @@ public class User implements Serializable {
         List<Organization> orgs = new ArrayList<Organization>();
         orgs.add(org);
         organizationsReciprocate(orgs);
+    }
+
+    //basically mean uuid-equivalent, so deal
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof User)) return false;
+        User two = (User)u2;
+        if ((this.uuid == null) || (two == null) || (two.getUUID() == null)) return false;
+        return this.uuid.equals(two.getUUID());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (uuid == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return uuid.hashCode();
     }
 
     public String toString() {

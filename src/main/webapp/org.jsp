@@ -46,6 +46,7 @@ if ((oid == null) && (uid == null)) {  //show all
             out.println("<p>url: <i>none</i></p>");
         }
         out.println("<p>description: <b>" + org.getDescription() + "</b></p>");
+        out.println("<p>getIndividualNameKey: <b>" + org.getIndividualNameKey() + "</b></p>");
         if (org.numMembers() < 1) {
             out.println("<p><i>no members</i></p>");
         } else {
@@ -77,6 +78,7 @@ if ((oid == null) && (uid == null)) {  //show all
         out.println("<p>unknown User id=" + uid + "</p>");
     } else {
         out.println("<h1>" + user.getFullName() + " / username=<i>" + user.getUsername() + "</i></h1>");
+        out.println("<b><a href=\"user.jsp?id=" + user.getUUID() + "\">profile</a></b>");
         List<Organization> orgs = user.getOrganizations();
         if ((orgs == null) || (orgs.size() < 1)) {
             out.println("<p><i>no orgs</i></p>");

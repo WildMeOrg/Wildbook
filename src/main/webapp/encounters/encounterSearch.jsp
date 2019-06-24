@@ -3,14 +3,55 @@
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
-<%@ page import="java.util.Properties" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ page import="java.util.Properties, java.io.IOException" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%!
+// here I'll define some methods that will end up in classEditTemplate
+
+public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+  out.println("<tr id=\""+fieldName+"Row\">");
+  out.println("  <td id=\""+fieldName+"Title\"><br /><strong>"+displayName+"</strong>");
+  out.println("  <input name=\""+fieldName+"\" type=\"text\" size=\"60\"/> <br> </td>");
+  out.println("</tr>");
+
+}
+public static void printStringFieldSearchRow(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+  out.println("<tr id=\""+fieldName+"Row\">");
+  out.println("  <td id=\""+fieldName+"Title\">"+displayName+"</td>");
+  out.println("  <td> <select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
+  out.println("    <option value=\"None\" selected=\"selected\"></option>");
+  for (String val: valueOptions) {
+    out.println("    <option value=\""+val+"\">"+val+"</option>");
+  }
+  out.println("  </select></td>");
+  out.println("</tr>");
+
+}
+
+public static String getDisplayName(String fieldName, Properties nameLookup) throws IOException, IllegalAccessException {
+  // Tries to lookup a translation and defaults to some string manipulation
+  String defaultName = ClassEditTemplate.prettyFieldName(fieldName);
+  String ans = nameLookup.getProperty(fieldName, ClassEditTemplate.capitalizedPrettyFieldName(fieldName));
+  if (Util.stringExists(ans)) return ans;
+  System.out.println("getDisplayName found no property for "+fieldName+" in "+nameLookup+". Falling back on fieldName");
+  return fieldName;
+}
+%>
+
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
 
 String langCode=ServletUtilities.getLanguageCode(request);
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
+boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
 %>
 
@@ -62,7 +103,33 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 </head>
 
-<style type="text/css">v\:* {
+<style type="text/css">
+/* this .search-collapse-header .rotate-chevron logic doesn't work
+ because animatedcollapse.js is eating the click event (I think.).
+ It's unclear atm where/whether to modify animatedcollapse.js to
+ rotate this chevron.
+*/
+.search-collapse-header .rotate-chevron {
+    -moz-transition: transform 0.5s;
+    -webkit-transition: transform 0.5s;
+    transition: transform 0.5s;
+}
+.search-collapse-header .rotate-chevron.down {
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+</style>
+<script>
+$(".search-collapse-header a").click(function(){
+    console.log("LOG!: collapse-header is clicked!");
+    $(this).children(".rotate-chevron").toggleClass("down");
+});
+</script>
+
+
+<style type="text/css"> {
   behavior: url(#default#VML);  
    .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
@@ -96,6 +163,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
 }
 </style>
+
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 
@@ -185,8 +253,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("encounterSearch.jsp");
-  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();
 
 
@@ -212,7 +278,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 
-<form action="searchResults.jsp" method="get" name="search" id="search">
+<form action="searchResults.jsp" method="get" name="encounterSearch" id="search">
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
@@ -302,11 +368,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <tr>
   <td width="810px">
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a>
-      <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
-        color="#000000"><%=encprops.getProperty("locationFilter") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><span class="el el-lg el-chevron-down rotate-chevron"></span> <%=encprops.getProperty("locationFilter") %></a></h4>
 
 
     
@@ -331,7 +394,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 1;
+	var mapZoom = 1.5;
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -440,10 +503,9 @@ function useData(doc){
 </tr>
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.get("locationFilterText") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.get("locationFilterText") %></a></h4>
 
     <div id="location" style="display:none; ">
       <p><%=encprops.getProperty("locationInstructions") %></p>
@@ -462,9 +524,10 @@ function useData(doc){
         </em>)</p>
 
       <%
-        List<String> locIDs = myShepherd.getAllLocationIDs();
+        List<String> locIDs = useCustomProperties
+        	? CommonConfiguration.getIndexedPropertyValues("locationID", request)
+        	: myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
-
         if (totalLocIDs >= 1) {
       %>
 
@@ -505,31 +568,16 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   
   <select name="country" id="country" multiple="multiple" size="5">
   	<option value="None" selected="selected"></option>
-  <%
-  			       boolean hasMoreCountries=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreCountries){
-  			       	  String currentCountry = "country"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreCountries=false;
-  			          }
-  			          
-			       }
-			       if(stageNum==0){%>
-			    	   <em><%=encprops.getProperty("noCountries")%></em>
-			       <% 
-			       }
-			       %>
-			       
-
+  		<%
+  		List<String> countries = (useCustomProperties)
+  			? CommonConfiguration.getIndexedPropertyValues("country", request)
+  			: CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
+  		for (String country: countries) {
+  			%><option value="<%=country%>"><%=country%></option><%
+	  	}
+      if(Util.isEmpty(countries)){%>
+    	  <em><%=encprops.getProperty("noCountries")%></em>
+      <%}%>
   </select>
   </td></tr></table>
 <%
@@ -544,10 +592,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("dateFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("dateFilters") %></a></h4>
   </td>
 </tr>
 
@@ -638,10 +685,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("observationFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("observationFilters") %></a></h4>
   </td>
 </tr>
 
@@ -760,7 +806,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 							</span>
             </em><br/>
               <%
-				List<String> behavs = myShepherd.getAllBehaviors();
+				List<String> behavs = (useCustomProperties)
+					? CommonConfiguration.getIndexedPropertyValues("behavior", request)
+					: myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
 				
@@ -797,6 +845,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       </p>
   </td>
 </tr>
+
+<!-- groupRole categorical: using ClassEditTemplate -->
+<%
+ClassEditTemplate.printStringFieldSearchRowCategories("groupRole",out,encprops);
+%>
+
 <%
 
 if(CommonConfiguration.showProperty("showLifestage",context)){
@@ -918,9 +972,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       <%
 
 
-        Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
-        for (int n = 0; n < totalKeywords; n++) {
-          Keyword word = keys.next();
+        Iterator<Keyword> keys = myShepherd.getAllKeywords();
+        while (keys.hasNext()) {
+        	Keyword word = (Keyword)keys.next();
       %>
       <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
       </option>
@@ -962,10 +1016,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("identityFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("identityFilters") %></a></h4>
   </td>
 </tr>
 <tr>
@@ -1029,10 +1082,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <c:if test="${showMetalTags or showAcousticTag or showSatelliteTag}">
  <tr>
      <td>
-     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-       <font color="#000000"><%=encprops.getProperty("tagsTitle") %></font></a></h4>
+     <h4 class="intro search-collapse-header"><a
+       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+       <%=encprops.getProperty("tagsTitle") %></a></h4>
      </td>
  </tr>
  <tr>
@@ -1084,10 +1136,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("biologicalSamples") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("biologicalSamples") %></a></h4>
   </td>
 </tr>
 <tr>
@@ -1276,10 +1327,9 @@ else {
 <tr>
   <td>
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("metadataFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("metadataFilters") %></a></h4>
   </td>
 </tr>
 
@@ -1310,13 +1360,15 @@ else {
 		</td>
         </tr>
 		
-		<tr>
-  <td><br /><strong><%=encprops.getProperty("submitterName")%></strong>
+<tr>
+  <td><br /><strong><%=encprops.getProperty("submitterName")%></strong><br />
     <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
     </em>
   </td>
 </tr>
 
+<% printStringFieldSearchRow("submitterProject", out, encprops); %>
+<% printStringFieldSearchRow("submitterOrganization", out, encprops); %>
 
 
 <tr>
@@ -1333,7 +1385,7 @@ else {
       	Shepherd inShepherd=new Shepherd("context0");
       inShepherd.setAction("encounterSearch.jsp2");
       myShepherd.beginDBTransaction();
-        List<User> users = inShepherd.getUsersWithUsername("username ascending");
+        List<User> users = inShepherd.getNativeUsers();
         int numUsers = users.size();
 
       %>
@@ -1390,6 +1442,9 @@ inShepherd.closeDBTransaction();
 </table>
 <br />
 </div>
+
+<script type="text/javascript" src="../javascript/formNullRemover.js"></script>
+
 <jsp:include page="../footer.jsp" flush="true"/>
 
 

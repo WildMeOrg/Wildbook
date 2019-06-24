@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.concurrent.ThreadPoolExecutor;
-//import java.util.HashMap;
+import org.joda.time.DateTime;
 
 import java.io.*;
 
@@ -121,21 +121,17 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         myShepherd.setAction("EncounterCreate.class");
         myShepherd.beginDBTransaction();
 
+        User reqUser = AccessControl.getUser(request, myShepherd);
+
+        String occId = jin.optString("occurrenceId", null);
+        Occurrence occ = null;
+        if (occId != null) occ = myShepherd.getOccurrence(occId);
+
+        String uid = jin.optString("userId", null);
+        User subUser = null;
+        if (uid != null) subUser = myShepherd.getUserByUUID(uid);
+
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);  //only needed for url-sourced images really
-/*
-        AssetStore.init(AssetStoreFactory.getStores(myShepherd));
-        if ((AssetStore.getStores() == null) || (AssetStore.getStores().size() < 1)) {
-            throw new IOException("no AssetStores found");
-        }
-        AssetStore urlStore = null;
-        for (AssetStore st : AssetStore.getStores().values()) {
-            if (st instanceof URLAssetStore) {
-                urlStore = (URLAssetStore)st;
-                break;
-            }
-        }
-        if (urlStore == null) throw new IOException("no URLAssetStore configured");
-*/
 
         JSONArray jmas = new JSONArray();
         JSONArray janns = new JSONArray();
@@ -209,8 +205,24 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         } else {
             //(for logged in user only) allow option to forcibly set matchingOnly=false to toggle (default is matching only)
             if (jin.optBoolean("matchingOnly", true)) enc.setMatchingOnly();
+            /*
+                even tho setSubmitterID should be set (via .setAccessControl() below) for logged in users,
+                we are going to set email address as well.  this allows for a (encounter-specific) email address different
+                than the user object has set -- and this email address will be used (below) to send email about IA task(s)
+            */
+            enc.setSubmitterEmail(email);
         }
         enc.setAccessControl(request);
+
+        enc.addComments("<p>created on " + new DateTime() + ((reqUser == null) ? "" : " by " + reqUser.getDisplayName()) + "</p>");
+
+        if ((subUser == null) && (reqUser != null)) {
+            enc.addSubmitter(reqUser);
+        } else if ((subUser != null) && (("admin".equals(reqUser.getUsername())) || subUser.equals(reqUser))) {
+            enc.addSubmitter(subUser);  //only set as subUser if it is the user hitting this servlet or admin
+        }
+
+        if (occ != null) occ.addEncounterAndUpdateIt(enc);
 
         if (dateMilliseconds > 0) {
             enc.setDateInMilliseconds(dateMilliseconds);
@@ -236,7 +248,7 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
         //this might be better toggled by a boolean passed in, but for now lets run it by default
         //  (since this only acts under match.jsp which intentionally disables IA when creating the assets)
         // TODO we also could look at .detectionStatus on assets maybe???
-        if (maIds.size() > 0) {
+        if ((maIds.size() > 0) && !jin.optBoolean("skipIA", false)) {
             //must be done after commit above, to ensure assets are persisted (for queue thread)
             myShepherd = new Shepherd(context);
             myShepherd.setAction("EncounterCreate.class_IA.intake");
@@ -338,12 +350,21 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
               }
               if (!allowed) continue;
               //ok, this is really us!
+/*  ok, this logic was messed up, as userEmail was ALWAYS null at this point, so we are just trusting submitterEmail for now!
               if (userEmail == null) {
                   userEmail = enc.getSubmitterEmail();
               } else if (!userEmail.equals(enc.getSubmitterEmail())) {
                   rtn.put("error", "inconsistent encounter email addresses");
                   return rtn;
               }
+*/
+            userEmail = enc.getSubmitterEmail();
+            if (userEmail == null) {
+                rtn.put("error", "unable to get email address from encounter " + enc);
+                return rtn;
+            }
+            System.out.println("INFO: EncounterCreate.sendEmail() sending to " + userEmail + " <- " + enc);
+
               ecount++;
               encLinks += " - " + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\n";
               encLinksHtml += "<li><a href=\"" + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\">Encounter " + ecount + "</a></li>\n";

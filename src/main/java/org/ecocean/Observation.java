@@ -87,14 +87,17 @@ public class Observation implements java.io.Serializable {
       value= newValue;}
   }
   
-  private void setDateAddedMilli() {
-    long added = new DateTime().getMillis();
+    private void setDateAddedMilli() {
+        setDateAddedMilli(null);
+    }
+  public void setDateAddedMilli(Long added) {
+    if (added == null) added = System.currentTimeMillis();
     dateAddedMilli = added;
   }
   
   public void setDateLastModifiedMilli() {
     long modified = new DateTime().getMillis();
-    dateAddedMilli = modified;
+    dateModifiedMilli = modified;
   }
   
   public Long getDateAddedMilli() {
