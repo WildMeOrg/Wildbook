@@ -110,6 +110,22 @@ public class Shepherd {
     this(ServletUtilities.getContext(req));
   }
 
+  // static method so the programmer knows this is an *active* Shepherd
+  public static Shepherd newActiveShepherd(String context, String action) {
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction(action);
+    myShepherd.beginDBTransaction();
+    return myShepherd;
+  }
+  public static Shepherd newActiveShepherd(HttpServletRequest req, String action) {
+    return newActiveShepherd(ServletUtilities.getContext(req), action);
+  }
+  // handy with a newActiveShepherd
+  public void rollbackAndClose() {
+    rollbackDBTransaction();
+    closeDBTransaction();
+  }
+
     public String getContext() {
         return localContext;
     }
