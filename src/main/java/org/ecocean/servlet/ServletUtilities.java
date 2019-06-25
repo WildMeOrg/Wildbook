@@ -751,6 +751,15 @@ public static void printParams(HttpServletRequest request) {
   }
 }
 
+public static List<String> getIndexedParameters(String key, HttpServletRequest request) {
+  List<String> vals = new ArrayList<String>();
+  for(int i=0;i<100000;i++) { // hundred thousand seems like a reasonable upper limit right?
+    String val = request.getParameter(key+i);
+    if (Util.stringExists(val)) vals.add(val);
+    else return vals;
+  }
+  return vals;
+}
 
 public static String getParameterOrAttribute(String name, HttpServletRequest request) {
     if (name == null) return null;

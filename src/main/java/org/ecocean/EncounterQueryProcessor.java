@@ -752,6 +752,10 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
     //------------------------------------------------------------------
     //keyword filters-------------------------------------------------
+
+    // shared var between keywords and labeledKeywords
+    int nUnlabeledKeywords=0;
+
     myShepherd.beginDBTransaction();
     String[] keywords=request.getParameterValues("keyword");
     String photoKeywordOperator = "&&";
@@ -769,6 +773,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
         prettyPrint.append("All of these MediaAsset keywords are applied: ");
       }
           int kwLength=keywords.length;
+          nUnlabeledKeywords += kwLength;
 
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
               String locIDFilter="(";
@@ -819,6 +824,87 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
     //end photo keyword filters-----------------------------------------------
 
+
+
+    //------------------------------------------------------------------------
+    //labeled keyword filters-------------------------------------------------
+    List<String> labels = ServletUtilities.getIndexedParameters("label", request);
+    System.out.println("LKW filter got labels "+labels);
+    int index=0;
+    boolean multipleLabels = labels.size()>1;
+
+    // lkwFilter should look like:
+    // (annotations.contains(photo0) && photo0.features.contains(feat0) && feat0.asset.keywords.contains(word0) && 
+    //  word0.label == "label" && (word0.readableName == "val1" || word0.readableName == "val2"))
+    //  VARIABLES org.ecocean.Annotation photo0;org.ecocean.Keyword word0;org.ecocean.media.Feature feat0 
+    String lkwFilter = "(";
+    for (int labelN=0;labelN<labels.size();labelN++) {
+      int kwNum = labelN + nUnlabeledKeywords;
+      String label = labels.get(labelN);
+
+      if (labelN==0) {
+        prettyPrint.append("Has a photo with the LabeledKeyword label \""+label+"\"");
+      } else {
+        prettyPrint.append(",<br>\t AND a photo with the LabeledKeyword label \""+label+"\"");
+        lkwFilter+= " && ";
+      }
+      lkwFilter += "(";
+
+      //------ start variables and declarations for this LKW
+      String annotVar = "photo"+kwNum;
+      lkwFilter += "annotations.contains("+annotVar+")";
+      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Annotation "+annotVar);
+
+      String featVar = "feat"+kwNum;
+      lkwFilter += " && "+annotVar+".features.contains("+featVar+")";
+      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.media.Feature "+featVar);
+
+      String wordVar = "word"+kwNum;
+      lkwFilter += " && "+featVar+".asset.keywords.contains("+wordVar+")";
+      // TODO: is jdoql OK with typing wordVar as a LabeledKeyword even though features have a plain Keyword list?
+      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.LabeledKeyword "+wordVar);
+      //------ done with variables and declarations for this LKW
+
+      lkwFilter += " && "+wordVar+".label == "+Util.quote(label);
+      // the filter is now done if we don't have any values defined --- so we're querying for an enc with this label on a keyword.
+
+
+      String valueKey = "label"+labelN+".values";
+      String[] values=request.getParameterValues(valueKey);
+      if (values!=null) {
+        System.out.println("EQP got valueKey "+valueKey+" and values "+String.join(", ", values));
+        String valueFilter = "(";
+        for (int valueN=0;valueN<values.length;valueN++) {
+          if (valueN>0) valueFilter+=" || ";
+          valueFilter += wordVar+".readableName == "+Util.quote(values[valueN]);
+        }
+        valueFilter+=")";
+        if (!valueFilter.equals("()")) lkwFilter+=" && "+valueFilter;
+
+        if (values.length==1) {
+          prettyPrint.append(" with value \""+values[0]+"\"");
+        } else if (values.length>1) {
+          String allVals = String.join("\", OR \"", values);
+          allVals = "\""+allVals+"\"";
+          prettyPrint.append(" with value ("+allVals+")");
+        }
+      } else {
+        System.out.println("EQP got null values for valueKey "+valueKey);
+      }
+      lkwFilter+=")";
+    }
+    lkwFilter+=")";
+
+    System.out.println("EQP got lkwFilter "+lkwFilter);
+    if (!lkwFilter.equals("()")) {
+      filter = filterWithCondition(filter, lkwFilter);
+      prettyPrint.append("<br>");
+    }
+
+
+
+
+    // end labeled keyword filters
 
 
     //------------------------------------------------------------------
