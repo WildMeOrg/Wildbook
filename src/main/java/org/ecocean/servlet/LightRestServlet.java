@@ -240,6 +240,7 @@ public class LightRestServlet extends HttpServlet
                 String servletID=Util.generateUUID();
                 ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "new");
                 
+        System.out.println("        LIGHTREST: has queryString "+queryString);
                 
                 try
                 {
@@ -253,6 +254,7 @@ public class LightRestServlet extends HttpServlet
                         query.getFetchPlan().addGroup(fetchParam);
                     }
                     Object result = filterResult(query.execute());
+        System.out.println("        LIGHTREST: executed query "+query);
                     if (result instanceof Collection)
                     {
                         JSONArray jsonobj = convertToJson(req, (Collection)result, ((JDOPersistenceManager)pm).getExecutionContext());
@@ -265,6 +267,7 @@ public class LightRestServlet extends HttpServlet
                         JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
                         //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result,
                             //((JDOPersistenceManager)pm).getExecutionContext());
+        System.out.println("        LIGHTREST: has jsonobj, about to tryCompress ");
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
                     query.closeAll();

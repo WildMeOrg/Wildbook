@@ -36,16 +36,19 @@ wildbook.IA.plugins.push({
             function(enh) {  //the menu text for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 var menuText = '';
-                if (iaStatus && iaStatus.status && iaStatus.status != 'initiated') {
+                if (wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus)) {
+/*
                     menuText += 'matching in progress, status: <span title="task ' + iaStatus.taskId;
                     menuText += '" class="image-enhancer-menu-item-iastatus-';
                     menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
+*/
+                    menuText += 'match results';
                     // here we want to add another item to start another matching job?
                 } else {
     	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
                     // TODO logic for actual detectionstatus values
-                    if (ma.detectionStatus) {
+                    if (ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
                         menuText = 'Still waiting for detection results. Refresh page to see updates.'
                     } else if (ma.taxonomyString) {
                         menuText = 'start matching';
@@ -59,7 +62,7 @@ wildbook.IA.plugins.push({
             },
             function(enh) {  //the menu action for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                if (iaStatus && iaStatus.taskId && iaStatus.status != 'initiated') {
+                if (wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus)) {
                     registerTaskId(iaStatus.taskId);
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 } else {
@@ -67,7 +70,7 @@ wildbook.IA.plugins.push({
                     var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
                     var requireSpecies = wildbook.IA.requireSpeciesForId();
-                    if (ma.detectionStatus) {
+                    if (ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
                         return; // no action if we're waiting for detection
                     }
                     else if (requireSpecies=="false"||ma.taxonomyString) {
@@ -85,7 +88,7 @@ wildbook.IA.plugins.push({
             function(enh) {
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 var menuText = '';
-                if (iaStatus && iaStatus.status) { // corresponds to "matching already initiated" above
+                if (wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus)) {
 
                     var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
@@ -171,8 +174,9 @@ wildbook.IA.plugins.push({
         var rtn = {
             status: ma.detectionStatus,
             statusText: ma.detectionStatus,
-            //taskId: ma.tasks[0].id  //<-- fyi master had this fix(??)
-            taskId: ma.tasks[ma.tasks.length - 1].id
+            task: ma.tasks[0],
+            taskId: ma.tasks[0].id  //<-- fyi master had this fix(??)
+            //taskId: ma.tasks[ma.tasks.length - 1].id
         };
         if (ma.annotation && ma.annotation.identificationStatus) {
             rtn.status = ma.annotation.identificationStatus;
@@ -183,6 +187,13 @@ wildbook.IA.plugins.push({
             rtn.statusText = 'active (see results)';
         }
         return rtn;
+    },
+
+    iaStatusIdentActive: function(ias) {
+        if (!ias || !ias.task) return false;
+        if (ias.task.parameters && ias.task.parameters.skipIdent) return false;  //detection-only job; not good enough
+console.warn('ias => %o', ias);
+        return true;
     },
 
     restCall: function(data, callback) {

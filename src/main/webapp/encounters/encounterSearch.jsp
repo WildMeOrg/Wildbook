@@ -2,7 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.List" %>
+<%@ page import="java.util.List, java.util.Map, org.datanucleus.api.rest.orgjson.JSONObject" %>
 <%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -63,6 +63,7 @@ boolean useCustomProperties = User.hasCustomProperties(request); // don't want t
   <!-- STEP2 Place inside the head section -->
   <script type="text/javascript">
     animatedcollapse.addDiv('location', 'fade=1')
+    animatedcollapse.addDiv('keywords', 'fade=1')
     animatedcollapse.addDiv('map', 'fade=1')
     animatedcollapse.addDiv('date', 'fade=1')
     animatedcollapse.addDiv('observation', 'fade=1')
@@ -957,62 +958,131 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
             </label>
       </p>
       </td></tr>
-<%
-  int totalKeywords = myShepherd.getNumKeywords();
-%>
-<tr>
-  <td valign="top"><%=encprops.getProperty("hasKeywordPhotos")%><br/>
-    <%
-
-      if (totalKeywords > 0) {
-    %>
-
-    <select multiple size="10" name="keyword" id="keyword" >
-      <option value="None"></option>
-      <%
-
-
-        Iterator<Keyword> keys = myShepherd.getAllKeywords();
-        while (keys.hasNext()) {
-        	Keyword word = (Keyword)keys.next();
-      %>
-      <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
-      </option>
-      <%
-        }
-
-      %>
-
-    </select>
-    </td>
-    </tr>
-           <tr><td>
-      <p>
-            <label> 
-            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
-            </label> <%=encprops.getProperty("orPhotoKeywords")%> 
-      </p>
-      </td></tr>
-    <%
-    } else {
-    %>
-
-    <p><em><%=encprops.getProperty("noKeywords")%>
-    </em>
-</td>
-</tr>
-        <%
-					
-				}
-				%>
   
-
-
 </table>
 </p>
 </div>
 </td>
 </tr>
+
+
+<tr>
+  <td>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      Labeled Keywords</a></h4>
+
+    <div id="keywords" style="display:none; ">
+    	<table id="labeled-kw-table">
+				<tr><strong>Labeled Keywords</strong></tr>
+				<tr><td colspan="3"><p><em>Filter by Labeled Keywords on an Encounter's photos. Select labels and (optionally) values for Labeled Keywords below.</em>
+					<ul>
+						<li>If you select a label and no values, the search will include all possible values for that label.</li>
+						<li>If you select multiple values, the search will include results with that label and <em>any</em> of the selected values: the values are separated by OR in our query.</li>
+						<li>If you select multiple labels, the search will include results with <em>all</em> of the label queries: the labels are separated by AND in our query.</li>
+					</ul>
+				</p></tr>
+				<tr><td>Encounter has keyword with label: </td><td id="lkw-value-instruction" style="display:none;">and value(s):</td></tr>
+				<% int kwNo=0; %>
+					<tr valign="top" class="labeled-kw-container labeled-kw <%=kwNo%>" data-lkw-no="<%=kwNo%>">
+					  <td class="label">
+						  <select name="label0" id="label0" onChange="return selectKeywordLabel(this)">
+						  	<option value="None" selected="selected"></option>
+						  	<%
+								Map<String, List<String>> labelsToValues = LabeledKeyword.labelUIMap(request);
+								JSONObject labeledKwsJson = new JSONObject(labelsToValues);
+								for(String label: labelsToValues.keySet()) {
+								  %>  	 
+						     	<option value="<%=label%>"><%=label%></option>
+						     	<%
+								}			       
+						 	%>
+						  </select>
+						</td>
+						<td class="values lkw-values <%=kwNo%>"></td>
+						<td>
+							<input type="button" class="new-lkw <%=kwNo%>" value="Add Keyword" onclick="addLabeledKeyword(this);" style="display:none">
+						</td>
+					</tr>
+			</table>
+		</div>
+	</td>
+</tr>
+
+<style>
+	tr.labeled-kw td select {
+		color: black;
+	}
+
+</style>
+
+<script>
+var labelsToValues = <%=labeledKwsJson%>;
+function selectKeywordLabel(el) {
+  var label = $(el).val();
+  var number = $(el).closest('tr.labeled-kw-container').data("lkw-no");
+  console.log("Select keyword label: label %s, number %s",label,number);
+  showValueOptions(number, label);
+  $('input.new-lkw').hide();
+  $('input.new-lkw.'+number).show();
+	$("#lkw-value-instruction").show();
+
+}
+function showValueOptions(lkwNumber, label) {
+	var row = $('tr.labeled-kw.'+lkwNumber);
+	console.log("showValueOptions got row "+row);
+
+	var values = labelsToValues[label];
+	console.log("showValueOptions got options "+JSON.stringify(values));
+
+	var valueName = "label"+lkwNumber+".values";
+	var valueSelector = '<select multiple name="'+valueName+'" id="'+valueName+'" >';
+	for (i in values) {
+		var value = values[i];
+		console.log("value %s is %s",i,value);
+		valueSelector += '<option value="'+value+'">'+value+'</option>';
+	}
+	valueSelector += '</select>'
+
+	console.log("valueSelector = "+valueSelector);
+	$('td.lkw-values.'+lkwNumber).html(valueSelector);
+
+	//$('tr.labeled-kw').append(valueSelector);
+
+}
+
+function addLabeledKeyword(el) {
+	 var number = $(el).closest('tr.labeled-kw-container').data("lkw-no");
+	 var nextNum = number+1;
+	 // now we need to add the entire tr for a labeled keyword
+
+	 var labelSelector = "<select name='label"+nextNum+"' id='label"+nextNum+"' onChange='return selectKeywordLabel(this)'>";
+	 labelSelector += "<option value='None' selected='selected'></option>";
+	 for (label in labelsToValues) {
+	 	labelSelector += "<option value='"+label+"'>"+label+"</option>";
+	 }
+	 labelSelector += "</select>";
+
+	var newElem = $([
+	  "<tr valign='top' class='labeled-kw-container labeled-kw "+nextNum+"' data-lkw-no='"+nextNum+"'>",
+	  "  <td class='label'>",
+	  "    "+labelSelector,
+	  "  </td>",
+	  "  <td class='values lkw-values "+nextNum+"'></td>",
+	  "  <td>",
+	  "    <input type='button' class='new-lkw "+nextNum+"' value='Add Keyword' onclick='addLabeledKeyword(this);' style='display:none'>",
+	  "  </td>",
+	  "</tr>"
+	].join("\n"));
+	console.log("constructed newElem %o", newElem);
+	$('table#labeled-kw-table').append(newElem);
+
+
+}
+
+	
+</script>
+
 
 <tr>
   <td>

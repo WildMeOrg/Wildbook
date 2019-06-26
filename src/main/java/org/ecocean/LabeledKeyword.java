@@ -21,7 +21,12 @@ package org.ecocean;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import javax.servlet.http.HttpServletRequest;
 
 public class LabeledKeyword extends Keyword{
 
@@ -68,6 +73,45 @@ public class LabeledKeyword extends Keyword{
   public String getValue() {
     return getReadableName();
   }
+
+  // this returns a map from label to values so we can display a label editor to the user
+  public static Map<String,List<String>> labelUIMap(Shepherd myShepherd, HttpServletRequest request) {
+    // should we check if the user uses custom properties? I think not--- if we can't find a map that way we'll try the db
+    return labelUIMapFromProperties(myShepherd, request);
+  }
+
+  public static Map<String,List<String>> labelUIMap(HttpServletRequest request) {
+    Shepherd readOnlyShep = Shepherd.newActiveShepherd(request, "labelUIMap");
+    Map<String,List<String>> ans = labelUIMap(readOnlyShep, request);
+    readOnlyShep.rollbackAndClose();
+    return ans;
+  }
+
+  public static Map<String,List<String>> labelUIMapFromProperties(Shepherd myShepherd, HttpServletRequest request) {
+    List<String> labels = CommonConfiguration.getIndexedPropertyValues("kwLabel", request);
+    if (Util.isEmpty(labels)) return labelUIMapFromDB(myShepherd, request);
+    Map<String,List<String>> labelsToValues = new LinkedHashMap<String,List<String>>(); //linkedHashMap to preserve order
+    for (String label: labels) {
+      List<String> values = CommonConfiguration.getIndexedPropertyValues(label, request);
+      if (!Util.isEmpty(values)) labelsToValues.put(label, values);
+    }
+    return labelsToValues;
+  }
+
+  public static Map<String,List<String>> labelUIMapFromDB(Shepherd myShepherd, HttpServletRequest request) {
+    List<LabeledKeyword> lkws = myShepherd.getAllLabeledKeywords();
+    Map<String, Set<String>> labelsToValues = new HashMap<String, Set<String>>();
+    for (LabeledKeyword lkw: lkws) {
+      Util.addToMultimap(labelsToValues, lkw.getLabel(), lkw.getValue());
+    }
+    // now sort them for returning
+    Map<String,List<String>> sorted = new LinkedHashMap<String,List<String>>(); //linkedHashMap to preserve order
+    for (String label: Util.asSortedList(labelsToValues.keySet())) { // sort the labels
+      sorted.put(label, Util.asSortedList(labelsToValues.get(label))); // sort the values
+    }
+    return sorted;
+  }
+
 
 
   public String toString() {
