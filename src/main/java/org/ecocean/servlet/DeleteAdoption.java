@@ -130,18 +130,17 @@ public class DeleteAdoption extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully removed adoption " + adoptionID + ". However, a saved copy an still be retrieved by the webmaster.");
-
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "Return to Wildbook</a></p>\n");
-        out.println("To restore, cont ");
+        out.println("<strong>Success!</strong> I have successfully removed adoption " + adoptionID + ". However, a saved copy an still be restored.");
+        response.setStatus(HttpServletResponse.SC_OK);
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       else {
 
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure!</strong> I failed to delete this adoption. Try again, and if this error continues to occur contact the webmaster.");
-        out.println("The webmaster can be reached at <strong>adoptions at whaleshark dot org</strong>.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "Return to Wildbook</a></p>\n");
+        out.println("<strong>Failure!</strong> I failed to delete this adoption. Check the logs for more details.");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
       }
@@ -150,9 +149,8 @@ public class DeleteAdoption extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to remove your adoption file. I cannot find the encounter that you intended it for in the database.");
-      out.println("<strong>Error:</strong> I was unable to remove your adoption file. I cannot find the adoption in the database. If you feel you have reached this in error, contact the webmaster.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "Return to Wildbook</a></p>\n");	
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      out.println("<strong>Error:</strong> I was unable to remove your image file. I cannot find the encounter that you intended it for in the database.");
       out.println(ServletUtilities.getFooter(context));
 
     }

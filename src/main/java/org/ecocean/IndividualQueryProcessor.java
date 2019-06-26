@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -40,6 +41,7 @@ public class IndividualQueryProcessor {
     Shepherd myShepherd=new Shepherd(context);
     myShepherd.setAction("IndividualQueryProcessor.class");
 
+    // 
     int day1=1, day2=31, month1=1, month2=12, year1=0, year2=3000;
     try{month1=(new Integer(request.getParameter("month1"))).intValue();} catch(Exception nfe) {}
     try{month2=(new Integer(request.getParameter("month2"))).intValue();} catch(Exception nfe) {}
@@ -894,7 +896,24 @@ public class IndividualQueryProcessor {
 
 
 
+    //alternateID and nickName are now handled here (and commented out below)
+    List<String> nameIds = new ArrayList<String>();
+    String altVal = request.getParameter("alternateIDField");
+    String nickVal = request.getParameter("nickNameField");
+    // adding the stars means we're looking for a substring not exact match
+    if (Util.stringExists(altVal)) nameIds.addAll(MarkedIndividual.findNameIds(".*" + altVal + ".*"));
+    if (Util.stringExists(nickVal)) nameIds.addAll(MarkedIndividual.findNameIds(".*" + nickVal + ".*"));
+    if (nameIds.size() > 0) {
+        String clause = " (names.id == " + String.join(" || names.id == ", nameIds) + ") ";
+        if (filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
+            filter += clause;
+        } else {
+            filter += " && " + clause;
+        }
+    }
+
     //filter for alternate ID------------------------------------------
+/*
     if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
       String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim().toLowerCase();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(alternateid.toLowerCase().indexOf('"+altID+"') != -1 || (encounters.contains(enc99) && enc99.otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1))";}
@@ -903,9 +922,11 @@ public class IndividualQueryProcessor {
 
       prettyPrint.append("alternateID field contains \""+altID+"\".<br />");
     }
+*/
 
 
 
+/*
     //filter for nick name------------------------------------------
     if((request.getParameter("nickNameField")!=null)&&(!request.getParameter("nickNameField").equals(""))) {
       String nickName=request.getParameter("nickNameField").replaceAll("%20", " ").trim().toLowerCase();
@@ -913,6 +934,7 @@ public class IndividualQueryProcessor {
 
       prettyPrint.append("nickName field contains \""+nickName+"\".<br />");
     }
+*/
 
 
     //------------------------------------------------------------------
@@ -1189,7 +1211,10 @@ public class IndividualQueryProcessor {
 
 
     //start date filter----------------------------
-    if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
+
+    boolean skipDate = (request.getParameter("noDate")!=null);
+
+    if(!skipDate&&(request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
       try{
 
 

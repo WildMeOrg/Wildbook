@@ -139,6 +139,7 @@ public class UserDelete extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to remove the user account. I cannot find the user in the database.");
       out.println(ServletUtilities.getFooter(context));
 
