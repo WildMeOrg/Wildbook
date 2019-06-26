@@ -124,7 +124,7 @@
 		    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("mappedResults")%>
 		  </a></li>
 		   <li><a
-		     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
+		     href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
 		   </a></li>
 		      <li><a
 		     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>
@@ -134,10 +134,18 @@
 		 
 		 </ul>
 		 
-		<% if (blocked.size() < 1) { %>
+		<%
+		 //if (blocked.size() < 1) {
+		 if (true) {
+		  %>
 		 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 		
+		<p>Encounter Metadata Export <a href="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+		</p>
+		
+
+
 		<p>CRC Excel Matching Summary <a href="//<%=CommonConfiguration.getURLLocation(request)%>/CRCExportReport?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 		

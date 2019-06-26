@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 public class StandardImport extends HttpServlet {
 
 	// variables shared by any single import instance
-	Shepherd myShepherd;
+
 	Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
 	Set<String> unusedColumns;
 	Set<String> missingColumns; // columns we look for but don't find
@@ -61,8 +61,20 @@ public class StandardImport extends HttpServlet {
 	// verbose variable can be switched on/off throughout the import for debugging
 	boolean verbose = false;
 	String photoDirectory;
+  String dataSource;
 
-	private AssetStore astore;
+  int numAnnots=0; // for loggin'
+
+  // these prefixes are added to any individualID, occurrenceID, or sightingID imported
+  String individualPrefix="";
+  String occurrencePrefix="";
+  String sightingPlatformPrefix="";
+  String defaultSubmitterID=null; // leave null to not set a default
+  String defaultCountry=null;
+
+
+
+  HttpServletRequest request;
 
 	// just for lazy loading a var used on each row
 	Integer numMediaAssets;
@@ -78,69 +90,79 @@ public class StandardImport extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
+    Map<String,MarkedIndividual> individualCache = new HashMap<String,MarkedIndividual>();
+    
+    this.request = request; // so we can access this elsewhere without passing it around
+    String importId = Util.generateUUID();
     if (request.getCharacterEncoding() == null) {
       request.setCharacterEncoding("utf-8");
     }
     response.setContentType("text/html; charset=UTF-8");
     String context = ServletUtilities.getContext(request);
+
     myAssets = new HashMap<String,MediaAsset>();  //zero this out from previous (e.g. uncommited)
-    myShepherd = new Shepherd(context);
+
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("StandardImport.java");
+    myShepherd.beginDBTransaction();
+
     out = response.getWriter();
-    astore = getAssetStore(myShepherd);
-
-    User creator = AccessControl.getUser(request, myShepherd);
-    ImportTask itask = new ImportTask(creator);
-    itask.setPassedParameters(request);
-
+    AssetStore astore = getAssetStore(myShepherd);
+    
     if(astore!=null){
       System.out.println("astore is OK!");
+      out.println("Using AssetStore: "+astore.getId()+" of total "+myShepherd.getNumAssetStores());
     }
     else{
       System.out.println("astore is null...BOO!!");
       out.println("<p>I could not find a default AssetStore. Please create one.</p>");
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
       return;
     }
 
-    String importDir = CommonConfiguration.getImportDir(context);
-    if (importDir == null) throw new RuntimeException("You MUST have 'importDir' set in commonConfigurations to use importer");
-    System.out.println("importDir is: "+importDir);
+
+    User creator = AccessControl.getUser(request, myShepherd);
+    ImportTask itask = new ImportTask(creator);
+    itask.setPassedParameters(request);
+    //this might better be set via a different configuration variable of its own
+    //String filename = Util.safePath(request.getParameter("filename"));
+    //if (filename == null) filename = "upload.xlsx";  //meh?
     
-    //filename *can* contain a subdir, such as "subdir/foo.xls"
-    String filename = Util.safePath(request.getParameter("filename"));  //this will be relative to importDir now!
-    if (filename == null) {  //note: safePath() might return null if it found evil stuff in filename=
+    //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
+    String filename = request.getParameter("filename");
+    
+    
+    File dataFile = new File(filename);
+    
+    if (filename == null) {
       System.out.println("Filename request parameter was not set in the URL.");
-      out.println("<p>I could not find a filename parameter in the URL. Please specify the full path to the Excel import file as the ?filename= parameter on the URL.</p>");
+      out.println("<p>I could not find a filename parameter in the URL. Please specify the full path on the server file system to the Excel import file as the ?filename= parameter on the URL.</p><p>Please note: the importer assumes that all image files exist in the same folder as the Excel file or are relatively referenced in the Excel file within a subdirectory.</p><p>Example value: ?filename=/import/MyNewData/importMe.xlsx</p>");
       return;
     }
-    File dataFile = new File(importDir + "/" + filename);
     if(!dataFile.exists()){
       out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+"</p>");
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
       return;
     }
     
-    //String uploadDir = importFile.getParentFile().getAbsolutePath();
-    //if (subdir != null) uploadDir = subdir;
-    //System.out.println("uploadDir is: "+uploadDir);
-    photoDirectory = dataFile.getParentFile().getAbsolutePath();
-    System.out.println("photoDirectory is: "+photoDirectory);
-
     
-    //File dataFile = new File(uploadDir + "/" + filename);
-    //boolean dataFound = dataFile.exists();
+    
+    String uploadDir = dataFile.getParentFile().getAbsolutePath();
 
-    String rootDir = getServletContext().getRealPath("/");
-    File xlsFile = importXlsFile(rootDir);
-    if (xlsFile == null) {
-        out.println("<h2 class=\"error\">Could not determine latest Wildbook Standard Format XLS file!</h2>");
-    } else {
-        DateTime dt = new DateTime(xlsFile.lastModified());
-        out.println("<p><b>The latest <b>Wildbook Standard Format XLS</b> template is called \"<a href=\"import/" + xlsFile.getName() + "\">" + xlsFile.getName() + "</a>\" (updated " + dt.toString().substring(0,10) + ").</b><br /><i>Please make sure you are using the current version for best results.</p>");
-    }
+    //String subdir = Util.safePath(request.getParameter("subdir"));
+    //if (subdir != null) uploadDir += subdir;
+    photoDirectory = uploadDir+"/";
+    
+    
+    boolean dataFound = dataFile.exists();
 
     missingColumns = new HashSet<String>();
     missingPhotos = new ArrayList<String>();
 		foundPhotos = new ArrayList<String>();
 		numFolderRows = 0;
+    numAnnots = 0;
 
     committing = Util.requestParameterSet(request.getParameter("commit"));
     generateChildrenAssets = Util.requestParameterSet(request.getParameter("generateChildrenAssets"));
@@ -223,7 +245,7 @@ public class StandardImport extends HttpServlet {
     LocalDateTime ldt = new LocalDateTime();
     String importComment = "<p style=\"import-comment\">import <i>" + itask.getId() + "</i> at " + ldt.toString() + "</p>";
     System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
-    if (committing) myShepherd.beginDBTransaction();
+    //if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Beginning row loop:</h2>"); 
     out.println("<ul>");
     // one encounter per-row. We keep these running.
@@ -238,21 +260,34 @@ public class StandardImport extends HttpServlet {
         }
 
     	MarkedIndividual mark = null;
-    	verbose = ((i%printPeriod)==0);
+    	verbose = ((i%printPeriod) == 0);
       try {
 
-        if (committing) myShepherd.beginDBTransaction();
+        //if (committing) myShepherd.beginDBTransaction();
         Row row = sheet.getRow(i);
         if (isRowEmpty(row)) continue;
 
+        System.out.println("STANDARD IMPORT: processing row "+i+" with num asset stores: "+myShepherd.getNumAssetStores());
+
         // here's the central logic
-        ArrayList<Annotation> annotations = loadAnnotations(row);
-        Encounter enc = loadEncounter(row, annotations, context);
+        ArrayList<Annotation> annotations = loadAnnotations(row, astore, myShepherd);
+        numAnnots+=annotations.size();
+        Encounter enc = loadEncounter(row, annotations, context, myShepherd);
         enc.addComments(importComment);
-        occ = loadOccurrence(row, occ, enc);
+        enc.setCatalogNumber(Util.generateUUID());
+        if(committing) {
+          myShepherd.getPM().makePersistent(enc);
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+        occ = loadOccurrence(row, occ, enc, myShepherd);
         occ.addComments(importComment);
-        mark = loadIndividual(row, enc);
+
         encsCreated.add(enc);
+
+
+        mark = loadIndividual(row, enc, myShepherd,committing,individualCache);
+        if (mark!=null) individualCache.put(mark.getName(), mark);
 
         if (committing) {
 
@@ -260,31 +295,68 @@ public class StandardImport extends HttpServlet {
             try {
               MediaAsset ma = ann.getMediaAsset();
               if (ma!=null) {
-                myShepherd.storeNewAnnotation(ann);
-                if (generateChildrenAssets) {
-                    ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
-                    if ((kids == null) || (kids.size() < 1)) {
-                        ma.setMetadata();
-                        ma.updateStandardChildren(myShepherd);
-                    }
+
+                
+
+                if(committing) {
+                    if (generateChildrenAssets) {
+                    	ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
+                    	if ((kids == null) || (kids.size() < 1)) {
+                        	ma.setMetadata();
+                        	ma.updateStandardChildren(myShepherd);
+                    	}
+                	}
+                  myShepherd.getPM().makePersistent(ann);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
                 }
+                // may want to skip below for runtime and fix later w script
+                // ma.updateStandardChildren(myShepherd);
+
               }
             }
             catch (Exception e) {
               System.out.println("EXCEPTION on annot/ma persisting!");
+              out.println("EXCEPTION on annot/ma persisting!");
               e.printStackTrace();
             }
           }
+          
+          
 
-          myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
-        	if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
-        	if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
-        	myShepherd.commitDBTransaction();
+        	if (!myShepherd.isOccurrence(occ))       { 
+        	  
+        	  if(committing) {
+        	    myShepherd.getPM().makePersistent(occ);
+        	    myShepherd.commitDBTransaction();
+        	    myShepherd.beginDBTransaction();
+        	  }
+        	}
+        	
+        	/*
+        	if ((mark!=null)&&!myShepherd.isMarkedIndividual(mark)) {
+            mark.refreshDependentProperties();
+            myShepherd.getPM().makePersistent(mark);
+            if(committing) {
+              myShepherd.commitDBTransaction();
+              myShepherd.beginDBTransaction();
+            }
+          }
+          */
+        	
+          if(committing) {
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
         }
-
+        
         if (verbose) {
           out.println("<li>Parsed row ("+i+")<ul>"
-          +"<li> Enc "+getEncounterDisplayString(enc)+"</li>"
+          +"<li> Enc "+getEncounterDisplayString(enc)+" <ul>");
+          for (MediaAsset ma: enc.getMedia()) {
+            out.println("<li>"+ma.toString()+"</li>");
+          }
+          out.println("</ul></li>"
           +"<li> individual "+mark+"</li>"
           +"<li> occurrence "+occ+"</li>"
           +"<li> dateInMillis "+enc.getDateInMilliseconds()+"</li>"
@@ -298,11 +370,13 @@ public class StandardImport extends HttpServlet {
       catch (Exception e) {
         out.println("Encountered an error while importing the file.");
         e.printStackTrace(out);
-        myShepherd.rollbackDBTransaction();
+        //myShepherd.rollbackDBTransaction();
+        //myShepherd.beginDBTransaction();
       }
     }
     out.println("</ul>");
-
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
 
     out.println("<h2><em>UNUSED</em> Column headings ("+unusedColumns.size()+"):</h2><ul>");
     for (String heading: unusedColumns) {
@@ -339,12 +413,13 @@ public class StandardImport extends HttpServlet {
     out.println("</ul>");
 
     out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
+    out.println("<h2><strong> "+numAnnots+" </strong> annots</h2>");    
 
     out.println("<h2>Import completed successfully</h2>");    
     //fs.close();
   }
 
-  public Taxonomy loadTaxonomy0(Row row) {
+  public Taxonomy loadTaxonomy0(Row row, Shepherd myShepherd) {
     String sciName = getString(row, "Taxonomy.scientificName");
     if (sciName==null) return null;
     Taxonomy taxy = myShepherd.getOrCreateTaxonomy(sciName);
@@ -353,65 +428,159 @@ public class StandardImport extends HttpServlet {
     return taxy;
   }
 
-  public Taxonomy loadTaxonomy1(Row row) {
+  public Taxonomy loadTaxonomy1(Row row, Shepherd myShepherd) {
     String sciName = getString(row, "Occurrence.taxonomy1");
     if (sciName==null) return null;
     return myShepherd.getOrCreateTaxonomy(sciName);
   }
-
-  public static boolean validLatLon(Double lat, Double lon) {
-    return ((lat!=null) && (lon!=null) && ((lat!=0.0)&&(lon!=0.0)) );
+  public static boolean validCoord(Double latOrLon) {
+    return (latOrLon!=null && latOrLon!=0.0);
   }
 
-  public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
+  public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc, Shepherd myShepherd) {
   	
-  	Occurrence occ = getCurrentOccurrence(oldOcc, row);
+  	Occurrence occ = getCurrentOccurrence(oldOcc, row, myShepherd);
   	// would love to have a more concise way to write following couplets, c'est la vie
+
+  	Double seaSurfaceTemp = getDouble (row, "Occurrence.seaSurfaceTemperature");
+    if (seaSurfaceTemp == null) seaSurfaceTemp = getDouble(row, "Occurrence.seaSurfaceTemp");
+  	if (seaSurfaceTemp != null) occ.setSeaSurfaceTemp(seaSurfaceTemp);
 
   	Integer individualCount = getInteger(row, "Occurrence.individualCount");
   	if (individualCount!=null) occ.setIndividualCount(individualCount);
 
+    // covers a typo on some decimalLatitude headers ("decimalLatitiude" note the extra i in Latitiude)
   	Double decimalLatitiude = getDouble(row, "Encounter.decimalLatitiude");
-  	if (decimalLatitiude!=null) occ.setDecimalLatitude(decimalLatitiude);
-
+  	if (validCoord(decimalLatitiude)) occ.setDecimalLatitude(decimalLatitiude);
   	Double decimalLatitude = getDouble(row, "Encounter.decimalLatitude");
+    if (validCoord(decimalLatitude)) occ.setDecimalLatitude(decimalLatitude);
   	Double decimalLongitude = getDouble(row, "Encounter.decimalLongitude");
+    if (validCoord(decimalLongitude)) occ.setDecimalLongitude(decimalLongitude);
 
-    if (validLatLon(decimalLatitude,decimalLongitude)) {
-      occ.setDecimalLatitude(decimalLatitude);
-      occ.setDecimalLongitude(decimalLongitude);
-    }
+  	String fieldStudySite = getString(row, "Occurrence.fieldStudySite");
+    // fieldStudySite defaults to locationID
+    if (fieldStudySite==null) fieldStudySite = getString(row, "Encounter.locationID");
+  	if (fieldStudySite!=null) occ.setFieldStudySite(fieldStudySite);
 
+  	String groupComposition = getString(row, "Occurrence.groupComposition");
+  	if (groupComposition!=null) occ.setGroupComposition(groupComposition);
+
+    String groupBehavior = getString(row, "Occurrence.groupBehavior");
+    // if no groupBehavior we want the behavior from an Encounter to copy over for occurrence searches
+    // this makes sense semantically since many people view the world occurrence-first
+    if (groupBehavior==null) groupBehavior = getString(row, "Encounter.behavior");
+    if (groupBehavior!=null) occ.setGroupBehavior(groupBehavior);
+
+  	String fieldSurveyCode = getStringOrInt(row, "Survey.id");
+    if (fieldSurveyCode==null) fieldSurveyCode = getString(row, "Occurrence.fieldSurveyCode");
+  	if (fieldSurveyCode!=null) occ.setFieldSurveyCode(fieldSurveyCode);
+
+  	String sightingPlatform = getString(row, "Survey.vessel");
+    if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation");
+  	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatformPrefix+sightingPlatform);
+    String surveyComments = getString(row, "Survey.comments");
+    if (surveyComments!=null) occ.addComments(surveyComments);
+
+    String comments = getString(row, "Occurrence.comments");
+    if (comments!=null) occ.addComments(comments);
+
+    Integer numAdults = getInteger(row, "Occurrence.numAdults");
+    if (numAdults!=null) occ.setNumAdults(numAdults);
+
+    Integer minGroupSize = getInteger(row, "Occurrence.minGroupSizeEstimate");
+    if (minGroupSize!=null) occ.setMinGroupSizeEstimate(minGroupSize);
+    Integer maxGroupSize = getInteger(row, "Occurrence.maxGroupSizeEstimate");
+    if (maxGroupSize!=null) occ.setMaxGroupSizeEstimate(maxGroupSize);
+    Double bestGroupSize = getDouble(row, "Occurrence.bestGroupSizeEstimate");
+    if (bestGroupSize!=null) occ.setBestGroupSizeEstimate(bestGroupSize);
+
+    Integer numCalves = getInteger(row, "Occurrence.numCalves");
+    if (numCalves!=null) occ.setNumCalves(numCalves);
+    Integer numJuveniles = getInteger(row, "Occurrence.numJuveniles");
+    if (numJuveniles!=null) occ.setNumJuveniles(numJuveniles);
+
+
+    Double bearing = getDouble(row, "Occurrence.bearing");
+    if (bearing!=null) occ.setBearing(bearing);
     Double distance = getDouble(row, "Occurrence.distance");
     if (distance!=null) occ.setDistance(distance);
 
-    Taxonomy taxy = loadTaxonomy0(row);
+    Double swellHeight = getDouble(row, "Occurrence.swellHeight");
+    if (swellHeight!=null) occ.setSwellHeight(swellHeight);
+    String seaState = getString(row, "Occurrence.seaState");
+    if (seaState==null) {
+      Integer intSeaState = getInteger(row, "Occurrence.seaState");
+      if (intSeaState!=null) seaState = intSeaState.toString();
+    }
+    if (seaState!=null) occ.setSeaState(seaState);
+    Double visibilityIndex = getDouble(row, "Occurrence.visibilityIndex");
+    if (visibilityIndex==null) {
+      Integer visIndexInt = getIntFromMap(row, "Occurrence.visibilityIndex");
+      if (visIndexInt!=null) visibilityIndex = visIndexInt.doubleValue();
+    }
+    if (visibilityIndex!=null) occ.setVisibilityIndex(visibilityIndex);
+
+    Double transectBearing = getDouble(row, "Occurrence.transectBearing");
+    if (transectBearing!=null) occ.setTransectBearing(transectBearing);
+    String transectName = getString(row, "Occurrence.transectName");
+    if (transectName!=null) occ.setTransectName(transectName);
+
+    String initialCue = getString(row, "Occurrence.initialCue");
+    String humanActivity = getString(row, "Occurrence.humanActivityNearby");
+    if (humanActivity!=null) occ.setHumanActivityNearby(humanActivity);
+    Double effortCode = getDouble(row, "Occurrence.effortCode");
+    if (effortCode!=null) occ.setEffortCode(effortCode);
+
+    Taxonomy taxy = loadTaxonomy0(row, myShepherd);
     if (taxy!=null) occ.addTaxonomy(taxy);
 
-    Taxonomy taxy1 = loadTaxonomy1(row);
+    Taxonomy taxy1 = loadTaxonomy1(row, myShepherd);
     if (taxy1!=null) occ.addTaxonomy(taxy1);
+
+  	String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
+  	if (surveyTrackVessel!=null) occ.setSightingPlatform(surveyTrackVessel);
 
   	Long millis = getLong(row, "Encounter.dateInMilliseconds");
     if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
     if (millis==null) millis = getLong(row, "Occurrence.millis");
   	if (millis!=null) occ.setDateTimeLong(millis);
 
+    String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
+    if (occurrenceRemarks!=null) occ.addComments(occurrenceRemarks);
+
   	if (enc!=null) {
       occ.addEncounter(enc);
       // overwrite=false on following fromEncs methods
       occ.setLatLonFromEncs(false);
+      occ.setSubmitterIDFromEncs(false);
     }
 
   	return occ;
 
   }
 
-  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context) {
-  	Encounter enc = new Encounter (annotations);
+  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context, Shepherd myShepherd) {
+
+    // try to load encounter by indID and occID, make a new one if it doesn't exist.
+    String individualID = getIndividualID(row);
+    String occurrenceID = getOccurrenceID(row);
+    Encounter enc = null;
+    if (Util.stringExists(individualID) && Util.stringExists(occurrenceID)) enc = myShepherd.getEncounterByIndividualAndOccurrence(individualID, occurrenceID);
+
+    if (enc!=null) enc.addAnnotations(annotations);
+    else enc = new Encounter (annotations);
+
+    if (occurrenceID!=null) enc.setOccurrenceID(occurrenceID);
 
   	// since we need access to the encounter ID
-  	String encID = Util.generateUUID();
-  	enc.setEncounterNumber(encID);
+    String encID = enc.getCatalogNumber();
+  	if (!Util.stringExists(encID)) {
+      encID = Util.generateUUID();
+  	  enc.setEncounterNumber(encID);
+    }
+
+    // Data source
+    if (dataSource!=null) enc.setDataSource(dataSource);
 
   	// Time
   	Integer year = getInteger(row, "Encounter.year");
@@ -445,25 +614,27 @@ public class StandardImport extends HttpServlet {
       if (hasTimeCategories) enc.setDateInMillisOnly(millis); // does not overwrite day/month/etc
       else enc.setDateInMilliseconds(millis);
     } 
+    
+    //depth
+    Double depth = getDouble(row,"Encounter.depth");
+    if(depth!=null) enc.setDepth(depth);
+    
 
 
   	// Location
   	Double latitude = getDouble(row,"Encounter.latitude");
     if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitude");
     if (latitude==null) latitude = getDouble(row,"Occurrence.decimalLatitude");
+    if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitiude");
+    if (validCoord(latitude)) enc.setDecimalLatitude(latitude);
 
   	Double longitude = getDouble(row, "Encounter.longitude");
     if (longitude==null) longitude = getDouble(row,"Encounter.decimalLongitude");
     if (longitude==null) longitude = getDouble(row,"Occurrence.decimalLongitude");
-
-    if (validLatLon(latitude,longitude)) {
-      enc.setDecimalLatitude(latitude);
-      enc.setDecimalLongitude(longitude);
-    }
-
+    if (validCoord(longitude)) enc.setDecimalLongitude(longitude);
 
   	String locationID = getString(row, "Encounter.locationID");
-  	if (locationID!=null) enc.setLocationID(locationID);
+  	if (Util.stringExists(locationID)) enc.setLocationID(locationID);
 
     String country = getString(row, "Encounter.country");
     if (country!=null) enc.setCountry(country);
@@ -487,24 +658,26 @@ public class StandardImport extends HttpServlet {
   	String submitterName = getString(row, "Encounter.submitterName");
   	if (submitterName!=null) enc.setSubmitterName(submitterName);
 
+  	String patterningCode = getString(row, "Encounter.patterningCode");
+  	if (patterningCode!=null) enc.setPatterningCode(patterningCode);
+
   	String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
   	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
 
-  	String occurrenceID = getString(row, "Encounter.occurrenceID");
-  	if (occurrenceID==null) occurrenceID = getString(row, "Occurrence.occurrenceID");
-  	if (occurrenceID!=null) enc.setOccurrenceID(occurrenceID);
 
   	String submitterID = getString(row, "Encounter.submitterID");
+    // don't commit this line
+    if (submitterID==null) submitterID = defaultSubmitterID;
   	if (submitterID!=null) enc.setSubmitterID(submitterID);
 
   	String behavior = getString(row, "Encounter.behavior");
   	if (behavior!=null) enc.setBehavior(behavior);
 
-  	String individualID = getIndividualID(row);
-  	if (individualID!=null) enc.setIndividualID(individualID);
-
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);
+
+    String groupRole = getString(row, "Encounter.groupRole");
+    if (groupRole!=null) enc.setGroupRole(groupRole);
 
     String researcherComments = getString(row, "Encounter.researcherComments");
     if (researcherComments!=null) enc.addComments(researcherComments);
@@ -513,20 +686,17 @@ public class StandardImport extends HttpServlet {
   	String verbatimLocality = getString(row, "Encounter.verbatimLocality");
   	if (verbatimLocality!=null) enc.setVerbatimLocality(verbatimLocality);
   	
-    String patterningCode = getString(row, "Encounter.patterningCode");
-    if (patterningCode!=null) enc.setPatterningCode(patterningCode);
+
     
   	
   	
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
-  	if (nickname!=null) enc.setAlternateID(nickname);
+  	//if (nickname!=null) enc.setAlternateID(nickname);
 
     String alternateID = getString(row, "Encounter.alternateID");
     if (alternateID!=null) enc.setAlternateID(alternateID);
 
-    
-    
     /*
      * Start measurements import
      */
@@ -536,18 +706,18 @@ public class StandardImport extends HttpServlet {
     for(int bg=0;bg<numMeasureVals;bg++){
       String colName="Encounter.measurement"+bg;
       Double val = getDouble(row, colName);
-    	if (val!=null) {
-    		Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.get(bg), "");
-    		if (committing) enc.setMeasurement(valMeas, myShepherd);
-    		if (unusedColumns!=null) unusedColumns.remove(colName);
-    	}
-    	
+      if (val!=null) {
+        Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.get(bg), "");
+        if (committing) enc.setMeasurement(valMeas, myShepherd);
+        if (unusedColumns!=null) unusedColumns.remove(colName);
+      }
+
     }
-  	/*
-  	 * End measurements import
-  	 */
-    
-    
+    /*
+     * End measurements import
+     */
+
+
     /*
      * Start Submitter imports
      */
@@ -569,17 +739,17 @@ public class StandardImport extends HttpServlet {
            User thisPerson=new User(val.trim(),Util.generateUUID());
            if (committing) enc.addSubmitter(thisPerson);
            if (unusedColumns!=null) unusedColumns.remove(colEmail);
-           
+
            String colFullName="Encounter.submitter"+startIter+".fullName";
            String val2=getString(row,colFullName);
            if(val2!=null) thisPerson.setFullName(val2.trim());
            if (unusedColumns!=null) unusedColumns.remove(colFullName);
-           
+
            String colAffiliation="Encounter.submitter"+startIter+".affiliation";
            String val3=getString(row,colAffiliation);
            if(val3!=null) thisPerson.setAffiliation(val3.trim()); 
            if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
-           
+
          }
          startIter++;
        }
@@ -587,12 +757,12 @@ public class StandardImport extends HttpServlet {
          hasSubmitters=false;
        }
      }
-  	
+
     /*
      * End Submitter imports
      */
-     
-     
+
+
      /*
       * Start Photographer imports
       */
@@ -614,18 +784,18 @@ public class StandardImport extends HttpServlet {
             User thisPerson=new User(val.trim(),Util.generateUUID());
             if (committing) enc.addPhotographer(thisPerson);
             if (unusedColumns!=null) unusedColumns.remove(colEmail);
-            
+
             String colFullName="Encounter.photographer"+startIter+".fullName";
             String val2=getString(row,colFullName);
             if(val2!=null) thisPerson.setFullName(val2.trim()); 
             if (unusedColumns!=null) unusedColumns.remove(colFullName);
-            
+
             String colAffiliation="Encounter.photographer"+startIter+".affiliation";
             String val3=getString(row,colAffiliation);
             if(val3!=null) thisPerson.setAffiliation(val3.trim());
             if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
-            
-            
+
+
           }
           startIter++;
         }
@@ -633,14 +803,12 @@ public class StandardImport extends HttpServlet {
           hasPhotographers=false;
         }
       }
-     
+
      /*
       * End Photographer imports
       */
      
-    
-  	Double depth = getDouble(row, "Encounter.depth");
-  	if (depth!=null) enc.setDepth(depth);
+
 
   	String scar = getIntAsString(row, "Encounter.distinguishingScar");
   	if (scar!=null) enc.setDistinguishingScar(scar);
@@ -720,19 +888,24 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	return fieldNames;
   }
 
-  public ArrayList<Annotation> loadAnnotations(Row row) {
+  public ArrayList<Annotation> loadAnnotations(Row row, AssetStore astore, Shepherd myShepherd) {
 
-  	if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
-  	ArrayList<Annotation> annots = new ArrayList<Annotation>();
+  	//if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
+    ArrayList<Annotation> annots = new ArrayList<Annotation>();
   	for (int i=0; i<getNumMediaAssets(); i++) {
-  		MediaAsset ma = getMediaAsset(row, i);
+  		MediaAsset ma = getMediaAsset(row, i, astore, myShepherd);
   		if (ma==null) continue;
 
   		String species = getSpeciesString(row);
   		Annotation ann = new Annotation(species, ma);
   		ann.setIsExemplar(true);
+
+      Double quality = getDouble(row, "Encounter.quality"+i);
+      if (quality != null) ann.setQuality(quality);
+
+      //ann.setMatchAgainst(true);
   		annots.add(ann);
-  		//if (ma!=null && ma.localPath()!=null) foundPhotos.add(ma.localPath().toString());
+
   	}
   	if (annots.size()>0) {
       for (int i=0; i<annots.size(); i++) {
@@ -741,11 +914,11 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
         if (localPath!=null) foundPhotos.add(photoDirectory+"/"+localPath);
       }
   	}
-  	return annots;
+    return annots;
   }
 
   // for when the provided image filename is actually a folder of images
-  private ArrayList<Annotation> loadAnnotationsFolderRow(Row row) {
+  private ArrayList<Annotation> loadAnnotationsFolderRow(Row row, AssetStore astore, Shepherd myShepherd) {
   	ArrayList<Annotation> annots = new ArrayList<Annotation>();
   	String localPath = getString(row, "Encounter.mediaAsset0");
   	if (localPath==null) return annots;
@@ -839,16 +1012,14 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   }
 
   public String getIndividualID(Row row) {
-  	String indID = getString(row, "Encounter.individualID");
-    if (indID==null) indID = getString(row, "MarkedIndividual.individualID");
-  	// Cetamada uses single letter names like A
-  	//if (indID!=null && indID.length()==1) return "Cetamada-"+indID;
-  	return indID;
+  	String indID =           getStringOrInt(row, "Encounter.individualID");
+    if (indID==null) indID = getStringOrInt(row, "MarkedIndividual.individualID");
+    if (!Util.stringExists(indID)) return indID;
+    return individualPrefix+indID;
   }
 
-  public MediaAsset getMediaAsset(Row row, int i) {
-    System.out.println("getMediaAsset row is "+row.getRowNum()+" and Encounter.mediaAsset"+i);
-  	String localPath = getString(row, "Encounter.mediaAsset"+i);
+  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd) {
+    String localPath = getString(row, "Encounter.mediaAsset"+i);
   	if (localPath==null) return null;
   	localPath = Util.windowsFileStringToLinux(localPath);
   	System.out.println("...localPath is: "+localPath);
@@ -878,18 +1049,20 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  MediaAsset ma = null;
 	  try {
 	  	ma = astore.copyIn(f, assetParams);
-	  } catch (java.io.IOException ioEx) {
-	  	System.out.println("IOException creating MediaAsset for file "+resolvedPath + ": " + ioEx.toString());
+	    // keywording
+
+	    ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
+	    if(kws!=null)ma.setKeywords(kws);
+	  } 
+	  catch (java.io.IOException ioEx) {
+	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
 	  	missingPhotos.add(fullPath);
 	  	foundPhotos.remove(fullPath);
                 return null;
 	  }
           myAssets.put(fileHash(f), ma);
 
-	  // keywording
 
-    ArrayList<Keyword> kws = getKeywordsForAsset(row, i);
-    ma.setKeywords(kws);
 
 	  // Keyword keyword = null;
 	  // String keywordI = getString(row, "Encounter.keyword"+i);
@@ -898,9 +1071,9 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  // String keywordOI = getString(row, keywordOIKey);
 	  // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
 	  // if (keyword!=null) ma.addKeyword(keyword);
-
 	  return ma;
   }
+
 
     //TODO in a perfect world, we would also check db for assets with same hash!!  but then we need a shepherd.  SIGH
     private MediaAsset checkExistingMediaAsset(File f) {
@@ -920,19 +1093,41 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         }
         return null;
     }
-  private ArrayList<Keyword> getKeywordsForAsset(Row row, int n) {
+
+  private ArrayList<Keyword> getKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
+
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     int maxAssets = getNumAssets(row);
-    int maxKeywords=2;
+    int maxKeywords=4;
     int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; // 
-    // we have up to two keywords per row.
-    for (int i=n; i<stopAtKeyword; i++) {
-      String kwColName = "Encounter.keyword0"+i;
+    // we have up to 4 keywords per row.
+    for (int i=n; i<=stopAtKeyword; i++) {
+      String kwColName = "Encounter.keyword"+i;
       String kwName = getString(row, kwColName);
+      if (kwName==null) {
+        kwColName = "Encounter.keyword0"+i;
+        kwName = getString(row, kwColName);
+      }
       if (kwName==null) continue;
       Keyword kw = myShepherd.getOrCreateKeyword(kwName);
       if (kw!=null) ans.add(kw);
     }
+    return ans;
+  }
+
+  private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
+    ArrayList<Keyword> ans = new ArrayList<Keyword>();
+
+    String kwColName = "Encounter.keyword"+n;
+    String kwName = getString(row, kwColName);
+    if (kwName==null) {
+      kwColName = "Encounter.keyword0"+n;
+      kwName = getString(row, kwColName);
+    }
+    if (kwName==null) return ans;
+    Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+    if (kw!=null) ans.add(kw);
+
     return ans;
   }
 
@@ -1019,7 +1214,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 
 	private int getNumMediaAssets() {
-		if (numMediaAssets==null) setNumMediaAssets();
+		setNumMediaAssets();
 		return numMediaAssets.intValue();
 	}
 	private void setNumMediaAssets() {
@@ -1033,26 +1228,60 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
 
 
-  public MarkedIndividual loadIndividual(Row row, Encounter enc) {
+  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,MarkedIndividual> individualCache) {
 
   	boolean newIndividual = false;
   	String individualID = getIndividualID(row);
   	if (individualID==null) return null;
 
-    MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(individualID);
-    if (mark==null) { // new individual
-	    mark = new MarkedIndividual(individualID, enc);
+    
+  	MarkedIndividual mark = individualCache.get(individualID);
+    if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
+    //else {
+      //out.println("StandardImport got individual "+mark+" from individualCache");
+    //}
+  	if (mark==null) { // new individual
+	    mark = new MarkedIndividual(enc);
+	    
+	    if(committing) {
+	      myShepherd.getPM().makePersistent(mark);
+	       myShepherd.commitDBTransaction();
+	       myShepherd.beginDBTransaction();
+                mark.refreshNamesCache();
+	       out.println("persisting new individual");
+	   }
 	    newIndividual = true;
 	  }
+  	else {
+  	  out.println("Found a pre-existing Individual: "+mark.toString());
+  	}
+
+    // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
+    Organization org = getOrganization(row, myShepherd);
+    if (org!=null) mark.addName(individualID);
+    //else mark.addName(request, individualID);
+    else mark.addName(individualID);
+
 	  if (mark==null) {
-      System.out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
+      out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
       return mark;
     }
 
-	  if (!newIndividual) mark.addEncounterNoCommit(enc);
+	  if (!newIndividual) {
+	    mark.addEncounter(enc);
+	    enc.setIndividual(mark);
+	    out.println("loadIndividual notnew individual: "+mark.getDisplayName());
+	  }
+	  else {
+	    enc.setIndividual(mark);
+	  }
+	  if(committing) {
+	    myShepherd.commitDBTransaction();
+	    myShepherd.beginDBTransaction();
+	  }
 
     String alternateID = getString(row, "Encounter.alternateID");
-    if (alternateID!=null) mark.setAlternateID(alternateID);
+    //if (alternateID!=null) mark.setAlternateID(alternateID);
 
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
@@ -1065,7 +1294,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   // check if oldOcc is the same occurrence as the occurrence on this row
   // if so, return oldOcc. If not, return parseOccurrence(row)
-  public Occurrence getCurrentOccurrence(Occurrence oldOcc, Row row) {
+  public Occurrence getCurrentOccurrence(Occurrence oldOcc, Row row, Shepherd myShepherd) {
   	String occID = getOccurrenceID(row);
   	if (oldOcc!=null && oldOcc.getOccurrenceID()!=null && oldOcc.getOccurrenceID().equals(occID)) return oldOcc;
   	Occurrence occ = myShepherd.getOrCreateOccurrence(occID);
@@ -1098,7 +1327,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 
   public String getOccurrenceID(Row row) {
-  	return (getString(row,"Occurrence.occurrenceID"));
+    // some custom data-fixing just for our aswn data blend
+    String occID = getStringOrInt(row,"Occurrence.occurrenceID");
+    if (!Util.stringExists(occID)) occID = getStringOrInt(row, "Encounter.occurrenceID");
+    if (!Util.stringExists(occID)) return occID;
+    occID = occID.replace("LiveVesselSighting","");
+    return (occurrencePrefix+occID);
   }
 
   public boolean isOccurrenceOnRow(Occurrence occ, Row row) {
@@ -1106,9 +1340,24 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 
 
+  private static final Map<String, Integer> qualityMap = new HashMap<String, Integer>(){
+    { // whoah, DOUBLE brackets! Java, you so crazy!
+      put("No Data", null);
+      put("Bad", 2);
+      put("Fair", 3);
+      put("Good", 4);
+      put("Excellent", 5);
+    }
+  };
+
+  public Integer getIntFromMap(Row row, String colName) {
+    String key = getString(row, colName);
+    if (key == null || !qualityMap.containsKey(key)) return null;
+    return qualityMap.get(key);
+  }
 
 
-//   // following 'get' functions swallow errors
+  // following 'get' functions swallow errors
   public static Integer getInteger(Row row, int i) {
     try {
       double val = row.getCell(i).getNumericCellValue();
@@ -1130,7 +1379,6 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         }
       }
       catch (Exception ex) {}
-
     }
     return null;
   }
@@ -1188,7 +1436,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   public static String getString(Row row, int i) {
     try {
       String str = row.getCell(i).getStringCellValue();
-      if (str.equals("")) return null;
+      if (str.equals("")) str = null;
       return str;
     }
     catch (Exception e) {}
@@ -1257,7 +1505,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return ans;
   }
 
-
+  public Organization getOrganization(Row row, Shepherd myShepherd) {
+    String orgID = getString(row, "Encounter.submitterOrganization");
+    if (orgID==null) return null;
+    Organization org = myShepherd.getOrCreateOrganizationByName(orgID, committing);
+    return org;
+  }
 
   public Integer getInteger(Row row, String colName) {
   	if (!colIndexMap.containsKey(colName)) {
@@ -1330,16 +1583,16 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 	public String getEncounterDisplayString(Encounter enc) {
 		if (enc==null) return null;
 		if (committing) {
-			return "<a href=\""+getEncounterURL(enc)+"\" >"+enc.getCatalogNumber()+"</a>";
+			return "<a href=\""+getEncounterURL(enc)+"\" >"+enc.toString()+"</a>";
 		}
-		return enc.getCatalogNumber();
+		return enc.toString();
 	}
 
 
   private AssetStore  getAssetStore(Shepherd myShepherd) {
 
-    //return AssetStore.getDefault(myShepherd);
     return AssetStore.getDefault(myShepherd);
+    //return AssetStore.get(myShepherd, 1);
 
     // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
     // // TODO: fix this for flukebook

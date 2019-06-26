@@ -55,19 +55,11 @@ public class MediaAssetAttach extends HttpServlet {
 
     //resolve all asset ids into one list
     List<String> maIds = new ArrayList<String>();
-    try {
-      if (args.has("MediaAssetID")&&args.get("MediaAssetID")!=null) {
-        maIds.add(String.valueOf(args.get("MediaAssetID")));
-      }
-      JSONArray jarr = args.optJSONArray("mediaAssetIds");
-      if (jarr != null) for (int i = 0 ; i < jarr.length() ; i++) {
-        if (jarr.opt(i)!=null) {
-          String arrId = String.valueOf(jarr.opt(i));
-          if ((arrId != null) && !maIds.contains(arrId)) maIds.add(arrId);
-        }
-      }
-    } catch (JSONException je) {
-      je.printStackTrace();
+    if (args.optString("MediaAssetID", null) != null) maIds.add(args.getString("MediaAssetID"));
+    JSONArray jarr = args.optJSONArray("mediaAssetIds");
+    if (jarr != null) for (int i = 0 ; i < jarr.length() ; i++) {
+        String arrId = jarr.optString(i, null);
+        if ((arrId != null) && !maIds.contains(arrId)) maIds.add(arrId);
     }
 
     System.out.println("Servlet received maIds="+maIds+" and encID="+encID);
@@ -82,66 +74,62 @@ public class MediaAssetAttach extends HttpServlet {
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("MediaAssetAttach.class");
     PrintWriter out = response.getWriter();
-  
+
+    JSONArray alreadyAttached = new JSONArray();
+
     try {
       myShepherd.beginDBTransaction();
-      Encounter enc = myShepherd.getEncounter(encID);
-      if (enc == null) throw new ServletException("No Encounter with id "+encID+" found in database.");
-      
-      List<MediaAsset> mas = new ArrayList<MediaAsset>();
-      for (String maId : maIds) {
-        MediaAsset ma = myShepherd.getMediaAsset(maId);
-        if (ma == null) throw new ServletException("No MediaAsset with id "+maId+" found in database.");
-        mas.add(ma);
-      }
-      
-      // ATTACH MEDIAASSET TO ENCOUNTER
-      JSONArray alreadyAttached = new JSONArray();
-      if (args.optString("attach")!=null && args.optString("attach").equals("true")) {
-        for (MediaAsset ma : mas) {
-          
-          if (enc.hasTopLevelMediaAsset(ma.getId())) {
-            alreadyAttached.put(ma.getId());
-          } else {
-            enc.addMediaAsset(ma);
-          } 
+
+    Encounter enc = myShepherd.getEncounter(encID);
+    if (enc == null) throw new ServletException("No Encounter with id "+encID+" found in database.");
+
+        List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        for (String maId : maIds) {
+            MediaAsset ma = myShepherd.getMediaAsset(maId);
+            if (ma == null) throw new ServletException("No MediaAsset with id "+maId+" found in database.");
+            if (enc.hasTopLevelMediaAsset(ma.getId())) {
+                alreadyAttached.put(ma.getId());
+            } else {
+                mas.add(ma);
+            }
         }
-        if (alreadyAttached.length() > 0) res.put("alreadyAttached", alreadyAttached);
+
+    if (alreadyAttached.length() > 0) res.put("alreadyAttached", alreadyAttached);
+
+    // ATTACH MEDIAASSET TO ENCOUNTER
+    if (args.optString("attach")!=null && args.optString("attach").equals("true")) {
+        for (MediaAsset ma : mas) {
+            enc.addMediaAsset(ma);
+        }
         res.put("action","attach");
         res.put("success",true);
+    }
 
-      } else if (args.optString("detach")!=null && args.optString("detach").equals("true")) {
-      // DETACH MEDIAASSET FROM ENCOUNTER
-          try {
-            boolean success = false;
-            for (MediaAsset ma : mas) {
-                System.out.println("Trying to remove MA = "+ma.getId()+" from encounter ID = "+enc.getID());
-                List<Annotation> maAnns = new ArrayList<Annotation>(ma.getAnnotations());
-                List<Annotation> encAnns = new ArrayList<Annotation>(enc.getAnnotations());
-                //only set annotations on the media asset that belong to this encounter to false
-                encAnns.retainAll(maAnns);  
-                for (Annotation ann : maAnns) {
-                  ann.setMatchAgainst(false);
-                } 
-                enc.removeMediaAsset(ma);
-    
-                String undoLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+ma.getId();
-                String comments = "Detached MediaAsset " + ma.getId() + ". To undo this action, visit " + undoLink;
-                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + comments + " </p>");
-                success = true;
-            }
-            res.put("action","detach");
-            res.put("success", success);
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
+    // DETACH MEDIAASSET FROM ENCOUNTER
+    else if (args.optString("detach")!=null && args.optString("detach").equals("true")) {
+        boolean success = false;
+        for (MediaAsset ma : mas) {
+            // Set match against to false on the annotation(s) from this asset that were associated with the encounter. 
+            ArrayList<Annotation> maAnns = ma.getAnnotations();
+            ArrayList<Annotation> encAnns = enc.getAnnotations();
+            encAnns.retainAll(maAnns);
+            for (Annotation ann : encAnns) {ann.setMatchAgainst(false);} 
+            enc.removeMediaAsset(ma);
+ 
+            String undoLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+ma.getId();
+            String comments = "Detached MediaAsset " + ma.getId() + ". To undo this action, visit " + undoLink;
+            enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + comments + " </p>");
+            success = true;
+        }
+        res.put("action","detach");
+        res.put("success", success);
 
-      } else {
-          res.put("args.optString",false);
-          res.put("error", "unknown command");
-          res.put("success", false);
-      }
-      myShepherd.commitDBTransaction();
+    } else {
+      res.put("args.optString",false);
+        res.put("error", "unknown command");
+        res.put("success", false);
+    }
+    myShepherd.commitDBTransaction();
 
     // DETACH MEDIAASSET FROM ENCOUNTER
     } catch (Exception e) {

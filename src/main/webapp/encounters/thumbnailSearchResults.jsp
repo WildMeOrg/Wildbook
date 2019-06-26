@@ -17,7 +17,7 @@ f<%@ page contentType="text/html; charset=utf-8"
 	int encounterIncrementer=10;
   
     int startNum = 0;
-    int endNum = 10;
+    int endNum = 30;
 
     try {
 
@@ -218,7 +218,7 @@ f<%@ page contentType="text/html; charset=utf-8"
     href="mappedSearchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
      href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
@@ -282,13 +282,6 @@ f<%@ page contentType="text/html; charset=utf-8"
         	<jsp:param name="rangeEnd" value="<%=endNum %>" />
         </jsp:include>
 
-<%
-
-
-  //startNum = startNum + encounterIncrementer;
-  //endNum = endNum + encounterIncrementer;
-
-%>
 
 <table width="100%">
   <tr>
