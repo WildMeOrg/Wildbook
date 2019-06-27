@@ -227,6 +227,7 @@
 						/OccurrenceSetIndividualCount = authc, roles[researcher]
 				         /IndividualAddComment = authc, roles[researcher]
 				         /SimpleCMROutput = authc, roles[researcher]
+				         /MarkRecaptureEncounters = authc, roles[researcher]
 				             /GenalexExportCodominantMSDataBySize = authc, roles[researcher]
 				             /SOCPROGExport = authc, roles[researcher]
 				             /OccurrenceSetGroupBehavior = authc, roles[researcher]
@@ -268,6 +269,7 @@
 				 /EncounterSetGenusSpecies = authc, roles[researcher]
 				 #/EncounterSetInformOthers = authc, roles[researcher]
 				 /RestKeyword = authc, roles[researcher]
+				 /AddLabeledKeyword = authc, roles[researcher]
 				 /IndividualAddFile = authc, roles[researcher]
 				 /EncounterResetDate = authc, roles[researcher]
 				 /IndividualSearchExportCapture = authc, roles[researcher]
@@ -597,6 +599,10 @@
   <servlet>
     <servlet-name>RestKeyword</servlet-name>
     <servlet-class>org.ecocean.servlet.RestKeyword</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>AddLabeledKeyword</servlet-name>
+    <servlet-class>org.ecocean.servlet.AddLabeledKeyword</servlet-class>
   </servlet>
 
     <servlet>
@@ -942,9 +948,14 @@
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportKML</servlet-class>
   </servlet>
 
-        <servlet>
-          <servlet-name>SimpleCMROutput</servlet-name>
-          <servlet-class>org.ecocean.servlet.export.SimpleCMROutput</servlet-class>
+  <servlet>
+	  <servlet-name>SimpleCMROutput</servlet-name>
+	  <servlet-class>org.ecocean.servlet.export.SimpleCMROutput</servlet-class>
+  </servlet>
+
+  <servlet>
+	  <servlet-name>MarkRecaptureEncounters</servlet-name>
+	  <servlet-class>org.ecocean.servlet.export.MarkRecaptureEncounters</servlet-class>
   </servlet>
 
 
@@ -1657,10 +1668,14 @@
   </servlet-mapping>
 
   <servlet-mapping>
-          <servlet-name>SimpleCMROutput</servlet-name>
-          <url-pattern>/SimpleCMROutput</url-pattern>
+	  <servlet-name>SimpleCMROutput</servlet-name>
+	  <url-pattern>/SimpleCMROutput</url-pattern>
   </servlet-mapping>
 
+  <servlet-mapping>
+	  <servlet-name>MarkRecaptureEncounters</servlet-name>
+	  <url-pattern>/MarkRecaptureEncounters</url-pattern>
+  </servlet-mapping>
 
       <servlet-mapping>
         <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
@@ -2281,6 +2296,11 @@
   <servlet-mapping>
     <servlet-name>RestKeyword</servlet-name>
     <url-pattern>/RestKeyword</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>AddLabeledKeyword</servlet-name>
+    <url-pattern>/AddLabeledKeyword</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
