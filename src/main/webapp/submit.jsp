@@ -471,7 +471,7 @@ console.log('dtList => %o', dtList);
     }
     if (dtList.length > 0) {
         dtList.sort();
-        var h = 'From image metadata: <select onChange="return exifDTSet(this);"><option value="">Select date/time</option>';
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifDTSet(this);"><option value="">Select date/time</option>';
         for (var i = 0 ; i < dtList.length ; i ++) {
             h += '<option>' + dtList[i] + '</option>';
         }
@@ -488,7 +488,7 @@ console.log('llList => %o', llList);
     }
     if (llList.length > 0) {
         llList.sort();
-        var h = 'From image metadata: <select onChange="return exifLLSet(this);"><option value="">Select lat/lon</option>';
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifLLSet(this);"><option value="">Select lat/lon</option>';
         for (var i = 0 ; i < llList.length ; i ++) {
             h += '<option>' + llList[i] + '</option>';
         }
