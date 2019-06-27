@@ -36,7 +36,7 @@ wildbook.IA.plugins.push({
             function(enh) {  //the menu text for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 var menuText = '';
-                if (iaStatus && iaStatus.status) {
+                if (wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus)) {
                     menuText += 'matching already initiated, status: <span title="task ' + iaStatus.taskId;
                     menuText += '" class="image-enhancer-menu-item-iastatus-';
                     menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
@@ -45,7 +45,9 @@ wildbook.IA.plugins.push({
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
                     var requireSpecies = wildbook.IA.requireSpeciesForId();
-                    if (requireSpecies=="false"||ma.taxonomyString) {
+                    if (ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
+                        menuText = 'Still waiting for detection results. Refresh page to see updates.'
+                    } else if (requireSpecies=="false"||ma.taxonomyString) {
                         menuText = 'start matching';
                         alreadyLinked = true;
                     } else {
@@ -56,7 +58,7 @@ wildbook.IA.plugins.push({
             },
             function(enh) {  //the menu action for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                if (iaStatus && iaStatus.taskId) {
+                if (wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus)) {
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 } else {
 	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
@@ -64,7 +66,9 @@ wildbook.IA.plugins.push({
                     var ma = assetById(mid);
 console.log('xxxx mid=%o, aid=%o, ma=%o', mid, aid, ma);
                     var requireSpecies = wildbook.IA.requireSpeciesForId();
-                    if (requireSpecies=="false"||ma.taxonomyString) {
+                    if (ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
+                        return; // no action if we're waiting for detection
+                    } else if (requireSpecies=="false"||ma.taxonomyString) {
                         wildbook.IA.getPluginByType('IBEIS').matchFilter(aid, ma);
                     } else {
                         imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
@@ -79,7 +83,7 @@ console.log('xxxx mid=%o, aid=%o, ma=%o', mid, aid, ma);
             function(enh) {
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 var menuText = '';
-                if (iaStatus && iaStatus.status) { // corresponds to "matching already initiated" above
+                if (wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus)) {
 
                     var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
@@ -166,6 +170,7 @@ console.log('xxxy mid=%o, aid=%o, ma=%o', mid, aid, ma);
         var rtn = {
             status: ma.detectionStatus,
             statusText: ma.detectionStatus,
+            task: ma.tasks[0],
             taskId: ma.tasks[0].id
         };
         if (ma.annotation && ma.annotation.identificationStatus) {
@@ -177,6 +182,13 @@ console.log('xxxy mid=%o, aid=%o, ma=%o', mid, aid, ma);
             rtn.statusText = 'active (see results)';
         }
         return rtn;
+    },
+
+    iaStatusIdentActive: function(ias) {
+        if (!ias || !ias.task) return false;
+        if (ias.task.parameters && ias.task.parameters.skipIdent) return false;  //detection-only job; not good enough
+console.warn('ias => %o', ias);
+        return true;
     },
 
     restCall: function(data, callback) {
