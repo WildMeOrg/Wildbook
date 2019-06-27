@@ -33,12 +33,12 @@
     
     Vector blocked=new Vector();
 
-    String serverUrl = "//CommonConfiguration.getURLLocation(request)";
+    String serverUrl = "//"+CommonConfiguration.getURLLocation(request);
 
     
     try{
-		    	EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
-		    	rEncounters = queryResult.getResult();
+		    EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
+		    rEncounters = queryResult.getResult();
 				blocked = Encounter.blocked(rEncounters, request);
 		
 		    		
@@ -177,6 +177,48 @@
 		  href="<%=serverUrl%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 		
+		<%int defaultNumSessions = 3;%>
+		<div id="markRecapture">
+			<p><strong>Mark Recapture Export</strong></p>
+
+			<table>
+				<tr>
+					<td><input type="text" id="numberSessions" onChange="updateMarkRecaptureLink()" name="numberSessions" size="3" maxLength="3" value="<%=defaultNumSessions%>"/></td>
+					<td>Number capture sessions</td>
+				</tr>
+				<tr>
+					<td><input type="checkbox" onChange="updateMarkRecaptureLink()" name="includeIndividualID" id="includeIndividualID"/></td>					
+					<td>Include marked individual ID as a comment at the end of each line</td>
+				</tr>
+				<tr>
+					<td><input type="checkbox" onChange="updateMarkRecaptureLink()" name="includeQueryComments" id="includeQueryComments"/></td>					
+					<td>Include search query summary and URL as a comment at the start of the file</td>
+				</tr>
+			</table>
+
+			<p><a id="markRecaptureLink" href="<%=serverUrl%>/SimpleCMRSpecifySessions.jsp?<%=request.getQueryString()%>&numberSessions=<%=defaultNumSessions%>&encounterExport=true"><%=map_props.getProperty("clickHere")%></a></p>
+		</div>
+
+		<script>
+
+			function updateMarkRecaptureLink() {
+				var nSessions   = $('#numberSessions').val();
+				var incComments = $('#includeQueryComments').val();
+				var incIndID    = $('#includeIndividualID').val();
+
+				var otherArgs = '&encounterExport=true&numberSessions='+nSessions;
+				if (incComments) otherArgs += "&includeQueryComments=true";
+				if (incIndID) otherArgs += "&includeIndividualID=true";
+
+				var linkDest  = '<%=serverUrl%>/SimpleCMRSpecifySessions.jsp?<%=request.getQueryString()%>'+otherArgs;
+				console.log("updateMarkRecaptureLink setting linkDest to "+linkDest);
+				$('a#markRecaptureLink').attr("href", linkDest); 
+			}
+
+		</script>
+
+
+
 
 		<% } else { // dont have access to ALL records, so:  %>
 		

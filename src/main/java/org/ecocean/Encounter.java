@@ -1295,6 +1295,12 @@ public class Encounter implements java.io.Serializable {
     return year;
   }
 
+  public boolean wasInPeriod(DateTime start, DateTime end) {
+    Long thisTime = getDateInMilliseconds();
+    if (thisTime==null) return false;
+    return (start.getMillis()<=thisTime && end.getMillis()>thisTime);
+  }
+
 
   /**
    * Returns the String holding specific location data used for searching
@@ -3807,7 +3813,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       else{
         this.submitters=submitters;
       }
-      
     }
     public void setPhotographers(List<User> photographers) {
       if(photographers==null){this.photographers=null;}
@@ -3829,4 +3834,12 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     } 
   }
     
+  public static List<String> getIndividualIDs(Collection<Encounter> encs) {
+    Set<String> idSet = new HashSet<String>();
+    for (Encounter enc: encs) {
+      if (enc.hasMarkedIndividual()) idSet.add(enc.getIndividualID());
+    }
+    return Util.asSortedList(idSet);
+  }
+
 }
