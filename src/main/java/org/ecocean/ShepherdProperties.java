@@ -64,10 +64,11 @@ public class ShepherdProperties {
       if (Util.stringExists(overwrite)) return overwrite;
     }
     // now try based on the user's organizations
-    Shepherd myShepherd = new Shepherd(request);
-    User user = myShepherd.getUser(request);
-    if (user==null) return null;
-    return getOverwriteStringForUser(user);
+    Shepherd readOnlyShep = Shepherd.newActiveShepherd(request, "getOverwriteStringForUser");
+    User user = readOnlyShep.getUser(request);
+    String ans = (user==null) ? null : getOverwriteStringForUser(user);
+    readOnlyShep.rollbackAndClose();
+    return ans;
   }
   public static String getOverwriteStringForUser(User user) {
     if (user == null || user.getOrganizations()==null) return null;
