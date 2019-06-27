@@ -131,7 +131,8 @@ public class IndividualAddEncounter extends HttpServlet {
               addToMe.setSex(enc2add.getSex());
             }
             
-            
+
+/*
             try{
               //let's do a YouTube post-back check
               System.out.println("In IndividualAddEncounter trying to fire YouTube..");
@@ -173,6 +174,7 @@ public class IndividualAddEncounter extends HttpServlet {
               }
             }
             catch(Exception e){e.printStackTrace();}
+*/
             
             
             
