@@ -250,6 +250,26 @@ var map;
 
 var marker;
 
+function updateMap() {
+    var latVal = $('#lat').val();
+    var lonVal = $('#longitude').val();
+    var pt = placeMarkerLatLon(latVal, lonVal);
+    if (pt) {
+        map.setCenter(pt);
+        map.setZoom(5);
+    }
+}
+
+function placeMarkerLatLon(lat, lon) {  //convenience
+    var latFloat = parseFloat(lat);
+    var lonFloat = parseFloat(lon);
+    if (isNaN(latFloat) || isNaN(lonFloat)) return;
+    var pt = new google.maps.LatLng(latFloat, lonFloat);
+    if (!pt) return;
+    placeMarker(pt);
+    return pt;
+}
+
 function placeMarker(location) {
     if(marker!=null){marker.setMap(null);}
     marker = new google.maps.Marker({
@@ -557,6 +577,7 @@ function exifLLSet(el) {
     if (el.value.indexOf(', ') >= 0) ll = el.value.split(', ');
     $('#lat').val(ll[0]);
     $('#longitude').val(ll[1]);
+    updateMap();
 }
 
 function showUploadBox() {
@@ -738,12 +759,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
           <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
-          <input class="form-control" name="lat" type="text" id="lat"> &deg;
+          <input class="form-control" name="lat" type="text" id="lat" onChange="return updateMap()"> &deg;
         </div>
 
         <div class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
-          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
+          <input class="form-control" name="longitude" type="text" id="longitude" onChange="return updateMap();"> &deg;
         </div>
       </div>
 
