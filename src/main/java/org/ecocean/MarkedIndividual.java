@@ -2423,11 +2423,16 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
     // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex, String genus, String specificEpithet) {
+        int idLimit = 2000;  //this is cuz we get a stack overflow if we have too many.  :(  so kinda have to fail when we have too many
         System.out.println("findByNames regex: "+regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
         if (NAMES_CACHE == null) return rtn;  //snh
         if (regex == null) return rtn;
         List<String> nameIds = findNameIds(regex);
+        if (nameIds.size() > idLimit) {
+            System.out.println("WARNING: MarkedIndividual.findByNames() found too many names; failing (" + nameIds.size() + " > " + idLimit + ")");
+            return rtn;
+        }
         System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
         System.out.println("findByNames: "+genus+" "+specificEpithet);
