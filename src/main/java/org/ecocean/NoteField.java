@@ -83,7 +83,8 @@ public class NoteField implements java.io.Serializable {
 
     public String toHtmlDiv() {
         String h = "<div class=\"org-ecocean-notefield\" id=\"" + this.id + "\">";
-        h += this.getContent();
+        String cont = this.getContent();
+        if (cont != null) h += cont;
         h += "</div>";
         return h;
     }

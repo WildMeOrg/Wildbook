@@ -72,7 +72,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
 
-
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
       <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
@@ -90,6 +89,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
+
+        <link rel="stylesheet" href="<%=urlLoc %>/css/NoteField.css" />
+        <script src="<%=urlLoc %>/javascript/NoteField.js"></script>
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
