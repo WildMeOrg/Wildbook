@@ -22,15 +22,20 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
+	String indieName=request.getParameter("individualID").trim();
 	if (enc == null) {
 		out.println("{\"success\": false, \"error\": \"no such encounter\"}");
 		myShepherd.rollbackDBTransaction();
-	} else {
+	} 
+	else if(myShepherd.isMarkedIndividual(indieName)){
 		enc.setIndividualID(request.getParameter("individualID"));
 		enc.setState("approved");
+		MarkedIndividual indie=myShepherd.getMarkedIndividual(indieName);
+		indie.addEncounter(enc, context);
 		myShepherd.commitDBTransaction();
 		out.println("{\"success\": true}");
 	}
+	else{myShepherd.rollbackDBTransaction();}
 	myShepherd.closeDBTransaction();
 	return;
 }

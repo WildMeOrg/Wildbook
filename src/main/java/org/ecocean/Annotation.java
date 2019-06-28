@@ -35,15 +35,13 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
-
     private static final String[][] VALID_VIEWPOINTS = new String[][] {
         {"up",        "up",            "up",        "up",            "up",       "up",           "up",        "up",          },
         {"upfront",   "upfrontright",  "upright",   "upbackright",   "upback",   "upbackleft",   "upleft",    "upfrontleft"  },
         {"front",     "frontright",    "right",     "backright",     "back",     "backleft",     "left",      "frontleft"    },
         {"downfront", "downfrontright","downright", "downbackright", "downback", "downbackleft", "downleft",  "downfrontleft"},
         {"down",      "down",          "down",      "down",          "down",     "down",         "down",      "down"         }
-    };
-
+};
     private String species; 
 
     private String iaClass; // This is just how it gonna be for now. Swap the methods to draw from Taxonomy later if ya like?
@@ -66,6 +64,15 @@ public class Annotation implements java.io.Serializable {
     private int height;
     private float[] transformMatrix;
     private double theta;
+
+    // quality indicates the fidelity of the annotation, e.g. the overall image quality of a picture.
+    // This is useful e.g. for researchers who want to account for a bias where "better" images are 
+    // more likely to produce matches.
+    private Double quality;
+    // distinctiveness indicates the real-wold distinctiveness of the feature *being recorded*, independent
+    // of the recording medium. Useful e.g. for researchers who want to account for a bias where more distinct
+    // animals like one with a large scar are easier to re-sight (match).
+    private Double distinctiveness;
     private String viewpoint;
     //*'annot_yaw': 'REAL',
     //~'annot_detect_confidence': 'REAL',
@@ -179,6 +186,13 @@ public class Annotation implements java.io.Serializable {
         this.id = id;
     }
 
+    public Double getQuality() {
+        return quality;
+    }
+    public void setQuality(Double quality) {
+        this.quality = quality;
+    }
+
     public String getUUID() {
         return id;
     }
@@ -252,6 +266,12 @@ public class Annotation implements java.io.Serializable {
     }
     public void setTheta(double t) {
         theta = t;
+    }
+    public boolean isIAReady() {
+        MediaAsset ma = this.getMediaAsset();
+        if (ma==null) return false;
+        if (ma.getHeight()==0 && ma.getWidth()==0) return false;
+        return true;
     }
 
     public String getViewpoint() {
@@ -343,7 +363,6 @@ public class Annotation implements java.io.Serializable {
     //  response comes from ia thus: "response": [{"score": 0.9783339699109396, "species": "giraffe_reticulated", "viewpoint": "right"}]
     public static JSONObject iaViewpointFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 */
-
 
 //FIXME this all needs to be deprecated once deployed sites are migrated
     public MediaAsset __getMediaAsset() {
@@ -603,10 +622,11 @@ System.out.println("[1] getMatchingSet params=" + params);
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
-            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
+        	anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
         } else if (useClauses) {
             System.out.println("MATCHING ALL SPECIES : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
             anns = getMatchingSetForAnnotationAllSpeciesUseClauses(myShepherd);
+
         } else {
             System.out.println("MATCHING ALL SPECIES : The parent encounter for query Annotation id="+this.id+" has not specified specificEpithet and genus, and is not using clauses.");
             anns = getMatchingSetAllSpecies(myShepherd);
@@ -744,6 +764,8 @@ System.out.println("[1] getMatchingSet params=" + params);
     public Encounter findEncounter(Shepherd myShepherd) {
         return Encounter.findByAnnotation(this, myShepherd);
     }
+
+
 
 /* untested!
     public Encounter findEncounterDeep(Shepherd myShepherd) {
@@ -901,7 +923,6 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         if (vp == null) return true;  //?? is this desired behavior?
         return getAllValidViewpoints().contains(vp);
     }
-
     public static List<String> getAllValidViewpoints() {
         //add code to limit based on IA.properties viewpoints enabled switches if you want i guess
         List<String> all = new ArrayList<>();
@@ -910,5 +931,4 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         }
         return all;
     }
-
 }

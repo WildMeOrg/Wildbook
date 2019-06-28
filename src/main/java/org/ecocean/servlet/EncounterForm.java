@@ -51,7 +51,10 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.MailThreadExecutorService;
 import org.ecocean.Util;
+import org.ecocean.MarkedIndividual;
+import org.ecocean.Keyword;
 import org.ecocean.Encounter;
+import org.ecocean.Occurrence;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
 import org.ecocean.media.*;
@@ -62,6 +65,7 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.identity.IBEISIA;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -634,7 +638,9 @@ System.out.println("enc ?= " + enc.toString());
             String subN=getVal(fv, "submitterName");
             String subE=getVal(fv, "submitterEmail");
             String subO=getVal(fv, "submitterOrganization");
+            if (Util.stringExists(subO)) enc.setSubmitterOrganization(subO);
             String subP=getVal(fv, "submitterProject");
+            if (Util.stringExists(subP)) enc.setSubmitterOrganization(subP);
             //User user=null;
             List<User> submitters=new ArrayList<User>();
             if((subE!=null)&&(!subE.trim().equals(""))) {
@@ -766,6 +772,64 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       if (fv.get("lifeStage") != null && fv.get("lifeStage").toString().length() > 0) {
               enc.setLifeStage(fv.get("lifeStage").toString());
           }
+
+
+      if (fv.get("flukeType") != null && fv.get("flukeType").toString().length() > 0) {
+                    System.out.println("        ENCOUNTERFORM:");
+                    System.out.println("        ENCOUNTERFORM:");
+                    System.out.println("        ENCOUNTERFORM:");
+            String kwName = fv.get("flukeType").toString();
+            Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+            for (Annotation ann: enc.getAnnotations()) {
+                MediaAsset ma = ann.getMediaAsset();
+                if (ma!=null) {
+                    ma.addKeyword(kw);
+
+                    System.out.println("ENCOUNTERFORM: added flukeType keyword to encounter: "+kwName);
+                }
+            }
+                                System.out.println("        ENCOUNTERFORM:");
+                    System.out.println("        ENCOUNTERFORM:");
+
+        }
+
+
+         
+
+      if (fv.get("manualID") != null && fv.get("manualID").toString().length() > 0) {
+            String indID = fv.get("manualID").toString();
+            MarkedIndividual ind = myShepherd.getMarkedIndividualQuiet(indID);
+            if (ind==null) {
+                ind = new MarkedIndividual(enc);
+                ind.addName(request, indID); // we don't just create the individual using the encounter+indID bc this request might key the name off of the logged-in user
+                myShepherd.storeNewMarkedIndividual(ind);
+                ind.refreshNamesCache();
+                System.out.println("        ENCOUNTERFORM: created new individual "+indID);
+            } else {
+                ind.addEncounter(enc);
+                ind.addName(request, indID); // adds the just-entered name to the individual
+                System.out.println("        ENCOUNTERFORM: added enc to individual "+indID);
+            }
+            if (ind!=null) enc.setIndividual(ind);
+            enc.setFieldID(indID);
+        }
+    
+
+
+      if (fv.get("occurrenceID") != null && fv.get("occurrenceID").toString().length() > 0) {
+            String occID = fv.get("occurrenceID").toString();
+            enc.setOccurrenceID(occID);
+            Occurrence occ = myShepherd.getOccurrence(occID);
+            if (occ==null) {
+                occ = new Occurrence(occID, enc);
+                myShepherd.storeNewOccurrence(occ);
+                System.out.println("        ENCOUNTERFORM: created new Occurrence "+occID);
+            } else {
+                occ.addEncounter(enc);
+                System.out.println("        ENCOUNTERFORM: added enc to Occurrence "+occID);
+
+            }
+        }
 
 
 
@@ -1050,6 +1114,12 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
+
+                // might want to set detection status here (on the main thread)
+
+                for (MediaAsset ma: enc.getMedia()) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                }
                 Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
                 myShepherd.storeNewTask(task);
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);

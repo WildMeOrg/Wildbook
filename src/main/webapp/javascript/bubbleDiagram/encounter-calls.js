@@ -81,7 +81,7 @@ var getIndividualIDFromEncounterToString = function(encToString) {
   // return everything between "individualID=" and the next comma after that
 console.log('encToString = %o', encToString);
   //var id = encToString.split("individualID=")[1].split(",")[0];
-    var id = encToString.individualID;
+    var id = encToString.displayName; // since this is for display, and individualIDs are UUIDs now
     if (!id) return false;
   return id;
 }
@@ -93,18 +93,21 @@ var getData = function(individualID) {
     var occurrenceArray = [];
     var dataObject = {};
 
-     d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
+     d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
       if(error) {
         console.log("error")
       }
       var jsonData = json;
       for(var i=0; i < jsonData.length; i++) {
         var thisOcc = jsonData[i];
+        //console.log("JsonData["+i+"] = "+JSON.stringify(thisOcc));
         var encounterSize = thisOcc.encounters.length;
         // make encounterArray, containing the individualIDs of every encounter in thisOcc;
         for(var j=0; j < encounterSize; j++) {
           //console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
           var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
+
+          
           //var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
           //console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
           if (!thisEncIndID) continue;  //unknown indiv -> false
@@ -147,7 +150,7 @@ var getData = function(individualID) {
   };
 
 var getSexHaploData = function(individualID, items) {
-  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && occur.encounters.contains(enc) && occur.encounters.contains(enc2) && enc2.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2;org.ecocean.Occurrence occur"), function(error, json) {
+  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && occur.encounters.contains(enc) && occur.encounters.contains(enc2) && enc2.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2;org.ecocean.Occurrence occur"), function(error, json) {
     if(error) {
       console.log("error")
     }
@@ -250,7 +253,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
           return d[0].italics() + "-" + d[1];
         }
         if(d.length > 2) {
-          return "<a target='_blank' href='/individuals.jsp?number=" + d[0] + "'>" + d[0] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
+          return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
           }
         }
         if(d == "GOS") {
@@ -510,7 +513,7 @@ var getIndividualData = function(relationshipArray) {
       if(error) {
         console.log("error")
       }
-      
+      //console.log("json: "+JSON.stringify(json));
       jsonData = json;
       var individualInfo = relationshipArray.filter(function(obj) {
         return obj.relationshipWith[0] === jsonData.individualID;
@@ -520,18 +523,19 @@ var getIndividualData = function(relationshipArray) {
       individualInfo.relationshipWith[2] = jsonData.alternateid;
       individualInfo.relationshipWith[3] = jsonData.sex;
       individualInfo.relationshipWith[4] = jsonData.localHaplotypeReflection;
+      individualInfo.relationshipWith[5] = jsonData.displayName;
       relationshipTableData.push(individualInfo);
 
       if(relationshipTableData.length == relationshipArray.length) {
         for(var j = 0; j < relationshipArray.length; j++) {
           if(relationshipArray[j].relationshipWith.length == 1) {
             relationshipArray[j].relationshipWith[1] = jsonData.nickName;
-            relationshipArray[j].relationshipWith[1] = jsonData.nickName;
             relationshipArray[j].relationshipWith[2] = jsonData.alternateid;
             relationshipArray[j].relationshipWith[3] = jsonData.sex;
             relationshipArray[j].relationshipWith[4] = jsonData.localHaplotypeReflection;
+            relationshipArray[j].relationshipWith[5] = jsonData.displayName;
           }
-	}
+        }	
         makeTable(relationshipArray, "#relationshipHead", "#relationshipBody",null);
       }
     });
