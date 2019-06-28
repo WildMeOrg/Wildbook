@@ -875,6 +875,16 @@
     <url-pattern>/AnnotationEdit</url-pattern>
   </servlet-mapping>
 
+	<servlet>
+		<servlet-name>NoteFieldEdit</servlet-name>
+		<servlet-class>org.ecocean.servlet.NoteFieldEdit</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>NoteFieldEdit</servlet-name>
+		<url-pattern>/NoteFieldEdit</url-pattern>
+	</servlet-mapping>
+
       <servlet>
     <servlet-name>SiteSearch</servlet-name>
     <servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>

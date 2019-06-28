@@ -450,6 +450,14 @@ public class Shepherd {
     return tempEnc;
   }
   
+  public NoteField getNoteField(String id) {
+    try {
+      return (NoteField)(pm.getObjectById(pm.newObjectIdInstance(NoteField.class, id), true));
+    } catch (Exception nsoe) {
+      return null;
+    }
+  }
+
   public Annotation getAnnotation(String uuid) {
     Annotation annot = null;
     try {

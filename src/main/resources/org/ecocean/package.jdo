@@ -865,5 +865,14 @@
 		</field>
 	</class>
 
+	<class name="Annotation" identity-type="application">
+		<field name="id" primary-key="true">
+			<column length="36"/>
+		</field>
+		<field name="content">
+        		<column jdbc-type="LONGVARCHAR"/>
+		</field>
+	</class>
+
   </package>
 </jdo>
