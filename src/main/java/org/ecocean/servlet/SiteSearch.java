@@ -89,44 +89,54 @@ public class SiteSearch extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("SiteSearch.class");
         myShepherd.beginDBTransaction();
+        
+        try {
 
-        List<MarkedIndividual> individuals = MarkedIndividual.findByNames(myShepherd, regex);
-
-        // this stores the hashmaps for each individual so we can sort by label later
-        Map<String,Map<String,String>> labelToHm = new HashMap<String,Map<String,String>>();
+          List<MarkedIndividual> individuals = MarkedIndividual.findByNames(myShepherd, regex);
   
+          // this stores the hashmaps for each individual so we can sort by label later
+          Map<String,Map<String,String>> labelToHm = new HashMap<String,Map<String,String>>();
+    
           for (MarkedIndividual ind : individuals) {
-              HashMap<String, String> hm = new HashMap<String, String>();
-              String label = ind.getDisplayName(request);
-              hm.put("label", label);
-              hm.put("value", ind.getIndividualID());
-              hm.put("type", "individual");
+                try {
+                  HashMap<String, String> hm = new HashMap<String, String>();
+                  String label = ind.getDisplayName(request);
+                  hm.put("label", label);
+                  hm.put("value", ind.getIndividualID());
+                  hm.put("type", "individual");
+      
+                  //
+                  // TODO: Read species from db. See SimpleIndividual
+                  //
+                  String gs = ind.getGenusSpeciesDeep();
+                  if (gs != null) {
+                    hm.put("species", gs);
+                  }
+                  if(ind.getNickName()!=null){
+                    hm.put("nickname", ind.getNickName());
+                  }
+                  labelToHm.put(label, hm);
+                  //list.add(hm);
+                }
+                catch(Exception f) {f.printStackTrace();}
+            }
   
-              //
-              // TODO: Read species from db. See SimpleIndividual
-              //
-                String gs = ind.getGenusSpeciesDeep();
-              if (gs != null) {
-                hm.put("species", gs);
-              }
-              if(ind.getNickName()!=null){
-                hm.put("nickname", ind.getNickName());
-              }
-              labelToHm.put(label, hm);
-              //list.add(hm);
-          }
-
-          // now we sort the labels and add them in order
-          // this is a runtime hit and we should consider figuring out how to sort on labels 
-          List<String> sortedLabels = Util.asSortedList(labelToHm.keySet());
-          for (String label: sortedLabels) {
-            Map<String, String> hm = labelToHm.get(label);
-            list.add(hm);
-          }
-
+  
+            // now we sort the labels and add them in order
+            // this is a runtime hit and we should consider figuring out how to sort on labels 
+            List<String> sortedLabels = Util.asSortedList(labelToHm.keySet());
+            for (String label: sortedLabels) {
+              Map<String, String> hm = labelToHm.get(label);
+              list.add(hm);
+            }
+        }
+        catch(Exception e) {
+          e.printStackTrace();
+        }
+        finally {
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
-         
+        }
 
         /*
         //
