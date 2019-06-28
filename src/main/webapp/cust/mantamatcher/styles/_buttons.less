@@ -48,6 +48,20 @@ input[type="submit"].light { background-color: @brand-secondary; }
 // button:hover, html input[type="button"]:hover,
 // input[type="reset"]:hover,
 // input[type="submit"]:hover { background-color: @brand-contrast; }
+.index-submit-button {
+
+	font-size: 3em;
+	
+	@media screen and (max-width: @screen-md){
+		font-size: 2.2em;
+	}
+	@media screen and (max-width: @screen-sm){
+		font-size: 1.4em;
+	}
+	@media screen and (max-width: @screen-xs){
+		font-size: 1em;
+	}
+}
 
 .button-icon {
 width: 45px;

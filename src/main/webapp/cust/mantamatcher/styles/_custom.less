@@ -1,6 +1,19 @@
 .main-section {
 	padding-top: 50px;
 	padding-bottom: 80px;
+	min-height: 91%;
+	}
+
+	@media (max-width: @screen-md) {
+		.main-section { min-height: 80%; }
+	}
+
+	@media (max-width: @screen-sm) {
+		.main-section { min-height: 70%; }
+	}
+
+	@media (max-width: @screen-sm) {
+		.main-section { min-height: 50%; }
 	}
 
 	.main-section h1, .main-section h2 {
@@ -8,6 +21,30 @@
 		font-size: 36px;
 		line-height: 1.3em;
 		}
+
+.user-activity-section { 
+	padding-top: 50px; 
+	padding-bottom: 50px; 
+	min-height: 55%;  
+	} 
+	
+	.user-activity-section h1, .user-activity-section h2 { 
+		font-weight: 700; 
+		font-size: 36px; 
+		line-height: 1.3em; 
+		} 
+	
+.white {
+	color: #FFF;	
+}
+
+.down {
+	top: 90% !important;
+}
+
+.glyphicon-large {
+	font-size: 3.5em;
+}
 
 .section-header {
 	text-transform: uppercase;
@@ -405,7 +442,7 @@ form table td, form table th {
 
 /* Hero */
 .hero, .data-section {
-	background-image: url("../img/Leafy_GregRouse.jpg");
+	background-image: url("../img/leafy_gregrouse_reduced.png");
     background-size: cover;
     background-repeat: no-repeat;
     background-position: 50% 50%;
@@ -414,7 +451,7 @@ form table td, form table th {
 .hero { position: relative; }
 
 	.hero .container {
-		margin-top: 10%;
+		margin-top: 20%;
 		}
 
 		.hero h2 {
@@ -426,15 +463,75 @@ form table td, form table th {
 
 		@media screen and (min-width: @screen-sm-min) {
 			.hero h2 { font-size: 3.3em; }
+			.hero .container {max-height: 500px;}
+		}
+		@media screen and (min-width: @screen-xs-min) {
+			.hero .container {max-height: 400px;}
 		}
 
-		.hero .video-wrapper {
-			position: absolute;
-			top: 0;
-			width: 100%;
-			margin-top: 50px;
-			display: none;
+.hero-bottom, .data-section {
+	background-image: url("../img/gr_common_reduced.png");
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+	}
+
+.hero-bottom { position: relative; }
+
+	.hero-bottom .container {
+		min-height: 700px;
+		margin-top: 4%;
+		}
+
+		.hero-bottom h2 {
+			color: @mainColor;
+			font-weight: 300;
+			font-size: 1.6em;
+			text-shadow: 1px 2px 2px #333;
 			}
+
+		@media screen and (min-width: @screen-sm-min) {
+			.hero-bottom h2 { font-size: 3.3em; }
+			.hero .container {max-height: 500px;}
+		}
+		@media screen and (min-width: @screen-xs-min) {
+			.hero .container {max-height: 400px;}
+		}
+
+.splash-submit {
+	top: 10%;
+	position: absolute;
+	left: 50%;
+	// width: 100%;
+	transform: translateX(-50%);
+	z-index: 1;
+
+}
+#main-splash {
+	font-size: 4em; 
+	bottom: 13%;
+	//margin-top: 1em;
+	position: absolute;
+	left: 50%;
+	// width: 100%;
+	transform: translateX(-50%);
+	text-align: center;
+
+}
+
+@media screen and (max-width: @screen-sm) {
+	#main-splash {font-size: 3em;}
+}
+
+#splash-div {
+	transform: translateY(-100%)
+}
+
+@media screen and (max-width: @screen-xs-min) {
+	.counter-dev {max-height: 600px;}
+}
+
+// #bg-image-container {position: relative;}
 
 .encounter-list {}
 

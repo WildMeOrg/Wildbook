@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
+	<%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
               java.util.ArrayList,
@@ -333,26 +333,26 @@ finally{
    myShepherd.closeDBTransaction();
 }
 %>
-
 <section class="hero container-fluid main-section relative">
-    <div class="container relative">
-        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h2>Welcome to Wildbook!</h2>
-            <!--
-            <button id="watch-movie" class="large light">
-				Watch the movie
-				<span class="button-icon" aria-hidden="true">
-			</button>
-			-->
-            <a href="submit.jsp">
-                <button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
-            </a>
-        </div>
-
+	<!--
+	<div class="center-block">
 	</div>
-
-
+	-->
+	<h2 id="main-splash"><%=props.getProperty("mainSplash") %></h2>
+	<span class="splash-submit glyphicon glyphicon-large glyphicon-chevron-down white down"></span>
+	<!--
+	<div id="splash-div">
+	</div>
+	<div class="center-block">
+	</div>
+	-->
 </section>
+<section class="hero-bottom container-fluid main-section relative">
+	<a class="splash-submit" href="submit.jsp">
+		<button class="index-submit-button"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
+	</a>
+</section>
+
 
 <section class="container text-center main-section">
 
@@ -426,7 +426,7 @@ finally{
 			</p>
 		</div>
 		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
-			<img  src="images/how_it_works_match_result.jpg" alt=""  />
+			<img  src="images/dragon_match_round.png" alt=""  />
 		</div>
 	</div>
 
@@ -434,9 +434,9 @@ finally{
 
 </section>
 
-<div class="container-fluid relative data-section">
+<div class="counter-div container-fluid relative data-section">
 
-    <aside class="container main-section">
+    <aside class="container user-activity-section">
         <div class="row">
 
             <!-- Random user profile to select -->
@@ -535,9 +535,7 @@ finally{
                     myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-                            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
-
-	                    System.out.println("  I think my startTime is: "+startTime);
+                        long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
 
 	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
@@ -632,59 +630,67 @@ finally{
 
 </div>
 
-<div class="container-fluid">
-    <section class="container main-section">
+<%
+if(CommonConfiguration.allowAdoptions(context)){
+%>
+	<div class="container-fluid">
+		<section class="container main-section">
 
-        <!-- Complete header for adoption section in index properties file -->
-        <%=props.getProperty("adoptionHeader") %>
-        <section class="adopt-section row">
+			<!-- Complete header for adoption section in index properties file -->
+			
+			<%=props.getProperty("adoptionHeader") %>
+			<section class="adopt-section row">
 
-            <!-- Complete text body for adoption section in index properties file -->
-            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-              <%=props.getProperty("adoptionBody") %>
-            </div>
-            <%
-            myShepherd.beginDBTransaction();
-            try{
-	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
-	            if(adopt!=null){
-	            %>
-	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
-		                <div class="focusbox-inner" style="overflow: hidden;">
-		                	<%
-		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
+				<!-- Complete text body for adoption section in index properties file -->
+				<div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
+				<%=props.getProperty("adoptionBody") %>
+				</div>
+				<%
+				myShepherd.beginDBTransaction();
+				try{
+					Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
+					if(adopt!=null){
+					%>
+						<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
+							<div class="focusbox-inner" style="overflow: hidden;">
+								<%
+								String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
 
-		                	%>
-		                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
-		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
-		                    <%
-		                    if(adopt.getAdopterQuote()!=null){
-		                    %>
-			                    <blockquote>
-			                        <%=adopt.getAdopterQuote() %>
-			                    </blockquote>
-		                    <%
-		                    }
-		                    %>
-		                </div>
-		            </div>
+								%>
+								<img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
+								<h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
+								<%
+								if(adopt.getAdopterQuote()!=null){
+								%>
+									<blockquote>
+										<%=adopt.getAdopterQuote() %>
+									</blockquote>
+								<%
+								}
+								%>
+							</div>
+						</div>
 
-	            <%
+					<%
+					}
 				}
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
+				catch(Exception e){e.printStackTrace();}
+				finally{myShepherd.rollbackDBTransaction();}
 
-            %>
-
-
-        </section>
+				%>
 
 
-        <hr/>
-        <%= props.getProperty("donationText") %>
-    </section>
-</div>
+			</section>
+
+
+			<hr/>
+			<%= props.getProperty("donationText") %>
+		</section>
+	</div>
+<%
+}
+%>
+
 
 <jsp:include page="footer.jsp" flush="true"/>
 
