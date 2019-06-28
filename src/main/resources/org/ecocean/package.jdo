@@ -865,7 +865,7 @@
 		</field>
 	</class>
 
-	<class name="Annotation" identity-type="application">
+	<class name="NoteField" identity-type="application">
 		<field name="id" primary-key="true">
 			<column length="36"/>
 		</field>

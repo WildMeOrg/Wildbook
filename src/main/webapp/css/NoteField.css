@@ -3,6 +3,7 @@
 .org-ecocean-notefield {
     margin: 0;
     padding: 0;
+    min-height: 10px;  /* so we have something even when empty, for hover */
 }
 
 .org-ecocean-notefield-outlined {

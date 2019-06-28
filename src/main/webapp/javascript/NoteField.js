@@ -19,16 +19,34 @@ wildbook.NoteField = {
         $(wildbook.NoteField.quill[id].getModule('toolbar').container).append(menus);
     },
 
-    closeEdit: function(id, contents) {  //contents overrides quill contents
-        if (!contents) contents = wildbook.NoteField.quill[id].root.innerHTML;
+    closeEdit: function(id, content) {  //content overrides quill content
+        if (!content) content = wildbook.NoteField.quill[id].root.innerHTML;
         $('#wrap-' + id + ' .ql-toolbar').remove();
-        $('#' + id).removeClass('ql-container').removeClass('ql-snow').html(contents);
+        $('#' + id).removeClass('ql-container').removeClass('ql-snow').html(content);
         delete(wildbook.NoteField.quill[id]);
+        return content;
     },
 
     save: function(el) {
         var id = el.parentElement.parentElement.parentElement.id.substring(5);
-        wildbook.NoteField.closeEdit(id);
+        var content = wildbook.NoteField.closeEdit(id);
+        $.ajax({
+            url: wildbookGlobals.baseUrl + '/NoteFieldEdit',
+            type: 'POST',
+            data: JSON.stringify({id: id, content: content}),
+            contentType: 'application/javascript',
+            complete: function(x) {
+                console.info('NoteField save id=%s: x=%o', id, x);
+                if (!x || !x.responseJSON) {
+                    alert('unable to save changes');
+                } else if (!x.responseJSON.success) {
+                    alert('unable to save changes: ' + x.responseJSON.error);
+                } else {
+                    //successful!
+                }
+            },
+            dataType: 'json'
+        });
         $('#wrap-' + id).find('.org-ecocean-notefield-control').css('visibility', 'visible');
     },
 

@@ -71,6 +71,7 @@ public class NoteFieldEdit extends HttpServlet {
 
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String id = jsonIn.optString("id", null);
+        String content = jsonIn.optString("content", "");
         if (!Util.isUUID(id)) throw new RuntimeException(id + " is not a uuid");
         NoteField nf = myShepherd.getNoteField(id);
         if ((nf == null) && !NoteField.canCreate(user)) {
@@ -81,7 +82,9 @@ public class NoteFieldEdit extends HttpServlet {
                 nf = new NoteField();
                 nf.setId(id);
                 rtn.put("newlyCreated", true);
+                myShepherd.getPM().makePersistent(nf);
             }
+            nf.setContent(content);
             rtn.put("result", nf.toJSONObject());
             rtn.put("success", true);
         }
