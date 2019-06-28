@@ -3,13 +3,19 @@
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
 org.ecocean.ia.Task,
+
 org.joda.time.DateTime,
 org.ecocean.servlet.importer.ImportTask,
+
+org.ecocean.movement.*,
+
 java.net.URL,
+java.util.Vector,
 java.util.ArrayList,
 org.json.JSONObject,
 org.json.JSONArray,
 java.util.Properties" %>
+
 <%!
 	public Shepherd myShepherd = null;
 
@@ -58,8 +64,8 @@ java.util.Properties" %>
 		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
 	}
 
-	private String showEncounter(Encounter enc) {
-		if (enc == null) return format(null, "none");
+	private String showEncounter(Encounter enc, HttpServletRequest req) {
+		if (enc == null) return "<b>[none]</b>";
 		String h = "<div class=\"encounter shown\"><a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">Encounter <b>" + enc.getCatalogNumber() + "</b></a>";
 		if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
 			h += "<div>Annotations: <i>(" + enc.getAnnotations().size() + ")</i><ol>";
@@ -67,26 +73,65 @@ java.util.Properties" %>
 				h += "<li><a href=\"obrowse.jsp?type=Annotation&id=" + enc.getAnnotations().get(i).getId() + "\">Annotation " + enc.getAnnotations().get(i).getId() + "</a></li>";
 			}
 			h += "</ol></div>";
+		} else if(enc.getAnnotations()==null){
+			h+="<div> Annotations = NULL</div>";
+		} else if(enc.getAnnotations().size()==0) {
+			h+="<div> Annotations are EMPTY</div>";
 		}
+		// Add some Occurrence and MarkedIndividual Stuff.
+		h+= "<p>OccurrenceID: <a href='occurrence.jsp?number="+enc.getOccurrenceID()+"'>"+enc.getOccurrenceID()+"</a></p>";
+		h+= "<p>IndividualID: <a href='obrowse.jsp?type=MarkedIndividual&id="+enc.getIndividualID()+"'>"+enc.getIndividualID()+"</a></p>";
+		h+= "<p>webUrl: <a href="+enc.getWebUrl(req)+">"+enc.getWebUrl(req)+"</a></p>";
 		return h + "</div>";
 	}
 
-	private String showFeature(Feature f) {
-		if (f == null) return format(null, "none");
-		if (shown.contains(f)) return "<div class=\"feature shown\">" + format("Feature", f.getId(), f.toString()) + "</div>";
+	private String showMarkedIndividual(MarkedIndividual ind, HttpServletRequest req) {
+		if (ind == null) return "<b>[none]</b>";
+		String h = "<div class=\"individual shown\"><a target=\"_new\" href=\"individuals.jsp?number=" + ind.getIndividualID() + "\">Individual <b>" + ind.getIndividualID() + "</b></a>";
+		h += "<p>Nickname: "+ind.getNickName()+"</p>";
+		h += "<p>Sex: "+ind.getSex()+"</p>";
+		h += "<p>Taxonomy: "+ind.getSpecificEpithet()+"</p>";
+		h += "<p>webUrl: <a href="+ind.getWebUrl(req)+">"+ind.getWebUrl(req)+"</a></p>";
+
+		Vector encs = ind.getEncounters();
+		if ((encs != null) && (encs.size() > 0)) {
+			h += "<div>Encounters:<ul>";
+			for (int i = 0 ; i < encs.size() ; i++) {
+				Encounter enc = (Encounter) encs.get(i);
+				if (enc!=null) {
+					h += "<li><a href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a>";
+					h+= showEncounter(enc, req);
+					h+= "</li>";	
+				} else {
+					h += "<li>NULL Emcpimter!</li>";
+				}
+			}
+			h += "</ul></div>";
+		}
+		h += "</div>";
+		return h;
+	}
+
+	private String showFeature(Feature f, HttpServletRequest req) {
+		if (f == null) return "<b>[none]</b>";
+		if (shown.contains(f)) return "<div class=\"feature shown\">Feature <b>" + f.getId() + "</b></div>";
 		shown.add(f);
 		String h = "<div class=\"feature\">Feature <b>" + f.getId() + "</b>";
                 h += "<input type=\"button\" onClick=\"toggleZoom('" + f.getId() + "')\" value=\"toggle zoom\" style=\"margin-left: 10px;\" />";
                 h += "<ul>";
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
-		h += "<li>" + showMediaAsset(f.getMediaAsset()) + "</li>";
-		h += "<li>" + showAnnotation(f.getAnnotation()) + "</li>";
-                h += "<script>addFeature('" + f.getId() + "', " + f.getParametersAsString() + ");</script>";
+		h += "<li>" + showMediaAsset(f.getMediaAsset(), req) + "</li>";
+		h += "<li>" + showAnnotation(f.getAnnotation(), req) + "</li>";
+        h += "<script>addFeature('" + f.getId() + "', " + f.getParametersAsString() + ");</script>";
 		h += "<li>parameters: " + niceJson(f.getParameters()) + "</li>";
 		return h + "</ul></div>";
 	}
 
-	private String showAnnotation(Annotation ann) {
+    private String getAnnotationLink(Annotation ann) {
+        return "obrowse.jsp?type=Annotation&id="+ann.getId();
+    }
+
+	private String showAnnotation(Annotation ann, HttpServletRequest req) {
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
 		shown.add(ann);
@@ -99,9 +144,9 @@ java.util.Properties" %>
 		h += "<li>" + format("matchAgainst", ann.getMatchAgainst()) + "</li>";
 		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
                 h += "<li>" + format("AoI", ann.getIsOfInterest()) + "</li>";
-		h += "<li>features: " + showFeatureList(ann.getFeatures()) + "</li>";
-		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd)) + "</li>";
-		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset()) + "</li>";
+		h += "<li>features: " + showFeatureList(ann.getFeatures(), req) + "</li>";
+		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd), req) + "</li>";
+		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset(), req) + "</li>";
 		return h + "</ul></div>";
 	}
 
@@ -151,48 +196,48 @@ java.util.Properties" %>
             } else {
                 h += "<li><b>Parent: <a href=\"?type=Task&id=" + parent.getId() + "\">" + parent.getId() + "</a></b> <span class=\"quiet\">" + parent.toString() + "</span>";
                 if (parent.numChildren() > 1) {  //must be > 1 cuz we need siblings
-                    h += "<ol>";
-                    for (Task kid : parent.getChildren()) {
-                        if (kid.equals(task)) continue;
-                        h += "<li><a title=\"sibling\" href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
-                    }
-                    h += "</ol>";
-                }
-                h += "</li>";
-            }
-            h += "<li><b>" + task.numChildren() + " children</b> Task(s)";
-            if (task.numChildren() > 0) {
                 h += "<ol>";
-                for (Task kid : task.getChildren()) {
-                    h += "<li><a href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
+                for (Task kid : parent.getChildren()) {
+                    if (kid.equals(task)) continue;
+                    h += "<li><a title=\"sibling\" href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
                 }
                 h += "</ol>";
             }
             h += "</li>";
-            h += "<li><b>" + task.countObjectMediaAssets() + " MediaAsset</b> object(s)";
-            if (task.hasObjectMediaAssets()) {
-                h += "<ol>";
-                for (MediaAsset ma : task.getObjectMediaAssets()) {
-                    h += "<li><a href=\"?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a> <span class=\"quiet\">" + ma.toString() + "</span></li>";
-                }
-                h += "</ol>";
-            }
-            h += "</li>";
-            h += "<li><b>" + task.countObjectAnnotations() + " Annotation</b> object(s)";
-            if (task.hasObjectAnnotations()) {
-                h += "<ol>";
-                for (Annotation ann : task.getObjectAnnotations()) {
-                    h += "<li><a href=\"?type=Annotation&id=" + ann.getId() + "\">" + ann.getId() + "</a> <span class=\"quiet\">" + ann.toString() + "</span></li>";
-                }
-                h += "</ol>";
-            }
-            h += "</li>";
-            h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
-            h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
-            h += "<li><a target=\"_new\" href=\"ia?v2&includeChildren&taskId=" + task.getId() + "\">JSON task tree</a></li>";
-            h += "</ul>";
-            return h;
         }
+        h += "<li><b>" + task.numChildren() + " children</b> Task(s)";
+        if (task.numChildren() > 0) {
+            h += "<ol>";
+            for (Task kid : task.getChildren()) {
+                h += "<li><a href=\"?type=Task&id=" + kid.getId() + "\">" + kid.getId() + "</a> <span class=\"quiet\">" + kid.toString() + "</span></li>";
+            }
+            h += "</ol>";
+        }
+        h += "</li>";
+        h += "<li><b>" + task.countObjectMediaAssets() + " MediaAsset</b> object(s)";
+        if (task.hasObjectMediaAssets()) {
+            h += "<ol>";
+            for (MediaAsset ma : task.getObjectMediaAssets()) {
+                h += "<li><a href=\"?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a> <span class=\"quiet\">" + ma.toString() + "</span></li>";
+            }
+            h += "</ol>";
+        }
+        h += "</li>";
+        h += "<li><b>" + task.countObjectAnnotations() + " Annotation</b> object(s)";
+        if (task.hasObjectAnnotations()) {
+            h += "<ol>";
+            for (Annotation ann : task.getObjectAnnotations()) {
+                h += "<li><a href=\"?type=Annotation&id=" + ann.getId() + "\">" + ann.getId() + "</a> <span class=\"quiet\">" + ann.toString() + "</span></li>";
+            }
+            h += "</ol>";
+        }
+        h += "</li>";
+        h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
+        h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
+        h += "<li><a target=\"_new\" href=\"ia?v2&includeChildren&taskId=" + task.getId() + "\">JSON task tree</a></li>";
+        h += "</ul>";
+        return h;
+    }
 
 	private String showLabels(ArrayList<String> l) {
 		if ((l == null) || (l.size() < 1)) return "[none]";
@@ -203,23 +248,28 @@ java.util.Properties" %>
 		return h + "</ul>";
 	}
 
+        private String showMultiValue(MultiValue mv) {
+            if (mv == null) return "[null]";
+            return niceJson(mv.debug());
+        }
+
 	private String showMediaAssetList(ArrayList<MediaAsset> l) {
 		if ((l == null) || (l.size() < 1)) return "[none]";
 		return "";
 	}
 
-	private String showFeatureList(ArrayList<Feature> l) {
-		if ((l == null) || (l.size() < 1)) return format(null, "none");
-		String h = "<i>(" + l.size() + ")</i><ol>";
+	private String showFeatureList(ArrayList<Feature> l, HttpServletRequest req) {
+		if ((l == null) || (l.size() < 1)) return "[none]";
+		String h = "<ol>";
 		for (int i = 0 ; i < l.size() ; i++) {
-			h += "<li>" + showFeature(l.get(i)) + "</li>";
+			h += "<li>" + showFeature(l.get(i), req) + "</li>";
 		}
 		return h + "</ol>";
 	}
 
-	private String showMediaAsset(MediaAsset ma) {
+	private String showMediaAsset(MediaAsset ma, HttpServletRequest req) {
 		if (ma == null) return "asset: <b>[none]</b>";
-		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
+		if (shown.contains(ma)) return "<div class=\"mediaasset shown\"><a href=\"obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\"> MediaAsset <b>" + ma.getId() + "</b></a></div>";
 		shown.add(ma);
 		String h = "<div class=\"mediaasset\"><a href=\"obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">Media Asset <b>" + ma.getId() + "</b></a>";
                 if (ma.webURL() == null) {
@@ -233,7 +283,7 @@ java.util.Properties" %>
                 h += "<ul style=\"width: 65%\">";
 		h += "<li>store: <b>" + ma.getStore() + "</b></li>";
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
-		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
+		h += "<li>features: " + showFeatureList(ma.getFeatures(), req) + "</li>";
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
 		h += "<li>detectionStatus: <b>" + ma.getDetectionStatus() + "</b></li>";
 		h += "<li>" + format("acmId", ma.getAcmId()) + "</li>";
@@ -244,10 +294,64 @@ java.util.Properties" %>
 		return h + "</ul></div>";
 	}
 
-    private boolean rawOutput(String type) {
-        if (type == null) return false;
-        return type.equals("MediaAssetMetadata");
+    private String showSurvey(Survey surv, HttpServletRequest req) {
+        if (surv == null) return "(null Survey)";
+        String h = "<p>[<a target=\"_new\" href=\"surveys/survey.jsp?surveyID=" + surv.getID() + "\">" + surv.getID() + "</a>] " + surv.toString() + "</p><b>SurveyTracks:</b><ul>";
+        ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
+        if (tracks == null) {
+            h += "<li>(no Tracks)</li>";
+        } else {
+            for (SurveyTrack tr : tracks) {
+                h += "<li>" + showSurveyTrack(tr, req) + "</li>";
+            }
+        }
+        h += "</ul>";
+        return h;
     }
+
+    private String showSurveyTrack(SurveyTrack st, HttpServletRequest req) {
+        if (st == null) return "(null SurveyTrack)";
+        String h = "<p>" + st.toString() + "</p>";
+        h += "<ul><b>Path:</b> <li>" + showPath(st.getPath(), req) + "</li></ul>";
+        h += "<ul><b>Occurrences:</b> ";
+        ArrayList<Occurrence> occs = st.getOccurrences();
+        if (occs == null) {
+            h += "<li>(no Occurrences)</li>";
+        } else {
+            for (Occurrence occ : occs) {
+                h += "<li>" + showOccurrence(occ, req) + "</li>";
+            }
+        }
+        h += "</ul>";
+        return h;
+    }
+
+    private String showPath(Path p, HttpServletRequest req) {
+        if (p == null) return "(no Path)";
+        String h = "<p>" + p.toString() + "</p>";
+        int showPts = p.getNumPointLocations();
+        if (showPts > 0) {
+            h += "<ul><b>PointLocations</b> ";
+            if (showPts > 10) {
+                h += "<i>Showing only 10 of " + showPts + "</i>";
+                showPts = 10;  //just a sampling!  this can get ridiculously huge...
+            }
+            for (int i = 0 ; i < showPts ; i++) {
+                h += "<li>" + p.getPointLocations().get(i).toString() + "</li>";
+            }
+            h += "</ul>";
+        }
+        return h;
+    }
+
+    private String showOccurrence(Occurrence occ, HttpServletRequest req) {
+        if (occ == null) return "(no Occurrence)";
+        return "[<a target=\"_new\" href=\"occurrence.jsp?number=" + occ.getID() + "\">" + occ.getID() + "</a>] " + occ.toString();
+    }
+	private boolean rawOutput(String type) {
+    	if (type == null) return false;
+    	return type.equals("MediaAssetMetadata");
+	}
 
     private String scrubUrl(URL u) {
         if (u == null) return (String)null;
@@ -442,9 +546,30 @@ boolean needForm = false;
 if (type.equals("Encounter")) {
 	try {
 		Encounter enc = ((Encounter) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Encounter.class, id), true)));
-		out.println(showEncounter(enc));
+		out.println(showEncounter(enc, request));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
+		needForm = true;
+	}
+
+} else if (type.equals("MarkedIndividual")) {
+	try {
+		MarkedIndividual ind = ((MarkedIndividual) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MarkedIndividual.class, id), true)));
+		out.println(showMarkedIndividual(ind, request));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
+		needForm = true;
+	}
+
+} else if (type.equals("MultiValue")) {
+	try {
+		MultiValue mv = ((MultiValue) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MultiValue.class, id), true)));
+		out.println(showMultiValue(mv));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
 		needForm = true;
 	}
 
@@ -452,9 +577,10 @@ if (type.equals("Encounter")) {
 	try {
 		MediaAsset ma = ((MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
 		out.println("<p>safeURL(<i>request</i>): <b>" + ma.safeURL(request) + "</b></p>");
-		out.println(showMediaAsset(ma));
+		out.println(showMediaAsset(ma, request));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
 		needForm = true;
 	}
 
@@ -462,7 +588,7 @@ if (type.equals("Encounter")) {
 	if (id!=null&&acmid==null) {
 		try {
 			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
-			out.println(showAnnotation(ann));
+			out.println(showAnnotation(ann, request));
 		} catch (Exception ex) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
 			needForm = true;
@@ -476,7 +602,7 @@ if (type.equals("Encounter")) {
 			} else {
 				String allAnns = "";
 				for (int i=0; i<anns.size(); i++) {
-					allAnns += showAnnotation(anns.get(i));
+					allAnns += showAnnotation(anns.get(i), request);
 				}
 				out.println(allAnns);
 			}
@@ -507,9 +633,10 @@ if (type.equals("Encounter")) {
 } else if (type.equals("Feature")) {
 	try {
 		Feature f = ((Feature) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Feature.class, id), true)));
-		out.println(showFeature(f));
+		out.println(showFeature(f, request));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
 		needForm = true;
 	}
 
@@ -524,8 +651,30 @@ if (type.equals("Encounter")) {
 		}
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
 		needForm = true;
 	}
+
+} else if (type.equals("Survey")) {
+	try {
+		Survey surv = ((Survey) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Survey.class, id), true)));
+		out.println(showSurvey(surv, request));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
+		needForm = true;
+	}
+
+} else if (type.equals("SurveyTrack")) {
+	try {
+		SurveyTrack st = ((SurveyTrack) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(SurveyTrack.class, id), true)));
+		out.println(showSurveyTrack(st, request));
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		ex.printStackTrace();
+		needForm = true;
+	}
+
 
 } else {
 	out.println("<p>unknown type</p>>");

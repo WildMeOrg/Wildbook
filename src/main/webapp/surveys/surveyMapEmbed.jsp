@@ -1,4 +1,8 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.*,org.ecocean.movement.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.List,
+java.util.Properties,
+org.json.JSONObject,
+org.json.JSONArray,
+org.ecocean.movement.*" %>
 
 
 <%
@@ -18,12 +22,11 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("surveyMapEmbed.jsp");
 myShepherd.beginDBTransaction();
 
-ArrayList<SurveyTrack> trks = new ArrayList<SurveyTrack>();
-ArrayList<String> polyLines = new ArrayList<String>();
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 String center = CommonConfiguration.getDefaultGoogleMapsCenter(context);
 String number = null;
 Survey sv = null;
+JSONObject data = new JSONObject();
 try {	
 	if (request.getParameter("surveyID")!=null) {
 		number = request.getParameter("surveyID");		
@@ -34,170 +37,111 @@ try {
 	e.printStackTrace();
 	System.out.println("Could not retreive survey and occurrence for this number.");
 }
-try {
-	if (sv.getAllSurveyTracks()!=null) {
-		trks = sv.getAllSurveyTracks();	
-	}
-	System.out.println("Number of svy-tracks: "+trks.size());
-} catch (Exception e) {
-	e.printStackTrace();
-}
-ArrayList<String> polyLineSets = new ArrayList<String>();
-ArrayList<String> allMarkerSets = new ArrayList<String>();
-ArrayList<String> infoWindowSets = new ArrayList<String>();	
-for (SurveyTrack trk : trks ) {
-	String lineSet = "";
-	String markerSet = "";
-	String infoWindowSet = "";
-	System.out.println("Current track: "+trk.getID());
-	ArrayList<Occurrence> tempOccs = trk.getAllOccurrences();
-	ArrayList<Occurrence> occsWithGps = new ArrayList<>();
-	if (tempOccs!=null) {
-		for (Occurrence occ : tempOccs) {
-			if (occ.getDecimalLatitude()!=null&&occ.getDecimalLongitude()!=null) {
-				occsWithGps.add(occ);
-			}
-		}
-	}
-	if (occsWithGps.size()>0) {
-		int noGPSOccs = 0;
-		for (Occurrence trackOcc : occsWithGps) {
-			String startTime = null;
-			String endTime = null;
-			try {
-				Encounter firstEnc = trackOcc.getEncounters().get(0);
-				startTime = firstEnc.getStartDateTime();
-				endTime = firstEnc.getEndDateTime();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 
-			String lat = String.valueOf(trackOcc.getDecimalLatitude());
-			String lon = String.valueOf(trackOcc.getDecimalLongitude());
-			if (lat!=null&&lon!=null) {
-				lineSet += "{lat: "+lat+", lng: "+lon+"},";
-				markerSet += "["+lat+","+lon+"],";
-				String link =  occLocation + trackOcc.getOccurrenceID();
-				infoWindowSet += "<p><small><a href='"+link+"'>"+trackOcc.getOccurrenceID()+"</a></small</p>";
-				infoWindowSet += "<p><small>Location ID: "+trackOcc.getLocationID()+"</small></p>";
-				infoWindowSet += "<p><small>Lat/Lon: ["+lat+","+lon+"]</small></p>";
-				if (startTime!=null&&endTime!=null) {
-					if (startTime.equals(endTime)) {
-						infoWindowSet += "<p><small>Start Time: "+startTime+"</small></p>";		
-						infoWindowSet += "<p><small>End Time: None Recorded</small></p>";				
-					} else {
-						infoWindowSet += "<p><small>Start Time: "+startTime+"</small></p>";		
-						infoWindowSet += "<p><small>End Time: "+endTime+"</small></p>";	
-					}
-				}
-				infoWindowSets.add(infoWindowSet);
-				infoWindowSet = "";
-				System.out.println(lineSet);
-				System.out.println(markerSet);
-			} else {
-				noGPSOccs++;
-			}
-		}
-		center = lineSet.split(",")[0]+","+lineSet.split(",")[1];
-		lineSet = lineSet.substring(0,lineSet.length()-1);
-		markerSet = markerSet.substring(0,markerSet.length()-1);
-		polyLineSets.add(lineSet);
-		allMarkerSets.add(markerSet);
-		System.out.println("No GPS Occs : "+noGPSOccs);
-	} 
+JSONArray trkArr = new JSONArray();
+for (SurveyTrack trk : sv.getSurveyTracks()) {
+    JSONObject jt = new JSONObject();
+    Path path = trk.getPath();
+    if (path != null) {
+        int np = path.getPointLocations().size();
+        if (np > 100) np = Math.round(np / 10);
+        jt.put("pathPoints", Path.toJSONArray(path.getPointLocationsSubsampled(Math.round(np)))); 
+    }
+    JSONArray joccs = new JSONArray();
+    if (!Util.collectionIsEmptyOrNull(trk.getOccurrences())) for (Occurrence occ : trk.getOccurrences()) {
+        JSONObject jocc = new JSONObject();
+        jocc.put("id", occ.getOccurrenceID());
+        jocc.put("lat", occ.getDecimalLatitude());
+        jocc.put("lon", occ.getDecimalLongitude());
+        jocc.put("time", occ.getMillisFromEncounterAvg());
+        jocc.put("numEncounters", occ.getNumberEncounters());
+        joccs.put(jocc);
+    }
+    jt.put("occurrences", joccs);
+    trkArr.put(jt);
 }
+data.put("surveyTracks", trkArr);
 %>
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
-
 
 <div style="height:500px;" id="map"></div>
 
 <script defer>
+var data = <%=data.toString(4)%>;
+var map;
+
 $(document).ready(function() {
-  function initMap() {
-	console.log("Center : "+"<%=center%>");
-	
-    var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 13,
-      center: <%=center%>,
+    initMap();
+});
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 11,
+      center: findCenter(),
       mapTypeId: 'terrain',
       gestureHandling: 'greedy'
     });
-	console.log('Initializing map...');
-    var polyLines = [];
-    <% 
-    int currentPathNum = 0;
-    for (int i=0; i<polyLineSets.size(); i++) {
-    	String set = polyLineSets.get(i);
-    	String markerSet = allMarkerSets.get(i);
-    	currentPathNum++;
-    	String currentPath = "path"+currentPathNum;
-    %>
-	    var surveyCoordinates = [
-				<%=set%>
-	    ];
-	    var markerCoordinates = [
-	    		<%=markerSet%>
-	    ];
-    	//console.log('Another coord set...'+'<%=set%>');
-    	
-    	var newColor = generateColor();
-	    //console.log(newColor);
-	    
-	    var <%=currentPath%> = new google.maps.Polyline({
-	      path: surveyCoordinates,
-	      geodesic: true,
-	      strokeColor: newColor,
-	      strokeOpacity: 1.0,
-	      strokeWeight: 2
-	    });
-	    
-	    var marker, i;	
-	    var infWindows = [];
 
-		<% 
-		for (int j=0;j<infoWindowSets.size();j++) {
-			String text = infoWindowSets.get(j);
-			String index = String.valueOf(j);
-		%>
-			infWindows.push("<%=text%>");
-			console.log(infWindows);
-		<%
-		} 
-		%>
-	    
-	    for (i=0; i<markerCoordinates.length; i++) {  
+    google.maps.event.addListenerOnce(map, 'idle', function() {
+        drawSurvey();
+    });
+}
 
-			var iconColor = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
-			if (i===0) {
-				iconColor = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
-			}
 
-		    var marker = new google.maps.Marker({
-		    	position: new google.maps.LatLng(markerCoordinates[i][i-i], markerCoordinates[i][1]),
-				icon: iconColor,
-		        map: map,
-		    });
-	        
-		    //marker.setLabel(infWindows[i]);
-	        //Careful with this i. The java and js are both running a for loop. 
-	        console.log("I : "+i);
-	        let infoWindowContent = infWindows[i];
-	        console.log(infWindows[i]);
-		    
-            google.maps.event.addListener(marker,'click', function() {
-            	console.log("I : "+i);
-                (new google.maps.InfoWindow({content: infoWindowContent })).open(map, this);
-            });
-	    }
-	    	    
-		<%=currentPath%>.setMap(map);
-	
-    <%
-  	}
-    %>
- }
- initMap();	
+function findCenter() {
+    for (var i = 0 ; i < data.surveyTracks.length ; i++) {
+        for (var j = 0 ; j < data.surveyTracks[i].occurrences.length ; j++) {
+            var occ = data.surveyTracks[i].occurrences[j];
+                if (occ.lat && occ.lon) return { lat: occ.lat, lng: occ.lon };
+        }
+    }
+}
+
+function drawSurvey() {
+    for (var i = 0 ; i < data.surveyTracks.length ; i++) {
+        drawSurveyTrack(data.surveyTracks[i]);
+    }
+}
+
+function drawSurveyTrack(trk) {
+    for (var i = 0 ; i < trk.occurrences.length ; i++) {
+        drawOccurrence(trk.occurrences[i], i);
+    }
+    drawPath(trk.pathPoints);
+}
+
+function drawPath(pathPoints) {
+    var gpath = [];
+    for (var i = 0 ; i < pathPoints.length ; i++) {
+        gpath.push({ lat: pathPoints[i].latitude, lng: pathPoints[i].longitude });
+    }
+    var line = new google.maps.Polyline({
+        path: gpath,
+        geodesic: true,
+        strokeColor: '#55A',
+        strokeOpacity: 1.0,
+        strokeWeight: 2
+    });
+    line.setMap(map);
+}
+
+function drawOccurrence(occ, occI) {
+    if (!occ.lon || !occ.lat) {
+        console.info("skipping %s - no geo! %o", occ.id, occ);
+    } else {
+        var marker = new google.maps.Marker({
+            position: new google.maps.LatLng(occ.lat, occ.lon),
+            map: map,
+        });
+        marker.setLabel(String.fromCharCode(65 + occI));
+        google.maps.event.addListener(marker, 'click', function() {
+            var content = '<p><b><a href="../occurrence.jsp?number=' + occ.id + '">' + occ.id + '</a></b></p>';
+            content += '<p>Lat: <b>' + occ.lat + '</b><br />Lon: <b>' + occ.lon + '</b></p>';
+            (new google.maps.InfoWindow({content: content })).open(map, this);
+        });
+    }
+}
+
  
  function generateColor() {
 	 //console.log("Generating...");
@@ -210,9 +154,11 @@ $(document).ready(function() {
 	 }
 	 return randomColor;
  }
-});  
+
 </script>
 <%
+
+
 myShepherd.closeDBTransaction();
 %>
 

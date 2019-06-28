@@ -185,6 +185,8 @@ public class RestKeyword extends HttpServlet {
                           JSONObject mj = new JSONObject();
                           for (Keyword k : newList) {
                               mj.put(k.getIndexname(), k.getReadableName());
+
+
                           }
                           if (newList.size() < 1) {
                               ma.setKeywords(null);

@@ -56,12 +56,15 @@ import java.sql.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
 
+
 import org.ecocean.*;
+import org.ecocean.security.Collaboration;
 import org.apache.shiro.crypto.hash.*;
 import org.apache.shiro.util.*;
 import org.apache.shiro.crypto.*;
@@ -388,8 +391,8 @@ public class ServletUtilities {
       }
 
       //whaleshark.org custom
-      if((request.getRemoteUser().equals("rgrampus"))&&(enc.getLocationCode().startsWith("2h"))){isOwner=false;}
 
+      else if (Collaboration.canEditEncounter(enc, request)) return true;
 
     }
     return isOwner;
@@ -500,6 +503,16 @@ character = iterator.next();
 return result.toString();
 }
 */
+
+public static String getEncounterUrl(String encID, HttpServletRequest request) {
+  return (CommonConfiguration.getServerURL(request)+"/encounters/encounter.jsp?number="+encID);
+}
+public static String getIndividualUrl(String indID, HttpServletRequest request) {
+  return (CommonConfiguration.getServerURL(request)+"/individuals.jsp?number="+indID);
+}
+public static String getOccurrenceUrl(String occID, HttpServletRequest request) {
+  return (CommonConfiguration.getServerURL(request)+"/occurrence.jsp?number="+occID);
+}
 
 public static String preventCrossSiteScriptingAttacks(String description) {
   description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -738,6 +751,15 @@ public static void printParams(HttpServletRequest request) {
   }
 }
 
+public static List<String> getIndexedParameters(String key, HttpServletRequest request) {
+  List<String> vals = new ArrayList<String>();
+  for(int i=0;i<100000;i++) { // hundred thousand seems like a reasonable upper limit right?
+    String val = request.getParameter(key+i);
+    if (Util.stringExists(val)) vals.add(val);
+    else return vals;
+  }
+  return vals;
+}
 
 public static String getParameterOrAttribute(String name, HttpServletRequest request) {
     if (name == null) return null;

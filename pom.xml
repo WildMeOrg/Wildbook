@@ -70,7 +70,7 @@
     <dependency>
         <groupId>com.healthmarketscience.jackcess</groupId>
         <artifactId>jackcess</artifactId>
-        <version>1.2.14.2</version>
+        <version>2.1.7</version>
     </dependency>
   <!--
    <dependency>
@@ -219,9 +219,9 @@
 -->
 
 <dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <version>42.2.4</version>
+  <groupId>org.postgresql</groupId>
+  <artifactId>postgresql</artifactId>
+  <version>42.1.4</version>
 </dependency>
 
     <dependency>
@@ -383,6 +383,7 @@
     </dependency>
 
 
+
     <dependency>
     <groupId>org.apache.poi</groupId>
     <artifactId>poi-ooxml</artifactId>
@@ -445,7 +446,7 @@
 <dependency>
     <groupId>org.twitter4j</groupId>
     <artifactId>twitter4j-core</artifactId>
-    <version>4.0.5</version>
+    <version>4.0.7</version>
 </dependency>
 
 
@@ -805,7 +806,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.1</version>
+        <version>1.2</version>
         <configuration>
           <executable>java</executable>
           <arguments>

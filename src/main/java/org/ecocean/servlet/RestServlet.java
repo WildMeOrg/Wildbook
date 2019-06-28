@@ -935,23 +935,53 @@ System.out.println(thisRequest);
 
 
         JSONObject convertToJson(HttpServletRequest req, Object obj, ExecutionContext ec) {
-//System.out.println("convertToJson(non-Collection) trying class=" + obj.getClass());
+            
             JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(obj, ec);
+            
+            
+            //call decorateJson on object
             Method sj = null;
             try {
-                sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
-            } catch (NoSuchMethodException nsm) { //do nothing
-//System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+                sj = obj.getClass().getMethod("decorateJson", new Class[] { HttpServletRequest.class, JSONObject.class });
+            } 
+            catch (NoSuchMethodException nsm) { //do nothing
+                //System.out.println("i guess " + obj.getClass() + " does not have decorateJson() method");
             }
             if (sj != null) {
-//System.out.println("trying sanitizeJson!");
+                //System.out.println("trying decorateJson on "+obj.getClass());
                 try {
                     jobj = (JSONObject)sj.invoke(obj, req, jobj);
-                } catch (Exception ex) {
+                    //System.out.println("decorateJson result: " +jobj.toString());
+                } 
+                catch (Exception ex) {
                   ex.printStackTrace();
                   System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
                 }
             }
+            
+            //call sanitizeJson on object
+            sj = null;
+            try {
+                sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
+            } 
+            catch (NoSuchMethodException nsm) { //do nothing
+                System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+            }
+            if (sj != null) {
+                //System.out.println("trying sanitizeJson on "+obj.getClass());
+                try {
+                    jobj = (JSONObject)sj.invoke(obj, req, jobj);
+                    //System.out.println("sanitizeJson result: " +jobj.toString());
+                } 
+                catch (Exception ex) {
+                  ex.printStackTrace();
+                  System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
+                }
+            }
+            
+
+            
+            
             return jobj;
         }
 

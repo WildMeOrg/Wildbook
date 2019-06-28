@@ -5,7 +5,7 @@
 
         
         
-<h1>Flukebook: Where people and animals connect</h1>
+<h1>Flukebook: Where people, machine learning, and animals connect</h1>
 
 <p>Flukebook is a free, online resource, established to strengthen the global conservation of whales and dolphins. A catalyst for collaboration, Flukebook enables researchers to manage, share, analyze and archive data via pioneering, user friendly software. Flukebook unites researchers, conservationists and citizen scientists, enables connections with individual animals, and provides robust data to inform conservation of marine mammals and their habitats. </p>
         
@@ -49,17 +49,6 @@ Flukebook uses photographs of flukes , dorsal fins, and scars to distinguish bet
 </p>
 
 
-<h2>Founding Supporters</h2>
-
-<table>
-<tr><td><img src="images/logo_WHMSI.jpg" /></td><td><img src="images/OAS_Seal_ENG_Principal.gif" /></td></tr>
-
-<tr><td><img src="images/DSWPlogoLongText.png" /></td><td><img src="images/caribwhale-logo.jpg" /></td></tr>
-<tr>
-	<td><a href="http://www.cresli.org"><img width="350px" height="*" src="images/cresli.jpg" /></a></td>
-	<td>&nbsp;</td>
-</tr>
-</table>
 
         </div>
 
