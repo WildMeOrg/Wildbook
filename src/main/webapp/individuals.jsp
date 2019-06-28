@@ -375,10 +375,9 @@ input.nameKey, input.nameValue {
         selectedWhale = ($(this).attr("class"));
         goToWhaleURL(selectedWhale);
       });
-      $("#encountTable td:nth-child(1)").attr("class", "hide");
-      $("#encountTable th:nth-child(1)").attr("class", "hide");
 
-    }, 6000);
+
+    }, 1000);
 
     var buttons = $("#edit, #closeEdit").on("click", function(){
         buttons.toggle();
