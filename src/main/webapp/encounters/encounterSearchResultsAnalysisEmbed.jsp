@@ -248,8 +248,11 @@
  				for(int q=0;q<numU;q++){
  						User user=users.get(q);
  						//check public vs research staff
- 						if((user.getUsername()!=null)&&(!researchStaff.contains(user))){researchStaff.add(user);}
- 						else if(!publicContributors.contains(user)){publicContributors.add(user);}
+ 						if (user.getUsername() != null) {
+                                                    if (!researchStaff.contains(user)) researchStaff.add(user);
+ 						} else if (!publicContributors.contains(user)) {
+                                                    publicContributors.add(user);
+                                                }
  				}
  		}
 
@@ -261,8 +264,11 @@
  				for(int q=0;q<numU;q++){
  						User user=users.get(q);
  						//check public vs research staff
- 						if((user.getUsername()!=null)&&(!researchStaff.contains(user))){researchStaff.add(user);}
- 						else if(!publicContributors.contains(user)){publicContributors.add(user);}
+ 						if (user.getUsername() != null) {
+                                                    if (!researchStaff.contains(user)) researchStaff.add(user);
+ 						} else if (!publicContributors.contains(user)) {
+                                                    publicContributors.add(user);
+                                                }
  				}
  		}
  		 
