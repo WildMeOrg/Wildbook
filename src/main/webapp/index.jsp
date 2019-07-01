@@ -2,6 +2,7 @@
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
               java.util.ArrayList,
+			  java.util.Calendar,
               java.util.List,
               java.util.Map,
               java.util.Iterator,
@@ -295,9 +296,14 @@ margin-bottom: 8px !important;
 
 int numMarkedIndividuals=0;
 int numEncounters=0;
-int numDataContributors=0;
-int numUsersWithRoles=0;
+//int numDataContributors=0;
+//int numUsersWithRoles=0;
 int numUsers=0;
+
+int numLeafy = 0;
+int numWeedy = 0;
+
+long avgSightingsPerYear = 0;
 
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
@@ -311,17 +317,36 @@ myShepherd.beginDBTransaction();
 
 try{
 
-
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
     //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
-    numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
+    //numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
     numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
-    numUsersWithRoles = numUsers-numDataContributors;
+	//numUsersWithRoles = numUsers-numDataContributors;
+	numLeafy=qc.getQueryByName("numLeafy").executeCountQuery(myShepherd).intValue();
+	numWeedy=qc.getQueryByName("numWeedy").executeCountQuery(myShepherd).intValue();
 
+	if (numEncounters>0) {
+			Encounter oldestEnc = (Encounter) qc.getQueryByName("oldestEncounterMillis").executeQuery(myShepherd).get(0);
+			Encounter youngestEnc = (Encounter) qc.getQueryByName("youngestEncounterMillis").executeQuery(myShepherd).get(0);
+			long oldDate = oldestEnc.getDWCDateAddedLong();
+			long newDate = youngestEnc.getDWCDateAddedLong();
+			long yearSpan = (newDate - oldDate) / 31556952000L;                     
+			avgSightingsPerYear = Math.round(numEncounters / yearSpan);
+	}
 
+	//if (youngestEnc!=null&&oldestEnc!=null&&youngestEnc.get(0)!=null&&oldestEnc.get(0)!=null) {
+	
+		//long oldestMillis = oldestEnc.get(0).getDWCDateAddedLong();
+		//long youngestMillis = youngestEnc.get(0).getDWCDateAddedLong();
+		//Calendar cal = Calendar.getInstance();
+		//cal.setTimeInMillis(oldestMillis);
+		//int oldestYear = cal.get(Calendar.YEAR);
+		//cal.setTimeInMillis(youngestMillis);
+		//int youngestYear = cal.get(Calendar.YEAR);
+	//}
 }
 catch(Exception e){
     System.out.println("INFO: *** If you are seeing an exception here (via index.jsp) your likely need to setup QueryCache");
@@ -587,22 +612,20 @@ finally{
 </div>
 
 <div class="container-fluid">
+
     <section class="container text-center  main-section">
         <div class="row">
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified whale sharks</i></p>
+            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numWeedy%></span>leafy seadragons identified</i></p>
             </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
-            </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numLeafy%></span>weedy seadragons identified</i></p>
+			</section>
 
-                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> citizen scientists</i></p>
-            </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> researchers and volunteers</i></p>
-            </section>
+			<section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+                <p class="brand-primary"><i><span class="massive"><%=avgSightingsPerYear%></span>avg sightings per year</i></p>
+			</section>
+	
         </div>
 
         <hr/>

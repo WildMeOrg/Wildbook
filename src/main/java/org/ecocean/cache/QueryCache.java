@@ -52,6 +52,13 @@ public class QueryCache {
       cachedQueries.get(name).invalidate();
     }
   }
+
+  public void invalidateAll() throws IOException {
+    for (String  key : cachedQueries.keySet()) {
+      CachedQuery cq = cachedQueries.get(key);
+      cq.invalidate();
+    }
+  }
   
   public void addCachedQuery(JSONObject jsonobj,String name, boolean persistAsStoredQuery, Shepherd myShepherd){
     

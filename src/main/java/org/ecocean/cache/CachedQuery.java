@@ -277,7 +277,7 @@ public class CachedQuery {
    public List executeQuery(Shepherd myShepherd){
      //System.out.println("in CachedQuery. executeQuery");
      Query query=myShepherd.getPM().newQuery(queryString);
-     Collection c = (Collection) (query.execute());
+     Collection c = (Collection) query.execute();
      try{
        ArrayList al=new ArrayList(c);
        //System.out.println("Finished executeQuery with: "+al.size()+" results.");
@@ -289,7 +289,25 @@ public class CachedQuery {
        query.closeAll();
      }
      return null;
-   }  
+   }
+   
+   public Object executeSingleValueQuery(Shepherd myShepherd) {
+    Query q = myShepherd.getPM().newQuery(queryString);
+    Collection c = (Collection) (q.execute());
+    try {
+      if (c.size()==1) {
+        return c.toArray()[0];
+      } else {
+        System.out.println("[WARN] Single value cached query could not find a response for queryString = "+queryString);
+        System.out.println("[WARN] The query yielded "+c.size()+" results. ");
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      q.closeAll();
+    }
+    return null;
+   }
    
    private JSONObject serializeCollectionToJSON(Collection c, Shepherd myShepherd) {
         File cfile = null; 

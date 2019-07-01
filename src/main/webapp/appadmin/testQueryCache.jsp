@@ -112,8 +112,42 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries();
 	}
-	
-	
+
+	//dragondsearch custom counters
+	if(qc.getQueryByName("numLeafy")==null){
+		StoredQuery sq=new StoredQuery("numLeafy", "SELECT FROM org.ecocean.Encounter WHERE individualID != null && genus == 'Phycodurus' && specificEpithet == 'eques' ");
+		sq.setExpirationTimeoutDuration(300000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		qc.loadQueries();
+	}
+	if(qc.getQueryByName("numWeedy")==null){
+		StoredQuery sq=new StoredQuery("numWeedy", "SELECT FROM org.ecocean.Encounter WHERE individualID != null && genus == 'Phyllopteryx' && specificEpithet == 'taeniolatus' ");
+		sq.setExpirationTimeoutDuration(300000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		qc.loadQueries();
+	}
+	if(qc.getQueryByName("oldestEncounterMillis")==null){
+		//StoredQuery sq=new StoredQuery("oldestEncounterMillis", "SELECT min(dwcDateAddedLong) FROM org.ecocean.Encounter");
+		StoredQuery sq=new StoredQuery("oldestEncounterMillis", "SELECT FROM org.ecocean.Encounter ORDER BY dwcDateAddedLong ascending RANGE 1,2");
+		sq.setExpirationTimeoutDuration(1200000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		qc.loadQueries();
+	}
+	if(qc.getQueryByName("youngestEncounterMillis")==null){
+		//StoredQuery sq=new StoredQuery("youngestEncounterMillis", "SELECT max(dwcDateAddedLong) FROM org.ecocean.Encounter");
+		StoredQuery sq=new StoredQuery("youngestEncounterMillis", "SELECT FROM org.ecocean.Encounter ORDER BY dwcDateAddedLong descending RANGE 1,2");
+		sq.setExpirationTimeoutDuration(1200000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		qc.loadQueries();
+	}
 
 	Map<String,CachedQuery> queries=qc.cachedQueries();
 	Set<String> keys=queries.keySet();
@@ -156,6 +190,7 @@ try{
 
 }
 catch(Exception e){
+	e.printStackTrace();
 	myShepherd.rollbackDBTransaction();
 }
 finally{
