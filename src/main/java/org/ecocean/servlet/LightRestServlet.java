@@ -246,7 +246,6 @@ public class LightRestServlet extends HttpServlet
                 {
                     pm.currentTransaction().begin();
                     ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "begin");
-                    
 
                     Query query = pm.newQuery("JDOQL", queryString);
                     if (fetchParam != null)
@@ -276,6 +275,9 @@ public class LightRestServlet extends HttpServlet
                     pm.currentTransaction().commit();
                     ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "commit");
                     
+                } catch (Exception e) {
+                    System.out.println("Exception on lightRestServlet!");
+                    e.printStackTrace();
                 }
                 finally
                 {
