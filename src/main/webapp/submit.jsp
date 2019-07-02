@@ -934,8 +934,14 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
                            if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+				String commonValue = CommonConfiguration.getProperty("genusSpeciesCommon" + q, context);
+				if (commonValue == null) {
+					commonValue = "";
+				} else {
+					commonValue = " (" + commonValue + ")";
+				}
                                %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%><%=commonValue%></option>
                                <%
 
                         }
