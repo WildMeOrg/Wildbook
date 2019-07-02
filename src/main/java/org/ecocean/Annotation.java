@@ -868,13 +868,15 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
 */
 
     public static double intersection(Annotation ann1, Annotation ann2) {
-
-        double intersection = -1;
-
         ArrayList<Feature> feats1 = ann1.getFeatures();
         ArrayList<Feature> feats2 = ann2.getFeatures();
+        boolean foundUnity = false;
         try {
             for (Feature feat1 : feats1) {
+                if (feat1.isUnity()) {
+                    foundUnity=true;
+                    continue;
+                }
                 JSONObject ft1Params = feat1.getParameters();
                 // made it this far.. if the bboxes of the features OVERLAP we can (well, we will) assume it is the same animal.
                 int x1 = ft1Params.getInt("x");
@@ -883,6 +885,10 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
                 int height1 = ft1Params.getInt("height");
                 Rectangle rect1 = new Rectangle(x1,y1,width1,height1);
                 for (Feature feat2 : feats2) {
+                    if (feat2.isUnity()) {
+                        foundUnity=true;
+                        continue;
+                    }
                     JSONObject ft2Params = feat2.getParameters();
                     int myx = ft2Params.getInt("x");
                     int myy = ft2Params.getInt("y");
@@ -891,7 +897,11 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
                     Rectangle rect2 = new Rectangle(myx,myy,myWidth,myHeight);
 
                     // MOMENT OF TRUTH AHHHHHH
-                    if (rect1.intersects(rect2)||rect1.contains(rect2)||rect2.contains(rect1)) {
+                    if (rect1.contains(rect2)||rect2.contains(rect1)) {
+                        System.out.println("[INFO]: Annotation for this encounter is contained inside the other, overlap set to 100%.");
+                        return 1;
+                    }
+                    if (rect1.intersects(rect2)) {
                         Rectangle overlap = rect1.intersection(rect2);
                         double overlapArea = overlap.getWidth() * overlap.getHeight();
                         double area1 = rect1.getWidth() * rect1.getHeight();
@@ -903,6 +913,10 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
             }
         } catch (NumberFormatException nfe) {
             nfe.printStackTrace();
+        }
+        if (foundUnity==true) {
+            System.out.println("[WARN]: Feature's only sibling was type unity, invalid comparison of bounds. Features will be paired on the encounter by default.");
+            return 1;
         }
         return -1; 
     }
