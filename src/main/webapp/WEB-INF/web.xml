@@ -65,7 +65,7 @@
                 #and admin 
                 [urls]
 
-                #/rest/** = authcBasicWildbook,roles[rest]
+                /rest/** = authcBasicWildbook,roles[rest]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
                 #/LightRest/** = authcBasicWildbook,roles[rest]
 
@@ -1490,6 +1490,7 @@
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
 <url-pattern>/api/*</url-pattern>
+<url-pattern>/rest/*</url-pattern>
 
 </servlet-mapping>
 
