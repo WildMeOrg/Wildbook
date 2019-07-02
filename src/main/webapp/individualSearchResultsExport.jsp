@@ -128,12 +128,31 @@ if(request.getQueryString()!=null){
 
 <p>&nbsp;</p>
 
+
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
-  <tr><td bgcolor="#CCCCCC"><strong>Picture Book</strong><br/><%=props.getProperty("generatePictureBook") %></td></tr>
+  <tr><td bgcolor="#CCCCCC"><strong><%=props.getProperty("pictureBook")%></strong><br/><%=props.getProperty("generatePictureBook") %></td></tr>
   <tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/pictureBook.jsp?<%=queryString%>">
     <%=props.getProperty("clickHere") %></a>
         </td></tr>
+</table>
+</p>
+
+
+<p>
+<table border="1" bordercolor="black" cellspacing="0">
+  <tr><td bgcolor="#CCCCCC"><strong>Picture Book</strong><br/><%=props.getProperty("generatePictureBook") %></td></tr>
+  <tr>
+  	<td bgcolor="#FFFFFF">
+  	
+		<form name="pictureBook" action="//<%=CommonConfiguration.getURLLocation(request)%>/pictureBook.jsp?<%=queryString%>" method="get">
+		  	<%=props.getProperty("maxPagesToDisplay") %> <input type="text" name="maxPages" size="5" maxLength="10" value="50"/>
+		    	
+		  <input type="submit" value="<%=props.getProperty("clickHere") %>">
+	    </form>
+    
+    </td>
+  </tr>
 </table>
 </p>
 
@@ -147,7 +166,7 @@ if(request.getQueryString()!=null){
 	</p>
 
 	<p>	<table border="1" bordercolor="black" cellspacing="0">
-			<tr><td bgcolor="#CCCCCC"><strong>SOCPROG Excel File Export</strong></td></tr>
+			<tr><td bgcolor="#CCCCCC"><strong>SOCPROG Excel</strong></td></tr>
 			<tr><td bgcolor="#FFFFFF">
 		<a href="//<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=queryString%>">
 Click here</a>
@@ -156,7 +175,7 @@ Click here</a>
 </p>
 
 	<p>	<table border="1" bordercolor="black" cellspacing="0">
-			<tr><td bgcolor="#CCCCCC"><strong>Kinalyzer CSV File Export</strong></td></tr>
+			<tr><td bgcolor="#CCCCCC"><strong>Kinalyzer CSV File</strong></td></tr>
 			<tr><td bgcolor="#FFFFFF">Link: <a href="http://kinalyzer.cs.uic.edu">http://kinalyzer.cs.uic.edu</a></td></tr>
 			<tr><td bgcolor="#FFFFFF">
 		<a href="//<%=CommonConfiguration.getURLLocation(request)%>/KinalyzerExport?<%=queryString%>">
@@ -171,7 +190,7 @@ Click here</a>
 			<tr>
 			  <td bgcolor="#CCCCCC"><strong>Simple Mark-Recapture History File Export (single site, single state)</strong></td></tr>
 			
-			<tr><td bgcolor="#FFFFFF"><em>This output file (an .inp file) is designed for use with <a href="http://www.phidot.org/software/mark/index.html" target="_blank">Program MARK</a>, <a href="http://www.phidot.org/software/mark/rmark/" target="_blank">RMARK</a>, <a href="http://www.cefe.cnrs.fr/biostatistiques-et-biologie-des-populations/logiciels">U-CARE</a>, and other mark-recapture analysis packages using individual capture history file formats.
+			<tr><td bgcolor="#FFFFFF"><em>This output file (an .inp file) is designed for use with <a href="http://www.phidot.org/software/mark/index.html" target="_blank">Program MARK</a>, <a href="http://www.phidot.org/software/mark/rmark/" target="_blank">RMARK</a>, U-CARE, and other mark-recapture analysis packages using individual capture history file formats.
 			This is a single state, single site format. If you have specified one or more location IDs in the search, the first one specified in the list will be used to determine the capture history
 			for each individual animal. The options below also allow you to include details of this search within the .inp file. These comments in the /* ... */ format are acceptable within Program MARK but may not be readable by other applications.</em></td></tr>
 			

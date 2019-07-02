@@ -1,137 +1,194 @@
 package org.ecocean;
 
+import org.ecocean.servlet.ServletUtilities;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.Properties; 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+import javax.servlet.http.HttpServletRequest;
+
 
 public class ShepherdProperties {
+
+  public static final String[] overrideOrgsArr = {"indocet"};
+  // set for easy .contains() checking
+  public static final Set<String> overrideOrgs = new HashSet<>(Arrays.asList(overrideOrgsArr));
 
   public static Properties getProperties(String fileName){
     return getProperties(fileName, "en");
   }
   
-  
   public static Properties getProperties(String fileName, String langCode){
-    
     return getProperties(fileName, langCode, "context0");
-    
   }
 
   public static Properties getProperties(String fileName, String langCode, String context){
-    LinkedProperties props=new LinkedProperties();
+    return getProperties(fileName, langCode, context, null);
+  }
 
-    String shepherdDataDir="wildbook_data_dir";
-    if(!langCode.equals("")){
-      langCode=langCode+"/";
-    }
-    
-    //if((CommonConfiguration.getProperty("dataDirectoryName",context)!=null)&&(!CommonConfiguration.getProperty("dataDirectoryName",context).trim().equals(""))){
-    //  shepherdDataDir=CommonConfiguration.getProperty("dataDirectoryName",context);
-    //}
-    
-    Properties contextsProps=getContextsProperties();
-    if(contextsProps.getProperty(context+"DataDir")!=null){
-      shepherdDataDir=contextsProps.getProperty(context+"DataDir");
-      
-    }
-    
-    //context change here!
-    
-    
-    LinkedProperties overrideProps=loadOverrideProps(shepherdDataDir, fileName, langCode);
-    //System.out.println(overrideProps);
-
-    if(overrideProps.size()>0){props=overrideProps;}
-    else {
-      //otherwise load the embedded commonConfig
-
-      try {
-        InputStream inputStream=ShepherdProperties.class.getResourceAsStream("/bundles/"+langCode+fileName);
-        props.load(inputStream);
-        inputStream.close();
-      }
-      catch (IOException ioe) {
-        
-        //OK, we couldn't find the overridden file, and we couldn't find the local file in the webapp
-        //default to the English version
-        if(!langCode.equals("en")) {
-          props=(LinkedProperties)getProperties(fileName, "en", context);
-        }
-        else {
-          ioe.printStackTrace();
-        }
-        
-        
-        
-      }
-    }
-
-    return props;
+  // This method works just like getProperties, except it gives priority to your organization-specific .properties overwrite file
+  //   + It checks the logged-in user to see if they are in an organization with an overwrite .properties file
+  //   + If they are, this overwrite .properties file gets priority over the default file.
+  //   + overwrite files are in wildbook_data_dir/classes/bundles/<organization>.properties
+  public static Properties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request) {
+    return getProperties(fileName, langCode, context, getOverwriteStringForUser(request));
   }
   
+  public static Properties getOrgProperties(String fileName, String langCode, HttpServletRequest request) {
+    return getOrgProperties(fileName, langCode, ServletUtilities.getContext(request), request);
+  }
+
+  // ONLY the overwrite props, not any other .properties
+  public static Properties getOverwriteProps(HttpServletRequest request) {
+    String filename = getOverwriteStringForUser(request);
+    if (filename==null) return null;
+    String fullPath = "webapps/wildbook_data_dir/WEB-INF/classes/bundles/"+filename;
+    return loadProperties(fullPath);
+  }
+
+  public static String getOverwriteStringForUser(HttpServletRequest request) {
+    if (request == null) return null;
+    String manualOrgName = request.getParameter("organization");
+    // manual request params
+    if (Util.stringExists(manualOrgName)) {
+      String overwrite = getOverwriteStringForOrgName(manualOrgName);
+      if (Util.stringExists(overwrite)) return overwrite;
+    }
+    // now try based on the user's organizations
+    Shepherd myShepherd = new Shepherd(request);
+    User user = myShepherd.getUser(request);
+    if (user==null) return null;
+    return getOverwriteStringForUser(user);
+  }
+  public static String getOverwriteStringForUser(User user) {
+    if (user == null || user.getOrganizations()==null) return null;
+    for (Organization org: user.getOrganizations()) {
+      String name = org.getName();
+      if (name==null) continue;
+      name = name.toLowerCase();
+      if (overrideOrgs.contains(name)) return name+".properties";
+    }
+    return null;
+  }
+
+  public static String getOverwriteStringForOrgName(String orgName) {
+    if (overrideOrgs.contains(orgName)) return orgName+".properties";
+    return null;
+  }
+
+  public static boolean orgHasOverwrite(String orgName) {
+    return (getOverwriteStringForOrgName(orgName) !=null);
+  }
+
+
+  public static boolean userHasOverrideString(User user) {
+    return (getOverwriteStringForUser(user)!=null);
+  }
+  public static boolean userHasOverrideString(HttpServletRequest request) {
+    return (getOverwriteStringForUser(request)!=null);
+  }
+
+  public static Properties getProperties(String fileName, String langCode, String context, String overridePrefix){
+    // initialize props as empty (no override provided) or the default values (if override provided)
+    // initializing
+    boolean verbose = (Util.stringExists(overridePrefix));
+
+    String shepherdDataDir="wildbook_data_dir";
+    Properties contextsProps=getContextsProperties();
+    if(contextsProps.getProperty(context+"DataDir")!=null) {
+      shepherdDataDir=contextsProps.getProperty(context+"DataDir"); 
+    }
+
+    if (Util.stringExists(langCode) && !langCode.endsWith("/")) langCode += "/";
+
+    // we load defaultProps from the (on git) webapps/wildbook location
+    String defaultPathStr = "webapps/wildbook/WEB-INF/classes/bundles/"+langCode+fileName;
+    // defaultProps are selectively overwritten from the override dir. This way we can keep
+    // security-sensitive prop off github in the shepherdDataDir. Only need to store the sensitive fields there
+    // bc we fall-back to the defaultProps
+    String overridePathStr = "webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode+fileName;
+
+    //System.out.printf("getProperties has built strings %s and %s.\n",defaultPathStr, overridePathStr);
+
+    Properties defaultProps = loadProperties(defaultPathStr);
+    if (defaultProps==null) {
+      // could not find props w this lang code, try english
+      if (Util.stringExists(langCode) && !langCode.contains("en")) {
+        defaultPathStr = "webapps/wildbook/WEB-INF/classes/bundles/en/"+fileName;
+        System.out.printf("\t Weird Shepherd.properties non-english case reached with langCode %s. Trying again with path %s.\n",langCode,defaultPathStr);
+        defaultProps = loadProperties(defaultPathStr);
+      } else {
+        System.out.printf("Super weird case met in ShepherdProperties.getProps(%s, %s, %s, %s). Returning generated default props.\n",fileName, langCode, context, overridePrefix);
+      }
+    }
+    Properties props = loadProperties(overridePathStr, defaultProps);
+    if (!Util.stringExists(overridePrefix)) return props;
+
+    // todo: now actually load the override string
+    // we Do have an overridePrefix so we need to load it now
+    String customUserPathString = "webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+overridePrefix;
+    return loadProperties(customUserPathString, props);
+  }
+
+  public static Properties loadProperties(String pathStr, Properties defaults) {
+    //System.out.println("loadProperties called for path "+pathStr);
+    File propertiesFile = new File(pathStr);
+    if (propertiesFile == null || !propertiesFile.exists()) return defaults;
+    try {
+      InputStream inputStream = new FileInputStream(propertiesFile);
+      if (inputStream == null) return null;
+      Properties props = (defaults!=null) ? new Properties(defaults) : new Properties();
+      props.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
+      if (inputStream!=null) inputStream.close();
+      return props;
+    } catch (Exception e) {
+      System.out.println("Exception on loadProperties()");
+      e.printStackTrace();
+    }
+    return defaults;
+  }
+  public static Properties loadProperties(String pathStr) {
+    return loadProperties(pathStr, null);
+  }
   public static Properties getContextsProperties(){
     Properties props=new Properties();
       try {
         InputStream inputStream = ShepherdProperties.class.getResourceAsStream("/bundles/contexts.properties");
         props.load(inputStream);
         inputStream.close();
-      }
-      catch (IOException ioe) {
+      } catch (IOException ioe) {
         ioe.printStackTrace();
       }
-    
-
     return props;
   }
 
-  private static LinkedProperties loadOverrideProps(String shepherdDataDir, String fileName, String langCode) {
-    //System.out.println("Starting loadOverrideProps");
-
-    LinkedProperties myProps=new LinkedProperties();
-    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
-    //System.out.println(configDir.getAbsolutePath());
-    //sometimes this ends up being the "bin" directory of the J2EE container
-    //we need to fix that
-    if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
-      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
-      configDir=new File(fixedPath);
-      //System.out.println("Fixing the bin issue in Shepherd PMF. ");
-      //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
-    }
-    if((configDir.getAbsolutePath().contains("/logs/")) || (configDir.getAbsolutePath().contains("\\logs\\"))){
-      String fixedPath=configDir.getAbsolutePath().replaceAll("/logs", "").replaceAll("\\\\logs", "");
-      configDir=new File(fixedPath);
-      //System.out.println("Fixing the logs directory issue in Shepherd PMF. ");
-      //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
-    }
-    //System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
-    if(!configDir.exists()){configDir.mkdirs();}
-    File configFile = new File(configDir, fileName);
-    if (configFile.exists()) {
-      //System.out.println("ShepherdProps: "+"Overriding default properties with " + configFile.getAbsolutePath());
-      FileInputStream fileInputStream = null;
-      try {
-        fileInputStream = new FileInputStream(configFile);
-        myProps.load(fileInputStream);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      finally {
-        if (fileInputStream != null) {
-          try {
-            fileInputStream.close();
-          } catch (Exception e2) {
-            e2.printStackTrace();
-          }
+  public static List<String> getIndexedPropertyValues(Properties props, String baseKey) {
+    List<String> list = new ArrayList<String>();
+    boolean hasMore = true;
+    int index = 0;
+    while (hasMore) {
+      String key = baseKey + index++;
+      String value = props.getProperty(key);
+      if (value != null) {
+        if (value.length() > 0) {
+          list.add(value.trim());
         }
       }
+      else {
+        hasMore = false;
+      }
     }
-    else{
-      //System.out.println("I could not find the override files that I was expecting at: "+configFile.getAbsolutePath());
-    }
-    return myProps;
+    return list;
   }
+
 
 }

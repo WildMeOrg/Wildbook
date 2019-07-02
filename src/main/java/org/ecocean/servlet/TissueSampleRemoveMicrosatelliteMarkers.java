@@ -96,12 +96,13 @@ public class TissueSampleRemoveMicrosatelliteMarkers extends HttpServlet {
         out.println(ServletUtilities.getFooter(context));
 
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to remove the microsatellite markers. I cannot find the encounter or tissue sample that you intended it for in the database.");
       out.println(ServletUtilities.getFooter(context));
-
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
     out.close();
     myShepherd.closeDBTransaction();

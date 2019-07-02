@@ -50,6 +50,10 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
   margin-bottom: 10px;
 }
 
+input.nameVale, input.nameKey {
+  display: none;
+}
+
 .clickDateText{
   margin-bottom: 0px;
   display: none;
@@ -335,7 +339,7 @@ th {
   display: none;
 }
 
-td {
+.maincontent td {
   font-family: sans-serif;
   font-size: 14px;
   vertical-align: middle;

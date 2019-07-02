@@ -18,6 +18,7 @@
  */
 
 package org.ecocean;
+import org.ecocean.servlet.ServletUtilities;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,8 +32,6 @@ import java.net.URISyntaxException;
 
 import javax.servlet.ServletContext;
 import org.json.JSONObject;
-
-
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -48,13 +47,40 @@ public class CommonConfiguration {
   //private static String currentContext;
 
 
+  private static Map<String, Properties> contextToPropsCache = new HashMap<String,Properties>();
+
   private static Properties initialize(String context) {
-    //set up the file input stream
-    //if ((currentContext==null)||(!currentContext.equals(context))||(propsSize == 0)) {
-      return loadProps(context);
-    //}
+    //if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
+    Properties props = loadProps(context);
+    contextToPropsCache.put(context, props);
+    return props;
   }
 
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
+  private static Properties initialize(HttpServletRequest request) {
+    //if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
+    Properties props = loadProps(request);
+    contextToPropsCache.put(ServletUtilities.getContext(request), props);
+    return props;
+  }
+
+  // this loads properties with an overwrite file for the user
+  public static synchronized Properties loadProps(HttpServletRequest request) {
+    InputStream resourceAsStream = null;
+    Properties props=new Properties();
+    try {
+      //resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
+      //props.load(resourceAsStream);
+      props=ShepherdProperties.getOrgProperties(COMMON_CONFIGURATION_PROPERTIES, "",request);
+
+    } catch (Exception ioe) {
+      ioe.printStackTrace();
+      //return null;
+    }
+
+  return props;
+
+  }
 
   
   public static synchronized Properties loadProps(String context) {
@@ -180,7 +206,7 @@ public class CommonConfiguration {
     public static String getServerURL(String context) {
         URI u = getServerURI(context);
         if (u == null) return null;
-        return u.toASCIIString().replace(":80/", "/");  //hide :80 cuz its tacky
+        return u.toASCIIString().replaceFirst(":80\\b", "");  //hide :80 cuz its tacky
     }
     public static URI getServerURI(Shepherd myShepherd) {
         JSONObject info = getServerInfo(myShepherd);
@@ -202,7 +228,7 @@ public class CommonConfiguration {
     public static String getServerURL(Shepherd myShepherd) {
         URI u = getServerURI(myShepherd);
         if (u == null) return null;
-        return u.toASCIIString().replace(":80/", "/");  //hide :80 cuz its tacky
+        return u.toASCIIString().replaceFirst(":80\\b", "");  //hide :80 cuz its tacky
     }
     //TODO maybe these should be private so as not to be overused
     public static JSONObject getServerInfo(Shepherd myShepherd) {
@@ -261,6 +287,16 @@ public class CommonConfiguration {
         return true;
     }
 
+    // this is used in a couple places as a pointer to *this* wildbook
+    //  it is generated (once!) if it doesnt exist
+    public static String getGUID(Shepherd myShepherd) {
+        String guid = SystemValue.getString(myShepherd, "GUID");
+        if (guid != null) return guid;
+        guid = Util.generateUUID();  //now we have one!
+        SystemValue.set(myShepherd, "GUID", guid);
+        return guid;
+    }
+
   public static String getMailHost(String context) {
     String s = getProperty("mailHost", context);
     return s != null ? s.trim() : s;
@@ -311,6 +347,12 @@ public class CommonConfiguration {
             dir = System.getProperty("java.io.tmpdir");
             System.out.println("WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir + " as default; this may introduce insecurities.");
         }
+        return dir.trim();
+    }
+
+    public static String getImportDir(String context) {
+        String dir = getProperty("importDir", context);
+        if (dir == null) return null;
         return dir.trim();
     }
 
@@ -387,11 +429,11 @@ public class CommonConfiguration {
   }
 
   public static String getGoogleMapsKey(String context) {
-    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleMapsKey");
+    return getProperty("googleMapsKey",context);
   }
 
   public static String getGoogleSearchKey(String context) {
-    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleSearchKey");
+    return getProperty("googleSearchKey",context);
   }
 
   public static String getDefaultGoogleMapsCenter(String context) {
@@ -405,7 +447,12 @@ public class CommonConfiguration {
   public static String getProperty(String name, String context) {
     return initialize(context).getProperty(name);
   }
-  
+
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
+  public static String getProperty(String name, HttpServletRequest request) {
+    return initialize(request).getProperty(name);
+  }
+
   public static Enumeration<?> getPropertyNames(String context) {
     return initialize(context).propertyNames();
   }
@@ -651,9 +698,10 @@ public class CommonConfiguration {
     List<String> list = new ArrayList<String>();
     boolean hasMore = true;
     int index = 0;
+    Properties props = initialize(context);
     while (hasMore) {
       String key = baseKey + index++;
-      String value = CommonConfiguration.getProperty(key, context);
+      String value = props.getProperty(key);
       if (value != null) {
         value = value.trim();
         if (value.length() > 0) {
@@ -667,6 +715,41 @@ public class CommonConfiguration {
     return list;
   }
   
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
+  // Unlike standard getProperties, here we need to separate our overwrite .properties file from CommonConfiguration.properties
+  // (i.e. have separate Properties objects as opposed to a single Properties loaded from our custom file *with CommonConfig as the default/fallback*
+  // This is because, e.g. if custom.properties has 3 locationIDs and CommonConfig has 10 locIDs, naive getIndexedPropertyValues will be 10 items long with the first 3 from our custom file
+  public static List<String> getIndexedPropertyValues(String baseKey, HttpServletRequest request) {
+    List<String> list = new ArrayList<String>();
+    boolean hasMore = true;
+    int index = 0;
+
+    // if the customProps contain the indexedPropertyValues, we return those
+    Properties customProps = ShepherdProperties.getOverwriteProps(request);
+    if (customProps!=null) {
+      list = ShepherdProperties.getIndexedPropertyValues(customProps, baseKey);
+      if (list!=null && list.size()>0) return list;
+    }
+    Properties props = initialize(request);
+    while (hasMore) {
+      String key = baseKey + index++;
+      String value = props.getProperty(key);
+      if (value != null) {
+        value = value.trim();
+        if (value.length() > 0) {
+          list.add(value.trim());
+        }
+      }
+      else {
+        hasMore = false;
+      }
+    }
+    return list;
+  }
+  
+
+
+
   public static Integer getIndexNumberForValue(String baseKey, String checkValue, String context){
     System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
     boolean hasMore = true;
@@ -787,7 +870,6 @@ public class CommonConfiguration {
   public static boolean isWildbookInitialized(Shepherd myShepherd) {
     List<User> users = myShepherd.getAllUsers();
     if (users.size() == 0) return false;
-
     return true;
   }
 

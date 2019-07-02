@@ -33,6 +33,8 @@ import org.ecocean.identity.*;
 import org.ecocean.queue.*;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
+import org.ecocean.User;
+import org.ecocean.AccessControl;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -537,7 +539,17 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
             }
             Task task = Task.load(taskId, myShepherd);
             if (task == null) task = new Task(taskId);
-            task.setParameters(j.optJSONObject("taskParameters")); //optional
+            JSONObject tparams = j.optJSONObject("taskParameters"); //optional
+            if (tparams == null) tparams = new JSONObject();  //but we want it, to set user:
+            User tuser = AccessControl.getUser(request, myShepherd);
+            if (tuser == null) {  //"anonymous" but we want to make sure we zero these out to prevent them from being passed in
+                tparams.remove("userId");
+                tparams.remove("username");
+            } else {
+                tparams.put("userId", tuser.getUUID());
+                tparams.put("username", tuser.getUsername());
+            }
+            task.setParameters(tparams);
             myShepherd.storeNewTask(task);
             myShepherd.commitDBTransaction();  //hack
             //myShepherd.closeDBTransaction();
@@ -737,7 +749,7 @@ System.out.println("anns -> " + anns);
         JSONArray taskList = new JSONArray();
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
-        List<String> taskIds = new ArrayList<String>();
+        List<Task> subTasks = new ArrayList<Task>();
         if (anns.size() > 1) {  //need to create child Tasks
             JSONObject params = parentTask.getParameters();
             parentTask.setParameters((String)null);  //reset this, kids inherit params
@@ -745,17 +757,17 @@ System.out.println("anns -> " + anns);
                 Task newTask = new Task(parentTask);
                 newTask.setParameters(params);
                 newTask.addObject(anns.get(i));
-                taskIds.add(newTask.getId());
                 myShepherd.storeNewTask(newTask);
+                subTasks.add(newTask);
             }
             myShepherd.storeNewTask(parentTask);
         } else {  //we just use the existing "parent" task
-            taskIds.add(parentTask.getId());
+            subTasks.add(parentTask);
         }
         for (int i = 0 ; i < anns.size() ; i++) {
             Annotation ann = anns.get(i);
             JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
-            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, taskIds.get(i));
+            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, subTasks.get(i));
             taskList.put(taskRes);
         }
         if (limitTargetSize > -1) res.put("_limitTargetSize", limitTargetSize);
@@ -766,17 +778,21 @@ System.out.println("anns -> " + anns);
 
 
     private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl, JSONObject queryConfigDict,
-                                               JSONObject userConfidence, int limitTargetSize, String annTaskId) throws IOException {
+                                               JSONObject userConfidence, int limitTargetSize, Task task) throws IOException {
 
         //String iaClass = ann.getIAClass();
         boolean success = true;
-        if (annTaskId == null) annTaskId = Util.generateUUID();
+        String annTaskId = "UNKNOWN_" + Util.generateUUID();
+        if (task != null) annTaskId = task.getId();
         JSONObject taskRes = new JSONObject();
         taskRes.put("taskId", annTaskId);
         JSONArray jids = new JSONArray();
         jids.put(ann.getId());  //for now there is only one
         taskRes.put("annotationIds", jids);
 System.out.println("+ starting ident task " + annTaskId);
+        JSONObject shortCut = IAQueryCache.tryTargetAnnotationsCache(context, ann, taskRes);
+        if (shortCut != null) return shortCut;
+
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IAGateway._sendIdentificationTask");
         myShepherd.beginDBTransaction();
@@ -804,7 +820,7 @@ System.out.println("+ starting ident task " + annTaskId);
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
-                                                               myShepherd, annTaskId, baseUrl);
+                                                               myShepherd, task, baseUrl);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;

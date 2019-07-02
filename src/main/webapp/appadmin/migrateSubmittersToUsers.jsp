@@ -56,7 +56,7 @@ myShepherd.rollbackDBTransaction();
 			Encounter enc=myShepherd.getEncounter(encS);
 			//if(enc.getSubmitters()==null){
 			
-				System.out.println("Setting submitters/photographers/informOthers for: "+enc.getCatalogNumber());
+				System.out.println(k + "/" + numEncs + ") Setting submitters/photographers/informOthers for: "+enc.getCatalogNumber());
 			
 				boolean madeChange=false;
 			
@@ -89,7 +89,7 @@ myShepherd.rollbackDBTransaction();
 					for(int i=0;i<numTokens;i++){
 						String email=str.nextToken().trim();
 						if(!email.equals("")&&(myShepherd.getUserByEmailAddress(email)==null)){
-							User user=new User(email);
+							User user=new User(email,Util.generateUUID());
 							myShepherd.getPM().makePersistent(user);
 							myShepherd.commitDBTransaction();
 							myShepherd.beginDBTransaction();

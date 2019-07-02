@@ -7,6 +7,7 @@ java.util.Vector,
 java.util.ArrayList,
 java.util.List,
 org.datanucleus.api.rest.orgjson.JSONArray,
+org.ecocean.security.HiddenIndividualReporter,
 org.datanucleus.api.rest.RESTUtils,
 org.datanucleus.api.jdo.JDOPersistenceManager,
 org.datanucleus.api.rest.orgjson.JSONObject" %>
@@ -21,7 +22,15 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int maxPages = 10;
+  int maxPages = 10000000;
+  if(request.getParameter("maxPages")!=null){
+	  try{
+		  maxPages=(new Integer(request.getParameter("maxPages"))).intValue();
+	  }
+	  catch(Exception e){
+		  e.printStackTrace();
+	  }
+  }
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
@@ -39,6 +48,8 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   String order ="";
   MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
   rIndividuals = result.getResult();
+  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
+  rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 	numResults = rIndividuals.size();
 	System.out.println("PictureBook: returned "+numResults+" individuals");
 
@@ -60,7 +71,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		<li>Scroll to the bottom of the page before printing, or some images will not render in pdf</li>
 	</ul></em></p>
 
-	<p class="instructions"> Your Wildbook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
+	<p class="instructions"> Your Flukebook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
 	
 	<p class="resultSummary">
 	<table width="810" border="0" cellspacing="0" cellpadding="0">
@@ -119,14 +130,9 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   		height: auto;
   	}
   	div.pictureBook-images {
-  		max-height:60vh;
+  		height: 40%;
   	}
-}
-
-	div.pictureBook-images img {
-		max-height:30vh;
 	}
-
 	.clickable-row:hover {
 		cursor: pointer;
 	}
@@ -149,15 +155,63 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	span.pictureBook-MA {
 		display: none;
 	}
+
+	html, body {
+		height: 100%;
+	}
+
+	div.pictureBook-page {
+		height: 100vh;
+	}
+	div.pictureBook-images {
+		max-height: 50%;
+		position: relative;
+		display: inline-block;
+		overflow: hidden;
+		max-height: 50%;
+		top: 0
+	}
+	div.pictureBook-headerImage {
+		max-height: 25%;
+		position: relative;
+	}
+	div.pictureBook-headerImage img{
+		max-height: 25vh;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    	width: 100%;
+	}
+	div.pictureBook-subImage img {
+		max-height: 25vh;
+	}
+	div.pictureBook-images table {
+		width: 50%;
+		margin: 0 auto;
+	}
+
+	div.pictureBook-subImage {
+		max-height: 12.5%;
+		position: relative;
+	}
+	tr.pictureBook-subImages td {
+		width: 50%;
+	}
+	table.pictureBook-table {
+    margin-left: auto;
+    margin-right: auto;
+	}
+
+
 </style>
 
 <div class="pictureBook-container">
 	<%
 
 		List<String> desiredKeywords = new ArrayList<String>();
-		//desiredKeywords.add("Melanistic manta");
-		//desiredKeywords.add("Leucistic manta");
-		//desiredKeywords.add("Left Dorsal Fin");
+		desiredKeywords.add("Tail Fluke");
+		desiredKeywords.add("Right Dorsal Fin");
+		desiredKeywords.add("Left Dorsal Fin");
 
 	for (MarkedIndividual mark: rIndividuals) {
 
@@ -179,37 +233,11 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		String altID = mark.getAlternateID();
 		if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
 		String altIDStr = (Util.stringExists(altID)) ? ("<em>("+altID+")</em>") : "";
-		System.out.println("PictureBook: proceeded past hasHeader check with "+exemplarImages.size()+" images");
-
+		System.out.println("PictureBook: proceeded past hasHeader check");
 
 
 		%>
 		<style>
-		html, body {
-   		height: 100%;
-		}
-			div.pictureBook-page {
-			}
-			div.pictureBook-headerImage {
-				max-height: 25%;
-				position: relative;
-			}
-			div.pictureBook-headerImage img{
-		    display: block;
-		    margin-left: auto;
-		    margin-right: auto;
-			}
-			div.pictureBook-subImage {
-				max-height: 12.5%;
-				position: relative;
-			}
-			tr.pictureBook-subImages td {
-				width: 50%;
-			}
-			table.pictureBook-table {
-		    margin-left: auto;
-		    margin-right: auto;
-			}
 		</style>
 
 
@@ -255,7 +283,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 			Encounter[] encs = mark.getDateSortedEncounters(encsPerTableLimit);
 			int numEncs = encs.length;
 			%>
-			<div class="pictureBook-content">
 			<h4 class="pictureBook-tableHeader">Sighting History</h4> <em><%=numEncs %> on table</em>
 			<table class="pictureBook-table">
 				<tr class="pictureBook-hr">
@@ -301,7 +328,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 				%>
 			</table>
-			</div>
 		</div>
 		<%
 	}

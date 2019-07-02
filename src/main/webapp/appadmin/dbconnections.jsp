@@ -25,7 +25,7 @@ context=ServletUtilities.getContext(request);
 <body>
 
 <h1>Database Connections</h1>
-<ul>
+<ol>
 <%
 ConcurrentHashMap<String,String> map=ShepherdPMF.getAllShepherdStates();
 Enumeration<String> keys=map.keys();
@@ -40,6 +40,6 @@ while(keys.hasMoreElements()){
 	//}
 }
 %>
-</ul>
+</ol>
 </body>
 </html>

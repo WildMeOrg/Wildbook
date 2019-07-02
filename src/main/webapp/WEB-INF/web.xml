@@ -277,7 +277,11 @@
 				/EncounterAddUser = authc, roles[researcher]
 				
 				/AnnotationEdit = authc, roles[admin]
-
+				
+				/obrowse.jsp = authc, roles[admin]
+				
+				/StandardImport = authc, roles[admin]
+				
             </param-value>
         </init-param>
     </filter>
@@ -479,10 +483,6 @@
   <servlet>
     <servlet-name>ImportAccess</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.ImportAccess</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>StandardImport</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>FixStandardImport</servlet-name>
@@ -873,16 +873,6 @@
   <servlet-mapping>
     <servlet-name>AnnotationEdit</servlet-name>
     <url-pattern>/AnnotationEdit</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
-    <servlet-name>OrganizationEdit</servlet-name>
-    <servlet-class>org.ecocean.servlet.OrganizationEdit</servlet-class>
-  </servlet>
-
-  <servlet-mapping>
-    <servlet-name>OrganizationEdit</servlet-name>
-    <url-pattern>/OrganizationEdit</url-pattern>
   </servlet-mapping>
 
       <servlet>
@@ -1717,10 +1707,6 @@
       <url-pattern>/ImportAccess</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-      <servlet-name>StandardImport</servlet-name>
-      <url-pattern>/StandardImport</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
       <servlet-name>WebImport</servlet-name>
       <url-pattern>/WebImport</url-pattern>
   </servlet-mapping>
@@ -2315,6 +2301,16 @@
   <servlet-mapping>
     <servlet-name>AddOccToTrack</servlet-name>
     <url-pattern>/AddOccToTrack</url-pattern>
+  </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>StandardImport</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+      <servlet-name>StandardImport</servlet-name>
+      <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
 
 </web-app>

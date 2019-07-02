@@ -14,7 +14,7 @@
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
-	 org.json.JSONObject,
+         org.json.JSONObject,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -125,18 +125,14 @@ File encounterDir = new File(encountersDir, num);
 String langCode=ServletUtilities.getLanguageCode(request);
 
 
+boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
 
 //let's load encounters.properties
   //Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-
-	Properties collabProps = new Properties();
- 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-
-
+  //Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context, "indocet");
 
   pageContext.setAttribute("num", num);
 
@@ -149,8 +145,14 @@ String langCode=ServletUtilities.getLanguageCode(request);
   boolean proceed = true;
   boolean haveRendered = false;
 
-  pageContext.setAttribute("set", encprops.getProperty("set"));
   
+  Properties encprops = ShepherdProperties.getOrgProperties("encounter.properties", langCode, context, request);
+  pageContext.setAttribute("set", encprops.getProperty("set"));
+
+  Properties collabProps = new Properties();
+  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+
+
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
@@ -162,6 +164,57 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   <style type="text/css">
+
+.ia-match-filter-dialog {
+    display: none;
+    z-index: 3000;
+    position: fixed;
+    top: 10%;
+    width: 80%;
+    padding: 15px;
+    border: solid 5px #888;
+    background-color: #CCC;
+}
+.ia-match-filter-dialog .option-cols {
+    -webkit-column-count: 5;
+    -moz-column-count: 5;
+    column-count: 5;
+}
+.ia-match-filter-dialog .option-cols input {
+    vertical-align: top;
+}
+.ia-match-filter-dialog .option-cols .item {
+    padding: 1px 4px;
+    border-radius: 5px;
+}
+.ia-match-filter-dialog .option-cols .item:hover {
+    background-color: #AAA;
+}
+.ia-match-filter-dialog .option-cols .item label {
+    font-size: 0.9em;
+    width: 90%;
+    margin-left: 5px;
+    line-height: 1.0em;
+}
+.ia-match-filter-dialog .option-cols .item-checked label {
+    font-weight: bold;
+}
+.ia-match-filter-dialog .item-count {
+    font-size: 0.8em;
+    color: #777;
+    margin-left: 9px;
+}
+.ia-match-filter-section {
+    margin-top: 10px;
+    border-top: solid 3px #999;
+}
+.ia-match-filter-title {
+    margin: 20px 0 5px 0;
+    padding: 1px 0 1px 20px;
+    background-color: #AAB;
+    color: #555;
+    font-weight: bold;
+}
 
 .annot-link {
     display: none;
@@ -245,10 +298,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
       padding: 8px;
     }
 
-
-
-
-
 th.measurement{
 	 font-size: 0.9em;
 	 font-weight: normal;
@@ -312,8 +361,10 @@ function setIndivAutocomplete(el) {
     if (!el || !el.length) return;
     var args = {
         resMap: function(data) {
+            var taxString = $('#displayTax').text();
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
+                if (taxString && (item.species != taxString)) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 return { label: label, type: item.type, value: item.value };
@@ -454,16 +505,30 @@ var encounterNumber = '<%=num%>';
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
+            System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
             String encNum = enc.getCatalogNumber();
 						boolean visible = enc.canUserAccess(request);
 						if (!visible) visible = checkAccessKey(request, enc);
 						if (!visible) {
+
+
+              // remove any potentially-sensitive data, labeled with the secure-field class
+              %>
+              <script type="text/javascript">
+                $(document).ready(function() {
+                  $('.secure-field').remove();
+                });
+              </script>
+              <%
+
+
 							String blocker = "";
 							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 							String uid = null;
 							String name = null;
+              String blockerOptions = "overlayCSS: { backgroundColor: '#000', opacity: 1.0, cursor:'wait'}";
 							if (request.getUserPrincipal() == null) {
 								cmsg = "<p>Access limited.</p>";
 							} if ((c == null) || (c.getState() == null)) {
@@ -616,8 +681,8 @@ $(function() {
 								} //end while
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
-				if(enc.hasMarkedIndividual()) {
-                                    String dispName = enc.getIndividual().getDisplayName(request);
+				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
+          		String dispName = enc.getIndividual().getDisplayName(request);
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
@@ -625,6 +690,9 @@ $(function() {
                 	<%=encprops.getProperty("title") %> <%=individuo %></a> <%=livingStatus %>
                 </h1>
 
+
+<% String dup = enc.getDynamicPropertyValue("duplicateOf");  if (dup != null) { %>
+<div style="display: inline-block; padding: 1px 5px; background-color: #AAA; color: #833; border-radius: 4px;">This encounter is marked as a <b>duplicate of <a href="encounter.jsp?number=<%=dup%>"><%=dup%></a></b>.</div><% } %>
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
  					<table style="border-spacing: 10px;margin-left:-10px;border-collapse: inherit;">
@@ -651,7 +719,7 @@ $(function() {
 	<!-- main display area -->
 
 				<div class="container">
-					<div class="row">
+					<div class="row secure-field">
 
 
             <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
@@ -840,6 +908,11 @@ if(enc.getLocation()!=null){
       $("#countryError, #countryCheck, #countryErrorDiv").hide()
       $("#countryFormBtn").show();
     });
+
+    $('#ia-match-filter-location input').on('change', function(ev) {
+        iaMatchFilterLocationCountUpdate()
+    });
+    iaMatchFilterLocationCountUpdate();
   });
 </script>
 
@@ -857,13 +930,21 @@ if(enc.getLocation()!=null){
           <option value=""></option>
 
           <%
-          String[] locales = Locale.getISOCountries();
-          for (String countryCode : locales) {
-            Locale obj = new Locale("", countryCode);
-            %>
-            <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
-
-            <%
+          if (User.hasCustomProperties(request)) {
+            List<String> countries = CommonConfiguration.getIndexedPropertyValues("country",request);
+            for (String country: countries) {
+              %>
+              <option value="<%=country%>"><%=country%></option>
+              <%
+            }
+          } else {
+            String[] locales = Locale.getISOCountries();
+            for (String countryCode : locales) {
+              Locale obj = new Locale("", countryCode);
+              %>
+              <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
+              <%
+            }
           }
           %>
         </select>
@@ -938,24 +1019,10 @@ if(enc.getLocation()!=null){
                 <option value=""></option>
 
                 <%
-                boolean hasMoreLocs=true;
-                int codeTaxNum=0;
-                while(hasMoreLocs){
-                  String currentLoc = "locationID"+codeTaxNum;
-                  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
-                	  String selected="";
-                	  if((enc.getLocationID()!=null)&&(CommonConfiguration.getProperty(currentLoc,context).equals(enc.getLocationID()))){
-                		  selected="selected=\"selected\"";
-                	  }
-                    %>
-                    <option <%=selected %> value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
-                    <%
-                    codeTaxNum++;
-                  }
-                  else{
-                    hasMoreLocs=false;
-                  }
-
+                List<String> locIDs = CommonConfiguration.getIndexedPropertyValues("locationID", request);
+                for (String locID: locIDs) {
+                  String selected = (enc.getLocationID()!=null && enc.getLocationID().equals(locID)) ? "selected=\"selected\"" : "";
+                  %><option <%=selected %> value="<%=locID%>"><%=locID%></option><%
                 }
                 %>
 
@@ -1379,8 +1446,19 @@ if(enc.getLocation()!=null){
     							<div>
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> 
-                     <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
-                     <span id="displayIndividualID"><%=ServletUtilities.handleNullString(enc.getIndividualID())%></span></a></p>
+    								 <%
+    								 String hrefVal="";
+    								 String indyDisplayName="";
+    								 if(enc.hasMarkedIndividual()){
+    									hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
+    									indyDisplayName=enc.getDisplayName();
+    								 }
+                     				%>
+                     					<a href="<%=hrefVal %>">
+                     						<span id="displayIndividualID"><%=indyDisplayName %></span>
+                     					</a>
+                     				
+                     			</p>
     							
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
@@ -1472,14 +1550,16 @@ if(enc.getLocation()!=null){
                         var action = $("#individualAddEncounterAction").val();
 
                         $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
-                        function() {
+                        function(data) {
+                        	
+                         
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
-                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
                           
-                          $('#topid').prop('href', '../individuals.jsp?number=' + individual);
+                          $('#topid').prop('href', '../individuals.jsp?number=' + data.individualID);
                           $("#topid").html(individual);
           				  $(".add2shark").hide();               
         				  $(".removeFromShark").show();      
@@ -3492,6 +3572,8 @@ else {
 String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
 %>
     <%-- START IMAGES --%>
+      <div id="add-image-zone" class="bc4">
+
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
         	<jsp:param name="encounterNumber" value="<%=num%>" />
         	<jsp:param name="queryString" value="<%=queryString%>" />
@@ -3503,7 +3585,9 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 		<%
 		if(isOwner){
 		%>
-	        <div id="add-image-zone" class="bc4">
+          <br/>
+          <br>
+            <div id="inner-add-image">
 
 	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
 
@@ -3524,6 +3608,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 	            </div>
 	          </div>
 	        </div>
+        </div>
         <%
         }
         %>
@@ -3973,15 +4058,29 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
       <div class="form-group row">
         <div class="col-sm-5">
-          <textarea name="behaviorComment" class="form-control" id="behaviorInput">
+          <%
+          List<String> behaviors = CommonConfiguration.getIndexedPropertyValues("behavior", request);
+          System.out.println("got behaviors list "+behaviors);
+          if (!Util.isEmpty(behaviors)) {
+          %>
+          <select name="behaviorComment" id="behaviorInput" class="form-control" size="1">
+            <option value=""></option>
             <%
-           if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
-           %>
-              <%=enc.getBehavior().trim()%>
+            for (String behavior: behaviors) {
+              String selected = (enc.getBehavior()!=null && enc.getBehavior().equals(behavior)) ? "selected=\"selected\"" : "";
+              %><option <%=selected %> value="<%=behavior%>"><%=behavior%></option><%
+            }
+            %>
+          </select>
+          <%} else {%>
+            <textarea name="behaviorComment" class="form-control" id="behaviorInput">
+              <% if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){ %>
+                <%=enc.getBehavior().trim()%>
+              <%}%>
+            </textarea>
           <%
           }
           %>
-          </textarea>
         </div>
         <div class="col-sm-3">
           <input name="EditBeh" type="submit" id="editBehavior" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
@@ -3992,11 +4091,94 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
       </form>
     </div>
 
-<%
-%>
-<!--  END BEHAVIOR SECTION -->
+<!--  START GROUP ROLE SECTION -->
+<p class="para"><%=encprops.getProperty("groupRole") %>&nbsp;
 
+  <%
 
+    String oldGroupRole = enc.getGroupRole();
+    if (oldGroupRole != null) {
+  %>
+  <span id="displayGroupRole"><%=enc.getGroupRole()%></span>
+  <%
+  } else {
+  %>
+  <span id="displayGroupRole"><%=encprops.getProperty("none")%></span>
+  <%
+    }
+    %>
+</p>
+
+    <!-- start set groupRole popup -->
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#editGroupRole").click(function(event) {
+        event.preventDefault();
+
+        $("#editGroupRole").hide();
+
+        var number = $("#groupRoleNumber").val();
+        var groupRoleComment = $("#groupRoleInput").val();
+
+        $.post("../EncounterSetString", {"number": number, "field": "groupRole", "newVal":groupRoleComment},
+        function() {
+          $("#groupRoleErrorDiv").hide();
+          $("#groupRoleCheck").show();
+          $("#displayGroupRole").html(groupRoleComment);
+        })
+        .fail(function(response) {
+          $("#groupRoleError, #groupRoleErrorDiv").show();
+          $("#groupRoleErrorDiv").html(response.responseText);
+        });
+      });
+
+      $("#groupRoleInput").click(function() {
+        $("#groupRoleError, #groupRoleCheck, #groupRoleErrorDiv").hide()
+        $("#editGroupRole").show();
+      });
+    });
+  </script>
+  <div>
+    <div class="highlight resultMessageDiv" id="groupRoleErrorDiv"></div>
+
+    <p class="editTextObservation"><strong><%=encprops.getProperty("editGroupRoleComments")%></strong></p>
+    <span class="editTextObservation"><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></span>
+    <form name="setBehaviorComments" class="editFormObservation">
+      <input name="number" type="hidden" value="<%=num%>" id="groupRoleNumber"/>
+      <input name="action" type="hidden" value="editGroupRole" id="groupRoleAction"/>
+
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <%
+        List<String> groupRoles = CommonConfiguration.getIndexedPropertyValues("groupRole", request);
+        System.out.println("got groupRoles list "+groupRoles);
+        if (!Util.isEmpty(groupRoles)) {
+        %>
+        <select name="groupRoleComment" id="groupRoleInput" class="form-control" size="1">
+          <option value=""></option>
+          <%
+          for (String groupRole: groupRoles) {
+            String selected = (enc.getGroupRole()!=null && enc.getGroupRole().equals(groupRole)) ? "selected=\"selected\"" : "";
+            %><option <%=selected %> value="<%=groupRole%>"><%=groupRole%></option><%
+          }
+          %>
+        </select>
+        <%} else {%>
+          <textarea name="groupRoleComment" class="form-control" id="groupRoleInput">
+            <%if(oldGroupRole!=null){%>
+              <%=oldGroupRole%>
+            <%}%>
+          </textarea>
+        <%}%>
+      </div>
+      <div class="col-sm-3">
+        <input name="EditGroupRole" type="submit" id="editGroupRole" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
+        <span class="form-control-feedback" style="display:none;" id="groupRoleCheck">&check;</span>
+        <span class="form-control-feedback" style="display:none;" id="groupRoleError">X</span>
+      </div>
+    </div>
+    </form>
+  </div>
 
 <!--  START PATTERNING CODE SECTION -->
 <%
@@ -6174,6 +6356,156 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 
 </table>
 
+<script>
+var iaMatchFilterAnnotationIds = [];
+function iaMatchFilterGo() {
+    var data = {
+        v2: true,
+        taskParameters: {
+            matchingSetFilter: {}
+        },
+        annotationIds: iaMatchFilterAnnotationIds
+    };
+    var keyMap = {
+        'match-filter-location-id': 'locationIds',
+        'match-filter-owner': 'owner'
+    };
+    $('.ia-match-filter-dialog input').each(function(i, el) {
+        if ((el.type != 'checkbox') || !el.checked) return;
+        var key = keyMap[el.name] || '_UNKNOWN_';
+        if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
+        data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
+    });
+console.log('SENDING ===> %o', data);
+    wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
+console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
+        wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
+    });
+    //TODO uncheck everything????
+    $('.ia-match-filter-dialog').hide();
+}
+
+var encText = '<%=encprops.getProperty("encounter")%>';
+var noneText = '<%=encprops.getProperty("none")%>';
+var selectedText = '<%=encprops.getProperty("selected")%>';
+function iaMatchFilterLocationCountUpdate() {
+    var ct = 0;
+    var vals = [];
+    $('#ia-match-filter-location input:checked').each(function(i,el) {
+        vals.push(el.nextElementSibling.firstChild.nodeValue);
+        ct += parseInt($(el).parent().find('.item-count').text());
+    });
+    if ($('#match-filter-location-unlabeled').is(':checked')) ct += parseInt($('#match-filter-location-unlabeled').parent().find('.item-count').text());
+    if (ct < 1) {
+        $('#total-location-count').text(noneText + ' ' + selectedText);
+    } else {
+        $('#total-location-count').text(ct + ' ' + encText + ((ct == 1) ? '' : 's') + ' (' + vals.length + ' ' + selectedText + ')');
+    }
+    return true;
+}
+</script>
+
+<div class="ia-match-filter-dialog">
+<h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+  <div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
+    <span class="el el-lg el-chevron-right rotate-chevron" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
+  </div>
+  <div class="ia-match-filter-container" style="display: none">
+    <div  style="width: 100%; max-height: 200px; overflow-y: scroll">
+    <div id="ia-match-filter-location" class="option-cols">
+<%
+
+String sql = "SELECT \"LOCATIONID\" AS locId, COUNT(*) AS ct FROM \"ENCOUNTER\" GROUP BY locId ORDER BY locId";
+Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+List results = (List)q.execute();
+long nullCount = 0;
+int c = 0;
+Iterator it = results.iterator();
+while (it.hasNext()) {
+    Object[] row = (Object[]) it.next();
+    String locId = (String)row[0];
+    long ct = (long)row[1];
+    if (!Util.stringExists(locId) || locId.toLowerCase().equals("none")) {
+        nullCount += ct;
+        continue;
+    }
+    String sel = (locId.equals(enc.getLocationID()) ? "checked" : "");
+    out.println("<div class=\"item item-" + sel + "\"><input id=\"mfl-" + c + "\" name=\"match-filter-location-id\" value=\"" + locId + "\" type=\"checkbox\"" + sel + " /><label for=\"mfl-" + c + "\">" + locId + " <span class=\"item-count\">" + ct + "</span></label></div>");
+    c++;
+}
+
+%>
+    </div>
+    <div>
+        <div style="margin-top: 10px; color: #660;" class="item">
+            <input type="checkbox" id="match-filter-location-unlabeled" name="match-filter-location-id" value="__NULL__" onChange="iaMatchFilterLocationCountUpdate();" />
+            <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
+            <span class="item-count"><%=nullCount%></span>
+        </div>
+        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
+            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
+        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
+            onClick="$('#ia-match-filter-location .item input').prop('checked', false); iaMatchFilterLocationCountUpdate();" />
+    </div>
+
+  </div>
+
+
+  <style type="text/css">
+/* this .search-collapse-header .rotate-chevron logic doesn't work
+ because animatedcollapse.js is eating the click event (I think.).
+ It's unclear atm where/whether to modify animatedcollapse.js to
+ rotate this chevron.
+*/
+.search-collapse-header .rotate-chevron {
+    -moz-transition: transform 0.5s;
+    -webkit-transition: transform 0.5s;
+    transition: transform 0.5s;
+}
+.search-collapse-header .rotate-chevron.down {
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+.search-collapse-header:hover {
+  cursor: pointer;
+}
+
+</style>
+<script>
+$(".search-collapse-header").click(function(){
+    console.log("LOG!: collapse-header is clicked!");
+    $(this).children(".rotate-chevron").toggleClass("down");
+    $(this).next().slideToggle();
+});
+</script>
+
+</div>
+
+
+<div class="ia-match-filter-title"><%=encprops.getProperty("matchFilterOwnership")%></div>
+    <div class="item">
+        <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
+        <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
+    </div>
+<!--  not yet implemented!
+    <div class="item">
+        <input type="checkbox" id="match-filter-owner-collab" name="match-filter-owner" value="collab" />
+        <label for="match-filter-owner-collab"><%=encprops.getProperty("matchFilterOwnershipCollab")%></label>
+    </div>
+    <div class="item">
+        <input type="checkbox" id="match-filter-owner-none" name="match-filter-owner" value="__NULL__" />
+        <label for="match-filter-owner-none"><%=encprops.getProperty("matchFilterOwnershipNone")%></label>
+    </div>
+-->
+
+<div class="ia-match-filter-section">
+    <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
+    <input style="background-color: #DDD;" type="button" value="<%=encprops.getProperty("cancel")%>"
+        onClick="$('.ia-match-filter-dialog').hide()" />
+</div>
+
 
 <%
 
@@ -6201,7 +6533,6 @@ finally{
   		myShepherd.rollbackDBTransaction();
   		myShepherd.closeDBTransaction();
 		%>
-		<p class="para">There is no corresponding encounter number in the database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
   to encounter: </strong> <input name="number" type="text" value="" size="20"> <input name="Go" type="submit" value="Submit" /></form>
@@ -6227,6 +6558,5 @@ String pswipedir = urlLoc+"/photoswipe";
 <jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
 <script src='<%=pswipedir%>/photoswipe.js'></script>
 <script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
-
 
 <jsp:include page="../footer.jsp" flush="true"/>

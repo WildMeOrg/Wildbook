@@ -43,7 +43,7 @@ context=ServletUtilities.getContext(request);
 	}
 	String sessionShark = null;
 	if (session.getAttribute( "queryShark") != null) {
-		sessionShark =(String)session.getAttribute( "queryShark");
+		sessionShark =((String)session.getAttribute( "queryShark")).trim();
 	}
 	Boolean sessionPaid = false;
 	if (session.getAttribute( "paid") != null) {
@@ -55,14 +55,15 @@ context=ServletUtilities.getContext(request);
 	boolean hasNickName = true;
 	String nick = "";
 	try {
-		if (sessionShark != null) {
+		if ((sessionShark != null)&&(myShepherd.getMarkedIndividual(sessionShark)!=null)) {
 			MarkedIndividual mi = myShepherd.getMarkedIndividual(sessionShark);
 			nick = mi.getNickName();
-			if ((nick.equals("Unassigned"))||(nick.equals(""))) {
+			if (((nick==null) || nick.equals("Unassigned"))||(nick.equals(""))) {
 				hasNickName = false;
 			}
 		}
-	} catch (Exception e) {
+	} 
+	catch (Exception e) {
 		System.out.println("Error looking up nickname!!");
 		e.printStackTrace();
 	}
