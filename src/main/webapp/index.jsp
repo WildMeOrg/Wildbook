@@ -293,7 +293,8 @@ margin-bottom: 8px !important;
 
 //let's quickly get the data we need from Shepherd
 
-int numMarkedIndividuals=0;
+int numMarkedIndividualsPlains=0;
+int numMarkedIndividualsGrevy=0;
 int numEncounters=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
@@ -313,7 +314,9 @@ try{
 
 
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
+    numMarkedIndividualsPlains=qc.getQueryByName("numMarkedIndividualsPlains").executeCountQuery(myShepherd).intValue();
+    numMarkedIndividualsGrevy=qc.getQueryByName("numMarkedIndividualsGrevy").executeCountQuery(myShepherd).intValue();
+    
     numEncounters=myShepherd.getNumEncounters();
     //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
@@ -337,7 +340,7 @@ finally{
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h2>Welcome to Wildbook!</h2>
+            <h2>Welcome to Wildbook for Zebras!</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -358,79 +361,7 @@ finally{
 
 	<h2 class="section-header"><%=props.getProperty("howItWorksH") %></h2>
 
-  <!-- carousel is gone now, forever? -->
-
-<div class="carousel-inner text-left">
-
-	<div class="row"> 
-		<div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
-			<h3><%=props.getProperty("innerPhotoH3") %></h3>
-			<p class="lead">
-				<%=props.getProperty("innerPhotoP") %>
-			</p>
-		</div>
-		<div class="hidden-xs col-sm-5  col-md-5  col-lg-5">
-			<img  src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
-		</div>
-	</div>
-
-	<hr>
-
-	<div class="row"> 
-		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
-			<img  src="images/how_it_works_submit.jpg" alt=""  />
-		</div>
-		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-			<h3><%=props.getProperty("innerSubmitH3") %></h3>
-			<p class="lead">
-				<%=props.getProperty("innerSubmitP") %>
-			</p>
-		</div>
-	</div>
-
-	<hr>
-
-	<div class="row"> 
-		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-			<h3><%=props.getProperty("innerVerifyH3") %></h3>
-			<p class="lead">
-				<%=props.getProperty("innerVerifyP") %>
-			</p>
-		</div>
-		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
-			<img  src="images/how_it_works_researcher_verification.jpg" alt=""/>
-		</div>
-	</div>
-
-	<hr>
-
-	<div class="row"> 
-		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
-			<img  src="images/how_it_works_matching_process.jpg" alt=""  />
-		</div>
-		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-			<h3><%=props.getProperty("innerMatchingH3") %></h3>
-			<p class="lead">
-				<%=props.getProperty("innerMatchingP") %>
-			</p>
-		</div>
-	</div>
-
-	<hr>
-
-	<div class="row"> 
-		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-			<h3><%=props.getProperty("innerResultH3") %></h3>
-			<p class="lead">
-				<%=props.getProperty("innerResultP") %>
-			</p>
-		</div>
-		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
-			<img  src="images/how_it_works_match_result.jpg" alt=""  />
-		</div>
-	</div>
-
-</div>
+ 
 
 </section>
 
@@ -484,7 +415,7 @@ finally{
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest shark encounters</h2>
+                    <h2>Latest encounters</h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
@@ -494,6 +425,10 @@ finally{
                        try{
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
+	                           String displayName="";
+	                           if(thisEnc.getIndividual()!=null){
+	                        	   displayName=thisEnc.getIndividual().getDisplayName();
+	                           }
 	                           %>
 	                            <li>
 	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
@@ -508,7 +443,7 @@ finally{
 	                                        %>
 	                                    </time>
 	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
+	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=displayName %></a></p>
 
 
 	                            </li>
@@ -590,19 +525,15 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified whale sharks</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividualsPlains %></span> identified Plains Zebras</i></p>
+            </section>
+                        <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividualsGrevy %></span> identified Grevy's Zebras</i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
             </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> citizen scientists</i></p>
-            </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> researchers and volunteers</i></p>
-            </section>
         </div>
 
         <hr/>
@@ -623,12 +554,7 @@ finally{
     </section>
 </div>
 
-<div class="container main-section">
-    <h2 class="section-header"><%= props.getProperty("gMapHeader") %></h2>
 
-      <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
-
-</div>
 
 <div class="container-fluid">
     <section class="container main-section">
