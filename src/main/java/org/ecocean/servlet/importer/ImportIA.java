@@ -69,6 +69,9 @@ public class ImportIA extends HttpServlet {
     //  mostly cuz this makes "co-occurring" Encounters where we probably dont want them
     boolean createOccurrences = Util.requestParameterSet(request.getParameter("createOccurrences"));
 
+    //whether to cluster all annots from an indiv into single encounters; usually related to above (default false)
+    boolean clusterEncounters = Util.requestParameterSet(request.getParameter("clusterEncounters"));
+
     out.println("<h1>Starting ImportIA servlet | import task=<a href=\"obrowse.jsp?type=ImportTask&id=" + itask.getId() + "\">" + itask.getId() + "</a></h1>");
     if (uid != null) {
         out.println("<p>submitter uid = <b>" + uid + "</b> (user => " + ((submitter == null) ? "<i>invalid ID</i>" : submitter.getDisplayName()) + ")</p>");
@@ -182,7 +185,7 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
     probably:  time + location, aka "Clumping" (sigh).... TODO FIXME ETC
 */
       for (String name : uniqueNames) {
-        if (IBEISIA.unknownName(name)) {   // we need one encounter per annot for unknown!
+        if (IBEISIA.unknownName(name) || !clusterEncounters) {   // we need one encounter per annot for unknown!
             for (Annotation ann : annotGroups.get(name)) {
                 if (hasEncounter.get(ann.getAcmId()) != null) {
                     log(itask, "!! ann.acmId=" + ann.getAcmId() + " already has enc.id=" + hasEncounter.get(ann.getAcmId()) + "; skipping");
