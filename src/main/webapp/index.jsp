@@ -358,7 +358,7 @@ finally{
    myShepherd.closeDBTransaction();
 }
 %>
-<section class="hero container-fluid main-section relative">
+<section class="hero container-fluid splash-section relative">
 	<!--
 	<div class="center-block">
 	</div>
@@ -372,7 +372,7 @@ finally{
 	</div>
 	-->
 </section>
-<section class="hero-bottom container-fluid main-section relative">
+<section class="hero-bottom container-fluid splash-section relative">
 	<a class="splash-submit" href="submit.jsp">
 		<button class="index-submit-button"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
 	</a>
