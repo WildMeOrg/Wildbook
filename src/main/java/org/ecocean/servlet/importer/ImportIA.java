@@ -273,6 +273,7 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
                 MarkedIndividual ind = myShepherd.getMarkedIndividual(name);
                 if ((ind.getSex() == null) && (sex != null)) ind.setSex(sex); //only if not set already
                 ind.addEncounter(enc);
+                enc.setIndividual(ind);
             } else {
                 MarkedIndividual ind = new MarkedIndividual(name, enc);
                 if (sex != null) ind.setSex(sex);
