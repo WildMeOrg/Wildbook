@@ -359,9 +359,25 @@ finally{
 
 <section class="container text-center main-section">
 
-	<h2 class="section-header"><%=props.getProperty("howItWorksH") %></h2>
+	<h2 class="section-header">Machine Learning & Citizen Science & Conservation Research</h2>
 
- 
+  	<p class="lead">Wildbook for Zebras applies computer vision algorithms and deep learning to identify and track individual zebras across hundreds of thousands of photos. We help researchers collaborate with each other and citizen scientists contribute to the effort. A.I. scales and speeds research and conservation.</p>
+  	
+  	<h3 class="section-header">Step 1. Deep Learning Finds Animals</h3>
+  	<p class="lead">We train computer vision to find individual zebras in photos and identify the species. </p>
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/detectionZebra.jpg" />
+		  	
+  	
+  	<h3 class="section-header">Step 2. Algorithms and Neural Networks Identify Individuals</h3>
+  	<p class="lead">When we know where each animal is, we can identify them individually using algorithms that make digital "fingerprints" for each animal, such as identifying them by their unique stripes. We replace hours of human labor with just a few minutes of computer vision, scanning for matches across tens of thousands of photos.</p>
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/matches.jpg" />
+		
+		
+	<h3 class="section-header">Step 3. Population Dynamics Define Conservation Action</h3>
+  	<p class="lead">If we can quickly track individuals in a population, we can model size and migration to generate new insights and support rapid, data-driven conservation action.</p>
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/action.jpg" />
+
+
 
 </section>
 
@@ -557,8 +573,12 @@ finally{
 
 
 <div class="container-fluid">
-    <section class="container main-section">
 
+
+    <section class="container main-section">
+ <%
+    if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+    %>
         <!-- Complete header for adoption section in index properties file -->
         <%=props.getProperty("adoptionHeader") %>
         <section class="adopt-section row">
@@ -603,9 +623,13 @@ finally{
 
 
         </section>
+         <hr/>
+        <%
+    }
+        %>
 
 
-        <hr/>
+       
         <%= props.getProperty("donationText") %>
     </section>
 </div>
