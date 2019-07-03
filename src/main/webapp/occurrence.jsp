@@ -429,7 +429,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 		    
 		    <td class="lineitem">
 		    	<%if (enc.hasMarkedIndividual()) {%>
-		    	<a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
+		    	<a href="individuals.jsp?id=<%=enc.getIndividualID()%>"><%=enc.getIndividual().getDisplayName(request)%></a>
 		    	<%}else{%>
 		    		&nbsp;
 		    	<%}%>
