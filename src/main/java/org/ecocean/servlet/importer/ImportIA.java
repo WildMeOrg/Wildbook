@@ -192,6 +192,16 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
                     continue;
                 }
                 Encounter enc = new Encounter(ann);
+                String sex = null;
+                try {
+                    sex = IBEISIA.iaSexFromAnnotUUID(ann.getAcmId(), context);
+                } catch (Exception ex) {}
+                Double age = null;
+                try {
+                    age = IBEISIA.iaAgeFromAnnotUUID(ann.getAcmId(), context);
+                } catch (Exception ex) {}
+                if (age != null) enc.setAge(age);
+                if (sex != null) enc.setSex(sex);
                 enc.setTaxonomy(IBEISIA.iaClassToTaxonomy(ann.getIAClass(), myShepherd));
                 enc.setMatchedBy("IBEIS IA");
                 enc.setState("approved");
@@ -263,6 +273,7 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
                 age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getAcmId(), context);
             } catch (Exception ex) {}
             if (age != null) enc.setAge(age);
+            if (sex != null) enc.setSex(sex);
             myShepherd.beginDBTransaction();
             myShepherd.storeNewEncounter(enc, Util.generateUUID());
             myShepherd.commitDBTransaction();
